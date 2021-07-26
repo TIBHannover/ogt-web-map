@@ -14,6 +14,8 @@ let map = L.map('leafletMapId', {
 // add layers control to switch between different base layers and switch overlays on/off
 L.control.layers(baseLayers).addTo(map);
 
+map.zoomControl.setPosition('topright');
+
 // add scale control using metric system
 L.control.scale({
     imperial: false,
