@@ -16,11 +16,6 @@ mix.js('resources/js/app.js', 'public/js')
         //
     ]);
 
-mix.js('resources/js/map.js', 'public/js')
-    .postCss('resources/css/map.css', 'public/css', [
-        //
-    ]);
-
 mix.js('./node_modules/leaflet/dist/leaflet.js', 'public/js')
     .postCss('./node_modules/leaflet/dist/leaflet.css', 'public/css', [
         //
