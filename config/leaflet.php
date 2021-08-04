@@ -1,8 +1,10 @@
 <?php
-// Leaflet-providers preview: http://leaflet-extras.github.io/leaflet-providers/preview/index.html
+
 return [
-    'center' => [52.377132041829874, 9.727402178803096],
+    // geographical center Lower Saxony
+    'center' => [52.8398667, 9.0759744],
     'initialLayerName' => 'OSM default',
+    // Leaflet-providers preview: http://leaflet-extras.github.io/leaflet-providers/preview/index.html
     'tileLayerProviders' => [
         'OSM default' => [
             'urlTemplate' => 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
