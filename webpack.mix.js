@@ -21,3 +21,7 @@ mix.js('./node_modules/leaflet/dist/leaflet.js', 'public/js')
     .postCss('./node_modules/leaflet/dist/leaflet.css', 'public/css', [
         //
     ]);
+
+if (mix.inProduction()) {
+    mix.version();
+}
