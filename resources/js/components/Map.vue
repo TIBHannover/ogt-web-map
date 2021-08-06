@@ -132,8 +132,9 @@ export default {
 @import '/public/css/leaflet.css';
 
 #leafletMapId {
+    height: 100%;
     position: absolute;
     width: 100%;
-    height: 100%;
+    z-index: 3;
 }
 </style>
