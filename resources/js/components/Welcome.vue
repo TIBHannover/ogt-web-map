@@ -1,9 +1,20 @@
 <template>
-    <div>
-        <div>
-            <h1>Orte des Gestapoterrors im heutigen Niedersachsen</h1>
+    <v-container fill-height
+                 fluid
+                 class="red justify-center"
+    >
+        <div class="text-center">
+            <p class="text-h1">
+                Orte des Gestapoterrors
+            </p>
+            <p class="text-subtitle-1">
+                im heutigen Niedersachsen
+            </p>
             <a href="https://www.tib.eu/de/forschung-entwicklung/projektuebersicht/projektsteckbrief/ogt-orte-des-gestapoterrors"
-               target="_blank">Projektsteckbrief</a>
+               target="_blank"
+            >
+                Projektsteckbrief
+            </a>
         </div>
-    </div>
+    </v-container>
 </template>
