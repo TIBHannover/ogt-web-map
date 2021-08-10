@@ -12,4 +12,5 @@ export const routes = [
         path: '/map',
         component: Map,
     },
+    {path: '*', redirect: '/'}
 ];
