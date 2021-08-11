@@ -1,10 +1,10 @@
 <template>
     <v-container fill-height
                  fluid
-                 class="red justify-center"
+                 class="green lighten-4 justify-center"
     >
         <div class="text-center">
-            <p class="text-h1">
+            <p class="text-h3 text-sm-h1">
                 Orte des Gestapoterrors
             </p>
             <p class="text-subtitle-1">
