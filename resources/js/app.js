@@ -21,7 +21,7 @@ const router = new VueRouter({
 
 const app = new Vue({
     el: '#app',
+    render: h => h(App),
     router: router,
     vuetify: new Vuetify(),
-    render: h => h(App),
 });

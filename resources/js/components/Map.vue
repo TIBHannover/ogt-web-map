@@ -50,14 +50,14 @@
 import '/js/leaflet.js';
 
 export default {
-    name: "Map",
+    name: 'Map',
     data() {
         return {
             isMapOptionsDisplayed: false,
             layers: null,
             map: null,
             places: [],
-        }
+        };
     },
     created() {
         this.getPlaces();
@@ -94,7 +94,7 @@ export default {
             await this.axios.get('/wikidata/places').then(response => {
                 this.displayGestapoMarkers(response.data.results.bindings);
             }).catch(error => {
-                console.log(error)
+                console.log(error);
             });
         },
         displayGestapoMarkers: function (places) {
@@ -151,9 +151,9 @@ export default {
 
             this.layers.addOverlay(gestapoPlacesLayerGroup, 'OGT-places');
             gestapoPlacesLayerGroup.addTo(this.map);
-        }
+        },
     },
-}
+};
 </script>
 
 <style>

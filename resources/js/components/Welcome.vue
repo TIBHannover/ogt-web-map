@@ -1,7 +1,8 @@
 <template>
-    <v-container fill-height
-                 fluid
-                 class="green lighten-4 justify-center"
+    <v-container
+        class="green lighten-4 justify-center"
+        fill-height
+        fluid
     >
         <div class="text-center">
             <p class="text-h3 text-sm-h1">
@@ -18,3 +19,13 @@
         </div>
     </v-container>
 </template>
+
+<script>
+export default {
+    name: 'Welcome',
+};
+</script>
+
+<style scoped>
+
+</style>
