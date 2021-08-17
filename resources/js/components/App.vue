@@ -1,22 +1,24 @@
 <template>
-    <main>
-        <nav>
-            <div>
-                <router-link to="/" href="#">OGT</router-link>
-                <div>
-                    <div>
-                        <router-link to="/">Welcome</router-link>
-                        <router-link to="/map">Map</router-link>
-                    </div>
-                </div>
-            </div>
-        </nav>
-        <div>
+    <v-app>
+        <navigation-sidebar></navigation-sidebar>
+        <v-main>
             <router-view></router-view>
-        </div>
-    </main>
+        </v-main>
+    </v-app>
 </template>
 
 <script>
-export default {}
+import NavigationSidebar from './navigation/NavigationSidebar';
+
+export default {
+    name: 'App',
+    components: {NavigationSidebar},
+};
 </script>
+
+<style>
+/* moved v-navigation-drawer over v-btn having z-index 4 */
+.v-navigation-drawer--absolute {
+    z-index: 5;
+}
+</style>

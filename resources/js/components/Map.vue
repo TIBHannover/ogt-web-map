@@ -1,18 +1,25 @@
 <template>
-    <div id="leafletMapId"></div>
+    <div>
+        <map-options-sidebar></map-options-sidebar>
+
+        <!-- leaflet map -->
+        <div id="leafletMapId"></div>
+    </div>
 </template>
 
 <script>
-import '/js/leaflet.js';
+import Leaflet from '/js/leaflet.js';
+import MapOptionsSidebar from './map/MapOptionsSidebar';
 
 export default {
-    name: "Map",
+    name: 'Map',
+    components: {Leaflet, MapOptionsSidebar},
     data() {
         return {
-            places: [],
             layers: null,
             map: null,
-        }
+            places: [],
+        };
     },
     created() {
         this.getPlaces();
@@ -49,7 +56,7 @@ export default {
             await this.axios.get('/wikidata/places').then(response => {
                 this.displayGestapoMarkers(response.data.results.bindings);
             }).catch(error => {
-                console.log(error)
+                console.log(error);
             });
         },
         displayGestapoMarkers: function (places) {
@@ -106,9 +113,9 @@ export default {
 
             this.layers.addOverlay(gestapoPlacesLayerGroup, 'OGT-places');
             gestapoPlacesLayerGroup.addTo(this.map);
-        }
+        },
     },
-}
+};
 </script>
 
 <style>
@@ -126,14 +133,21 @@ export default {
     cursor: pointer;
     font-size: 20px;
 }
+
+/* top-right Leaflet control */
+.leaflet-top.leaflet-right {
+    margin-top: 80px;
+    margin-right: 10px;
+}
 </style>
 
 <style scoped>
 @import '/public/css/leaflet.css';
 
 #leafletMapId {
+    height: 100%;
     position: absolute;
     width: 100%;
-    height: 100%;
+    z-index: 0;
 }
 </style>
