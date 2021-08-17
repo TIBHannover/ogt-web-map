@@ -18,6 +18,7 @@
             absolute
             class="blue accent-1"
             hide-overlay
+            mobile-breakpoint="750"
             right
             width="375px"
             v-model="isMapOptionsDisplayed"
