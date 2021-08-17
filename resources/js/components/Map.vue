@@ -1,45 +1,6 @@
 <template>
     <div>
-        <!-- button to map options menu -->
-        <v-btn
-            id="mapOptionsMenuButtonId"
-            absolute
-            fab
-            class="mt-5"
-            color="primary"
-            right
-            v-show="!isMapOptionsDisplayed"
-            @click.stop="isMapOptionsDisplayed = !isMapOptionsDisplayed"
-        >
-            <v-icon>mdi-tune</v-icon>
-        </v-btn>
-
-        <!-- menu content -->
-        <v-navigation-drawer
-            absolute
-            disable-route-watcher
-            hide-overlay
-            right
-            class="blue accent-1"
-            width="375px"
-            v-model="isMapOptionsDisplayed"
-        >
-            <!-- menu header -->
-            <v-list-item>
-                <v-list-item-content>
-                    <v-list-item-title class="text-h5">Karten Einstellungen</v-list-item-title>
-                </v-list-item-content>
-                <v-list-item-action>
-                    <v-btn
-                        icon
-                        @click.stop="isMapOptionsDisplayed = !isMapOptionsDisplayed"
-                    >
-                        <v-icon>mdi-close</v-icon>
-                    </v-btn>
-                </v-list-item-action>
-            </v-list-item>
-            <v-divider></v-divider>
-        </v-navigation-drawer>
+        <map-options-sidebar></map-options-sidebar>
 
         <!-- leaflet map -->
         <div id="leafletMapId"></div>
@@ -47,13 +8,14 @@
 </template>
 
 <script>
-import '/js/leaflet.js';
+import Leaflet from '/js/leaflet.js';
+import MapOptionsSidebar from './map/MapOptionsSidebar';
 
 export default {
     name: 'Map',
+    components: {Leaflet, MapOptionsSidebar},
     data() {
         return {
-            isMapOptionsDisplayed: false,
             layers: null,
             map: null,
             places: [],
