@@ -21,7 +21,6 @@
             width="375px"
             v-model="isMenuDisplayed"
             :disable-route-watcher="$vuetify.breakpoint.smAndUp"
-            :temporary="$vuetify.breakpoint.xsOnly"
         >
             <!-- navigation header -->
             <v-list-item>

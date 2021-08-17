@@ -17,7 +17,6 @@
         <v-navigation-drawer
             absolute
             class="blue accent-1"
-            disable-route-watcher
             hide-overlay
             right
             width="375px"
