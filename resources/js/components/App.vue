@@ -15,3 +15,10 @@ export default {
     components: {NavigationSidebar},
 };
 </script>
+
+<style>
+/* moved v-navigation-drawer over v-btn having z-index 4 */
+.v-navigation-drawer--absolute {
+    z-index: 5;
+}
+</style>
