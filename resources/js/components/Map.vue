@@ -92,7 +92,7 @@ export default {
                         ${place.itemInstanceLabelConcat.value}
                     </div>
                     <br>
-                    ${place.itemDescription.value}`;
+                    ${place.itemDescription ? place.itemDescription.value : ''}`;
 
                 marker.bindPopup(markerPopUpHtmlTemplate, {
                     minWidth: 333,
