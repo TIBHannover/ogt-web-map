@@ -19,6 +19,28 @@ export default {
             layers: null,
             map: null,
             places: [],
+            placesLayerGroupsConfig: {
+                fieldOffices: {
+                    layerName: 'Außendienststelle',
+                    iconUrl: '/images/leaflet/marker-icon.png',
+                },
+                extPolicePrisonsAndLaborEducationCamps: {
+                    layerName: 'Erweitertes Polizeigefängnis/AEL',
+                    iconUrl: '/images/leaflet/marker-icon-purple.png',
+                },
+                prisons: {
+                    layerName: 'Gefängnis',
+                    iconUrl: '/images/leaflet/marker-icon-green.png',
+                },
+                statePoliceHeadquarters: {
+                    layerName: 'Staatspolizeileitstelle',
+                    iconUrl: '/images/leaflet/marker-icon-red.png',
+                },
+                statePoliceOffices: {
+                    layerName: 'Staatspolizeistelle',
+                    iconUrl: '/images/leaflet/marker-icon-yellow.png',
+                },
+            },
         };
     },
     created() {
@@ -54,16 +76,23 @@ export default {
         },
         async getPlaces() {
             await this.axios.get('/wikidata/places').then(response => {
-                this.displayGestapoMarkers(response.data.results.bindings);
+                this.visualizePlaces(response.data);
             }).catch(error => {
                 console.log(error);
             });
         },
-        displayGestapoMarkers: function (places) {
-            let gestapoPlacesLayerGroup = L.layerGroup();
+        visualizePlaces: function (placeGroups) {
+            for (const [placeGroupName, places] of Object.entries(placeGroups)) {
+                let placeMarkers = this.createPlaceMarkers(placeGroupName, places);
 
-            let defaultIcon = L.icon({
-                iconUrl: '/images/vendor/leaflet/dist/marker-icon.png',
+                this.createPlacesLayerGroups(placeGroupName, placeMarkers);
+            }
+        },
+        createPlaceMarkers: function (placeGroupName, places) {
+            let placeMarkers = [];
+
+            const defaultIcon = L.icon({
+                iconUrl: this.placesLayerGroupsConfig[placeGroupName].iconUrl,
                 iconRetinaUrl: '/images/leaflet/marker-icon-2x.png',
                 shadowUrl: '/images/leaflet/marker-shadow.png',
                 iconSize: [25, 41],
@@ -89,7 +118,7 @@ export default {
                         </button>
                     </div>
                     <div class="popUpTopicCategory">
-                        ${place.itemInstanceLabelConcat.value}
+                        ${place.instanceLabels.value}
                     </div>
                     <br>
                     ${place.itemDescription ? place.itemDescription.value : ''}`;
@@ -108,11 +137,22 @@ export default {
                     };
                 });
 
-                gestapoPlacesLayerGroup.addLayer(marker);
+                placeMarkers.push(marker);
             });
 
-            this.layers.addOverlay(gestapoPlacesLayerGroup, 'OGT-places');
-            gestapoPlacesLayerGroup.addTo(this.map);
+            return placeMarkers;
+        },
+        /**
+         * Create a layer group for markers, activate layer group on map and
+         * add layer group checkbox at Leaflet layer control.
+         *
+         * @param string placeGroupName Layer name.
+         * @param array placeMarkers Leaflet markers.
+         */
+        createPlacesLayerGroups: function (placeGroupName, placeMarkers) {
+            let layerGroup = L.layerGroup(placeMarkers);
+            layerGroup.addTo(this.map);
+            this.layers.addOverlay(layerGroup, this.placesLayerGroupsConfig[placeGroupName].layerName);
         },
     },
 };
