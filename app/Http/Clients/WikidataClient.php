@@ -15,20 +15,23 @@ class WikidataClient
 {
     /**
      * Get places of Gestapo terror from Wikidata.
+     *
+     * @return array
      */
-    public function queryPlaces()
+    public function queryPlaces() : array
     {
         $query = '
             SELECT
                 ?item
                 ?itemLabel
                 ?itemDescription
-                (GROUP_CONCAT(DISTINCT ?itemInstanceLabel ; separator=", ") as ?itemInstanceLabelConcat)
+                (GROUP_CONCAT(DISTINCT ?instance ; separator="|") as ?instanceUrls)
+                (GROUP_CONCAT(DISTINCT ?instanceLabel ; separator=", ") as ?instanceLabels)
                 ?lat
                 ?lng
             WHERE {
                 ?item wdt:P31 wd:Q106996250;
-                    wdt:P31 ?itemInstance;
+                    wdt:P31 ?instance;
                     p:P625 ?itemGeo.
                 ?itemGeo psv:P625 ?geoNode.
                 ?geoNode wikibase:geoLatitude ?lat;
@@ -37,7 +40,7 @@ class WikidataClient
                     bd:serviceParam wikibase:language "de".
                     ?item rdfs:label ?itemLabel.
                     ?item schema:description ?itemDescription.
-                    ?itemInstance rdfs:label ?itemInstanceLabel.
+                    ?instance rdfs:label ?instanceLabel.
                 }
             }
             GROUP BY ?item ?itemLabel ?itemDescription ?lat ?lng
