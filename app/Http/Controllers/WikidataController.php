@@ -11,12 +11,12 @@ class WikidataController extends Controller
     {
         $places = $wikidataClient->queryPlaces();
 
-        $responseStatus = Response::HTTP_OK;
-
         if (empty($places)) {
-            $responseStatus = Response::HTTP_NO_CONTENT;
+            return response([], Response::HTTP_NO_CONTENT);
         }
 
-        return response($places, $responseStatus);
+        $groupedPlaces = $wikidataClient->groupPlacesByType($places);
+
+        return response($groupedPlaces, Response::HTTP_OK);
     }
 }
