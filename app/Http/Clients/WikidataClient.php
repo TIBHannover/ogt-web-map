@@ -53,9 +53,9 @@ class WikidataClient
      * Send request to Wikidata.
      *
      * @param string $query
-     * @return mixed
+     * @return array
      */
-    public function requestWikidata(string $query)
+    public function requestWikidata(string $query) : array
     {
         $query = preg_replace('/\s\s+/', ' ', trim($query));
 
@@ -63,8 +63,9 @@ class WikidataClient
             ->get(config('wikidata.url'), ['query' => $query,]);
 
         if ($response->ok()) {
-            return $response->json();
-        } else {
+            return $response->json()['results']['bindings'];
+        }
+        else {
             $exceptionLog = [];
 
             if (! is_null($response->toException())) {
