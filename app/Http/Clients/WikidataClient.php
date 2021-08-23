@@ -14,6 +14,23 @@ use Illuminate\Support\Facades\Log;
 class WikidataClient
 {
     /**
+     * Groups of Wikidata Q-Ids of place instances.
+     */
+    const PLACE_GROUPS_IDS = [
+        'fieldOffices'                           => [
+            'Q108047541',
+            'Q108047989',
+            'Q108047676',
+            'Q108047833',
+            'Q108047775',
+        ],
+        'extPolicePrisonsAndLaborEducationCamps' => ['Q277565', 'Q108047650', 'Q108048094'],
+        'prisons'                                => ['Q40357'],
+        'statePoliceHeadquarters'                => ['Q108047581'],
+        'statePoliceOffices'                     => ['Q108048310', 'Q2101520', 'Q108047567'],
+    ];
+
+    /**
      * Get places of Gestapo terror from Wikidata.
      *
      * @return array
@@ -102,12 +119,6 @@ class WikidataClient
      */
     public function groupPlacesByType(array $places) : array
     {
-        $fieldOfficesGroup = ['Q108047541', 'Q108047989', 'Q108047676', 'Q108047833', 'Q108047775'];
-        $extPolicePrisonsAndLaborEducationCampsGroup = ['Q277565', 'Q108047650', 'Q108048094'];
-        $prisonsGroup = ['Q40357'];
-        $statePoliceHeadquartersGroup = ['Q108047581'];
-        $statePoliceOfficesGroup = ['Q108048310', 'Q2101520', 'Q108047567'];
-
         $groupedPlaces = [
             'fieldOffices'                           => [],
             'extPolicePrisonsAndLaborEducationCamps' => [],
@@ -121,27 +132,21 @@ class WikidataClient
             $instanceQIds = str_replace('http://www.wikidata.org/entity/', '', $instanceUrls);
             $instanceQIdsArray = explode('|', $instanceQIds);
 
-            if (count(array_intersect($instanceQIdsArray, $statePoliceOfficesGroup)) > 0) {
-                $groupedPlaces['statePoliceOffices'][] = $place;
+            $foundGroupForPlace = false;
+
+            foreach ($groupedPlaces as $groupedPlaceName => $groupedPlace) {
+                if (count(array_intersect($instanceQIdsArray, self::PLACE_GROUPS_IDS[$groupedPlaceName])) > 0) {
+                    $groupedPlaces[$groupedPlaceName][] = $place;
+                    $foundGroupForPlace = true;
+                }
             }
-            elseif (count(array_intersect($instanceQIdsArray, $extPolicePrisonsAndLaborEducationCampsGroup)) > 0) {
-                $groupedPlaces['extPolicePrisonsAndLaborEducationCamps'][] = $place;
-            }
-            elseif (count(array_intersect($instanceQIdsArray, $fieldOfficesGroup)) > 0) {
-                $groupedPlaces['fieldOffices'][] = $place;
-            }
-            elseif (count(array_intersect($instanceQIdsArray, $prisonsGroup)) > 0) {
-                $groupedPlaces['prisons'][] = $place;
-            }
-            elseif (count(array_intersect($instanceQIdsArray, $statePoliceHeadquartersGroup)) > 0) {
-                $groupedPlaces['statePoliceHeadquarters'][] = $place;
-            }
-            else {
+
+            if (! $foundGroupForPlace) {
                 Log::warning(
                     'The location cannot be assigned to a map marker category based on its Wikidata instances.',
                     [
-                        'placeQId'     => place['item']['value'],
                         'instanceQIds' => $instanceUrls,
+                        'placeQId'     => $place['item']['value'],
                     ]
                 );
             }
