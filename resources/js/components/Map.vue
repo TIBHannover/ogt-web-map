@@ -1,6 +1,6 @@
 <template>
     <div>
-        <map-options-sidebar></map-options-sidebar>
+        <map-options-sidebar :map="map" :places="places"></map-options-sidebar>
 
         <!-- leaflet map -->
         <div id="leafletMapId"></div>
