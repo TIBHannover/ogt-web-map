@@ -63,7 +63,7 @@
 
             <general-info-sub-menu
                 v-show="['generalInfoSubMenu', 'imprintView', 'dataProtectionView'].includes(activeMenu)"
-                :activeMenu="activeMenu"
+                :active-menu="activeMenu"
                 @setActiveMenu="activeMenu = $event"
             ></general-info-sub-menu>
         </v-navigation-drawer>

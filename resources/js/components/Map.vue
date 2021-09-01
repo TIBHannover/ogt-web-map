@@ -1,6 +1,6 @@
 <template>
     <div>
-        <map-options-sidebar></map-options-sidebar>
+        <map-options-sidebar :map="map" :places="places"></map-options-sidebar>
 
         <!-- leaflet map -->
         <div id="leafletMapId"></div>
@@ -76,10 +76,12 @@ export default {
         },
         async getPlaces() {
             await this.axios.get('/wikidata/places').then(response => {
-                this.visualizePlaces(response.data);
+                this.places = response.data;
             }).catch(error => {
                 console.log(error);
             });
+
+            this.visualizePlaces(this.places);
         },
         visualizePlaces: function (placeGroups) {
             for (const [placeGroupName, places] of Object.entries(placeGroups)) {
