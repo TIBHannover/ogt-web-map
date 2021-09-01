@@ -82,7 +82,7 @@
 
                 <!-- place select options -->
                 <v-tab-item>
-                    <v-subheader class="text-uppercase">#List options tab</v-subheader>
+                    <places-selection :map="map" :places="places"></places-selection>
                 </v-tab-item>
             </v-tabs-items>
         </v-navigation-drawer>
@@ -91,10 +91,12 @@
 
 <script>
 import DateRange from './options/DateRange';
+import PlacesSelection from './options/PlacesSelection';
 
 export default {
     name: 'MapOptionsSidebar',
-    components: {DateRange},
+    components: {DateRange, PlacesSelection},
+    props: ['map', 'places'],
     data() {
         return {
             activeTab: 0,
