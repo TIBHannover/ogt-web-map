@@ -21,27 +21,37 @@ export default {
         return {
             groupedPlaces: {
                 extPolicePrisonsAndLaborEducationCamps: {
+                    color: '#743aaf',
                     iconUrl: '/images/leaflet/marker-icon-purple.png',
+                    layerGroup: null,
                     layerName: 'Erweiterte Polizeigefängnisse/AELs',
                     places: [],
                 },
                 fieldOffices: {
+                    color: '#2b83cb',
                     iconUrl: '/images/leaflet/marker-icon.png',
+                    layerGroup: null,
                     layerName: 'Außendienststellen',
                     places: [],
                 },
                 prisons: {
+                    color: '#38ab3e',
                     iconUrl: '/images/leaflet/marker-icon-green.png',
+                    layerGroup: null,
                     layerName: 'Gefängnisse',
                     places: [],
                 },
                 statePoliceHeadquarters: {
+                    color: '#af3a3a',
                     iconUrl: '/images/leaflet/marker-icon-red.png',
+                    layerGroup: null,
                     layerName: 'Staatspolizeileitstellen',
                     places: [],
                 },
                 statePoliceOffices: {
+                    color: '#bcbb29',
                     iconUrl: '/images/leaflet/marker-icon-yellow.png',
+                    layerGroup: null,
                     layerName: 'Staatspolizeistellen',
                     places: [],
                 },
@@ -169,6 +179,7 @@ export default {
             let layerGroup = L.layerGroup(placeMarkers);
             layerGroup.addTo(this.map);
             this.layers.addOverlay(layerGroup, this.groupedPlaces[placeGroupName].layerName);
+            this.groupedPlaces[placeGroupName].layerGroup = layerGroup;
         },
     },
 };
