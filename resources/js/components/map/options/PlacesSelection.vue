@@ -2,15 +2,15 @@
     <v-container fluid>
         <v-subheader>Liste der Gestapo Terror Orte</v-subheader>
         <v-autocomplete
-            v-for="(placeGroup, index) in places"
+            v-for="(group, groupName) in groupedPlaces"
             v-model="selectedPlace"
             class="mx-4"
             color="green lighten-1"
             dense
             item-text="itemLabel.value"
-            :items="placeGroup"
-            :key="index"
-            :label="placeLayerGroups[index].layerName"
+            :items="group.places"
+            :key="groupName"
+            :label="group.layerName"
             outlined
             return-object
             rounded
@@ -21,27 +21,10 @@
 <script>
 export default {
     name: 'PlacesSelection',
-    props: ['map', 'places'],
+    props: ['groupedPlaces', 'map'],
     data() {
         return {
             selectedPlace: null,
-            placeLayerGroups: {
-                fieldOffices: {
-                    layerName: 'Außendienststellen',
-                },
-                extPolicePrisonsAndLaborEducationCamps: {
-                    layerName: 'Erweiterte Polizeigefängnisse/AELs',
-                },
-                prisons: {
-                    layerName: 'Gefängnisse',
-                },
-                statePoliceHeadquarters: {
-                    layerName: 'Staatspolizeileitstellen',
-                },
-                statePoliceOffices: {
-                    layerName: 'Staatspolizeistellen',
-                },
-            },
         };
     },
     watch: {
