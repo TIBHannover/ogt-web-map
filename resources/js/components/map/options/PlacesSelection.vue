@@ -1,16 +1,32 @@
 <template>
     <v-container fluid>
-        <v-subheader>Liste der Gestapo Terror Orte</v-subheader>
-        <v-autocomplete
-            v-for="(placeGroup, index) in places"
-            v-model="selectedPlace"
+        <v-checkbox
+            v-for="(group, groupName) in groupedPlaces"
+            v-model="checkedPlaceLayerGroups"
             class="mx-4"
+            :color="group.color"
+            dense
+            hide-details
+            :key="groupName + '-checkbox'"
+            :label="group.layerName"
+            :value="groupName"
+        ></v-checkbox>
+
+        <v-divider class="my-2"></v-divider>
+
+        <v-subheader>Erfasste Gestapo Terror Orte</v-subheader>
+        <v-autocomplete
+            v-for="(group, groupName) in groupedPlaces"
+            v-model="selectedPlace"
+            v-show="checkedPlaceLayerGroups.includes(groupName)"
+            class="mx-4 my-2"
             color="green lighten-1"
             dense
+            hide-details
             item-text="itemLabel.value"
-            :items="placeGroup"
-            :key="index"
-            :label="placeLayerGroups[index].layerName"
+            :items="group.places"
+            :key="groupName"
+            :label="group.layerName"
             outlined
             return-object
             rounded
@@ -21,38 +37,51 @@
 <script>
 export default {
     name: 'PlacesSelection',
-    props: ['map', 'places'],
+    props: ['groupedPlaces', 'map'],
     data() {
         return {
+            checkedPlaceLayerGroups: [
+                'extPolicePrisonsAndLaborEducationCamps',
+                'fieldOffices',
+                'prisons',
+                'statePoliceHeadquarters',
+                'statePoliceOffices',
+            ],
             selectedPlace: null,
-            placeLayerGroups: {
-                fieldOffices: {
-                    layerName: 'Außendienststellen',
-                },
-                extPolicePrisonsAndLaborEducationCamps: {
-                    layerName: 'Erweiterte Polizeigefängnisse/AELs',
-                },
-                prisons: {
-                    layerName: 'Gefängnisse',
-                },
-                statePoliceHeadquarters: {
-                    layerName: 'Staatspolizeileitstellen',
-                },
-                statePoliceOffices: {
-                    layerName: 'Staatspolizeistellen',
-                },
-            },
         };
     },
     watch: {
+        /**
+         * Start fly & zoom-in animation to selected place.
+         *
+         * @param newSelectedPlace
+         * @param oldSelectedPlace
+         */
         selectedPlace(newSelectedPlace, oldSelectedPlace) {
             this.map.flyTo([newSelectedPlace.lat.value, newSelectedPlace.lng.value], 18);
+        },
+
+        /**
+         * Show/Hide enabled/disabled place layer groups on map.
+         *
+         * @param newCheckedPlaceLayerGroups
+         * @param oldCheckedPlaceLayerGroups
+         */
+        checkedPlaceLayerGroups(newCheckedPlaceLayerGroups, oldCheckedPlaceLayerGroups) {
+            for (const [group, places] of Object.entries(this.groupedPlaces)) {
+                if (newCheckedPlaceLayerGroups.includes(group)) {
+                    this.groupedPlaces[group].layerGroup.addTo(this.map);
+                } else {
+                    this.groupedPlaces[group].layerGroup.remove();
+                }
+            }
         },
     },
 };
 </script>
 
 <style>
+/* set width of drop-down-lists of selectable places */
 .v-autocomplete__content {
     max-width: 307px;
 }

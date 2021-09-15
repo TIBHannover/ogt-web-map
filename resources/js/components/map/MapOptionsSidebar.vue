@@ -82,7 +82,10 @@
 
                 <!-- place select options -->
                 <v-tab-item>
-                    <places-selection :map="map" :places="places"></places-selection>
+                    <places-selection
+                        :groupedPlaces="groupedPlaces"
+                        :map="map">
+                    </places-selection>
                 </v-tab-item>
             </v-tabs-items>
         </v-navigation-drawer>
@@ -96,7 +99,7 @@ import PlacesSelection from './options/PlacesSelection';
 export default {
     name: 'MapOptionsSidebar',
     components: {DateRange, PlacesSelection},
-    props: ['map', 'places'],
+    props: ['groupedPlaces', 'map'],
     data() {
         return {
             activeTab: 0,
