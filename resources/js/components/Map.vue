@@ -20,6 +20,13 @@ export default {
     data() {
         return {
             groupedPlaces: {
+                events: {
+                    color: '#D26211',
+                    iconUrl: '/images/leaflet/marker-icon-orange.png',
+                    layerGroup: null,
+                    layerName: 'Ereignisse',
+                    places: [],
+                },
                 extPolicePrisonsAndLaborEducationCamps: {
                     color: '#743aaf',
                     iconUrl: '/images/leaflet/marker-icon-purple.png',
