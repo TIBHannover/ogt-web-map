@@ -1,12 +1,13 @@
 <template>
     <v-container fluid>
-        <v-subheader>Liste der Gestapo Terror Orte</v-subheader>
+        <v-subheader>Erfasste Gestapo Terror Orte</v-subheader>
         <v-autocomplete
             v-for="(group, groupName) in groupedPlaces"
             v-model="selectedPlace"
-            class="mx-4"
+            class="mx-4 my-2"
             color="green lighten-1"
             dense
+            hide-details
             item-text="itemLabel.value"
             :items="group.places"
             :key="groupName"
@@ -28,6 +29,12 @@ export default {
         };
     },
     watch: {
+        /**
+         * Start fly & zoom-in animation to selected place.
+         *
+         * @param newSelectedPlace
+         * @param oldSelectedPlace
+         */
         selectedPlace(newSelectedPlace, oldSelectedPlace) {
             this.map.flyTo([newSelectedPlace.lat.value, newSelectedPlace.lng.value], 18);
         },
@@ -36,6 +43,7 @@ export default {
 </script>
 
 <style>
+/* set width of drop-down-lists of selectable places */
 .v-autocomplete__content {
     max-width: 307px;
 }
