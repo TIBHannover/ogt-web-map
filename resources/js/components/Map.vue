@@ -1,6 +1,9 @@
 <template>
     <div>
-        <map-options-sidebar :map="map" :places="places"></map-options-sidebar>
+        <map-options-sidebar
+            :groupedPlaces="groupedPlaces"
+            :map="map">
+        </map-options-sidebar>
 
         <!-- leaflet map -->
         <div id="leafletMapId"></div>
@@ -16,35 +19,49 @@ export default {
     components: {Leaflet, MapOptionsSidebar},
     data() {
         return {
-            layers: null,
-            map: null,
-            places: [],
-            placesLayerGroupsConfig: {
-                fieldOffices: {
-                    layerName: 'Außendienststelle',
-                    iconUrl: '/images/leaflet/marker-icon.png',
-                },
+            groupedPlaces: {
                 extPolicePrisonsAndLaborEducationCamps: {
-                    layerName: 'Erweitertes Polizeigefängnis/AEL',
+                    color: '#743aaf',
                     iconUrl: '/images/leaflet/marker-icon-purple.png',
+                    layerGroup: null,
+                    layerName: 'Erweiterte Polizeigefängnisse/AELs',
+                    places: [],
+                },
+                fieldOffices: {
+                    color: '#2b83cb',
+                    iconUrl: '/images/leaflet/marker-icon.png',
+                    layerGroup: null,
+                    layerName: 'Außendienststellen',
+                    places: [],
                 },
                 prisons: {
-                    layerName: 'Gefängnis',
+                    color: '#38ab3e',
                     iconUrl: '/images/leaflet/marker-icon-green.png',
+                    layerGroup: null,
+                    layerName: 'Gefängnisse',
+                    places: [],
                 },
                 statePoliceHeadquarters: {
-                    layerName: 'Staatspolizeileitstelle',
+                    color: '#af3a3a',
                     iconUrl: '/images/leaflet/marker-icon-red.png',
+                    layerGroup: null,
+                    layerName: 'Staatspolizeileitstellen',
+                    places: [],
                 },
                 statePoliceOffices: {
-                    layerName: 'Staatspolizeistelle',
+                    color: '#bcbb29',
                     iconUrl: '/images/leaflet/marker-icon-yellow.png',
+                    layerGroup: null,
+                    layerName: 'Staatspolizeistellen',
+                    places: [],
                 },
             },
+            layers: null,
+            map: null,
         };
     },
     created() {
-        this.getPlaces();
+        this.getGroupedPlaces();
     },
     mounted() {
         this.setupLeafletMap();
@@ -74,27 +91,34 @@ export default {
                 imperial: false,
             }).addTo(this.map);
         },
-        async getPlaces() {
+        /**
+         * Request grouped places of Gestapo terror.
+         */
+        async getGroupedPlaces() {
+            let groupedPlaces = {};
+
             await this.axios.get('/wikidata/places').then(response => {
-                this.places = response.data;
+                groupedPlaces = response.data;
             }).catch(error => {
                 console.log(error);
             });
 
-            this.visualizePlaces(this.places);
+            this.visualizePlaces(groupedPlaces);
         },
-        visualizePlaces: function (placeGroups) {
-            for (const [placeGroupName, places] of Object.entries(placeGroups)) {
-                let placeMarkers = this.createPlaceMarkers(placeGroupName, places);
+        visualizePlaces: function (groupedPlaces) {
+            for (const [group, places] of Object.entries(groupedPlaces)) {
+                this.groupedPlaces[group]['places'] = places;
 
-                this.createPlacesLayerGroups(placeGroupName, placeMarkers);
+                let placeMarkers = this.createPlaceMarkers(group, places);
+
+                this.createPlacesLayerGroups(group, placeMarkers);
             }
         },
         createPlaceMarkers: function (placeGroupName, places) {
             let placeMarkers = [];
 
             const defaultIcon = L.icon({
-                iconUrl: this.placesLayerGroupsConfig[placeGroupName].iconUrl,
+                iconUrl: this.groupedPlaces[placeGroupName].iconUrl,
                 iconRetinaUrl: '/images/leaflet/marker-icon-2x.png',
                 shadowUrl: '/images/leaflet/marker-shadow.png',
                 iconSize: [25, 41],
@@ -154,7 +178,8 @@ export default {
         createPlacesLayerGroups: function (placeGroupName, placeMarkers) {
             let layerGroup = L.layerGroup(placeMarkers);
             layerGroup.addTo(this.map);
-            this.layers.addOverlay(layerGroup, this.placesLayerGroupsConfig[placeGroupName].layerName);
+            this.layers.addOverlay(layerGroup, this.groupedPlaces[placeGroupName].layerName);
+            this.groupedPlaces[placeGroupName].layerGroup = layerGroup;
         },
     },
 };
