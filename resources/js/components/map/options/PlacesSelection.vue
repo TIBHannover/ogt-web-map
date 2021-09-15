@@ -41,6 +41,7 @@ export default {
     data() {
         return {
             checkedPlaceLayerGroups: [
+                'events',
                 'extPolicePrisonsAndLaborEducationCamps',
                 'fieldOffices',
                 'prisons',

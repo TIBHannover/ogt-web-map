@@ -17,6 +17,8 @@ class WikidataClient
      * Groups of Wikidata Q-Ids of place instances.
      */
     const PLACE_GROUPS_IDS = [
+        'events'                                 => [],
+        'extPolicePrisonsAndLaborEducationCamps' => ['Q277565', 'Q108047650', 'Q108048094'],
         'fieldOffices'                           => [
             'Q108047541',
             'Q108047989',
@@ -24,7 +26,6 @@ class WikidataClient
             'Q108047833',
             'Q108047775',
         ],
-        'extPolicePrisonsAndLaborEducationCamps' => ['Q277565', 'Q108047650', 'Q108048094'],
         'prisons'                                => ['Q40357'],
         'statePoliceHeadquarters'                => ['Q108047581'],
         'statePoliceOffices'                     => ['Q108048310', 'Q2101520', 'Q108047567'],
@@ -108,8 +109,9 @@ class WikidataClient
 
     /**
      * Group Wikidata places by
-     * - Field Offices
+     * - Events
      * - Extended police prisons / Labor education camps
+     * - Field Offices
      * - Prisons
      * - State Police Headquarters
      * - State Police Offices
@@ -120,8 +122,9 @@ class WikidataClient
     public function groupPlacesByType(array $places) : array
     {
         $groupedPlaces = [
-            'fieldOffices'                           => [],
+            'events'                                 => [],
             'extPolicePrisonsAndLaborEducationCamps' => [],
+            'fieldOffices'                           => [],
             'prisons'                                => [],
             'statePoliceHeadquarters'                => [],
             'statePoliceOffices'                     => [],
