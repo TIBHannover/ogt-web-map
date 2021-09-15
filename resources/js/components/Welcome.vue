@@ -1,6 +1,6 @@
 <template>
     <v-container
-        class="green lighten-4 justify-center"
+        class="blue-grey lighten-2 justify-center"
         fill-height
         fluid
     >
