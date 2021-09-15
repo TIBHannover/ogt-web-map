@@ -1,22 +1,27 @@
 <template>
     <v-container
-        class="green lighten-4 justify-center"
+        class="blue-grey lighten-2 justify-center"
         fill-height
         fluid
     >
-        <div class="text-center">
-            <p class="text-h3 text-sm-h1">
-                Orte des Gestapoterrors
-            </p>
-            <p class="text-subtitle-1">
-                im heutigen Niedersachsen
-            </p>
-            <a href="https://www.tib.eu/de/forschung-entwicklung/projektuebersicht/projektsteckbrief/ogt-orte-des-gestapoterrors"
-               target="_blank"
-            >
-                Projektsteckbrief
-            </a>
-        </div>
+        <v-row>
+            <v-col>
+                <v-img
+                    class="mb-10 mx-auto"
+                    max-width="1150"
+                    src="/images/de/banner.jpg"
+                ></v-img>
+                <div class="text-center">
+                    <a
+                        class="white--text"
+                        href="https://www.tib.eu/de/forschung-entwicklung/projektuebersicht/projektsteckbrief/ogt-orte-des-gestapoterrors"
+                        target="_blank"
+                    >
+                        Projektsteckbrief
+                    </a>
+                </div>
+            </v-col>
+        </v-row>
     </v-container>
 </template>
 
