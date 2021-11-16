@@ -70,11 +70,6 @@
                     <v-subheader class="text-uppercase">#Layers options tab</v-subheader>
                 </v-tab-item>
 
-                <!-- place groups options -->
-                <v-tab-item>
-                    <v-subheader class="text-uppercase">#Categories options tab</v-subheader>
-                </v-tab-item>
-
                 <!-- time period options -->
                 <v-tab-item>
                     <date-range></date-range>
@@ -108,10 +103,6 @@ export default {
                 {
                     name: 'Layers',
                     icon: 'mdi-layers',
-                },
-                {
-                    name: 'Kategorien',
-                    icon: 'mdi-select-group',
                 },
                 {
                     name: 'Zeitraum',
