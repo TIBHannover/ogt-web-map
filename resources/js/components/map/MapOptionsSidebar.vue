@@ -67,7 +67,7 @@
             >
                 <!-- layers options -->
                 <v-tab-item>
-                    <v-subheader class="text-uppercase">#Layers options tab</v-subheader>
+                    <layer-options></layer-options>
                 </v-tab-item>
 
                 <!-- time period options -->
@@ -89,11 +89,12 @@
 
 <script>
 import DateRange from './options/DateRange';
+import LayerOptions from './options/LayerOptions';
 import PlacesSelection from './options/PlacesSelection';
 
 export default {
     name: 'MapOptionsSidebar',
-    components: {DateRange, PlacesSelection},
+    components: {DateRange, LayerOptions, PlacesSelection},
     props: ['groupedPlaces', 'map'],
     data() {
         return {
