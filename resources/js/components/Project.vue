@@ -18,19 +18,18 @@
             <v-carousel-item v-for="(slide, index) in slides" :key="index">
                 <v-sheet color="blue-grey lighten-2" height="100%" tile>
                     <v-row align="center" class="fill-height" justify="center">
-                        <div class="text-center">
-                            <v-col v-if="slide.image">
-                                <!-- @todo image width not auto resize -->
-                                <v-img class="mx-auto" max-width="1150" :src="slide.image"></v-img>
-                            </v-col>
-                            <p v-if="slide.header" class="text-h1 mb-10"> {{ slide.header }} </p>
-                            <ul v-if="slide.listItems" class="text-h4 text-left mx-100">
+                        <v-col v-if="slide.image" class="px-70">
+                            <v-img class="mx-auto" max-width="1150" :src="slide.image"></v-img>
+                        </v-col>
+                        <div v-if="slide.header || slide.listItems" class="text-center">
+                            <p v-if="slide.header" class="text-h4 text-md-h1 mb-10 px-70"> {{ slide.header }} </p>
+                            <ul v-if="slide.listItems" class="text-md-h4 text-left mx-100">
                                 <template v-for="item in slide.listItems">
-                                    <li class="mt-5"> {{ item.text }}</li>
-                                    <ul v-if="item.listItems2ndLevel" class="text-h5 text-left">
+                                    <li class="mt-5"> {{ item.text }} </li>
+                                    <ul v-if="item.listItems2ndLevel" class="text-body-2 text-md-h5 text-left">
                                         <template v-for="subItem in item.listItems2ndLevel">
-                                            <li> {{ subItem.text }}</li>
-                                            <ul v-if="subItem.listItems3thLevel" class="text-h6 text-left">
+                                            <li> {{ subItem.text }} </li>
+                                            <ul v-if="subItem.listItems3thLevel" class="text-caption text-md-h6 text-left">
                                                 <li v-for="subItemSubText in subItem.listItems3thLevel">
                                                     {{ subItemSubText }}
                                                 </li>
@@ -291,5 +290,10 @@ export default {
 .mx-100 {
     margin-left: 100px;
     margin-right: 100px;
+}
+
+.px-70 {
+    padding-left: 70px;
+    padding-right: 70px;
 }
 </style>
