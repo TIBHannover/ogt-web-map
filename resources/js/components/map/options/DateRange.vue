@@ -62,8 +62,8 @@ export default {
                 },
             ],
             timePeriodOptions: ['Nicht eingeschränkt', '1933 ~ 1936', '1937 ~ 1939', '1939 ~ 1941', '1942 ~ 1945', 'Frei konfigurierbar'],
-            selectedTimePeriod: 0,
-            dateRange: ['1933-01-01', '1945-12-31'],
+            selectedTimePeriod: 5,
+            dateRange: ['1933-04-26', '1945-05-08'],
         };
     },
     computed: {
