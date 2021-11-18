@@ -6,20 +6,13 @@
     >
         <v-row>
             <v-col>
-                <v-img
-                    class="mb-10 mx-auto"
-                    max-width="1150"
-                    src="/images/de/banner.jpg"
-                ></v-img>
-                <div class="text-center">
-                    <a
-                        class="white--text"
-                        href="https://www.tib.eu/de/forschung-entwicklung/projektuebersicht/projektsteckbrief/ogt-orte-des-gestapoterrors"
-                        target="_blank"
-                    >
-                        Projektsteckbrief
-                    </a>
-                </div>
+                <a href="/map">
+                    <v-img
+                        class="mx-auto"
+                        max-width="1150"
+                        src="/images/de/banner.jpg">
+                    </v-img>
+                </a>
             </v-col>
         </v-row>
     </v-container>
