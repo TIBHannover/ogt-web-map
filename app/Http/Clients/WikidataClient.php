@@ -43,8 +43,8 @@ class WikidataClient
                 ?item
                 ?itemLabel
                 ?itemDescription
-                (GROUP_CONCAT(DISTINCT ?instance ; separator="|") as ?instanceUrls)
-                (GROUP_CONCAT(DISTINCT ?instanceLabel ; separator=", ") as ?instanceLabels)
+                (GROUP_CONCAT(DISTINCT ?instance ; separator="|") AS ?instanceUrls)
+                (GROUP_CONCAT(DISTINCT ?instanceLabel ; separator=", ") AS ?instanceLabels)
                 ?lat
                 ?lng
                 (SAMPLE(?image) AS ?imageUrl)

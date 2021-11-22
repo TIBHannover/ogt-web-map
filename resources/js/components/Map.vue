@@ -219,13 +219,13 @@ export default {
          * @param string layerName Name of layer group
          */
         setSelectedPlaceInfo: function (place, latLng, layerName) {
-            this.selectedPlaceInfo.label = place.itemLabel.value;
-            this.selectedPlaceInfo.wikidataItem = place.item.value;
             this.selectedPlaceInfo.description = place.itemDescription ? place.itemDescription.value : '';
             this.selectedPlaceInfo.imageUrl = place.imageUrl ? place.imageUrl.value : '';
             this.selectedPlaceInfo.instanceLabels = place.instanceLabels.value;
+            this.selectedPlaceInfo.label = place.itemLabel.value;
             this.selectedPlaceInfo.latLng = latLng;
             this.selectedPlaceInfo.layerName = layerName;
+            this.selectedPlaceInfo.wikidataItem = place.item.value;
         },
         /**
          * Create a layer group for markers, activate layer group on map and
