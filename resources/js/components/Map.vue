@@ -2,8 +2,16 @@
     <div>
         <map-options-sidebar
             :groupedPlaces="groupedPlaces"
-            :map="map">
-        </map-options-sidebar>
+            :map="map"
+        ></map-options-sidebar>
+
+        <place-info-sidebar
+            :selectedPlaceInfo="selectedPlaceInfo"
+            :showPlaceInfoSidebar="showPlaceInfoSidebar"
+            @hidePlaceInfoSidebar="toggleShowPlaceInfoSidebar(false)"
+            @undoZoomIntoPlace="restoreCachedMapView()"
+            @zoomIntoPlace="setMapView(selectedPlaceInfo.latLng, 18, true)"
+        ></place-info-sidebar>
 
         <!-- leaflet map -->
         <div id="leafletMapId"></div>
@@ -13,12 +21,21 @@
 <script>
 import Leaflet from '/js/leaflet.js';
 import MapOptionsSidebar from './map/MapOptionsSidebar';
+import PlaceInfoSidebar from './map/PlaceInfoSidebar';
 
 export default {
     name: 'Map',
-    components: {Leaflet, MapOptionsSidebar},
+    components: {Leaflet, MapOptionsSidebar, PlaceInfoSidebar},
     data() {
         return {
+            cachedMapView: {
+                // Leaflet LatLng geographical point object
+                latLng: {
+                    lat: 0,
+                    lng: 0,
+                },
+                zoomLevel: 0,
+            },
             groupedPlaces: {
                 events: {
                     color: '#D26211',
@@ -65,6 +82,19 @@ export default {
             },
             layers: null,
             map: null,
+            selectedPlaceInfo: {
+                description: '',
+                instanceLabels: '',
+                label: '',
+                // Leaflet LatLng geographical point object
+                latLng: {
+                    lat: 0,
+                    lng: 0,
+                },
+                layerName: '',
+                wikidataItem: '',
+            },
+            showPlaceInfoSidebar: false,
         };
     },
     created() {
@@ -87,6 +117,8 @@ export default {
                 zoom: configLeaflet.zoom,
                 layers: [baseLayers[configLeaflet.initialLayerName]],
             });
+
+            this.setCachedMapView();
 
             // add layers control to switch between different base layers and switch overlays on/off
             this.layers = L.control.layers(baseLayers).addTo(this.map);
@@ -161,6 +193,9 @@ export default {
                 });
 
                 marker.on('click', event => {
+                    this.setSelectedPlaceInfo(place, event.latlng, this.groupedPlaces[placeGroupName].layerName);
+                    this.toggleShowPlaceInfoSidebar(true);
+
                     const zoomInButton = marker.getPopup().getElement().getElementsByClassName('zoomInButton')[0];
 
                     let vm = this;
@@ -176,6 +211,21 @@ export default {
             return placeMarkers;
         },
         /**
+         * Set selected place info.
+         *
+         * @param object place Wikidata place data
+         * @param object latLng Leaflet LatLng geographical point object
+         * @param string layerName Name of layer group
+         */
+        setSelectedPlaceInfo: function (place, latLng, layerName) {
+            this.selectedPlaceInfo.label = place.itemLabel.value;
+            this.selectedPlaceInfo.wikidataItem = place.item.value;
+            this.selectedPlaceInfo.description = place.itemDescription ? place.itemDescription.value : '';
+            this.selectedPlaceInfo.instanceLabels = place.instanceLabels.value;
+            this.selectedPlaceInfo.latLng = latLng;
+            this.selectedPlaceInfo.layerName = layerName;
+        },
+        /**
          * Create a layer group for markers, activate layer group on map and
          * add layer group checkbox at Leaflet layer control.
          *
@@ -187,6 +237,41 @@ export default {
             layerGroup.addTo(this.map);
             this.layers.addOverlay(layerGroup, this.groupedPlaces[placeGroupName].layerName);
             this.groupedPlaces[placeGroupName].layerGroup = layerGroup;
+        },
+        /**
+         * Show/Hide place info sidebar.
+         *
+         * @param bool status Show or hide place info sidebar.
+         */
+        toggleShowPlaceInfoSidebar: function (status) {
+            this.showPlaceInfoSidebar = status;
+        },
+        /**
+         * Switch to cached map view.
+         */
+        restoreCachedMapView: function () {
+            this.setMapView(this.cachedMapView.latLng, this.cachedMapView.zoomLevel);
+        },
+        /**
+         * Fly to new map view and optionally cache the current map view.
+         *
+         * @param object latLng
+         * @param int zoomLevel
+         * @param bool cacheCurrentMapView
+         */
+        setMapView: function (latLng, zoomLevel, cacheCurrentMapView = false) {
+            if (cacheCurrentMapView) {
+                this.setCachedMapView();
+            }
+
+            this.map.flyTo(latLng, zoomLevel);
+        },
+        /**
+         * Cache current map view (latitude, longitude, zoom-level).
+         */
+        setCachedMapView: function () {
+            this.cachedMapView.latLng = this.map.getCenter();
+            this.cachedMapView.zoomLevel = this.map.getZoom();
         },
     },
 };
