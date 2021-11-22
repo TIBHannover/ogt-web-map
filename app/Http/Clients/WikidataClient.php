@@ -47,6 +47,7 @@ class WikidataClient
                 (GROUP_CONCAT(DISTINCT ?instanceLabel ; separator=", ") as ?instanceLabels)
                 ?lat
                 ?lng
+                (SAMPLE(?image) AS ?imageUrl)
             WHERE {
                 ?item wdt:P31 wd:Q106996250;
                     wdt:P31 ?instance;
@@ -54,6 +55,7 @@ class WikidataClient
                 ?itemGeo psv:P625 ?geoNode.
                 ?geoNode wikibase:geoLatitude ?lat;
                     wikibase:geoLongitude ?lng.
+                OPTIONAL { ?item wdt:P18 ?image }.
                 SERVICE wikibase:label {
                     bd:serviceParam wikibase:language "de".
                     ?item rdfs:label ?itemLabel.

@@ -84,6 +84,7 @@ export default {
             map: null,
             selectedPlaceInfo: {
                 description: '',
+                imageUrl: '',
                 instanceLabels: '',
                 label: '',
                 // Leaflet LatLng geographical point object
@@ -221,6 +222,7 @@ export default {
             this.selectedPlaceInfo.label = place.itemLabel.value;
             this.selectedPlaceInfo.wikidataItem = place.item.value;
             this.selectedPlaceInfo.description = place.itemDescription ? place.itemDescription.value : '';
+            this.selectedPlaceInfo.imageUrl = place.imageUrl ? place.imageUrl.value : '';
             this.selectedPlaceInfo.instanceLabels = place.instanceLabels.value;
             this.selectedPlaceInfo.latLng = latLng;
             this.selectedPlaceInfo.layerName = layerName;
