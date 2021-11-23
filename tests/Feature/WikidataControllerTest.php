@@ -66,6 +66,7 @@ class WikidataControllerTest extends TestCase
         ];
 
         $expectedResponse = [
+            'events'                                 => [],
             'fieldOffices'                           => [
                 $responseContentFake['results']['bindings'][2],
                 $responseContentFake['results']['bindings'][5],
@@ -170,6 +171,7 @@ class WikidataControllerTest extends TestCase
         ];
 
         $expectedResponse = [
+            'events'                                 => [],
             'fieldOffices'                           => [],
             'extPolicePrisonsAndLaborEducationCamps' => [],
             'prisons'                                => [],
