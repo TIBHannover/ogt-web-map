@@ -58,6 +58,7 @@ class WikidataControllerTest extends TestCase
                     'instanceLabels',
                     'lat',
                     'lng',
+                    'imageUrl',
                 ],
             ],
             'results' => [
@@ -110,29 +111,44 @@ class WikidataControllerTest extends TestCase
      */
     private function generatePlaceData(array $instanceQIds) : array
     {
-        $instanceQIds = substr_replace($instanceQIds, 'http://www.wikidata.org/entity/', 0, 0);
+        $instanceUrlQIds = substr_replace($instanceQIds, 'http://www.wikidata.org/entity/', 0, 0);
 
         return [
             'item'            => [
-                'value' => $this->faker->url,
+                'type'  => 'uri',
+                'value' => 'http://www.wikidata.org/entity/' . $this->faker->randomNumber(9),
             ],
             'itemLabel'       => [
-                'value' => $this->faker->word,
+                'type'     => 'literal',
+                'value'    => $this->faker->word,
+                'xml:lang' => 'de',
             ],
             'itemDescription' => [
-                'value' => $this->faker->sentence,
-            ],
-            'instanceUrls'    => [
-                'value' => implode('|', $instanceQIds),
-            ],
-            'instanceLabels'  => [
-                'value' => implode(',', $this->faker->words),
+                'type'     => 'literal',
+                'value'    => $this->faker->sentence,
+                'xml:lang' => 'de',
             ],
             'lat'             => [
-                'value' => $this->faker->latitude,
+                'datatype' => 'http://www.w3.org/2001/XMLSchema#double',
+                'type'     => 'literal',
+                'value'    => $this->faker->latitude,
             ],
             'lng'             => [
-                'value' => $this->faker->longitude,
+                'datatype' => 'http://www.w3.org/2001/XMLSchema#double',
+                'type'     => 'literal',
+                'value'    => $this->faker->longitude,
+            ],
+            'instanceUrls'    => [
+                'type'  => 'literal',
+                'value' => implode('|', $instanceUrlQIds),
+            ],
+            'instanceLabels'  => [
+                'type'  => 'literal',
+                'value' => implode(',', $this->faker->words),
+            ],
+            'imageUrl'        => [
+                'type'  => 'uri',
+                'value' => $this->faker->imageUrl,
             ],
         ];
     }
@@ -163,6 +179,7 @@ class WikidataControllerTest extends TestCase
                     'instanceLabels',
                     'lat',
                     'lng',
+                    'imageUrl',
                 ],
             ],
             'results' => [
@@ -226,7 +243,7 @@ class WikidataControllerTest extends TestCase
     public function testGetWikidataPlacesEmptyResponse()
     {
         $responseNoDataReturned = [
-            'head' => [
+            'head'    => [
                 'vars' => [
                     'item',
                     'itemLabel',
@@ -235,6 +252,7 @@ class WikidataControllerTest extends TestCase
                     'instanceLabels',
                     'lat',
                     'lng',
+                    'imageUrl',
                 ],
             ],
             'results' => [
