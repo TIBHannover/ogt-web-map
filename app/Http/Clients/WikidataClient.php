@@ -3,6 +3,7 @@
 
 namespace App\Http\Clients;
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -110,7 +111,7 @@ class WikidataClient
     }
 
     /**
-     * Group Wikidata places by
+     * Filter Wikidata place data and group places by
      * - Events
      * - Extended police prisons / Labor education camps
      * - Field Offices
@@ -121,7 +122,7 @@ class WikidataClient
      * @param array $places
      * @return array
      */
-    public function groupPlacesByType(array $places) : array
+    public function groupFilteredPlacesByType(array $places) : array
     {
         $groupedPlaces = [
             'events'                                 => [],
@@ -133,7 +134,9 @@ class WikidataClient
         ];
 
         foreach ($places as $place) {
-            $instanceUrls = $place['instanceUrls']['value'];
+            $filteredPlace = $this->filterPlaceData($place);
+
+            $instanceUrls = $filteredPlace['instanceUrls']['value'];
             $instanceQIds = str_replace('http://www.wikidata.org/entity/', '', $instanceUrls);
             $instanceQIdsArray = explode('|', $instanceQIds);
 
@@ -141,7 +144,7 @@ class WikidataClient
 
             foreach ($groupedPlaces as $groupedPlaceName => $groupedPlace) {
                 if (count(array_intersect($instanceQIdsArray, self::PLACE_GROUPS_IDS[$groupedPlaceName])) > 0) {
-                    $groupedPlaces[$groupedPlaceName][] = $place;
+                    $groupedPlaces[$groupedPlaceName][] = $filteredPlace;
                     $foundGroupForPlace = true;
                 }
             }
@@ -151,12 +154,27 @@ class WikidataClient
                     'The location cannot be assigned to a map marker category based on its Wikidata instances.',
                     [
                         'instanceQIds' => $instanceUrls,
-                        'placeQId'     => $place['item']['value'],
+                        'placeQId'     => $filteredPlace['item']['value'],
                     ]
                 );
             }
         }
 
         return $groupedPlaces;
+    }
+
+    /**
+     * Filter place data values.
+     *
+     * @param array $place
+     * @return array
+     */
+    private function filterPlaceData(array $place) : array
+    {
+        foreach ($place as $key => $placeData) {
+            $place[$key] = Arr::only($placeData, 'value');
+        }
+
+        return $place;
     }
 }

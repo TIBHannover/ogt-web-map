@@ -15,7 +15,7 @@ class WikidataController extends Controller
             return response([], Response::HTTP_NO_CONTENT);
         }
 
-        $groupedPlaces = $wikidataClient->groupPlacesByType($places);
+        $groupedPlaces = $wikidataClient->groupFilteredPlacesByType($places);
 
         return response($groupedPlaces, Response::HTTP_OK);
     }
