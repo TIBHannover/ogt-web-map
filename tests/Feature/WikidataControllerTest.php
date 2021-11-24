@@ -27,7 +27,8 @@ class WikidataControllerTest extends TestCase
      */
     public function testGetWikidataPlacesSuccess()
     {
-        $placeData = [];
+        $placeDataArray = [];
+        $expectedFilteredPlaceData = [];
 
         $testCases = [
             [Arr::random(WikidataClient::PLACE_GROUPS_IDS['statePoliceOffices'])],
@@ -45,7 +46,17 @@ class WikidataControllerTest extends TestCase
         ];
 
         foreach ($testCases as $testCase) {
-            $placeData[] = $this->generatePlaceData($testCase + ['Q123456789']);
+            $placeData = $this->generatePlaceData($testCase + ['Q123456789']);
+
+            $placeDataArray[] = $placeData;
+
+            foreach ($placeData as $key => $data) {
+                $placeData[$key] = [
+                    'value' => $data['value'],
+                ];
+            }
+
+            $expectedFilteredPlaceData[] = $placeData;
         }
 
         $responseContentFake = [
@@ -62,31 +73,31 @@ class WikidataControllerTest extends TestCase
                 ],
             ],
             'results' => [
-                'bindings' => $placeData,
+                'bindings' => $placeDataArray,
             ],
         ];
 
         $expectedResponse = [
             'events'                                 => [],
             'fieldOffices'                           => [
-                $responseContentFake['results']['bindings'][2],
-                $responseContentFake['results']['bindings'][5],
+                $expectedFilteredPlaceData[2],
+                $expectedFilteredPlaceData[5],
             ],
             'extPolicePrisonsAndLaborEducationCamps' => [
-                $responseContentFake['results']['bindings'][3],
-                $responseContentFake['results']['bindings'][5],
+                $expectedFilteredPlaceData[3],
+                $expectedFilteredPlaceData[5],
             ],
             'prisons'                                => [
-                $responseContentFake['results']['bindings'][1],
-                $responseContentFake['results']['bindings'][5],
+                $expectedFilteredPlaceData[1],
+                $expectedFilteredPlaceData[5],
             ],
             'statePoliceHeadquarters'                => [
-                $responseContentFake['results']['bindings'][4],
-                $responseContentFake['results']['bindings'][5],
+                $expectedFilteredPlaceData[4],
+                $expectedFilteredPlaceData[5],
             ],
             'statePoliceOffices'                     => [
-                $responseContentFake['results']['bindings'][0],
-                $responseContentFake['results']['bindings'][5],
+                $expectedFilteredPlaceData[0],
+                $expectedFilteredPlaceData[5],
             ],
         ];
 
@@ -158,7 +169,8 @@ class WikidataControllerTest extends TestCase
      */
     public function testPlaceToGroupAssignmentNotFound()
     {
-        $placeData = [];
+        $placeDataArray = [];
+        $expectedFilteredPlaceData = [];
 
         $testCases = [
             [Arr::random(WikidataClient::PLACE_GROUPS_IDS['statePoliceOffices'])],
@@ -166,7 +178,17 @@ class WikidataControllerTest extends TestCase
         ];
 
         foreach ($testCases as $testCase) {
-            $placeData[] = $this->generatePlaceData($testCase + ['Q123456789']);
+            $placeData = $this->generatePlaceData($testCase + ['Q123456789']);
+
+            $placeDataArray[] = $placeData;
+
+            foreach ($placeData as $key => $data) {
+                $placeData[$key] = [
+                    'value' => $data['value'],
+                ];
+            }
+
+            $expectedFilteredPlaceData[] = $placeData;
         }
 
         $responseContentFake = [
@@ -183,7 +205,7 @@ class WikidataControllerTest extends TestCase
                 ],
             ],
             'results' => [
-                'bindings' => $placeData,
+                'bindings' => $placeDataArray,
             ],
         ];
 
@@ -193,7 +215,7 @@ class WikidataControllerTest extends TestCase
             'extPolicePrisonsAndLaborEducationCamps' => [],
             'prisons'                                => [],
             'statePoliceHeadquarters'                => [],
-            'statePoliceOffices'                     => [$responseContentFake['results']['bindings'][0]],
+            'statePoliceOffices'                     => [$expectedFilteredPlaceData[0]],
         ];
 
         Http::fake(
