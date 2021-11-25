@@ -306,4 +306,102 @@ class WikidataControllerTest extends TestCase
         $this->get('/wikidata/places')
             ->assertNoContent();
     }
+
+    /**
+     * Provide test data for test case get-Wikidata-places-validation-for-properties.
+     *
+     * @return array \string[][][] Each test case has
+     * - an array of returned response place properties and
+     * - an array of expected failed validation messages.
+     */
+    public function providePlacePropertiesTestData() : array
+    {
+        return [
+            'removed property item' => [
+                [
+                    //'item',
+                    'itemLabel',
+                    'itemDescription',
+                    'instanceUrls',
+                    'instanceLabels',
+                    'lat',
+                    'lng',
+                    'imageUrl',
+                ],
+                [
+                    'The head.vars must contain 8 items.',
+                ],
+            ],
+            'added property item'   => [
+                [
+                    'test', // added
+                    'item',
+                    'itemLabel',
+                    'itemDescription',
+                    'instanceUrls',
+                    'instanceLabels',
+                    'lat',
+                    'lng',
+                    'imageUrl',
+                ],
+                [
+                    'The head.vars must contain 8 items.',
+                    'The selected head.vars is invalid.',
+                ],
+            ],
+            'renamed property item' => [
+                [
+                    'itemRenamed', // renamed
+                    'itemLabel',
+                    'itemDescription',
+                    'instanceUrls',
+                    'instanceLabels',
+                    'lat',
+                    'lng',
+                    'imageUrl',
+                ],
+                [
+                    'The selected head.vars is invalid.',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Test validation for queried Wikidata places, if place properties added, missed or modified.
+     *
+     * @dataProvider providePlacePropertiesTestData
+     *
+     * @param array $responsePlaceProperties Returned response place properties
+     * @param array $failedValidationMessages Expected failed validation messages
+     */
+    public function testGetWikidataPlacesValidationForProperties(
+        array $responsePlaceProperties,
+        array $failedValidationMessages
+    ) {
+        $placeData = $this->generatePlaceData([Arr::random(WikidataClient::PLACE_GROUPS_IDS['statePoliceOffices'])]);
+
+        $responseNoDataReturned = [
+            'head'    => [
+                'vars' => $responsePlaceProperties,
+            ],
+            'results' => [
+                'bindings' => [$placeData],
+            ],
+        ];
+
+        Http::fake(
+            [
+                config('wikidata.url') . '*' => Http::response($responseNoDataReturned, Response::HTTP_OK),
+            ]
+        );
+
+        Log::shouldReceive('warning')->once()->with(
+            'Validation of Wikidata places response failed.',
+            $failedValidationMessages
+        );
+
+        $this->get('/wikidata/places')
+            ->assertNoContent();
+    }
 }
