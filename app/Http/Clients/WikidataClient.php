@@ -33,6 +33,20 @@ class WikidataClient
     ];
 
     /**
+     * Properties of a queried Wikidata place.
+     */
+    const PLACE_PROPERTIES = [
+        'item',
+        'itemLabel',
+        'itemDescription',
+        'instanceUrls',
+        'instanceLabels',
+        'lat',
+        'lng',
+        'imageUrl',
+    ];
+
+    /**
      * Get places of Gestapo terror from Wikidata.
      *
      * @return array
@@ -84,7 +98,7 @@ class WikidataClient
             ->get(config('wikidata.url'), ['query' => $query,]);
 
         if ($response->ok()) {
-            return $response->json()['results']['bindings'];
+            return $response->json();
         }
         else {
             $exceptionLog = [];
