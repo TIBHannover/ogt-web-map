@@ -142,12 +142,12 @@ class WikidataControllerTest extends TestCase
             'lat'             => [
                 'datatype' => 'http://www.w3.org/2001/XMLSchema#double',
                 'type'     => 'literal',
-                'value'    => $this->faker->latitude,
+                'value'    => strval($this->faker->latitude),
             ],
             'lng'             => [
                 'datatype' => 'http://www.w3.org/2001/XMLSchema#double',
                 'type'     => 'literal',
-                'value'    => $this->faker->longitude,
+                'value'    => strval($this->faker->longitude),
             ],
             'instanceUrls'    => [
                 'type'  => 'literal',
@@ -227,8 +227,8 @@ class WikidataControllerTest extends TestCase
         Log::shouldReceive('warning')->once()->with(
             'The location cannot be assigned to a map marker category based on its Wikidata instances.',
             [
-                'instanceQIds' => $responseContentFake['results']['bindings'][1]['instanceUrls']['value'],
-                'placeQId'     => $responseContentFake['results']['bindings'][1]['item']['value'],
+                'instanceQIds' => $expectedFilteredPlaceData[1]['instanceUrls']['value'],
+                'placeQId'     => $expectedFilteredPlaceData[1]['item']['value'],
             ]
         );
 
@@ -251,6 +251,16 @@ class WikidataControllerTest extends TestCase
         );
 
         Log::shouldReceive('error')->twice();
+
+        Log::shouldReceive('warning')->twice()->with(
+            'Validation of Wikidata places response failed.',
+            [
+                'The head field is required.',
+                'The head.vars field is required.',
+                'The results field is required.',
+                'The results.bindings field is required.',
+            ]
+        );
 
         $this->get('/wikidata/places')
             ->assertNoContent();
@@ -286,6 +296,11 @@ class WikidataControllerTest extends TestCase
             [
                 config('wikidata.url') . '*' => Http::response($responseNoDataReturned, Response::HTTP_OK),
             ]
+        );
+
+        Log::shouldReceive('warning')->once()->with(
+            'Validation of Wikidata places response failed.',
+            ['The results.bindings field is required.']
         );
 
         $this->get('/wikidata/places')
