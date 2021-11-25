@@ -3,6 +3,7 @@
 
 namespace App\Http\Clients;
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -32,6 +33,20 @@ class WikidataClient
     ];
 
     /**
+     * Properties of a queried Wikidata place.
+     */
+    const PLACE_PROPERTIES = [
+        'item',
+        'itemLabel',
+        'itemDescription',
+        'instanceUrls',
+        'instanceLabels',
+        'lat',
+        'lng',
+        'imageUrl',
+    ];
+
+    /**
      * Get places of Gestapo terror from Wikidata.
      *
      * @return array
@@ -43,10 +58,11 @@ class WikidataClient
                 ?item
                 ?itemLabel
                 ?itemDescription
-                (GROUP_CONCAT(DISTINCT ?instance ; separator="|") as ?instanceUrls)
-                (GROUP_CONCAT(DISTINCT ?instanceLabel ; separator=", ") as ?instanceLabels)
+                (GROUP_CONCAT(DISTINCT ?instance ; separator="|") AS ?instanceUrls)
+                (GROUP_CONCAT(DISTINCT ?instanceLabel ; separator=", ") AS ?instanceLabels)
                 ?lat
                 ?lng
+                (SAMPLE(?image) AS ?imageUrl)
             WHERE {
                 ?item wdt:P31 wd:Q106996250;
                     wdt:P31 ?instance;
@@ -54,6 +70,7 @@ class WikidataClient
                 ?itemGeo psv:P625 ?geoNode.
                 ?geoNode wikibase:geoLatitude ?lat;
                     wikibase:geoLongitude ?lng.
+                OPTIONAL { ?item wdt:P18 ?image }.
                 SERVICE wikibase:label {
                     bd:serviceParam wikibase:language "de".
                     ?item rdfs:label ?itemLabel.
@@ -81,7 +98,7 @@ class WikidataClient
             ->get(config('wikidata.url'), ['query' => $query,]);
 
         if ($response->ok()) {
-            return $response->json()['results']['bindings'];
+            return $response->json();
         }
         else {
             $exceptionLog = [];
@@ -108,7 +125,7 @@ class WikidataClient
     }
 
     /**
-     * Group Wikidata places by
+     * Filter Wikidata place data and group places by
      * - Events
      * - Extended police prisons / Labor education camps
      * - Field Offices
@@ -119,7 +136,7 @@ class WikidataClient
      * @param array $places
      * @return array
      */
-    public function groupPlacesByType(array $places) : array
+    public function groupFilteredPlacesByType(array $places) : array
     {
         $groupedPlaces = [
             'events'                                 => [],
@@ -131,7 +148,9 @@ class WikidataClient
         ];
 
         foreach ($places as $place) {
-            $instanceUrls = $place['instanceUrls']['value'];
+            $filteredPlace = $this->filterPlaceData($place);
+
+            $instanceUrls = $filteredPlace['instanceUrls']['value'];
             $instanceQIds = str_replace('http://www.wikidata.org/entity/', '', $instanceUrls);
             $instanceQIdsArray = explode('|', $instanceQIds);
 
@@ -139,7 +158,7 @@ class WikidataClient
 
             foreach ($groupedPlaces as $groupedPlaceName => $groupedPlace) {
                 if (count(array_intersect($instanceQIdsArray, self::PLACE_GROUPS_IDS[$groupedPlaceName])) > 0) {
-                    $groupedPlaces[$groupedPlaceName][] = $place;
+                    $groupedPlaces[$groupedPlaceName][] = $filteredPlace;
                     $foundGroupForPlace = true;
                 }
             }
@@ -149,12 +168,27 @@ class WikidataClient
                     'The location cannot be assigned to a map marker category based on its Wikidata instances.',
                     [
                         'instanceQIds' => $instanceUrls,
-                        'placeQId'     => $place['item']['value'],
+                        'placeQId'     => $filteredPlace['item']['value'],
                     ]
                 );
             }
         }
 
         return $groupedPlaces;
+    }
+
+    /**
+     * Filter place data values.
+     *
+     * @param array $place
+     * @return array
+     */
+    private function filterPlaceData(array $place) : array
+    {
+        foreach ($place as $key => $placeData) {
+            $place[$key] = Arr::only($placeData, 'value');
+        }
+
+        return $place;
     }
 }
