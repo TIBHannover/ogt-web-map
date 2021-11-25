@@ -27,7 +27,8 @@ class WikidataControllerTest extends TestCase
      */
     public function testGetWikidataPlacesSuccess()
     {
-        $placeData = [];
+        $placeDataArray = [];
+        $expectedFilteredPlaceData = [];
 
         $testCases = [
             [Arr::random(WikidataClient::PLACE_GROUPS_IDS['statePoliceOffices'])],
@@ -45,7 +46,17 @@ class WikidataControllerTest extends TestCase
         ];
 
         foreach ($testCases as $testCase) {
-            $placeData[] = $this->generatePlaceData($testCase + ['Q123456789']);
+            $placeData = $this->generatePlaceData($testCase + ['Q123456789']);
+
+            $placeDataArray[] = $placeData;
+
+            foreach ($placeData as $key => $data) {
+                $placeData[$key] = [
+                    'value' => $data['value'],
+                ];
+            }
+
+            $expectedFilteredPlaceData[] = $placeData;
         }
 
         $responseContentFake = [
@@ -58,33 +69,35 @@ class WikidataControllerTest extends TestCase
                     'instanceLabels',
                     'lat',
                     'lng',
+                    'imageUrl',
                 ],
             ],
             'results' => [
-                'bindings' => $placeData,
+                'bindings' => $placeDataArray,
             ],
         ];
 
         $expectedResponse = [
+            'events'                                 => [],
             'fieldOffices'                           => [
-                $responseContentFake['results']['bindings'][2],
-                $responseContentFake['results']['bindings'][5],
+                $expectedFilteredPlaceData[2],
+                $expectedFilteredPlaceData[5],
             ],
             'extPolicePrisonsAndLaborEducationCamps' => [
-                $responseContentFake['results']['bindings'][3],
-                $responseContentFake['results']['bindings'][5],
+                $expectedFilteredPlaceData[3],
+                $expectedFilteredPlaceData[5],
             ],
             'prisons'                                => [
-                $responseContentFake['results']['bindings'][1],
-                $responseContentFake['results']['bindings'][5],
+                $expectedFilteredPlaceData[1],
+                $expectedFilteredPlaceData[5],
             ],
             'statePoliceHeadquarters'                => [
-                $responseContentFake['results']['bindings'][4],
-                $responseContentFake['results']['bindings'][5],
+                $expectedFilteredPlaceData[4],
+                $expectedFilteredPlaceData[5],
             ],
             'statePoliceOffices'                     => [
-                $responseContentFake['results']['bindings'][0],
-                $responseContentFake['results']['bindings'][5],
+                $expectedFilteredPlaceData[0],
+                $expectedFilteredPlaceData[5],
             ],
         ];
 
@@ -109,29 +122,44 @@ class WikidataControllerTest extends TestCase
      */
     private function generatePlaceData(array $instanceQIds) : array
     {
-        $instanceQIds = substr_replace($instanceQIds, 'http://www.wikidata.org/entity/', 0, 0);
+        $instanceUrlQIds = substr_replace($instanceQIds, 'http://www.wikidata.org/entity/', 0, 0);
 
         return [
             'item'            => [
-                'value' => $this->faker->url,
+                'type'  => 'uri',
+                'value' => 'http://www.wikidata.org/entity/' . $this->faker->randomNumber(9),
             ],
             'itemLabel'       => [
-                'value' => $this->faker->word,
+                'type'     => 'literal',
+                'value'    => $this->faker->word,
+                'xml:lang' => 'de',
             ],
             'itemDescription' => [
-                'value' => $this->faker->sentence,
-            ],
-            'instanceUrls'    => [
-                'value' => implode('|', $instanceQIds),
-            ],
-            'instanceLabels'  => [
-                'value' => implode(',', $this->faker->words),
+                'type'     => 'literal',
+                'value'    => $this->faker->sentence,
+                'xml:lang' => 'de',
             ],
             'lat'             => [
-                'value' => $this->faker->latitude,
+                'datatype' => 'http://www.w3.org/2001/XMLSchema#double',
+                'type'     => 'literal',
+                'value'    => strval($this->faker->latitude),
             ],
             'lng'             => [
-                'value' => $this->faker->longitude,
+                'datatype' => 'http://www.w3.org/2001/XMLSchema#double',
+                'type'     => 'literal',
+                'value'    => strval($this->faker->longitude),
+            ],
+            'instanceUrls'    => [
+                'type'  => 'literal',
+                'value' => implode('|', $instanceUrlQIds),
+            ],
+            'instanceLabels'  => [
+                'type'  => 'literal',
+                'value' => implode(',', $this->faker->words),
+            ],
+            'imageUrl'        => [
+                'type'  => 'uri',
+                'value' => $this->faker->imageUrl,
             ],
         ];
     }
@@ -141,7 +169,8 @@ class WikidataControllerTest extends TestCase
      */
     public function testPlaceToGroupAssignmentNotFound()
     {
-        $placeData = [];
+        $placeDataArray = [];
+        $expectedFilteredPlaceData = [];
 
         $testCases = [
             [Arr::random(WikidataClient::PLACE_GROUPS_IDS['statePoliceOffices'])],
@@ -149,7 +178,17 @@ class WikidataControllerTest extends TestCase
         ];
 
         foreach ($testCases as $testCase) {
-            $placeData[] = $this->generatePlaceData($testCase + ['Q123456789']);
+            $placeData = $this->generatePlaceData($testCase + ['Q123456789']);
+
+            $placeDataArray[] = $placeData;
+
+            foreach ($placeData as $key => $data) {
+                $placeData[$key] = [
+                    'value' => $data['value'],
+                ];
+            }
+
+            $expectedFilteredPlaceData[] = $placeData;
         }
 
         $responseContentFake = [
@@ -162,19 +201,21 @@ class WikidataControllerTest extends TestCase
                     'instanceLabels',
                     'lat',
                     'lng',
+                    'imageUrl',
                 ],
             ],
             'results' => [
-                'bindings' => $placeData,
+                'bindings' => $placeDataArray,
             ],
         ];
 
         $expectedResponse = [
+            'events'                                 => [],
             'fieldOffices'                           => [],
             'extPolicePrisonsAndLaborEducationCamps' => [],
             'prisons'                                => [],
             'statePoliceHeadquarters'                => [],
-            'statePoliceOffices'                     => [$responseContentFake['results']['bindings'][0]],
+            'statePoliceOffices'                     => [$expectedFilteredPlaceData[0]],
         ];
 
         Http::fake(
@@ -186,8 +227,8 @@ class WikidataControllerTest extends TestCase
         Log::shouldReceive('warning')->once()->with(
             'The location cannot be assigned to a map marker category based on its Wikidata instances.',
             [
-                'instanceQIds' => $responseContentFake['results']['bindings'][1]['instanceUrls']['value'],
-                'placeQId'     => $responseContentFake['results']['bindings'][1]['item']['value'],
+                'instanceQIds' => $expectedFilteredPlaceData[1]['instanceUrls']['value'],
+                'placeQId'     => $expectedFilteredPlaceData[1]['item']['value'],
             ]
         );
 
@@ -211,6 +252,16 @@ class WikidataControllerTest extends TestCase
 
         Log::shouldReceive('error')->twice();
 
+        Log::shouldReceive('warning')->twice()->with(
+            'Validation of Wikidata places response failed.',
+            [
+                'The head field is required.',
+                'The head.vars field is required.',
+                'The results field is required.',
+                'The results.bindings field is required.',
+            ]
+        );
+
         $this->get('/wikidata/places')
             ->assertNoContent();
 
@@ -224,7 +275,7 @@ class WikidataControllerTest extends TestCase
     public function testGetWikidataPlacesEmptyResponse()
     {
         $responseNoDataReturned = [
-            'head' => [
+            'head'    => [
                 'vars' => [
                     'item',
                     'itemLabel',
@@ -233,6 +284,7 @@ class WikidataControllerTest extends TestCase
                     'instanceLabels',
                     'lat',
                     'lng',
+                    'imageUrl',
                 ],
             ],
             'results' => [
@@ -244,6 +296,109 @@ class WikidataControllerTest extends TestCase
             [
                 config('wikidata.url') . '*' => Http::response($responseNoDataReturned, Response::HTTP_OK),
             ]
+        );
+
+        Log::shouldReceive('warning')->once()->with(
+            'Validation of Wikidata places response failed.',
+            ['The results.bindings field is required.']
+        );
+
+        $this->get('/wikidata/places')
+            ->assertNoContent();
+    }
+
+    /**
+     * Provide test data for test case get-Wikidata-places-validation-for-properties.
+     *
+     * @return array \string[][][] Each test case has
+     * - an array of returned response place properties and
+     * - an array of expected failed validation messages.
+     */
+    public function providePlacePropertiesTestData() : array
+    {
+        return [
+            'removed property item' => [
+                [
+                    //'item',
+                    'itemLabel',
+                    'itemDescription',
+                    'instanceUrls',
+                    'instanceLabels',
+                    'lat',
+                    'lng',
+                    'imageUrl',
+                ],
+                [
+                    'The head.vars must contain 8 items.',
+                ],
+            ],
+            'added property item'   => [
+                [
+                    'test', // added
+                    'item',
+                    'itemLabel',
+                    'itemDescription',
+                    'instanceUrls',
+                    'instanceLabels',
+                    'lat',
+                    'lng',
+                    'imageUrl',
+                ],
+                [
+                    'The head.vars must contain 8 items.',
+                    'The selected head.vars is invalid.',
+                ],
+            ],
+            'renamed property item' => [
+                [
+                    'itemRenamed', // renamed
+                    'itemLabel',
+                    'itemDescription',
+                    'instanceUrls',
+                    'instanceLabels',
+                    'lat',
+                    'lng',
+                    'imageUrl',
+                ],
+                [
+                    'The selected head.vars is invalid.',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Test validation for queried Wikidata places, if place properties added, missed or modified.
+     *
+     * @dataProvider providePlacePropertiesTestData
+     *
+     * @param array $responsePlaceProperties Returned response place properties
+     * @param array $failedValidationMessages Expected failed validation messages
+     */
+    public function testGetWikidataPlacesValidationForProperties(
+        array $responsePlaceProperties,
+        array $failedValidationMessages
+    ) {
+        $placeData = $this->generatePlaceData([Arr::random(WikidataClient::PLACE_GROUPS_IDS['statePoliceOffices'])]);
+
+        $responseNoDataReturned = [
+            'head'    => [
+                'vars' => $responsePlaceProperties,
+            ],
+            'results' => [
+                'bindings' => [$placeData],
+            ],
+        ];
+
+        Http::fake(
+            [
+                config('wikidata.url') . '*' => Http::response($responseNoDataReturned, Response::HTTP_OK),
+            ]
+        );
+
+        Log::shouldReceive('warning')->once()->with(
+            'Validation of Wikidata places response failed.',
+            $failedValidationMessages
         );
 
         $this->get('/wikidata/places')

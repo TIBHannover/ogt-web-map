@@ -29,6 +29,12 @@
 
             <v-divider></v-divider>
 
+            <!-- place sample image -->
+            <div v-show="selectedPlaceInfo.imageUrl">
+                <v-img max-height="250" :src="selectedPlaceInfo.imageUrl"></v-img>
+                <v-divider></v-divider>
+            </div>
+
             <!-- place coordinates and zoom-in-place icon -->
             <v-list-item dense>
                 <v-list-item-content>
