@@ -44,6 +44,14 @@ class WikidataClient
         'lat',
         'lng',
         'imageUrl',
+        'source',
+        'sourceAuthorLabel',
+        'sourceTitle',
+        'sourcePublisherCityLabel',
+        'sourcePublisherLabel',
+        'sourcePublicationYear',
+        'sourcePages',
+        'sourceDnbLink',
     ];
 
     /**
@@ -63,6 +71,14 @@ class WikidataClient
                 ?lat
                 ?lng
                 (SAMPLE(?image) AS ?imageUrl)
+                ?source
+                ?sourceAuthorLabel
+                ?sourceTitle
+                ?sourcePublisherCityLabel
+                ?sourcePublisherLabel
+                (YEAR(?sourcePublicationDate) AS ?sourcePublicationYear)
+                ?sourcePages
+                ?sourceDnbLink
             WHERE {
                 ?item wdt:P31 wd:Q106996250;
                     wdt:P31 ?instance;
@@ -71,14 +87,32 @@ class WikidataClient
                 ?geoNode wikibase:geoLatitude ?lat;
                     wikibase:geoLongitude ?lng.
                 OPTIONAL { ?item wdt:P18 ?image }.
+                OPTIONAL {
+                    ?item p:P1343 ?sourceStatement.
+                    ?sourceStatement ps:P1343 ?source.
+                    OPTIONAL { ?sourceStatement pq:P304 ?sourcePages }.
+                    OPTIONAL { ?source wdt:P1476 ?sourceTitle }.
+                    OPTIONAL { ?source wdt:P50 ?sourceAuthor }.
+                    OPTIONAL {
+                        ?source wdt:P123 ?sourcePublisher.
+                        OPTIONAL { ?sourcePublisher wdt:P131 ?sourcePublisherCity }.
+                    }.
+                    OPTIONAL { ?source wdt:P1292 ?sourceDnbLink }.
+                    OPTIONAL { ?source wdt:P577 ?sourcePublicationDate }.
+                }.
                 SERVICE wikibase:label {
                     bd:serviceParam wikibase:language "de".
                     ?item rdfs:label ?itemLabel.
                     ?item schema:description ?itemDescription.
                     ?instance rdfs:label ?instanceLabel.
+                    ?sourceAuthor rdfs:label ?sourceAuthorLabel.
+                    ?sourcePublisher rdfs:label ?sourcePublisherLabel.
+                    ?sourcePublisherCity rdfs:label ?sourcePublisherCityLabel.
                 }
             }
-            GROUP BY ?item ?itemLabel ?itemDescription ?lat ?lng
+            GROUP BY
+                ?item ?itemLabel ?itemDescription ?lat ?lng ?source ?sourceAuthorLabel ?sourceTitle
+                ?sourcePublisherCityLabel ?sourcePublisherLabel ?sourcePublicationDate ?sourcePages ?sourceDnbLink
             ORDER BY ?item';
 
         return $this->requestWikidata($query);
