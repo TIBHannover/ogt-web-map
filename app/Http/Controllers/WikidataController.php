@@ -15,8 +15,12 @@ class WikidataController extends Controller
 
         $validator = Validator::make($placesResponse, [
             'head'                       => 'required|array:vars|size:1',
-            'head.vars'                  =>
-                'required|array|size:8|in:' . implode(',', WikidataClient::PLACE_PROPERTIES),
+            'head.vars'                  => [
+                'required',
+                'array',
+                'size:' . count(WikidataClient::PLACE_PROPERTIES),
+                'in:' . implode(',', WikidataClient::PLACE_PROPERTIES),
+            ],
             'results'                    => 'required|array:bindings|size:1',
             'results.bindings'           => 'required|array',
             'results.bindings.*'         => 'required|array',
