@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Validator;
 
 class WikidataController extends Controller
 {
-    public function getPlaces(WikidataClient $wikidataClient)
+    public function getPlaces(WikidataClient $wikidataClient) : Response
     {
         $placesResponse = $wikidataClient->queryPlaces();
 
