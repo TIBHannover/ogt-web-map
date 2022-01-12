@@ -240,7 +240,7 @@ export default {
                     wikidataUrl: '',
                 }];
 
-                let sourceAuthorLabels = place.sourceAuthorLabels ? place.sourceAuthorLabels.value + ', ' : '';
+                let sourceAuthorLabels = place.sourceAuthorLabels.value ? place.sourceAuthorLabels.value + ', ' : '';
                 let sourceLabel = place.sourceLabel ? place.sourceLabel.value + '. ' : '';
                 let sourcePublisherCityLabel = place.sourcePublisherCityLabel ? place.sourcePublisherCityLabel.value + ': ' : '';
                 let sourcePublisherLabel = place.sourcePublisherLabel ? place.sourcePublisherLabel.value + ' ' : '';
