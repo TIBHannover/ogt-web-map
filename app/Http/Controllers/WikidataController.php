@@ -25,7 +25,7 @@ class WikidataController extends Controller
             'results.bindings'           => 'required|array',
             'results.bindings.*'         => 'required|array',
             'results.bindings.*.*'       => 'required|array',
-            'results.bindings.*.*.value' => 'required|string',
+            'results.bindings.*.*.value' => 'present|string',
         ]);
 
         if ($validator->fails()) {
