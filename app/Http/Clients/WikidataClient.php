@@ -46,7 +46,7 @@ class WikidataClient
         'imageUrl',
         'source',
         'sourceAuthorLabels',
-        'sourceTitle',
+        'sourceLabel',
         'sourcePublisherCityLabel',
         'sourcePublisherLabel',
         'sourcePublicationYear',
@@ -73,7 +73,7 @@ class WikidataClient
                 (SAMPLE(?image) AS ?imageUrl)
                 ?source
                 (GROUP_CONCAT(DISTINCT ?sourceAuthorLabel ; separator=" & ") AS ?sourceAuthorLabels)
-                ?sourceTitle
+                ?sourceLabel
                 ?sourcePublisherCityLabel
                 ?sourcePublisherLabel
                 (YEAR(?sourcePublicationDate) AS ?sourcePublicationYear)
@@ -91,7 +91,6 @@ class WikidataClient
                     ?item p:P1343 ?sourceStatement.
                     ?sourceStatement ps:P1343 ?source.
                     OPTIONAL { ?sourceStatement pq:P304 ?sourcePages }.
-                    OPTIONAL { ?source wdt:P1476 ?sourceTitle }.
                     OPTIONAL { ?source wdt:P50 ?sourceAuthor }.
                     OPTIONAL {
                         ?source wdt:P123 ?sourcePublisher.
@@ -105,13 +104,14 @@ class WikidataClient
                     ?item rdfs:label ?itemLabel.
                     ?item schema:description ?itemDescription.
                     ?instance rdfs:label ?instanceLabel.
+                    ?source rdfs:label ?sourceLabel.
                     ?sourceAuthor rdfs:label ?sourceAuthorLabel.
                     ?sourcePublisher rdfs:label ?sourcePublisherLabel.
                     ?sourcePublisherCity rdfs:label ?sourcePublisherCityLabel.
                 }
             }
             GROUP BY
-                ?item ?itemLabel ?itemDescription ?lat ?lng ?source ?sourceTitle ?sourcePublisherCityLabel
+                ?item ?itemLabel ?itemDescription ?lat ?lng ?source ?sourceLabel ?sourcePublisherCityLabel
                 ?sourcePublisherLabel ?sourcePublicationDate ?sourcePages ?sourceDnbLink
             ORDER BY ?item';
 

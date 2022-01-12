@@ -241,14 +241,14 @@ export default {
                 }];
 
                 let sourceAuthorLabels = place.sourceAuthorLabels ? place.sourceAuthorLabels.value + ', ' : '';
-                let sourceTitle = place.sourceTitle ? place.sourceTitle.value + '. ' : '';
+                let sourceLabel = place.sourceLabel ? place.sourceLabel.value + '. ' : '';
                 let sourcePublisherCityLabel = place.sourcePublisherCityLabel ? place.sourcePublisherCityLabel.value + ': ' : '';
                 let sourcePublisherLabel = place.sourcePublisherLabel ? place.sourcePublisherLabel.value + ' ' : '';
                 let sourcePublicationYear = place.sourcePublicationYear ? place.sourcePublicationYear.value + ', ' : '';
                 let sourcePages = place.sourcePages ? 'S. ' + place.sourcePages.value : '';
                 this.selectedPlaceInfo.sources[0].label =
                     sourceAuthorLabels +
-                    sourceTitle +
+                    sourceLabel +
                     sourcePublisherCityLabel +
                     sourcePublisherLabel +
                     sourcePublicationYear +
