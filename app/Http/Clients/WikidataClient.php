@@ -45,7 +45,7 @@ class WikidataClient
         'lng',
         'imageUrl',
         'source',
-        'sourceAuthorLabel',
+        'sourceAuthorLabels',
         'sourceTitle',
         'sourcePublisherCityLabel',
         'sourcePublisherLabel',
@@ -72,7 +72,7 @@ class WikidataClient
                 ?lng
                 (SAMPLE(?image) AS ?imageUrl)
                 ?source
-                ?sourceAuthorLabel
+                (GROUP_CONCAT(DISTINCT ?sourceAuthorLabel ; separator=" & ") AS ?sourceAuthorLabels)
                 ?sourceTitle
                 ?sourcePublisherCityLabel
                 ?sourcePublisherLabel
@@ -111,8 +111,8 @@ class WikidataClient
                 }
             }
             GROUP BY
-                ?item ?itemLabel ?itemDescription ?lat ?lng ?source ?sourceAuthorLabel ?sourceTitle
-                ?sourcePublisherCityLabel ?sourcePublisherLabel ?sourcePublicationDate ?sourcePages ?sourceDnbLink
+                ?item ?itemLabel ?itemDescription ?lat ?lng ?source ?sourceTitle ?sourcePublisherCityLabel
+                ?sourcePublisherLabel ?sourcePublicationDate ?sourcePages ?sourceDnbLink
             ORDER BY ?item';
 
         return $this->requestWikidata($query);
