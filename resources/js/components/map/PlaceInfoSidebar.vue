@@ -55,7 +55,7 @@
 
             <v-divider></v-divider>
 
-            <!-- brief description -->
+            <!-- Wikidata item brief description -->
             <v-list-item dense>
                 <v-list-item-content>
                     <v-list-item-title>Kurzbeschreibung</v-list-item-title>
@@ -67,7 +67,7 @@
 
             <v-divider></v-divider>
 
-            <!-- place is an instance of ... -->
+            <!-- place is an instance of - https://www.wikidata.org/wiki/Property:P31 -->
             <v-list-item dense>
                 <v-list-item-content>
                     <v-list-item-title>Instanz von</v-list-item-title>
