@@ -55,7 +55,7 @@
 
             <v-divider></v-divider>
 
-            <!-- brief description -->
+            <!-- Wikidata item brief description -->
             <v-list-item dense>
                 <v-list-item-content>
                     <v-list-item-title>Kurzbeschreibung</v-list-item-title>
@@ -67,12 +67,31 @@
 
             <v-divider></v-divider>
 
-            <!-- place is an instance of ... -->
+            <!-- place is an instance of - https://www.wikidata.org/wiki/Property:P31 -->
             <v-list-item dense>
                 <v-list-item-content>
                     <v-list-item-title>Instanz von</v-list-item-title>
                     <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
                         {{ selectedPlaceInfo.instanceLabels }}
+                    </v-list-item-subtitle>
+                </v-list-item-content>
+            </v-list-item>
+
+            <v-divider></v-divider>
+
+            <!-- place is described by source - https://www.wikidata.org/wiki/Property:P1343 -->
+            <v-list-item dense>
+                <v-list-item-content>
+                    <v-list-item-title>Nachweise/Quellen</v-list-item-title>
+                    <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                        <ul>
+                            <template v-for="source in selectedPlaceInfo.sources">
+                                <li>{{ source.label }}
+                                    (<a :href="source.wikidataUrl" target="_blank">WD</a>)
+                                    (<a :href="source.dnbUrl" target="_blank">DNB</a>)
+                                </li>
+                            </template>
+                        </ul>
                     </v-list-item-subtitle>
                 </v-list-item-content>
             </v-list-item>
