@@ -41,8 +41,7 @@ class WikidataClient
         'itemDescription',
         'instanceUrls',
         'instanceLabels',
-        'lat',
-        'lng',
+        'coordinates',
         'imageUrl',
         'source',
         'sourceAuthorLabels',
@@ -68,8 +67,7 @@ class WikidataClient
                 ?itemDescription
                 (GROUP_CONCAT(DISTINCT ?instance ; separator="|") AS ?instanceUrls)
                 (GROUP_CONCAT(DISTINCT ?instanceLabel ; separator=", ") AS ?instanceLabels)
-                ?lat
-                ?lng
+                (GROUP_CONCAT(DISTINCT CONCAT(STR(?lat), ",", STR(?lng)) ; SEPARATOR="|") AS ?coordinates)
                 (SAMPLE(?image) AS ?imageUrl)
                 ?source
                 (GROUP_CONCAT(DISTINCT ?sourceAuthorLabel ; separator=" & ") AS ?sourceAuthorLabels)
@@ -111,8 +109,8 @@ class WikidataClient
                 }
             }
             GROUP BY
-                ?item ?itemLabel ?itemDescription ?lat ?lng ?source ?sourceLabel ?sourcePublisherCityLabel
-                ?sourcePublisherLabel ?sourcePublicationDate ?sourcePages ?sourceDnbLink
+                ?item ?itemLabel ?itemDescription ?source ?sourceLabel ?sourcePublisherCityLabel ?sourcePublisherLabel
+                ?sourcePublicationDate ?sourcePages ?sourceDnbLink
             ORDER BY ?item';
 
         return $this->requestWikidata($query);
