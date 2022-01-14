@@ -59,7 +59,8 @@ export default {
          * @param oldSelectedPlace
          */
         selectedPlace(newSelectedPlace, oldSelectedPlace) {
-            this.map.flyTo([newSelectedPlace.lat.value, newSelectedPlace.lng.value], 18);
+            this.map.flyTo(newSelectedPlace.latLng, 18);
+            newSelectedPlace.marker.fire('click', {latlng: newSelectedPlace.latLng});
         },
 
         /**
