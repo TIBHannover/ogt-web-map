@@ -14,6 +14,7 @@
                 color="green lighten-1"
                 :key="index"
                 :label="layerLabel"
+                :value="index"
             ></v-radio>
         </v-radio-group>
     </v-container>

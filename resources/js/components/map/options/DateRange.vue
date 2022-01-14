@@ -21,6 +21,7 @@
                 :label="timePeriodOption"
                 @click="setDateRangeBySelectedTimePeriod"
                 color="green lighten-1"
+                :value="index"
             ></v-radio>
         </v-radio-group>
         <v-date-picker
