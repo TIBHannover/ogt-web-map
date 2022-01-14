@@ -124,9 +124,11 @@ export default {
     background-color: #FFFBE6;
 }
 
+/* move to top right */
 .flex-direction-row {
-    align-self: auto;
+    align-self: flex-start;
     flex-direction: row;
+    padding-top: 7px;
 }
 
 .hyphens-auto {
