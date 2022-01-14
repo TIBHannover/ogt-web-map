@@ -43,6 +43,8 @@ export default {
                     layerGroup: null,
                     layerName: 'Ereignisse',
                     places: [],
+                    /* some places have multiple coordinates */
+                    placesByCoordinates: [],
                 },
                 extPolicePrisonsAndLaborEducationCamps: {
                     color: '#743aaf',
@@ -50,6 +52,7 @@ export default {
                     layerGroup: null,
                     layerName: 'Erweiterte Polizeigefängnisse/AELs',
                     places: [],
+                    placesByCoordinates: [],
                 },
                 fieldOffices: {
                     color: '#2b83cb',
@@ -57,6 +60,7 @@ export default {
                     layerGroup: null,
                     layerName: 'Außendienststellen',
                     places: [],
+                    placesByCoordinates: [],
                 },
                 prisons: {
                     color: '#38ab3e',
@@ -64,6 +68,7 @@ export default {
                     layerGroup: null,
                     layerName: 'Gefängnisse',
                     places: [],
+                    placesByCoordinates: [],
                 },
                 statePoliceHeadquarters: {
                     color: '#af3a3a',
@@ -71,6 +76,7 @@ export default {
                     layerGroup: null,
                     layerName: 'Staatspolizeileitstellen',
                     places: [],
+                    placesByCoordinates: [],
                 },
                 statePoliceOffices: {
                     color: '#bcbb29',
@@ -78,6 +84,7 @@ export default {
                     layerGroup: null,
                     layerName: 'Staatspolizeistellen',
                     places: [],
+                    placesByCoordinates: [],
                 },
             },
             layers: null,
@@ -176,44 +183,60 @@ export default {
             });
 
             places.forEach(place => {
-                let marker = L.marker([place.lat.value, place.lng.value], {
-                    icon: defaultIcon,
-                    title: place.itemLabel.value,
+                let countedPlaceCoordinates = place.coordinates.length;
+
+                place.coordinates.forEach((placeCoordinate, placeCoordinateIndex) => {
+                    let marker = L.marker(placeCoordinate, {
+                        icon: defaultIcon,
+                        title: place.itemLabel.value,
+                    });
+
+                    let markerPopUpHtmlTemplate = `
+                        <div class="popUpTopic">
+                            <a href="${place.item.value}" target="_blank">
+                                ${place.itemLabel.value}
+                            </a>
+                            <button class="zoomInButton">
+                                &#x1f50d;
+                            </button>
+                        </div>
+                        <div class="popUpTopicCategory">
+                            ${place.instanceLabels.value}
+                        </div>
+                        <br>
+                        ${place.itemDescription ? place.itemDescription.value : ''}`;
+
+                    marker.bindPopup(markerPopUpHtmlTemplate, {
+                        minWidth: 333,
+                    });
+
+                    marker.on('click', event => {
+                        this.setSelectedPlaceInfo(place, event.latlng, this.groupedPlaces[placeGroupName].layerName);
+                        this.toggleShowPlaceInfoSidebar(true);
+
+                        const zoomInButton = marker.getPopup().getElement().getElementsByClassName('zoomInButton')[0];
+
+                        let vm = this;
+
+                        zoomInButton.onclick = function () {
+                            vm.map.flyTo(event.latlng, 18);
+                        };
+                    });
+
+                    placeMarkers.push(marker);
+
+                    let placeLabelWithIndex = place.itemLabel.value;
+
+                    if (countedPlaceCoordinates > 1) {
+                        placeLabelWithIndex += ' (' + (placeCoordinateIndex + 1) + ')'
+                    }
+
+                    this.groupedPlaces[placeGroupName]['placesByCoordinates'].push({
+                        placeLabelWithIndex: placeLabelWithIndex,
+                        latLng: placeCoordinate,
+                        marker: marker,
+                    });
                 });
-
-                let markerPopUpHtmlTemplate = `
-                    <div class="popUpTopic">
-                        <a href="${place.item.value}" target="_blank">
-                            ${place.itemLabel.value}
-                        </a>
-                        <button class="zoomInButton">
-                            &#x1f50d;
-                        </button>
-                    </div>
-                    <div class="popUpTopicCategory">
-                        ${place.instanceLabels.value}
-                    </div>
-                    <br>
-                    ${place.itemDescription ? place.itemDescription.value : ''}`;
-
-                marker.bindPopup(markerPopUpHtmlTemplate, {
-                    minWidth: 333,
-                });
-
-                marker.on('click', event => {
-                    this.setSelectedPlaceInfo(place, event.latlng, this.groupedPlaces[placeGroupName].layerName);
-                    this.toggleShowPlaceInfoSidebar(true);
-
-                    const zoomInButton = marker.getPopup().getElement().getElementsByClassName('zoomInButton')[0];
-
-                    let vm = this;
-
-                    zoomInButton.onclick = function () {
-                        vm.map.flyTo(event.latlng, 18);
-                    };
-                });
-
-                placeMarkers.push(marker);
             });
 
             return placeMarkers;

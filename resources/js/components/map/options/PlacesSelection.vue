@@ -23,8 +23,8 @@
             color="green lighten-1"
             dense
             hide-details
-            item-text="itemLabel.value"
-            :items="group.places"
+            item-text="placeLabelWithIndex"
+            :items="group.placesByCoordinates"
             :key="groupName"
             :label="group.layerName"
             outlined
