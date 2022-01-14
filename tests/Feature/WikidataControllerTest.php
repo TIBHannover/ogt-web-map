@@ -56,6 +56,14 @@ class WikidataControllerTest extends TestCase
                 ];
             }
 
+            $latLng = explode(',', $placeData['coordinates']['value']);
+            $placeData['coordinates'] = [
+                [
+                    'lat' => $latLng[0],
+                    'lng' => $latLng[1],
+                ]
+            ];
+
             $expectedFilteredPlaceData[] = $placeData;
         }
 
@@ -188,6 +196,14 @@ class WikidataControllerTest extends TestCase
                     'value' => $data['value'],
                 ];
             }
+
+            $latLng = explode(',', $placeData['coordinates']['value']);
+            $placeData['coordinates'] = [
+                [
+                    'lat' => $latLng[0],
+                    'lng' => $latLng[1],
+                ]
+            ];
 
             $expectedFilteredPlaceData[] = $placeData;
         }
@@ -351,7 +367,7 @@ class WikidataControllerTest extends TestCase
                     'sourceDnbLink',
                 ],
                 [
-                    'The head.vars must contain 16 items.',
+                    'The head.vars must contain 15 items.',
                 ],
             ],
             'added property item'   => [
@@ -374,7 +390,7 @@ class WikidataControllerTest extends TestCase
                     'sourceDnbLink',
                 ],
                 [
-                    'The head.vars must contain 16 items.',
+                    'The head.vars must contain 15 items.',
                     'The selected head.vars is invalid.',
                 ],
             ],

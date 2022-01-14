@@ -180,9 +180,9 @@ class WikidataClient
         ];
 
         foreach ($places as $place) {
-            $filteredPlace = $this->filterPlaceData($place);
+            $updatedPlace = $this->convertPlaceData($this->filterPlaceData($place));
 
-            $instanceUrls = $filteredPlace['instanceUrls']['value'];
+            $instanceUrls = $updatedPlace['instanceUrls']['value'];
             $instanceQIds = str_replace('http://www.wikidata.org/entity/', '', $instanceUrls);
             $instanceQIdsArray = explode('|', $instanceQIds);
 
@@ -190,7 +190,7 @@ class WikidataClient
 
             foreach ($groupedPlaces as $groupedPlaceName => $groupedPlace) {
                 if (count(array_intersect($instanceQIdsArray, self::PLACE_GROUPS_IDS[$groupedPlaceName])) > 0) {
-                    $groupedPlaces[$groupedPlaceName][] = $filteredPlace;
+                    $groupedPlaces[$groupedPlaceName][] = $updatedPlace;
                     $foundGroupForPlace = true;
                 }
             }
@@ -200,7 +200,7 @@ class WikidataClient
                     'The location cannot be assigned to a map marker category based on its Wikidata instances.',
                     [
                         'instanceQIds' => $instanceUrls,
-                        'placeQId'     => $filteredPlace['item']['value'],
+                        'placeQId'     => $updatedPlace['item']['value'],
                     ]
                 );
             }
@@ -220,6 +220,41 @@ class WikidataClient
         foreach ($place as $key => $placeData) {
             $place[$key] = Arr::only($placeData, 'value');
         }
+
+        return $place;
+    }
+
+    /**
+     * Conversion to the appropriate format for further processing.
+     *
+     * @param array $place
+     * @return array
+     */
+    private function convertPlaceData(array $place) : array
+    {
+        /* Example for location data with multiple coordinates
+           ... from Wikidata ...
+           [
+                'type' => 'literal',
+                'value' => '52.3667941,9.7448449240635|52.3642957,9.7473133',
+           ]
+           ... for Leaflet convert to ...
+           [
+                [lat => 52.3667941, lng => 9.7448449240635], [lat => 52.3642957, lng => 9.7473133],
+           ]
+        */
+        $coordinatesArray = explode('|', $place['coordinates']['value']);
+
+        foreach ($coordinatesArray as &$coordinate) {
+            $latLng = explode(',', $coordinate);
+
+            $coordinate = [
+                'lat' => $latLng[0],
+                'lng' => $latLng[1],
+            ];
+        }
+
+        $place['coordinates'] = $coordinatesArray;
 
         return $place;
     }
