@@ -65,12 +65,12 @@ class WikidataClient
                 ?item
                 ?itemLabel
                 ?itemDescription
-                (GROUP_CONCAT(DISTINCT ?instance ; separator="|") AS ?instanceUrls)
-                (GROUP_CONCAT(DISTINCT ?instanceLabel ; separator=", ") AS ?instanceLabels)
+                (GROUP_CONCAT(DISTINCT ?instance ; SEPARATOR="|") AS ?instanceUrls)
+                (GROUP_CONCAT(DISTINCT ?instanceLabel ; SEPARATOR=", ") AS ?instanceLabels)
                 (GROUP_CONCAT(DISTINCT CONCAT(STR(?lat), ",", STR(?lng)) ; SEPARATOR="|") AS ?coordinates)
                 (SAMPLE(?image) AS ?imageUrl)
                 ?source
-                (GROUP_CONCAT(DISTINCT ?sourceAuthorLabel ; separator=" & ") AS ?sourceAuthorLabels)
+                (GROUP_CONCAT(DISTINCT ?sourceAuthorLabel ; SEPARATOR=" & ") AS ?sourceAuthorLabels)
                 ?sourceLabel
                 ?sourcePublisherCityLabel
                 ?sourcePublisherLabel
@@ -210,7 +210,7 @@ class WikidataClient
     }
 
     /**
-     * Filter place data values.
+     * Filtering of the required place data.
      *
      * @param array $place
      * @return array
