@@ -56,6 +56,14 @@ class WikidataControllerTest extends TestCase
                 ];
             }
 
+            $latLng = explode(',', $placeData['coordinates']['value']);
+            $placeData['coordinates'] = [
+                [
+                    'lat' => $latLng[0],
+                    'lng' => $latLng[1],
+                ]
+            ];
+
             $expectedFilteredPlaceData[] = $placeData;
         }
 
@@ -67,8 +75,7 @@ class WikidataControllerTest extends TestCase
                     'itemDescription',
                     'instanceUrls',
                     'instanceLabels',
-                    'lat',
-                    'lng',
+                    'coordinates',
                     'imageUrl',
                     'source',
                     'sourceAuthorLabels',
@@ -147,15 +154,9 @@ class WikidataControllerTest extends TestCase
                 'value'    => $this->faker->sentence,
                 'xml:lang' => 'de',
             ],
-            'lat'             => [
-                'datatype' => 'http://www.w3.org/2001/XMLSchema#double',
-                'type'     => 'literal',
-                'value'    => strval($this->faker->latitude),
-            ],
-            'lng'             => [
-                'datatype' => 'http://www.w3.org/2001/XMLSchema#double',
-                'type'     => 'literal',
-                'value'    => strval($this->faker->longitude),
+            'coordinates'     => [
+                'type'  => 'literal',
+                'value' => $this->faker->latitude . ',' . $this->faker->longitude,
             ],
             'instanceUrls'    => [
                 'type'  => 'literal',
@@ -196,6 +197,14 @@ class WikidataControllerTest extends TestCase
                 ];
             }
 
+            $latLng = explode(',', $placeData['coordinates']['value']);
+            $placeData['coordinates'] = [
+                [
+                    'lat' => $latLng[0],
+                    'lng' => $latLng[1],
+                ]
+            ];
+
             $expectedFilteredPlaceData[] = $placeData;
         }
 
@@ -207,8 +216,7 @@ class WikidataControllerTest extends TestCase
                     'itemDescription',
                     'instanceUrls',
                     'instanceLabels',
-                    'lat',
-                    'lng',
+                    'coordinates',
                     'imageUrl',
                     'source',
                     'sourceAuthorLabels',
@@ -298,8 +306,7 @@ class WikidataControllerTest extends TestCase
                     'itemDescription',
                     'instanceUrls',
                     'instanceLabels',
-                    'lat',
-                    'lng',
+                    'coordinates',
                     'imageUrl',
                     'source',
                     'sourceAuthorLabels',
@@ -348,8 +355,7 @@ class WikidataControllerTest extends TestCase
                     'itemDescription',
                     'instanceUrls',
                     'instanceLabels',
-                    'lat',
-                    'lng',
+                    'coordinates',
                     'imageUrl',
                     'source',
                     'sourceAuthorLabels',
@@ -361,7 +367,7 @@ class WikidataControllerTest extends TestCase
                     'sourceDnbLink',
                 ],
                 [
-                    'The head.vars must contain 16 items.',
+                    'The head.vars must contain 15 items.',
                 ],
             ],
             'added property item'   => [
@@ -372,8 +378,7 @@ class WikidataControllerTest extends TestCase
                     'itemDescription',
                     'instanceUrls',
                     'instanceLabels',
-                    'lat',
-                    'lng',
+                    'coordinates',
                     'imageUrl',
                     'source',
                     'sourceAuthorLabels',
@@ -385,7 +390,7 @@ class WikidataControllerTest extends TestCase
                     'sourceDnbLink',
                 ],
                 [
-                    'The head.vars must contain 16 items.',
+                    'The head.vars must contain 15 items.',
                     'The selected head.vars is invalid.',
                 ],
             ],
@@ -396,8 +401,7 @@ class WikidataControllerTest extends TestCase
                     'itemDescription',
                     'instanceUrls',
                     'instanceLabels',
-                    'lat',
-                    'lng',
+                    'coordinates',
                     'imageUrl',
                     'source',
                     'sourceAuthorLabels',

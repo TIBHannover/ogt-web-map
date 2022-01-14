@@ -23,8 +23,8 @@
             color="green lighten-1"
             dense
             hide-details
-            item-text="itemLabel.value"
-            :items="group.places"
+            item-text="placeLabelWithIndex"
+            :items="group.placesByCoordinates"
             :key="groupName"
             :label="group.layerName"
             outlined
@@ -59,7 +59,8 @@ export default {
          * @param oldSelectedPlace
          */
         selectedPlace(newSelectedPlace, oldSelectedPlace) {
-            this.map.flyTo([newSelectedPlace.lat.value, newSelectedPlace.lng.value], 18);
+            this.map.flyTo(newSelectedPlace.latLng);
+            newSelectedPlace.marker.fire('click', {latlng: newSelectedPlace.latLng});
         },
 
         /**
