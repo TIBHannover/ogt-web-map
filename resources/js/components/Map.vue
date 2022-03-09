@@ -19,7 +19,7 @@
 </template>
 
 <script>
-import Leaflet from '/js/leaflet.js';
+import Leaflet from 'leaflet/dist/leaflet';
 import MapOptionsSidebar from './map/MapOptionsSidebar';
 import PlaceInfoSidebar from './map/PlaceInfoSidebar';
 
@@ -371,7 +371,7 @@ export default {
 </style>
 
 <style scoped>
-@import '/public/css/leaflet.css';
+@import 'leaflet/dist/leaflet.css';
 
 #leafletMapId {
     height: 100%;
