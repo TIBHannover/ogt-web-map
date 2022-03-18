@@ -131,17 +131,19 @@
     php artisan key:generate
 
     # @todo required?
-    # php artisan config:cache
+    php artisan config:cache
 @endtask
 
 @task('run_npm')
     {{ logConsole("Run NPM to install all dependencies of the project in package-lock.json...") }}
     cd {{ $newReleaseDir }}
-    npm install --production
+    # npm install --production
+    npm install
 
     {{ logConsole("Run all Mix tasks and minify output...") }}
     # https://laravel.com/docs/8.x/mix#running-mix
-    npm run prod
+    # npm run prod
+    npm run dev
 @endtask
 
 @task('update_symlinks')
