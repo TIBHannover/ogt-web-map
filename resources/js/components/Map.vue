@@ -151,7 +151,7 @@ export default {
         async getGroupedPlaces() {
             let groupedPlaces = {};
 
-            await this.axios.get('/wikidata/places').then(response => {
+            await this.axios.get('/api/wikidata/places').then(response => {
                 groupedPlaces = response.data;
             }).catch(error => {
                 console.log(error);
