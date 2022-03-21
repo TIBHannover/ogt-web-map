@@ -11,15 +11,15 @@ const mix = require('laravel-mix');
  |
  */
 
-mix.js('resources/js/app.js', 'public/ogt/js')
+mix.js('resources/js/app.js', 'public/js')
     .vue()
-    .postCss('resources/css/app.css', 'public/ogt/css', [
+    .postCss('resources/css/app.css', 'public/css', [
         //
     ])
     .sourceMaps();
 
-mix.js('./node_modules/leaflet/dist/leaflet.js', 'public/ogt/js')
-    .postCss('./node_modules/leaflet/dist/leaflet.css', 'public/ogt/css', [
+mix.js('./node_modules/leaflet/dist/leaflet.js', 'public/js')
+    .postCss('./node_modules/leaflet/dist/leaflet.css', 'public/css', [
         //
     ]);
 
