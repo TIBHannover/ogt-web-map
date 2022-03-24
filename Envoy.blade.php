@@ -130,6 +130,10 @@
     cp .env.example .env
     php artisan key:generate
 
+    sed -i -E "s/^APP_URL=.*$/APP_URL=envUrlPlaceholder/g" .env
+    sed -i -E "s/^ASSET_URL=.*$/ASSET_URL=https:\/\/test.service.tib.eu\/ogt/g" .env
+    sed -i -E "s/^MIX_ASSET_URL=.*$/MIX_ASSET_URL=https:\/\/test.service.tib.eu\/ogt/g" .env
+
     # @todo required?
     php artisan config:cache
 @endtask
@@ -138,23 +142,25 @@
     {{ logConsole("Run NPM to install all dependencies of the project in package-lock.json...") }}
     cd {{ $newReleaseDir }}
     # npm install --production
-    npm install
+    # npm install
 
     {{ logConsole("Run all Mix tasks and minify output...") }}
     # https://laravel.com/docs/8.x/mix#running-mix
     # npm run prod
-    npm run dev
+    # npm run dev
 @endtask
 
 @task('update_symlinks')
     {{ logConsole("Prepare storage directory") }}
-    test -d {{ $appDir }}/storage/framework/sessions || sudo mkdir -p {{ $appDir }}/storage/framework/sessions
-    test -d {{ $appDir }}/storage/framework/views || sudo mkdir -p {{ $appDir }}/storage/framework/views
-    sudo chown -R www-data:www-data {{ $appDir }}/storage
+    # test -d {{ $appDir }}/storage/logs || sudo mkdir -p {{ $appDir }}/storage/logs
+    # test -d {{ $appDir }}/storage/framework/sessions || sudo mkdir -p {{ $appDir }}/storage/framework/sessions
+    # test -d {{ $appDir }}/storage/framework/views || sudo mkdir -p {{ $appDir }}/storage/framework/views
+    # sudo chown -R www-data:www-data {{ $appDir }}/storage
 
     {{ logConsole("Linking storage directory") }}
-    rm -rf {{ $newReleaseDir }}/storage
-    ln -nfs {{ $appDir }}/storage {{ $newReleaseDir }}/storage
+    # rm -rf {{ $newReleaseDir }}/storage
+    # ln -nfs {{ $appDir }}/storage {{ $newReleaseDir }}/storage
+    sudo chown -R www-data:www-data {{ $newReleaseDir }}/storage
 
     {{ logConsole("Linking current release") }}
     ln -nfs {{ $newReleaseDir }} {{ $appDir }}/current
