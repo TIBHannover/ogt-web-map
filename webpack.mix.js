@@ -1,5 +1,25 @@
 const mix = require('laravel-mix');
 
+//mix.setResourceRoot('ogt');
+//mix.setResourcePath('')
+
+//mix.setPublicPath('public/ogt');
+//mix.setPublicPath('https://test.service.tib.eu/ogt');
+
+/*
+mix.browserSync({
+    proxy: 'https://test.service.tib.eu/ogt',
+});
+
+//mix.browserSync('https://test.service.tib.eu/ogt');
+*/
+
+mix.webpackConfig({
+    output: {
+        chunkFilename: 'ogt/js/[name].js',
+    },
+});
+
 /*
  |--------------------------------------------------------------------------
  | Mix Asset Management
@@ -15,14 +35,16 @@ mix.js('resources/js/app.js', 'public/js')
     .vue()
     .postCss('resources/css/app.css', 'public/css', [
         //
-    ])
-    .sourceMaps();
+    ]);
+    //.sourceMaps();
 
 mix.js('./node_modules/leaflet/dist/leaflet.js', 'public/js')
     .postCss('./node_modules/leaflet/dist/leaflet.css', 'public/css', [
         //
     ]);
 
+/*
 if (mix.inProduction()) {
     mix.version();
 }
+*/
