@@ -10,7 +10,7 @@
                     <v-img
                         class="mx-auto"
                         max-width="1150"
-                        src="/images/de/banner.jpg">
+                        src="/ogt/images/de/banner.jpg">
                     </v-img>
                 </a>
             </v-col>
