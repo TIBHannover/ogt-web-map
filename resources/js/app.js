@@ -16,6 +16,7 @@ Vue.use(Vuetify);
 
 const router = new VueRouter({
     mode: 'history',
+    //base: '/ogt/',
     routes: routes,
 });
 
