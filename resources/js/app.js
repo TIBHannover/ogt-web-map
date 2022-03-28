@@ -14,9 +14,13 @@ Vue.use(VueRouter);
 Vue.use(VueAxios, axios);
 Vue.use(Vuetify);
 
+//Vue.config.baseUrl = '';
+//Vue.config.publicPath = '';
+//Vue.axios.defaults.baseURL = '';
+
 const router = new VueRouter({
+    base: '/ogt/',
     mode: 'history',
-    //base: '/ogt/',
     routes: routes,
 });
 
@@ -25,4 +29,10 @@ const app = new Vue({
     render: h => h(App),
     router: router,
     vuetify: new Vuetify(),
+    leaflet: new Leaflet(),
+    /*
+    data: {
+        baseUrl: '',
+    },
+    */
 });
