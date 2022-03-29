@@ -6,6 +6,7 @@ const mix = require('laravel-mix');
 //mix.setPublicPath('public/ogt');
 //mix.setPublicPath('https://test.service.tib.eu/ogt');
 
+
 /*
 mix.browserSync({
     proxy: 'https://test.service.tib.eu/ogt',
@@ -13,10 +14,27 @@ mix.browserSync({
 
 //mix.browserSync('https://test.service.tib.eu/ogt');
 */
+__webpack_public_path__ = 'https://test.service.tib.eu/ogt';
 
 mix.webpackConfig({
     output: {
         chunkFilename: 'ogt/js/[name].js',
+    },
+    module: {
+        rules: [
+            {
+                test: /\.(png)$/i,
+                dependency: {not: ['url']},
+                use: [
+                    {
+                        loader: 'url-loader',
+                        options: {
+                            publicPath: '/ogt/',
+                        },
+                    },
+                ],
+            },
+        ],
     },
 });
 
@@ -36,7 +54,7 @@ mix.js('resources/js/app.js', 'public/js')
     .postCss('resources/css/app.css', 'public/css', [
         //
     ]);
-    //.sourceMaps();
+//.sourceMaps();
 
 mix.js('./node_modules/leaflet/dist/leaflet.js', 'public/js')
     .postCss('./node_modules/leaflet/dist/leaflet.css', 'public/css', [
