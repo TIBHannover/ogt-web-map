@@ -370,7 +370,11 @@ export default {
     margin-right: 10px;
 }
 
-/* workaround to display Leaflet layer control icon */
+/* workaround to display Leaflet layer control (retina) icon */
+.leaflet-control-layers-toggle {
+    background-image: url(/ogt/images/leaflet/layers.png) !important;
+}
+
 .leaflet-retina .leaflet-control-layers-toggle {
     background-image: url('/ogt/images/leaflet/layers-2x.png') !important;
 }
