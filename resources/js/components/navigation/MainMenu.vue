@@ -27,7 +27,7 @@ export default {
                 {
                     title: 'Startseite',
                     icon: 'mdi-home',
-                    path: '/',
+                    path: '/welcome',
                     toMenu: 'mainMenu',
                 },
                 {
