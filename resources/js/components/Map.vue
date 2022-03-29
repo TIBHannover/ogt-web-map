@@ -229,7 +229,7 @@ export default {
                     let placeLabelWithIndex = place.itemLabel.value;
 
                     if (countedPlaceCoordinates > 1) {
-                        placeLabelWithIndex += ' (' + (placeCoordinateIndex + 1) + ')'
+                        placeLabelWithIndex += ' (' + (placeCoordinateIndex + 1) + ')';
                     }
 
                     this.groupedPlaces[placeGroupName]['placesByCoordinates'].push({
@@ -368,6 +368,11 @@ export default {
 .leaflet-top.leaflet-right {
     margin-top: 80px;
     margin-right: 10px;
+}
+
+/* workaround to display Leaflet layer control icon */
+.leaflet-retina .leaflet-control-layers-toggle {
+    background-image: url('/ogt/images/leaflet/layers-2x.png') !important;
 }
 </style>
 
