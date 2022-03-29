@@ -1,40 +1,15 @@
 const mix = require('laravel-mix');
 
-//mix.setResourceRoot('ogt');
+//mix.setResourceRoot('');
 //mix.setResourcePath('')
-
-//mix.setPublicPath('public/ogt');
-//mix.setPublicPath('https://test.service.tib.eu/ogt');
-
-
-/*
-mix.browserSync({
-    proxy: 'https://test.service.tib.eu/ogt',
-});
-
-//mix.browserSync('https://test.service.tib.eu/ogt');
-*/
-__webpack_public_path__ = 'https://test.service.tib.eu/ogt';
+//mix.setPublicPath('');
+//mix.browserSync('');
+//__webpack_public_path__ = '';
 
 mix.webpackConfig({
     output: {
-        chunkFilename: 'ogt/js/[name].js',
-    },
-    module: {
-        rules: [
-            {
-                test: /\.(png)$/i,
-                dependency: {not: ['url']},
-                use: [
-                    {
-                        loader: 'url-loader',
-                        options: {
-                            publicPath: '/ogt/',
-                        },
-                    },
-                ],
-            },
-        ],
+         //chunkFilename: 'ogt/js/[name].js',
+         publicPath: '/ogt/',
     },
 });
 
@@ -54,15 +29,12 @@ mix.js('resources/js/app.js', 'public/js')
     .postCss('resources/css/app.css', 'public/css', [
         //
     ]);
-//.sourceMaps();
 
 mix.js('./node_modules/leaflet/dist/leaflet.js', 'public/js')
     .postCss('./node_modules/leaflet/dist/leaflet.css', 'public/css', [
         //
     ]);
 
-/*
 if (mix.inProduction()) {
     mix.version();
 }
-*/
