@@ -73,7 +73,7 @@ export default {
                 },
                 */
                 {
-                    image: '/images/en/banner.jpg',
+                    image: '/ogt/images/en/banner.jpg',
                 },
                 {
                     header: 'OGT project',
