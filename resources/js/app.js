@@ -29,7 +29,6 @@ const app = new Vue({
     render: h => h(App),
     router: router,
     vuetify: new Vuetify(),
-    leaflet: new Leaflet(),
     /*
     data: {
         baseUrl: '',
