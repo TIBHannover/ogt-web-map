@@ -25,7 +25,7 @@
     // check for required project env params for deployment
     $requiredEnvVars = [
         'APP_NAME',
-        'APP_URL_' . $envNameUppercase,
+        'DEPLOY_APP_URL_' . $envNameUppercase,
         'DEPLOY_APP_DIR',
         'DEPLOY_HOST_' . $envNameUppercase,
         'DEPLOY_REPO',
@@ -49,7 +49,7 @@
 
     $repository = env('DEPLOY_REPO');
     $appDir = env('DEPLOY_APP_DIR') . '/' . env('APP_NAME');
-    $appUrl = str_replace('/', '\/', env('APP_URL_' . $envNameUppercase));
+    $appUrl = str_replace('/', '\/', env('DEPLOY_APP_URL_' . $envNameUppercase));
     $releasesDir = $appDir . '/releases';
     $releaseDate = date('Y-m-d_H-i-s');
     $newReleaseDir = $releasesDir . '/' . $releaseDate;
