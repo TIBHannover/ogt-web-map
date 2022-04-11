@@ -369,6 +369,11 @@ export default {
     margin-top: 80px;
     margin-right: 10px;
 }
+
+.leaflet-tile-pane {
+    -webkit-filter: grayscale(100%);
+    filter: grayscale(100%);
+}
 </style>
 
 <style scoped>
