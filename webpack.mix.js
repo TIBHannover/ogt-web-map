@@ -6,12 +6,14 @@ const mix = require('laravel-mix');
 //mix.browserSync('');
 //__webpack_public_path__ = '';
 
-mix.webpackConfig({
-    output: {
-         //chunkFilename: 'ogt/js/[name].js',
-         publicPath: '/ogt/',
-    },
-});
+if (['production', 'test'].includes(process.env.MIX_APP_ENV)) {
+    mix.webpackConfig({
+        output: {
+            //chunkFilename: 'ogt/js/[name].js',
+            publicPath: '/ogt/',
+        },
+    });
+}
 
 /*
  |--------------------------------------------------------------------------
