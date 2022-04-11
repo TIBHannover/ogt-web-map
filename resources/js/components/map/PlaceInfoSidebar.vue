@@ -22,7 +22,7 @@
                         <v-icon>mdi-close</v-icon>
                     </v-btn>
                     <a :href="selectedPlaceInfo.wikidataItem" target="_blank">
-                        <v-img max-width="45" src="/ogt/images/wikidata-logo.svg"></v-img>
+                        <v-img max-width="45" :src="this.$ogtGlobals.proxyPath + '/images/wikidata-logo.svg'"></v-img>
                     </a>
                 </v-list-item-action>
             </v-list-item>
