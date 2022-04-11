@@ -6,6 +6,9 @@ const mix = require('laravel-mix');
 //mix.browserSync('');
 //__webpack_public_path__ = '';
 
+/* required for leaflet layer control icon */
+mix.setResourceRoot(process.env.ASSET_URL);
+
 if (['production', 'test'].includes(process.env.MIX_APP_ENV)) {
     mix.webpackConfig({
         output: {
