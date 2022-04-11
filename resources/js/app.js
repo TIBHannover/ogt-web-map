@@ -14,9 +14,10 @@ Vue.use(VueRouter);
 Vue.use(VueAxios, axios);
 Vue.use(Vuetify);
 
-//Vue.config.baseUrl = '';
-//Vue.config.publicPath = '';
-//Vue.axios.defaults.baseURL = '';
+Vue.axios.defaults.baseURL = process.env.MIX_BASE_URL ?? '';
+Vue.prototype.$ogtGlobals = {
+    proxyPath: process.env.MIX_PROXY_PATH ?? '',
+};
 
 const router = new VueRouter({
     base: '/ogt/',
@@ -29,9 +30,4 @@ const app = new Vue({
     render: h => h(App),
     router: router,
     vuetify: new Vuetify(),
-    /*
-    data: {
-        baseUrl: '',
-    },
-    */
 });
