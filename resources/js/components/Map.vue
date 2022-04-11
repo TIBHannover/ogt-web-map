@@ -370,10 +370,12 @@ export default {
     margin-right: 10px;
 }
 
+/*
 .leaflet-tile-pane {
     -webkit-filter: grayscale(100%);
     filter: grayscale(100%);
 }
+*/
 </style>
 
 <style scoped>
