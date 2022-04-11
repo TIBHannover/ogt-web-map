@@ -14,7 +14,7 @@ class PingControllerTest extends TestCase
      */
     public function testPing()
     {
-        $this->get('/ping')
+        $this->get('/api/ping')
             ->assertStatus(Response::HTTP_OK)
             ->assertSee('pong');
     }
