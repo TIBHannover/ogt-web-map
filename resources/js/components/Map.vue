@@ -39,7 +39,7 @@ export default {
             groupedPlaces: {
                 events: {
                     color: '#D26211',
-                    iconUrl: '/ogt/images/leaflet/marker-icon-orange.png',
+                    iconUrl: this.$ogtGlobals.proxyPath + '/images/leaflet/marker-icon-orange.png',
                     layerGroup: null,
                     layerName: 'Ereignisse',
                     places: [],
@@ -48,7 +48,7 @@ export default {
                 },
                 extPolicePrisonsAndLaborEducationCamps: {
                     color: '#743aaf',
-                    iconUrl: '/ogt/images/leaflet/marker-icon-purple.png',
+                    iconUrl: this.$ogtGlobals.proxyPath + '/images/leaflet/marker-icon-purple.png',
                     layerGroup: null,
                     layerName: 'Erweiterte Polizeigefängnisse/AELs',
                     places: [],
@@ -56,7 +56,7 @@ export default {
                 },
                 fieldOffices: {
                     color: '#2b83cb',
-                    iconUrl: '/ogt/images/leaflet/marker-icon.png',
+                    iconUrl: this.$ogtGlobals.proxyPath + '/images/leaflet/marker-icon.png',
                     layerGroup: null,
                     layerName: 'Außendienststellen',
                     places: [],
@@ -64,7 +64,7 @@ export default {
                 },
                 prisons: {
                     color: '#38ab3e',
-                    iconUrl: '/ogt/images/leaflet/marker-icon-green.png',
+                    iconUrl: this.$ogtGlobals.proxyPath + '/images/leaflet/marker-icon-green.png',
                     layerGroup: null,
                     layerName: 'Gefängnisse',
                     places: [],
@@ -72,7 +72,7 @@ export default {
                 },
                 statePoliceHeadquarters: {
                     color: '#af3a3a',
-                    iconUrl: '/ogt/images/leaflet/marker-icon-red.png',
+                    iconUrl: this.$ogtGlobals.proxyPath + '/images/leaflet/marker-icon-red.png',
                     layerGroup: null,
                     layerName: 'Staatspolizeileitstellen',
                     places: [],
@@ -80,7 +80,7 @@ export default {
                 },
                 statePoliceOffices: {
                     color: '#bcbb29',
-                    iconUrl: '/ogt/images/leaflet/marker-icon-yellow.png',
+                    iconUrl: this.$ogtGlobals.proxyPath + '/images/leaflet/marker-icon-yellow.png',
                     layerGroup: null,
                     layerName: 'Staatspolizeistellen',
                     places: [],
@@ -151,7 +151,7 @@ export default {
         async getGroupedPlaces() {
             let groupedPlaces = {};
 
-            await this.axios.get('ogt/api/wikidata/places').then(response => {
+            await this.axios.get('/api/wikidata/places').then(response => {
                 groupedPlaces = response.data;
             }).catch(error => {
                 console.log(error);
@@ -175,7 +175,7 @@ export default {
                 iconUrl: this.groupedPlaces[placeGroupName].iconUrl,
                 // added workaround to use default marker icons for retina displays
                 iconRetinaUrl: this.groupedPlaces[placeGroupName].iconUrl,
-                shadowUrl: '/ogt/images/leaflet/marker-shadow.png',
+                shadowUrl: this.$ogtGlobals.proxyPath + '/images/leaflet/marker-shadow.png',
                 iconSize: [25, 41],
                 iconAnchor: [12, 41],
                 popupAnchor: [1, -34],

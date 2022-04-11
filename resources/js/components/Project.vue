@@ -73,7 +73,7 @@ export default {
                 },
                 */
                 {
-                    image: '/ogt/images/en/banner.jpg',
+                    image: this.$ogtGlobals.proxyPath + '/images/en/banner.jpg',
                 },
                 {
                     header: 'OGT project',

@@ -10,7 +10,7 @@
                     <v-img
                         class="mx-auto"
                         max-width="1150"
-                        src="/ogt/images/de/banner.jpg">
+                        :src="this.$ogtGlobals.proxyPath + '/images/de/banner.jpg'">
                     </v-img>
                 </router-link>
             </v-col>
