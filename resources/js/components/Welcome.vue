@@ -6,13 +6,13 @@
     >
         <v-row>
             <v-col>
-                <a href="/map">
+                <router-link to="/map">
                     <v-img
                         class="mx-auto"
                         max-width="1150"
                         src="/images/de/banner.jpg">
                     </v-img>
-                </a>
+                </router-link>
             </v-col>
         </v-row>
     </v-container>
