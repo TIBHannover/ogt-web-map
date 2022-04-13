@@ -8,7 +8,7 @@ const Photos = () => import('./components/charts/Photos.vue');
 export const routes = [
     {
         name: 'welcome',
-        path: '/',
+        path: '/welcome',
         component: Welcome,
     },
     {
@@ -36,5 +36,5 @@ export const routes = [
         path: '/charts/photos',
         component: Photos,
     },
-    {path: '*', redirect: '/'},
+    {path: '*', redirect: '/welcome'},
 ];
