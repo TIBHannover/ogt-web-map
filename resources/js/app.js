@@ -15,6 +15,7 @@ Vue.use(VueAxios, axios);
 Vue.use(Vuetify);
 
 const router = new VueRouter({
+    base: '/ogt/',
     mode: 'history',
     routes: routes,
 });
