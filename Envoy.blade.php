@@ -56,6 +56,7 @@
 
     $slackWebhook = env('DEPLOY_SLACK_WEBHOOK');
     $isSlackWebhookEnabled = env('DEPLOY_SLACK_WEBHOOK_ENABLED');
+    $slackWebhookMessage = "Deployment on `$env` for branch `$branch`";
 
     function logConsole($env, $message) {
         return "echo '\033[32m###### [" . $env . "] " . $message . " ######\033[0m';\n";
@@ -169,3 +170,25 @@
     {{ logConsole($env, "Linking current release") }}
     ln -nfs {{ $newReleaseDir }} {{ $appDir }}/current
 @endtask
+
+@before
+    if ($isSlackWebhookEnabled) {
+        if ($task === 'clone_repository') {
+            @slack($slackWebhook, '', "$slackWebhookMessage started...");
+        }
+    }
+@endbefore
+
+@success
+    if ($isSlackWebhookEnabled) {
+        @slack($slackWebhook, '', "$slackWebhookMessage finished.");
+    }
+@endsuccess
+
+@finished
+    if ($isSlackWebhookEnabled) {
+        if ($exitCode > 0) {
+            @slack($slackWebhook, '', "$slackWebhookMessage failed.");
+        }
+    }
+@endfinished
