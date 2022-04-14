@@ -173,7 +173,9 @@ export default {
 
             const defaultIcon = L.icon({
                 iconUrl: this.groupedPlaces[placeGroupName].iconUrl,
-                iconRetinaUrl: '/images/leaflet/marker-icon-2x.png',
+                // Workaround to use same marker icons for Retina and non-Retina displays.
+                // - default file '/images/leaflet/marker-icon-2x.png'
+                iconRetinaUrl: this.groupedPlaces[placeGroupName].iconUrl,
                 shadowUrl: '/images/leaflet/marker-shadow.png',
                 iconSize: [25, 41],
                 iconAnchor: [12, 41],
