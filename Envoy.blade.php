@@ -143,9 +143,6 @@
     php artisan key:generate
 
     sed -i -E "s/^ASSET_URL=.*$/ASSET_URL={{ $appUrl }}/g" .env
-
-    # @todo required?
-    # php artisan config:cache
 @endtask
 
 @task('run_npm')
