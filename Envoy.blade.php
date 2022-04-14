@@ -139,7 +139,7 @@
 @task('init_env')
     {{ logConsole($env, "Init env") }}
     cd {{ $newReleaseDir }}
-    cp .env.example .env
+    cp .env.{{ substr($env, 0, 4) }} .env
     php artisan key:generate
 
     sed -i -E "s/^ASSET_URL=.*$/ASSET_URL={{ $appUrl }}/g" .env
