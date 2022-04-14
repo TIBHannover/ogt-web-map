@@ -39,7 +39,8 @@
     }
 
     // set project deployment params
-    $servers[$env] = env('DEPLOY_USER_' . $envName) . '@' . env('DEPLOY_HOST_' . $envName);
+    $deployUser = env('DEPLOY_USER_' . $envName);
+    $servers[$env] = $deployUser . '@' . env('DEPLOY_HOST_' . $envName);
 
     $repository = env('DEPLOY_REPO');
     $appDir = env('DEPLOY_APP_DIR') . '/' . env('APP_NAME');
@@ -110,10 +111,10 @@
 
     {{ logConsole("Cloning repository:") }}
     test -d {{ $releasesDir }} || sudo mkdir -p {{ $releasesDir }}
-    sudo chown -R gitlab:gitlab {{ $appDir }}
+    sudo chown -R {{ $deployUser }}:{{ $deployUser }} {{ $appDir }}
 
     eval $(ssh-agent -s)
-    ssh-add ~/.ssh/id_ed25519_gitlab
+    ssh-add ~/.ssh/id_ed25519_{{ $deployUser }}
 
     git clone --depth 1 --branch {{ $branch }} {{ $repository }} {{ $newReleaseDir }}
 @endtask
