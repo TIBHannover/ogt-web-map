@@ -160,6 +160,7 @@
 
 @task('update_symlinks')
     {{ logConsole($env, "Prepare storage directory") }}
+    test -d {{ $appDir }}/storage/logs || sudo mkdir -p {{ $appDir }}/storage/logs
     test -d {{ $appDir }}/storage/framework/sessions || sudo mkdir -p {{ $appDir }}/storage/framework/sessions
     test -d {{ $appDir }}/storage/framework/views || sudo mkdir -p {{ $appDir }}/storage/framework/views
     sudo chown -R www-data:www-data {{ $appDir }}/storage
