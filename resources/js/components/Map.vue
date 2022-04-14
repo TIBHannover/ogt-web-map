@@ -230,7 +230,7 @@ export default {
                     let placeLabelWithIndex = place.itemLabel.value;
 
                     if (countedPlaceCoordinates > 1) {
-                        placeLabelWithIndex += ' (' + (placeCoordinateIndex + 1) + ')'
+                        placeLabelWithIndex += ' (' + (placeCoordinateIndex + 1) + ')';
                     }
 
                     this.groupedPlaces[placeGroupName]['placesByCoordinates'].push({
