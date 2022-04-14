@@ -124,7 +124,7 @@ class WikidataControllerTest extends TestCase
 
         Log::shouldReceive('warning')->never();
 
-        $this->get('/wikidata/places')
+        $this->get('/api/wikidata/places')
             ->assertStatus(Response::HTTP_OK)
             ->assertExactJson($expectedResponse);
     }
@@ -256,7 +256,7 @@ class WikidataControllerTest extends TestCase
             ]
         );
 
-        $this->get('/wikidata/places')
+        $this->get('/api/wikidata/places')
             ->assertStatus(Response::HTTP_OK)
             ->assertExactJson($expectedResponse);
     }
@@ -286,10 +286,10 @@ class WikidataControllerTest extends TestCase
             ]
         );
 
-        $this->get('/wikidata/places')
+        $this->get('/api/wikidata/places')
             ->assertNoContent();
 
-        $this->get('/wikidata/places')
+        $this->get('/api/wikidata/places')
             ->assertNoContent();
     }
 
@@ -334,7 +334,7 @@ class WikidataControllerTest extends TestCase
             ['The results.bindings field is required.']
         );
 
-        $this->get('/wikidata/places')
+        $this->get('/api/wikidata/places')
             ->assertNoContent();
     }
 
@@ -453,7 +453,7 @@ class WikidataControllerTest extends TestCase
             $failedValidationMessages
         );
 
-        $this->get('/wikidata/places')
+        $this->get('/api/wikidata/places')
             ->assertNoContent();
     }
 }

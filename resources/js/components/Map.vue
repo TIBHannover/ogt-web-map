@@ -19,7 +19,7 @@
 </template>
 
 <script>
-import Leaflet from '/js/leaflet.js';
+import Leaflet from 'leaflet/dist/leaflet';
 import MapOptionsSidebar from './map/MapOptionsSidebar';
 import PlaceInfoSidebar from './map/PlaceInfoSidebar';
 
@@ -151,7 +151,7 @@ export default {
         async getGroupedPlaces() {
             let groupedPlaces = {};
 
-            await this.axios.get('/wikidata/places').then(response => {
+            await this.axios.get('/api/wikidata/places').then(response => {
                 groupedPlaces = response.data;
             }).catch(error => {
                 console.log(error);
@@ -170,11 +170,13 @@ export default {
         },
         createPlaceMarkers: function (placeGroupName, places) {
             let placeMarkers = [];
-
+            let iconUrl = this.$ogtGlobals.proxyPath + this.groupedPlaces[placeGroupName].iconUrl;
             const defaultIcon = L.icon({
-                iconUrl: this.groupedPlaces[placeGroupName].iconUrl,
-                iconRetinaUrl: '/images/leaflet/marker-icon-2x.png',
-                shadowUrl: '/images/leaflet/marker-shadow.png',
+                iconUrl: iconUrl,
+                // Workaround to use same marker icons for Retina and non-Retina displays.
+                // - default file '/images/leaflet/marker-icon-2x.png'
+                iconRetinaUrl: iconUrl,
+                shadowUrl: this.$ogtGlobals.proxyPath + '/images/leaflet/marker-shadow.png',
                 iconSize: [25, 41],
                 iconAnchor: [12, 41],
                 popupAnchor: [1, -34],
@@ -228,7 +230,7 @@ export default {
                     let placeLabelWithIndex = place.itemLabel.value;
 
                     if (countedPlaceCoordinates > 1) {
-                        placeLabelWithIndex += ' (' + (placeCoordinateIndex + 1) + ')'
+                        placeLabelWithIndex += ' (' + (placeCoordinateIndex + 1) + ')';
                     }
 
                     this.groupedPlaces[placeGroupName]['placesByCoordinates'].push({
@@ -371,7 +373,7 @@ export default {
 </style>
 
 <style scoped>
-@import '/public/css/leaflet.css';
+@import 'leaflet/dist/leaflet.css';
 
 #leafletMapId {
     height: 100%;
