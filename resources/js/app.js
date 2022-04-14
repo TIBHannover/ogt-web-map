@@ -19,6 +19,8 @@ Vue.use(VueRouter);
 Vue.use(VueAxios, axios);
 Vue.use(Vuetify);
 
+Vue.axios.defaults.baseURL = process.env.MIX_BASE_URL ?? '';
+
 const router = new VueRouter({
     base: '/ogt/',
     mode: 'history',
