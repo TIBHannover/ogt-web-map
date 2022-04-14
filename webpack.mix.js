@@ -11,6 +11,9 @@ const mix = require('laravel-mix');
  |
  */
 
+/* required for Leaflet layer control icon */
+mix.setResourceRoot(process.env.ASSET_URL ?? '');
+
 mix.js('resources/js/app.js', 'public/js')
     .vue()
     .postCss('resources/css/app.css', 'public/css', [
