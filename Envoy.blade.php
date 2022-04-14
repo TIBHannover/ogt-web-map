@@ -21,6 +21,7 @@
     // check for required project env params for deployment
     $requiredEnvVars = [
         'APP_NAME',
+        'DEPLOY_APP_URL_' . $envNameUppercase,
         'DEPLOY_APP_DIR',
         'DEPLOY_HOST_' . $envNameUppercase,
         'DEPLOY_REPO',
@@ -44,6 +45,7 @@
 
     $repository = env('DEPLOY_REPO');
     $appDir = env('DEPLOY_APP_DIR') . '/' . env('APP_NAME');
+    $appUrl = str_replace('/', '\/', env('DEPLOY_APP_URL_' . $envNameUppercase));
     $releasesDir = $appDir . '/releases';
     $releaseDate = date('Y-m-d_H-i-s');
     $newReleaseDir = $releasesDir . '/' . $releaseDate;
@@ -130,6 +132,8 @@
     cd {{ $newReleaseDir }}
     cp .env.example .env
     php artisan key:generate
+
+    sed -i -E "s/^ASSET_URL=.*$/ASSET_URL={{ $appUrl }}/g" .env
 
     # @todo required?
     # php artisan config:cache
