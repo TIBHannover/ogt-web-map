@@ -16,17 +16,17 @@
         exit("The command line parameter '--env' with a value from [" . implode(', ', $validServerEnvs) . "] is required.\n");
     }
 
-    $envName = strtoupper($env);
+    $envNameUppercase = strtoupper($env);
 
     // check for required project env params for deployment
     $requiredEnvVars = [
         'APP_NAME',
         'DEPLOY_APP_DIR',
-        'DEPLOY_HOST_' . $envName,
+        'DEPLOY_HOST_' . $envNameUppercase,
         'DEPLOY_REPO',
         'DEPLOY_SLACK_WEBHOOK',
         'DEPLOY_SLACK_WEBHOOK_ENABLED',
-        'DEPLOY_USER_' . $envName,
+        'DEPLOY_USER_' . $envNameUppercase,
     ];
 
     try {
@@ -39,8 +39,8 @@
     }
 
     // set project deployment params
-    $deployUser = env('DEPLOY_USER_' . $envName);
-    $servers[$env] = $deployUser . '@' . env('DEPLOY_HOST_' . $envName);
+    $deployUser = env('DEPLOY_USER_' . $envNameUppercase);
+    $servers[$env] = $deployUser . '@' . env('DEPLOY_HOST_' . $envNameUppercase);
 
     $repository = env('DEPLOY_REPO');
     $appDir = env('DEPLOY_APP_DIR') . '/' . env('APP_NAME');
