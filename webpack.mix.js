@@ -15,8 +15,8 @@ mix.js('resources/js/app.js', 'public/js')
     .vue()
     .postCss('resources/css/app.css', 'public/css', [
         //
-    ])
-    .sourceMaps();
+    ]);
+    //.sourceMaps(); // excluded for now
 
 mix.js('./node_modules/leaflet/dist/leaflet.js', 'public/js')
     .postCss('./node_modules/leaflet/dist/leaflet.css', 'public/css', [
