@@ -4,6 +4,10 @@
         exit("The command line parameter '--branch' is required.\n");
     }
 
+    if (! preg_match('/^(1|0)$/', $updsys)) {
+        exit("The command line parameter '--updsys' with a value from [0, 1] is required.\n");
+    }
+
     $servers = [
         'test' => '',
         'production' => '',
@@ -60,12 +64,9 @@
 
 @servers($servers)
 
-@story('setup_system', ['on' => $env])
+@story('deploy', ['on' => $env])
     update_system
     install_packages
-@endstory
-
-@story('deploy', ['on' => $env])
     clone_repository
     run_composer
     init_env
@@ -74,38 +75,46 @@
 @endstory
 
 @task('update_system')
-    {{ logConsole($env, "Update the package sources list to get the latest list of available packages in the repositories:") }}
-    sudo apt update -y
+    @if ($updsys)
+        {{ logConsole($env, "Update the package sources list to get the latest list of available packages in the repositories:") }}
+        sudo apt update -y
 
-    {{ logConsole($env, "Add Ondřej Surý PHP repository - https://deb.sury.org/:") }}
-    # https://github.com/oerdnj/deb.sury.org/wiki/Frequently-Asked-Questions#how-to-enable-the-debsuryorg-repository
-    sudo apt -y install apt-transport-https lsb-release ca-certificates curl
-    sudo wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
-    sudo sh -c 'echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
-    sudo apt update -y
+        {{ logConsole($env, "Add Ondřej Surý PHP repository - https://deb.sury.org/:") }}
+        # https://github.com/oerdnj/deb.sury.org/wiki/Frequently-Asked-Questions#how-to-enable-the-debsuryorg-repository
+        sudo apt -y install apt-transport-https lsb-release ca-certificates curl
+        sudo wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
+        sudo sh -c 'echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
+        sudo apt update -y
+    @else
+        {{ logConsole($env, "[skipped] Update the package sources list.") }}
+    @endif
 @endtask
 
 @task('install_packages')
-    # @todo Install basic packages like git, ... (pre-installed on the test server)
-    # @todo Install NGINX packages (pre-installed on the test server)
-    # @todo Create NGINX server config for project (created directly on the test server)
-    # @todo Update npm
+    @if ($updsys)
+        # @todo Install basic packages like git, ... (pre-installed on the test server)
+        # @todo Install NGINX packages (pre-installed on the test server)
+        # @todo Create NGINX server config for project (created directly on the test server)
+        # @todo Update npm
 
-    {{ logConsole($env, "Install required PHP packages for NGINX:") }}
-    # includes php-common php7.4-cli php7.4-common php7.4-fpm php7.4-json php7.4-opcache php7.4-readline
-    # includes PHP modules (php -m) for e.g. ctype fileinfo json openssl pdo tokenizer
-    sudo apt -y install php7.4-fpm
+        {{ logConsole($env, "Install required PHP packages for NGINX:") }}
+        # includes php-common php7.4-cli php7.4-common php7.4-fpm php7.4-json php7.4-opcache php7.4-readline
+        # includes PHP modules (php -m) for e.g. ctype fileinfo json openssl pdo tokenizer
+        sudo apt -y install php7.4-fpm
 
-    {{ logConsole($env, "Install additionally required PHP packages for Laravel:") }}
-    # https://laravel.com/docs/8.x/deployment#server-requirements
-    sudo apt -y install php7.4-bcmath php7.4-mbstring php7.4-xml
+        {{ logConsole($env, "Install additionally required PHP packages for Laravel:") }}
+        # https://laravel.com/docs/8.x/deployment#server-requirements
+        sudo apt -y install php7.4-bcmath php7.4-mbstring php7.4-xml
 
-    {{ logConsole($env, "Install PHP dependency manager Composer for Laravel:") }}
-    php -r "readfile('https://getcomposer.org/installer');" | sudo php -- --install-dir=/usr/local/bin/ --filename=composer
+        {{ logConsole($env, "Install PHP dependency manager Composer for Laravel:") }}
+        php -r "readfile('https://getcomposer.org/installer');" | sudo php -- --install-dir=/usr/local/bin/ --filename=composer
 
-    {{ logConsole($env, "Install Node.js package manager npm for Laravel / Vue.js:") }}
-    curl -sL https://deb.nodesource.com/setup_16.x | sudo bash -
-    sudo apt -y install nodejs
+        {{ logConsole($env, "Install Node.js package manager npm for Laravel / Vue.js:") }}
+        curl -sL https://deb.nodesource.com/setup_16.x | sudo bash -
+        sudo apt -y install nodejs
+    @else
+        {{ logConsole($env, "[skipped] Install required packages.") }}
+    @endif
 @endtask
 
 @task('clone_repository')
