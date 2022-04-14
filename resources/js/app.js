@@ -10,6 +10,11 @@ import Vuetify from 'vuetify';
 
 window.Vue = Vue;
 
+Vue.prototype.$ogtGlobals = {
+    // reverse proxy sub path, required to load resources within Vue files
+    proxyPath: process.env.MIX_PROXY_PATH ?? '',
+};
+
 Vue.use(VueRouter);
 Vue.use(VueAxios, axios);
 Vue.use(Vuetify);

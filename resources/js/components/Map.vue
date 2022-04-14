@@ -170,13 +170,13 @@ export default {
         },
         createPlaceMarkers: function (placeGroupName, places) {
             let placeMarkers = [];
-
+            let iconUrl = this.$ogtGlobals.proxyPath + this.groupedPlaces[placeGroupName].iconUrl;
             const defaultIcon = L.icon({
-                iconUrl: this.groupedPlaces[placeGroupName].iconUrl,
+                iconUrl: iconUrl,
                 // Workaround to use same marker icons for Retina and non-Retina displays.
                 // - default file '/images/leaflet/marker-icon-2x.png'
-                iconRetinaUrl: this.groupedPlaces[placeGroupName].iconUrl,
-                shadowUrl: '/images/leaflet/marker-shadow.png',
+                iconRetinaUrl: iconUrl,
+                shadowUrl: this.$ogtGlobals.proxyPath + '/images/leaflet/marker-shadow.png',
                 iconSize: [25, 41],
                 iconAnchor: [12, 41],
                 popupAnchor: [1, -34],

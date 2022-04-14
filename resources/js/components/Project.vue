@@ -56,7 +56,7 @@ export default {
                 /* supported slides content format
                 {
                     header: 'text',
-                    image: 'image path',
+                    image: this.$ogtGlobals.proxyPath + 'image path',
                     listItems: [
                         {
                             text: 'on top level',
@@ -73,7 +73,7 @@ export default {
                 },
                 */
                 {
-                    image: '/images/en/banner.jpg',
+                    image: this.$ogtGlobals.proxyPath + '/images/en/banner.jpg',
                 },
                 {
                     header: 'OGT project',
