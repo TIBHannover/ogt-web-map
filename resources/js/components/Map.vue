@@ -370,6 +370,11 @@ export default {
     margin-top: 80px;
     margin-right: 10px;
 }
+
+/* greyscale map tiles */
+.leaflet-tile-pane {
+    filter: grayscale(1);
+}
 </style>
 
 <style scoped>
