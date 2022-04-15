@@ -372,7 +372,7 @@ export default {
 }
 
 /* greyscale map tiles */
-.leaflet-tile-container {
+.leaflet-tile-pane {
     filter: grayscale(1);
 }
 </style>

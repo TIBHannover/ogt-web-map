@@ -48,7 +48,7 @@ export default {
     },
     methods:{
         toggleMapGreyscale() {
-            const leafletTileContainers = document.querySelectorAll('.leaflet-tile-container');
+            const leafletTilePanes = document.querySelectorAll('.leaflet-tile-pane');
 
             let filter = 'grayscale(0)';
 
@@ -56,8 +56,8 @@ export default {
                 filter = 'grayscale(1)';
             }
 
-            leafletTileContainers.forEach(leafletTileContainer => {
-                leafletTileContainer.style.filter = filter;
+            leafletTilePanes.forEach(leafletTilePane => {
+                leafletTilePane.style.filter = filter;
             });
         }
     }
