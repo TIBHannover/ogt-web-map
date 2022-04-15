@@ -17,6 +17,22 @@
                 :value="index"
             ></v-radio>
         </v-radio-group>
+
+        <v-divider class="my-2"></v-divider>
+
+        <v-subheader>Debug Optionen</v-subheader>
+        <v-list>
+            <v-list-item>
+                <v-list-item-content>
+                    <v-switch
+                        v-model="isMapGreyscale"
+                        color="green lighten-1"
+                        label="Graustufen de-/aktivieren"
+                        @change="toggleMapGreyscale()"
+                    ></v-switch>
+                </v-list-item-content>
+            </v-list-item>
+        </v-list>
     </v-container>
 </template>
 
@@ -25,10 +41,26 @@ export default {
     name: 'LayerOptions',
     data() {
         return {
+            isMapGreyscale: true,
             layerLabels: ['OpenStreetMap', 'Niedersachsen 1933–1945'],
             layerSelected: 0,
         };
     },
+    methods:{
+        toggleMapGreyscale() {
+            const leafletTilePanes = document.querySelectorAll('.leaflet-tile-pane');
+
+            let filter = 'grayscale(0)';
+
+            if (this.isMapGreyscale) {
+                filter = 'grayscale(1)';
+            }
+
+            leafletTilePanes.forEach(leafletTilePane => {
+                leafletTilePane.style.filter = filter;
+            });
+        }
+    }
 };
 </script>
 
