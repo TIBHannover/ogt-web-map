@@ -39,7 +39,7 @@ export default {
             groupedPlaces: {
                 events: {
                     color: '#D26211',
-                    iconUrl: '/images/leaflet/marker-icon-orange.png',
+                    iconUrl: '/images/leaflet/gray/events.svg',
                     layerGroup: null,
                     layerName: 'Ereignisse',
                     places: [],
@@ -48,7 +48,7 @@ export default {
                 },
                 extPolicePrisonsAndLaborEducationCamps: {
                     color: '#743aaf',
-                    iconUrl: '/images/leaflet/marker-icon-purple.png',
+                    iconUrl: '/images/leaflet/gray/extPolicePrisonsAndLaborEducationCamps.svg',
                     layerGroup: null,
                     layerName: 'Erweiterte Polizeigefängnisse/AELs',
                     places: [],
@@ -56,7 +56,7 @@ export default {
                 },
                 fieldOffices: {
                     color: '#2b83cb',
-                    iconUrl: '/images/leaflet/marker-icon.png',
+                    iconUrl: '/images/leaflet/gray/fieldOffices.svg',
                     layerGroup: null,
                     layerName: 'Außendienststellen',
                     places: [],
@@ -64,7 +64,7 @@ export default {
                 },
                 prisons: {
                     color: '#38ab3e',
-                    iconUrl: '/images/leaflet/marker-icon-green.png',
+                    iconUrl: '/images/leaflet/gray/prisons.svg',
                     layerGroup: null,
                     layerName: 'Gefängnisse',
                     places: [],
@@ -72,7 +72,7 @@ export default {
                 },
                 statePoliceHeadquarters: {
                     color: '#af3a3a',
-                    iconUrl: '/images/leaflet/marker-icon-red.png',
+                    iconUrl: '/images/leaflet/gray/statePoliceHeadquarters.svg',
                     layerGroup: null,
                     layerName: 'Staatspolizeileitstellen',
                     places: [],
@@ -80,7 +80,7 @@ export default {
                 },
                 statePoliceOffices: {
                     color: '#bcbb29',
-                    iconUrl: '/images/leaflet/marker-icon-yellow.png',
+                    iconUrl: '/images/leaflet/gray/statePoliceOffices.svg',
                     layerGroup: null,
                     layerName: 'Staatspolizeistellen',
                     places: [],
@@ -177,7 +177,7 @@ export default {
                 // - default file '/images/leaflet/marker-icon-2x.png'
                 iconRetinaUrl: iconUrl,
                 shadowUrl: this.$ogtGlobals.proxyPath + '/images/leaflet/marker-shadow.png',
-                iconSize: [25, 41],
+                iconSize: [25, 53], // default [25, 41]
                 iconAnchor: [12, 41],
                 popupAnchor: [1, -34],
                 tooltipAnchor: [16, -28],
