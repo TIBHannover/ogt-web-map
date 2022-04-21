@@ -4,6 +4,7 @@
         <v-radio-group
             v-model="layerSelected"
             dense
+            disabled
             label="Wähle eine Kartenansicht aus:"
             mandatory
             prepend-icon="mdi-map"
