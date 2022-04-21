@@ -66,7 +66,13 @@ export default {
         return {
             layerLabels: ['OpenStreetMap', 'Niedersachsen 1933–1945'],
             layerSelected: 0,
-            mapMarkerStyleLabels: ['Graue Symbole', 'Farbige Symbole', 'Leaflet Standard Kartenmarker'],
+            mapMarkerStyleLabels: [
+                'Graue Symbole (transparent)',
+                'Farbige Symbole (transparent)',
+                'Leaflet Standard Kartenmarker',
+                'Graue Symbole',
+                'Farbige Symbole',
+            ],
             mapMarkerStyleSelected: 0,
             mapGrayscaleLabels: ['Graustufen deaktiviert', 'Graustufen aktiviert'],
             mapGrayscaleSelected: 1,
@@ -74,7 +80,7 @@ export default {
     },
     methods: {
         switchMapMarkerStyle() {
-            let mapMarkerSubPath = '/gray/';
+            let mapMarkerSubPath = '/grayTransparent/';
             let mapMarkerFileType = '.svg';
             let mapMarkerHeight = '53px';
             let mapMarkerWidth = '48px';
@@ -82,7 +88,7 @@ export default {
             let mapMarkerMarginTop = '-52px';
 
             if (this.mapMarkerStyleSelected == 1) {
-                mapMarkerSubPath = '/colored/';
+                mapMarkerSubPath = '/coloredTransparent/';
             }
             else if (this.mapMarkerStyleSelected == 2) {
                 mapMarkerSubPath = '/default/';
@@ -92,14 +98,21 @@ export default {
                 mapMarkerMarginLeft = '-12px';
                 mapMarkerMarginTop = '-41px';
             }
+            else if (this.mapMarkerStyleSelected == 3) {
+                mapMarkerSubPath = '/grayFilled/';
+            }
+            else if (this.mapMarkerStyleSelected == 4) {
+                mapMarkerSubPath = '/coloredFilled/';
+            }
             else {
                 // default case
             }
 
             const leafletMarkerIcons = document.querySelectorAll('.leaflet-marker-icon');
+            const subPathRegex = /\/(grayTransparent|coloredTransparent|default|grayFilled|coloredFilled)\//g;
 
             leafletMarkerIcons.forEach(leafletTilePane => {
-                leafletTilePane.src = leafletTilePane.src.replace(/\/(gray|colored|default)\//g, mapMarkerSubPath);
+                leafletTilePane.src = leafletTilePane.src.replace(subPathRegex, mapMarkerSubPath);
                 leafletTilePane.src = leafletTilePane.src.replace(/\.(svg|png)$/g, mapMarkerFileType);
                 leafletTilePane.style.height = mapMarkerHeight;
                 leafletTilePane.style.width = mapMarkerWidth;
