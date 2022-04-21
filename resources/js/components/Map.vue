@@ -177,8 +177,8 @@ export default {
                 // - default file '/images/leaflet/marker-icon-2x.png'
                 iconRetinaUrl: iconUrl,
                 shadowUrl: this.$ogtGlobals.proxyPath + '/images/leaflet/marker-shadow.png',
-                iconSize: [25, 53], // default [25, 41]
-                iconAnchor: [12, 41],
+                iconSize: [48, 53], // default [25, 41]
+                iconAnchor: [24, 52], // default [12, 41]
                 popupAnchor: [1, -34],
                 tooltipAnchor: [16, -28],
                 shadowSize: [41, 41],

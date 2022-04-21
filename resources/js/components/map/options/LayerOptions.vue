@@ -77,6 +77,9 @@ export default {
             let mapMarkerSubPath = '/gray/';
             let mapMarkerFileType = '.svg';
             let mapMarkerHeight = '53px';
+            let mapMarkerWidth = '48px';
+            let mapMarkerMarginLeft = '-24px';
+            let mapMarkerMarginTop = '-52px';
 
             if (this.mapMarkerStyleSelected == 1) {
                 mapMarkerSubPath = '/colored/';
@@ -85,6 +88,9 @@ export default {
                 mapMarkerSubPath = '/default/';
                 mapMarkerFileType = '.png';
                 mapMarkerHeight = '41px';
+                mapMarkerWidth = '25px';
+                mapMarkerMarginLeft = '-12px';
+                mapMarkerMarginTop = '-41px';
             }
             else {
                 // default case
@@ -96,6 +102,9 @@ export default {
                 leafletTilePane.src = leafletTilePane.src.replace(/\/(gray|colored|default)\//g, mapMarkerSubPath);
                 leafletTilePane.src = leafletTilePane.src.replace(/\.(svg|png)$/g, mapMarkerFileType);
                 leafletTilePane.style.height = mapMarkerHeight;
+                leafletTilePane.style.width = mapMarkerWidth;
+                leafletTilePane.style.marginLeft = mapMarkerMarginLeft;
+                leafletTilePane.style.marginTop = mapMarkerMarginTop;
             });
         },
         toggleMapGrayscale() {
