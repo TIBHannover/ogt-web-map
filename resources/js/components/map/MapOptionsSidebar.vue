@@ -81,8 +81,8 @@
                 <v-tab-item>
                     <places-selection
                         :groupedPlaces="groupedPlaces"
-                        :map="map">
-                    </places-selection>
+                        :map="map"
+                    ></places-selection>
                 </v-tab-item>
             </v-tabs-items>
         </v-navigation-drawer>
