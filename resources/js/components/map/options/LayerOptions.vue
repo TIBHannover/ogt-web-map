@@ -22,18 +22,23 @@
         <v-divider class="my-2"></v-divider>
 
         <v-subheader>Debug Optionen</v-subheader>
-        <v-list>
-            <v-list-item>
-                <v-list-item-content>
-                    <v-switch
-                        v-model="isMapGreyscale"
-                        color="green lighten-1"
-                        label="Graustufen de-/aktivieren"
-                        @change="toggleMapGreyscale()"
-                    ></v-switch>
-                </v-list-item-content>
-            </v-list-item>
-        </v-list>
+        <v-radio-group
+            v-model="mapGrayscaleSelected"
+            @change="toggleMapGrayscale()"
+            dense
+            label="De-/Aktiviere die Karten Graustufen aus:"
+            mandatory
+            prepend-icon="mdi-map"
+        >
+            <v-radio
+                v-for="(mapGrayscaleLabel, index) in mapGrayscaleLabels"
+                color="green lighten-1"
+                :key="index"
+                :label="mapGrayscaleLabel"
+                :value="index"
+            ></v-radio>
+        </v-radio-group>
+
         <v-radio-group
             v-model="mapMarkerStyleSelected"
             @change="switchMapMarkerStyle()"
@@ -59,27 +64,15 @@ export default {
     props: ['groupedPlaces'],
     data() {
         return {
-            isMapGreyscale: true,
             layerLabels: ['OpenStreetMap', 'Niedersachsen 1933–1945'],
             layerSelected: 0,
-            mapMarkerStyleSelected: 0,
             mapMarkerStyleLabels: ['Graue Symbole', 'Farbige Symbole', 'Leaflet Standard Kartenmarker'],
+            mapMarkerStyleSelected: 0,
+            mapGrayscaleLabels: ['Graustufen deaktiviert', 'Graustufen aktiviert'],
+            mapGrayscaleSelected: 1,
         };
     },
-    methods:{
-        toggleMapGreyscale() {
-            const leafletTilePanes = document.querySelectorAll('.leaflet-tile-pane');
-
-            let filter = 'grayscale(0)';
-
-            if (this.isMapGreyscale) {
-                filter = 'grayscale(1)';
-            }
-
-            leafletTilePanes.forEach(leafletTilePane => {
-                leafletTilePane.style.filter = filter;
-            });
-        },
+    methods: {
         switchMapMarkerStyle() {
             let mapMarkerSubPath = '/gray/';
             let mapMarkerFileType = '.svg';
@@ -105,7 +98,20 @@ export default {
                 leafletTilePane.style.height = mapMarkerHeight;
             });
         },
-    }
+        toggleMapGrayscale() {
+            let filter = 'grayscale(1)';
+
+            if (this.mapGrayscaleSelected == 0) {
+                filter = 'grayscale(0)';
+            }
+
+            const leafletTilePanes = document.querySelectorAll('.leaflet-tile-pane');
+
+            leafletTilePanes.forEach(leafletTilePane => {
+                leafletTilePane.style.filter = filter;
+            });
+        },
+    },
 };
 </script>
 
