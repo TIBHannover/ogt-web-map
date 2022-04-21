@@ -67,7 +67,9 @@
             >
                 <!-- layers options -->
                 <v-tab-item>
-                    <layer-options></layer-options>
+                    <layer-options
+                        :groupedPlaces="groupedPlaces"
+                    ></layer-options>
                 </v-tab-item>
 
                 <!-- time period options -->
