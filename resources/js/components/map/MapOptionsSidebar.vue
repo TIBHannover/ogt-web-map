@@ -67,7 +67,9 @@
             >
                 <!-- layers options -->
                 <v-tab-item>
-                    <layer-options></layer-options>
+                    <layer-options
+                        :groupedPlaces="groupedPlaces"
+                    ></layer-options>
                 </v-tab-item>
 
                 <!-- time period options -->
@@ -79,8 +81,8 @@
                 <v-tab-item>
                     <places-selection
                         :groupedPlaces="groupedPlaces"
-                        :map="map">
-                    </places-selection>
+                        :map="map"
+                    ></places-selection>
                 </v-tab-item>
             </v-tabs-items>
         </v-navigation-drawer>
