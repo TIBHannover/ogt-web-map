@@ -4,7 +4,7 @@
         <v-btn
             absolute
             class="mt-5"
-            color="primary"
+            color="white"
             fab
             left
             v-show="!isMenuDisplayed"

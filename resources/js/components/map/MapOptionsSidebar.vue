@@ -1,11 +1,11 @@
 <template>
     <div>
-        <!-- button to open map options sidebar, #FFFBE6 Corn Silk background-color -->
+        <!-- button to open map options sidebar -->
         <v-btn
             absolute
             class="mt-5"
             @click.stop="isMapOptionsDisplayed = !isMapOptionsDisplayed"
-            color="#FFFBE6"
+            color="white"
             fab
             right
             v-show="!isMapOptionsDisplayed"
