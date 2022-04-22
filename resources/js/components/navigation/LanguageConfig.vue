@@ -41,7 +41,8 @@ export default {
 
 <style scoped>
 .selectedItemBorder {
-    border: 2px dashed #c8e6c9;
+    /* grey darken-4 */
+    border: 2px dashed #212121;
 }
 </style>
 

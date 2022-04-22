@@ -20,7 +20,7 @@
             v-model="selectedPlace"
             v-show="checkedPlaceLayerGroups.includes(groupName)"
             class="mx-4 my-2"
-            color="green lighten-1"
+            color="grey darken-4"
             dense
             hide-details
             item-text="placeLabelWithIndex"

@@ -44,7 +44,7 @@
             <!-- map options tabs -->
             <v-tabs
                 background-color="transparent"
-                color="green lighten-1"
+                color="grey darken-4"
                 fixed-tabs
                 icons-and-text
                 v-model="activeTab"
