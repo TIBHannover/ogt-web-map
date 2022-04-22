@@ -73,7 +73,7 @@ export default {
                 'Graue Symbole',
                 'Farbige Symbole',
             ],
-            mapMarkerStyleSelected: 0,
+            mapMarkerStyleSelected: 3,
             mapGrayscaleLabels: ['Graustufen deaktiviert', 'Graustufen aktiviert'],
             mapGrayscaleSelected: 1,
         };
