@@ -181,7 +181,7 @@ export default {
                 iconAnchor: [24, 52], // default [12, 41]
                 popupAnchor: [1, -34],
                 tooltipAnchor: [16, -28],
-                shadowSize: [41, 41],
+                shadowSize: [76, 52], // default [41, 41]
             });
 
             places.forEach(place => {

@@ -82,10 +82,12 @@ export default {
         switchMapMarkerStyle() {
             let mapMarkerSubPath = '/greyTransparent/';
             let mapMarkerFileType = '.svg';
-            let mapMarkerHeight = '53px';
             let mapMarkerWidth = '48px';
+            let mapMarkerHeight = '53px';
             let mapMarkerMarginLeft = '-24px';
             let mapMarkerMarginTop = '-52px';
+            let mapMarkerShadowWidth = '76px';
+            let mapMarkerShadowHeight = '52px';
 
             if (this.mapMarkerStyleSelected == 1) {
                 mapMarkerSubPath = '/coloredTransparent/';
@@ -93,10 +95,12 @@ export default {
             else if (this.mapMarkerStyleSelected == 2) {
                 mapMarkerSubPath = '/default/';
                 mapMarkerFileType = '.png';
-                mapMarkerHeight = '41px';
                 mapMarkerWidth = '25px';
+                mapMarkerHeight = '41px';
                 mapMarkerMarginLeft = '-12px';
                 mapMarkerMarginTop = '-41px';
+                mapMarkerShadowWidth = '41px';
+                mapMarkerShadowHeight = '41px';
             }
             else if (this.mapMarkerStyleSelected == 3) {
                 mapMarkerSubPath = '/greyFilled/';
@@ -111,13 +115,21 @@ export default {
             const leafletMarkerIcons = document.querySelectorAll('.leaflet-marker-icon');
             const subPathRegex = /\/(greyTransparent|coloredTransparent|default|greyFilled|coloredFilled)\//g;
 
-            leafletMarkerIcons.forEach(leafletTilePane => {
-                leafletTilePane.src = leafletTilePane.src.replace(subPathRegex, mapMarkerSubPath);
-                leafletTilePane.src = leafletTilePane.src.replace(/\.(svg|png)$/g, mapMarkerFileType);
-                leafletTilePane.style.height = mapMarkerHeight;
-                leafletTilePane.style.width = mapMarkerWidth;
-                leafletTilePane.style.marginLeft = mapMarkerMarginLeft;
-                leafletTilePane.style.marginTop = mapMarkerMarginTop;
+            leafletMarkerIcons.forEach(leafletMarkerIcon => {
+                leafletMarkerIcon.src = leafletMarkerIcon.src.replace(subPathRegex, mapMarkerSubPath);
+                leafletMarkerIcon.src = leafletMarkerIcon.src.replace(/\.(svg|png)$/g, mapMarkerFileType);
+                leafletMarkerIcon.style.height = mapMarkerHeight;
+                leafletMarkerIcon.style.width = mapMarkerWidth;
+                leafletMarkerIcon.style.marginLeft = mapMarkerMarginLeft;
+                leafletMarkerIcon.style.marginTop = mapMarkerMarginTop;
+            });
+
+            const leafletMarkerShadows = document.querySelectorAll('.leaflet-marker-shadow');
+            leafletMarkerShadows.forEach(leafletMarkerShadow => {
+                leafletMarkerShadow.style.height = mapMarkerShadowHeight;
+                leafletMarkerShadow.style.width = mapMarkerShadowWidth;
+                leafletMarkerShadow.style.marginLeft = mapMarkerMarginLeft;
+                leafletMarkerShadow.style.marginTop = mapMarkerMarginTop;
             });
         },
         toggleMapGreyscale() {
