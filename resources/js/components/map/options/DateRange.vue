@@ -20,12 +20,12 @@
                 :key="index"
                 :label="timePeriodOption"
                 @click="setDateRangeBySelectedTimePeriod"
-                color="green lighten-1"
+                color="grey darken-4"
                 :value="index"
             ></v-radio>
         </v-radio-group>
         <v-date-picker
-            color="green lighten-1"
+            color="grey darken-4"
             :full-width="true"
             locale="de-de"
             max="1945-12-31"

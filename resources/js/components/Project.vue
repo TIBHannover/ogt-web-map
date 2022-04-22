@@ -1,5 +1,5 @@
 <template>
-    <v-container class="blue-grey lighten-2 justify-center" fill-height fluid>
+    <v-container class="grey lighten-3 justify-center" fill-height fluid>
 
         <!-- content, if no slides displayed -->
         <div v-show="!showSlides" class="text-center">
@@ -16,7 +16,7 @@
 
             <!-- slides structure -->
             <v-carousel-item v-for="(slide, index) in slides" :key="index">
-                <v-sheet color="blue-grey lighten-2" height="100%" tile>
+                <v-sheet color="grey lighten-3" height="100%" tile>
                     <v-row align="center" class="fill-height" justify="center">
                         <v-col v-if="slide.image" class="px-70">
                             <v-img class="mx-auto" max-width="1150" :src="slide.image"></v-img>

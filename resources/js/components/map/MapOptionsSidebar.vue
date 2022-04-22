@@ -1,11 +1,11 @@
 <template>
     <div>
-        <!-- button to open map options sidebar, #FFFBE6 Corn Silk background-color -->
+        <!-- button to open map options sidebar -->
         <v-btn
             absolute
             class="mt-5"
             @click.stop="isMapOptionsDisplayed = !isMapOptionsDisplayed"
-            color="#FFFBE6"
+            color="white"
             fab
             right
             v-show="!isMapOptionsDisplayed"
@@ -16,7 +16,7 @@
         <!-- map options sidebar -->
         <v-navigation-drawer
             absolute
-            color="bgCornSilk"
+            color="grey lighten-3"
             hide-overlay
             mobile-breakpoint="750"
             right
@@ -44,7 +44,7 @@
             <!-- map options tabs -->
             <v-tabs
                 background-color="transparent"
-                color="green lighten-1"
+                color="grey darken-4"
                 fixed-tabs
                 icons-and-text
                 v-model="activeTab"
@@ -122,10 +122,6 @@ export default {
 </script>
 
 <style scoped>
-.bgCornSilk {
-    background-color: #FFFBE6;
-}
-
 /* reduced font size, so sidebar has space for four icon+text v-tabs */
 .v-tab {
     font-size: 9px;
