@@ -12,7 +12,7 @@
         >
             <v-radio
                 v-for="(layerLabel, index) in layerLabels"
-                color="green lighten-1"
+                color="grey darken-4"
                 :key="index"
                 :label="layerLabel"
                 :value="index"
@@ -32,7 +32,7 @@
         >
             <v-radio
                 v-for="(mapGreyscaleLabel, index) in mapGreyscaleLabels"
-                color="green lighten-1"
+                color="grey darken-4"
                 :key="index"
                 :label="mapGreyscaleLabel"
                 :value="index"
@@ -49,7 +49,7 @@
         >
             <v-radio
                 v-for="(mapMarkerStyleLabel, index) in mapMarkerStyleLabels"
-                color="green lighten-1"
+                color="grey darken-4"
                 :key="index"
                 :label="mapMarkerStyleLabel"
                 :value="index"
