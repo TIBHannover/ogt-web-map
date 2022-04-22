@@ -23,18 +23,18 @@
 
         <v-subheader>Debug Optionen</v-subheader>
         <v-radio-group
-            v-model="mapGrayscaleSelected"
-            @change="toggleMapGrayscale()"
+            v-model="mapGreyscaleSelected"
+            @change="toggleMapGreyscale()"
             dense
             label="De-/Aktiviere die Karten Graustufen aus:"
             mandatory
             prepend-icon="mdi-map"
         >
             <v-radio
-                v-for="(mapGrayscaleLabel, index) in mapGrayscaleLabels"
+                v-for="(mapGreyscaleLabel, index) in mapGreyscaleLabels"
                 color="green lighten-1"
                 :key="index"
-                :label="mapGrayscaleLabel"
+                :label="mapGreyscaleLabel"
                 :value="index"
             ></v-radio>
         </v-radio-group>
@@ -74,13 +74,13 @@ export default {
                 'Farbige Symbole',
             ],
             mapMarkerStyleSelected: 3,
-            mapGrayscaleLabels: ['Graustufen deaktiviert', 'Graustufen aktiviert'],
-            mapGrayscaleSelected: 1,
+            mapGreyscaleLabels: ['Graustufen deaktiviert', 'Graustufen aktiviert'],
+            mapGreyscaleSelected: 1,
         };
     },
     methods: {
         switchMapMarkerStyle() {
-            let mapMarkerSubPath = '/grayTransparent/';
+            let mapMarkerSubPath = '/greyTransparent/';
             let mapMarkerFileType = '.svg';
             let mapMarkerHeight = '53px';
             let mapMarkerWidth = '48px';
@@ -99,7 +99,7 @@ export default {
                 mapMarkerMarginTop = '-41px';
             }
             else if (this.mapMarkerStyleSelected == 3) {
-                mapMarkerSubPath = '/grayFilled/';
+                mapMarkerSubPath = '/greyFilled/';
             }
             else if (this.mapMarkerStyleSelected == 4) {
                 mapMarkerSubPath = '/coloredFilled/';
@@ -109,7 +109,7 @@ export default {
             }
 
             const leafletMarkerIcons = document.querySelectorAll('.leaflet-marker-icon');
-            const subPathRegex = /\/(grayTransparent|coloredTransparent|default|grayFilled|coloredFilled)\//g;
+            const subPathRegex = /\/(greyTransparent|coloredTransparent|default|greyFilled|coloredFilled)\//g;
 
             leafletMarkerIcons.forEach(leafletTilePane => {
                 leafletTilePane.src = leafletTilePane.src.replace(subPathRegex, mapMarkerSubPath);
@@ -120,10 +120,10 @@ export default {
                 leafletTilePane.style.marginTop = mapMarkerMarginTop;
             });
         },
-        toggleMapGrayscale() {
+        toggleMapGreyscale() {
             let filter = 'grayscale(1)';
 
-            if (this.mapGrayscaleSelected == 0) {
+            if (this.mapGreyscaleSelected == 0) {
                 filter = 'grayscale(0)';
             }
 
