@@ -16,7 +16,7 @@
         <!-- navigation sidebar -->
         <v-navigation-drawer
             absolute
-            class="blue accent-1"
+            class="grey lighten-3"
             hide-overlay
             mobile-breakpoint="750"
             width="375px"

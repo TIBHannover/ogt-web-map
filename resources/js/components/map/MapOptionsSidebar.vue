@@ -16,7 +16,7 @@
         <!-- map options sidebar -->
         <v-navigation-drawer
             absolute
-            color="bgCornSilk"
+            color="grey lighten-3"
             hide-overlay
             mobile-breakpoint="750"
             right
@@ -122,10 +122,6 @@ export default {
 </script>
 
 <style scoped>
-.bgCornSilk {
-    background-color: #FFFBE6;
-}
-
 /* reduced font size, so sidebar has space for four icon+text v-tabs */
 .v-tab {
     font-size: 9px;

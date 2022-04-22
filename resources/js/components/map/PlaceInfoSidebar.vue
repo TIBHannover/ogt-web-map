@@ -4,7 +4,7 @@
         <v-navigation-drawer
             v-model="showPlaceInfoSidebar"
             absolute
-            color="bgCornSilk"
+            color="grey lighten-3"
             hide-overlay
             mobile-breakpoint="750"
             width="375px"
@@ -120,10 +120,6 @@ export default {
 </script>
 
 <style scoped>
-.bgCornSilk {
-    background-color: #FFFBE6;
-}
-
 /* move to top right */
 .flex-direction-row {
     align-self: flex-start;
