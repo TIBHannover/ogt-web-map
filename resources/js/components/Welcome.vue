@@ -1,9 +1,10 @@
 <template>
     <v-container
         class="grey lighten-3 justify-center"
-        :class="{ backgroundImage: showBackgroundImage }"
+        :class="{ background: showBackgroundImage }"
         fill-height
         fluid
+        :style="{ backgroundImage: showBackgroundImage ? 'url(' + backgroundImageUrl + ')' : 'none' }"
     >
         <!-- button to switch between alternative page layouts -->
         <v-btn
@@ -38,6 +39,7 @@ export default {
     name: 'Welcome',
     data() {
         return {
+            backgroundImageUrl: this.$ogtGlobals.proxyPath + '/images/de/background.png',
             layoutLabels: ['A', 'B'],
             nextLayoutId: 0,
             showBanner: false,
@@ -62,8 +64,7 @@ export default {
 </script>
 
 <style scoped>
-.backgroundImage {
-    background-image: url('/images/de/background.png');
+.background {
     background-position: center center;
     background-repeat: no-repeat;
     background-size: 100% auto;
