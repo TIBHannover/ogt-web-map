@@ -4,7 +4,20 @@
         fill-height
         fluid
     >
-        <v-row>
+        <!-- button to switch between alternative page layouts -->
+        <v-btn
+            absolute
+            @click.stop="switchPageLayout()"
+            color="white"
+            right
+            rounded
+            top
+        >
+            Alternatives Layout "{{ layoutLabels[nextLayoutId] }}" anzeigen
+        </v-btn>
+
+        <!-- banner layout -->
+        <v-row v-show="showBanner">
             <v-col>
                 <router-link to="/map">
                     <v-img
@@ -21,6 +34,28 @@
 <script>
 export default {
     name: 'Welcome',
+    data() {
+        return {
+            layoutLabels: ['Banner', 'Hintergrundbild'],
+            nextLayoutId: 1,
+            showBanner: true,
+            showBackgroundImage: false,
+        };
+    },
+    methods: {
+        switchPageLayout() {
+            if (this.nextLayoutId == 0) {
+                this.showBanner = true;
+                this.showBackgroundImage = false;
+                this.nextLayoutId = 1;
+            }
+            else if (this.nextLayoutId == 1) {
+                this.showBanner = false;
+                this.showBackgroundImage = true;
+                this.nextLayoutId = 0;
+            }
+        },
+    },
 };
 </script>
 
