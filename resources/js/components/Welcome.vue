@@ -1,6 +1,7 @@
 <template>
     <v-container
         class="grey lighten-3 justify-center"
+        :class="{ backgroundImage: showBackgroundImage }"
         fill-height
         fluid
     >
@@ -37,9 +38,9 @@ export default {
     data() {
         return {
             layoutLabels: ['Banner', 'Hintergrundbild'],
-            nextLayoutId: 1,
-            showBanner: true,
-            showBackgroundImage: false,
+            nextLayoutId: 0,
+            showBanner: false,
+            showBackgroundImage: true,
         };
     },
     methods: {
@@ -60,5 +61,11 @@ export default {
 </script>
 
 <style scoped>
+.backgroundImage {
+    background-image: url('/images/de/background.png');
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: 100% auto;
+}
 
 </style>
