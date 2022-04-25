@@ -8,6 +8,7 @@
         <!-- button to switch between alternative page layouts -->
         <v-btn
             absolute
+            class="noneTextTransform"
             @click.stop="switchPageLayout()"
             color="white"
             right
@@ -37,7 +38,7 @@ export default {
     name: 'Welcome',
     data() {
         return {
-            layoutLabels: ['Banner', 'Hintergrundbild'],
+            layoutLabels: ['A', 'B'],
             nextLayoutId: 0,
             showBanner: false,
             showBackgroundImage: true,
@@ -68,4 +69,8 @@ export default {
     background-size: 100% auto;
 }
 
+/* to lowercase text within Vuetify buttons */
+.noneTextTransform {
+    text-transform: none;
+}
 </style>
