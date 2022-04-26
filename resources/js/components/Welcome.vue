@@ -56,7 +56,7 @@ export default {
     name: 'Welcome',
     data() {
         return {
-            backgroundImageUrl: this.$ogtGlobals.proxyPath + '/images/de/background.png',
+            backgroundImageUrl: this.$ogtGlobals.proxyPath + '/images/de/backgroundWithText.png',
             // A: banner and grey background
             // B: background image, stretched to width (100%) => grey background at top and bottom on small displays
             // C: background image, cover, menu buttons => background image text lost on small devices
