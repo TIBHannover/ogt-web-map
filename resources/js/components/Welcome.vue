@@ -60,7 +60,7 @@ export default {
             // A: banner and grey background
             // B: background image, stretched to width (100%) => grey background at top and bottom on small displays
             // C: background image, cover, menu buttons => background image text lost on small devices
-            // D: background image, stretched to height & width (100%), menu buttons => background image looks distorted
+            // D: background image, stretched to height & width (100%), show menu buttons delayed => background image looks distorted
             layoutLabels: ['A', 'B', 'C', 'D'],
             menuButtons: [
                 {
@@ -76,6 +76,7 @@ export default {
                     routeTo: '/charts',
                 },
             ],
+            menuButtonsShowTimeoutId: null,
             selectedLayoutId: 1,
             showBackgroundImage: true,
             showBanner: false,
@@ -84,6 +85,7 @@ export default {
     },
     methods: {
         switchPageLayout() {
+            clearTimeout(this.menuButtonsShowTimeoutId);
             let backgroundSize = '100% auto';
             this.selectedLayoutId = (this.selectedLayoutId + 1) % this.layoutLabels.length;
 
@@ -106,8 +108,9 @@ export default {
             else if (this.selectedLayoutId == 3) {
                 this.showBackgroundImage = true;
                 this.showBanner = false;
-                this.showMenuButtons = true;
+                this.showMenuButtons = false;
                 backgroundSize = '100% 100%';
+                this.setMenuButtonsShowTimeout();
             }
 
             const backgrounds = document.querySelectorAll('.background');
@@ -115,6 +118,11 @@ export default {
             backgrounds.forEach(background => {
                 background.style.backgroundSize = backgroundSize;
             });
+        },
+        setMenuButtonsShowTimeout() {
+            this.menuButtonsShowTimeoutId = setTimeout( () => {
+                this.showMenuButtons = true;
+            }, 3000);
         },
     },
 };
