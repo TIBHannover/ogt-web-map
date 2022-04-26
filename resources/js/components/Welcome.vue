@@ -1,7 +1,7 @@
 <template>
     <v-container
         class="grey lighten-3 justify-center"
-        :class="{ background: showBackgroundImage, 'xs-bg-x-shifted': $vuetify.breakpoint.xs && (nextLayoutId == 3) }"
+        :class="{ background: showBackgroundImage, 'xs-bg-x-shifted': $vuetify.breakpoint.xs && (selectedLayoutId == 2) }"
         fill-height
         fluid
         :style="{ backgroundImage: showBackgroundImage ? 'url(' + backgroundImageUrl + ')' : 'none' }"
@@ -16,7 +16,7 @@
             rounded
             top
         >
-            Alternatives Layout "{{ layoutLabels[nextLayoutId] }}" anzeigen
+            Alternatives Layout "{{ layoutLabels[(selectedLayoutId + 1) % layoutLabels.length] }}" anzeigen
         </v-btn>
 
         <!-- banner layout -->
@@ -76,41 +76,38 @@ export default {
                     routeTo: '/charts',
                 },
             ],
-            nextLayoutId: 2,
-            showBanner: false,
+            selectedLayoutId: 1,
             showBackgroundImage: true,
+            showBanner: false,
             showMenuButtons: false,
         };
     },
     methods: {
         switchPageLayout() {
             let backgroundSize = '100% auto';
+            this.selectedLayoutId = (this.selectedLayoutId + 1) % this.layoutLabels.length;
 
-            if (this.nextLayoutId == 0) {
-                this.showBanner = true;
+            if (this.selectedLayoutId == 0) {
                 this.showBackgroundImage = false;
+                this.showBanner = true;
                 this.showMenuButtons = false;
-                this.nextLayoutId = 1;
             }
-            else if (this.nextLayoutId == 1) {
-                this.showBanner = false;
+            else if (this.selectedLayoutId == 1) {
                 this.showBackgroundImage = true;
+                this.showBanner = false;
                 this.showMenuButtons = false;
-                this.nextLayoutId = 2;
             }
-            else if (this.nextLayoutId == 2) {
-                this.showBanner = false;
+            else if (this.selectedLayoutId == 2) {
                 this.showBackgroundImage = true;
+                this.showBanner = false;
                 this.showMenuButtons = true;
                 backgroundSize = 'cover';
-                this.nextLayoutId = 3;
             }
-            else if (this.nextLayoutId == 3) {
-                this.showBanner = false;
+            else if (this.selectedLayoutId == 3) {
                 this.showBackgroundImage = true;
+                this.showBanner = false;
                 this.showMenuButtons = true;
                 backgroundSize = '100% 100%';
-                this.nextLayoutId = 0;
             }
 
             const backgrounds = document.querySelectorAll('.background');
