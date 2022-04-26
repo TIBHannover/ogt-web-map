@@ -1,7 +1,7 @@
 <template>
     <v-container
         class="grey lighten-3 justify-center"
-        :class="{ background: showBackgroundImage, 'xs-bg-x-shifted': $vuetify.breakpoint.xs && (nextLayoutId == 0) }"
+        :class="{ background: showBackgroundImage, 'xs-bg-x-shifted': $vuetify.breakpoint.xs && (nextLayoutId == 3) }"
         fill-height
         fluid
         :style="{ backgroundImage: showBackgroundImage ? 'url(' + backgroundImageUrl + ')' : 'none' }"
@@ -57,7 +57,11 @@ export default {
     data() {
         return {
             backgroundImageUrl: this.$ogtGlobals.proxyPath + '/images/de/background.png',
-            layoutLabels: ['A', 'B', 'C'],
+            // A: banner and grey background
+            // B: background image, stretched to width (100%) => grey background at top and bottom on small displays
+            // C: background image, cover, menu buttons => background image text lost on small devices
+            // D: background image, stretched to height & width (100%), menu buttons => background image looks distorted
+            layoutLabels: ['A', 'B', 'C', 'D'],
             menuButtons: [
                 {
                     label: 'Projekt',
@@ -99,6 +103,13 @@ export default {
                 this.showBackgroundImage = true;
                 this.showMenuButtons = true;
                 backgroundSize = 'cover';
+                this.nextLayoutId = 3;
+            }
+            else if (this.nextLayoutId == 3) {
+                this.showBanner = false;
+                this.showBackgroundImage = true;
+                this.showMenuButtons = true;
+                backgroundSize = '100% 100%';
                 this.nextLayoutId = 0;
             }
 
