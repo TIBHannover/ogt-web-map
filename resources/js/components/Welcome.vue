@@ -172,8 +172,8 @@ export default {
     text-transform: none;
 }
 
-/* used move center of background image for extra small window size (< 600px) */
+/* shift center of background image for extra small window sizes (< 600px) */
 .xs-bg-x-shifted {
-    background-position-x: -650px;
+    background-position-x: 75%;
 }
 </style>
