@@ -87,7 +87,7 @@ export default {
                 },
             ],
             menuButtonsShowTimeoutId: null,
-            selectedLayoutId: 1,
+            selectedLayoutId: 4,
             showBackgroundImage: true,
             showBanner: false,
             showHeaderText: false,
