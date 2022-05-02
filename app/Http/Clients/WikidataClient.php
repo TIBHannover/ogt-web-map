@@ -24,18 +24,26 @@ class WikidataClient
             'Q108048094',   // https://www.wikidata.org/wiki/Q108048094     Police Detention Camp
         ],
         'fieldOffices'            => [
-            'Q108047541',
-            'Q108047989',
-            'Q108047676',
-            'Q108047833',
-            'Q108047775',
+            'Q108047541',   // https://www.wikidata.org/wiki/Q108047541     Gestapo Field Office
+            'Q108047989',   // https://www.wikidata.org/wiki/Q108047989     Outpost (State Police)
+            'Q108047676',   // https://www.wikidata.org/wiki/Q108047676     Border Police Commissariat
+            'Q108047833',   // https://www.wikidata.org/wiki/Q108047833     Border police station
+            'Q108047775',   // https://www.wikidata.org/wiki/Q108047775     Branch office (border police)
         ],
         'laborEducationCamps'     => [
             'Q277565',      // https://www.wikidata.org/wiki/Q277565        labor education camp
         ],
-        'prisons'                 => ['Q40357'],
-        'statePoliceHeadquarters' => ['Q108047581'],
-        'statePoliceOffices'      => ['Q108048310', 'Q2101520', 'Q108047567'],
+        'prisons'                 => [
+            'Q40357',       // https://www.wikidata.org/wiki/Q40357         prison
+        ],
+        'statePoliceHeadquarters' => [
+            'Q108047581',   // https://www.wikidata.org/wiki/Q108047581     State Police Headquarter
+        ],
+        'statePoliceOffices'      => [
+            'Q108048310',   // https://www.wikidata.org/wiki/Q108048310     Branch office (state police)
+            'Q2101520',     // https://www.wikidata.org/wiki/Q2101520       Political police (Germany)
+            'Q108047567',   // https://www.wikidata.org/wiki/Q108047567     State Police Office
+        ],
     ];
 
     /**
