@@ -40,14 +40,7 @@ export default {
     props: ['groupedPlaces', 'map'],
     data() {
         return {
-            checkedPlaceLayerGroups: [
-                'events',
-                'extPolicePrisonsAndLaborEducationCamps',
-                'fieldOffices',
-                'prisons',
-                'statePoliceHeadquarters',
-                'statePoliceOffices',
-            ],
+            checkedPlaceLayerGroups: Object.keys(this.groupedPlaces),
             selectedPlace: null,
         };
     },
