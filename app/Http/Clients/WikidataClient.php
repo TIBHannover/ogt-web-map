@@ -18,18 +18,24 @@ class WikidataClient
      * Groups of Wikidata Q-Ids of place instances.
      */
     const PLACE_GROUPS_IDS = [
-        'events'                                 => [],
-        'extPolicePrisonsAndLaborEducationCamps' => ['Q277565', 'Q108047650', 'Q108048094'],
-        'fieldOffices'                           => [
+        'events'                  => [],
+        'extPolicePrisons'        => [
+            'Q108047650',   // https://www.wikidata.org/wiki/Q108047650     Extended police prison
+            'Q108048094',   // https://www.wikidata.org/wiki/Q108048094     Police Detention Camp
+        ],
+        'fieldOffices'            => [
             'Q108047541',
             'Q108047989',
             'Q108047676',
             'Q108047833',
             'Q108047775',
         ],
-        'prisons'                                => ['Q40357'],
-        'statePoliceHeadquarters'                => ['Q108047581'],
-        'statePoliceOffices'                     => ['Q108048310', 'Q2101520', 'Q108047567'],
+        'laborEducationCamps'     => [
+            'Q277565',      // https://www.wikidata.org/wiki/Q277565        labor education camp
+        ],
+        'prisons'                 => ['Q40357'],
+        'statePoliceHeadquarters' => ['Q108047581'],
+        'statePoliceOffices'      => ['Q108048310', 'Q2101520', 'Q108047567'],
     ];
 
     /**
@@ -170,14 +176,7 @@ class WikidataClient
      */
     public function groupFilteredPlacesByType(array $places) : array
     {
-        $groupedPlaces = [
-            'events'                                 => [],
-            'extPolicePrisonsAndLaborEducationCamps' => [],
-            'fieldOffices'                           => [],
-            'prisons'                                => [],
-            'statePoliceHeadquarters'                => [],
-            'statePoliceOffices'                     => [],
-        ];
+        $groupedPlaces = array_fill_keys(array_keys(self::PLACE_GROUPS_IDS), []);
 
         foreach ($places as $place) {
             $updatedPlace = $this->convertPlaceData($this->filterPlaceData($place));
