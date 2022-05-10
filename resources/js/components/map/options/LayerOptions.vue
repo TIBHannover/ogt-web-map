@@ -79,6 +79,9 @@ export default {
         };
     },
     methods: {
+        /**
+         * Switch between map marker styles.
+         */
         switchMapMarkerStyle() {
             let mapMarkerSubPath = '/greyTransparent/';
             let mapMarkerFileType = '.svg';
@@ -124,6 +127,7 @@ export default {
                 leafletMarkerIcon.style.marginTop = mapMarkerMarginTop;
             });
 
+            // update marker shadows on map
             const leafletMarkerShadows = document.querySelectorAll('.leaflet-marker-shadow');
             leafletMarkerShadows.forEach(leafletMarkerShadow => {
                 leafletMarkerShadow.style.height = mapMarkerShadowHeight;
@@ -132,6 +136,9 @@ export default {
                 leafletMarkerShadow.style.marginTop = mapMarkerMarginTop;
             });
         },
+        /**
+         * Enable/disable map greyscale filter.
+         */
         toggleMapGreyscale() {
             let filter = 'grayscale(1)';
 
