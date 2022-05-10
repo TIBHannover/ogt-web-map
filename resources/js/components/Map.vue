@@ -46,11 +46,11 @@ export default {
                     /* some places have multiple coordinates */
                     placesByCoordinates: [],
                 },
-                extPolicePrisonsAndLaborEducationCamps: {
-                    color: '#743aaf',
-                    iconUrl: '/images/leaflet/markerIcons/greyFilled/extPolicePrisonsAndLaborEducationCamps.svg',
+                extPolicePrisons: {
+                    color: '#3AAFAF',
+                    iconUrl: '/images/leaflet/markerIcons/greyFilled/extPolicePrisons.svg',
                     layerGroup: null,
-                    layerName: 'Erweiterte Polizeigefängnisse/AELs',
+                    layerName: 'Erweiterte Polizeigefängnisse',
                     places: [],
                     placesByCoordinates: [],
                 },
@@ -59,6 +59,22 @@ export default {
                     iconUrl: '/images/leaflet/markerIcons/greyFilled/fieldOffices.svg',
                     layerGroup: null,
                     layerName: 'Außendienststellen',
+                    places: [],
+                    placesByCoordinates: [],
+                },
+                laborEducationCamps: {
+                    color: '#743aaf',
+                    iconUrl: '/images/leaflet/markerIcons/greyFilled/laborEducationCamps.svg',
+                    layerGroup: null,
+                    layerName: 'Arbeitserziehungslager',
+                    places: [],
+                    placesByCoordinates: [],
+                },
+                memorials: {
+                    color: '#D255BE',
+                    iconUrl: '/images/leaflet/markerIcons/greyFilled/memorials.svg',
+                    layerGroup: null,
+                    layerName: 'Erinnerungsorte',
                     places: [],
                     placesByCoordinates: [],
                 },

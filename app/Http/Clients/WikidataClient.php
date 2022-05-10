@@ -18,18 +18,33 @@ class WikidataClient
      * Groups of Wikidata Q-Ids of place instances.
      */
     const PLACE_GROUPS_IDS = [
-        'events'                                 => [],
-        'extPolicePrisonsAndLaborEducationCamps' => ['Q277565', 'Q108047650', 'Q108048094'],
-        'fieldOffices'                           => [
-            'Q108047541',
-            'Q108047989',
-            'Q108047676',
-            'Q108047833',
-            'Q108047775',
+        'events'                  => [],
+        'extPolicePrisons'        => [
+            'Q108047650',   // https://www.wikidata.org/wiki/Q108047650     Extended police prison
+            'Q108048094',   // https://www.wikidata.org/wiki/Q108048094     Police Detention Camp
         ],
-        'prisons'                                => ['Q40357'],
-        'statePoliceHeadquarters'                => ['Q108047581'],
-        'statePoliceOffices'                     => ['Q108048310', 'Q2101520', 'Q108047567'],
+        'fieldOffices'            => [
+            'Q108047541',   // https://www.wikidata.org/wiki/Q108047541     Gestapo Field Office
+            'Q108047989',   // https://www.wikidata.org/wiki/Q108047989     Outpost (State Police)
+            'Q108047676',   // https://www.wikidata.org/wiki/Q108047676     Border Police Commissariat
+            'Q108047833',   // https://www.wikidata.org/wiki/Q108047833     Border police station
+            'Q108047775',   // https://www.wikidata.org/wiki/Q108047775     Branch office (border police)
+        ],
+        'laborEducationCamps'     => [
+            'Q277565',      // https://www.wikidata.org/wiki/Q277565        labor education camp
+        ],
+        'memorials'               => [],
+        'prisons'                 => [
+            'Q40357',       // https://www.wikidata.org/wiki/Q40357         prison
+        ],
+        'statePoliceHeadquarters' => [
+            'Q108047581',   // https://www.wikidata.org/wiki/Q108047581     State Police Headquarter
+        ],
+        'statePoliceOffices'      => [
+            'Q108048310',   // https://www.wikidata.org/wiki/Q108048310     Branch office (state police)
+            'Q2101520',     // https://www.wikidata.org/wiki/Q2101520       Political police (Germany)
+            'Q108047567',   // https://www.wikidata.org/wiki/Q108047567     State Police Office
+        ],
     ];
 
     /**
@@ -170,14 +185,7 @@ class WikidataClient
      */
     public function groupFilteredPlacesByType(array $places) : array
     {
-        $groupedPlaces = [
-            'events'                                 => [],
-            'extPolicePrisonsAndLaborEducationCamps' => [],
-            'fieldOffices'                           => [],
-            'prisons'                                => [],
-            'statePoliceHeadquarters'                => [],
-            'statePoliceOffices'                     => [],
-        ];
+        $groupedPlaces = array_fill_keys(array_keys(self::PLACE_GROUPS_IDS), []);
 
         foreach ($places as $place) {
             $updatedPlace = $this->convertPlaceData($this->filterPlaceData($place));
