@@ -33,6 +33,7 @@ class WikidataClient
         'laborEducationCamps'     => [
             'Q277565',      // https://www.wikidata.org/wiki/Q277565        labor education camp
         ],
+        'memorials'               => [],
         'prisons'                 => [
             'Q40357',       // https://www.wikidata.org/wiki/Q40357         prison
         ],

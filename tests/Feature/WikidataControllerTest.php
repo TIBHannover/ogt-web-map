@@ -108,6 +108,7 @@ class WikidataControllerTest extends TestCase
                 $expectedFilteredPlaceData[4],
                 $expectedFilteredPlaceData[6],
             ],
+            'memorials'               => [],
             'prisons'                 => [
                 $expectedFilteredPlaceData[1],
                 $expectedFilteredPlaceData[6],
@@ -244,6 +245,7 @@ class WikidataControllerTest extends TestCase
             'fieldOffices'            => [],
             'extPolicePrisons'        => [],
             'laborEducationCamps'     => [],
+            'memorials'               => [],
             'prisons'                 => [],
             'statePoliceHeadquarters' => [],
             'statePoliceOffices'      => [$expectedFilteredPlaceData[0]],

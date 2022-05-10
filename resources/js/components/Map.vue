@@ -70,6 +70,14 @@ export default {
                     places: [],
                     placesByCoordinates: [],
                 },
+                memorials: {
+                    color: '#D255BE',
+                    iconUrl: '/images/leaflet/markerIcons/greyFilled/memorials.svg',
+                    layerGroup: null,
+                    layerName: 'Erinnerungsorte',
+                    places: [],
+                    placesByCoordinates: [],
+                },
                 prisons: {
                     color: '#38ab3e',
                     iconUrl: '/images/leaflet/markerIcons/greyFilled/prisons.svg',
