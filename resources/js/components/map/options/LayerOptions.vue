@@ -115,12 +115,41 @@ export default {
                 // default case
             }
 
-            const leafletMarkerIcons = document.querySelectorAll('.leaflet-marker-icon');
             const subPathRegex = /\/(greyTransparent|coloredTransparent|default|greyFilled|coloredFilled)\//g;
+            const imageFileTypeRegex = /\.(svg|png)$/g;
+            const anyNonDigitRegex = /\D/g;
 
+            // update marker icons and shadows within layer groups (required for enable/disable layer groups)
+            for (const [groupName, placesData] of Object.entries(this.groupedPlaces)) {
+                this.groupedPlaces[groupName].layerGroup.getLayers().forEach(marker => {
+                    let markerIconOptions = marker.getIcon().options;
+                    let iconUrl = markerIconOptions.iconUrl.replace(subPathRegex, mapMarkerSubPath);
+                    iconUrl = iconUrl.replace(imageFileTypeRegex, mapMarkerFileType);
+                    markerIconOptions.iconUrl = iconUrl;
+                    markerIconOptions.iconRetinaUrl = iconUrl;
+
+                    markerIconOptions.iconSize = [
+                        mapMarkerWidth.replace(anyNonDigitRegex, ''),
+                        mapMarkerHeight.replace(anyNonDigitRegex, ''),
+                    ];
+
+                    markerIconOptions.iconAnchor = [
+                        mapMarkerMarginLeft.replace(anyNonDigitRegex, ''),
+                        mapMarkerMarginTop.replace(anyNonDigitRegex, ''),
+                    ];
+
+                    markerIconOptions.shadowSize = [
+                        mapMarkerShadowWidth.replace(anyNonDigitRegex, ''),
+                        mapMarkerShadowHeight.replace(anyNonDigitRegex, ''),
+                    ];
+                });
+            }
+
+            // update marker icons on map
+            const leafletMarkerIcons = document.querySelectorAll('.leaflet-marker-icon');
             leafletMarkerIcons.forEach(leafletMarkerIcon => {
                 leafletMarkerIcon.src = leafletMarkerIcon.src.replace(subPathRegex, mapMarkerSubPath);
-                leafletMarkerIcon.src = leafletMarkerIcon.src.replace(/\.(svg|png)$/g, mapMarkerFileType);
+                leafletMarkerIcon.src = leafletMarkerIcon.src.replace(imageFileTypeRegex, mapMarkerFileType);
                 leafletMarkerIcon.style.height = mapMarkerHeight;
                 leafletMarkerIcon.style.width = mapMarkerWidth;
                 leafletMarkerIcon.style.marginLeft = mapMarkerMarginLeft;
