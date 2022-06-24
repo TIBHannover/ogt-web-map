@@ -90,124 +90,131 @@
             <v-divider></v-divider>
 
             <!-- parent organization - https://www.wikidata.org/wiki/Property:P749 -->
-            <v-list-item dense>
-                <v-list-item-content>
-                    <v-list-item-title>Übergeordnete Organisation</v-list-item-title>
-                    <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
-                        <ul>
-                            <template v-for="parentOrganization in selectedPlaceInfo.parentOrganizations">
-                                <li>{{ parentOrganization }}</li>
-                            </template>
-                        </ul>
-                    </v-list-item-subtitle>
-                </v-list-item-content>
-            </v-list-item>
-
-            <v-divider></v-divider>
+            <template v-if="selectedPlaceInfo.parentOrganizations.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Übergeordnete Organisation</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                            <ul>
+                                <template v-for="parentOrganization in selectedPlaceInfo.parentOrganizations">
+                                    <li>{{ parentOrganization }}</li>
+                                </template>
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
 
             <!-- subsidiary - https://www.wikidata.org/wiki/Property:P355 -->
-            <v-list-item dense>
-                <v-list-item-content>
-                    <v-list-item-title>Nachgeordnete Organisation</v-list-item-title>
-                    <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
-                        <ul>
-                            <template v-for="subsidiary in selectedPlaceInfo.subsidiarys">
-                                <li>{{ subsidiary }}</li>
-                            </template>
-                        </ul>
-                    </v-list-item-subtitle>
-                </v-list-item-content>
-            </v-list-item>
-
-            <v-divider></v-divider>
+            <template v-if="selectedPlaceInfo.subsidiarys.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Nachgeordnete Organisation</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                            <ul>
+                                <template v-for="subsidiary in selectedPlaceInfo.subsidiarys">
+                                    <li>{{ subsidiary }}</li>
+                                </template>
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
 
             <!-- replaces - https://www.wikidata.org/wiki/Property:P1365 -->
-            <v-list-item dense>
-                <v-list-item-content>
-                    <v-list-item-title>Vorgängerorganisation (zeitlich)</v-list-item-title>
-                    <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
-                        <ul>
-                            <template v-for="replacesItem in selectedPlaceInfo.replaces">
-                                <li>{{ replacesItem }}</li>
-                            </template>
-                        </ul>
-                    </v-list-item-subtitle>
-                </v-list-item-content>
-            </v-list-item>
-
-            <v-divider></v-divider>
+            <template v-if="selectedPlaceInfo.replaces.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Vorgängerorganisation (zeitlich)</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                            <ul>
+                                <template v-for="replacesItem in selectedPlaceInfo.replaces">
+                                    <li>{{ replacesItem }}</li>
+                                </template>
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
 
             <!-- replacedBy - https://www.wikidata.org/wiki/Property:P1366 -->
-            <v-list-item dense>
-                <v-list-item-content>
-                    <v-list-item-title>Nachfolgeorganisation (zeitlich)</v-list-item-title>
-                    <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
-                        <ul>
-                            <template v-for="replacedByItem in selectedPlaceInfo.replacedBy">
-                                <li>{{ replacedByItem }}</li>
-                            </template>
-                        </ul>
-                    </v-list-item-subtitle>
-                </v-list-item-content>
-            </v-list-item>
-
-            <v-divider></v-divider>
+            <template v-if="selectedPlaceInfo.replacedBy.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Nachfolgeorganisation (zeitlich)</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                            <ul>
+                                <template v-for="replacedByItem in selectedPlaceInfo.replacedBy">
+                                    <li>{{ replacedByItem }}</li>
+                                </template>
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
 
             <!-- significant event - https://www.wikidata.org/wiki/Property:P793 -->
-            <v-list-item dense>
-                <v-list-item-content>
-                    <v-list-item-title>Ereignisse</v-list-item-title>
-                    <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
-                        <ul>
-                            <template v-for="significantEvent in selectedPlaceInfo.significantEvents">
-                                <li>{{ significantEvent }}</li>
-                            </template>
-                        </ul>
-                    </v-list-item-subtitle>
-                </v-list-item-content>
-            </v-list-item>
-
-            <v-divider></v-divider>
+            <template v-if="selectedPlaceInfo.significantEvents.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Ereignisse</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                            <ul>
+                                <template v-for="significantEvent in selectedPlaceInfo.significantEvents">
+                                    <li>{{ significantEvent }}</li>
+                                </template>
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
 
             <!-- located in the administrative territorial entity - https://www.wikidata.org/wiki/Property:P131 -->
-            <v-list-item dense>
-                <v-list-item-content>
-                    <v-list-item-title>Zuständigkeit</v-list-item-title>
-                    <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
-                        <ul>
-                            <template v-for="administrativeTerritorialEntity in selectedPlaceInfo.administrativeTerritorialEntitys">
-                                <li>{{ administrativeTerritorialEntity }}</li>
-                            </template>
-                        </ul>
-                    </v-list-item-subtitle>
-                </v-list-item-content>
-            </v-list-item>
-
-            <v-divider></v-divider>
+            <template v-if="selectedPlaceInfo.administrativeTerritorialEntitys.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Zuständigkeit</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                            <ul>
+                                <template v-for="administrativeTerritorialEntity in selectedPlaceInfo.administrativeTerritorialEntitys">
+                                    <li>{{ administrativeTerritorialEntity }}</li>
+                                </template>
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
 
             <!-- employees - https://www.wikidata.org/wiki/Property:P1128 -->
-            <v-list-item dense>
-                <v-list-item-content>
-                    <v-list-item-title>Personal</v-list-item-title>
-                    <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
-                        <ul>
-                            <template v-for="employees in selectedPlaceInfo.employeesData">
-                                <li>
-                                    <template v-if="employees.sourcingCircumstances">
-                                        {{ employees.sourcingCircumstances }}.
-                                    </template>
-                                    {{ employees.numberOfEmployees }}
-                                    <template v-if="employees.pointInTime">
-                                        ({{ employees.pointInTime }})
-                                    </template>
-                                </li>
-                            </template>
-                        </ul>
-                    </v-list-item-subtitle>
-                </v-list-item-content>
-            </v-list-item>
-
-            <v-divider></v-divider>
+            <template v-if="selectedPlaceInfo.employeesData.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Personal</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                            <ul>
+                                <template v-for="employees in selectedPlaceInfo.employeesData">
+                                    <li>
+                                        <template v-if="employees.sourcingCircumstances">
+                                            {{ employees.sourcingCircumstances }}.
+                                        </template>
+                                        {{ employees.numberOfEmployees }}
+                                        <template v-if="employees.pointInTime">
+                                            ({{ employees.pointInTime }})
+                                        </template>
+                                    </li>
+                                </template>
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
 
             <!-- inception - https://www.wikidata.org/wiki/Property:P571 -->
             <!-- dissolved, abolished or demolished date - https://www.wikidata.org/wiki/Property:P576 -->
@@ -228,27 +235,28 @@
             -->
 
             <!-- place is described by source - https://www.wikidata.org/wiki/Property:P1343 -->
-            <v-list-item dense>
-                <v-list-item-content>
-                    <v-list-item-title>Nachweise/Quellen</v-list-item-title>
-                    <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
-                        <ul>
-                            <template v-for="source in selectedPlaceInfo.sources">
-                                <li>{{ source.label }}
-                                    <template v-if="source.wikidataUrl">
-                                        (<a :href="source.wikidataUrl" target="_blank">WD</a>)
-                                    </template>
-                                    <template v-if="source.dnbUrl">
-                                        (<a :href="source.dnbUrl" target="_blank">DNB</a>)
-                                    </template>
-                                </li>
-                            </template>
-                        </ul>
-                    </v-list-item-subtitle>
-                </v-list-item-content>
-            </v-list-item>
-
-            <v-divider></v-divider>
+            <template v-if="selectedPlaceInfo.sources.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Nachweise/Quellen</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                            <ul>
+                                <template v-for="source in selectedPlaceInfo.sources">
+                                    <li>{{ source.label }}
+                                        <template v-if="source.wikidataUrl">
+                                            (<a :href="source.wikidataUrl" target="_blank">WD</a>)
+                                        </template>
+                                        <template v-if="source.dnbUrl">
+                                            (<a :href="source.dnbUrl" target="_blank">DNB</a>)
+                                        </template>
+                                    </li>
+                                </template>
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
 
         </v-navigation-drawer>
     </div>
