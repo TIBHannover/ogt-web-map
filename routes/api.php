@@ -22,4 +22,6 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::get('/wikidata/places', [WikidataController::class, 'getPlaces']);
 
+Route::get('/wikidata/placesextended', [WikidataController::class, 'getPlacesExtended']);
+
 Route::get('/ping', [PingController::class, 'ping']);

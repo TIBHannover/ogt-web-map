@@ -6,6 +6,7 @@ namespace App\Http\Clients;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * Query Wikidata.
@@ -127,6 +128,81 @@ class WikidataClient
                 ?item ?itemLabel ?itemDescription ?source ?sourceLabel ?sourcePublisherCityLabel ?sourcePublisherLabel
                 ?sourcePublicationDate ?sourcePages ?sourceDnbLink
             ORDER BY ?item';
+
+        return $this->requestWikidata($query);
+    }
+
+    /**
+     * Get places of Gestapo terror from Wikidata.
+     *
+     * @return array
+     */
+    public function queryPlacesExtended() : array
+    {
+        /*
+         * VALUES ?item { }
+                    wd:Q64768399
+                    wd:Q106625285
+                    wd:Q106625716
+                    wd:Q108127286
+                    wd:Q108127300
+                    wd:Q627414
+                    wd:Q108127300
+                    wd:Q106625639
+                    wd:Q106109048
+
+                VALUES ?p {
+                    p:P18
+                    p:P31
+                    p:P571
+                    p:P625
+                    p:P749
+                    p:P1343
+                }
+        */
+        $query = '
+            SELECT
+                ?item ?itemLabel ?itemDescription
+                ?prop ?propLabel
+                ?statement
+                ?propValue ?propValueLabel ?propPrecision
+                ?qualifier ?qualifierLabel ?qualifierValue ?qualifierValueLabel ?qualifierPrecision
+            WHERE {
+                ?item wdt:P31 wd:Q106996250;
+                    ?p ?statement.
+                ?statement ?ps ?propValue.
+                ?prop wikibase:claim ?p;
+                    wikibase:statementProperty ?ps.
+                {
+                    ?property wikibase:propertyType ?property_type .
+                    FILTER (?property_type != wikibase:Time)
+                    ?property wikibase:statementProperty ?propertyStatement .
+                    ?statement ?propertyStatement ?value .
+                }
+                UNION
+                {
+                    ?property wikibase:statementValue ?statementValue .
+                    ?statement ?statementValue [wikibase:timePrecision ?propPrecision] .
+                }
+
+                OPTIONAL {
+                    {
+                        ?statement ?pq ?qualifierValue .
+                        ?qualifier wikibase:qualifier ?pq .
+                        ?qualifier wikibase:propertyType ?qualifier_property_type .
+                        FILTER (?qualifier_property_type != wikibase:Time)
+                    }
+                    UNION
+                    {
+                        ?statement ?pqv [wikibase:timeValue ?qualifierValue ; wikibase:timePrecision ?qualifierPrecision] .
+                        ?qualifier wikibase:qualifierValue ?pqv .
+                    }
+                }
+                    SERVICE wikibase:label {
+                        bd:serviceParam wikibase:language "de,en".
+                }
+            }
+            ORDER BY (?item) (?prop) (?statement) (?propValue)';
 
         return $this->requestWikidata($query);
     }
@@ -265,5 +341,262 @@ class WikidataClient
         $place['coordinates'] = $coordinatesArray;
 
         return $place;
+    }
+
+    /**
+     * Filter Wikidata place data and group places by
+     * - Events
+     * - Extended police prisons / Labor education camps
+     * - Field Offices
+     * - Prisons
+     * - State Police Headquarters
+     * - State Police Offices
+     *
+     * @param array $placesData
+     * @return array
+     */
+    public function groupFilteredPlacesByTypeExtended(array $placesData) : array
+    {
+        $placesTemp = [
+            'Q123' => [
+                'id' => 'Q123', // nötig?
+                'label' => 'qwertz',
+                'description' => 'just a test',
+                'P31' => [
+                    'label' => 'ist ein(e)',
+                    'values' =>
+                        [
+                            'id' => 'Q232243',
+                            'value' => 'Außendienststelle',
+                        ],
+                        [
+                            'id' => 'Q7673',
+                            'value' => 'Ort des Gestapoterrors',
+                        ],
+                        [
+                            'id' => 'Q75878',
+                            'value' => 'Organisation',
+                        ],
+                ],
+                'P571' => [
+                    'label' => 'Datum der Gründung, Erstellung, Entstehung, Erbauung',
+                    'values' =>
+                        [
+                            'id' => null,
+                            'value' => '1942-04-01T00:00:00Z',
+                        ],
+                ],
+                'P749' => [
+                    'label' => 'übergeordnete Organisation',
+                    'values' =>
+                        [
+                            'id' => 'Q522',
+                            'value' => 'Staatspolizeileitstelle Münster',
+                            'P582' => [
+                                'id' => null,
+                                'label' => '',
+                                'value' => '1 April 1944',
+                            ],
+                            'P580' => [
+                                'id' => null,
+                                'label' => '',
+                                'value' => '1 April 1942',
+                            ],
+                        ],
+                        [
+                            'id' => 'Q76756544',
+                            'value' => 'Staatspolizeistelle Bremen',
+                            'P582' => [
+                                'id' => null,
+                                'label' => '',
+                                'value' => '1 April 1945',
+                            ],
+                            'P580' => [
+                                'id' => null,
+                                'label' => '',
+                                'value' => '1 April 1944',
+                            ],
+                        ],
+                ],
+            ],
+        ];
+
+        // @todo
+        $mainImageByCoordinate = [
+            'Q106625639' => [
+                '9.7321152 52.3664978' => '',
+                '9.7473133 52.3642957' => '',
+                '9.744844924 52.3667941' => '',
+                '9.7532908 52.3907961' => '',
+            ],
+            // http://commons.wikimedia.org/wiki/Special:FilePath/Stadtbibliothek%20Hannover%20au%C3%9Fen.jpg
+            // http://commons.wikimedia.org/wiki/Special:FilePath/R%C3%BChmkorffstra%C3%9Fe%2C%20Hannover.jpg
+            // http://commons.wikimedia.org/wiki/Special:FilePath/Polizeipr%C3%A4sidium%20Hardenbergstra%C3%9Fe.jpg
+            // http://commons.wikimedia.org/wiki/Special:FilePath/Stadtbibliothek%20Hannover%20Innenansicht.jpg
+        ];
+
+        $places = [];
+        $currentPlaceId = '';
+        $currentPropId = '';
+        $currentStatementId = '';
+        $currentPropStatementCounter = 0;
+
+        foreach ($placesData as $placeData) {
+            Log::debug($placeData);
+
+            $placeId = basename($placeData['item']['value']);
+            $propId = basename($placeData['prop']['value']);
+            $statementId = basename($placeData['statement']['value']);
+
+            if ($currentPlaceId == $placeId && $currentPropId == $propId && $currentStatementId != $statementId) {
+                $currentPropStatementCounter += 1;
+            }
+
+            if ($currentPlaceId != $placeId) {
+                // if new id, then add place basic infos
+                $currentPlaceId = $placeId;
+                $places[$placeId]['id'] = $placeId;
+                $places[$placeId]['label'] = $placeData['itemLabel']['value'];
+                $places[$placeId]['description'] = $placeData['itemDescription']['value'] ?? '';
+
+                $currentPropId = '';
+                $currentStatementId = '';
+                $currentPropStatementCounter = 0;
+            }
+
+            if ($currentPropId != $propId) {
+                $currentPropId = $propId;
+
+                $places[$placeId][$propId] = [
+                    'propertyLabel' => $placeData['propLabel']['value'],
+                    'propertyStatements' => [],
+                ];
+
+                $currentStatementId = '';
+                $currentPropStatementCounter = 0;
+            }
+
+            if ($currentStatementId != $statementId) {
+                $currentStatementId = $statementId;
+
+                if ($propId == 'P625') {
+                    //Log::debug($placeData['propValueLabel']);
+
+                    // reformat coordinate location
+                    $propertyValue = array_reverse(explode(' ', Str::between($placeData['propValueLabel']['value'], '(', ')')));
+                } else {
+                    $propertyValue = $placeData['propValueLabel']['value'];
+                }
+
+                $places[$placeId][$propId]['propertyStatements'][] = [
+                    'propertyValue' => $propertyValue,
+                    'propertyValueId' => (Str::startsWith($placeData['propValue']['value'], 'http://www.wikidata.org/entity/Q')) ? basename($placeData['propValue']['value']) : null,
+                    'propertyValueDatePrecision' => $placeData['propPrecision']['value'] ?? null,
+                ];
+            }
+
+            if (isset($placeData['qualifier'])) {
+                $qualifierId = basename($placeData['qualifier']['value']);
+
+                $places[$placeId][$propId]['propertyStatements'][$currentPropStatementCounter][$qualifierId] = [
+                    'qualifierLabel' => $placeData['qualifierLabel']['value'],
+                    'qualifierValue' => $placeData['qualifierValueLabel']['value'],
+                    'qualifierValueId' => (Str::startsWith($placeData['qualifierValue']['value'], 'http://www.wikidata.org/entity/Q')) ? basename($placeData['qualifierValue']['value']) : null,
+                    'qualifierValueDatePrecision' => $placeData['qualifierPrecision']['value'] ?? null,
+                ];
+            }
+
+            /*
+            if ($currentStatementId != $statementId) {
+                $currentStatementId = $statementId;
+
+                $places[$placeId][$propId] = [
+                    'label' => $placeData['propLabel']['value'],
+                    'values' => [],
+                ];
+            }
+            */
+
+            /*
+            if ($currentPropId != $propId) {
+                $currentPropId = $propId;
+
+                $places[$placeId][$propId] = [
+                    //'id' => $placeData['propValue']['value'], hier falsch
+                    'label' => $placeData['propLabel']['value'],
+                    'values' => [],
+                ];
+            }
+
+            $places[$placeId][$propId]['values'][] = [
+                'id' => ($placeData['propValue']['type'] == 'uri') ? $placeData['propValue']['value'] : null,
+                'value' => $placeData['propValueLabel']['value'],
+            ];
+            */
+
+
+
+
+            /*
+            $qIdUrl = $placeData['item']['value']; // http://www.wikidata.org/entity/Q106625716
+            $qIdLabel = $placeData['itemLabel']['value'];
+            $qIdDescription = $placeData['itemDescription']['value'];
+
+            $itemPropertyId = $placeData['prop']['value']; // http://www.wikidata.org/entity/P31
+            $itemPropertyValue = $placeData['propValueLabel']['value'];
+
+            Log::debug("place", [
+                'itemUrl' => $qIdUrl,
+                'itemLabel' => $qIdLabel,
+                'itemDescription' => $qIdDescription,
+                $itemPropertyId => $itemPropertyValue,
+            ]);
+            */
+
+            /*
+            $updatedPlace = $this->convertPlaceData($this->filterPlaceData($place));
+
+            $instanceUrls = $updatedPlace['instanceUrls']['value'];
+            $instanceQIds = str_replace('http://www.wikidata.org/entity/', '', $instanceUrls);
+            $instanceQIdsArray = explode('|', $instanceQIds);
+
+            $foundGroupForPlace = false;
+
+            foreach ($groupedPlaces as $groupedPlaceName => $groupedPlace) {
+                if (count(array_intersect($instanceQIdsArray, self::PLACE_GROUPS_IDS[$groupedPlaceName])) > 0) {
+                    $groupedPlaces[$groupedPlaceName][] = $updatedPlace;
+                    $foundGroupForPlace = true;
+                }
+            }
+
+            if (! $foundGroupForPlace) {
+                Log::warning(
+                    'The location cannot be assigned to a map marker category based on its Wikidata instances.',
+                    [
+                        'instanceQIds' => $instanceUrls,
+                        'placeQId'     => $updatedPlace['item']['value'],
+                    ]
+                );
+            }
+            */
+        }
+
+        $groupedPlaces = array_fill_keys(array_keys(self::PLACE_GROUPS_IDS), []);
+
+        foreach ($places as $placeId => $place) {
+            $statements = $place['P31']['propertyStatements'];
+            foreach ($statements as $statement) {
+
+                foreach ($groupedPlaces as $groupedPlaceName => $groupedPlace) {
+                    if (count(array_intersect([$statement['propertyValueId']], self::PLACE_GROUPS_IDS[$groupedPlaceName])) > 0) {
+                        $groupedPlaces[$groupedPlaceName][$placeId] = $place;
+                    }
+                }
+                //Log::debug($statement['propertyValueId']);
+            }
+        }
+
+        //return $places;
+        return $groupedPlaces;
     }
 }

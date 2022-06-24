@@ -118,6 +118,7 @@ export default {
                 // additional Leaflet LatLng geographical point objects of the place
                 latLngAlt: [],
                 layerName: '',
+                parentOrganizations: [],
                 sources: [{
                     dnbUrl: '',
                     label: '',
@@ -167,6 +168,16 @@ export default {
         async getGroupedPlaces() {
             let groupedPlaces = {};
 
+            await this.axios.get('/api/wikidata/placesextended').then(response => {
+                //console.log(response.data);
+                groupedPlaces = response.data;
+            }).catch(error => {
+                console.log(error);
+            });
+
+            this.visualizePlaces2(groupedPlaces);
+
+            /*
             await this.axios.get('/api/wikidata/places').then(response => {
                 groupedPlaces = response.data;
             }).catch(error => {
@@ -174,6 +185,7 @@ export default {
             });
 
             this.visualizePlaces(groupedPlaces);
+            */
         },
         visualizePlaces: function (groupedPlaces) {
             for (const [group, places] of Object.entries(groupedPlaces)) {
@@ -183,6 +195,187 @@ export default {
 
                 this.createPlacesLayerGroups(group, placeMarkers);
             }
+        },
+        visualizePlaces2: function (groupedPlaces) {
+            for (const [group, places] of Object.entries(groupedPlaces)) {
+                this.groupedPlaces[group]['places'] = places;
+
+                let placeMarkers = this.createPlaceMarkers2(group, places);
+
+                this.createPlacesLayerGroups2(group, placeMarkers);
+            }
+
+            //console.log(this.groupedPlaces);
+            //console.log(this.groupedPlaces.statePoliceOffices.places);
+            //console.log(this.groupedPlaces.statePoliceOffices.places['Q64768399']);
+        },
+        createPlaceMarkers2: function (placeGroupName, places) {
+            let placeMarkers = [];
+            let iconUrl = this.$ogtGlobals.proxyPath + this.groupedPlaces[placeGroupName].iconUrl;
+            const defaultIcon = L.icon({
+                iconUrl: iconUrl,
+                // Workaround to use same marker icons for Retina and non-Retina displays.
+                // - default file '/images/leaflet/marker-icon-2x.png'
+                iconRetinaUrl: iconUrl,
+                shadowUrl: this.$ogtGlobals.proxyPath + '/images/leaflet/marker-shadow.png',
+                iconSize: [48, 53], // default [25, 41]
+                iconAnchor: [24, 52], // default [12, 41]
+                popupAnchor: [1, -34],
+                tooltipAnchor: [16, -28],
+                shadowSize: [76, 52], // default [41, 41]
+            });
+
+            for (const [placeId, place] of Object.entries(places)) {
+                if (place.P625) {
+                    let countedPlaceCoordinates = place.P625.propertyStatements.length;
+                    //console.log("place");
+                    //console.log(place.P625.propertyStatements);
+                    //console.log("countedPlaceCoordinates = " + countedPlaceCoordinates);
+
+                    let instanceLabels = [];
+
+                    place.P31.propertyStatements.forEach((statement, statementIndex) => {
+                        instanceLabels.push(statement.propertyValue);
+                    });
+
+                    place['instanceLabels'] = instanceLabels;
+
+                    place['coordinates'] = [];
+
+                    //console.log("instanceLabels = " + instanceLabels);
+
+                    place.P625.propertyStatements.forEach((statement, statementIndex) => {
+                        //console.log("propertyStatements");
+                        //console.log(placeCoordinate);
+                        //console.log(placeCoordinateIndex);
+
+                        let placeCoordinate = statement.propertyValue;
+                        place['coordinates'].push(placeCoordinate);
+                        //console.log("placeCoordinate = ", placeCoordinate);
+                        //console.log("place label = " + place.label);
+
+                        let marker = L.marker(placeCoordinate, {
+                            icon: defaultIcon,
+                            title: place.label,
+                        });
+
+                        let markerPopUpHtmlTemplate = `
+                            <div class="popUpTopic">
+                                <a href="https://www.wikidata.org/wiki/${placeId}" target="_blank">
+                                    ${place.label}
+                                </a>
+                                <button class="zoomInButton">
+                                    &#x1f50d;
+                                </button>
+                            </div>
+                            <div class="popUpTopicCategory">
+                                ${instanceLabels.join(', ')}
+                            </div>
+                            <br>
+                            ${place.description}`;
+
+                        marker.bindPopup(markerPopUpHtmlTemplate, {
+                            minWidth: 333,
+                        });
+
+                        marker.on('click', event => {
+                            this.setSelectedPlaceInfo2(place, event.latlng, this.groupedPlaces[placeGroupName].layerName);
+                            this.toggleShowPlaceInfoSidebar(true);
+
+                            const zoomInButton = marker.getPopup().getElement().getElementsByClassName('zoomInButton')[0];
+
+                            let vm = this;
+
+                            zoomInButton.onclick = function () {
+                                vm.map.flyTo(event.latlng, 18);
+                            };
+                        });
+
+                        placeMarkers.push(marker);
+
+                        let placeLabelWithIndex = place.label;
+
+                        if (countedPlaceCoordinates > 1) {
+                            placeLabelWithIndex += ' (' + (statementIndex + 1) + ')';
+                        }
+
+                        this.groupedPlaces[placeGroupName]['placesByCoordinates'].push({
+                            placeLabelWithIndex: placeLabelWithIndex,
+                            latLng: placeCoordinate,
+                            marker: marker,
+                        });
+                    });
+                }
+            }
+
+
+            /*
+            places.forEach(place => {
+                let countedPlaceCoordinates = place.coordinates.length;
+
+                place.coordinates.forEach((placeCoordinate, placeCoordinateIndex) => {
+                    let marker = L.marker(placeCoordinate, {
+                        icon: defaultIcon,
+                        title: place.itemLabel.value,
+                    });
+
+                    let markerPopUpHtmlTemplate = `
+                        <div class="popUpTopic">
+                            <a href="${place.item.value}" target="_blank">
+                                ${place.itemLabel.value}
+                            </a>
+                            <button class="zoomInButton">
+                                &#x1f50d;
+                            </button>
+                        </div>
+                        <div class="popUpTopicCategory">
+                            ${place.instanceLabels.value}
+                        </div>
+                        <br>
+                        ${place.itemDescription ? place.itemDescription.value : ''}`;
+
+                    marker.bindPopup(markerPopUpHtmlTemplate, {
+                        minWidth: 333,
+                    });
+
+                    marker.on('click', event => {
+                        this.setSelectedPlaceInfo(place, event.latlng, this.groupedPlaces[placeGroupName].layerName);
+                        this.toggleShowPlaceInfoSidebar(true);
+
+                        const zoomInButton = marker.getPopup().getElement().getElementsByClassName('zoomInButton')[0];
+
+                        let vm = this;
+
+                        zoomInButton.onclick = function () {
+                            vm.map.flyTo(event.latlng, 18);
+                        };
+                    });
+
+                    placeMarkers.push(marker);
+
+                    let placeLabelWithIndex = place.itemLabel.value;
+
+                    if (countedPlaceCoordinates > 1) {
+                        placeLabelWithIndex += ' (' + (placeCoordinateIndex + 1) + ')';
+                    }
+
+                    this.groupedPlaces[placeGroupName]['placesByCoordinates'].push({
+                        placeLabelWithIndex: placeLabelWithIndex,
+                        latLng: placeCoordinate,
+                        marker: marker,
+                    });
+                });
+            });
+            */
+            return placeMarkers;
+        },
+        createPlacesLayerGroups2: function (placeGroupName, placeMarkers) {
+            //console.log(placeGroupName);
+            //console.log(placeMarkers);
+            let layerGroup = L.layerGroup(placeMarkers);
+            layerGroup.addTo(this.map);
+            this.layers.addOverlay(layerGroup, this.groupedPlaces[placeGroupName].layerName);
+            this.groupedPlaces[placeGroupName].layerGroup = layerGroup;
         },
         createPlaceMarkers: function (placeGroupName, places) {
             let placeMarkers = [];
@@ -259,6 +452,148 @@ export default {
 
             return placeMarkers;
         },
+        setSelectedPlaceInfo2: function (place, latLng, layerName) {
+            this.selectedPlaceInfo.description = place.description;
+
+            // workaround to set main images
+            if (latLng.lat == '52.3667941' && latLng.lng == '9.744844924') {
+                this.selectedPlaceInfo.imageUrl = 'http://commons.wikimedia.org/wiki/Special:FilePath/Stadtbibliothek%20Hannover%20au%C3%9Fen.jpg';
+            } else if (latLng.lat == '52.3907961' && latLng.lng == '9.7532908') {
+                this.selectedPlaceInfo.imageUrl = 'http://commons.wikimedia.org/wiki/Special:FilePath/R%C3%BChmkorffstra%C3%9Fe%2C%20Hannover.jpg';
+            } else if (latLng.lat == '52.3664978' && latLng.lng == '9.7321152') {
+                this.selectedPlaceInfo.imageUrl = 'http://commons.wikimedia.org/wiki/Special:FilePath/Polizeipr%C3%A4sidium%20Hardenbergstra%C3%9Fe.jpg';
+            } else if (latLng.lat == '52.3669889' && latLng.lng == '9.731877') {
+                this.selectedPlaceInfo.imageUrl = 'http://commons.wikimedia.org/wiki/Special:FilePath/Polizeipr%C3%A4sidium%20Hardenbergstra%C3%9Fe.jpg';
+            } else if (latLng.lat == '52.3642957' && latLng.lng == '9.7473133') {
+                // dont show a picture here
+                this.selectedPlaceInfo.imageUrl = '';
+            } else if (latLng.lat == '52.3769647' && latLng.lng == '9.6628539') {
+                this.selectedPlaceInfo.imageUrl = 'http://commons.wikimedia.org/wiki/Special:FilePath/Gedenkst%C3%A4tte%20Ahlem%20Hinrichtungsst%C3%A4tte.jpg';
+            } else {
+                this.selectedPlaceInfo.imageUrl = place.P18 ? place.P18.propertyStatements[0].propertyValue : '';
+            }
+
+            this.selectedPlaceInfo.instanceLabels = place.instanceLabels.join(', ');
+            this.selectedPlaceInfo.label = place.label;
+            this.selectedPlaceInfo.layerName = layerName;
+            this.selectedPlaceInfo.wikidataItem = "https://www.wikidata.org/wiki/" + place.id;
+
+            let altCoordinates = [];
+
+            if (place.coordinates.length > 1) {
+                altCoordinates = place.coordinates.filter(function (coordinate) {
+
+                    //console.log(coordinate[0] + " =? " + latLng.lat);
+                    //console.log(coordinate[1] + " =? " + latLng.lng);
+
+                    if (coordinate[0] == latLng.lat && coordinate[1] == latLng.lng) {
+                        return false;
+                    }
+
+                    return true;
+                });
+
+                //console.log(altCoordinates);
+            }
+            this.selectedPlaceInfo.latLngAlt = altCoordinates;
+            this.selectedPlaceInfo.latLng = latLng;
+
+            this.selectedPlaceInfo.parentOrganizations = [];
+            if (place.P749) {
+                place.P749.propertyStatements.forEach((statement, statementIndex) => {
+                    this.selectedPlaceInfo.parentOrganizations.push(statement.propertyValue);
+                });
+            }
+
+            this.selectedPlaceInfo.subsidiarys = [];
+            if (place.P355) {
+                place.P355.propertyStatements.forEach((statement, statementIndex) => {
+                    this.selectedPlaceInfo.subsidiarys.push(statement.propertyValue);
+                });
+            }
+
+            this.selectedPlaceInfo.replaces = [];
+            if (place.P1365) {
+                place.P1365.propertyStatements.forEach((statement, statementIndex) => {
+                    this.selectedPlaceInfo.replaces.push(statement.propertyValue);
+                });
+            }
+
+            this.selectedPlaceInfo.replacedBy = [];
+            if (place.P1366) {
+                place.P1366.propertyStatements.forEach((statement, statementIndex) => {
+                    this.selectedPlaceInfo.replacedBy.push(statement.propertyValue);
+                });
+            }
+
+            this.selectedPlaceInfo.significantEvents = [];
+            if (place.P793) {
+                place.P793.propertyStatements.forEach((statement, statementIndex) => {
+                    this.selectedPlaceInfo.significantEvents.push(statement.propertyValue);
+                });
+            }
+
+            this.selectedPlaceInfo.administrativeTerritorialEntitys = [];
+            if (place.P131) {
+                place.P131.propertyStatements.forEach((statement, statementIndex) => {
+                    this.selectedPlaceInfo.administrativeTerritorialEntitys.push(statement.propertyValue);
+                });
+            }
+
+            this.selectedPlaceInfo.employeesData = [];
+            if (place.P1128) {
+                place.P1128.propertyStatements.forEach((statement, statementIndex) => {
+                    this.selectedPlaceInfo.employeesData.push({
+                        numberOfEmployees: statement.propertyValue,
+                        pointInTime: statement.P585 ? statement.P585.qualifierValue : '',
+                        sourcingCircumstances: statement.P1480 ? statement.P1480.qualifierValue : '',
+                    });
+                });
+            }
+
+            this.selectedPlaceInfo.sources = [];
+
+            if (place.P1343) {
+                place.P1343.propertyStatements.forEach((statement, statementIndex) => {
+                    let source = {
+                        dnbUrl: '',
+                        label: '',
+                        wikidataUrl: statement.propertyValueId ? "https://www.wikidata.org/wiki/" + statement.propertyValueId : '',
+                    };
+
+                    let title = statement.propertyValue + ', ';
+                    let pages = statement.P304 ? 'S. ' + statement.P304.qualifierValue : '';
+
+                    source.label = title + pages;
+
+                    this.selectedPlaceInfo.sources.push(source);
+                });
+
+
+
+
+                /*
+                let sourceAuthorLabels = place.sourceAuthorLabels.value ? place.sourceAuthorLabels.value + ', ' : '';
+                let sourceLabel = place.sourceLabel ? place.sourceLabel.value + '. ' : '';
+                let sourcePublisherCityLabel = place.sourcePublisherCityLabel ? place.sourcePublisherCityLabel.value + ': ' : '';
+                let sourcePublisherLabel = place.sourcePublisherLabel ? place.sourcePublisherLabel.value + ' ' : '';
+                let sourcePublicationYear = place.sourcePublicationYear ? place.sourcePublicationYear.value + ', ' : '';
+                let sourcePages = place.sourcePages ? 'S. ' + place.sourcePages.value : '';
+                this.selectedPlaceInfo.sources[0].label =
+                    sourceAuthorLabels +
+                    sourceLabel +
+                    sourcePublisherCityLabel +
+                    sourcePublisherLabel +
+                    sourcePublicationYear +
+                    sourcePages;
+                this.selectedPlaceInfo.sources[0].dnbUrl = place.sourceDnbLink ? 'https://d-nb.info/' + place.sourceDnbLink.value : '';
+                this.selectedPlaceInfo.sources[0].wikidataUrl = place.source ? place.source.value : '';
+                */
+
+
+            }
+
+        },
         /**
          * Set selected place info.
          *
@@ -266,7 +601,7 @@ export default {
          * @param object latLng Leaflet LatLng geographical point object
          * @param string layerName Name of layer group
          */
-        setSelectedPlaceInfo: function (place, latLng, layerName) {
+        XXXsetSelectedPlaceInfo: function (place, latLng, layerName) {
             this.selectedPlaceInfo.description = place.itemDescription ? place.itemDescription.value : '';
             this.selectedPlaceInfo.imageUrl = place.imageUrl ? place.imageUrl.value : '';
             this.selectedPlaceInfo.instanceLabels = place.instanceLabels.value;
