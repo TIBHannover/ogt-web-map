@@ -35,6 +35,32 @@
                 <v-divider></v-divider>
             </div>
 
+            <!-- Wikidata item brief description -->
+            <v-list-item dense>
+                <v-list-item-content>
+                    <v-list-item-title>Kurzbeschreibung</v-list-item-title>
+                    <v-list-item-subtitle class="hyphens-auto text-justify white-space-normal" lang="de">
+                        {{ selectedPlaceInfo.description }}
+                    </v-list-item-subtitle>
+                </v-list-item-content>
+            </v-list-item>
+
+            <v-divider></v-divider>
+
+            <!-- place is an instance of - https://www.wikidata.org/wiki/Property:P31 -->
+            <!--
+            <v-list-item dense>
+                <v-list-item-content>
+                    <v-list-item-title>Instanz von</v-list-item-title>
+                    <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                        {{ selectedPlaceInfo.instanceLabels }}
+                    </v-list-item-subtitle>
+                </v-list-item-content>
+            </v-list-item>
+
+            <v-divider></v-divider>
+            -->
+            
             <!-- inception - https://www.wikidata.org/wiki/Property:P571 -->
             <!-- dissolved, abolished or demolished date - https://www.wikidata.org/wiki/Property:P576 -->
             <template v-if="selectedPlaceInfo.inceptionDates.length > 0 || selectedPlaceInfo.dissolvedDates.length > 0">
@@ -54,6 +80,23 @@
                                     <li>{{ dissolvedDate }}</li>
                                 </ul>
                             </template>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
+
+            <!-- located in the administrative territorial entity - https://www.wikidata.org/wiki/Property:P131 -->
+            <template v-if="selectedPlaceInfo.administrativeTerritorialEntitys.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Zuständigkeit</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                            <ul>
+                                <template v-for="administrativeTerritorialEntity in selectedPlaceInfo.administrativeTerritorialEntitys">
+                                    <li>{{ administrativeTerritorialEntity }}</li>
+                                </template>
+                            </ul>
                         </v-list-item-subtitle>
                     </v-list-item-content>
                 </v-list-item>
@@ -90,31 +133,47 @@
 
             <v-divider></v-divider>
 
-            <!-- Wikidata item brief description -->
-            <v-list-item dense>
-                <v-list-item-content>
-                    <v-list-item-title>Kurzbeschreibung</v-list-item-title>
-                    <v-list-item-subtitle class="hyphens-auto text-justify white-space-normal" lang="de">
-                        {{ selectedPlaceInfo.description }}
-                    </v-list-item-subtitle>
-                </v-list-item-content>
-            </v-list-item>
+            <!-- employees - https://www.wikidata.org/wiki/Property:P1128 -->
+            <template v-if="selectedPlaceInfo.employeesData.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Personal</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                            <ul>
+                                <template v-for="employees in selectedPlaceInfo.employeesData">
+                                    <li>
+                                        <template v-if="employees.sourcingCircumstances">
+                                            {{ employees.sourcingCircumstances }}.
+                                        </template>
+                                        {{ employees.numberOfEmployees }}
+                                        <template v-if="employees.pointInTime">
+                                            ({{ employees.pointInTime }})
+                                        </template>
+                                    </li>
+                                </template>
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
 
-            <v-divider></v-divider>
-
-            <!-- place is an instance of - https://www.wikidata.org/wiki/Property:P31 -->
-            <!--
-            <v-list-item dense>
-                <v-list-item-content>
-                    <v-list-item-title>Instanz von</v-list-item-title>
-                    <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
-                        {{ selectedPlaceInfo.instanceLabels }}
-                    </v-list-item-subtitle>
-                </v-list-item-content>
-            </v-list-item>
-
-            <v-divider></v-divider>
-            -->
+            <!-- significant event - https://www.wikidata.org/wiki/Property:P793 -->
+            <template v-if="selectedPlaceInfo.significantEvents.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Ereignisse</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                            <ul>
+                                <template v-for="significantEvent in selectedPlaceInfo.significantEvents">
+                                    <li>{{ significantEvent }}</li>
+                                </template>
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
 
             <!-- parent organization - https://www.wikidata.org/wiki/Property:P749 -->
             <template v-if="selectedPlaceInfo.parentOrganizations.length > 0">
@@ -176,65 +235,6 @@
                             <ul>
                                 <template v-for="replacedByItem in selectedPlaceInfo.replacedBy">
                                     <li>{{ replacedByItem }}</li>
-                                </template>
-                            </ul>
-                        </v-list-item-subtitle>
-                    </v-list-item-content>
-                </v-list-item>
-                <v-divider></v-divider>
-            </template>
-
-            <!-- significant event - https://www.wikidata.org/wiki/Property:P793 -->
-            <template v-if="selectedPlaceInfo.significantEvents.length > 0">
-                <v-list-item dense>
-                    <v-list-item-content>
-                        <v-list-item-title>Ereignisse</v-list-item-title>
-                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
-                            <ul>
-                                <template v-for="significantEvent in selectedPlaceInfo.significantEvents">
-                                    <li>{{ significantEvent }}</li>
-                                </template>
-                            </ul>
-                        </v-list-item-subtitle>
-                    </v-list-item-content>
-                </v-list-item>
-                <v-divider></v-divider>
-            </template>
-
-            <!-- located in the administrative territorial entity - https://www.wikidata.org/wiki/Property:P131 -->
-            <template v-if="selectedPlaceInfo.administrativeTerritorialEntitys.length > 0">
-                <v-list-item dense>
-                    <v-list-item-content>
-                        <v-list-item-title>Zuständigkeit</v-list-item-title>
-                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
-                            <ul>
-                                <template v-for="administrativeTerritorialEntity in selectedPlaceInfo.administrativeTerritorialEntitys">
-                                    <li>{{ administrativeTerritorialEntity }}</li>
-                                </template>
-                            </ul>
-                        </v-list-item-subtitle>
-                    </v-list-item-content>
-                </v-list-item>
-                <v-divider></v-divider>
-            </template>
-
-            <!-- employees - https://www.wikidata.org/wiki/Property:P1128 -->
-            <template v-if="selectedPlaceInfo.employeesData.length > 0">
-                <v-list-item dense>
-                    <v-list-item-content>
-                        <v-list-item-title>Personal</v-list-item-title>
-                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
-                            <ul>
-                                <template v-for="employees in selectedPlaceInfo.employeesData">
-                                    <li>
-                                        <template v-if="employees.sourcingCircumstances">
-                                            {{ employees.sourcingCircumstances }}.
-                                        </template>
-                                        {{ employees.numberOfEmployees }}
-                                        <template v-if="employees.pointInTime">
-                                            ({{ employees.pointInTime }})
-                                        </template>
-                                    </li>
                                 </template>
                             </ul>
                         </v-list-item-subtitle>
