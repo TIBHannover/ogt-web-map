@@ -106,8 +106,12 @@ export default {
             layers: null,
             map: null,
             selectedPlaceInfo: {
+                administrativeTerritorialEntitys: [],
                 description: '',
+                dissolvedDates: [],
+                employeesData: [],
                 imageUrl: '',
+                inceptionDates: [],
                 instanceLabels: '',
                 label: '',
                 // Leaflet LatLng geographical point object
@@ -119,11 +123,15 @@ export default {
                 latLngAlt: [],
                 layerName: '',
                 parentOrganizations: [],
+                replaces: [],
+                replacedBy: [],
+                significantEvents: [],
                 sources: [{
                     dnbUrl: '',
                     label: '',
                     wikidataUrl: '',
                 }],
+                subsidiarys: [],
                 wikidataItem: '',
             },
             showPlaceInfoSidebar: false,
