@@ -131,6 +131,7 @@ export default {
                     label: '',
                     wikidataUrl: '',
                 }],
+                streetAddresses: [],
                 subsidiarys: [],
                 wikidataItem: '',
             },
@@ -578,7 +579,11 @@ export default {
             this.selectedPlaceInfo.streetAddresses = [];
             if (place.P6375) {
                 place.P6375.propertyStatements.forEach((statement, statementIndex) => {
-                    this.selectedPlaceInfo.streetAddresses.push(statement.propertyValue);
+                    this.selectedPlaceInfo.streetAddresses.push({
+                        address: statement.propertyValue,
+                        startDate: statement.P580 ? this.formatDate(statement.P580.qualifierValue, statement.P580.qualifierValueDatePrecision) : '',
+                        endDate: statement.P582 ? this.formatDate(statement.P582.qualifierValue, statement.P582.qualifierValueDatePrecision) : '',
+                    });
                 });
             }
 

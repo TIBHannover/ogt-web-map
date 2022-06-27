@@ -140,7 +140,13 @@
                         <v-list-item-title>Adresse(n)</v-list-item-title>
                         <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
                             <ul v-for="streetAddress in selectedPlaceInfo.streetAddresses">
-                                <li>{{ streetAddress }}</li>
+                                <li>{{ streetAddress.address }}</li>
+                                <ul v-if="streetAddress.startDate || streetAddress.endDate">
+                                    <li>
+                                        <template v-if="streetAddress.startDate">{{ streetAddress.startDate }}</template>
+                                        <template v-if="streetAddress.endDate">bis {{ streetAddress.endDate }}</template>
+                                    </li>
+                                </ul>
                             </ul>
                         </v-list-item-subtitle>
                     </v-list-item-content>
