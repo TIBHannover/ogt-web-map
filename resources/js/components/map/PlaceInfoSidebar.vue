@@ -78,6 +78,7 @@
             <v-divider></v-divider>
 
             <!-- place is an instance of - https://www.wikidata.org/wiki/Property:P31 -->
+            <!--
             <v-list-item dense>
                 <v-list-item-content>
                     <v-list-item-title>Instanz von</v-list-item-title>
@@ -88,6 +89,7 @@
             </v-list-item>
 
             <v-divider></v-divider>
+            -->
 
             <!-- parent organization - https://www.wikidata.org/wiki/Property:P749 -->
             <template v-if="selectedPlaceInfo.parentOrganizations.length > 0">
