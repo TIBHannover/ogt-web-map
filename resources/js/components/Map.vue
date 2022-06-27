@@ -553,7 +553,7 @@ export default {
                 place.P1128.propertyStatements.forEach((statement, statementIndex) => {
                     this.selectedPlaceInfo.employeesData.push({
                         numberOfEmployees: statement.propertyValue,
-                        pointInTime: statement.P585 ? statement.P585.qualifierValue : '',
+                        pointInTime: statement.P585 ? this.formatDate(statement.P585.qualifierValue, statement.P585.qualifierValueDatePrecision) : '',
                         sourcingCircumstances: statement.P1480 ? statement.P1480.qualifierValue : '',
                     });
                 });
@@ -562,14 +562,16 @@ export default {
             this.selectedPlaceInfo.inceptionDates = [];
             if (place.P571) {
                 place.P571.propertyStatements.forEach((statement, statementIndex) => {
-                    this.selectedPlaceInfo.inceptionDates.push(statement.propertyValue);
+                    const inceptionDate = this.formatDate(statement.propertyValue, statement.propertyValueDatePrecision);
+                    this.selectedPlaceInfo.inceptionDates.push(inceptionDate);
                 });
             }
 
             this.selectedPlaceInfo.dissolvedDates = [];
             if (place.P576) {
                 place.P576.propertyStatements.forEach((statement, statementIndex) => {
-                    this.selectedPlaceInfo.dissolvedDates.push(statement.propertyValue);
+                    const dissolvedDate = this.formatDate(statement.propertyValue, statement.propertyValueDatePrecision);
+                    this.selectedPlaceInfo.dissolvedDates.push(dissolvedDate);
                 });
             }
 
@@ -616,6 +618,17 @@ export default {
 
             }
 
+        },
+        formatDate: function (dateTimeString, precision) {
+            let dateFormatOptions = { year:"numeric", month:"long", day:"numeric"};
+
+            if (precision == 9) {
+                dateFormatOptions = { year:"numeric"};
+            } else if (precision == 10) {
+                dateFormatOptions = { year:"numeric", month:"long"};
+            }
+
+            return new Date(dateTimeString).toLocaleDateString('de-de', dateFormatOptions);
         },
         /**
          * Set selected place info.
