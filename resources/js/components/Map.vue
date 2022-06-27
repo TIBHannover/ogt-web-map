@@ -575,9 +575,14 @@ export default {
                 });
             }
 
+            this.selectedPlaceInfo.streetAddresses = [];
+            if (place.P6375) {
+                place.P6375.propertyStatements.forEach((statement, statementIndex) => {
+                    this.selectedPlaceInfo.streetAddresses.push(statement.propertyValue);
+                });
+            }
 
             this.selectedPlaceInfo.sources = [];
-
             if (place.P1343) {
                 place.P1343.propertyStatements.forEach((statement, statementIndex) => {
                     let source = {

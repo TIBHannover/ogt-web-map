@@ -60,7 +60,7 @@
 
             <v-divider></v-divider>
             -->
-            
+
             <!-- inception - https://www.wikidata.org/wiki/Property:P571 -->
             <!-- dissolved, abolished or demolished date - https://www.wikidata.org/wiki/Property:P576 -->
             <template v-if="selectedPlaceInfo.inceptionDates.length > 0 || selectedPlaceInfo.dissolvedDates.length > 0">
@@ -132,6 +132,21 @@
             </v-list-item>
 
             <v-divider></v-divider>
+
+            <!-- street address - https://www.wikidata.org/wiki/Property:P6375 -->
+            <template v-if="selectedPlaceInfo.streetAddresses.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Adresse(n)</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                            <ul v-for="streetAddress in selectedPlaceInfo.streetAddresses">
+                                <li>{{ streetAddress }}</li>
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
 
             <!-- employees - https://www.wikidata.org/wiki/Property:P1128 -->
             <template v-if="selectedPlaceInfo.employeesData.length > 0">
