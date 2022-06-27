@@ -35,6 +35,31 @@
                 <v-divider></v-divider>
             </div>
 
+            <!-- inception - https://www.wikidata.org/wiki/Property:P571 -->
+            <!-- dissolved, abolished or demolished date - https://www.wikidata.org/wiki/Property:P576 -->
+            <template v-if="selectedPlaceInfo.inceptionDates.length > 0 || selectedPlaceInfo.dissolvedDates.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Laufzeit</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                            <template v-if="selectedPlaceInfo.inceptionDates.length > 0">
+                                von
+                                <ul v-for="inceptionDate in selectedPlaceInfo.inceptionDates">
+                                    <li>{{ inceptionDate }}</li>
+                                </ul>
+                            </template>
+                            <template v-if="selectedPlaceInfo.dissolvedDates.length > 0">
+                                bis
+                                <ul v-for="dissolvedDate in selectedPlaceInfo.dissolvedDates">
+                                    <li>{{ dissolvedDate }}</li>
+                                </ul>
+                            </template>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
+
             <!-- place coordinates and zoom-in-place icon -->
             <v-list-item dense>
                 <v-list-item-content>
@@ -212,31 +237,6 @@
                                     </li>
                                 </template>
                             </ul>
-                        </v-list-item-subtitle>
-                    </v-list-item-content>
-                </v-list-item>
-                <v-divider></v-divider>
-            </template>
-
-            <!-- inception - https://www.wikidata.org/wiki/Property:P571 -->
-            <!-- dissolved, abolished or demolished date - https://www.wikidata.org/wiki/Property:P576 -->
-            <template v-if="selectedPlaceInfo.employeesData.inceptionDates > 0 || selectedPlaceInfo.employeesData.dissolvedDates > 0">
-                <v-list-item dense>
-                    <v-list-item-content>
-                        <v-list-item-title>Laufzeit</v-list-item-title>
-                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
-                            <template v-if="selectedPlaceInfo.employeesData.inceptionDates > 0">
-                                von
-                                <ul v-for="inceptionDate in selectedPlaceInfo.inceptionDates">
-                                    <li>{{ inceptionDate }}</li>
-                                </ul>
-                            </template>
-                            <template v-if="selectedPlaceInfo.employeesData.dissolvedDates > 0">
-                                bis
-                                <ul v-for="dissolvedDate in selectedPlaceInfo.dissolvedDates">
-                                    <li>{{ dissolvedDate }}</li>
-                                </ul>
-                            </template>
                         </v-list-item-subtitle>
                     </v-list-item-content>
                 </v-list-item>
