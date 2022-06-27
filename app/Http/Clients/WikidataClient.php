@@ -442,7 +442,7 @@ class WikidataClient
         $currentPropStatementCounter = 0;
 
         foreach ($placesData as $placeData) {
-            Log::debug($placeData);
+            //Log::debug($placeData);
 
             $placeId = basename($placeData['item']['value']);
             $propId = basename($placeData['prop']['value']);
