@@ -474,8 +474,7 @@ export default {
             } else if (latLng.lat == '52.3669889' && latLng.lng == '9.731877') {
                 this.selectedPlaceInfo.imageUrl = 'http://commons.wikimedia.org/wiki/Special:FilePath/Polizeipr%C3%A4sidium%20Hardenbergstra%C3%9Fe.jpg';
             } else if ((latLng.lat == '52.364983111' && latLng.lng == '9.748284833') || (latLng.lat == '52.364983096' && latLng.lng == '9.748562603')) {
-                // dont show a picture here
-                this.selectedPlaceInfo.imageUrl = '';
+                this.selectedPlaceInfo.imageUrl = 'http://commons.wikimedia.org/wiki/Special:FilePath/Schl%C3%A4gerstra%C3%9Fe%205%20Hannover.jpg';
             } else if (latLng.lat == '52.377719' && latLng.lng == '9.672342') {
                 this.selectedPlaceInfo.imageUrl = 'http://commons.wikimedia.org/wiki/Special:FilePath/Gedenkst%C3%A4tte%20Ahlem%20Hinrichtungsst%C3%A4tte.jpg';
             } else {
