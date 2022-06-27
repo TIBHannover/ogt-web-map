@@ -472,10 +472,10 @@ export default {
                 this.selectedPlaceInfo.imageUrl = 'http://commons.wikimedia.org/wiki/Special:FilePath/Polizeipr%C3%A4sidium%20Hardenbergstra%C3%9Fe.jpg';
             } else if (latLng.lat == '52.3669889' && latLng.lng == '9.731877') {
                 this.selectedPlaceInfo.imageUrl = 'http://commons.wikimedia.org/wiki/Special:FilePath/Polizeipr%C3%A4sidium%20Hardenbergstra%C3%9Fe.jpg';
-            } else if (latLng.lat == '52.3642957' && latLng.lng == '9.7473133') {
+            } else if ((latLng.lat == '52.364983111' && latLng.lng == '9.748284833') || (latLng.lat == '52.364983096' && latLng.lng == '9.748562603')) {
                 // dont show a picture here
                 this.selectedPlaceInfo.imageUrl = '';
-            } else if (latLng.lat == '52.3769647' && latLng.lng == '9.6628539') {
+            } else if (latLng.lat == '52.377719' && latLng.lng == '9.672342') {
                 this.selectedPlaceInfo.imageUrl = 'http://commons.wikimedia.org/wiki/Special:FilePath/Gedenkst%C3%A4tte%20Ahlem%20Hinrichtungsst%C3%A4tte.jpg';
             } else {
                 this.selectedPlaceInfo.imageUrl = place.P18 ? place.P18.propertyStatements[0].propertyValue : '';
