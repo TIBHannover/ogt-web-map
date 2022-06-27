@@ -559,6 +559,21 @@ export default {
                 });
             }
 
+            this.selectedPlaceInfo.inceptionDates = [];
+            if (place.P571) {
+                place.P571.propertyStatements.forEach((statement, statementIndex) => {
+                    this.selectedPlaceInfo.inceptionDates.push(statement.propertyValue);
+                });
+            }
+
+            this.selectedPlaceInfo.dissolvedDates = [];
+            if (place.P576) {
+                place.P576.propertyStatements.forEach((statement, statementIndex) => {
+                    this.selectedPlaceInfo.dissolvedDates.push(statement.propertyValue);
+                });
+            }
+
+
             this.selectedPlaceInfo.sources = [];
 
             if (place.P1343) {

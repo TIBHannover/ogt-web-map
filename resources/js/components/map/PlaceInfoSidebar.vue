@@ -220,21 +220,23 @@
 
             <!-- inception - https://www.wikidata.org/wiki/Property:P571 -->
             <!-- dissolved, abolished or demolished date - https://www.wikidata.org/wiki/Property:P576 -->
-            <!--
             <v-list-item dense>
                 <v-list-item-content>
                     <v-list-item-title>Laufzeit</v-list-item-title>
                     <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
-                        <ul>
-                            <li>von {{ inception }}</li>
-                            <li>bis {{ dissolved }}</li>
+                        von
+                        <ul v-for="inceptionDate in selectedPlaceInfo.inceptionDates">
+                            <li>{{ inceptionDate }}</li>
+                        </ul>
+                        bis
+                        <ul v-for="dissolvedDate in selectedPlaceInfo.dissolvedDates">
+                            <li>{{ dissolvedDate }}</li>
                         </ul>
                     </v-list-item-subtitle>
                 </v-list-item-content>
             </v-list-item>
 
             <v-divider></v-divider>
-            -->
 
             <!-- place is described by source - https://www.wikidata.org/wiki/Property:P1343 -->
             <template v-if="selectedPlaceInfo.sources.length > 0">
