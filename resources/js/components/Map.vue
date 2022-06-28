@@ -107,9 +107,11 @@ export default {
             map: null,
             selectedPlaceInfo: {
                 administrativeTerritorialEntitys: [],
+                commemoratesData: [],
                 description: '',
                 dissolvedDates: [],
                 employeesData: [],
+                hasUseData: [],
                 imageUrl: '',
                 inceptionDates: [],
                 instanceLabels: '',
@@ -122,6 +124,7 @@ export default {
                 // additional Leaflet LatLng geographical point objects of the place
                 latLngAlt: [],
                 layerName: '',
+                officialWebsite: '',
                 parentOrganizations: [],
                 replaces: [],
                 replacedBy: [],
@@ -506,6 +509,8 @@ export default {
             this.selectedPlaceInfo.latLngAlt = altCoordinates;
             this.selectedPlaceInfo.latLng = latLng;
 
+            this.selectedPlaceInfo.officialWebsite = place.P856 ? place.P856.propertyStatements[0].propertyValue : '';
+
             this.selectedPlaceInfo.parentOrganizations = [];
             if (place.P749) {
                 place.P749.propertyStatements.forEach((statement, statementIndex) => {
@@ -548,6 +553,13 @@ export default {
                 });
             }
 
+            this.selectedPlaceInfo.hasUseData = [];
+            if (place.P366) {
+                place.P366.propertyStatements.forEach((statement, statementIndex) => {
+                    this.selectedPlaceInfo.hasUseData.push(statement.propertyValue);
+                });
+            }
+
             this.selectedPlaceInfo.employeesData = [];
             if (place.P1128) {
                 place.P1128.propertyStatements.forEach((statement, statementIndex) => {
@@ -583,6 +595,13 @@ export default {
                         startDate: statement.P580 ? this.formatDate(statement.P580.qualifierValue, statement.P580.qualifierValueDatePrecision) : '',
                         endDate: statement.P582 ? this.formatDate(statement.P582.qualifierValue, statement.P582.qualifierValueDatePrecision) : '',
                     });
+                });
+            }
+
+            this.selectedPlaceInfo.commemoratesData = [];
+            if (place.P547) {
+                place.P547.propertyStatements.forEach((statement, statementIndex) => {
+                    this.selectedPlaceInfo.commemoratesData.push(statement.propertyValue);
                 });
             }
 

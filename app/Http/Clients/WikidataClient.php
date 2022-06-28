@@ -34,7 +34,9 @@ class WikidataClient
         'laborEducationCamps'     => [
             'Q277565',      // https://www.wikidata.org/wiki/Q277565        labor education camp
         ],
-        'memorials'               => [],
+        'memorials'               => [
+            'Q5003624',     // https://www.wikidata.org/wiki/Q5003624       memorial
+        ],
         'prisons'                 => [
             'Q40357',       // https://www.wikidata.org/wiki/Q40357         prison
         ],
@@ -159,6 +161,13 @@ class WikidataClient
                     p:P749
                     p:P1343
                 }
+
+           VALUES ?placeInstanceOf {
+     wd:Q106996250
+#      wd:Q6983405
+   }
+  ?place wdt:P31 ?placeInstanceOf.
+  ?item wdt:P547 ?place;
         */
         $query = '
             SELECT
@@ -168,8 +177,15 @@ class WikidataClient
                 ?propValue ?propValueLabel ?propPrecision
                 ?qualifier ?qualifierLabel ?qualifierValue ?qualifierValueLabel ?qualifierPrecision
             WHERE {
-                ?item wdt:P31 wd:Q106996250;
-                    ?p ?statement.
+                {
+                  ?place wdt:P31 wd:Q106996250.
+                  ?item wdt:P547 ?place.
+                }
+                UNION
+                {
+                  ?item wdt:P31 wd:Q106996250.
+                }
+                ?item ?p ?statement.
                 ?statement ?ps ?propValue.
                 ?prop wikibase:claim ?p;
                     wikibase:statementProperty ?ps.

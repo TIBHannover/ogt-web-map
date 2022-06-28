@@ -61,6 +61,21 @@
             <v-divider></v-divider>
             -->
 
+            <!-- official website - https://www.wikidata.org/wiki/Property:P856 -->
+            <template v-if="selectedPlaceInfo.officialWebsite">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Offizielle Website</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                            <a :href="selectedPlaceInfo.officialWebsite" target="_blank">
+                                {{ selectedPlaceInfo.officialWebsite }}
+                            </a>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
+
             <!-- inception - https://www.wikidata.org/wiki/Property:P571 -->
             <!-- dissolved, abolished or demolished date - https://www.wikidata.org/wiki/Property:P576 -->
             <template v-if="selectedPlaceInfo.inceptionDates.length > 0 || selectedPlaceInfo.dissolvedDates.length > 0">
@@ -95,6 +110,23 @@
                             <ul>
                                 <template v-for="administrativeTerritorialEntity in selectedPlaceInfo.administrativeTerritorialEntitys">
                                     <li>{{ administrativeTerritorialEntity }}</li>
+                                </template>
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
+
+            <!-- has use - https://www.wikidata.org/wiki/Property:P366 -->
+            <template v-if="selectedPlaceInfo.hasUseData.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Leistungen und Angebote:</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                            <ul>
+                                <template v-for="hasUse in selectedPlaceInfo.hasUseData">
+                                    <li>{{ hasUse }}</li>
                                 </template>
                             </ul>
                         </v-list-item-subtitle>
@@ -147,6 +179,23 @@
                                         <template v-if="streetAddress.endDate">bis {{ streetAddress.endDate }}</template>
                                     </li>
                                 </ul>
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
+
+            <!-- commemorates - https://www.wikidata.org/wiki/Property:P547 -->
+            <template v-if="selectedPlaceInfo.commemoratesData.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Erinnert an</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                            <ul>
+                                <template v-for="commemorates in selectedPlaceInfo.commemoratesData">
+                                    <li>{{ commemorates }}</li>
+                                </template>
                             </ul>
                         </v-list-item-subtitle>
                     </v-list-item-content>
