@@ -19,7 +19,9 @@ class WikidataClient
      * Groups of Wikidata Q-Ids of place instances.
      */
     const PLACE_GROUPS_IDS = [
-        'events'                  => [],
+        'events'                  => [
+            'Q6983405',     // https://www.wikidata.org/wiki/Q6983405       Nazi crime
+        ],
         'extPolicePrisons'        => [
             'Q108047650',   // https://www.wikidata.org/wiki/Q108047650     Extended police prison
             'Q108048094',   // https://www.wikidata.org/wiki/Q108048094     Police Detention Camp
@@ -177,6 +179,11 @@ class WikidataClient
                 ?propValue ?propValueLabel ?propPrecision
                 ?qualifier ?qualifierLabel ?qualifierValue ?qualifierValueLabel ?qualifierPrecision
             WHERE {
+                {
+                  ?place wdt:P31 wd:Q106996250.
+                  ?item wdt:P8031 ?place.
+                }
+                UNION
                 {
                   ?place wdt:P31 wd:Q106996250.
                   ?item wdt:P547 ?place.
