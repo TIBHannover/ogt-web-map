@@ -6,7 +6,7 @@
       }
 
       .cls-2 {
-        fill: #3c3a3d;
+        fill: #456879;
       }
 
       .cls-3 {
@@ -18,7 +18,7 @@
       }
 
       .cls-5 {
-        fill: #3d3b3d;
+        fill: #456879;
       }
     </style>
     <clipPath id="clip-path">
