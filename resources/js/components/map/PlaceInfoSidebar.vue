@@ -278,7 +278,10 @@
             <template v-if="selectedPlaceInfo.parentOrganizations.length > 0">
                 <v-list-item dense>
                     <v-list-item-content>
-                        <v-list-item-title>Übergeordnete Organisation</v-list-item-title>
+                        <v-list-item-title v-if="selectedPlaceInfo.layerName == 'Erinnerungsorte'">
+                            Träger
+                        </v-list-item-title>
+                        <v-list-item-title v-else>Übergeordnete Organisation</v-list-item-title>
                         <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
                             <ul>
                                 <template v-for="parentOrganization in selectedPlaceInfo.parentOrganizations">
