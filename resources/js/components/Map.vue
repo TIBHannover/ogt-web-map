@@ -126,6 +126,7 @@ export default {
                 latLngAlt: [],
                 layerName: '',
                 officialWebsite: '',
+                operators: [],
                 parentOrganizations: [],
                 replaces: [],
                 replacedBy: [],
@@ -515,6 +516,13 @@ export default {
             this.selectedPlaceInfo.officialWebsite = place.P856 ? place.P856.propertyStatements[0].propertyValue : '';
             this.selectedPlaceInfo.dateOfOfficialOpening = place.P1619 ? this.formatDate(place.P1619.propertyStatements[0].propertyValue) : '';
             this.selectedPlaceInfo.startDate = place.P580 ? this.formatDate(place.P580.propertyStatements[0].propertyValue) : '';
+
+            this.selectedPlaceInfo.operators = [];
+            if (place.P137) {
+                place.P137.propertyStatements.forEach((statement, statementIndex) => {
+                    this.selectedPlaceInfo.operators.push(statement.propertyValue);
+                });
+            }
 
             this.selectedPlaceInfo.parentOrganizations = [];
             if (place.P749) {

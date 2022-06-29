@@ -278,14 +278,28 @@
             <template v-if="selectedPlaceInfo.parentOrganizations.length > 0">
                 <v-list-item dense>
                     <v-list-item-content>
-                        <v-list-item-title v-if="selectedPlaceInfo.layerName == 'Erinnerungsorte'">
-                            Träger
-                        </v-list-item-title>
-                        <v-list-item-title v-else>Übergeordnete Organisation</v-list-item-title>
+                        <v-list-item-title>Übergeordnete Organisation</v-list-item-title>
                         <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
                             <ul>
                                 <template v-for="parentOrganization in selectedPlaceInfo.parentOrganizations">
                                     <li>{{ parentOrganization }}</li>
+                                </template>
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
+
+            <!-- operator - https://www.wikidata.org/wiki/Property:P137 -->
+            <template v-if="selectedPlaceInfo.operators.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Träger</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                            <ul>
+                                <template v-for="operator in selectedPlaceInfo.operators">
+                                    <li>{{ operator }}</li>
                                 </template>
                             </ul>
                         </v-list-item-subtitle>
