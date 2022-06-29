@@ -101,6 +101,19 @@
                 <v-divider></v-divider>
             </template>
 
+            <!-- date of official opening - https://www.wikidata.org/wiki/Property:P1619 -->
+            <template v-if="selectedPlaceInfo.dateOfOfficialOpening">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Eröffnungsdatum</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                           {{ selectedPlaceInfo.dateOfOfficialOpening }}
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
+
             <!-- located in the administrative territorial entity - https://www.wikidata.org/wiki/Property:P131 -->
             <template v-if="selectedPlaceInfo.administrativeTerritorialEntitys.length > 0">
                 <v-list-item dense>

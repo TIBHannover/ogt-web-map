@@ -108,6 +108,7 @@ export default {
             selectedPlaceInfo: {
                 administrativeTerritorialEntitys: [],
                 commemoratesData: [],
+                dateOfOfficialOpening: '',
                 description: '',
                 dissolvedDates: [],
                 employeesData: [],
@@ -510,6 +511,7 @@ export default {
             this.selectedPlaceInfo.latLng = latLng;
 
             this.selectedPlaceInfo.officialWebsite = place.P856 ? place.P856.propertyStatements[0].propertyValue : '';
+            this.selectedPlaceInfo.dateOfOfficialOpening = place.P1619 ? this.formatDate(place.P1619.propertyStatements[0].propertyValue) : '';
 
             this.selectedPlaceInfo.parentOrganizations = [];
             if (place.P749) {
