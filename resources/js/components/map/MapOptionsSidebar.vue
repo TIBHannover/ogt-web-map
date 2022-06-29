@@ -112,7 +112,7 @@ export default {
                     icon: 'mdi-map-clock',
                 },
                 {
-                    name: 'Liste',
+                    name: 'Auswahl',
                     icon: 'mdi-view-list',
                 },
             ],
