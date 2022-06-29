@@ -135,6 +135,7 @@ export default {
                     label: '',
                     wikidataUrl: '',
                 }],
+                startDate: '',
                 streetAddresses: [],
                 subsidiarys: [],
                 wikidataItem: '',
@@ -466,6 +467,7 @@ export default {
             return placeMarkers;
         },
         setSelectedPlaceInfo2: function (place, latLng, layerName) {
+            console.log(place);
             this.selectedPlaceInfo.description = place.description;
 
             // workaround to set main images
@@ -512,6 +514,7 @@ export default {
 
             this.selectedPlaceInfo.officialWebsite = place.P856 ? place.P856.propertyStatements[0].propertyValue : '';
             this.selectedPlaceInfo.dateOfOfficialOpening = place.P1619 ? this.formatDate(place.P1619.propertyStatements[0].propertyValue) : '';
+            this.selectedPlaceInfo.startDate = place.P580 ? this.formatDate(place.P580.propertyStatements[0].propertyValue) : '';
 
             this.selectedPlaceInfo.parentOrganizations = [];
             if (place.P749) {

@@ -101,6 +101,22 @@
                 <v-divider></v-divider>
             </template>
 
+            <!-- time a time period starts - https://www.wikidata.org/wiki/Property:P580 -->
+            <template v-if="selectedPlaceInfo.startDate">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title v-if="selectedPlaceInfo.layerName == 'Erinnerungsorte'">
+                            Erste Aktivität
+                        </v-list-item-title>
+                        <v-list-item-title v-else>Startzeitpunkt</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                            {{ selectedPlaceInfo.startDate }}
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
+
             <!-- date of official opening - https://www.wikidata.org/wiki/Property:P1619 -->
             <template v-if="selectedPlaceInfo.dateOfOfficialOpening">
                 <v-list-item dense>
@@ -135,7 +151,7 @@
             <template v-if="selectedPlaceInfo.hasUseData.length > 0">
                 <v-list-item dense>
                     <v-list-item-content>
-                        <v-list-item-title>Leistungen und Angebote:</v-list-item-title>
+                        <v-list-item-title>Leistungen und Angebote</v-list-item-title>
                         <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
                             <ul>
                                 <template v-for="hasUse in selectedPlaceInfo.hasUseData">
