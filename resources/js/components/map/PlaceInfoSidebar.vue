@@ -147,6 +147,57 @@
                 <v-divider></v-divider>
             </template>
 
+            <!-- perpetrator - https://www.wikidata.org/wiki/Property:P8031 -->
+            <template v-if="selectedPlaceInfo.perpetrators.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Täter</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                            <ul>
+                                <template v-for="perpetrator in selectedPlaceInfo.perpetrators">
+                                    <li>{{ perpetrator }}</li>
+                                </template>
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
+
+            <!-- victim - https://www.wikidata.org/wiki/Property:P8032 -->
+            <template v-if="selectedPlaceInfo.victims.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Geschädigte</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                            <ul>
+                                <template v-for="victim in selectedPlaceInfo.victims">
+                                    <li>{{ victim }}</li>
+                                </template>
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
+
+            <!-- target - https://www.wikidata.org/wiki/Property:P533 -->
+            <template v-if="selectedPlaceInfo.targets.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Ziele des Angriffs</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                            <ul>
+                                <template v-for="target in selectedPlaceInfo.targets">
+                                    <li>{{ target }}</li>
+                                </template>
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
+
             <!-- has use - https://www.wikidata.org/wiki/Property:P366 -->
             <template v-if="selectedPlaceInfo.hasUseData.length > 0">
                 <v-list-item dense>

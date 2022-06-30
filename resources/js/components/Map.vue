@@ -128,6 +128,7 @@ export default {
                 officialWebsite: '',
                 operators: [],
                 parentOrganizations: [],
+                perpetrators: [],
                 replaces: [],
                 replacedBy: [],
                 significantEvents: [],
@@ -139,6 +140,8 @@ export default {
                 startDate: '',
                 streetAddresses: [],
                 subsidiarys: [],
+                targets: [],
+                victims: [],
                 wikidataItem: '',
             },
             showPlaceInfoSidebar: false,
@@ -563,6 +566,27 @@ export default {
             if (place.P131) {
                 place.P131.propertyStatements.forEach((statement, statementIndex) => {
                     this.selectedPlaceInfo.administrativeTerritorialEntitys.push(statement.propertyValue);
+                });
+            }
+
+            this.selectedPlaceInfo.perpetrators = [];
+            if (place.P8031) {
+                place.P8031.propertyStatements.forEach((statement, statementIndex) => {
+                    this.selectedPlaceInfo.perpetrators.push(statement.propertyValue);
+                });
+            }
+
+            this.selectedPlaceInfo.victims = [];
+            if (place.P8032) {
+                place.P8032.propertyStatements.forEach((statement, statementIndex) => {
+                    this.selectedPlaceInfo.victims.push(statement.propertyValue);
+                });
+            }
+
+            this.selectedPlaceInfo.targets = [];
+            if (place.P533) {
+                place.P533.propertyStatements.forEach((statement, statementIndex) => {
+                    this.selectedPlaceInfo.targets.push(statement.propertyValue);
                 });
             }
 
