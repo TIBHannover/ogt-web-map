@@ -8,6 +8,7 @@
         <place-info-sidebar
             :selectedPlaceInfo="selectedPlaceInfo"
             :showPlaceInfoSidebar="showPlaceInfoSidebar"
+            @showPersonInfo="showPersonInfo($event)"
             @hidePlaceInfoSidebar="toggleShowPlaceInfoSidebar(false)"
             @undoZoomIntoPlace="restoreCachedMapView()"
             @zoomIntoPlace="setMapView(selectedPlaceInfo.latLng, 18, true)"
@@ -103,6 +104,7 @@ export default {
                     placesByCoordinates: [],
                 },
             },
+            humans: [],
             layers: null,
             map: null,
             selectedPlaceInfo: {
@@ -205,7 +207,7 @@ export default {
             this.visualizePlaces(groupedPlaces);
             */
         },
-        visualizePlaces: function (groupedPlaces) {
+        xvisualizePlaces: function (groupedPlaces) {
             for (const [group, places] of Object.entries(groupedPlaces)) {
                 this.groupedPlaces[group]['places'] = places;
 
@@ -216,11 +218,17 @@ export default {
         },
         visualizePlaces2: function (groupedPlaces) {
             for (const [group, places] of Object.entries(groupedPlaces)) {
-                this.groupedPlaces[group]['places'] = places;
+                if (group == 'humans') {
+                    this.humans = places;
+                } else {
+                    this.groupedPlaces[group]['places'] = places;
 
-                let placeMarkers = this.createPlaceMarkers2(group, places);
+                    let placeMarkers = this.createPlaceMarkers2(group, places);
 
-                this.createPlacesLayerGroups2(group, placeMarkers);
+                    this.createPlacesLayerGroups2(group, placeMarkers);
+                }
+
+                //console.log(this.humans);
             }
 
             //console.log(this.groupedPlaces);
@@ -470,35 +478,42 @@ export default {
 
             return placeMarkers;
         },
+        showPersonInfo: function (id) {
+            console.log("showpersoninfo");
+            console.log(id);
+            //console.log(this.humans);
+            //console.log(this.humans['Q111009720']);
+            this.setSelectedPlaceInfo2(this.humans[id], null, "Geschädigte des Nationalsozialismus");
+        },
         setSelectedPlaceInfo2: function (place, latLng, layerName) {
-            console.log(place);
+            //console.log(place);
             this.selectedPlaceInfo.description = place.description;
 
             // workaround to set main images
-            if (latLng.lat == '52.3667941' && latLng.lng == '9.744844924') {
+            if (latLng != null && latLng.lat == '52.3667941' && latLng.lng == '9.744844924') {
                 this.selectedPlaceInfo.imageUrl = 'http://commons.wikimedia.org/wiki/Special:FilePath/Stadtbibliothek%20Hannover%20au%C3%9Fen.jpg';
-            } else if (latLng.lat == '52.3907961' && latLng.lng == '9.7532908') {
+            } else if (latLng != null && latLng.lat == '52.3907961' && latLng.lng == '9.7532908') {
                 this.selectedPlaceInfo.imageUrl = 'http://commons.wikimedia.org/wiki/Special:FilePath/R%C3%BChmkorffstra%C3%9Fe%2C%20Hannover.jpg';
-            } else if (latLng.lat == '52.3664978' && latLng.lng == '9.7321152') {
+            } else if (latLng != null && latLng.lat == '52.3664978' && latLng.lng == '9.7321152') {
                 this.selectedPlaceInfo.imageUrl = 'http://commons.wikimedia.org/wiki/Special:FilePath/Polizeipr%C3%A4sidium%20Hardenbergstra%C3%9Fe.jpg';
-            } else if (latLng.lat == '52.3669889' && latLng.lng == '9.731877') {
+            } else if (latLng != null && latLng.lat == '52.3669889' && latLng.lng == '9.731877') {
                 this.selectedPlaceInfo.imageUrl = 'http://commons.wikimedia.org/wiki/Special:FilePath/Polizeipr%C3%A4sidium%20Hardenbergstra%C3%9Fe.jpg';
-            } else if ((latLng.lat == '52.364983111' && latLng.lng == '9.748284833') || (latLng.lat == '52.364983096' && latLng.lng == '9.748562603')) {
+            } else if ((latLng != null && latLng.lat == '52.364983111' && latLng.lng == '9.748284833') || (latLng != null && latLng.lat == '52.364983096' && latLng.lng == '9.748562603')) {
                 this.selectedPlaceInfo.imageUrl = 'http://commons.wikimedia.org/wiki/Special:FilePath/Schl%C3%A4gerstra%C3%9Fe%205%20Hannover.jpg';
-            } else if (latLng.lat == '52.377719' && latLng.lng == '9.672342') {
+            } else if (latLng != null && latLng.lat == '52.377719' && latLng.lng == '9.672342') {
                 this.selectedPlaceInfo.imageUrl = 'http://commons.wikimedia.org/wiki/Special:FilePath/Gedenkst%C3%A4tte%20Ahlem%20Hinrichtungsst%C3%A4tte.jpg';
             } else {
                 this.selectedPlaceInfo.imageUrl = place.P18 ? place.P18.propertyStatements[0].propertyValue : '';
             }
 
-            this.selectedPlaceInfo.instanceLabels = place.instanceLabels.join(', ');
+            this.selectedPlaceInfo.instanceLabels = place.instanceLabels ? place.instanceLabels.join(', ') : '';
             this.selectedPlaceInfo.label = place.label;
             this.selectedPlaceInfo.layerName = layerName;
             this.selectedPlaceInfo.wikidataItem = "https://www.wikidata.org/wiki/" + place.id;
 
             let altCoordinates = [];
 
-            if (place.coordinates.length > 1) {
+            if (place.coordinates && place.coordinates.length > 1) {
                 altCoordinates = place.coordinates.filter(function (coordinate) {
 
                     //console.log(coordinate[0] + " =? " + latLng.lat);
@@ -579,8 +594,17 @@ export default {
             this.selectedPlaceInfo.victims = [];
             if (place.P8032) {
                 place.P8032.propertyStatements.forEach((statement, statementIndex) => {
+                    this.selectedPlaceInfo.victims.push({
+                        name: statement.propertyValue,
+                        id: this.humans[statement.propertyValueId] ? statement.propertyValueId : null,
+                    });
+                });
+
+                /*
+                place.P8032.propertyStatements.forEach((statement, statementIndex) => {
                     this.selectedPlaceInfo.victims.push(statement.propertyValue);
                 });
+                */
             }
 
             this.selectedPlaceInfo.targets = [];

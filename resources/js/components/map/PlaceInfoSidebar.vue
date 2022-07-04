@@ -172,7 +172,16 @@
                         <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
                             <ul>
                                 <template v-for="victim in selectedPlaceInfo.victims">
-                                    <li>{{ victim }}</li>
+                                    <li>
+                                        <v-btn text small class="text-capitalize" @click.stop="$emit('showPersonInfo', victim.id)">
+                                            {{ victim.name }}
+                                        </v-btn>
+                                        <!--
+                                        <v-btn @click.stop="$emit('showPersonInfo')" icon>
+                                            <v-icon>mdi-information-outline</v-icon>
+                                        </v-btn>
+                                        -->
+                                    </li>
                                 </template>
                             </ul>
                         </v-list-item-subtitle>
@@ -216,34 +225,35 @@
             </template>
 
             <!-- place coordinates and zoom-in-place icon -->
-            <v-list-item dense>
-                <v-list-item-content>
-                    <v-list-item-title>Koordinaten (Lat., Long.)</v-list-item-title>
-                    <v-list-item-subtitle>
-                        {{ selectedPlaceInfo.latLng.lat }}, {{ selectedPlaceInfo.latLng.lng }}
-                        <template v-if="selectedPlaceInfo.latLngAlt.length">
-                            <br>
-                            <br>
-                            weitere Standorte
-                            <ul>
-                                <template v-for="coordinatesAlt in selectedPlaceInfo.latLngAlt">
-                                    <li>{{ Object.values(coordinatesAlt).join(', ') }}</li>
-                                </template>
-                            </ul>
-                        </template>
-                    </v-list-item-subtitle>
-                </v-list-item-content>
-                <v-list-item-action class="flex-direction-row my-0">
-                    <v-btn @click.stop="$emit('zoomIntoPlace')" icon>
-                        <v-icon>mdi-magnify-plus</v-icon>
-                    </v-btn>
-                    <v-btn @click.stop="$emit('undoZoomIntoPlace')" icon>
-                        <v-icon>mdi-undo-variant</v-icon>
-                    </v-btn>
-                </v-list-item-action>
-            </v-list-item>
-
-            <v-divider></v-divider>
+            <template v-if="selectedPlaceInfo.latLng">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Koordinaten (Lat., Long.)</v-list-item-title>
+                        <v-list-item-subtitle>
+                            {{ selectedPlaceInfo.latLng.lat }}, {{ selectedPlaceInfo.latLng.lng }}
+                            <template v-if="selectedPlaceInfo.latLngAlt.length">
+                                <br>
+                                <br>
+                                weitere Standorte
+                                <ul>
+                                    <template v-for="coordinatesAlt in selectedPlaceInfo.latLngAlt">
+                                        <li>{{ Object.values(coordinatesAlt).join(', ') }}</li>
+                                    </template>
+                                </ul>
+                            </template>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                    <v-list-item-action class="flex-direction-row my-0">
+                        <v-btn @click.stop="$emit('zoomIntoPlace')" icon>
+                            <v-icon>mdi-magnify-plus</v-icon>
+                        </v-btn>
+                        <v-btn @click.stop="$emit('undoZoomIntoPlace')" icon>
+                            <v-icon>mdi-undo-variant</v-icon>
+                        </v-btn>
+                    </v-list-item-action>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
 
             <!-- street address - https://www.wikidata.org/wiki/Property:P6375 -->
             <template v-if="selectedPlaceInfo.streetAddresses.length > 0">

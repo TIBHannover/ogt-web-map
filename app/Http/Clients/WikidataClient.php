@@ -50,6 +50,9 @@ class WikidataClient
             'Q2101520',     // https://www.wikidata.org/wiki/Q2101520       Political police (Germany)
             'Q108047567',   // https://www.wikidata.org/wiki/Q108047567     State Police Office
         ],
+        'humans'      => [
+            'Q5',           // https://www.wikidata.org/wiki/Q5     human
+        ],
     ];
 
     /**
@@ -179,6 +182,24 @@ class WikidataClient
                 ?propValue ?propValueLabel ?propPrecision
                 ?qualifier ?qualifierLabel ?qualifierValue ?qualifierValueLabel ?qualifierPrecision
             WHERE {
+                {
+                    ?item wdt:P2868 wd:Q2026714;
+                          wdt:P31 wd:Q5;
+                          wdt:P793 ?event.
+                    ?event wdt:P31 wd:Q6983405;
+                           wdt:P8031 ?place.
+                    ?place wdt:P31 wd:Q106996250.
+                }
+                UNION
+                {
+                    ?item wdt:P2868 wd:Q111080573;
+                          wdt:P31 wd:Q5;
+                          wdt:P793 ?event.
+                    ?event wdt:P31 wd:Q6983405;
+                           wdt:P8031 ?place.
+                    ?place wdt:P31 wd:Q106996250.
+                }
+                UNION
                 {
                   ?place wdt:P31 wd:Q106996250.
                   ?item wdt:P8031 ?place.
