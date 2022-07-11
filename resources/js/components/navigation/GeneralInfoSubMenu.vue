@@ -14,18 +14,25 @@
             </v-list-item>
             <v-divider></v-divider>
             <v-subheader class="text-uppercase">Allgemeine Infos</v-subheader>
-            <v-list-item
-                v-for="menuItem in menuItems"
-                :key="menuItem.title"
-                @click.stop="$emit('setActiveMenu', menuItem.toMenu)"
+            <v-list-item-group
+                active-class="selectedItemBorder"
+                mandatory
+                v-model="selectedPolicy"
             >
-                <v-list-item-icon>
-                    <v-icon>{{ menuItem.icon }}</v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
-                    <v-list-item-title>{{ menuItem.title }}</v-list-item-title>
-                </v-list-item-content>
-            </v-list-item>
+                <v-list-item
+                    v-for="(menuItem, i) in menuItems"
+                    :key="i"
+                    @click.stop="$emit('setActiveMenu', menuItem.toMenu)"
+                >
+                    <v-list-item-icon>
+                        <v-icon>{{ menuItem.icon }}</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                        <v-list-item-title>{{ menuItem.title }}</v-list-item-title>
+                    </v-list-item-content>
+                </v-list-item>
+            </v-list-item-group>
+            <br>
             <v-divider></v-divider>
         </v-list>
 
@@ -51,6 +58,7 @@ export default {
     props: ['activeMenu'],
     data() {
         return {
+            selectedPolicy: 0,
             menuItems: [
                 {
                     title: 'Impressum',
@@ -69,5 +77,8 @@ export default {
 </script>
 
 <style scoped>
-
+.selectedItemBorder {
+    /* grey darken-4 */
+    border: 2px dashed #212121;
+}
 </style>
