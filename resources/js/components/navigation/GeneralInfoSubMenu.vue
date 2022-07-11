@@ -54,12 +54,12 @@ export default {
             menuItems: [
                 {
                     title: 'Impressum',
-                    icon: 'mdi-information-outline',
+                    icon: 'mdi-fingerprint',
                     toMenu: 'imprintView',
                 },
                 {
                     title: 'Datenschutz',
-                    icon: 'mdi-information-outline',
+                    icon: 'mdi-database-lock-outline',
                     toMenu: 'dataProtectionView',
                 },
             ],
