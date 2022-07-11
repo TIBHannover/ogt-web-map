@@ -59,7 +59,7 @@ export default {
                     toMenu: 'languageConfig',
                 },
                 {
-                    title: 'Allgemeine Informationen',
+                    title: 'Impressum & Datenschutz',
                     icon: 'mdi-information-outline',
                     toMenu: 'generalInfoSubMenu',
                 },
