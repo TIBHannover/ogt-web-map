@@ -13,7 +13,7 @@
                 </v-list-item-content>
             </v-list-item>
             <v-divider></v-divider>
-            <v-subheader class="text-uppercase">Allgemeine Infos</v-subheader>
+            <v-subheader class="text-uppercase">Rechtliche Informationen</v-subheader>
             <v-list-item-group
                 active-class="selectedItemBorder"
                 mandatory
