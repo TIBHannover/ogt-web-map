@@ -61,7 +61,7 @@ export default {
                 {
                     title: 'Impressum & Datenschutz',
                     icon: 'mdi-information-outline',
-                    toMenu: 'generalInfoSubMenu',
+                    toMenu: 'imprintView',
                 },
             ],
         };

@@ -2,7 +2,7 @@
     <div>
         <v-list
             rounded
-            v-show="activeMenu === 'generalInfoSubMenu'"
+            v-show="activeMenu === 'generalInfoSubMenu' || activeMenu === 'imprintView' || activeMenu === 'dataProtectionView'"
         >
             <v-list-item @click.stop="$emit('setActiveMenu', 'mainMenu')">
                 <v-list-item-icon>
