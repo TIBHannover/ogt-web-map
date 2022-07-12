@@ -7,6 +7,7 @@
         :style="{ backgroundImage: showBackgroundImage ? 'url(' + backgroundImageUrl + ')' : 'none' }"
     >
         <!-- button to switch between alternative page layouts -->
+        <!--
         <v-btn
             absolute
             class="noneTextTransform"
@@ -18,6 +19,7 @@
         >
             Alternatives Layout "{{ layoutLabels[(selectedLayoutId + 1) % layoutLabels.length] }}" anzeigen
         </v-btn>
+        -->
 
         <!-- banner layout -->
         <v-row v-show="showBanner">

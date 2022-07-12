@@ -21,6 +21,7 @@
 
         <v-divider class="my-2"></v-divider>
 
+        <!--
         <v-subheader>Debug Optionen</v-subheader>
         <v-radio-group
             v-model="mapGreyscaleSelected"
@@ -55,6 +56,7 @@
                 :value="index"
             ></v-radio>
         </v-radio-group>
+        -->
     </v-container>
 </template>
 
