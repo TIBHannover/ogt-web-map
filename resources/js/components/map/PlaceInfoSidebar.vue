@@ -77,18 +77,6 @@
 
             <v-divider></v-divider>
 
-            <!-- place is an instance of - https://www.wikidata.org/wiki/Property:P31 -->
-            <v-list-item dense>
-                <v-list-item-content>
-                    <v-list-item-title>Instanz von</v-list-item-title>
-                    <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
-                        {{ selectedPlaceInfo.instanceLabels }}
-                    </v-list-item-subtitle>
-                </v-list-item-content>
-            </v-list-item>
-
-            <v-divider></v-divider>
-
             <!-- place is described by source - https://www.wikidata.org/wiki/Property:P1343 -->
             <v-list-item dense>
                 <v-list-item-content>

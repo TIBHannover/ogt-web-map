@@ -108,7 +108,6 @@ export default {
             selectedPlaceInfo: {
                 description: '',
                 imageUrl: '',
-                instanceLabels: '',
                 label: '',
                 // Leaflet LatLng geographical point object
                 latLng: {
@@ -218,9 +217,6 @@ export default {
                                 &#x1f50d;
                             </button>
                         </div>
-                        <div class="popUpTopicCategory">
-                            ${place.instanceLabels.value}
-                        </div>
                         <br>
                         ${place.itemDescription ? place.itemDescription.value : ''}`;
 
@@ -269,7 +265,6 @@ export default {
         setSelectedPlaceInfo: function (place, latLng, layerName) {
             this.selectedPlaceInfo.description = place.itemDescription ? place.itemDescription.value : '';
             this.selectedPlaceInfo.imageUrl = place.imageUrl ? place.imageUrl.value : '';
-            this.selectedPlaceInfo.instanceLabels = place.instanceLabels.value;
             this.selectedPlaceInfo.label = place.itemLabel.value;
             this.selectedPlaceInfo.layerName = layerName;
             this.selectedPlaceInfo.wikidataItem = place.item.value;
