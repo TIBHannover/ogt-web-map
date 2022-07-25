@@ -41,16 +41,6 @@
                     <v-list-item-title>Koordinaten (Lat., Long.)</v-list-item-title>
                     <v-list-item-subtitle>
                         {{ selectedPlaceInfo.latLng.lat }}, {{ selectedPlaceInfo.latLng.lng }}
-                        <template v-if="selectedPlaceInfo.latLngAlt.length">
-                            <br>
-                            <br>
-                            weitere Standorte
-                            <ul>
-                                <template v-for="coordinatesAlt in selectedPlaceInfo.latLngAlt">
-                                    <li>{{ Object.values(coordinatesAlt).join(', ') }}</li>
-                                </template>
-                            </ul>
-                        </template>
                     </v-list-item-subtitle>
                 </v-list-item-content>
                 <v-list-item-action class="flex-direction-row my-0">

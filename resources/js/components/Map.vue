@@ -114,8 +114,6 @@ export default {
                     lat: 0,
                     lng: 0,
                 },
-                // additional Leaflet LatLng geographical point objects of the place
-                latLngAlt: [],
                 layerName: '',
                 sources: [{
                     dnbUrl: '',
@@ -268,19 +266,6 @@ export default {
             this.selectedPlaceInfo.label = place.itemLabel.value;
             this.selectedPlaceInfo.layerName = layerName;
             this.selectedPlaceInfo.wikidataItem = place.item.value;
-
-            let altCoordinates = [];
-
-            if (place.coordinates.length > 1) {
-                altCoordinates = place.coordinates.filter(function (coordinate) {
-                    if (coordinate.lat == latLng.lat && coordinate.lng == latLng.lng) {
-                        return false;
-                    }
-
-                    return true;
-                });
-            }
-            this.selectedPlaceInfo.latLngAlt = altCoordinates;
             this.selectedPlaceInfo.latLng = latLng;
 
             this.selectedPlaceInfo.sources = [];
