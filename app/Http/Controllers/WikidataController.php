@@ -9,6 +9,12 @@ use Illuminate\Support\Facades\Validator;
 
 class WikidataController extends Controller
 {
+    /**
+     * Get location data from Wikidata for website map view, merge required data by location and group by location type.
+     *
+     * @param WikidataClient $wikidataClient
+     * @return Response
+     */
     public function getPlaces(WikidataClient $wikidataClient) : Response
     {
         $placesResponse = $wikidataClient->queryPlaces();
@@ -34,8 +40,9 @@ class WikidataController extends Controller
             return response([], Response::HTTP_NO_CONTENT);
         }
 
-        $groupedPlaces = $wikidataClient->groupFilteredPlacesByType($placesResponse['results']['bindings']);
+        $locations = $wikidataClient->mergeItemsData($placesResponse['results']['bindings']);
+        $locationsByType = $wikidataClient->groupLocationsByType($locations);
 
-        return response($groupedPlaces, Response::HTTP_OK);
+        return response($locationsByType, Response::HTTP_OK);
     }
 }

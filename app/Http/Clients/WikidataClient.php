@@ -266,4 +266,26 @@ class WikidataClient
 
         return $place;
     }
+
+    /**
+     * Merge item data from Wikidata query response.
+     *
+     * @param array $queryData
+     * @return array
+     */
+    public function mergeItemsData(array $queryData) : array
+    {
+        return [];
+    }
+
+    /**
+     * Group locations by type.
+     *
+     * @param array $locations
+     * @return array
+     */
+    public function groupLocationsByType(array $locations) : array
+    {
+        return [];
+    }
 }
