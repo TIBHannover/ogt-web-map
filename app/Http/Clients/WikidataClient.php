@@ -69,6 +69,45 @@ class WikidataClient
     ];
 
     /**
+     * Wikidata properties of a queried locations and associated property labels.
+     */
+    const PROPERTY_LABEL_OF_ID = [
+        'P18'   => 'images',                // https://www.wikidata.org/wiki/Property:P18
+        'P31'   => 'instances',             // https://www.wikidata.org/wiki/Property:P31
+        'P355'  => 'subsidiaries',          // https://www.wikidata.org/wiki/Property:P355
+        'P571'  => 'inceptionDates',        // https://www.wikidata.org/wiki/Property:P571
+        'P576'  => 'dissolvedDates',        // https://www.wikidata.org/wiki/Property:P576
+        'P625'  => 'coordinates',           // https://www.wikidata.org/wiki/Property:P625
+        'P749'  => 'parentOrganizations',   // https://www.wikidata.org/wiki/Property:P749
+        'P793'  => 'significantEvents',     // https://www.wikidata.org/wiki/Property:P793
+        'P1037' => 'directors',             // https://www.wikidata.org/wiki/Property:P1037
+        'P1128' => 'employeeCounts',        // https://www.wikidata.org/wiki/Property:P1128
+        'P1343' => 'describedBySources',    // https://www.wikidata.org/wiki/Property:P1343
+        'P1365' => 'replaces',              // https://www.wikidata.org/wiki/Property:P1365
+        'P1366' => 'replacedBys',           // https://www.wikidata.org/wiki/Property:P1366
+        'P5630' => 'prisonerCounts',        // https://www.wikidata.org/wiki/Property:P5630
+        'P6375' => 'streetAddresses',       // https://www.wikidata.org/wiki/Property:P6375
+    ];
+
+    /**
+     * Wikidata qualifiers of a queried locations and associated qualifier labels.
+     */
+    const QUALIFIER_LABEL_OF_ID = [
+        'P304'  => 'pages',                 // https://www.wikidata.org/wiki/Property:P304
+        'P580'  => 'startTime',             // https://www.wikidata.org/wiki/Property:P580
+        'P582'  => 'endTime',               // https://www.wikidata.org/wiki/Property:P582
+        'P585'  => 'pointInTime',           // https://www.wikidata.org/wiki/Property:P585
+        'P625'  => 'coordinates',           // https://www.wikidata.org/wiki/Property:P625
+        'P1319' => 'earliestDate',          // https://www.wikidata.org/wiki/Property:P1319
+        'P1326' => 'latestDate',            // https://www.wikidata.org/wiki/Property:P1326
+        'P1480' => 'sourcingCircumstances', // https://www.wikidata.org/wiki/Property:P1480
+        'P2096' => 'mediaLegend',           // https://www.wikidata.org/wiki/Property:P2096
+        'P6375' => 'streetAddress',         // https://www.wikidata.org/wiki/Property:P6375
+        'P8554' => 'earliestEndDate',       // https://www.wikidata.org/wiki/Property:P8554
+        'P8555' => 'latestStartDate',       // https://www.wikidata.org/wiki/Property:P8555
+    ];
+
+    /**
      * Get places of Gestapo terror from Wikidata.
      *
      * @return array
