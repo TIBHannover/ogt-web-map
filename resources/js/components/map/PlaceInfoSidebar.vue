@@ -72,6 +72,7 @@
             </template>
 
             <!-- located in the administrative territorial entity - https://www.wikidata.org/wiki/Property:P131 -->
+            <!--
             <template v-if="selectedPlaceInfo.administrativeUnits.length > 0">
                 <v-list-item dense>
                     <v-list-item-content>
@@ -87,6 +88,7 @@
                 </v-list-item>
                 <v-divider></v-divider>
             </template>
+            -->
 
             <!-- place coordinates and zoom-in-place icon -->
             <!--
@@ -157,21 +159,25 @@
                                  class="hyphens-auto white-space-normal"
                                  lang="de"
                             >
-                                {{ selectedPlaceInfo.selectedAddress.address }}
                                 <ul>
-                                    <li v-if="selectedPlaceInfo.selectedAddress.startDateLocale ||
-                                              selectedPlaceInfo.selectedAddress.endDateLocale"
-                                    >
-                                        <template v-if="selectedPlaceInfo.selectedAddress.startDateLocale">
-                                            {{ selectedPlaceInfo.selectedAddress.startDateLocale }}
-                                        </template>
-                                        <template v-if="selectedPlaceInfo.selectedAddress.endDateLocale">
-                                            bis {{ selectedPlaceInfo.selectedAddress.endDateLocale }}
-                                        </template>
-                                    </li>
                                     <li>
-                                        {{ selectedPlaceInfo.selectedAddress.coordinate.join(', ') }}
+                                        {{ selectedPlaceInfo.selectedAddress.address }}
                                     </li>
+                                    <ul>
+                                        <li v-if="selectedPlaceInfo.selectedAddress.startDateLocale ||
+                                                  selectedPlaceInfo.selectedAddress.endDateLocale"
+                                        >
+                                            <template v-if="selectedPlaceInfo.selectedAddress.startDateLocale">
+                                                {{ selectedPlaceInfo.selectedAddress.startDateLocale }}
+                                            </template>
+                                            <template v-if="selectedPlaceInfo.selectedAddress.endDateLocale">
+                                                bis {{ selectedPlaceInfo.selectedAddress.endDateLocale }}
+                                            </template>
+                                        </li>
+                                        <li>
+                                            {{ selectedPlaceInfo.selectedAddress.coordinate.join(', ') }}
+                                        </li>
+                                    </ul>
                                 </ul>
                             </div>
                             <div v-else>
