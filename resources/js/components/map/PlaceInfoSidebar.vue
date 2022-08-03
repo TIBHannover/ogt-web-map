@@ -330,7 +330,7 @@
             <template v-if="selectedPlaceInfo.employeeCounts.length > 0">
                 <v-list-item dense>
                     <v-list-item-content>
-                        <v-list-item-title>Personal</v-list-item-title>
+                        <v-list-item-title>Personalstärke</v-list-item-title>
                         <v-list-item-subtitle>
                             <ul>
                                 <li v-for="employeeCount in selectedPlaceInfo.employeeCounts">
