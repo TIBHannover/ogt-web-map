@@ -216,49 +216,47 @@ class WikidataClient
     }
 
     /**
-     * Filter Wikidata place data and group places by
-     * - Events
-     * - Extended police prisons / Labor education camps
-     * - Field Offices
-     * - Prisons
-     * - State Police Headquarters
-     * - State Police Offices
+     * Group locations by item's instance-of IDs.
      *
-     * @param array $places
+     * @param array $locations
+     *
      * @return array
      */
-    public function groupFilteredPlacesByType(array $places) : array
+    public function groupLocationsByType(array $locations) : array
     {
-        $groupedPlaces = array_fill_keys(array_keys(self::PLACE_GROUPS_IDS), []);
+        $groupedLocations = [];
 
-        foreach ($places as $place) {
-            $updatedPlace = $this->convertPlaceData($this->filterPlaceData($place));
+        foreach ($locations as $locationId => $location)
+        {
+            $instanceIds = Arr::pluck($location[self::PROPERTY_LABEL_OF_ID['P31']], 'id');
 
-            $instanceUrls = $updatedPlace['instanceUrls']['value'];
-            $instanceQIds = str_replace('http://www.wikidata.org/entity/', '', $instanceUrls);
-            $instanceQIdsArray = explode('|', $instanceQIds);
+            $hasLocationGroup = false;
 
-            $foundGroupForPlace = false;
+            foreach (self::PLACE_GROUPS_IDS as $groupName => $groupIds)
+            {
+                if (! empty(array_intersect($instanceIds, $groupIds)))
+                {
+                    $groupedLocations[$groupName][$locationId] = $location;
+                    $hasLocationGroup = true;
 
-            foreach ($groupedPlaces as $groupedPlaceName => $groupedPlace) {
-                if (count(array_intersect($instanceQIdsArray, self::PLACE_GROUPS_IDS[$groupedPlaceName])) > 0) {
-                    $groupedPlaces[$groupedPlaceName][] = $updatedPlace;
-                    $foundGroupForPlace = true;
+                    // group each location into exactly one location group
+                    break;
                 }
             }
 
-            if (! $foundGroupForPlace) {
+            if (! $hasLocationGroup)
+            {
                 Log::warning(
                     'The location cannot be assigned to a map marker category based on its Wikidata instances.',
                     [
-                        'instanceQIds' => $instanceUrls,
-                        'placeQId'     => $updatedPlace['item']['value'],
+                        'instanceIds' => $instanceIds,
+                        'locationId'  => $locationId,
                     ]
                 );
             }
         }
 
-        return $groupedPlaces;
+        return $groupedLocations;
     }
 
     /**
@@ -318,17 +316,6 @@ class WikidataClient
      * @return array
      */
     public function mergeItemsData(array $queryData) : array
-    {
-        return [];
-    }
-
-    /**
-     * Group locations by type.
-     *
-     * @param array $locations
-     * @return array
-     */
-    public function groupLocationsByType(array $locations) : array
     {
         return [];
     }
