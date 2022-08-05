@@ -6,6 +6,7 @@ namespace App\Http\Clients;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * Query Wikidata.
@@ -216,6 +217,119 @@ class WikidataClient
     }
 
     /**
+     * Merge item data from Wikidata query response.
+     *
+     * @param array $queryData
+     *
+     * @return array
+     */
+    public function mergeItemsData(array $queryData) : array
+    {
+        $items = [];
+        $currentItemId = '';
+        $currentPropertyId = '';
+        $currentStatementId = '';
+        $propertyLabel = '';
+
+        foreach ($queryData as $itemChunk)
+        {
+            $itemId = basename($itemChunk['item']['value']);
+            $propertyId = basename($itemChunk['property']['value']);
+            $statementId = basename($itemChunk['statement']['value']);
+
+            if ($itemId != $currentItemId)
+            {
+                //case: new item
+                $currentItemId = $itemId;
+
+                $items[$itemId]['label'] = $itemChunk['itemLabel']['value'];
+                $items[$itemId]['description'] = $itemChunk['itemDescription']['value'] ?? '';
+
+                $currentPropertyId = $propertyId;
+                $propertyLabel = self::PROPERTY_LABEL_OF_ID[$propertyId] ?? $propertyId;
+                $items[$itemId][$propertyLabel] = [];
+
+                $currentStatementId = $statementId;
+                $items[$itemId][$propertyLabel][$statementId] =
+                    $this->getItemValues($itemChunk, 'property', $propertyId);
+            }
+            elseif ($propertyId != $currentPropertyId)
+            {
+                //case: new property of previous item
+                $currentPropertyId = $propertyId;
+                $propertyLabel = self::PROPERTY_LABEL_OF_ID[$propertyId] ?? $propertyId;
+                $items[$itemId][$propertyLabel] = [];
+
+                $currentStatementId = $statementId;
+                $items[$itemId][$propertyLabel][$statementId] =
+                    $this->getItemValues($itemChunk, 'property', $propertyId);
+            }
+            elseif ($statementId != $currentStatementId)
+            {
+                // case: new statement of previous item property
+                $currentStatementId = $statementId;
+                $items[$itemId][$propertyLabel][$statementId] =
+                    $this->getItemValues($itemChunk, 'property', $propertyId);
+            }
+
+            // case: item has qualifier data
+            if (isset($itemChunk['qualifier']))
+            {
+                $qualifierId = basename($itemChunk['qualifier']['value']);
+                $qualifierLabel = self::QUALIFIER_LABEL_OF_ID[$qualifierId] ?? $qualifierId;
+
+                $items[$itemId][$propertyLabel][$statementId][$qualifierLabel] =
+                    $this->getItemValues($itemChunk, 'qualifier', $qualifierId);
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * Get a property/qualifier values for an item dataset.
+     *
+     * @param array  $itemChunk Item dataset
+     * @param string $chunkType Part of key to get property or qualifier values from item dataset
+     * @param string $chunkKey  ID of Wikidata property/qualifier
+     *
+     * @return array             Property or qualifier values of an item dataset
+     */
+    private function getItemValues(array $itemChunk, string $chunkType, string $chunkKey) : array
+    {
+        $itemValues = [];
+
+        $valueLabel = $itemChunk[$chunkType . 'ValueLabel']['value'];
+
+        // convert Wikidata coordinates format Point(9.731877 52.3669889)
+        if ($chunkKey == 'P625')
+        {
+            $coordinate = explode(' ', Str::between($valueLabel, '(', ')'));
+            $valueLabel = [
+                'lat' => $coordinate[1],
+                'lng' => $coordinate[0],
+            ];
+        }
+
+        $itemValues['value'] = $valueLabel;
+
+        $value = $itemChunk[$chunkType . 'Value']['value'];
+
+        if (Str::startsWith($value, 'http://www.wikidata.org/entity/Q'))
+        {
+            // case: property/qualifier value is a Wikidata item, so set item id
+            $itemValues['id'] = basename($value);
+        }
+        elseif (isset($itemChunk[$chunkType . 'TimePrecision']))
+        {
+            // case: property/qualifier value is a datetime => get time precision (9 => day, 10 => month, 11 => year)
+            $itemValues['datePrecision'] = $itemChunk[$chunkType . 'TimePrecision']['value'];
+        }
+
+        return $itemValues;
+    }
+
+    /**
      * Group locations by item's instance-of IDs.
      *
      * @param array $locations
@@ -307,16 +421,5 @@ class WikidataClient
         $place['coordinates'] = $coordinatesArray;
 
         return $place;
-    }
-
-    /**
-     * Merge item data from Wikidata query response.
-     *
-     * @param array $queryData
-     * @return array
-     */
-    public function mergeItemsData(array $queryData) : array
-    {
-        return [];
     }
 }
