@@ -91,24 +91,21 @@
             <v-divider></v-divider>
 
             <!-- place is described by source - https://www.wikidata.org/wiki/Property:P1343 -->
-            <v-list-item dense>
-                <v-list-item-content>
-                    <v-list-item-title>Nachweise/Quellen</v-list-item-title>
-                    <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
-                        <ul>
-                            <template v-for="source in selectedPlaceInfo.sources">
-                                <li>{{ source.label }}
-                                    (<a :href="source.wikidataUrl" target="_blank">WD</a>)
-                                    (<a :href="source.dnbUrl" target="_blank">DNB</a>)
+            <template v-if="selectedPlaceInfo.sources.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Nachweise</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
+                            <ul>
+                                <li v-for="source in selectedPlaceInfo.sources">
+                                    {{ source.label }}<span v-if="source.pages">, S. {{ source.pages }}</span>
                                 </li>
-                            </template>
-                        </ul>
-                    </v-list-item-subtitle>
-                </v-list-item-content>
-            </v-list-item>
-
-            <v-divider></v-divider>
-
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
         </v-navigation-drawer>
     </div>
 </template>

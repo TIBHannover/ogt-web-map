@@ -126,9 +126,8 @@ export default {
                 mainImageUrl: '',
                 mainImageLegend: '',
                 sources: [{
-                    dnbUrl: '',
                     label: '',
-                    wikidataUrl: '',
+                    pages: '',
                 }],
             },
             showPlaceInfoSidebar: false,
@@ -334,28 +333,13 @@ export default {
             }
 
             this.selectedPlaceInfo.sources = [];
-            if (place.source) {
-                this.selectedPlaceInfo.sources = [{
-                    dnbUrl: '',
-                    label: '',
-                    wikidataUrl: '',
-                }];
-
-                let sourceAuthorLabels = place.sourceAuthorLabels.value ? place.sourceAuthorLabels.value + ', ' : '';
-                let sourceLabel = place.sourceLabel ? place.sourceLabel.value + '. ' : '';
-                let sourcePublisherCityLabel = place.sourcePublisherCityLabel ? place.sourcePublisherCityLabel.value + ': ' : '';
-                let sourcePublisherLabel = place.sourcePublisherLabel ? place.sourcePublisherLabel.value + ' ' : '';
-                let sourcePublicationYear = place.sourcePublicationYear ? place.sourcePublicationYear.value + ', ' : '';
-                let sourcePages = place.sourcePages ? 'S. ' + place.sourcePages.value : '';
-                this.selectedPlaceInfo.sources[0].label =
-                    sourceAuthorLabels +
-                    sourceLabel +
-                    sourcePublisherCityLabel +
-                    sourcePublisherLabel +
-                    sourcePublicationYear +
-                    sourcePages;
-                this.selectedPlaceInfo.sources[0].dnbUrl = place.sourceDnbLink ? 'https://d-nb.info/' + place.sourceDnbLink.value : '';
-                this.selectedPlaceInfo.sources[0].wikidataUrl = place.source ? place.source.value : '';
+            if (place.describedBySources) {
+                for (const [statementId, describedBySource] of Object.entries(place.describedBySources)) {
+                    this.selectedPlaceInfo.sources.push({
+                        label: describedBySource.value,
+                        pages: describedBySource.pages ? describedBySource.pages.value : '',
+                    });
+                }
             }
         },
         /**
