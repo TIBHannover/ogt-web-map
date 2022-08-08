@@ -107,7 +107,15 @@ export default {
             map: null,
             selectedPlaceInfo: {
                 description: '',
+                dissolvedDate: {
+                    'locale': '',
+                    'value': null,
+                },
                 id: '',
+                inceptionDate: {
+                    'locale': '',
+                    'value': null,
+                },
                 label: '',
                 // Leaflet LatLng geographical point object
                 latLng: {
@@ -297,6 +305,34 @@ export default {
                 });
             }
 
+            this.selectedPlaceInfo.inceptionDate = {
+                locale: '',
+                value: null,
+            };
+
+            if (place.inceptionDates) {
+                for (const [statementId, inceptionDate] of Object.entries(place.inceptionDates)) {
+                    let date = new Date(inceptionDate.value);
+                    this.selectedPlaceInfo.inceptionDate.value = date;
+                    this.selectedPlaceInfo.inceptionDate.locale = this.getLocaleDate(date, inceptionDate.datePrecision);
+                    break;
+                }
+            }
+
+            this.selectedPlaceInfo.dissolvedDate = {
+                locale: '',
+                value: null,
+            };
+
+            if (place.dissolvedDates) {
+                for (const [statementId, dissolvedDate] of Object.entries(place.dissolvedDates)) {
+                    let date = new Date(dissolvedDate.value);
+                    this.selectedPlaceInfo.dissolvedDate.value = date;
+                    this.selectedPlaceInfo.dissolvedDate.locale = this.getLocaleDate(date, dissolvedDate.datePrecision);
+                    break;
+                }
+            }
+
             this.selectedPlaceInfo.sources = [];
             if (place.source) {
                 this.selectedPlaceInfo.sources = [{
@@ -321,6 +357,46 @@ export default {
                 this.selectedPlaceInfo.sources[0].dnbUrl = place.sourceDnbLink ? 'https://d-nb.info/' + place.sourceDnbLink.value : '';
                 this.selectedPlaceInfo.sources[0].wikidataUrl = place.source ? place.source.value : '';
             }
+        },
+        /**
+         * Get locale date string base on Wikidata time precision.
+         *
+         * @param date              Date object
+         * @param datePrecision     9 => year precision, 10 => month precision, 11 => day precision
+         * @param locale            default 'de-de'
+         * @returns {string}
+         */
+        getLocaleDate: function (date, datePrecision, locale = 'de-de') {
+
+            let dateFormatOptions = {};
+
+            switch (datePrecision) {
+                case '9':
+                    dateFormatOptions = {
+                        year: 'numeric',
+                    };
+                    break;
+
+                case '10':
+                    dateFormatOptions = {
+                        year: 'numeric',
+                        month: 'short',
+                    };
+                    break;
+
+                case '11':
+                    dateFormatOptions = {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                    };
+                    break;
+
+                default:
+                    return '';
+            }
+
+            return date.toLocaleDateString(locale, dateFormatOptions);
         },
         /**
          * Create a layer group for markers, activate layer group on map and

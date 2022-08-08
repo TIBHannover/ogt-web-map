@@ -51,6 +51,25 @@
                 <v-divider></v-divider>
             </template>
 
+            <!-- inception - https://www.wikidata.org/wiki/Property:P571 -->
+            <!-- dissolved, abolished or demolished date - https://www.wikidata.org/wiki/Property:P576 -->
+            <template v-if="selectedPlaceInfo.inceptionDate.value || selectedPlaceInfo.dissolvedDate.value">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Laufzeit</v-list-item-title>
+                        <v-list-item-subtitle>
+                            <template v-if="selectedPlaceInfo.inceptionDate.value">
+                                von {{ selectedPlaceInfo.inceptionDate.locale }}
+                            </template>
+                            <template v-if="selectedPlaceInfo.dissolvedDate.value">
+                                bis {{ selectedPlaceInfo.dissolvedDate.locale }}
+                            </template>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
+
             <!-- place coordinates and zoom-in-place icon -->
             <v-list-item dense>
                 <v-list-item-content>
