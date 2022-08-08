@@ -38,6 +38,19 @@
                 <v-divider></v-divider>
             </div>
 
+            <!-- Wikidata item brief description -->
+            <template v-if="selectedPlaceInfo.description">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Kurzbeschreibung</v-list-item-title>
+                        <v-list-item-subtitle class="hyphens-auto text-justify white-space-normal" lang="de">
+                            {{ selectedPlaceInfo.description }}
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
+
             <!-- place coordinates and zoom-in-place icon -->
             <v-list-item dense>
                 <v-list-item-content>
@@ -54,18 +67,6 @@
                         <v-icon>mdi-undo-variant</v-icon>
                     </v-btn>
                 </v-list-item-action>
-            </v-list-item>
-
-            <v-divider></v-divider>
-
-            <!-- Wikidata item brief description -->
-            <v-list-item dense>
-                <v-list-item-content>
-                    <v-list-item-title>Kurzbeschreibung</v-list-item-title>
-                    <v-list-item-subtitle class="hyphens-auto text-justify white-space-normal" lang="de">
-                        {{ selectedPlaceInfo.description }}
-                    </v-list-item-subtitle>
-                </v-list-item-content>
             </v-list-item>
 
             <v-divider></v-divider>
