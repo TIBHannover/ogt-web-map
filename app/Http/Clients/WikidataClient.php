@@ -242,6 +242,7 @@ class WikidataClient
                 //case: new item
                 $currentItemId = $itemId;
 
+                $items[$itemId]['id'] = $itemId;
                 $items[$itemId]['label'] = $itemChunk['itemLabel']['value'];
                 $items[$itemId]['description'] = $itemChunk['itemDescription']['value'] ?? '';
 
@@ -342,7 +343,8 @@ class WikidataClient
 
         foreach ($locations as $locationId => $location)
         {
-            $instanceIds = Arr::pluck($location[self::PROPERTY_LABEL_OF_ID['P31']], 'id');
+            $instanceOfLabel = self::PROPERTY_LABEL_OF_ID['P31'];
+            $instanceIds = Arr::pluck($location[$instanceOfLabel], 'id');
 
             $hasLocationGroup = false;
 
@@ -350,6 +352,7 @@ class WikidataClient
             {
                 if (! empty(array_intersect($instanceIds, $groupIds)))
                 {
+                    Arr::forget($location, $instanceOfLabel);
                     $groupedLocations[$groupName][$locationId] = $location;
                     $hasLocationGroup = true;
 
