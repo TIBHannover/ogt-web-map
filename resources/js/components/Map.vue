@@ -197,26 +197,27 @@ export default {
                 shadowSize: [76, 52], // default [41, 41]
             });
 
-            places.forEach(place => {
-                let countedPlaceCoordinates = place.coordinates.length;
+            for (const [placeId, place] of Object.entries(places)) {
+                let countedPlaceCoordinates = Object.keys(place.coordinates).length;
+                let coordinatesIndex = 0;
 
-                place.coordinates.forEach((placeCoordinate, placeCoordinateIndex) => {
-                    let marker = L.marker(placeCoordinate, {
+                for (const [statementId, placeCoordinate] of Object.entries(place.coordinates)) {
+                    let marker = L.marker(placeCoordinate.value, {
                         icon: defaultIcon,
-                        title: place.itemLabel.value,
+                        title: place.label,
                     });
 
                     let markerPopUpHtmlTemplate = `
                         <div class="popUpTopic">
-                            <a href="${place.item.value}" target="_blank">
-                                ${place.itemLabel.value}
+                            <a href="https://www.wikidata.org/wiki/${placeId}" target="_blank">
+                                ${place.label}
                             </a>
                             <button class="zoomInButton">
                                 &#x1f50d;
                             </button>
                         </div>
                         <br>
-                        ${place.itemDescription ? place.itemDescription.value : ''}`;
+                        ${place.description}`;
 
                     marker.bindPopup(markerPopUpHtmlTemplate, {
                         minWidth: 333,
@@ -237,10 +238,10 @@ export default {
 
                     placeMarkers.push(marker);
 
-                    let placeLabelWithIndex = place.itemLabel.value;
+                    let placeLabelWithIndex = place.label;
 
                     if (countedPlaceCoordinates > 1) {
-                        placeLabelWithIndex += ' (' + (placeCoordinateIndex + 1) + ')';
+                        placeLabelWithIndex += ' (' + (++coordinatesIndex) + ')';
                     }
 
                     this.groupedPlaces[placeGroupName]['placesByCoordinates'].push({
@@ -248,8 +249,8 @@ export default {
                         latLng: placeCoordinate,
                         marker: marker,
                     });
-                });
-            });
+                };
+            }
 
             return placeMarkers;
         },
@@ -261,11 +262,11 @@ export default {
          * @param string layerName Name of layer group
          */
         setSelectedPlaceInfo: function (place, latLng, layerName) {
-            this.selectedPlaceInfo.description = place.itemDescription ? place.itemDescription.value : '';
+            this.selectedPlaceInfo.description = place.description;
             this.selectedPlaceInfo.imageUrl = place.imageUrl ? place.imageUrl.value : '';
-            this.selectedPlaceInfo.label = place.itemLabel.value;
+            this.selectedPlaceInfo.label = place.label;
             this.selectedPlaceInfo.layerName = layerName;
-            this.selectedPlaceInfo.wikidataItem = place.item.value;
+            this.selectedPlaceInfo.wikidataItem = 'https://www.wikidata.org/wiki/' + place.id;
             this.selectedPlaceInfo.latLng = latLng;
 
             this.selectedPlaceInfo.sources = [];
