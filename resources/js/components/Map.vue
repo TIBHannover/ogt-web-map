@@ -108,7 +108,6 @@ export default {
             selectedPlaceInfo: {
                 description: '',
                 id: '',
-                imageUrl: '',
                 label: '',
                 // Leaflet LatLng geographical point object
                 latLng: {
@@ -116,6 +115,8 @@ export default {
                     lng: 0,
                 },
                 layerName: '',
+                mainImageUrl: '',
+                mainImageLegend: '',
                 sources: [{
                     dnbUrl: '',
                     label: '',
@@ -263,11 +264,38 @@ export default {
          */
         setSelectedPlaceInfo: function (place, latLng, layerName) {
             this.selectedPlaceInfo.description = place.description;
-            this.selectedPlaceInfo.imageUrl = place.imageUrl ? place.imageUrl.value : '';
             this.selectedPlaceInfo.label = place.label;
             this.selectedPlaceInfo.layerName = layerName;
             this.selectedPlaceInfo.id = place.id;
             this.selectedPlaceInfo.latLng = latLng;
+
+            this.selectedPlaceInfo.mainImageUrl = '';
+            this.selectedPlaceInfo.mainImageLegend = '';
+
+            const imageKeys = place.images ? Object.keys(place.images) : [];
+            const imagesCounted = imageKeys.length;
+
+            if (imagesCounted == 1) {
+                // case: only one location image available, show this
+                this.selectedPlaceInfo.mainImageUrl = place.images[imageKeys[0]].value;
+                this.selectedPlaceInfo.mainImageLegend =
+                    place.images[imageKeys[0]].mediaLegend ? place.images[imageKeys[0]].mediaLegend.value : '';
+            }
+            else if (imagesCounted > 1) {
+                // case: multiple images available for location, show image that belongs to coordinates, otherwise none
+                imageKeys.some((imageKey) => {
+                    let image = place.images[imageKey];
+
+                    if (image.coordinate &&
+                        image.coordinate.value.lat == latLng.lat &&
+                        image.coordinate.value.lng == latLng.lng
+                    ) {
+                        this.selectedPlaceInfo.mainImageUrl = image.value;
+                        this.selectedPlaceInfo.mainImageLegend = image.mediaLegend ? image.mediaLegend.value : '';
+                        return true;
+                    }
+                });
+            }
 
             this.selectedPlaceInfo.sources = [];
             if (place.source) {
