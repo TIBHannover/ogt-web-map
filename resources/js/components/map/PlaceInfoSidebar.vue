@@ -21,7 +21,7 @@
                     <v-btn @click.stop="$emit('hidePlaceInfoSidebar')" icon>
                         <v-icon>mdi-close</v-icon>
                     </v-btn>
-                    <a :href="selectedPlaceInfo.wikidataItem" target="_blank">
+                    <a :href="'https://www.wikidata.org/wiki/' + selectedPlaceInfo.id" target="_blank">
                         <v-img max-width="45" :src="this.$ogtGlobals.proxyPath + '/images/wikidata-logo.svg'"></v-img>
                     </a>
                 </v-list-item-action>

@@ -107,6 +107,7 @@ export default {
             map: null,
             selectedPlaceInfo: {
                 description: '',
+                id: '',
                 imageUrl: '',
                 label: '',
                 // Leaflet LatLng geographical point object
@@ -120,7 +121,6 @@ export default {
                     label: '',
                     wikidataUrl: '',
                 }],
-                wikidataItem: '',
             },
             showPlaceInfoSidebar: false,
         };
@@ -266,7 +266,7 @@ export default {
             this.selectedPlaceInfo.imageUrl = place.imageUrl ? place.imageUrl.value : '';
             this.selectedPlaceInfo.label = place.label;
             this.selectedPlaceInfo.layerName = layerName;
-            this.selectedPlaceInfo.wikidataItem = 'https://www.wikidata.org/wiki/' + place.id;
+            this.selectedPlaceInfo.id = place.id;
             this.selectedPlaceInfo.latLng = latLng;
 
             this.selectedPlaceInfo.sources = [];
