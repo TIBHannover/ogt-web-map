@@ -108,13 +108,13 @@ export default {
             selectedPlaceInfo: {
                 description: '',
                 dissolvedDate: {
-                    'locale': '',
-                    'value': null,
+                    locale: '',
+                    value: null,
                 },
                 id: '',
                 inceptionDate: {
-                    'locale': '',
-                    'value': null,
+                    locale: '',
+                    value: null,
                 },
                 label: '',
                 // Leaflet LatLng geographical point object
@@ -311,9 +311,7 @@ export default {
 
             if (place.inceptionDates) {
                 for (const [statementId, inceptionDate] of Object.entries(place.inceptionDates)) {
-                    let date = new Date(inceptionDate.value);
-                    this.selectedPlaceInfo.inceptionDate.value = date;
-                    this.selectedPlaceInfo.inceptionDate.locale = this.getLocaleDate(date, inceptionDate.datePrecision);
+                    this.selectedPlaceInfo.inceptionDate = this.getDate(inceptionDate.value, inceptionDate.datePrecision);
                     break;
                 }
             }
@@ -325,9 +323,7 @@ export default {
 
             if (place.dissolvedDates) {
                 for (const [statementId, dissolvedDate] of Object.entries(place.dissolvedDates)) {
-                    let date = new Date(dissolvedDate.value);
-                    this.selectedPlaceInfo.dissolvedDate.value = date;
-                    this.selectedPlaceInfo.dissolvedDate.locale = this.getLocaleDate(date, dissolvedDate.datePrecision);
+                    this.selectedPlaceInfo.dissolvedDate = this.getDate(dissolvedDate.value, dissolvedDate.datePrecision);
                     break;
                 }
             }
@@ -345,13 +341,13 @@ export default {
         /**
          * Get locale date string base on Wikidata time precision.
          *
-         * @param date              Date object
-         * @param datePrecision     9 => year precision, 10 => month precision, 11 => day precision
-         * @param locale            default 'de-de'
-         * @returns {string}
+         * @param {string} dateTimeString   Wikidata datetime
+         * @param {int} datePrecision       9 => year precision, 10 => month precision, 11 => day precision
+         * @param {string} locale           default 'de-de'
+         *
+         * @returns {{locale: string, value: Date}|null}
          */
-        getLocaleDate: function (date, datePrecision, locale = 'de-de') {
-
+        getDate: function (dateTimeString, datePrecision, locale = 'de-de') {
             let dateFormatOptions = {};
 
             switch (datePrecision) {
@@ -377,10 +373,15 @@ export default {
                     break;
 
                 default:
-                    return '';
+                    return null;
             }
 
-            return date.toLocaleDateString(locale, dateFormatOptions);
+            let date = new Date(dateTimeString);
+
+            return {
+                locale: date.toLocaleDateString(locale, dateFormatOptions),
+                value: date,
+            };
         },
         /**
          * Create a layer group for markers, activate layer group on map and
