@@ -34,6 +34,7 @@
                 <v-img :alt="selectedPlaceInfo.mainImageLegend"
                        max-height="250"
                        :src="selectedPlaceInfo.mainImageUrl"
+                       :title="selectedPlaceInfo.mainImageLegend"
                 ></v-img>
                 <v-divider></v-divider>
             </div>
