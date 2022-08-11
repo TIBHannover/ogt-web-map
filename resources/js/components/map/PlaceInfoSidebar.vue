@@ -148,6 +148,29 @@
             </v-list-item>
             <v-divider></v-divider>
 
+            <!-- number of employees at a given time, sourcing circumstances and directors in respective periods -->
+            <template v-if="selectedPlaceInfo.employeeCounts.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Personalstärke</v-list-item-title>
+                        <v-list-item-subtitle>
+                            <ul>
+                                <li v-for="employeeCount in selectedPlaceInfo.employeeCounts">
+                                    <template v-if="employeeCount.sourcingCircumstance">
+                                        {{ employeeCount.sourcingCircumstance }}
+                                    </template>
+                                    {{ employeeCount.value }}
+                                    <template v-if="employeeCount.pointInTime">
+                                        ({{ employeeCount.pointInTime.locale }})
+                                    </template>
+                                </li>
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
+
             <!-- place is described by source - https://www.wikidata.org/wiki/Property:P1343 -->
             <template v-if="selectedPlaceInfo.sources.length > 0">
                 <v-list-item dense>

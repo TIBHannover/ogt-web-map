@@ -145,6 +145,14 @@ export default {
                     locale: '',
                     value: null,
                 },
+                employeeCounts: [{
+                    pointInTime: {
+                        locale: '',
+                        value: null,
+                    },
+                    sourcingCircumstance: '',
+                    value: 0,
+                }],
                 id: '',
                 inceptionDate: {
                     locale: '',
@@ -165,6 +173,9 @@ export default {
                 }],
             },
             showPlaceInfoSidebar: false,
+            sourceCircumstances: {
+                Q5727902: 'ca.',
+            },
         };
     },
     created() {
@@ -474,6 +485,28 @@ export default {
 
             this.selectedPlaceInfo.addresses.additional.sort(this.sortByDate);
 
+            this.selectedPlaceInfo.employeeCounts = [];
+
+            if (place.employeeCounts) {
+                for (const [statementId, employeeCount] of Object.entries(place.employeeCounts)) {
+                    let pointInTime = employeeCount.pointInTime ?
+                        this.getDate(employeeCount.pointInTime.value, employeeCount.pointInTime.datePrecision) : null;
+
+                    let sourcingCircumstance = '';
+                    if (employeeCount.sourcingCircumstance && employeeCount.sourcingCircumstance.id in this.sourceCircumstances) {
+                        sourcingCircumstance = this.sourceCircumstances[employeeCount.sourcingCircumstance.id];
+                    }
+
+                    this.selectedPlaceInfo.employeeCounts.push({
+                        pointInTime: pointInTime,
+                        sourcingCircumstance: sourcingCircumstance,
+                        value: employeeCount.value,
+                    });
+                }
+
+                this.selectedPlaceInfo.employeeCounts.sort(this.sortByPointInTime);
+            }
+
             this.selectedPlaceInfo.sources = [];
             if (place.describedBySources) {
                 for (const [statementId, describedBySource] of Object.entries(place.describedBySources)) {
@@ -558,6 +591,32 @@ export default {
             }
             else if (itemB.startDate || itemB.endDate) {
                 // case: only item B has a date
+                return 1;
+            }
+            else {
+                return 0;
+            }
+        },
+        /**
+         * Compare items by a point in time, used by sort array items, for e.g. number of employees.
+         *
+         * @param {object} itemA The first element for comparison.
+         * @param {object} itemB The second element for comparison.
+         *
+         * @returns {number}     > 0 sort A after B
+         *                       < 0  sort A before B
+         *                       === 0 keep original order of A and B
+         */
+        sortByPointInTime: function (itemA, itemB) {
+            if (itemA.pointInTime && itemB.pointInTime) {
+                return itemA.pointInTime.value.getTime() - itemB.pointInTime.value.getTime();
+            }
+            else if (itemA.pointInTime) {
+                // case: only item A has a point in time
+                return -1;
+            }
+            else if (itemB.pointInTime) {
+                // case: only item B has a point in time
                 return 1;
             }
             else {
