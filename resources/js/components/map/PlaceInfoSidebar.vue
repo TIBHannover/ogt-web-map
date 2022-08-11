@@ -70,15 +70,62 @@
                 <v-divider></v-divider>
             </template>
 
-            <!-- place coordinates and zoom-in-place icon -->
+            <!-- addresses with associated coordinates and time periods, as well as option to zoom in/out of location. -->
             <v-list-item dense>
                 <v-list-item-content>
-                    <v-list-item-title>Koordinaten (Lat., Long.)</v-list-item-title>
+                    <v-list-item-title>Adresse(n)</v-list-item-title>
                     <v-list-item-subtitle>
-                        {{ selectedPlaceInfo.latLng.lat }}, {{ selectedPlaceInfo.latLng.lng }}
+                        <ul>
+                            <li class="hyphens-auto white-space-normal" lang="de">
+                                {{
+                                    selectedPlaceInfo.addresses.selected.label ?
+                                        selectedPlaceInfo.addresses.selected.label : 'Anschrift N/A'
+                                }}
+                            </li>
+                            <ul>
+                                <li v-if="selectedPlaceInfo.addresses.selected.startDate ||
+                                          selectedPlaceInfo.addresses.selected.endDate"
+                                >
+                                    <template v-if="selectedPlaceInfo.addresses.selected.startDate">
+                                        von {{ selectedPlaceInfo.addresses.selected.startDate.locale }}
+                                    </template>
+                                    <template v-if="selectedPlaceInfo.addresses.selected.endDate">
+                                        bis {{ selectedPlaceInfo.addresses.selected.endDate.locale }}
+                                    </template>
+                                </li>
+                                <li>
+                                    {{ selectedPlaceInfo.addresses.selected.latLng.lat }},
+                                    {{ selectedPlaceInfo.addresses.selected.latLng.lng }}
+                                </li>
+                            </ul>
+                        </ul>
+                        <div v-if="selectedPlaceInfo.addresses.additional.length > 0" class="mt-3">
+                            Weitere Standorte
+                            <ul v-for="additionalAddress in selectedPlaceInfo.addresses.additional" class="mb-3">
+                                <li class="hyphens-auto white-space-normal" lang="de">
+                                    {{ additionalAddress.label ? additionalAddress.label : 'Anschrift N/A' }}
+                                </li>
+                                <ul>
+                                    <li v-if="additionalAddress.startDate || additionalAddress.endDate">
+                                        <template v-if="additionalAddress.startDate">
+                                            von {{ additionalAddress.startDate.locale }}
+                                        </template>
+                                        <template v-if="additionalAddress.endDate">
+                                            bis {{ additionalAddress.endDate.locale }}
+                                        </template>
+                                    </li>
+                                    <li v-if="additionalAddress.latLng">
+                                        {{ additionalAddress.latLng.lat }}, {{ additionalAddress.latLng.lng }}
+                                    </li>
+                                    <li v-else>
+                                        Koordinaten N/A
+                                    </li>
+                                </ul>
+                            </ul>
+                        </div>
                     </v-list-item-subtitle>
                 </v-list-item-content>
-                <v-list-item-action class="flex-direction-row my-0">
+                <v-list-item-action class="flex-direction-row ml-0 my-0">
                     <v-btn @click.stop="$emit('zoomIntoPlace')" icon>
                         <v-icon>mdi-magnify-plus</v-icon>
                     </v-btn>
@@ -87,7 +134,6 @@
                     </v-btn>
                 </v-list-item-action>
             </v-list-item>
-
             <v-divider></v-divider>
 
             <!-- place is described by source - https://www.wikidata.org/wiki/Property:P1343 -->

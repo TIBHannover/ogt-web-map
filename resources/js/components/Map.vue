@@ -106,6 +106,38 @@ export default {
             layers: null,
             map: null,
             selectedPlaceInfo: {
+                addresses: {
+                    additional: [{
+                        endDate: {
+                            locale: '',
+                            value: null,
+                        },
+                        label: '',
+                        latLng: {
+                            lat: 0,
+                            lng: 0,
+                        },
+                        startDate: {
+                            locale: '',
+                            value: null,
+                        },
+                    }],
+                    selected: {
+                        endDate: {
+                            locale: '',
+                            value: null,
+                        },
+                        label: '',
+                        latLng: {
+                            lat: 0,
+                            lng: 0,
+                        },
+                        startDate: {
+                            locale: '',
+                            value: null,
+                        },
+                    },
+                },
                 description: '',
                 dissolvedDate: {
                     locale: '',
@@ -328,6 +360,115 @@ export default {
                 }
             }
 
+            this.selectedPlaceInfo.addresses = {
+                additional: [],
+                selected: null,
+            };
+
+            // add location coordinates and related additional information to location address data
+            for (const [statementId, coordinate] of Object.entries(place.coordinates)) {
+                let label = coordinate.streetAddress ? coordinate.streetAddress.value : '';
+
+                let startDate = coordinate.startTime ?
+                    this.getDate(coordinate.startTime.value, coordinate.startTime.datePrecision) : null;
+
+                let endDate = coordinate.endTime ?
+                    this.getDate(coordinate.endTime.value, coordinate.endTime.datePrecision) : null;
+
+                let address = {
+                    endDate: endDate,
+                    label: label,
+                    latLng: coordinate.value,
+                    startDate: startDate,
+                };
+
+                if (coordinate.value.lat == latLng.lat || coordinate.value.lng == latLng.lng) {
+                    this.selectedPlaceInfo.addresses.selected = address;
+                }
+                else {
+                    this.selectedPlaceInfo.addresses.additional.push(address);
+                }
+            }
+
+            // merge street addresses and related additional information with location address data
+            if (place.streetAddresses) {
+                let selectedAddress = this.selectedPlaceInfo.addresses.selected;
+                let additionalAddresses = this.selectedPlaceInfo.addresses.additional;
+
+                let streetAddressKeys = Object.keys(place.streetAddresses);
+
+                if (streetAddressKeys.length == 1 && additionalAddresses.length == 0) {
+                    // case: automatically merge address data, if location has only one coordinate and one street address
+                    let address = place.streetAddresses[streetAddressKeys[0]];
+
+                    if (selectedAddress.label == '') {
+                        selectedAddress.label = address.value;
+                    }
+
+                    if (address.startTime) {
+                        selectedAddress.startDate = this.getDate(address.startTime.value, address.startTime.datePrecision);
+                    }
+
+                    if (address.endTime) {
+                        selectedAddress.endDate = this.getDate(address.endTime.value, address.endTime.datePrecision);
+                    }
+                }
+                else {
+                    streetAddressKeys.forEach((addressKey) => {
+                        let streetAddress = place.streetAddresses[addressKey];
+
+                        let startDate = streetAddress.startTime ?
+                            this.getDate(streetAddress.startTime.value, streetAddress.startTime.datePrecision) : null;
+
+                        let endDate = streetAddress.endTime ?
+                            this.getDate(streetAddress.endTime.value, streetAddress.endTime.datePrecision) : null;
+
+                        if (streetAddress.value == selectedAddress.label) {
+                            // case: street address is selected address
+                            if (startDate) {
+                                selectedAddress.startDate = startDate;
+                            }
+
+                            if (endDate) {
+                                selectedAddress.endDate = endDate;
+                            }
+                        }
+                        else {
+                            let foundAdditionalAddress = false;
+
+                            // find street address within additional addresses and update dates
+                            additionalAddresses.some((additionalAddress) => {
+                                if (streetAddress.value == additionalAddress.label) {
+                                    foundAdditionalAddress = true;
+
+                                    if (startDate) {
+                                        additionalAddress.startDate = startDate;
+                                    }
+
+                                    if (endDate) {
+                                        additionalAddress.endDate = endDate;
+                                    }
+
+                                    return true;
+                                }
+                            });
+
+                            if (! foundAdditionalAddress) {
+                                // case: street address not found in additional addresses, so add it
+                                additionalAddresses.push({
+                                    endDate: endDate,
+                                    label: streetAddress.value,
+                                    latLng: null,
+                                    startDate: startDate,
+                                });
+                            }
+                        }
+                    });
+                }
+            }
+
+            this.selectedPlaceInfo.addresses.additional.sort(this.sortByDate);
+
             this.selectedPlaceInfo.sources = [];
             if (place.describedBySources) {
                 for (const [statementId, describedBySource] of Object.entries(place.describedBySources)) {
@@ -382,6 +523,41 @@ export default {
                 locale: date.toLocaleDateString(locale, dateFormatOptions),
                 value: date,
             };
+        },
+        /**
+         * Compare items by date, used by sort array items, for e.g. addresses.
+         *
+         * @param {object} itemA The first element for comparison.
+         * @param {object} itemB The second element for comparison.
+         *
+         * @returns {number}     > 0 sort A after B
+         *                       < 0  sort A before B
+         *                       === 0 keep original order of A and B
+         */
+        sortByDate: function (itemA, itemB) {
+            if (itemA.startDate && itemB.startDate) {
+                return itemA.startDate.value.getTime() - itemB.startDate.value.getTime();
+            }
+            else if (itemA.endDate && itemB.endDate) {
+                return itemA.endDate.value.getTime() - itemB.endDate.value.getTime();
+            }
+            else if (itemA.startDate && itemB.endDate) {
+                return itemA.startDate.value.getTime() - itemB.endDate.value.getTime();
+            }
+            else if (itemA.endDate && itemB.startDate) {
+                return itemA.endDate.value.getTime() - itemB.startDate.value.getTime();
+            }
+            else if (itemA.startDate || itemA.endDate) {
+                // case: only item A has a date
+                return -1;
+            }
+            else if (itemB.startDate || itemB.endDate) {
+                // case: only item B has a date
+                return 1;
+            }
+            else {
+                return 0;
+            }
         },
         /**
          * Create a layer group for markers, activate layer group on map and
