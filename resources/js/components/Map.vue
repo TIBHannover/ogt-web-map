@@ -9,6 +9,7 @@
             :selectedPlaceInfo="selectedPlaceInfo"
             :showPlaceInfoSidebar="showPlaceInfoSidebar"
             @hidePlaceInfoSidebar="toggleShowPlaceInfoSidebar(false)"
+            @switchLocation="switchLocation"
             @undoZoomIntoPlace="restoreCachedMapView()"
             @zoomIntoPlace="setMapView(selectedPlaceInfo.latLng, 18, true)"
         ></place-info-sidebar>
@@ -104,6 +105,7 @@ export default {
                 },
             },
             layers: null,
+            locationMarkers: [],
             map: null,
             selectedPlaceInfo: {
                 addresses: {
@@ -240,6 +242,7 @@ export default {
             for (const [placeId, place] of Object.entries(places)) {
                 let countedPlaceCoordinates = Object.keys(place.coordinates).length;
                 let coordinatesIndex = 0;
+                this.locationMarkers[placeId] = [];
 
                 for (const [statementId, placeCoordinate] of Object.entries(place.coordinates)) {
                     let marker = L.marker(placeCoordinate.value, {
@@ -283,6 +286,8 @@ export default {
                     if (countedPlaceCoordinates > 1) {
                         placeLabelWithIndex += ' (' + (++coordinatesIndex) + ')';
                     }
+
+                    this.locationMarkers[placeId][Object.values(placeCoordinate.value).join(',')] = marker;
 
                     this.groupedPlaces[placeGroupName]['placesByCoordinates'].push({
                         placeLabelWithIndex: placeLabelWithIndex,
@@ -571,6 +576,25 @@ export default {
             layerGroup.addTo(this.map);
             this.layers.addOverlay(layerGroup, this.groupedPlaces[placeGroupName].layerName);
             this.groupedPlaces[placeGroupName].layerGroup = layerGroup;
+        },
+        /**
+         * Switch location on map.
+         *
+         * @param {string} locationId
+         * @param {object} latLng
+         */
+        switchLocation: function ({locationId, latLng}) {
+            this.map.flyTo(latLng);
+
+            let locationMarker = this.locationMarkers[locationId][Object.values(latLng).join(',')];
+
+            // workaround to bring a marker icon to foreground when multiple markers overlap on same coordinates
+            locationMarker.remove();
+            locationMarker.addTo(this.map);
+
+            locationMarker.fire('click', {
+                latlng: latLng,
+            });
         },
         /**
          * Show/Hide place info sidebar.

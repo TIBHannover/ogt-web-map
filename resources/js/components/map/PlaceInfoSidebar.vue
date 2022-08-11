@@ -103,7 +103,18 @@
                             Weitere Standorte
                             <ul v-for="additionalAddress in selectedPlaceInfo.addresses.additional" class="mb-3">
                                 <li class="hyphens-auto white-space-normal" lang="de">
-                                    {{ additionalAddress.label ? additionalAddress.label : 'Anschrift N/A' }}
+                                    <a v-if="additionalAddress.latLng"
+                                       @click.stop="$emit('switchLocation', {
+                                           locationId: selectedPlaceInfo.id,
+                                           latLng: additionalAddress.latLng,
+                                       })"
+                                       href="#"
+                                    >
+                                        {{ additionalAddress.label ? additionalAddress.label : 'Anschrift N/A' }}
+                                    </a>
+                                    <template v-else>
+                                        {{ additionalAddress.label ? additionalAddress.label : 'Anschrift N/A' }}
+                                    </template>
                                 </li>
                                 <ul>
                                     <li v-if="additionalAddress.startDate || additionalAddress.endDate">
