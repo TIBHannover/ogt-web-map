@@ -141,6 +141,25 @@ export default {
                     },
                 },
                 description: '',
+                directors: [{
+                    endDate: {
+                        locale: '',
+                        value: null,
+                    },
+                    maxStartDate: {
+                        locale: '',
+                        value: null,
+                    },
+                    minEndDate: {
+                        locale: '',
+                        value: null,
+                    },
+                    name: '',
+                    startDate: {
+                        locale: '',
+                        value: null,
+                    },
+                }],
                 dissolvedDate: {
                     locale: '',
                     value: null,
@@ -505,6 +524,46 @@ export default {
                 }
 
                 this.selectedPlaceInfo.employeeCounts.sort(this.sortByPointInTime);
+            }
+
+            this.selectedPlaceInfo.directors = [];
+
+            if (place.directors) {
+                for (const [statementId, director] of Object.entries(place.directors)) {
+                    let startDate = null;
+
+                    if (director.startTime) {
+                        startDate = this.getDate(director.startTime.value, director.startTime.datePrecision);
+                    }
+                    else if (director.earliestDate) {
+                        startDate = this.getDate(director.earliestDate.value, director.earliestDate.datePrecision);
+                    }
+
+                    let maxStartDate = director.latestStartDate ?
+                        this.getDate(director.latestStartDate.value, director.latestStartDate.datePrecision) : null;
+
+                    let endDate = null;
+
+                    if (director.endTime) {
+                        endDate = this.getDate(director.endTime.value, director.endTime.datePrecision);
+                    }
+                    else if (director.latestDate) {
+                        endDate = this.getDate(director.latestDate.value, director.latestDate.datePrecision);
+                    }
+
+                    let minEndDate = director.earliestEndDate ?
+                        this.getDate(director.earliestEndDate.value, director.earliestEndDate.datePrecision) : null;
+
+                    this.selectedPlaceInfo.directors.push({
+                        endDate: endDate,
+                        maxStartDate: maxStartDate,
+                        minEndDate: minEndDate,
+                        name: director.value,
+                        startDate: startDate,
+                    });
+                }
+
+                this.selectedPlaceInfo.directors.sort(this.sortByDate);
             }
 
             this.selectedPlaceInfo.sources = [];

@@ -165,6 +165,32 @@
                                     </template>
                                 </li>
                             </ul>
+                            <div class="mt-3" v-if="selectedPlaceInfo.directors.length > 0">
+                                Leitung
+                                <ul v-for="director in selectedPlaceInfo.directors" class="mb-3">
+                                    <li>
+                                        {{ director.name }}
+                                    </li>
+                                    <ul v-if="director.startDate && director.endDate">
+                                        <li class="hyphens-auto white-space-normal" lang="de">
+                                            <template v-if="director.startDate && director.maxStartDate">
+                                                von zwischen {{ director.startDate.locale }} und
+                                                {{ director.maxStartDate.locale }}
+                                            </template>
+                                            <template v-else-if="director.startDate">
+                                                von {{ director.startDate.locale }}
+                                            </template>
+                                            <template v-if="director.minEndDate && director.endDate">
+                                                bis zwischen {{ director.minEndDate.locale }} und
+                                                {{ director.endDate.locale }}
+                                            </template>
+                                            <template v-else-if="director.endDate">
+                                                bis {{ director.endDate.locale }}
+                                            </template>
+                                        </li>
+                                    </ul>
+                                </ul>
+                            </div>
                         </v-list-item-subtitle>
                     </v-list-item-content>
                 </v-list-item>
