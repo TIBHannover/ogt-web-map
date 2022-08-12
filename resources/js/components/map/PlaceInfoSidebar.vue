@@ -13,15 +13,15 @@
             <v-list-item>
                 <v-list-item-content>
                     <v-list-item-title class="text-h6 text-sm-h5 white-space-normal">
-                        {{ selectedPlaceInfo.label }}
+                        {{ selectedPlace.label }}
                     </v-list-item-title>
-                    <v-list-item-subtitle>{{ selectedPlaceInfo.layerName }}</v-list-item-subtitle>
+                    <v-list-item-subtitle>{{ selectedPlace.layerName }}</v-list-item-subtitle>
                 </v-list-item-content>
                 <v-list-item-action>
                     <v-btn @click.stop="$emit('hidePlaceInfoSidebar')" icon>
                         <v-icon>mdi-close</v-icon>
                     </v-btn>
-                    <a :href="'https://www.wikidata.org/wiki/' + selectedPlaceInfo.id" target="_blank">
+                    <a :href="'https://www.wikidata.org/wiki/' + selectedPlace.id" target="_blank">
                         <v-img max-width="45" :src="this.$ogtGlobals.proxyPath + '/images/wikidata-logo.svg'"></v-img>
                     </a>
                 </v-list-item-action>
@@ -30,22 +30,22 @@
             <v-divider></v-divider>
 
             <!-- location main image and image legend -->
-            <div v-show="selectedPlaceInfo.mainImageUrl">
-                <v-img :alt="selectedPlaceInfo.mainImageLegend"
+            <div v-show="selectedPlace.mainImageUrl">
+                <v-img :alt="selectedPlace.mainImageLegend"
                        max-height="250"
-                       :src="selectedPlaceInfo.mainImageUrl"
-                       :title="selectedPlaceInfo.mainImageLegend"
+                       :src="selectedPlace.mainImageUrl"
+                       :title="selectedPlace.mainImageLegend"
                 ></v-img>
                 <v-divider></v-divider>
             </div>
 
             <!-- Wikidata item brief description -->
-            <template v-if="selectedPlaceInfo.description">
+            <template v-if="selectedPlace.description">
                 <v-list-item dense>
                     <v-list-item-content>
                         <v-list-item-title>Kurzbeschreibung</v-list-item-title>
                         <v-list-item-subtitle class="hyphens-auto text-justify white-space-normal" lang="de">
-                            {{ selectedPlaceInfo.description }}
+                            {{ selectedPlace.description }}
                         </v-list-item-subtitle>
                     </v-list-item-content>
                 </v-list-item>
@@ -54,16 +54,16 @@
 
             <!-- inception - https://www.wikidata.org/wiki/Property:P571 -->
             <!-- dissolved, abolished or demolished date - https://www.wikidata.org/wiki/Property:P576 -->
-            <template v-if="selectedPlaceInfo.inceptionDate.value || selectedPlaceInfo.dissolvedDate.value">
+            <template v-if="selectedPlace.inceptionDate.value || selectedPlace.dissolvedDate.value">
                 <v-list-item dense>
                     <v-list-item-content>
                         <v-list-item-title>Laufzeit</v-list-item-title>
                         <v-list-item-subtitle>
-                            <template v-if="selectedPlaceInfo.inceptionDate.value">
-                                von {{ selectedPlaceInfo.inceptionDate.locale }}
+                            <template v-if="selectedPlace.inceptionDate.value">
+                                von {{ selectedPlace.inceptionDate.locale }}
                             </template>
-                            <template v-if="selectedPlaceInfo.dissolvedDate.value">
-                                bis {{ selectedPlaceInfo.dissolvedDate.locale }}
+                            <template v-if="selectedPlace.dissolvedDate.value">
+                                bis {{ selectedPlace.dissolvedDate.locale }}
                             </template>
                         </v-list-item-subtitle>
                     </v-list-item-content>
@@ -79,34 +79,34 @@
                         <ul>
                             <li class="hyphens-auto white-space-normal" lang="de">
                                 {{
-                                    selectedPlaceInfo.addresses.selected.label ?
-                                        selectedPlaceInfo.addresses.selected.label : 'Anschrift N/A'
+                                    selectedPlace.addresses.selected.label ?
+                                        selectedPlace.addresses.selected.label : 'Anschrift N/A'
                                 }}
                             </li>
                             <ul>
-                                <li v-if="selectedPlaceInfo.addresses.selected.startDate ||
-                                          selectedPlaceInfo.addresses.selected.endDate"
+                                <li v-if="selectedPlace.addresses.selected.startDate ||
+                                          selectedPlace.addresses.selected.endDate"
                                 >
-                                    <template v-if="selectedPlaceInfo.addresses.selected.startDate">
-                                        von {{ selectedPlaceInfo.addresses.selected.startDate.locale }}
+                                    <template v-if="selectedPlace.addresses.selected.startDate">
+                                        von {{ selectedPlace.addresses.selected.startDate.locale }}
                                     </template>
-                                    <template v-if="selectedPlaceInfo.addresses.selected.endDate">
-                                        bis {{ selectedPlaceInfo.addresses.selected.endDate.locale }}
+                                    <template v-if="selectedPlace.addresses.selected.endDate">
+                                        bis {{ selectedPlace.addresses.selected.endDate.locale }}
                                     </template>
                                 </li>
                                 <li>
-                                    {{ selectedPlaceInfo.addresses.selected.latLng.lat }},
-                                    {{ selectedPlaceInfo.addresses.selected.latLng.lng }}
+                                    {{ selectedPlace.addresses.selected.latLng.lat }},
+                                    {{ selectedPlace.addresses.selected.latLng.lng }}
                                 </li>
                             </ul>
                         </ul>
-                        <div v-if="selectedPlaceInfo.addresses.additional.length > 0" class="mt-3">
+                        <div v-if="selectedPlace.addresses.additional.length > 0" class="mt-3">
                             Weitere Standorte
-                            <ul v-for="additionalAddress in selectedPlaceInfo.addresses.additional" class="mb-3">
+                            <ul v-for="additionalAddress in selectedPlace.addresses.additional" class="mb-3">
                                 <li class="hyphens-auto white-space-normal" lang="de">
                                     <a v-if="additionalAddress.latLng"
                                        @click.stop="$emit('switchLocation', {
-                                           locationId: selectedPlaceInfo.id,
+                                           locationId: selectedPlace.id,
                                            latLng: additionalAddress.latLng,
                                        })"
                                        href="#"
@@ -149,13 +149,13 @@
             <v-divider></v-divider>
 
             <!-- number of employees at a given time, sourcing circumstances and directors in respective periods -->
-            <template v-if="selectedPlaceInfo.employeeCounts.length > 0">
+            <template v-if="selectedPlace.employeeCounts.length > 0">
                 <v-list-item dense>
                     <v-list-item-content>
                         <v-list-item-title>Personalstärke</v-list-item-title>
                         <v-list-item-subtitle>
                             <ul>
-                                <li v-for="employeeCount in selectedPlaceInfo.employeeCounts">
+                                <li v-for="employeeCount in selectedPlace.employeeCounts">
                                     <template v-if="employeeCount.sourcingCircumstance">
                                         {{ employeeCount.sourcingCircumstance }}
                                     </template>
@@ -165,9 +165,9 @@
                                     </template>
                                 </li>
                             </ul>
-                            <div class="mt-3" v-if="selectedPlaceInfo.directors.length > 0">
+                            <div class="mt-3" v-if="selectedPlace.directors.length > 0">
                                 Leitung
-                                <ul v-for="director in selectedPlaceInfo.directors" class="mb-3">
+                                <ul v-for="director in selectedPlace.directors" class="mb-3">
                                     <li>
                                         {{ director.name }}
                                     </li>
@@ -198,13 +198,13 @@
             </template>
 
             <!-- prisoner count and source circumstances -->
-            <template v-if="selectedPlaceInfo.prisonerCounts.length > 0">
+            <template v-if="selectedPlace.prisonerCounts.length > 0">
                 <v-list-item dense>
                     <v-list-item-content>
                         <v-list-item-title>Inhaftierte</v-list-item-title>
                         <v-list-item-subtitle>
                             <ul>
-                                <li v-for="prisonerCount in selectedPlaceInfo.prisonerCounts">
+                                <li v-for="prisonerCount in selectedPlace.prisonerCounts">
                                     <span v-if="prisonerCount.sourcingCircumstance">
                                         {{ prisonerCount.sourcingCircumstance }}
                                     </span>
@@ -218,13 +218,13 @@
             </template>
 
             <!-- associated significant events - https://www.wikidata.org/wiki/Property:P793 -->
-            <template v-if="selectedPlaceInfo.events.length > 0">
+            <template v-if="selectedPlace.events.length > 0">
                 <v-list-item dense>
                     <v-list-item-content>
                         <v-list-item-title>Ereignisse</v-list-item-title>
                         <v-list-item-subtitle>
                             <ul class="hyphens-auto white-space-normal" lang="de">
-                                <li v-for="event in selectedPlaceInfo.events">
+                                <li v-for="event in selectedPlace.events">
                                     {{ event.label }}
                                 </li>
                             </ul>
@@ -235,13 +235,13 @@
             </template>
 
             <!-- parent organizations - https://www.wikidata.org/wiki/Property:P749 -->
-            <template v-if="selectedPlaceInfo.parentOrganizations.length > 0">
+            <template v-if="selectedPlace.parentOrganizations.length > 0">
                 <v-list-item dense>
                     <v-list-item-content>
                         <v-list-item-title>Übergeordnete Organisation</v-list-item-title>
                         <v-list-item-subtitle>
                             <ul>
-                                <li v-for="parentOrganization in selectedPlaceInfo.parentOrganizations">
+                                <li v-for="parentOrganization in selectedPlace.parentOrganizations">
                                     <a v-if="parentOrganization.hasLocationMarker"
                                        @click.stop="$emit('switchLocation', {
                                            locationId: parentOrganization.id,
@@ -262,13 +262,13 @@
             </template>
 
             <!-- child organizations - https://www.wikidata.org/wiki/Property:P355 -->
-            <template v-if="selectedPlaceInfo.childOrganizations.length > 0">
+            <template v-if="selectedPlace.childOrganizations.length > 0">
                 <v-list-item dense>
                     <v-list-item-content>
                         <v-list-item-title>Nachgeordnete Organisation</v-list-item-title>
                         <v-list-item-subtitle>
                             <ul>
-                                <li v-for="childOrganization in selectedPlaceInfo.childOrganizations">
+                                <li v-for="childOrganization in selectedPlace.childOrganizations">
                                     <a v-if="childOrganization.hasLocationMarker"
                                        @click.stop="$emit('switchLocation', {
                                            locationId: childOrganization.id,
@@ -289,13 +289,13 @@
             </template>
 
             <!-- replaces - https://www.wikidata.org/wiki/Property:P1365 -->
-            <template v-if="selectedPlaceInfo.predecessors.length > 0">
+            <template v-if="selectedPlace.predecessors.length > 0">
                 <v-list-item dense>
                     <v-list-item-content>
                         <v-list-item-title>Vorgängerorganisation (zeitlich)</v-list-item-title>
                         <v-list-item-subtitle>
                             <ul>
-                                <li v-for="predecessor in selectedPlaceInfo.predecessors">
+                                <li v-for="predecessor in selectedPlace.predecessors">
                                     <a v-if="predecessor.hasLocationMarker"
                                        @click.stop="$emit('switchLocation', {
                                            locationId: predecessor.id,
@@ -316,13 +316,13 @@
             </template>
 
             <!-- replaced by - https://www.wikidata.org/wiki/Property:P1366 -->
-            <template v-if="selectedPlaceInfo.successors.length > 0">
+            <template v-if="selectedPlace.successors.length > 0">
                 <v-list-item dense>
                     <v-list-item-content>
                         <v-list-item-title>Nachfolgeorganisation (zeitlich)</v-list-item-title>
                         <v-list-item-subtitle>
                             <ul>
-                                <li v-for="successor in selectedPlaceInfo.successors">
+                                <li v-for="successor in selectedPlace.successors">
                                     <a v-if="successor.hasLocationMarker"
                                        @click.stop="$emit('switchLocation', {
                                            locationId: successor.id,
@@ -343,13 +343,13 @@
             </template>
 
             <!-- place is described by source - https://www.wikidata.org/wiki/Property:P1343 -->
-            <template v-if="selectedPlaceInfo.sources.length > 0">
+            <template v-if="selectedPlace.sources.length > 0">
                 <v-list-item dense>
                     <v-list-item-content>
                         <v-list-item-title>Nachweise</v-list-item-title>
                         <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
                             <ul>
-                                <li v-for="source in selectedPlaceInfo.sources">
+                                <li v-for="source in selectedPlace.sources">
                                     {{ source.label }}<span v-if="source.pages">, S. {{ source.pages }}</span>
                                 </li>
                             </ul>
@@ -365,7 +365,7 @@
 <script>
 export default {
     name: 'PlaceInfoSidebar',
-    props: ['selectedPlaceInfo', 'showPlaceInfoSidebar'],
+    props: ['selectedPlace', 'showPlaceInfoSidebar'],
 };
 </script>
 

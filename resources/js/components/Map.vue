@@ -6,12 +6,12 @@
         ></map-options-sidebar>
 
         <place-info-sidebar
-            :selectedPlaceInfo="selectedPlaceInfo"
+            :selectedPlace="selectedPlace"
             :showPlaceInfoSidebar="showPlaceInfoSidebar"
             @hidePlaceInfoSidebar="toggleShowPlaceInfoSidebar(false)"
             @switchLocation="switchLocation"
             @undoZoomIntoPlace="restoreCachedMapView()"
-            @zoomIntoPlace="setMapView(selectedPlaceInfo.latLng, 18, true)"
+            @zoomIntoPlace="setMapView(selectedPlace.latLng, 18, true)"
         ></place-info-sidebar>
 
         <!-- leaflet map -->
@@ -107,7 +107,7 @@ export default {
             layers: null,
             locationMarkers: [],
             map: null,
-            selectedPlaceInfo: {
+            selectedPlace: {
                 addresses: {
                     additional: [{
                         endDate: {
@@ -325,7 +325,7 @@ export default {
                     });
 
                     marker.on('click', event => {
-                        this.setSelectedPlaceInfo(place, event.latlng, this.groupedPlaces[placeGroupName].layerName);
+                        this.setSelectedPlace(place, event.latlng, this.groupedPlaces[placeGroupName].layerName);
                         this.toggleShowPlaceInfoSidebar(true);
 
                         const zoomInButton = marker.getPopup().getElement().getElementsByClassName('zoomInButton')[0];
@@ -364,23 +364,23 @@ export default {
          * @param object latLng Leaflet LatLng geographical point object
          * @param string layerName Name of layer group
          */
-        setSelectedPlaceInfo: function (place, latLng, layerName) {
-            this.selectedPlaceInfo.description = place.description;
-            this.selectedPlaceInfo.label = place.label;
-            this.selectedPlaceInfo.layerName = layerName;
-            this.selectedPlaceInfo.id = place.id;
-            this.selectedPlaceInfo.latLng = latLng;
+        setSelectedPlace: function (place, latLng, layerName) {
+            this.selectedPlace.description = place.description;
+            this.selectedPlace.label = place.label;
+            this.selectedPlace.layerName = layerName;
+            this.selectedPlace.id = place.id;
+            this.selectedPlace.latLng = latLng;
 
-            this.selectedPlaceInfo.mainImageUrl = '';
-            this.selectedPlaceInfo.mainImageLegend = '';
+            this.selectedPlace.mainImageUrl = '';
+            this.selectedPlace.mainImageLegend = '';
 
             const imageKeys = place.images ? Object.keys(place.images) : [];
             const imagesCounted = imageKeys.length;
 
             if (imagesCounted == 1) {
                 // case: only one location image available, show this
-                this.selectedPlaceInfo.mainImageUrl = place.images[imageKeys[0]].value;
-                this.selectedPlaceInfo.mainImageLegend =
+                this.selectedPlace.mainImageUrl = place.images[imageKeys[0]].value;
+                this.selectedPlace.mainImageLegend =
                     place.images[imageKeys[0]].mediaLegend ? place.images[imageKeys[0]].mediaLegend.value : '';
             }
             else if (imagesCounted > 1) {
@@ -392,38 +392,38 @@ export default {
                         image.coordinate.value.lat == latLng.lat &&
                         image.coordinate.value.lng == latLng.lng
                     ) {
-                        this.selectedPlaceInfo.mainImageUrl = image.value;
-                        this.selectedPlaceInfo.mainImageLegend = image.mediaLegend ? image.mediaLegend.value : '';
+                        this.selectedPlace.mainImageUrl = image.value;
+                        this.selectedPlace.mainImageLegend = image.mediaLegend ? image.mediaLegend.value : '';
                         return true;
                     }
                 });
             }
 
-            this.selectedPlaceInfo.inceptionDate = {
+            this.selectedPlace.inceptionDate = {
                 locale: '',
                 value: null,
             };
 
             if (place.inceptionDates) {
                 for (const [statementId, inceptionDate] of Object.entries(place.inceptionDates)) {
-                    this.selectedPlaceInfo.inceptionDate = this.getDate(inceptionDate.value, inceptionDate.datePrecision);
+                    this.selectedPlace.inceptionDate = this.getDate(inceptionDate.value, inceptionDate.datePrecision);
                     break;
                 }
             }
 
-            this.selectedPlaceInfo.dissolvedDate = {
+            this.selectedPlace.dissolvedDate = {
                 locale: '',
                 value: null,
             };
 
             if (place.dissolvedDates) {
                 for (const [statementId, dissolvedDate] of Object.entries(place.dissolvedDates)) {
-                    this.selectedPlaceInfo.dissolvedDate = this.getDate(dissolvedDate.value, dissolvedDate.datePrecision);
+                    this.selectedPlace.dissolvedDate = this.getDate(dissolvedDate.value, dissolvedDate.datePrecision);
                     break;
                 }
             }
 
-            this.selectedPlaceInfo.addresses = {
+            this.selectedPlace.addresses = {
                 additional: [],
                 selected: null,
             };
@@ -446,17 +446,17 @@ export default {
                 };
 
                 if (coordinate.value.lat == latLng.lat || coordinate.value.lng == latLng.lng) {
-                    this.selectedPlaceInfo.addresses.selected = address;
+                    this.selectedPlace.addresses.selected = address;
                 }
                 else {
-                    this.selectedPlaceInfo.addresses.additional.push(address);
+                    this.selectedPlace.addresses.additional.push(address);
                 }
             }
 
             // merge street addresses and related additional information with location address data
             if (place.streetAddresses) {
-                let selectedAddress = this.selectedPlaceInfo.addresses.selected;
-                let additionalAddresses = this.selectedPlaceInfo.addresses.additional;
+                let selectedAddress = this.selectedPlace.addresses.selected;
+                let additionalAddresses = this.selectedPlace.addresses.additional;
 
                 let streetAddressKeys = Object.keys(place.streetAddresses);
 
@@ -530,9 +530,9 @@ export default {
                 }
             }
 
-            this.selectedPlaceInfo.addresses.additional.sort(this.sortByDate);
+            this.selectedPlace.addresses.additional.sort(this.sortByDate);
 
-            this.selectedPlaceInfo.employeeCounts = [];
+            this.selectedPlace.employeeCounts = [];
 
             if (place.employeeCounts) {
                 for (const [statementId, employeeCount] of Object.entries(place.employeeCounts)) {
@@ -544,17 +544,17 @@ export default {
                         sourcingCircumstance = this.sourceCircumstances[employeeCount.sourcingCircumstance.id];
                     }
 
-                    this.selectedPlaceInfo.employeeCounts.push({
+                    this.selectedPlace.employeeCounts.push({
                         pointInTime: pointInTime,
                         sourcingCircumstance: sourcingCircumstance,
                         value: employeeCount.value,
                     });
                 }
 
-                this.selectedPlaceInfo.employeeCounts.sort(this.sortByPointInTime);
+                this.selectedPlace.employeeCounts.sort(this.sortByPointInTime);
             }
 
-            this.selectedPlaceInfo.directors = [];
+            this.selectedPlace.directors = [];
 
             if (place.directors) {
                 for (const [statementId, director] of Object.entries(place.directors)) {
@@ -582,7 +582,7 @@ export default {
                     let minEndDate = director.earliestEndDate ?
                         this.getDate(director.earliestEndDate.value, director.earliestEndDate.datePrecision) : null;
 
-                    this.selectedPlaceInfo.directors.push({
+                    this.selectedPlace.directors.push({
                         endDate: endDate,
                         maxStartDate: maxStartDate,
                         minEndDate: minEndDate,
@@ -591,10 +591,10 @@ export default {
                     });
                 }
 
-                this.selectedPlaceInfo.directors.sort(this.sortByDate);
+                this.selectedPlace.directors.sort(this.sortByDate);
             }
 
-            this.selectedPlaceInfo.prisonerCounts = [];
+            this.selectedPlace.prisonerCounts = [];
 
             if (place.prisonerCounts) {
                 for (const [statementId, prisonerCount] of Object.entries(place.prisonerCounts)) {
@@ -603,30 +603,30 @@ export default {
                         sourcingCircumstance = this.sourceCircumstances[prisonerCount.sourcingCircumstance.id];
                     }
 
-                    this.selectedPlaceInfo.prisonerCounts.push({
+                    this.selectedPlace.prisonerCounts.push({
                         sourcingCircumstance: sourcingCircumstance,
                         value: prisonerCount.value,
                     });
                 }
             }
 
-            this.selectedPlaceInfo.events = [];
+            this.selectedPlace.events = [];
 
             if (place.significantEvents) {
                 for (const [statementId, significantEvent] of Object.entries(place.significantEvents)) {
-                    this.selectedPlaceInfo.events.push({
+                    this.selectedPlace.events.push({
                         label: significantEvent.value,
                     });
                 }
             }
 
-            this.selectedPlaceInfo.parentOrganizations = [];
+            this.selectedPlace.parentOrganizations = [];
 
             if (place.parentOrganizations) {
                 for (const [statementId, parentOrganization] of Object.entries(place.parentOrganizations)) {
                     let hasLocationMarker = this.locationMarkers[parentOrganization.id] ? true : false;
 
-                    this.selectedPlaceInfo.parentOrganizations.push({
+                    this.selectedPlace.parentOrganizations.push({
                         hasLocationMarker: hasLocationMarker,
                         id: parentOrganization.id,
                         label: parentOrganization.value,
@@ -634,13 +634,13 @@ export default {
                 }
             }
 
-            this.selectedPlaceInfo.childOrganizations = [];
+            this.selectedPlace.childOrganizations = [];
 
             if (place.subsidiaries) {
                 for (const [statementId, subsidiary] of Object.entries(place.subsidiaries)) {
                     let hasLocationMarker = this.locationMarkers[subsidiary.id] ? true : false;
 
-                    this.selectedPlaceInfo.childOrganizations.push({
+                    this.selectedPlace.childOrganizations.push({
                         hasLocationMarker: hasLocationMarker,
                         id: subsidiary.id,
                         label: subsidiary.value,
@@ -648,13 +648,13 @@ export default {
                 }
             }
 
-            this.selectedPlaceInfo.predecessors = [];
+            this.selectedPlace.predecessors = [];
 
             if (place.replaces) {
                 for (const [statementId, replace] of Object.entries(place.replaces)) {
                     let hasLocationMarker = this.locationMarkers[replace.id] ? true : false;
 
-                    this.selectedPlaceInfo.predecessors.push({
+                    this.selectedPlace.predecessors.push({
                         hasLocationMarker: hasLocationMarker,
                         id: replace.id,
                         label: replace.value,
@@ -662,13 +662,13 @@ export default {
                 }
             }
 
-            this.selectedPlaceInfo.successors = [];
+            this.selectedPlace.successors = [];
 
             if (place.replacedBys) {
                 for (const [statementId, replacedBy] of Object.entries(place.replacedBys)) {
                     let hasLocationMarker = this.locationMarkers[replacedBy.id] ? true : false;
 
-                    this.selectedPlaceInfo.successors.push({
+                    this.selectedPlace.successors.push({
                         hasLocationMarker: hasLocationMarker,
                         id: replacedBy.id,
                         label: replacedBy.value,
@@ -676,10 +676,10 @@ export default {
                 }
             }
 
-            this.selectedPlaceInfo.sources = [];
+            this.selectedPlace.sources = [];
             if (place.describedBySources) {
                 for (const [statementId, describedBySource] of Object.entries(place.describedBySources)) {
-                    this.selectedPlaceInfo.sources.push({
+                    this.selectedPlace.sources.push({
                         label: describedBySource.value,
                         pages: describedBySource.pages ? describedBySource.pages.value : '',
                     });
