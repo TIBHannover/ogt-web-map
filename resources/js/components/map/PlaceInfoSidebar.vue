@@ -288,6 +288,60 @@
                 <v-divider></v-divider>
             </template>
 
+            <!-- replaces - https://www.wikidata.org/wiki/Property:P1365 -->
+            <template v-if="selectedPlaceInfo.predecessors.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Vorgängerorganisation (zeitlich)</v-list-item-title>
+                        <v-list-item-subtitle>
+                            <ul>
+                                <li v-for="predecessor in selectedPlaceInfo.predecessors">
+                                    <a v-if="predecessor.hasLocationMarker"
+                                       @click.stop="$emit('switchLocation', {
+                                           locationId: predecessor.id,
+                                       })"
+                                       href="#"
+                                    >
+                                        {{ predecessor.label }}
+                                    </a>
+                                    <div v-else>
+                                        {{ predecessor.label }}
+                                    </div>
+                                </li>
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
+
+            <!-- replaced by - https://www.wikidata.org/wiki/Property:P1366 -->
+            <template v-if="selectedPlaceInfo.successors.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Nachfolgeorganisation (zeitlich)</v-list-item-title>
+                        <v-list-item-subtitle>
+                            <ul>
+                                <li v-for="successor in selectedPlaceInfo.successors">
+                                    <a v-if="successor.hasLocationMarker"
+                                       @click.stop="$emit('switchLocation', {
+                                           locationId: successor.id,
+                                       })"
+                                       href="#"
+                                    >
+                                        {{ successor.label }}
+                                    </a>
+                                    <div v-else>
+                                        {{ successor.label }}
+                                    </div>
+                                </li>
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
+
             <!-- place is described by source - https://www.wikidata.org/wiki/Property:P1343 -->
             <template v-if="selectedPlaceInfo.sources.length > 0">
                 <v-list-item dense>

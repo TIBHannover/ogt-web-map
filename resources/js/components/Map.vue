@@ -199,6 +199,11 @@ export default {
                     id: '',
                     label: '',
                 }],
+                predecessors: [{
+                    hasLocationMarker: false,
+                    id: '',
+                    label: '',
+                }],
                 prisonerCounts: [{
                     sourcingCircumstance: '',
                     value: 0,
@@ -206,6 +211,11 @@ export default {
                 sources: [{
                     label: '',
                     pages: '',
+                }],
+                successors: [{
+                    hasLocationMarker: false,
+                    id: '',
+                    label: '',
                 }],
             },
             showPlaceInfoSidebar: false,
@@ -634,6 +644,34 @@ export default {
                         hasLocationMarker: hasLocationMarker,
                         id: subsidiary.id,
                         label: subsidiary.value,
+                    });
+                }
+            }
+
+            this.selectedPlaceInfo.predecessors = [];
+
+            if (place.replaces) {
+                for (const [statementId, replace] of Object.entries(place.replaces)) {
+                    let hasLocationMarker = this.locationMarkers[replace.id] ? true : false;
+
+                    this.selectedPlaceInfo.predecessors.push({
+                        hasLocationMarker: hasLocationMarker,
+                        id: replace.id,
+                        label: replace.value,
+                    });
+                }
+            }
+
+            this.selectedPlaceInfo.successors = [];
+
+            if (place.replacedBys) {
+                for (const [statementId, replacedBy] of Object.entries(place.replacedBys)) {
+                    let hasLocationMarker = this.locationMarkers[replacedBy.id] ? true : false;
+
+                    this.selectedPlaceInfo.successors.push({
+                        hasLocationMarker: hasLocationMarker,
+                        id: replacedBy.id,
+                        label: replacedBy.value,
                     });
                 }
             }
