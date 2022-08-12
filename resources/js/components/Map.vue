@@ -140,6 +140,11 @@ export default {
                         },
                     },
                 },
+                childOrganizations: [{
+                    hasLocationMarker: false,
+                    id: '',
+                    label: '',
+                }],
                 description: '',
                 directors: [{
                     endDate: {
@@ -189,6 +194,11 @@ export default {
                 layerName: '',
                 mainImageUrl: '',
                 mainImageLegend: '',
+                parentOrganizations: [{
+                    hasLocationMarker: false,
+                    id: '',
+                    label: '',
+                }],
                 prisonerCounts: [{
                     sourcingCircumstance: '',
                     value: 0,
@@ -600,6 +610,34 @@ export default {
                 }
             }
 
+            this.selectedPlaceInfo.parentOrganizations = [];
+
+            if (place.parentOrganizations) {
+                for (const [statementId, parentOrganization] of Object.entries(place.parentOrganizations)) {
+                    let hasLocationMarker = this.locationMarkers[parentOrganization.id] ? true : false;
+
+                    this.selectedPlaceInfo.parentOrganizations.push({
+                        hasLocationMarker: hasLocationMarker,
+                        id: parentOrganization.id,
+                        label: parentOrganization.value,
+                    });
+                }
+            }
+
+            this.selectedPlaceInfo.childOrganizations = [];
+
+            if (place.subsidiaries) {
+                for (const [statementId, subsidiary] of Object.entries(place.subsidiaries)) {
+                    let hasLocationMarker = this.locationMarkers[subsidiary.id] ? true : false;
+
+                    this.selectedPlaceInfo.childOrganizations.push({
+                        hasLocationMarker: hasLocationMarker,
+                        id: subsidiary.id,
+                        label: subsidiary.value,
+                    });
+                }
+            }
+
             this.selectedPlaceInfo.sources = [];
             if (place.describedBySources) {
                 for (const [statementId, describedBySource] of Object.entries(place.describedBySources)) {
@@ -730,19 +768,28 @@ export default {
             this.groupedPlaces[placeGroupName].layerGroup = layerGroup;
         },
         /**
-         * Switch location on map.
+         * Switch location on map and location info.
          *
-         * @param {string} locationId
-         * @param {object} latLng
+         * @param {string}      locationId
+         * @param {object|null} latLng      default null
          */
-        switchLocation: function ({locationId, latLng}) {
-            this.map.flyTo(latLng);
+        switchLocation: function ({locationId, latLng = null}) {
+            let locationMarker = null;
 
-            let locationMarker = this.locationMarkers[locationId][Object.values(latLng).join(',')];
+            if (latLng) {
+                locationMarker = this.locationMarkers[locationId][Object.values(latLng).join(',')];
+            }
+            else {
+                let locationMarkerLatLng = Object.keys(this.locationMarkers[locationId])[0];
+                locationMarker = this.locationMarkers[locationId][locationMarkerLatLng];
+                latLng = locationMarker.getLatLng();
+            }
 
             // workaround to bring a marker icon to foreground when multiple markers overlap on same coordinates
             locationMarker.remove();
             locationMarker.addTo(this.map);
+
+            this.map.flyTo(latLng);
 
             locationMarker.fire('click', {
                 latlng: latLng,

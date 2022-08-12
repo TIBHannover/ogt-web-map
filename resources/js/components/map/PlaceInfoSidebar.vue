@@ -234,6 +234,60 @@
                 <v-divider></v-divider>
             </template>
 
+            <!-- parent organizations - https://www.wikidata.org/wiki/Property:P749 -->
+            <template v-if="selectedPlaceInfo.parentOrganizations.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Übergeordnete Organisation</v-list-item-title>
+                        <v-list-item-subtitle>
+                            <ul>
+                                <li v-for="parentOrganization in selectedPlaceInfo.parentOrganizations">
+                                    <a v-if="parentOrganization.hasLocationMarker"
+                                       @click.stop="$emit('switchLocation', {
+                                           locationId: parentOrganization.id,
+                                       })"
+                                       href="#"
+                                    >
+                                        {{ parentOrganization.label }}
+                                    </a>
+                                    <template v-else>
+                                        {{ parentOrganization.label }}
+                                    </template>
+                                </li>
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
+
+            <!-- child organizations - https://www.wikidata.org/wiki/Property:P355 -->
+            <template v-if="selectedPlaceInfo.childOrganizations.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Nachgeordnete Organisation</v-list-item-title>
+                        <v-list-item-subtitle>
+                            <ul>
+                                <li v-for="childOrganization in selectedPlaceInfo.childOrganizations">
+                                    <a v-if="childOrganization.hasLocationMarker"
+                                       @click.stop="$emit('switchLocation', {
+                                           locationId: childOrganization.id,
+                                       })"
+                                       href="#"
+                                    >
+                                        {{ childOrganization.label }}
+                                    </a>
+                                    <template v-else>
+                                        {{ childOrganization.label }}
+                                    </template>
+                                </li>
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
+
             <!-- place is described by source - https://www.wikidata.org/wiki/Property:P1343 -->
             <template v-if="selectedPlaceInfo.sources.length > 0">
                 <v-list-item dense>
