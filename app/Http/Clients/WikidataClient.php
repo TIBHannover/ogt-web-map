@@ -70,7 +70,7 @@ class WikidataClient
     ];
 
     /**
-     * Wikidata properties of a queried locations and associated property labels.
+     * Wikidata's properties of a queried locations and associated property labels.
      */
     const PROPERTY_LABEL_OF_ID = [
         'P18'   => 'images',                // https://www.wikidata.org/wiki/Property:P18
@@ -91,17 +91,17 @@ class WikidataClient
     ];
 
     /**
-     * Wikidata qualifiers of a queried locations and associated qualifier labels.
+     * Wikidata's qualifiers of a queried locations and associated qualifier labels.
      */
     const QUALIFIER_LABEL_OF_ID = [
         'P304'  => 'pages',                 // https://www.wikidata.org/wiki/Property:P304
         'P580'  => 'startTime',             // https://www.wikidata.org/wiki/Property:P580
         'P582'  => 'endTime',               // https://www.wikidata.org/wiki/Property:P582
         'P585'  => 'pointInTime',           // https://www.wikidata.org/wiki/Property:P585
-        'P625'  => 'coordinates',           // https://www.wikidata.org/wiki/Property:P625
+        'P625'  => 'coordinate',            // https://www.wikidata.org/wiki/Property:P625
         'P1319' => 'earliestDate',          // https://www.wikidata.org/wiki/Property:P1319
         'P1326' => 'latestDate',            // https://www.wikidata.org/wiki/Property:P1326
-        'P1480' => 'sourcingCircumstances', // https://www.wikidata.org/wiki/Property:P1480
+        'P1480' => 'sourcingCircumstance',  // https://www.wikidata.org/wiki/Property:P1480
         'P2096' => 'mediaLegend',           // https://www.wikidata.org/wiki/Property:P2096
         'P6375' => 'streetAddress',         // https://www.wikidata.org/wiki/Property:P6375
         'P8554' => 'earliestEndDate',       // https://www.wikidata.org/wiki/Property:P8554
