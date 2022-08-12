@@ -186,6 +186,10 @@ export default {
                 layerName: '',
                 mainImageUrl: '',
                 mainImageLegend: '',
+                prisonerCounts: [{
+                    sourcingCircumstance: '',
+                    value: 0,
+                }],
                 sources: [{
                     label: '',
                     pages: '',
@@ -194,6 +198,7 @@ export default {
             showPlaceInfoSidebar: false,
             sourceCircumstances: {
                 Q5727902: 'ca.',
+                Q47035128: '>',
             },
         };
     },
@@ -564,6 +569,22 @@ export default {
                 }
 
                 this.selectedPlaceInfo.directors.sort(this.sortByDate);
+            }
+
+            this.selectedPlaceInfo.prisonerCounts = [];
+
+            if (place.prisonerCounts) {
+                for (const [statementId, prisonerCount] of Object.entries(place.prisonerCounts)) {
+                    let sourcingCircumstance = '';
+                    if (prisonerCount.sourcingCircumstance && prisonerCount.sourcingCircumstance.id in this.sourceCircumstances) {
+                        sourcingCircumstance = this.sourceCircumstances[prisonerCount.sourcingCircumstance.id];
+                    }
+
+                    this.selectedPlaceInfo.prisonerCounts.push({
+                        sourcingCircumstance: sourcingCircumstance,
+                        value: prisonerCount.value,
+                    });
+                }
             }
 
             this.selectedPlaceInfo.sources = [];
