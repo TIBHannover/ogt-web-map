@@ -13,6 +13,7 @@ class WikidataController extends Controller
      * Get location data from Wikidata for website map view, merge required data by location and group by location type.
      *
      * @param WikidataClient $wikidataClient
+     *
      * @return Response
      */
     public function getPlaces(WikidataClient $wikidataClient) : Response
@@ -26,7 +27,8 @@ class WikidataController extends Controller
             'results.bindings' => 'required|array',
         ]);
 
-        if ($validator->fails()) {
+        if ($validator->fails())
+        {
             Log::warning('Validation of Wikidata places response failed.', $validator->errors()->all());
 
             return response([], Response::HTTP_NO_CONTENT);
