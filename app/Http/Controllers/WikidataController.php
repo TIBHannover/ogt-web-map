@@ -20,18 +20,10 @@ class WikidataController extends Controller
         $placesResponse = $wikidataClient->queryPlaces();
 
         $validator = Validator::make($placesResponse, [
-            'head'                       => 'required|array:vars|size:1',
-            'head.vars'                  => [
-                'required',
-                'array',
-                'size:' . count(WikidataClient::PLACE_PROPERTIES),
-                'in:' . implode(',', WikidataClient::PLACE_PROPERTIES),
-            ],
-            'results'                    => 'required|array:bindings|size:1',
-            'results.bindings'           => 'required|array',
-            'results.bindings.*'         => 'required|array',
-            'results.bindings.*.*'       => 'required|array',
-            'results.bindings.*.*.value' => 'present|string',
+            'head'             => 'required|array:vars|size:1',
+            'head.vars'        => 'required|array|size:12',
+            'results'          => 'required|array:bindings|size:1',
+            'results.bindings' => 'required|array',
         ]);
 
         if ($validator->fails()) {
