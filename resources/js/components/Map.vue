@@ -172,6 +172,9 @@ export default {
                     sourcingCircumstance: '',
                     value: 0,
                 }],
+                events: [{
+                    label: '',
+                }],
                 id: '',
                 inceptionDate: {
                     locale: '',
@@ -583,6 +586,16 @@ export default {
                     this.selectedPlaceInfo.prisonerCounts.push({
                         sourcingCircumstance: sourcingCircumstance,
                         value: prisonerCount.value,
+                    });
+                }
+            }
+
+            this.selectedPlaceInfo.events = [];
+
+            if (place.significantEvents) {
+                for (const [statementId, significantEvent] of Object.entries(place.significantEvents)) {
+                    this.selectedPlaceInfo.events.push({
+                        label: significantEvent.value,
                     });
                 }
             }

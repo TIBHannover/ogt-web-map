@@ -217,6 +217,23 @@
                 <v-divider></v-divider>
             </template>
 
+            <!-- associated significant events - https://www.wikidata.org/wiki/Property:P793 -->
+            <template v-if="selectedPlaceInfo.events.length > 0">
+                <v-list-item dense>
+                    <v-list-item-content>
+                        <v-list-item-title>Ereignisse</v-list-item-title>
+                        <v-list-item-subtitle>
+                            <ul class="hyphens-auto white-space-normal" lang="de">
+                                <li v-for="event in selectedPlaceInfo.events">
+                                    {{ event.label }}
+                                </li>
+                            </ul>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
+
             <!-- place is described by source - https://www.wikidata.org/wiki/Property:P1343 -->
             <template v-if="selectedPlaceInfo.sources.length > 0">
                 <v-list-item dense>
