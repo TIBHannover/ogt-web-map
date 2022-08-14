@@ -49,27 +49,6 @@ class WikidataClient
     ];
 
     /**
-     * Properties of a queried Wikidata place.
-     */
-    const PLACE_PROPERTIES = [
-        'item',
-        'itemLabel',
-        'itemDescription',
-        'instanceUrls',
-        'instanceLabels',
-        'coordinates',
-        'imageUrl',
-        'source',
-        'sourceAuthorLabels',
-        'sourceLabel',
-        'sourcePublisherCityLabel',
-        'sourcePublisherLabel',
-        'sourcePublicationYear',
-        'sourcePages',
-        'sourceDnbLink',
-    ];
-
-    /**
      * Wikidata's properties of a queried locations and associated property labels.
      */
     const PROPERTY_LABEL_OF_ID = [
@@ -374,55 +353,5 @@ class WikidataClient
         }
 
         return $groupedLocations;
-    }
-
-    /**
-     * Filtering of the required place data.
-     *
-     * @param array $place
-     * @return array
-     */
-    private function filterPlaceData(array $place) : array
-    {
-        foreach ($place as $key => $placeData) {
-            $place[$key] = Arr::only($placeData, 'value');
-        }
-
-        return $place;
-    }
-
-    /**
-     * Conversion to the appropriate format for further processing.
-     *
-     * @param array $place
-     * @return array
-     */
-    private function convertPlaceData(array $place) : array
-    {
-        /* Example for location data with multiple coordinates
-           ... from Wikidata ...
-           [
-                'type' => 'literal',
-                'value' => '52.3667941,9.7448449240635|52.3642957,9.7473133',
-           ]
-           ... for Leaflet convert to ...
-           [
-                [lat => 52.3667941, lng => 9.7448449240635], [lat => 52.3642957, lng => 9.7473133],
-           ]
-        */
-        $coordinatesArray = explode('|', $place['coordinates']['value']);
-
-        foreach ($coordinatesArray as &$coordinate) {
-            $latLng = explode(',', $coordinate);
-
-            $coordinate = [
-                'lat' => $latLng[0],
-                'lng' => $latLng[1],
-            ];
-        }
-
-        $place['coordinates'] = $coordinatesArray;
-
-        return $place;
     }
 }
