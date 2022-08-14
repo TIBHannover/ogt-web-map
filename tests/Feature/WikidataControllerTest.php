@@ -55,10 +55,14 @@ class WikidataControllerTest extends TestCase
             [$placeCoordinateData, $expectedPlaceCoordinateData] = $this->createPlaceCoordinateData($itemId);
             $placeDataArray[] = $placeCoordinateData;
 
+            [$placeObjectData, $expectedPlaceObjectData] = $this->createPlaceObjectData($itemId);
+            $placeDataArray[] = $placeObjectData;
+
             $expectedResponse[$locationGroupName][$itemId] = array_merge(
                 $expectedPlaceData[$itemId],
                 $expectedPlaceTimeData[$itemId],
-                $expectedPlaceCoordinateData[$itemId]
+                $expectedPlaceCoordinateData[$itemId],
+                $expectedPlaceObjectData[$itemId]
             );
         }
 
@@ -354,6 +358,91 @@ class WikidataControllerTest extends TestCase
                                 'lat' => "$qualifierLat",
                                 'lng' => "$qualifierLng",
                             ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        return [$locationData, $expectedLocationData];
+    }
+
+    /**
+     * Create location object property and qualifier data and return expected processed data too.
+     *
+     * @param string $itemId e.g. Q42
+     *
+     * @return array
+     */
+    private function createPlaceObjectData(string $itemId) : array
+    {
+        $itemLabel = $itemId . ' item label';
+        $itemDescription = $itemId . ' item description';
+        $statementId = $itemId . '-' . $this->faker->uuid;
+        $propertyValueId = 'Q' . $this->faker->numberBetween();
+        $propertyValueLabel = $propertyValueId . ' item label';
+        $qualifierValueId = 'Q' . $this->faker->numberBetween();
+        $qualifierValueLabel = $qualifierValueId . ' item label';
+
+        $locationData = [
+            'item'                => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . $itemId,
+            ],
+            'itemLabel'           => [
+                'type'     => 'literal',
+                'value'    => $itemLabel,
+                'xml:lang' => 'de',
+            ],
+            'itemDescription'     => [
+                'type'     => 'literal',
+                'value'    => $itemDescription,
+                'xml:lang' => 'de',
+            ],
+            'property'            => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . 'P749', // parent organization property id
+            ],
+            'statement'           => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . 'statement/' . $statementId,
+            ],
+            'propertyValue'       => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . $propertyValueId,
+            ],
+            'propertyValueLabel'  => [
+                'type'     => 'literal',
+                'value'    => $propertyValueLabel,
+                'xml:lang' => 'de',
+            ],
+            'qualifier'           => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . 'P1480', // sourcing circumstances property id
+            ],
+            'qualifierValue'      => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . $qualifierValueId,
+            ],
+            'qualifierValueLabel' => [
+                'type'     => 'literal',
+                'value'    => $qualifierValueLabel,
+                'xml:lang' => 'de',
+            ],
+        ];
+
+        $expectedLocationData = [
+            $itemId => [
+                'description'         => $itemDescription,
+                'id'                  => $itemId,
+                'label'               => $itemLabel,
+                'parentOrganizations' => [
+                    $statementId => [
+                        'id'                   => $propertyValueId,
+                        'value'                => $propertyValueLabel,
+                        'sourcingCircumstance' => [
+                            'id'    => $qualifierValueId,
+                            'value' => $qualifierValueLabel,
                         ],
                     ],
                 ],
