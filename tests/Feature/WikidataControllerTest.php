@@ -152,6 +152,65 @@ class WikidataControllerTest extends TestCase
     }
 
     /**
+     * Test get Wikidata places successfully request, but one place has multiple group assignments.
+     * A locations is assigned to the first location group found.
+     *
+     * @return void
+     */
+    public function testPlaceToMultipleGroupAssignments()
+    {
+        $placeDataArray = [];
+        $expectedResponse = [];
+
+        // valid instance id of group statePoliceOffices
+        [$placeData, $expectedPlaceData] = $this->generatePlaceData('Q1', 'Q108048310');
+        $placeDataArray[] = $placeData;
+
+        // valid instance id of group fieldOffices
+        [$placeData, $expectedPlaceData] = $this->generatePlaceData('Q1', 'Q108047775');
+        $placeDataArray[] = $placeData;
+        $expectedResponse['fieldOffices'] = $expectedPlaceData;
+
+        // valid instance id of group prisons
+        [$placeData, $expectedPlaceData] = $this->generatePlaceData('Q1', 'Q40357');
+        $placeDataArray[] = $placeData;
+
+        $responseContentFake = [
+            'head'    => [
+                'vars' => [
+                    'item',
+                    'itemLabel',
+                    'itemDescription',
+                    'property',
+                    'statement',
+                    'propertyValue',
+                    'propertyValueLabel',
+                    'propertyTimePrecision',
+                    'qualifier',
+                    'qualifierValue',
+                    'qualifierValueLabel',
+                    'qualifierTimePrecision',
+                ],
+            ],
+            'results' => [
+                'bindings' => $placeDataArray,
+            ],
+        ];
+
+        Http::fake(
+            [
+                config('wikidata.url') . '*' => Http::response($responseContentFake, Response::HTTP_OK),
+            ]
+        );
+
+        Log::shouldReceive('warning')->never();
+
+        $this->get('/api/wikidata/places')
+            ->assertStatus(Response::HTTP_OK)
+            ->assertExactJson($expectedResponse);
+    }
+
+    /**
      * Test get Wikidata places successfully request, but one place has instance, where no group assignment exists.
      */
     public function testPlaceToGroupAssignmentNotFound()

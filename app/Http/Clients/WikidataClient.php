@@ -331,7 +331,7 @@ class WikidataClient
     }
 
     /**
-     * Group locations by item's instance-of IDs.
+     * Group locations by item's instance-of IDs. Locations are assigned to the first location group found.
      *
      * @param array $locations
      *
