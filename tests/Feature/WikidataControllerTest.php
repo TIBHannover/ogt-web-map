@@ -12,6 +12,8 @@ use Tests\TestCase;
 
 class WikidataControllerTest extends TestCase
 {
+    const WIKIDATA_ENTITY_URL = 'http://www.wikidata.org/entity/';
+
     /** @var Generator $faker */
     protected $faker = null;
 
@@ -43,13 +45,21 @@ class WikidataControllerTest extends TestCase
         foreach ($locationGroupNames as $index => $locationGroupName)
         {
             $instanceId = Arr::random(WikidataClient::PLACE_GROUPS_IDS[$locationGroupName]);
-            [$placeData, $expectedPlaceData] = $this->generatePlaceData('Q' . $index, $instanceId);
+            $itemId = 'Q' . $index;
+            [$placeData, $expectedPlaceData] = $this->generatePlaceData($itemId, $instanceId);
             $placeDataArray[] = $placeData;
 
-            if ($expectedPlaceData)
-            {
-                $expectedResponse[$locationGroupName] = $expectedPlaceData;
-            }
+            [$placeTimeData, $expectedPlaceTimeData] = $this->createPlaceTimeData($itemId);
+            $placeDataArray[] = $placeTimeData;
+
+            [$placeCoordinateData, $expectedPlaceCoordinateData] = $this->createPlaceCoordinateData($itemId);
+            $placeDataArray[] = $placeCoordinateData;
+
+            $expectedResponse[$locationGroupName][$itemId] = array_merge(
+                $expectedPlaceData[$itemId],
+                $expectedPlaceTimeData[$itemId],
+                $expectedPlaceCoordinateData[$itemId]
+            );
         }
 
         $responseContentFake = [
@@ -99,12 +109,11 @@ class WikidataControllerTest extends TestCase
     {
         $itemLabel = $itemId . ' item label';
         $itemDescription = $itemId . ' item description';
-        $wikidataEntityUrl = 'http://www.wikidata.org/entity/';
 
         $locationData = [
             'item'               => [
                 'type'  => 'uri',
-                'value' => $wikidataEntityUrl . $itemId,
+                'value' => self::WIKIDATA_ENTITY_URL . $itemId,
             ],
             'itemLabel'          => [
                 'type'     => 'literal',
@@ -118,15 +127,15 @@ class WikidataControllerTest extends TestCase
             ],
             'property'           => [
                 'type'  => 'uri',
-                'value' => $wikidataEntityUrl . 'P31', // instance-of property id
+                'value' => self::WIKIDATA_ENTITY_URL . 'P31', // instance-of property id
             ],
             'statement'          => [
                 'type'  => 'uri',
-                'value' => $wikidataEntityUrl . 'statement/' . $itemId . '-' . $this->faker->uuid,
+                'value' => self::WIKIDATA_ENTITY_URL . 'statement/' . $itemId . '-' . $this->faker->uuid,
             ],
             'propertyValue'      => [
                 'type'  => 'uri',
-                'value' => $wikidataEntityUrl . $instanceId, // instance-of item id
+                'value' => self::WIKIDATA_ENTITY_URL . $instanceId, // instance-of item id
             ],
             'propertyValueLabel' => [
                 'type'     => 'literal',
@@ -152,8 +161,211 @@ class WikidataControllerTest extends TestCase
     }
 
     /**
+     * Create location time property and qualifier data and return expected processed data too.
+     *
+     * @param string $itemId e.g. Q42
+     *
+     * @return array
+     */
+    private function createPlaceTimeData(string $itemId) : array
+    {
+        $itemLabel = $itemId . ' item label';
+        $itemDescription = $itemId . ' item description';
+        $statementId = $itemId . '-' . $this->faker->uuid;
+
+        $validProperties = [
+            'P571' => 'inceptionDates',
+            'P576' => 'dissolvedDates',
+        ];
+        $propertyId = $this->faker->randomKey($validProperties);
+        $propertyTime = $this->faker->date() . 'T00:00:00Z';
+        $propertyTimePrecision = $this->faker->randomElements(['9', '10', '11']);
+
+        $validQualifiers = [
+            'P580'  => 'startTime',
+            'P582'  => 'endTime',
+            'P585'  => 'pointInTime',
+            'P1319' => 'earliestDate',
+            'P1326' => 'latestDate',
+            'P8554' => 'earliestEndDate',
+            'P8555' => 'latestStartDate',
+        ];
+        $qualifierId = $this->faker->randomKey($validQualifiers);
+        $qualifierTime = $this->faker->date() . 'T00:00:00Z';
+        $qualifierTimePrecision = $this->faker->randomElements(['9', '10', '11']);
+
+        $locationData = [
+            'item'                   => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . $itemId,
+            ],
+            'itemLabel'              => [
+                'type'     => 'literal',
+                'value'    => $itemLabel,
+                'xml:lang' => 'de',
+            ],
+            'itemDescription'        => [
+                'type'     => 'literal',
+                'value'    => $itemDescription,
+                'xml:lang' => 'de',
+            ],
+            'property'               => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . $propertyId, // e.g. inception date property id
+            ],
+            'statement'              => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . 'statement/' . $statementId,
+            ],
+            'propertyValue'          => [
+                'datatype' => 'http://www.w3.org/2001/XMLSchema#dateTime',
+                'type'     => 'literal',
+                'value'    => $propertyTime,
+            ],
+            'propertyValueLabel'     => [
+                'type'  => 'literal',
+                'value' => $propertyTime,
+            ],
+            'propertyTimePrecision'  => [
+                'datatype' => 'http://www.w3.org/2001/XMLSchema#integer',
+                'type'     => 'literal',
+                'value'    => $propertyTimePrecision,
+            ],
+            'qualifier'              => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . $qualifierId, // e.g. inception date property id
+            ],
+            'qualifierValue'         => [
+                'datatype' => 'http://www.w3.org/2001/XMLSchema#dateTime',
+                'type'     => 'literal',
+                'value'    => $qualifierTime,
+            ],
+            'qualifierValueLabel'    => [
+                'type'  => 'literal',
+                'value' => $qualifierTime,
+            ],
+            'qualifierTimePrecision' => [
+                'datatype' => 'http://www.w3.org/2001/XMLSchema#integer',
+                'type'     => 'literal',
+                'value'    => $qualifierTimePrecision,
+            ],
+        ];
+
+        $expectedLocationData = [
+            $itemId => [
+                'description'                 => $itemDescription,
+                'id'                          => $itemId,
+                'label'                       => $itemLabel,
+                $validProperties[$propertyId] => [
+                    $statementId => [
+                        'value'                        => $propertyTime,
+                        'datePrecision'                => $propertyTimePrecision,
+                        $validQualifiers[$qualifierId] => [
+                            'value'         => $qualifierTime,
+                            'datePrecision' => $qualifierTimePrecision,
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        return [$locationData, $expectedLocationData];
+    }
+
+    /**
+     * Create location coordinate property and qualifier data and return expected processed data too.
+     *
+     * @param string $itemId e.g. Q42
+     *
+     * @return array
+     */
+    private function createPlaceCoordinateData(string $itemId) : array
+    {
+        $itemLabel = $itemId . ' item label';
+        $itemDescription = $itemId . ' item description';
+        $statementId = $itemId . '-' . $this->faker->uuid;
+        $propertyLat = $this->faker->latitude;
+        $propertyLng = $this->faker->longitude;
+        $propertyCoordinates = 'Point(' . $propertyLng . ' ' . $propertyLat . ')';
+        $qualifierLat = $this->faker->latitude;
+        $qualifierLng = $this->faker->longitude;
+        $qualifierCoordinates = 'Point(' . $qualifierLng . ' ' . $qualifierLat . ')';
+
+        $locationData = [
+            'item'                => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . $itemId,
+            ],
+            'itemLabel'           => [
+                'type'     => 'literal',
+                'value'    => $itemLabel,
+                'xml:lang' => 'de',
+            ],
+            'itemDescription'     => [
+                'type'     => 'literal',
+                'value'    => $itemDescription,
+                'xml:lang' => 'de',
+            ],
+            'property'            => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . 'P625', // e.g. coordinates property id
+            ],
+            'statement'           => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . 'statement/' . $statementId,
+            ],
+            'propertyValue'       => [
+                'datatype' => 'http://www.opengis.net/ont/geosparql#wktLiteral',
+                'type'     => 'literal',
+                'value'    => $propertyCoordinates,
+            ],
+            'propertyValueLabel'  => [
+                'type'  => 'literal',
+                'value' => $propertyCoordinates,
+            ],
+            'qualifier'           => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . 'P625', // e.g. coordinates property id
+            ],
+            'qualifierValue'      => [
+                'datatype' => 'http://www.opengis.net/ont/geosparql#wktLiteral',
+                'type'     => 'literal',
+                'value'    => $qualifierCoordinates,
+            ],
+            'qualifierValueLabel' => [
+                'type'  => 'literal',
+                'value' => $qualifierCoordinates,
+            ],
+        ];
+
+        $expectedLocationData = [
+            $itemId => [
+                'description' => $itemDescription,
+                'id'          => $itemId,
+                'label'       => $itemLabel,
+                'coordinates' => [
+                    $statementId => [
+                        'value'      => [
+                            'lat' => "$propertyLat",
+                            'lng' => "$propertyLng",
+                        ],
+                        'coordinate' => [
+                            'value' => [
+                                'lat' => "$qualifierLat",
+                                'lng' => "$qualifierLng",
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        return [$locationData, $expectedLocationData];
+    }
+
+    /**
      * Test get Wikidata places successfully request, but one place has multiple group assignments.
-     * A locations is assigned to the first location group found.
+     * A location is assigned to the first location group found.
      *
      * @return void
      */
