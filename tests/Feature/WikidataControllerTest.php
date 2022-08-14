@@ -46,8 +46,8 @@ class WikidataControllerTest extends TestCase
         {
             $instanceId = Arr::random(WikidataClient::PLACE_GROUPS_IDS[$locationGroupName]);
             $itemId = 'Q' . $index;
-            [$placeData, $expectedPlaceData] = $this->generatePlaceData($itemId, $instanceId);
-            $placeDataArray[] = $placeData;
+            [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData($itemId, $instanceId);
+            $placeDataArray[] = $placeInstanceData;
 
             [$placeTimeData, $expectedPlaceTimeData] = $this->createPlaceTimeData($itemId);
             $placeDataArray[] = $placeTimeData;
@@ -59,7 +59,7 @@ class WikidataControllerTest extends TestCase
             $placeDataArray[] = $placeObjectData;
 
             $expectedResponse[$locationGroupName][$itemId] = array_merge(
-                $expectedPlaceData[$itemId],
+                $expectedPlaceInstanceData[$itemId],
                 $expectedPlaceTimeData[$itemId],
                 $expectedPlaceCoordinateData[$itemId],
                 $expectedPlaceObjectData[$itemId]
@@ -102,14 +102,15 @@ class WikidataControllerTest extends TestCase
     }
 
     /**
-     * Generate a valid place wikidata entry for response mockup and expected data returned by request.
+     * Create valid place instance-of data for Wikidata response mockup and
+     * expected data returned by get location data request.
      *
      * @param string $itemId e.g. Q42
      * @param string $instanceId
      *
      * @return array
      */
-    private function generatePlaceData(string $itemId, string $instanceId) : array
+    private function createPlaceInstanceData(string $itemId, string $instanceId) : array
     {
         $itemLabel = $itemId . ' item label';
         $itemDescription = $itemId . ' item description';
@@ -148,24 +149,20 @@ class WikidataControllerTest extends TestCase
             ],
         ];
 
-        $expectedLocationData = [];
-
-        if (in_array($instanceId, Arr::flatten(WikidataClient::PLACE_GROUPS_IDS)))
-        {
-            $expectedLocationData = [
-                $itemId => [
-                    'description' => $itemDescription,
-                    'id'          => $itemId,
-                    'label'       => $itemLabel,
-                ],
-            ];
-        }
+        $expectedLocationData = [
+            $itemId => [
+                'description' => $itemDescription,
+                'id'          => $itemId,
+                'label'       => $itemLabel,
+            ],
+        ];
 
         return [$locationData, $expectedLocationData];
     }
 
     /**
-     * Create location time property and qualifier data and return expected processed data too.
+     * Create valid location time property- and qualifier-data for Wikidata response mockup and
+     * expected data returned by get location data request.
      *
      * @param string $itemId e.g. Q42
      *
@@ -215,7 +212,7 @@ class WikidataControllerTest extends TestCase
             ],
             'property'               => [
                 'type'  => 'uri',
-                'value' => self::WIKIDATA_ENTITY_URL . $propertyId, // e.g. inception date property id
+                'value' => self::WIKIDATA_ENTITY_URL . $propertyId,
             ],
             'statement'              => [
                 'type'  => 'uri',
@@ -237,7 +234,7 @@ class WikidataControllerTest extends TestCase
             ],
             'qualifier'              => [
                 'type'  => 'uri',
-                'value' => self::WIKIDATA_ENTITY_URL . $qualifierId, // e.g. inception date property id
+                'value' => self::WIKIDATA_ENTITY_URL . $qualifierId,
             ],
             'qualifierValue'         => [
                 'datatype' => 'http://www.w3.org/2001/XMLSchema#dateTime',
@@ -277,7 +274,8 @@ class WikidataControllerTest extends TestCase
     }
 
     /**
-     * Create location coordinate property and qualifier data and return expected processed data too.
+     * Create valid location coordinate property- and qualifier-data for Wikidata response mockup and
+     * expected data returned by get location data request.
      *
      * @param string $itemId e.g. Q42
      *
@@ -368,7 +366,8 @@ class WikidataControllerTest extends TestCase
     }
 
     /**
-     * Create location object property and qualifier data and return expected processed data too.
+     * Create valid location linked object property- and qualifier-data for Wikidata response mockup and
+     * expected data returned by get location data request.
      *
      * @param string $itemId e.g. Q42
      *
@@ -464,17 +463,17 @@ class WikidataControllerTest extends TestCase
         $expectedResponse = [];
 
         // valid instance id of group statePoliceOffices
-        [$placeData, $expectedPlaceData] = $this->generatePlaceData('Q1', 'Q108048310');
-        $placeDataArray[] = $placeData;
+        [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q1', 'Q108048310');
+        $placeDataArray[] = $placeInstanceData;
 
         // valid instance id of group fieldOffices
-        [$placeData, $expectedPlaceData] = $this->generatePlaceData('Q1', 'Q108047775');
-        $placeDataArray[] = $placeData;
-        $expectedResponse['fieldOffices'] = $expectedPlaceData;
+        [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q1', 'Q108047775');
+        $placeDataArray[] = $placeInstanceData;
+        $expectedResponse['fieldOffices'] = $expectedPlaceInstanceData;
 
         // valid instance id of group prisons
-        [$placeData, $expectedPlaceData] = $this->generatePlaceData('Q1', 'Q40357');
-        $placeDataArray[] = $placeData;
+        [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q1', 'Q40357');
+        $placeDataArray[] = $placeInstanceData;
 
         $responseContentFake = [
             'head'    => [
@@ -519,22 +518,14 @@ class WikidataControllerTest extends TestCase
         $placeDataArray = [];
         $expectedResponse = [];
 
-        $instanceIds = [
-            'Q108047541', // valid instance id of group fieldOffices
-            'Q987654321', // invalid instance id
-        ];
+        // valid instance id Q108047541 of group fieldOffices
+        [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q1', 'Q108047541');
+        $placeDataArray[] = $placeInstanceData;
+        $expectedResponse['fieldOffices'] = $expectedPlaceInstanceData;
 
-        foreach ($instanceIds as $index => $instanceId)
-        {
-            [$placeData, $expectedPlaceData] = $this->generatePlaceData('Q' . $index, $instanceId);
-
-            $placeDataArray[] = $placeData;
-
-            if ($expectedPlaceData)
-            {
-                $expectedResponse['fieldOffices'] = $expectedPlaceData;
-            }
-        }
+        // invalid instance id Q987654321
+        [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q2', 'Q111111111');
+        $placeDataArray[] = $placeInstanceData;
 
         $responseContentFake = [
             'head'    => [
@@ -567,8 +558,8 @@ class WikidataControllerTest extends TestCase
         Log::shouldReceive('warning')->once()->with(
             'The location cannot be assigned to a map marker category based on its Wikidata instances.',
             [
-                'instanceIds' => ['Q987654321'],
-                'locationId'  => 'Q1',
+                'instanceIds' => ['Q111111111'],
+                'locationId'  => 'Q2',
             ]
         );
 
@@ -736,14 +727,14 @@ class WikidataControllerTest extends TestCase
         array $failedValidationMessages
     ) {
         $instanceId = Arr::random(WikidataClient::PLACE_GROUPS_IDS['statePoliceOffices']);
-        [$placeData, $expectedPlaceData] = $this->generatePlaceData('Q1', $instanceId);
+        [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q1', $instanceId);
 
         $responseNoDataReturned = [
             'head'    => [
                 'vars' => $responsePlaceProperties,
             ],
             'results' => [
-                'bindings' => [$placeData],
+                'bindings' => [$placeInstanceData],
             ],
         ];
 
