@@ -318,7 +318,8 @@ class WikidataClient
      */
     public function groupLocationsByType(array $locations) : array
     {
-        $groupedLocations = [];
+        // return all location groups, even if empty
+        $groupedLocations = array_fill_keys(array_keys(self::PLACE_GROUPS_IDS), []);
 
         foreach ($locations as $locationId => $location)
         {

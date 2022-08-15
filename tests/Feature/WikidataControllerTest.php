@@ -31,7 +31,16 @@ class WikidataControllerTest extends TestCase
     public function testGetWikidataPlacesSuccess()
     {
         $placeDataArray = [];
-        $expectedResponse = [];
+        $expectedResponse = [
+            'events'                  => [],
+            'extPolicePrisons'        => [],
+            'fieldOffices'            => [],
+            'laborEducationCamps'     => [],
+            'memorials'               => [],
+            'prisons'                 => [],
+            'statePoliceHeadquarters' => [],
+            'statePoliceOffices'      => [],
+        ];
 
         $locationGroupNames = [
             'extPolicePrisons',
@@ -460,7 +469,16 @@ class WikidataControllerTest extends TestCase
     public function testPlaceToMultipleGroupAssignments()
     {
         $placeDataArray = [];
-        $expectedResponse = [];
+        $expectedResponse = [
+            'events'                  => [],
+            'extPolicePrisons'        => [],
+            'fieldOffices'            => [],
+            'laborEducationCamps'     => [],
+            'memorials'               => [],
+            'prisons'                 => [],
+            'statePoliceHeadquarters' => [],
+            'statePoliceOffices'      => [],
+        ];
 
         // valid instance id of group statePoliceOffices
         [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q1', 'Q108048310');
@@ -516,7 +534,16 @@ class WikidataControllerTest extends TestCase
     public function testPlaceToGroupAssignmentNotFound()
     {
         $placeDataArray = [];
-        $expectedResponse = [];
+        $expectedResponse = [
+            'events'                  => [],
+            'extPolicePrisons'        => [],
+            'fieldOffices'            => [],
+            'laborEducationCamps'     => [],
+            'memorials'               => [],
+            'prisons'                 => [],
+            'statePoliceHeadquarters' => [],
+            'statePoliceOffices'      => [],
+        ];
 
         // valid instance id Q108047541 of group fieldOffices
         [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q1', 'Q108047541');
