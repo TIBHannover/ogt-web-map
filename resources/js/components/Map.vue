@@ -349,7 +349,7 @@ export default {
 
                     this.groupedPlaces[placeGroupName]['placesByCoordinates'].push({
                         placeLabelWithIndex: placeLabelWithIndex,
-                        latLng: placeCoordinate,
+                        latLng: placeCoordinate.value,
                         marker: marker,
                     });
                 };
