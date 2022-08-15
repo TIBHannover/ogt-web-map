@@ -180,6 +180,7 @@ export default {
                 events: [{
                     label: '',
                 }],
+                groupName: '',
                 id: '',
                 inceptionDate: {
                     locale: '',
@@ -325,7 +326,7 @@ export default {
                     });
 
                     marker.on('click', event => {
-                        this.setSelectedPlace(place, event.latlng, this.groupedPlaces[placeGroupName].layerName);
+                        this.setSelectedPlace(place, event.latlng, placeGroupName);
                         this.toggleShowPlaceInfoSidebar(true);
 
                         const zoomInButton = marker.getPopup().getElement().getElementsByClassName('zoomInButton')[0];
@@ -362,12 +363,13 @@ export default {
          *
          * @param object place Wikidata place data
          * @param object latLng Leaflet LatLng geographical point object
-         * @param string layerName Name of layer group
+         * @param string placeGroupName Name of place group
          */
-        setSelectedPlace: function (place, latLng, layerName) {
+        setSelectedPlace: function (place, latLng, placeGroupName) {
             this.selectedPlace.description = place.description;
             this.selectedPlace.label = place.label;
-            this.selectedPlace.layerName = layerName;
+            this.selectedPlace.groupName = placeGroupName;
+            this.selectedPlace.layerName = this.groupedPlaces[placeGroupName].layerName;
             this.selectedPlace.id = place.id;
             this.selectedPlace.latLng = latLng;
 
