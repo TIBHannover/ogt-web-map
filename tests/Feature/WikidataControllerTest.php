@@ -12,6 +12,8 @@ use Tests\TestCase;
 
 class WikidataControllerTest extends TestCase
 {
+    const WIKIDATA_ENTITY_URL = 'http://www.wikidata.org/entity/';
+
     /** @var Generator $faker */
     protected $faker = null;
 
@@ -24,49 +26,53 @@ class WikidataControllerTest extends TestCase
 
     /**
      * Test get Wikidata places successfully request.
+     * - test each valid place group
      */
     public function testGetWikidataPlacesSuccess()
     {
         $placeDataArray = [];
-        $expectedFilteredPlaceData = [];
-
-        $testCases = [
-            [Arr::random(WikidataClient::PLACE_GROUPS_IDS['statePoliceOffices'])],
-            [Arr::random(WikidataClient::PLACE_GROUPS_IDS['prisons'])],
-            [Arr::random(WikidataClient::PLACE_GROUPS_IDS['fieldOffices'])],
-            [Arr::random(WikidataClient::PLACE_GROUPS_IDS['extPolicePrisons'])],
-            [Arr::random(WikidataClient::PLACE_GROUPS_IDS['laborEducationCamps'])],
-            [Arr::random(WikidataClient::PLACE_GROUPS_IDS['statePoliceHeadquarters'])],
-            [
-                Arr::random(WikidataClient::PLACE_GROUPS_IDS['extPolicePrisons']),
-                Arr::random(WikidataClient::PLACE_GROUPS_IDS['laborEducationCamps']),
-                Arr::random(WikidataClient::PLACE_GROUPS_IDS['statePoliceOffices']),
-                Arr::random(WikidataClient::PLACE_GROUPS_IDS['fieldOffices']),
-                Arr::random(WikidataClient::PLACE_GROUPS_IDS['prisons']),
-                Arr::random(WikidataClient::PLACE_GROUPS_IDS['statePoliceHeadquarters']),
-            ],
+        $expectedResponse = [
+            'events'                  => [],
+            'extPolicePrisons'        => [],
+            'fieldOffices'            => [],
+            'laborEducationCamps'     => [],
+            'memorials'               => [],
+            'prisons'                 => [],
+            'statePoliceHeadquarters' => [],
+            'statePoliceOffices'      => [],
         ];
 
-        foreach ($testCases as $testCase) {
-            $placeData = $this->generatePlaceData($testCase + ['Q123456789']);
+        $locationGroupNames = [
+            'extPolicePrisons',
+            'fieldOffices',
+            'laborEducationCamps',
+            'prisons',
+            'statePoliceHeadquarters',
+            'statePoliceOffices',
+        ];
 
-            $placeDataArray[] = $placeData;
+        foreach ($locationGroupNames as $index => $locationGroupName)
+        {
+            $instanceId = Arr::random(WikidataClient::PLACE_GROUPS_IDS[$locationGroupName]);
+            $itemId = 'Q' . $index;
+            [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData($itemId, $instanceId);
+            $placeDataArray[] = $placeInstanceData;
 
-            foreach ($placeData as $key => $data) {
-                $placeData[$key] = [
-                    'value' => $data['value'],
-                ];
-            }
+            [$placeTimeData, $expectedPlaceTimeData] = $this->createPlaceTimeData($itemId);
+            $placeDataArray[] = $placeTimeData;
 
-            $latLng = explode(',', $placeData['coordinates']['value']);
-            $placeData['coordinates'] = [
-                [
-                    'lat' => $latLng[0],
-                    'lng' => $latLng[1],
-                ],
-            ];
+            [$placeCoordinateData, $expectedPlaceCoordinateData] = $this->createPlaceCoordinateData($itemId);
+            $placeDataArray[] = $placeCoordinateData;
 
-            $expectedFilteredPlaceData[] = $placeData;
+            [$placeObjectData, $expectedPlaceObjectData] = $this->createPlaceObjectData($itemId);
+            $placeDataArray[] = $placeObjectData;
+
+            $expectedResponse[$locationGroupName][$itemId] = array_merge(
+                $expectedPlaceInstanceData[$itemId],
+                $expectedPlaceTimeData[$itemId],
+                $expectedPlaceCoordinateData[$itemId],
+                $expectedPlaceObjectData[$itemId]
+            );
         }
 
         $responseContentFake = [
@@ -75,51 +81,19 @@ class WikidataControllerTest extends TestCase
                     'item',
                     'itemLabel',
                     'itemDescription',
-                    'instanceUrls',
-                    'instanceLabels',
-                    'coordinates',
-                    'imageUrl',
-                    'source',
-                    'sourceAuthorLabels',
-                    'sourceLabel',
-                    'sourcePublisherCityLabel',
-                    'sourcePublisherLabel',
-                    'sourcePublicationYear',
-                    'sourcePages',
-                    'sourceDnbLink',
+                    'property',
+                    'statement',
+                    'propertyValue',
+                    'propertyValueLabel',
+                    'propertyTimePrecision',
+                    'qualifier',
+                    'qualifierValue',
+                    'qualifierValueLabel',
+                    'qualifierTimePrecision',
                 ],
             ],
             'results' => [
                 'bindings' => $placeDataArray,
-            ],
-        ];
-
-        $expectedResponse = [
-            'events'                  => [],
-            'fieldOffices'            => [
-                $expectedFilteredPlaceData[2],
-                $expectedFilteredPlaceData[6],
-            ],
-            'extPolicePrisons'        => [
-                $expectedFilteredPlaceData[3],
-                $expectedFilteredPlaceData[6],
-            ],
-            'laborEducationCamps'     => [
-                $expectedFilteredPlaceData[4],
-                $expectedFilteredPlaceData[6],
-            ],
-            'memorials'               => [],
-            'prisons'                 => [
-                $expectedFilteredPlaceData[1],
-                $expectedFilteredPlaceData[6],
-            ],
-            'statePoliceHeadquarters' => [
-                $expectedFilteredPlaceData[5],
-                $expectedFilteredPlaceData[6],
-            ],
-            'statePoliceOffices'      => [
-                $expectedFilteredPlaceData[0],
-                $expectedFilteredPlaceData[6],
             ],
         ];
 
@@ -137,83 +111,387 @@ class WikidataControllerTest extends TestCase
     }
 
     /**
-     * Generate a valid place wikidata entry for response mockup.
+     * Create valid place instance-of data for Wikidata response mockup and
+     * expected data returned by get location data request.
      *
-     * @param array $instanceQIds
+     * @param string $itemId e.g. Q42
+     * @param string $instanceId
+     *
      * @return array
      */
-    private function generatePlaceData(array $instanceQIds) : array
+    private function createPlaceInstanceData(string $itemId, string $instanceId) : array
     {
-        $instanceUrlQIds = substr_replace($instanceQIds, 'http://www.wikidata.org/entity/', 0, 0);
+        $itemLabel = $itemId . ' item label';
+        $itemDescription = $itemId . ' item description';
 
-        return [
-            'item'            => [
+        $locationData = [
+            'item'               => [
                 'type'  => 'uri',
-                'value' => 'http://www.wikidata.org/entity/' . $this->faker->randomNumber(9),
+                'value' => self::WIKIDATA_ENTITY_URL . $itemId,
             ],
-            'itemLabel'       => [
+            'itemLabel'          => [
                 'type'     => 'literal',
-                'value'    => $this->faker->word,
+                'value'    => $itemLabel,
                 'xml:lang' => 'de',
             ],
-            'itemDescription' => [
+            'itemDescription'    => [
                 'type'     => 'literal',
-                'value'    => $this->faker->sentence,
+                'value'    => $itemDescription,
                 'xml:lang' => 'de',
             ],
-            'coordinates'     => [
-                'type'  => 'literal',
-                'value' => $this->faker->latitude . ',' . $this->faker->longitude,
-            ],
-            'instanceUrls'    => [
-                'type'  => 'literal',
-                'value' => implode('|', $instanceUrlQIds),
-            ],
-            'instanceLabels'  => [
-                'type'  => 'literal',
-                'value' => implode(',', $this->faker->words),
-            ],
-            'imageUrl'        => [
+            'property'           => [
                 'type'  => 'uri',
-                'value' => $this->faker->imageUrl,
+                'value' => self::WIKIDATA_ENTITY_URL . 'P31', // instance-of property id
+            ],
+            'statement'          => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . 'statement/' . $itemId . '-' . $this->faker->uuid,
+            ],
+            'propertyValue'      => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . $instanceId, // instance-of item id
+            ],
+            'propertyValueLabel' => [
+                'type'     => 'literal',
+                'value'    => 'Label of instance-of item',
+                'xml:lang' => 'de',
             ],
         ];
+
+        $expectedLocationData = [
+            $itemId => [
+                'description' => $itemDescription,
+                'id'          => $itemId,
+                'label'       => $itemLabel,
+            ],
+        ];
+
+        return [$locationData, $expectedLocationData];
     }
 
     /**
-     * Test get Wikidata places successfully request, but one place has instances, where no group assignment exists.
+     * Create valid location time property- and qualifier-data for Wikidata response mockup and
+     * expected data returned by get location data request.
+     *
+     * @param string $itemId e.g. Q42
+     *
+     * @return array
      */
-    public function testPlaceToGroupAssignmentNotFound()
+    private function createPlaceTimeData(string $itemId) : array
     {
-        $placeDataArray = [];
-        $expectedFilteredPlaceData = [];
+        $itemLabel = $itemId . ' item label';
+        $itemDescription = $itemId . ' item description';
+        $statementId = $itemId . '-' . $this->faker->uuid;
 
-        $testCases = [
-            [Arr::random(WikidataClient::PLACE_GROUPS_IDS['statePoliceOffices'])],
-            ['Q987654321'],
+        $validProperties = [
+            'P571' => 'inceptionDates',
+            'P576' => 'dissolvedDates',
+        ];
+        $propertyId = $this->faker->randomKey($validProperties);
+        $propertyTime = $this->faker->date() . 'T00:00:00Z';
+        $propertyTimePrecision = $this->faker->randomElements(['9', '10', '11']);
+
+        $validQualifiers = [
+            'P580'  => 'startTime',
+            'P582'  => 'endTime',
+            'P585'  => 'pointInTime',
+            'P1319' => 'earliestDate',
+            'P1326' => 'latestDate',
+            'P8554' => 'earliestEndDate',
+            'P8555' => 'latestStartDate',
+        ];
+        $qualifierId = $this->faker->randomKey($validQualifiers);
+        $qualifierTime = $this->faker->date() . 'T00:00:00Z';
+        $qualifierTimePrecision = $this->faker->randomElements(['9', '10', '11']);
+
+        $locationData = [
+            'item'                   => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . $itemId,
+            ],
+            'itemLabel'              => [
+                'type'     => 'literal',
+                'value'    => $itemLabel,
+                'xml:lang' => 'de',
+            ],
+            'itemDescription'        => [
+                'type'     => 'literal',
+                'value'    => $itemDescription,
+                'xml:lang' => 'de',
+            ],
+            'property'               => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . $propertyId,
+            ],
+            'statement'              => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . 'statement/' . $statementId,
+            ],
+            'propertyValue'          => [
+                'datatype' => 'http://www.w3.org/2001/XMLSchema#dateTime',
+                'type'     => 'literal',
+                'value'    => $propertyTime,
+            ],
+            'propertyValueLabel'     => [
+                'type'  => 'literal',
+                'value' => $propertyTime,
+            ],
+            'propertyTimePrecision'  => [
+                'datatype' => 'http://www.w3.org/2001/XMLSchema#integer',
+                'type'     => 'literal',
+                'value'    => $propertyTimePrecision,
+            ],
+            'qualifier'              => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . $qualifierId,
+            ],
+            'qualifierValue'         => [
+                'datatype' => 'http://www.w3.org/2001/XMLSchema#dateTime',
+                'type'     => 'literal',
+                'value'    => $qualifierTime,
+            ],
+            'qualifierValueLabel'    => [
+                'type'  => 'literal',
+                'value' => $qualifierTime,
+            ],
+            'qualifierTimePrecision' => [
+                'datatype' => 'http://www.w3.org/2001/XMLSchema#integer',
+                'type'     => 'literal',
+                'value'    => $qualifierTimePrecision,
+            ],
         ];
 
-        foreach ($testCases as $testCase) {
-            $placeData = $this->generatePlaceData($testCase + ['Q123456789']);
-
-            $placeDataArray[] = $placeData;
-
-            foreach ($placeData as $key => $data) {
-                $placeData[$key] = [
-                    'value' => $data['value'],
-                ];
-            }
-
-            $latLng = explode(',', $placeData['coordinates']['value']);
-            $placeData['coordinates'] = [
-                [
-                    'lat' => $latLng[0],
-                    'lng' => $latLng[1],
+        $expectedLocationData = [
+            $itemId => [
+                'description'                 => $itemDescription,
+                'id'                          => $itemId,
+                'label'                       => $itemLabel,
+                $validProperties[$propertyId] => [
+                    $statementId => [
+                        'value'                        => $propertyTime,
+                        'datePrecision'                => $propertyTimePrecision,
+                        $validQualifiers[$qualifierId] => [
+                            'value'         => $qualifierTime,
+                            'datePrecision' => $qualifierTimePrecision,
+                        ],
+                    ],
                 ],
-            ];
+            ],
+        ];
 
-            $expectedFilteredPlaceData[] = $placeData;
-        }
+        return [$locationData, $expectedLocationData];
+    }
+
+    /**
+     * Create valid location coordinate property- and qualifier-data for Wikidata response mockup and
+     * expected data returned by get location data request.
+     *
+     * @param string $itemId e.g. Q42
+     *
+     * @return array
+     */
+    private function createPlaceCoordinateData(string $itemId) : array
+    {
+        $itemLabel = $itemId . ' item label';
+        $itemDescription = $itemId . ' item description';
+        $statementId = $itemId . '-' . $this->faker->uuid;
+        $propertyLat = $this->faker->latitude;
+        $propertyLng = $this->faker->longitude;
+        $propertyCoordinates = 'Point(' . $propertyLng . ' ' . $propertyLat . ')';
+        $qualifierLat = $this->faker->latitude;
+        $qualifierLng = $this->faker->longitude;
+        $qualifierCoordinates = 'Point(' . $qualifierLng . ' ' . $qualifierLat . ')';
+
+        $locationData = [
+            'item'                => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . $itemId,
+            ],
+            'itemLabel'           => [
+                'type'     => 'literal',
+                'value'    => $itemLabel,
+                'xml:lang' => 'de',
+            ],
+            'itemDescription'     => [
+                'type'     => 'literal',
+                'value'    => $itemDescription,
+                'xml:lang' => 'de',
+            ],
+            'property'            => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . 'P625', // e.g. coordinates property id
+            ],
+            'statement'           => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . 'statement/' . $statementId,
+            ],
+            'propertyValue'       => [
+                'datatype' => 'http://www.opengis.net/ont/geosparql#wktLiteral',
+                'type'     => 'literal',
+                'value'    => $propertyCoordinates,
+            ],
+            'propertyValueLabel'  => [
+                'type'  => 'literal',
+                'value' => $propertyCoordinates,
+            ],
+            'qualifier'           => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . 'P625', // e.g. coordinates property id
+            ],
+            'qualifierValue'      => [
+                'datatype' => 'http://www.opengis.net/ont/geosparql#wktLiteral',
+                'type'     => 'literal',
+                'value'    => $qualifierCoordinates,
+            ],
+            'qualifierValueLabel' => [
+                'type'  => 'literal',
+                'value' => $qualifierCoordinates,
+            ],
+        ];
+
+        $expectedLocationData = [
+            $itemId => [
+                'description' => $itemDescription,
+                'id'          => $itemId,
+                'label'       => $itemLabel,
+                'coordinates' => [
+                    $statementId => [
+                        'value'      => [
+                            'lat' => "$propertyLat",
+                            'lng' => "$propertyLng",
+                        ],
+                        'coordinate' => [
+                            'value' => [
+                                'lat' => "$qualifierLat",
+                                'lng' => "$qualifierLng",
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        return [$locationData, $expectedLocationData];
+    }
+
+    /**
+     * Create valid location linked object property- and qualifier-data for Wikidata response mockup and
+     * expected data returned by get location data request.
+     *
+     * @param string $itemId e.g. Q42
+     *
+     * @return array
+     */
+    private function createPlaceObjectData(string $itemId) : array
+    {
+        $itemLabel = $itemId . ' item label';
+        $itemDescription = $itemId . ' item description';
+        $statementId = $itemId . '-' . $this->faker->uuid;
+        $propertyValueId = 'Q' . $this->faker->numberBetween();
+        $propertyValueLabel = $propertyValueId . ' item label';
+        $qualifierValueId = 'Q' . $this->faker->numberBetween();
+        $qualifierValueLabel = $qualifierValueId . ' item label';
+
+        $locationData = [
+            'item'                => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . $itemId,
+            ],
+            'itemLabel'           => [
+                'type'     => 'literal',
+                'value'    => $itemLabel,
+                'xml:lang' => 'de',
+            ],
+            'itemDescription'     => [
+                'type'     => 'literal',
+                'value'    => $itemDescription,
+                'xml:lang' => 'de',
+            ],
+            'property'            => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . 'P749', // parent organization property id
+            ],
+            'statement'           => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . 'statement/' . $statementId,
+            ],
+            'propertyValue'       => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . $propertyValueId,
+            ],
+            'propertyValueLabel'  => [
+                'type'     => 'literal',
+                'value'    => $propertyValueLabel,
+                'xml:lang' => 'de',
+            ],
+            'qualifier'           => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . 'P1480', // sourcing circumstances property id
+            ],
+            'qualifierValue'      => [
+                'type'  => 'uri',
+                'value' => self::WIKIDATA_ENTITY_URL . $qualifierValueId,
+            ],
+            'qualifierValueLabel' => [
+                'type'     => 'literal',
+                'value'    => $qualifierValueLabel,
+                'xml:lang' => 'de',
+            ],
+        ];
+
+        $expectedLocationData = [
+            $itemId => [
+                'description'         => $itemDescription,
+                'id'                  => $itemId,
+                'label'               => $itemLabel,
+                'parentOrganizations' => [
+                    $statementId => [
+                        'id'                   => $propertyValueId,
+                        'value'                => $propertyValueLabel,
+                        'sourcingCircumstance' => [
+                            'id'    => $qualifierValueId,
+                            'value' => $qualifierValueLabel,
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        return [$locationData, $expectedLocationData];
+    }
+
+    /**
+     * Test get Wikidata places successfully request, but one place has multiple group assignments.
+     * A location is assigned to the first location group found.
+     *
+     * @return void
+     */
+    public function testPlaceToMultipleGroupAssignments()
+    {
+        $placeDataArray = [];
+        $expectedResponse = [
+            'events'                  => [],
+            'extPolicePrisons'        => [],
+            'fieldOffices'            => [],
+            'laborEducationCamps'     => [],
+            'memorials'               => [],
+            'prisons'                 => [],
+            'statePoliceHeadquarters' => [],
+            'statePoliceOffices'      => [],
+        ];
+
+        // valid instance id of group statePoliceOffices
+        [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q1', 'Q108048310');
+        $placeDataArray[] = $placeInstanceData;
+
+        // valid instance id of group fieldOffices
+        [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q1', 'Q108047775');
+        $placeDataArray[] = $placeInstanceData;
+        $expectedResponse['fieldOffices'] = $expectedPlaceInstanceData;
+
+        // valid instance id of group prisons
+        [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q1', 'Q40357');
+        $placeDataArray[] = $placeInstanceData;
 
         $responseContentFake = [
             'head'    => [
@@ -221,18 +499,15 @@ class WikidataControllerTest extends TestCase
                     'item',
                     'itemLabel',
                     'itemDescription',
-                    'instanceUrls',
-                    'instanceLabels',
-                    'coordinates',
-                    'imageUrl',
-                    'source',
-                    'sourceAuthorLabels',
-                    'sourceLabel',
-                    'sourcePublisherCityLabel',
-                    'sourcePublisherLabel',
-                    'sourcePublicationYear',
-                    'sourcePages',
-                    'sourceDnbLink',
+                    'property',
+                    'statement',
+                    'propertyValue',
+                    'propertyValueLabel',
+                    'propertyTimePrecision',
+                    'qualifier',
+                    'qualifierValue',
+                    'qualifierValueLabel',
+                    'qualifierTimePrecision',
                 ],
             ],
             'results' => [
@@ -240,15 +515,65 @@ class WikidataControllerTest extends TestCase
             ],
         ];
 
+        Http::fake(
+            [
+                config('wikidata.url') . '*' => Http::response($responseContentFake, Response::HTTP_OK),
+            ]
+        );
+
+        Log::shouldReceive('warning')->never();
+
+        $this->get('/api/wikidata/places')
+            ->assertStatus(Response::HTTP_OK)
+            ->assertExactJson($expectedResponse);
+    }
+
+    /**
+     * Test get Wikidata places successfully request, but one place has instance, where no group assignment exists.
+     */
+    public function testPlaceToGroupAssignmentNotFound()
+    {
+        $placeDataArray = [];
         $expectedResponse = [
             'events'                  => [],
-            'fieldOffices'            => [],
             'extPolicePrisons'        => [],
+            'fieldOffices'            => [],
             'laborEducationCamps'     => [],
             'memorials'               => [],
             'prisons'                 => [],
             'statePoliceHeadquarters' => [],
-            'statePoliceOffices'      => [$expectedFilteredPlaceData[0]],
+            'statePoliceOffices'      => [],
+        ];
+
+        // valid instance id Q108047541 of group fieldOffices
+        [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q1', 'Q108047541');
+        $placeDataArray[] = $placeInstanceData;
+        $expectedResponse['fieldOffices'] = $expectedPlaceInstanceData;
+
+        // invalid instance id Q987654321
+        [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q2', 'Q111111111');
+        $placeDataArray[] = $placeInstanceData;
+
+        $responseContentFake = [
+            'head'    => [
+                'vars' => [
+                    'item',
+                    'itemLabel',
+                    'itemDescription',
+                    'property',
+                    'statement',
+                    'propertyValue',
+                    'propertyValueLabel',
+                    'propertyTimePrecision',
+                    'qualifier',
+                    'qualifierValue',
+                    'qualifierValueLabel',
+                    'qualifierTimePrecision',
+                ],
+            ],
+            'results' => [
+                'bindings' => $placeDataArray,
+            ],
         ];
 
         Http::fake(
@@ -260,8 +585,8 @@ class WikidataControllerTest extends TestCase
         Log::shouldReceive('warning')->once()->with(
             'The location cannot be assigned to a map marker category based on its Wikidata instances.',
             [
-                'instanceQIds' => $expectedFilteredPlaceData[1]['instanceUrls']['value'],
-                'placeQId'     => $expectedFilteredPlaceData[1]['item']['value'],
+                'instanceIds' => ['Q111111111'],
+                'locationId'  => 'Q2',
             ]
         );
 
@@ -313,18 +638,15 @@ class WikidataControllerTest extends TestCase
                     'item',
                     'itemLabel',
                     'itemDescription',
-                    'instanceUrls',
-                    'instanceLabels',
-                    'coordinates',
-                    'imageUrl',
-                    'source',
-                    'sourceAuthorLabels',
-                    'sourceLabel',
-                    'sourcePublisherCityLabel',
-                    'sourcePublisherLabel',
-                    'sourcePublicationYear',
-                    'sourcePages',
-                    'sourceDnbLink',
+                    'property',
+                    'statement',
+                    'propertyValue',
+                    'propertyValueLabel',
+                    'propertyTimePrecision',
+                    'qualifier',
+                    'qualifierValue',
+                    'qualifierValueLabel',
+                    'qualifierTimePrecision',
                 ],
             ],
             'results' => [
@@ -357,69 +679,60 @@ class WikidataControllerTest extends TestCase
     public function providePlacePropertiesTestData() : array
     {
         return [
-            'removed property item' => [
+            'removed data header' => [
                 [
                     //'item',
                     'itemLabel',
                     'itemDescription',
-                    'instanceUrls',
-                    'instanceLabels',
-                    'coordinates',
-                    'imageUrl',
-                    'source',
-                    'sourceAuthorLabels',
-                    'sourceLabel',
-                    'sourcePublisherCityLabel',
-                    'sourcePublisherLabel',
-                    'sourcePublicationYear',
-                    'sourcePages',
-                    'sourceDnbLink',
+                    'property',
+                    'statement',
+                    'propertyValue',
+                    'propertyValueLabel',
+                    'propertyTimePrecision',
+                    'qualifier',
+                    'qualifierValue',
+                    'qualifierValueLabel',
+                    'qualifierTimePrecision',
                 ],
                 [
-                    'The head.vars must contain 15 items.',
+                    'The head.vars must contain 12 items.',
                 ],
             ],
-            'added property item'   => [
+            'added data header'   => [
                 [
                     'test', // added
                     'item',
                     'itemLabel',
                     'itemDescription',
-                    'instanceUrls',
-                    'instanceLabels',
-                    'coordinates',
-                    'imageUrl',
-                    'source',
-                    'sourceAuthorLabels',
-                    'sourceLabel',
-                    'sourcePublisherCityLabel',
-                    'sourcePublisherLabel',
-                    'sourcePublicationYear',
-                    'sourcePages',
-                    'sourceDnbLink',
+                    'property',
+                    'statement',
+                    'propertyValue',
+                    'propertyValueLabel',
+                    'propertyTimePrecision',
+                    'qualifier',
+                    'qualifierValue',
+                    'qualifierValueLabel',
+                    'qualifierTimePrecision',
                 ],
                 [
-                    'The head.vars must contain 15 items.',
+                    'The head.vars must contain 12 items.',
                     'The selected head.vars is invalid.',
                 ],
             ],
-            'renamed property item' => [
+            'renamed data header' => [
                 [
                     'itemRenamed', // renamed
                     'itemLabel',
                     'itemDescription',
-                    'instanceUrls',
-                    'instanceLabels',
-                    'coordinates',
-                    'imageUrl',
-                    'source',
-                    'sourceAuthorLabels',
-                    'sourceLabel',
-                    'sourcePublisherCityLabel',
-                    'sourcePublisherLabel',
-                    'sourcePublicationYear',
-                    'sourcePages',
-                    'sourceDnbLink',
+                    'property',
+                    'statement',
+                    'propertyValue',
+                    'propertyValueLabel',
+                    'propertyTimePrecision',
+                    'qualifier',
+                    'qualifierValue',
+                    'qualifierValueLabel',
+                    'qualifierTimePrecision',
                 ],
                 [
                     'The selected head.vars is invalid.',
@@ -433,21 +746,22 @@ class WikidataControllerTest extends TestCase
      *
      * @dataProvider providePlacePropertiesTestData
      *
-     * @param array $responsePlaceProperties Returned response place properties
+     * @param array $responsePlaceProperties  Returned response place properties
      * @param array $failedValidationMessages Expected failed validation messages
      */
     public function testGetWikidataPlacesValidationForProperties(
         array $responsePlaceProperties,
         array $failedValidationMessages
     ) {
-        $placeData = $this->generatePlaceData([Arr::random(WikidataClient::PLACE_GROUPS_IDS['statePoliceOffices'])]);
+        $instanceId = Arr::random(WikidataClient::PLACE_GROUPS_IDS['statePoliceOffices']);
+        [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q1', $instanceId);
 
         $responseNoDataReturned = [
             'head'    => [
                 'vars' => $responsePlaceProperties,
             ],
             'results' => [
-                'bindings' => [$placeData],
+                'bindings' => [$placeInstanceData],
             ],
         ];
 

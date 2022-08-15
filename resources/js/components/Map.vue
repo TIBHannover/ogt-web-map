@@ -6,11 +6,12 @@
         ></map-options-sidebar>
 
         <place-info-sidebar
-            :selectedPlaceInfo="selectedPlaceInfo"
+            :selectedPlace="selectedPlace"
             :showPlaceInfoSidebar="showPlaceInfoSidebar"
             @hidePlaceInfoSidebar="toggleShowPlaceInfoSidebar(false)"
+            @switchLocation="switchLocation"
             @undoZoomIntoPlace="restoreCachedMapView()"
-            @zoomIntoPlace="setMapView(selectedPlaceInfo.latLng, 18, true)"
+            @zoomIntoPlace="setMapView(selectedPlace.latLng, 18, true)"
         ></place-info-sidebar>
 
         <!-- leaflet map -->
@@ -104,28 +105,124 @@ export default {
                 },
             },
             layers: null,
+            locationMarkers: [],
             map: null,
-            selectedPlaceInfo: {
+            selectedPlace: {
+                addresses: {
+                    additional: [{
+                        endDate: {
+                            locale: '',
+                            value: null,
+                        },
+                        label: '',
+                        latLng: {
+                            lat: 0,
+                            lng: 0,
+                        },
+                        startDate: {
+                            locale: '',
+                            value: null,
+                        },
+                    }],
+                    selected: {
+                        endDate: {
+                            locale: '',
+                            value: null,
+                        },
+                        label: '',
+                        latLng: {
+                            lat: 0,
+                            lng: 0,
+                        },
+                        startDate: {
+                            locale: '',
+                            value: null,
+                        },
+                    },
+                },
+                childOrganizations: [{
+                    hasLocationMarker: false,
+                    id: '',
+                    label: '',
+                }],
                 description: '',
-                imageUrl: '',
-                instanceLabels: '',
+                directors: [{
+                    endDate: {
+                        locale: '',
+                        value: null,
+                    },
+                    maxStartDate: {
+                        locale: '',
+                        value: null,
+                    },
+                    minEndDate: {
+                        locale: '',
+                        value: null,
+                    },
+                    name: '',
+                    startDate: {
+                        locale: '',
+                        value: null,
+                    },
+                }],
+                dissolvedDate: {
+                    locale: '',
+                    value: null,
+                },
+                employeeCounts: [{
+                    pointInTime: {
+                        locale: '',
+                        value: null,
+                    },
+                    sourcingCircumstance: '',
+                    value: 0,
+                }],
+                events: [{
+                    label: '',
+                }],
+                id: '',
+                inceptionDate: {
+                    locale: '',
+                    value: null,
+                },
                 label: '',
                 // Leaflet LatLng geographical point object
                 latLng: {
                     lat: 0,
                     lng: 0,
                 },
-                // additional Leaflet LatLng geographical point objects of the place
-                latLngAlt: [],
                 layerName: '',
-                sources: [{
-                    dnbUrl: '',
+                mainImageUrl: '',
+                mainImageLegend: '',
+                parentOrganizations: [{
+                    hasLocationMarker: false,
+                    id: '',
                     label: '',
-                    wikidataUrl: '',
                 }],
-                wikidataItem: '',
+                predecessors: [{
+                    hasLocationMarker: false,
+                    id: '',
+                    label: '',
+                }],
+                prisonerCounts: [{
+                    sourcingCircumstance: '',
+                    value: 0,
+                }],
+                sources: [{
+                    label: '',
+                    pages: '',
+                }],
+                successors: [{
+                    hasLocationMarker: false,
+                    id: '',
+                    label: '',
+                }],
             },
             showPlaceInfoSidebar: false,
+            sourceCircumstances: {
+                Q5727902: 'ca.',
+                Q47035128: '>',
+            },
         };
     },
     created() {
@@ -200,36 +297,35 @@ export default {
                 shadowSize: [76, 52], // default [41, 41]
             });
 
-            places.forEach(place => {
-                let countedPlaceCoordinates = place.coordinates.length;
+            for (const [placeId, place] of Object.entries(places)) {
+                let countedPlaceCoordinates = Object.keys(place.coordinates).length;
+                let coordinatesIndex = 0;
+                this.locationMarkers[placeId] = [];
 
-                place.coordinates.forEach((placeCoordinate, placeCoordinateIndex) => {
-                    let marker = L.marker(placeCoordinate, {
+                for (const [statementId, placeCoordinate] of Object.entries(place.coordinates)) {
+                    let marker = L.marker(placeCoordinate.value, {
                         icon: defaultIcon,
-                        title: place.itemLabel.value,
+                        title: place.label,
                     });
 
                     let markerPopUpHtmlTemplate = `
                         <div class="popUpTopic">
-                            <a href="${place.item.value}" target="_blank">
-                                ${place.itemLabel.value}
+                            <a href="https://www.wikidata.org/wiki/${placeId}" target="_blank">
+                                ${place.label}
                             </a>
                             <button class="zoomInButton">
                                 &#x1f50d;
                             </button>
                         </div>
-                        <div class="popUpTopicCategory">
-                            ${place.instanceLabels.value}
-                        </div>
                         <br>
-                        ${place.itemDescription ? place.itemDescription.value : ''}`;
+                        ${place.description}`;
 
                     marker.bindPopup(markerPopUpHtmlTemplate, {
                         minWidth: 333,
                     });
 
                     marker.on('click', event => {
-                        this.setSelectedPlaceInfo(place, event.latlng, this.groupedPlaces[placeGroupName].layerName);
+                        this.setSelectedPlace(place, event.latlng, this.groupedPlaces[placeGroupName].layerName);
                         this.toggleShowPlaceInfoSidebar(true);
 
                         const zoomInButton = marker.getPopup().getElement().getElementsByClassName('zoomInButton')[0];
@@ -243,19 +339,21 @@ export default {
 
                     placeMarkers.push(marker);
 
-                    let placeLabelWithIndex = place.itemLabel.value;
+                    let placeLabelWithIndex = place.label;
 
                     if (countedPlaceCoordinates > 1) {
-                        placeLabelWithIndex += ' (' + (placeCoordinateIndex + 1) + ')';
+                        placeLabelWithIndex += ' (' + (++coordinatesIndex) + ')';
                     }
+
+                    this.locationMarkers[placeId][Object.values(placeCoordinate.value).join(',')] = marker;
 
                     this.groupedPlaces[placeGroupName]['placesByCoordinates'].push({
                         placeLabelWithIndex: placeLabelWithIndex,
-                        latLng: placeCoordinate,
+                        latLng: placeCoordinate.value,
                         marker: marker,
                     });
-                });
-            });
+                };
+            }
 
             return placeMarkers;
         },
@@ -266,51 +364,432 @@ export default {
          * @param object latLng Leaflet LatLng geographical point object
          * @param string layerName Name of layer group
          */
-        setSelectedPlaceInfo: function (place, latLng, layerName) {
-            this.selectedPlaceInfo.description = place.itemDescription ? place.itemDescription.value : '';
-            this.selectedPlaceInfo.imageUrl = place.imageUrl ? place.imageUrl.value : '';
-            this.selectedPlaceInfo.instanceLabels = place.instanceLabels.value;
-            this.selectedPlaceInfo.label = place.itemLabel.value;
-            this.selectedPlaceInfo.layerName = layerName;
-            this.selectedPlaceInfo.wikidataItem = place.item.value;
+        setSelectedPlace: function (place, latLng, layerName) {
+            this.selectedPlace.description = place.description;
+            this.selectedPlace.label = place.label;
+            this.selectedPlace.layerName = layerName;
+            this.selectedPlace.id = place.id;
+            this.selectedPlace.latLng = latLng;
 
-            let altCoordinates = [];
+            this.selectedPlace.mainImageUrl = '';
+            this.selectedPlace.mainImageLegend = '';
 
-            if (place.coordinates.length > 1) {
-                altCoordinates = place.coordinates.filter(function (coordinate) {
-                    if (coordinate.lat == latLng.lat && coordinate.lng == latLng.lng) {
-                        return false;
+            const imageKeys = place.images ? Object.keys(place.images) : [];
+            const imagesCounted = imageKeys.length;
+
+            if (imagesCounted == 1) {
+                // case: only one location image available, show this
+                this.selectedPlace.mainImageUrl = place.images[imageKeys[0]].value;
+                this.selectedPlace.mainImageLegend =
+                    place.images[imageKeys[0]].mediaLegend ? place.images[imageKeys[0]].mediaLegend.value : '';
+            }
+            else if (imagesCounted > 1) {
+                // case: multiple images available for location, show image that belongs to coordinates, otherwise none
+                imageKeys.some((imageKey) => {
+                    let image = place.images[imageKey];
+
+                    if (image.coordinate &&
+                        image.coordinate.value.lat == latLng.lat &&
+                        image.coordinate.value.lng == latLng.lng
+                    ) {
+                        this.selectedPlace.mainImageUrl = image.value;
+                        this.selectedPlace.mainImageLegend = image.mediaLegend ? image.mediaLegend.value : '';
+                        return true;
                     }
-
-                    return true;
                 });
             }
-            this.selectedPlaceInfo.latLngAlt = altCoordinates;
-            this.selectedPlaceInfo.latLng = latLng;
 
-            this.selectedPlaceInfo.sources = [];
-            if (place.source) {
-                this.selectedPlaceInfo.sources = [{
-                    dnbUrl: '',
-                    label: '',
-                    wikidataUrl: '',
-                }];
+            this.selectedPlace.inceptionDate = {
+                locale: '',
+                value: null,
+            };
 
-                let sourceAuthorLabels = place.sourceAuthorLabels.value ? place.sourceAuthorLabels.value + ', ' : '';
-                let sourceLabel = place.sourceLabel ? place.sourceLabel.value + '. ' : '';
-                let sourcePublisherCityLabel = place.sourcePublisherCityLabel ? place.sourcePublisherCityLabel.value + ': ' : '';
-                let sourcePublisherLabel = place.sourcePublisherLabel ? place.sourcePublisherLabel.value + ' ' : '';
-                let sourcePublicationYear = place.sourcePublicationYear ? place.sourcePublicationYear.value + ', ' : '';
-                let sourcePages = place.sourcePages ? 'S. ' + place.sourcePages.value : '';
-                this.selectedPlaceInfo.sources[0].label =
-                    sourceAuthorLabels +
-                    sourceLabel +
-                    sourcePublisherCityLabel +
-                    sourcePublisherLabel +
-                    sourcePublicationYear +
-                    sourcePages;
-                this.selectedPlaceInfo.sources[0].dnbUrl = place.sourceDnbLink ? 'https://d-nb.info/' + place.sourceDnbLink.value : '';
-                this.selectedPlaceInfo.sources[0].wikidataUrl = place.source ? place.source.value : '';
+            if (place.inceptionDates) {
+                for (const [statementId, inceptionDate] of Object.entries(place.inceptionDates)) {
+                    this.selectedPlace.inceptionDate = this.getDate(inceptionDate.value, inceptionDate.datePrecision);
+                    break;
+                }
+            }
+
+            this.selectedPlace.dissolvedDate = {
+                locale: '',
+                value: null,
+            };
+
+            if (place.dissolvedDates) {
+                for (const [statementId, dissolvedDate] of Object.entries(place.dissolvedDates)) {
+                    this.selectedPlace.dissolvedDate = this.getDate(dissolvedDate.value, dissolvedDate.datePrecision);
+                    break;
+                }
+            }
+
+            this.selectedPlace.addresses = {
+                additional: [],
+                selected: null,
+            };
+
+            // add location coordinates and related additional information to location address data
+            for (const [statementId, coordinate] of Object.entries(place.coordinates)) {
+                let label = coordinate.streetAddress ? coordinate.streetAddress.value : '';
+
+                let startDate = coordinate.startTime ?
+                    this.getDate(coordinate.startTime.value, coordinate.startTime.datePrecision) : null;
+
+                let endDate = coordinate.endTime ?
+                    this.getDate(coordinate.endTime.value, coordinate.endTime.datePrecision) : null;
+
+                let address = {
+                    endDate: endDate,
+                    label: label,
+                    latLng: coordinate.value,
+                    startDate: startDate,
+                };
+
+                if (coordinate.value.lat == latLng.lat || coordinate.value.lng == latLng.lng) {
+                    this.selectedPlace.addresses.selected = address;
+                }
+                else {
+                    this.selectedPlace.addresses.additional.push(address);
+                }
+            }
+
+            // merge street addresses and related additional information with location address data
+            if (place.streetAddresses) {
+                let selectedAddress = this.selectedPlace.addresses.selected;
+                let additionalAddresses = this.selectedPlace.addresses.additional;
+
+                let streetAddressKeys = Object.keys(place.streetAddresses);
+
+                if (streetAddressKeys.length == 1 && additionalAddresses.length == 0) {
+                    // case: automatically merge address data, if location has only one coordinate and one street address
+                    let address = place.streetAddresses[streetAddressKeys[0]];
+
+                    if (selectedAddress.label == '') {
+                        selectedAddress.label = address.value;
+                    }
+
+                    if (address.startTime) {
+                        selectedAddress.startDate = this.getDate(address.startTime.value, address.startTime.datePrecision);
+                    }
+
+                    if (address.endTime) {
+                        selectedAddress.endDate = this.getDate(address.endTime.value, address.endTime.datePrecision);
+                    }
+                }
+                else {
+                    streetAddressKeys.forEach((addressKey) => {
+                        let streetAddress = place.streetAddresses[addressKey];
+
+                        let startDate = streetAddress.startTime ?
+                            this.getDate(streetAddress.startTime.value, streetAddress.startTime.datePrecision) : null;
+
+                        let endDate = streetAddress.endTime ?
+                            this.getDate(streetAddress.endTime.value, streetAddress.endTime.datePrecision) : null;
+
+                        if (streetAddress.value == selectedAddress.label) {
+                            // case: street address is selected address
+                            if (startDate) {
+                                selectedAddress.startDate = startDate;
+                            }
+
+                            if (endDate) {
+                                selectedAddress.endDate = endDate;
+                            }
+                        }
+                        else {
+                            let foundAdditionalAddress = false;
+
+                            // find street address within additional addresses and update dates
+                            additionalAddresses.some((additionalAddress) => {
+                                if (streetAddress.value == additionalAddress.label) {
+                                    foundAdditionalAddress = true;
+
+                                    if (startDate) {
+                                        additionalAddress.startDate = startDate;
+                                    }
+
+                                    if (endDate) {
+                                        additionalAddress.endDate = endDate;
+                                    }
+
+                                    return true;
+                                }
+                            });
+
+                            if (! foundAdditionalAddress) {
+                                // case: street address not found in additional addresses, so add it
+                                additionalAddresses.push({
+                                    endDate: endDate,
+                                    label: streetAddress.value,
+                                    latLng: null,
+                                    startDate: startDate,
+                                });
+                            }
+                        }
+                    });
+                }
+            }
+
+            this.selectedPlace.addresses.additional.sort(this.sortByDate);
+
+            this.selectedPlace.employeeCounts = [];
+
+            if (place.employeeCounts) {
+                for (const [statementId, employeeCount] of Object.entries(place.employeeCounts)) {
+                    let pointInTime = employeeCount.pointInTime ?
+                        this.getDate(employeeCount.pointInTime.value, employeeCount.pointInTime.datePrecision) : null;
+
+                    let sourcingCircumstance = '';
+                    if (employeeCount.sourcingCircumstance && employeeCount.sourcingCircumstance.id in this.sourceCircumstances) {
+                        sourcingCircumstance = this.sourceCircumstances[employeeCount.sourcingCircumstance.id];
+                    }
+
+                    this.selectedPlace.employeeCounts.push({
+                        pointInTime: pointInTime,
+                        sourcingCircumstance: sourcingCircumstance,
+                        value: employeeCount.value,
+                    });
+                }
+
+                this.selectedPlace.employeeCounts.sort(this.sortByPointInTime);
+            }
+
+            this.selectedPlace.directors = [];
+
+            if (place.directors) {
+                for (const [statementId, director] of Object.entries(place.directors)) {
+                    let startDate = null;
+
+                    if (director.startTime) {
+                        startDate = this.getDate(director.startTime.value, director.startTime.datePrecision);
+                    }
+                    else if (director.earliestDate) {
+                        startDate = this.getDate(director.earliestDate.value, director.earliestDate.datePrecision);
+                    }
+
+                    let maxStartDate = director.latestStartDate ?
+                        this.getDate(director.latestStartDate.value, director.latestStartDate.datePrecision) : null;
+
+                    let endDate = null;
+
+                    if (director.endTime) {
+                        endDate = this.getDate(director.endTime.value, director.endTime.datePrecision);
+                    }
+                    else if (director.latestDate) {
+                        endDate = this.getDate(director.latestDate.value, director.latestDate.datePrecision);
+                    }
+
+                    let minEndDate = director.earliestEndDate ?
+                        this.getDate(director.earliestEndDate.value, director.earliestEndDate.datePrecision) : null;
+
+                    this.selectedPlace.directors.push({
+                        endDate: endDate,
+                        maxStartDate: maxStartDate,
+                        minEndDate: minEndDate,
+                        name: director.value,
+                        startDate: startDate,
+                    });
+                }
+
+                this.selectedPlace.directors.sort(this.sortByDate);
+            }
+
+            this.selectedPlace.prisonerCounts = [];
+
+            if (place.prisonerCounts) {
+                for (const [statementId, prisonerCount] of Object.entries(place.prisonerCounts)) {
+                    let sourcingCircumstance = '';
+                    if (prisonerCount.sourcingCircumstance && prisonerCount.sourcingCircumstance.id in this.sourceCircumstances) {
+                        sourcingCircumstance = this.sourceCircumstances[prisonerCount.sourcingCircumstance.id];
+                    }
+
+                    this.selectedPlace.prisonerCounts.push({
+                        sourcingCircumstance: sourcingCircumstance,
+                        value: prisonerCount.value,
+                    });
+                }
+            }
+
+            this.selectedPlace.events = [];
+
+            if (place.significantEvents) {
+                for (const [statementId, significantEvent] of Object.entries(place.significantEvents)) {
+                    this.selectedPlace.events.push({
+                        label: significantEvent.value,
+                    });
+                }
+            }
+
+            this.selectedPlace.parentOrganizations = [];
+
+            if (place.parentOrganizations) {
+                for (const [statementId, parentOrganization] of Object.entries(place.parentOrganizations)) {
+                    let hasLocationMarker = this.locationMarkers[parentOrganization.id] ? true : false;
+
+                    this.selectedPlace.parentOrganizations.push({
+                        hasLocationMarker: hasLocationMarker,
+                        id: parentOrganization.id,
+                        label: parentOrganization.value,
+                    });
+                }
+            }
+
+            this.selectedPlace.childOrganizations = [];
+
+            if (place.subsidiaries) {
+                for (const [statementId, subsidiary] of Object.entries(place.subsidiaries)) {
+                    let hasLocationMarker = this.locationMarkers[subsidiary.id] ? true : false;
+
+                    this.selectedPlace.childOrganizations.push({
+                        hasLocationMarker: hasLocationMarker,
+                        id: subsidiary.id,
+                        label: subsidiary.value,
+                    });
+                }
+            }
+
+            this.selectedPlace.predecessors = [];
+
+            if (place.replaces) {
+                for (const [statementId, replace] of Object.entries(place.replaces)) {
+                    let hasLocationMarker = this.locationMarkers[replace.id] ? true : false;
+
+                    this.selectedPlace.predecessors.push({
+                        hasLocationMarker: hasLocationMarker,
+                        id: replace.id,
+                        label: replace.value,
+                    });
+                }
+            }
+
+            this.selectedPlace.successors = [];
+
+            if (place.replacedBys) {
+                for (const [statementId, replacedBy] of Object.entries(place.replacedBys)) {
+                    let hasLocationMarker = this.locationMarkers[replacedBy.id] ? true : false;
+
+                    this.selectedPlace.successors.push({
+                        hasLocationMarker: hasLocationMarker,
+                        id: replacedBy.id,
+                        label: replacedBy.value,
+                    });
+                }
+            }
+
+            this.selectedPlace.sources = [];
+            if (place.describedBySources) {
+                for (const [statementId, describedBySource] of Object.entries(place.describedBySources)) {
+                    this.selectedPlace.sources.push({
+                        label: describedBySource.value,
+                        pages: describedBySource.pages ? describedBySource.pages.value : '',
+                    });
+                }
+            }
+        },
+        /**
+         * Get locale date string base on Wikidata time precision.
+         *
+         * @param {string} dateTimeString   Wikidata datetime
+         * @param {int} datePrecision       9 => year precision, 10 => month precision, 11 => day precision
+         * @param {string} locale           default 'de-de'
+         *
+         * @returns {{locale: string, value: Date}|null}
+         */
+        getDate: function (dateTimeString, datePrecision, locale = 'de-de') {
+            let dateFormatOptions = {};
+
+            switch (datePrecision) {
+                case '9':
+                    dateFormatOptions = {
+                        year: 'numeric',
+                    };
+                    break;
+
+                case '10':
+                    dateFormatOptions = {
+                        year: 'numeric',
+                        month: 'short',
+                    };
+                    break;
+
+                case '11':
+                    dateFormatOptions = {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                    };
+                    break;
+
+                default:
+                    return null;
+            }
+
+            let date = new Date(dateTimeString);
+
+            return {
+                locale: date.toLocaleDateString(locale, dateFormatOptions),
+                value: date,
+            };
+        },
+        /**
+         * Compare items by date, used by sort array items, for e.g. addresses.
+         *
+         * @param {object} itemA The first element for comparison.
+         * @param {object} itemB The second element for comparison.
+         *
+         * @returns {number}     > 0 sort A after B
+         *                       < 0  sort A before B
+         *                       === 0 keep original order of A and B
+         */
+        sortByDate: function (itemA, itemB) {
+            if (itemA.startDate && itemB.startDate) {
+                return itemA.startDate.value.getTime() - itemB.startDate.value.getTime();
+            }
+            else if (itemA.endDate && itemB.endDate) {
+                return itemA.endDate.value.getTime() - itemB.endDate.value.getTime();
+            }
+            else if (itemA.startDate && itemB.endDate) {
+                return itemA.startDate.value.getTime() - itemB.endDate.value.getTime();
+            }
+            else if (itemA.endDate && itemB.startDate) {
+                return itemA.endDate.value.getTime() - itemB.startDate.value.getTime();
+            }
+            else if (itemA.startDate || itemA.endDate) {
+                // case: only item A has a date
+                return -1;
+            }
+            else if (itemB.startDate || itemB.endDate) {
+                // case: only item B has a date
+                return 1;
+            }
+            else {
+                return 0;
+            }
+        },
+        /**
+         * Compare items by a point in time, used by sort array items, for e.g. number of employees.
+         *
+         * @param {object} itemA The first element for comparison.
+         * @param {object} itemB The second element for comparison.
+         *
+         * @returns {number}     > 0 sort A after B
+         *                       < 0  sort A before B
+         *                       === 0 keep original order of A and B
+         */
+        sortByPointInTime: function (itemA, itemB) {
+            if (itemA.pointInTime && itemB.pointInTime) {
+                return itemA.pointInTime.value.getTime() - itemB.pointInTime.value.getTime();
+            }
+            else if (itemA.pointInTime) {
+                // case: only item A has a point in time
+                return -1;
+            }
+            else if (itemB.pointInTime) {
+                // case: only item B has a point in time
+                return 1;
+            }
+            else {
+                return 0;
             }
         },
         /**
@@ -325,6 +804,34 @@ export default {
             layerGroup.addTo(this.map);
             this.layers.addOverlay(layerGroup, this.groupedPlaces[placeGroupName].layerName);
             this.groupedPlaces[placeGroupName].layerGroup = layerGroup;
+        },
+        /**
+         * Switch location on map and location info.
+         *
+         * @param {string}      locationId
+         * @param {object|null} latLng      default null
+         */
+        switchLocation: function ({locationId, latLng = null}) {
+            let locationMarker = null;
+
+            if (latLng) {
+                locationMarker = this.locationMarkers[locationId][Object.values(latLng).join(',')];
+            }
+            else {
+                let locationMarkerLatLng = Object.keys(this.locationMarkers[locationId])[0];
+                locationMarker = this.locationMarkers[locationId][locationMarkerLatLng];
+                latLng = locationMarker.getLatLng();
+            }
+
+            // workaround to bring a marker icon to foreground when multiple markers overlap on same coordinates
+            locationMarker.remove();
+            locationMarker.addTo(this.map);
+
+            this.map.flyTo(latLng);
+
+            locationMarker.fire('click', {
+                latlng: latLng,
+            });
         },
         /**
          * Show/Hide place info sidebar.
