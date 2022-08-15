@@ -65,9 +65,9 @@ export default {
         checkedPlaceLayerGroups(newCheckedPlaceLayerGroups, oldCheckedPlaceLayerGroups) {
             for (const [group, places] of Object.entries(this.groupedPlaces)) {
                 if (newCheckedPlaceLayerGroups.includes(group)) {
-                    this.groupedPlaces[group].layerGroup.addTo(this.map);
+                    places.layerGroup.addTo(this.map);
                 } else {
-                    this.groupedPlaces[group].layerGroup.remove();
+                    places.layerGroup.remove();
                 }
             }
         },

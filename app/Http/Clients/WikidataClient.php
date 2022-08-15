@@ -6,6 +6,7 @@ namespace App\Http\Clients;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * Query Wikidata.
@@ -48,24 +49,42 @@ class WikidataClient
     ];
 
     /**
-     * Properties of a queried Wikidata place.
+     * Wikidata's properties of a queried locations and associated property labels.
      */
-    const PLACE_PROPERTIES = [
-        'item',
-        'itemLabel',
-        'itemDescription',
-        'instanceUrls',
-        'instanceLabels',
-        'coordinates',
-        'imageUrl',
-        'source',
-        'sourceAuthorLabels',
-        'sourceLabel',
-        'sourcePublisherCityLabel',
-        'sourcePublisherLabel',
-        'sourcePublicationYear',
-        'sourcePages',
-        'sourceDnbLink',
+    const PROPERTY_LABEL_OF_ID = [
+        'P18'   => 'images',                // https://www.wikidata.org/wiki/Property:P18
+        'P31'   => 'instances',             // https://www.wikidata.org/wiki/Property:P31
+        'P355'  => 'subsidiaries',          // https://www.wikidata.org/wiki/Property:P355
+        'P571'  => 'inceptionDates',        // https://www.wikidata.org/wiki/Property:P571
+        'P576'  => 'dissolvedDates',        // https://www.wikidata.org/wiki/Property:P576
+        'P625'  => 'coordinates',           // https://www.wikidata.org/wiki/Property:P625
+        'P749'  => 'parentOrganizations',   // https://www.wikidata.org/wiki/Property:P749
+        'P793'  => 'significantEvents',     // https://www.wikidata.org/wiki/Property:P793
+        'P1037' => 'directors',             // https://www.wikidata.org/wiki/Property:P1037
+        'P1128' => 'employeeCounts',        // https://www.wikidata.org/wiki/Property:P1128
+        'P1343' => 'describedBySources',    // https://www.wikidata.org/wiki/Property:P1343
+        'P1365' => 'replaces',              // https://www.wikidata.org/wiki/Property:P1365
+        'P1366' => 'replacedBys',           // https://www.wikidata.org/wiki/Property:P1366
+        'P5630' => 'prisonerCounts',        // https://www.wikidata.org/wiki/Property:P5630
+        'P6375' => 'streetAddresses',       // https://www.wikidata.org/wiki/Property:P6375
+    ];
+
+    /**
+     * Wikidata's qualifiers of a queried locations and associated qualifier labels.
+     */
+    const QUALIFIER_LABEL_OF_ID = [
+        'P304'  => 'pages',                 // https://www.wikidata.org/wiki/Property:P304
+        'P580'  => 'startTime',             // https://www.wikidata.org/wiki/Property:P580
+        'P582'  => 'endTime',               // https://www.wikidata.org/wiki/Property:P582
+        'P585'  => 'pointInTime',           // https://www.wikidata.org/wiki/Property:P585
+        'P625'  => 'coordinate',            // https://www.wikidata.org/wiki/Property:P625
+        'P1319' => 'earliestDate',          // https://www.wikidata.org/wiki/Property:P1319
+        'P1326' => 'latestDate',            // https://www.wikidata.org/wiki/Property:P1326
+        'P1480' => 'sourcingCircumstance',  // https://www.wikidata.org/wiki/Property:P1480
+        'P2096' => 'mediaLegend',           // https://www.wikidata.org/wiki/Property:P2096
+        'P6375' => 'streetAddress',         // https://www.wikidata.org/wiki/Property:P6375
+        'P8554' => 'earliestEndDate',       // https://www.wikidata.org/wiki/Property:P8554
+        'P8555' => 'latestStartDate',       // https://www.wikidata.org/wiki/Property:P8555
     ];
 
     /**
@@ -76,57 +95,62 @@ class WikidataClient
     public function queryPlaces() : array
     {
         $query = '
-            SELECT
-                ?item
-                ?itemLabel
-                ?itemDescription
-                (GROUP_CONCAT(DISTINCT ?instance ; SEPARATOR="|") AS ?instanceUrls)
-                (GROUP_CONCAT(DISTINCT ?instanceLabel ; SEPARATOR=", ") AS ?instanceLabels)
-                (GROUP_CONCAT(DISTINCT CONCAT(STR(?lat), ",", STR(?lng)) ; SEPARATOR="|") AS ?coordinates)
-                (SAMPLE(?image) AS ?imageUrl)
-                ?source
-                (GROUP_CONCAT(DISTINCT ?sourceAuthorLabel ; SEPARATOR=" & ") AS ?sourceAuthorLabels)
-                ?sourceLabel
-                ?sourcePublisherCityLabel
-                ?sourcePublisherLabel
-                (YEAR(?sourcePublicationDate) AS ?sourcePublicationYear)
-                ?sourcePages
-                ?sourceDnbLink
+            SELECT 
+                ?item 
+                ?itemLabel 
+                ?itemDescription 
+                ?property 
+                ?statement 
+                ?propertyValue 
+                ?propertyValueLabel 
+                ?propertyTimePrecision 
+                ?qualifier 
+                ?qualifierValue 
+                ?qualifierValueLabel 
+                ?qualifierTimePrecision 
             WHERE {
-                ?item wdt:P31 wd:Q106996250;
-                    wdt:P31 ?instance;
-                    p:P625 ?itemGeo.
-                ?itemGeo psv:P625 ?geoNode.
-                ?geoNode wikibase:geoLatitude ?lat;
-                    wikibase:geoLongitude ?lng.
-                OPTIONAL { ?item wdt:P18 ?image }.
-                OPTIONAL {
-                    ?item p:P1343 ?sourceStatement.
-                    ?sourceStatement ps:P1343 ?source.
-                    OPTIONAL { ?sourceStatement pq:P304 ?sourcePages }.
-                    OPTIONAL { ?source wdt:P50 ?sourceAuthor }.
-                    OPTIONAL {
-                        ?source wdt:P123 ?sourcePublisher.
-                        OPTIONAL { ?sourcePublisher wdt:P131 ?sourcePublisherCity }.
-                    }.
-                    OPTIONAL { ?source wdt:P1292 ?sourceDnbLink }.
-                    OPTIONAL { ?source wdt:P577 ?sourcePublicationDate }.
-                }.
-                SERVICE wikibase:label {
-                    bd:serviceParam wikibase:language "de".
-                    ?item rdfs:label ?itemLabel.
-                    ?item schema:description ?itemDescription.
-                    ?instance rdfs:label ?instanceLabel.
-                    ?source rdfs:label ?sourceLabel.
-                    ?sourceAuthor rdfs:label ?sourceAuthorLabel.
-                    ?sourcePublisher rdfs:label ?sourcePublisherLabel.
-                    ?sourcePublisherCity rdfs:label ?sourcePublisherCityLabel.
+                ?item wdt:P31 wd:Q106996250.
+                FILTER(EXISTS { ?item wdt:P625 ?coordinateLocation. })
+                ?property wikibase:claim ?claim.
+                ?item ?claim ?statement.
+                {
+                    ?property wikibase:propertyType ?propertyType.
+                    FILTER(?property IN(
+                        wd:P18, wd:P31, wd:P355, wd:P625, wd:P749, wd:P793, wd:P1037, wd:P1128, wd:P1343, wd:P1365, 
+                        wd:P1366, wd:P5630, wd:P6375
+                    ))
+                    FILTER(?propertyType != wikibase:Time)
+                    ?property wikibase:statementProperty ?ps.
+                    ?statement ?ps ?propertyValue.
                 }
+                UNION
+                {
+                    ?property wikibase:statementValue ?psv.
+                    FILTER(?property IN(wd:P571, wd:P576))
+                    ?statement ?psv ?propertyValueNode.
+                    ?propertyValueNode wikibase:timeValue ?propertyValue;
+                        wikibase:timePrecision ?propertyTimePrecision.
+                }
+                OPTIONAL {
+                    {
+                        ?qualifier wikibase:propertyType ?qualifierType.
+                        FILTER(?qualifier IN(wd:P304, wd:P625, wd:P1480, wd:P2096, wd:P6375))
+                        FILTER(?qualifierType != wikibase:Time)
+                        ?qualifier wikibase:qualifier ?pq.      
+                        ?statement ?pq ?qualifierValue.
+                    }
+                    UNION
+                    {
+                        ?qualifier wikibase:qualifierValue ?pqv.
+                        FILTER(?qualifier IN(wd:P580, wd:P582, wd:P585, wd:P1319, wd:P1326, wd:P8554, wd:P8555))
+                        ?statement ?pqv ?qualifierValueNode.
+                        ?qualifierValueNode wikibase:timeValue ?qualifierValue;
+                            wikibase:timePrecision ?qualifierTimePrecision.
+                    }
+                }
+                SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". }
             }
-            GROUP BY
-                ?item ?itemLabel ?itemDescription ?source ?sourceLabel ?sourcePublisherCityLabel ?sourcePublisherLabel
-                ?sourcePublicationDate ?sourcePages ?sourceDnbLink
-            ORDER BY ?item';
+            ORDER BY (?item) (?property) (?statement)';
 
         return $this->requestWikidata($query);
     }
@@ -172,98 +196,163 @@ class WikidataClient
     }
 
     /**
-     * Filter Wikidata place data and group places by
-     * - Events
-     * - Extended police prisons / Labor education camps
-     * - Field Offices
-     * - Prisons
-     * - State Police Headquarters
-     * - State Police Offices
+     * Merge item data from Wikidata query response.
      *
-     * @param array $places
+     * @param array $queryData
+     *
      * @return array
      */
-    public function groupFilteredPlacesByType(array $places) : array
+    public function mergeItemsData(array $queryData) : array
     {
-        $groupedPlaces = array_fill_keys(array_keys(self::PLACE_GROUPS_IDS), []);
+        $items = [];
+        $currentItemId = '';
+        $currentPropertyId = '';
+        $currentStatementId = '';
+        $propertyLabel = '';
 
-        foreach ($places as $place) {
-            $updatedPlace = $this->convertPlaceData($this->filterPlaceData($place));
+        foreach ($queryData as $itemChunk)
+        {
+            $itemId = basename($itemChunk['item']['value']);
+            $propertyId = basename($itemChunk['property']['value']);
+            $statementId = basename($itemChunk['statement']['value']);
 
-            $instanceUrls = $updatedPlace['instanceUrls']['value'];
-            $instanceQIds = str_replace('http://www.wikidata.org/entity/', '', $instanceUrls);
-            $instanceQIdsArray = explode('|', $instanceQIds);
+            if ($itemId != $currentItemId)
+            {
+                //case: new item
+                $currentItemId = $itemId;
 
-            $foundGroupForPlace = false;
+                $items[$itemId]['id'] = $itemId;
+                $items[$itemId]['label'] = $itemChunk['itemLabel']['value'];
+                $items[$itemId]['description'] = $itemChunk['itemDescription']['value'] ?? '';
 
-            foreach ($groupedPlaces as $groupedPlaceName => $groupedPlace) {
-                if (count(array_intersect($instanceQIdsArray, self::PLACE_GROUPS_IDS[$groupedPlaceName])) > 0) {
-                    $groupedPlaces[$groupedPlaceName][] = $updatedPlace;
-                    $foundGroupForPlace = true;
+                $currentPropertyId = $propertyId;
+                $propertyLabel = self::PROPERTY_LABEL_OF_ID[$propertyId] ?? $propertyId;
+                $items[$itemId][$propertyLabel] = [];
+
+                $currentStatementId = $statementId;
+                $items[$itemId][$propertyLabel][$statementId] =
+                    $this->getItemValues($itemChunk, 'property', $propertyId);
+            }
+            elseif ($propertyId != $currentPropertyId)
+            {
+                //case: new property of previous item
+                $currentPropertyId = $propertyId;
+                $propertyLabel = self::PROPERTY_LABEL_OF_ID[$propertyId] ?? $propertyId;
+                $items[$itemId][$propertyLabel] = [];
+
+                $currentStatementId = $statementId;
+                $items[$itemId][$propertyLabel][$statementId] =
+                    $this->getItemValues($itemChunk, 'property', $propertyId);
+            }
+            elseif ($statementId != $currentStatementId)
+            {
+                // case: new statement of previous item property
+                $currentStatementId = $statementId;
+                $items[$itemId][$propertyLabel][$statementId] =
+                    $this->getItemValues($itemChunk, 'property', $propertyId);
+            }
+
+            // case: item has qualifier data
+            if (isset($itemChunk['qualifier']))
+            {
+                $qualifierId = basename($itemChunk['qualifier']['value']);
+                $qualifierLabel = self::QUALIFIER_LABEL_OF_ID[$qualifierId] ?? $qualifierId;
+
+                $items[$itemId][$propertyLabel][$statementId][$qualifierLabel] =
+                    $this->getItemValues($itemChunk, 'qualifier', $qualifierId);
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * Get a property/qualifier values for an item dataset.
+     *
+     * @param array  $itemChunk Item dataset
+     * @param string $chunkType Part of key to get property or qualifier values from item dataset
+     * @param string $chunkKey  ID of Wikidata property/qualifier
+     *
+     * @return array             Property or qualifier values of an item dataset
+     */
+    private function getItemValues(array $itemChunk, string $chunkType, string $chunkKey) : array
+    {
+        $itemValues = [];
+
+        $valueLabel = $itemChunk[$chunkType . 'ValueLabel']['value'];
+
+        // convert Wikidata coordinates format Point(9.731877 52.3669889)
+        if ($chunkKey == 'P625')
+        {
+            $coordinate = explode(' ', Str::between($valueLabel, '(', ')'));
+            $valueLabel = [
+                'lat' => $coordinate[1],
+                'lng' => $coordinate[0],
+            ];
+        }
+
+        $itemValues['value'] = $valueLabel;
+
+        $value = $itemChunk[$chunkType . 'Value']['value'];
+
+        if (Str::startsWith($value, 'http://www.wikidata.org/entity/Q'))
+        {
+            // case: property/qualifier value is a Wikidata item, so set item id
+            $itemValues['id'] = basename($value);
+        }
+        elseif (isset($itemChunk[$chunkType . 'TimePrecision']))
+        {
+            // case: property/qualifier value is a datetime => get time precision (9 => day, 10 => month, 11 => year)
+            $itemValues['datePrecision'] = $itemChunk[$chunkType . 'TimePrecision']['value'];
+        }
+
+        return $itemValues;
+    }
+
+    /**
+     * Group locations by item's instance-of IDs. Locations are assigned to the first location group found.
+     *
+     * @param array $locations
+     *
+     * @return array
+     */
+    public function groupLocationsByType(array $locations) : array
+    {
+        // return all location groups, even if empty
+        $groupedLocations = array_fill_keys(array_keys(self::PLACE_GROUPS_IDS), []);
+
+        foreach ($locations as $locationId => $location)
+        {
+            $instanceOfLabel = self::PROPERTY_LABEL_OF_ID['P31'];
+            $instanceIds = Arr::pluck($location[$instanceOfLabel], 'id');
+
+            $hasLocationGroup = false;
+
+            foreach (self::PLACE_GROUPS_IDS as $groupName => $groupIds)
+            {
+                if (! empty(array_intersect($instanceIds, $groupIds)))
+                {
+                    Arr::forget($location, $instanceOfLabel);
+                    $groupedLocations[$groupName][$locationId] = $location;
+                    $hasLocationGroup = true;
+
+                    // group each location into exactly one location group
+                    break;
                 }
             }
 
-            if (! $foundGroupForPlace) {
+            if (! $hasLocationGroup)
+            {
                 Log::warning(
                     'The location cannot be assigned to a map marker category based on its Wikidata instances.',
                     [
-                        'instanceQIds' => $instanceUrls,
-                        'placeQId'     => $updatedPlace['item']['value'],
+                        'instanceIds' => $instanceIds,
+                        'locationId'  => $locationId,
                     ]
                 );
             }
         }
 
-        return $groupedPlaces;
-    }
-
-    /**
-     * Filtering of the required place data.
-     *
-     * @param array $place
-     * @return array
-     */
-    private function filterPlaceData(array $place) : array
-    {
-        foreach ($place as $key => $placeData) {
-            $place[$key] = Arr::only($placeData, 'value');
-        }
-
-        return $place;
-    }
-
-    /**
-     * Conversion to the appropriate format for further processing.
-     *
-     * @param array $place
-     * @return array
-     */
-    private function convertPlaceData(array $place) : array
-    {
-        /* Example for location data with multiple coordinates
-           ... from Wikidata ...
-           [
-                'type' => 'literal',
-                'value' => '52.3667941,9.7448449240635|52.3642957,9.7473133',
-           ]
-           ... for Leaflet convert to ...
-           [
-                [lat => 52.3667941, lng => 9.7448449240635], [lat => 52.3642957, lng => 9.7473133],
-           ]
-        */
-        $coordinatesArray = explode('|', $place['coordinates']['value']);
-
-        foreach ($coordinatesArray as &$coordinate) {
-            $latLng = explode(',', $coordinate);
-
-            $coordinate = [
-                'lat' => $latLng[0],
-                'lng' => $latLng[1],
-            ];
-        }
-
-        $place['coordinates'] = $coordinatesArray;
-
-        return $place;
+        return $groupedLocations;
     }
 }
