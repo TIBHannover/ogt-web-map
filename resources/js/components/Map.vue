@@ -195,6 +195,7 @@ export default {
                 layerName: '',
                 mainImageUrl: '',
                 mainImageLegend: '',
+                operators: [],
                 parentOrganizations: [{
                     hasLocationMarker: false,
                     id: '',
@@ -694,6 +695,13 @@ export default {
                 for (const [statementId, website] of Object.entries(place.officialWebsite)) {
                     this.selectedPlace.website = website.value;
                     break;
+                }
+            }
+
+            this.selectedPlace.operators = [];
+            if (place.operators) {
+                for (const [statementId, operator] of Object.entries(place.operators)) {
+                    this.selectedPlace.operators.push(operator.value);
                 }
             }
         },
