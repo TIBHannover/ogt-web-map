@@ -56,6 +56,8 @@
                 v-if="gestapoPlaceGroups.includes(selectedPlace.groupName)"
                 :selectedPlace="selectedPlace"
                 @switchLocation="$emit('switchLocation', $event)"
+                @undoZoomIntoPlace="$emit('undoZoomIntoPlace')"
+                @zoomIntoPlace="$emit('zoomIntoPlace')"
             ></gestapo-place>
         </v-navigation-drawer>
     </div>
