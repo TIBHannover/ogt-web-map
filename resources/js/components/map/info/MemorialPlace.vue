@@ -32,6 +32,23 @@
             <v-divider></v-divider>
         </template>
 
+        <!-- has uses - https://www.wikidata.org/wiki/Property:P366 -->
+        <template v-if="selectedPlace.hasUses.length > 0">
+            <v-list-item dense>
+                <v-list-item-content>
+                    <v-list-item-title>Leistungen und Angebote</v-list-item-title>
+                    <v-list-item-subtitle>
+                        <ul class="hyphens-auto white-space-normal" lang="de">
+                            <li v-for="hasUse in selectedPlace.hasUses">
+                                {{ hasUse }}
+                            </li>
+                        </ul>
+                    </v-list-item-subtitle>
+                </v-list-item-content>
+            </v-list-item>
+            <v-divider></v-divider>
+        </template>
+
         <address-info
             :selectedPlace="selectedPlace"
             @switchLocation="$emit('switchLocation', $event)"

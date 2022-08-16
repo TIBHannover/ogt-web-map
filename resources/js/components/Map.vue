@@ -181,6 +181,7 @@ export default {
                     label: '',
                 }],
                 groupName: '',
+                hasUses: [],
                 id: '',
                 inceptionDate: {
                     locale: '',
@@ -702,6 +703,13 @@ export default {
             if (place.operators) {
                 for (const [statementId, operator] of Object.entries(place.operators)) {
                     this.selectedPlace.operators.push(operator.value);
+                }
+            }
+
+            this.selectedPlace.hasUses = [];
+            if (place.hasUses) {
+                for (const [statementId, hasUse] of Object.entries(place.hasUses)) {
+                    this.selectedPlace.hasUses.push(hasUse.value);
                 }
             }
         },
