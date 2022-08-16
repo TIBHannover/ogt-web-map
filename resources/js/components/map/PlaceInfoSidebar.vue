@@ -59,16 +59,25 @@
                 @undoZoomIntoPlace="$emit('undoZoomIntoPlace')"
                 @zoomIntoPlace="$emit('zoomIntoPlace')"
             ></gestapo-place>
+
+            <memorial-place
+                v-else-if="selectedPlace.groupName == 'memorials'"
+                :selectedPlace="selectedPlace"
+                @switchLocation="$emit('switchLocation', $event)"
+                @undoZoomIntoPlace="$emit('undoZoomIntoPlace')"
+                @zoomIntoPlace="$emit('zoomIntoPlace')"
+            ></memorial-place>
         </v-navigation-drawer>
     </div>
 </template>
 
 <script>
 import GestapoPlace from './info/GestapoPlace';
+import MemorialPlace from './info/MemorialPlace';
 
 export default {
     name: 'PlaceInfoSidebar',
-    components: {GestapoPlace},
+    components: {GestapoPlace, MemorialPlace},
     props: ['selectedPlace', 'showPlaceInfoSidebar'],
     data() {
         return {
