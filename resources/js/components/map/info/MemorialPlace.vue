@@ -49,6 +49,32 @@
             <v-divider></v-divider>
         </template>
 
+        <!-- start time https://www.wikidata.org/wiki/Property:P580 -->
+        <template v-if="selectedPlace.startDate.value">
+            <v-list-item dense>
+                <v-list-item-content>
+                    <v-list-item-title>Erste Aktivität</v-list-item-title>
+                    <v-list-item-subtitle>
+                        {{ selectedPlace.startDate.locale }}
+                    </v-list-item-subtitle>
+                </v-list-item-content>
+            </v-list-item>
+            <v-divider></v-divider>
+        </template>
+
+        <!-- date of official opening - https://www.wikidata.org/wiki/Property:P1619 -->
+        <template v-if="selectedPlace.openingDate.value">
+            <v-list-item dense>
+                <v-list-item-content>
+                    <v-list-item-title>Eröffnung</v-list-item-title>
+                    <v-list-item-subtitle>
+                        {{ selectedPlace.openingDate.locale }}
+                    </v-list-item-subtitle>
+                </v-list-item-content>
+            </v-list-item>
+            <v-divider></v-divider>
+        </template>
+
         <address-info
             :selectedPlace="selectedPlace"
             @switchLocation="$emit('switchLocation', $event)"

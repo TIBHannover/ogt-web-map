@@ -72,7 +72,7 @@ class WikidataClient
         'P1343' => 'describedBySources',    // https://www.wikidata.org/wiki/Property:P1343
         'P1365' => 'replaces',              // https://www.wikidata.org/wiki/Property:P1365
         'P1366' => 'replacedBys',           // https://www.wikidata.org/wiki/Property:P1366
-        'P1619' => 'openingDates',          // https://www.wikidata.org/wiki/Property:P1619
+        'P1619' => 'openingDate',           // https://www.wikidata.org/wiki/Property:P1619
         'P5630' => 'prisonerCounts',        // https://www.wikidata.org/wiki/Property:P5630
         'P6375' => 'streetAddresses',       // https://www.wikidata.org/wiki/Property:P6375
     ];

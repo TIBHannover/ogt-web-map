@@ -196,6 +196,10 @@ export default {
                 layerName: '',
                 mainImageUrl: '',
                 mainImageLegend: '',
+                openingDate: {
+                    locale: '',
+                    value: null,
+                },
                 operators: [],
                 parentOrganizations: [{
                     hasLocationMarker: false,
@@ -215,6 +219,10 @@ export default {
                     label: '',
                     pages: '',
                 }],
+                startDate: {
+                    locale: '',
+                    value: null,
+                },
                 successors: [{
                     hasLocationMarker: false,
                     id: '',
@@ -710,6 +718,30 @@ export default {
             if (place.hasUses) {
                 for (const [statementId, hasUse] of Object.entries(place.hasUses)) {
                     this.selectedPlace.hasUses.push(hasUse.value);
+                }
+            }
+
+            this.selectedPlace.startDate = {
+                locale: '',
+                value: null,
+            };
+
+            if (place.startTime) {
+                for (const [statementId, startDate] of Object.entries(place.startTime)) {
+                    this.selectedPlace.startDate = this.getDate(startDate.value, startDate.datePrecision);
+                    break;
+                }
+            }
+
+            this.selectedPlace.openingDate = {
+                locale: '',
+                value: null,
+            };
+
+            if (place.openingDate) {
+                for (const [statementId, openingDate] of Object.entries(place.openingDate)) {
+                    this.selectedPlace.openingDate = this.getDate(openingDate.value, openingDate.datePrecision);
+                    break;
                 }
             }
         },
