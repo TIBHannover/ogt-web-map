@@ -218,6 +218,7 @@ export default {
                     id: '',
                     label: '',
                 }],
+                website: '',
             },
             showPlaceInfoSidebar: false,
             sourceCircumstances: {
@@ -685,6 +686,14 @@ export default {
                         label: describedBySource.value,
                         pages: describedBySource.pages ? describedBySource.pages.value : '',
                     });
+                }
+            }
+
+            this.selectedPlace.website = '';
+            if (place.officialWebsite) {
+                for (const [statementId, website] of Object.entries(place.officialWebsite)) {
+                    this.selectedPlace.website = website.value;
+                    break;
                 }
             }
         },
