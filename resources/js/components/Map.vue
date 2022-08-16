@@ -145,6 +145,11 @@ export default {
                     id: '',
                     label: '',
                 }],
+                commemorates: [{
+                    hasLocationMarker: false,
+                    id: '',
+                    label: '',
+                }],
                 description: '',
                 directors: [{
                     endDate: {
@@ -742,6 +747,19 @@ export default {
                 for (const [statementId, openingDate] of Object.entries(place.openingDate)) {
                     this.selectedPlace.openingDate = this.getDate(openingDate.value, openingDate.datePrecision);
                     break;
+                }
+            }
+
+            this.selectedPlace.commemorates = [];
+            if (place.commemorates) {
+                for (const [statementId, commemorate] of Object.entries(place.commemorates)) {
+                    let hasLocationMarker = commemorate.id in this.locationMarkers ?? false;
+
+                    this.selectedPlace.commemorates.push({
+                        hasLocationMarker: hasLocationMarker,
+                        id: commemorate.id,
+                        label: commemorate.value,
+                    });
                 }
             }
         },

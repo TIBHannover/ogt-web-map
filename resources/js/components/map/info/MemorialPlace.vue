@@ -81,6 +81,31 @@
             @undoZoomIntoPlace="$emit('undoZoomIntoPlace')"
             @zoomIntoPlace="$emit('zoomIntoPlace')"
         ></address-info>
+
+        <!-- commemorates - https://www.wikidata.org/wiki/Property:P547 -->
+        <v-list-item dense>
+            <v-list-item-content>
+                <v-list-item-title>Erinnert an</v-list-item-title>
+                <v-list-item-subtitle>
+                    <ul>
+                        <li v-for="commemorate in selectedPlace.commemorates">
+                            <a v-if="commemorate.hasLocationMarker"
+                               @click.stop="$emit('switchLocation', {
+                                       locationId: commemorate.id,
+                                   })"
+                               href="#"
+                            >
+                                {{ commemorate.label }}
+                            </a>
+                            <template v-else>
+                                {{ commemorate.label }}
+                            </template>
+                        </li>
+                    </ul>
+                </v-list-item-subtitle>
+            </v-list-item-content>
+        </v-list-item>
+        <v-divider></v-divider>
     </div>
 </template>
 
