@@ -760,7 +760,7 @@ export default {
             this.selectedPlace.commemorates = [];
             if (place.commemorates) {
                 for (const [statementId, commemorate] of Object.entries(place.commemorates)) {
-                    let hasLocationMarker = commemorate.id in this.locationMarkers ?? false;
+                    let hasLocationMarker = this.locationMarkers[commemorate.id] ? true : false;
 
                     this.selectedPlace.commemorates.push({
                         hasLocationMarker: hasLocationMarker,
@@ -775,7 +775,7 @@ export default {
                 this.selectedPlace.commemoratedBy = this.derivedPlacesData[this.selectedPlace.id]['commemoratedBy'];
 
                 for (const [statementId, commemoratedBy] of Object.entries(this.selectedPlace.commemoratedBy)) {
-                    commemoratedBy.hasLocationMarker = commemoratedBy.id in this.locationMarkers ?? false;
+                    commemoratedBy.hasLocationMarker = this.locationMarkers[commemoratedBy.id] ? true : false;
                 }
             }
         },
