@@ -220,6 +220,33 @@
             <v-divider></v-divider>
         </template>
 
+        <!-- location commemorated by -->
+        <template v-if="selectedPlace.commemoratedBy.length > 0">
+            <v-list-item dense>
+                <v-list-item-content>
+                    <v-list-item-title>Erinnerungsort</v-list-item-title>
+                    <v-list-item-subtitle>
+                        <ul>
+                            <li v-for="commemoratedBy in selectedPlace.commemoratedBy">
+                                <a v-if="commemoratedBy.hasLocationMarker"
+                                   @click.stop="$emit('switchLocation', {
+                                           locationId: commemoratedBy.id,
+                                       })"
+                                   href="#"
+                                >
+                                    {{ commemoratedBy.label }}
+                                </a>
+                                <div v-else>
+                                    {{ commemoratedBy.label }}
+                                </div>
+                            </li>
+                        </ul>
+                    </v-list-item-subtitle>
+                </v-list-item-content>
+            </v-list-item>
+            <v-divider></v-divider>
+        </template>
+
         <!-- place is described by source - https://www.wikidata.org/wiki/Property:P1343 -->
         <template v-if="selectedPlace.sources.length > 0">
             <v-list-item dense>

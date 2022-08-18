@@ -37,6 +37,7 @@ export default {
                 },
                 zoomLevel: 0,
             },
+            derivedPlacesData: {},
             groupedPlaces: {
                 events: {
                     color: '#D26211',
@@ -141,6 +142,11 @@ export default {
                     },
                 },
                 childOrganizations: [{
+                    hasLocationMarker: false,
+                    id: '',
+                    label: '',
+                }],
+                commemoratedBy: [{
                     hasLocationMarker: false,
                     id: '',
                     label: '',
@@ -288,6 +294,7 @@ export default {
             });
 
             this.visualizePlaces(groupedPlaces);
+            this.derivePlaceData();
         },
         visualizePlaces: function (groupedPlaces) {
             for (const [group, places] of Object.entries(groupedPlaces)) {
@@ -762,6 +769,15 @@ export default {
                     });
                 }
             }
+
+            this.selectedPlace.commemoratedBy = [];
+            if (this.derivedPlacesData[this.selectedPlace.id] && this.derivedPlacesData[this.selectedPlace.id]['commemoratedBy']) {
+                this.selectedPlace.commemoratedBy = this.derivedPlacesData[this.selectedPlace.id]['commemoratedBy'];
+
+                for (const [statementId, commemoratedBy] of Object.entries(this.selectedPlace.commemoratedBy)) {
+                    commemoratedBy.hasLocationMarker = commemoratedBy.id in this.locationMarkers ?? false;
+                }
+            }
         },
         /**
          * Get locale date string base on Wikidata time precision.
@@ -881,6 +897,35 @@ export default {
             layerGroup.addTo(this.map);
             this.layers.addOverlay(layerGroup, this.groupedPlaces[placeGroupName].layerName);
             this.groupedPlaces[placeGroupName].layerGroup = layerGroup;
+        },
+        /**
+         * Derive location data to make it easily accessible to other locations,
+         * e.g. to know if a location is commemorated by a memorial.
+         */
+        derivePlaceData: function () {
+            let memorials = this.groupedPlaces['memorials'].places;
+
+            for (const [memorialId, memorial] of Object.entries(memorials)) {
+                for (const [statementId, commemorate] of Object.entries(memorial.commemorates)) {
+
+                    if (! this.derivedPlacesData.hasOwnProperty(commemorate.id)) {
+                        this.derivedPlacesData[commemorate.id] = {
+                            commemoratedBy: [],
+                        };
+                    }
+                    else if (! this.derivedPlacesData[commemorate.id].hasOwnProperty('commemoratedBy')) {
+                        this.derivedPlacesData[commemorate.id]['commemoratedBy'] = [];
+                    }
+                    else {
+                        // done
+                    }
+
+                    this.derivedPlacesData[commemorate.id]['commemoratedBy'].push({
+                        id: memorialId,
+                        label: memorial.label,
+                    });
+                }
+            }
         },
         /**
          * Switch location on map and location info.
