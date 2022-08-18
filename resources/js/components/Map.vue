@@ -37,6 +37,7 @@ export default {
                 },
                 zoomLevel: 0,
             },
+            derivedPlacesData: {},
             groupedPlaces: {
                 events: {
                     color: '#D26211',
@@ -145,6 +146,16 @@ export default {
                     id: '',
                     label: '',
                 }],
+                commemoratedBy: [{
+                    hasLocationMarker: false,
+                    id: '',
+                    label: '',
+                }],
+                commemorates: [{
+                    hasLocationMarker: false,
+                    id: '',
+                    label: '',
+                }],
                 description: '',
                 directors: [{
                     endDate: {
@@ -180,6 +191,8 @@ export default {
                 events: [{
                     label: '',
                 }],
+                groupName: '',
+                hasUses: [],
                 id: '',
                 inceptionDate: {
                     locale: '',
@@ -194,6 +207,11 @@ export default {
                 layerName: '',
                 mainImageUrl: '',
                 mainImageLegend: '',
+                openingDate: {
+                    locale: '',
+                    value: null,
+                },
+                operators: [],
                 parentOrganizations: [{
                     hasLocationMarker: false,
                     id: '',
@@ -212,11 +230,16 @@ export default {
                     label: '',
                     pages: '',
                 }],
+                startDate: {
+                    locale: '',
+                    value: null,
+                },
                 successors: [{
                     hasLocationMarker: false,
                     id: '',
                     label: '',
                 }],
+                website: '',
             },
             showPlaceInfoSidebar: false,
             sourceCircumstances: {
@@ -271,6 +294,7 @@ export default {
             });
 
             this.visualizePlaces(groupedPlaces);
+            this.derivePlaceData();
         },
         visualizePlaces: function (groupedPlaces) {
             for (const [group, places] of Object.entries(groupedPlaces)) {
@@ -325,7 +349,7 @@ export default {
                     });
 
                     marker.on('click', event => {
-                        this.setSelectedPlace(place, event.latlng, this.groupedPlaces[placeGroupName].layerName);
+                        this.setSelectedPlace(place, event.latlng, placeGroupName);
                         this.toggleShowPlaceInfoSidebar(true);
 
                         const zoomInButton = marker.getPopup().getElement().getElementsByClassName('zoomInButton')[0];
@@ -362,12 +386,13 @@ export default {
          *
          * @param object place Wikidata place data
          * @param object latLng Leaflet LatLng geographical point object
-         * @param string layerName Name of layer group
+         * @param string placeGroupName Name of place group
          */
-        setSelectedPlace: function (place, latLng, layerName) {
+        setSelectedPlace: function (place, latLng, placeGroupName) {
             this.selectedPlace.description = place.description;
             this.selectedPlace.label = place.label;
-            this.selectedPlace.layerName = layerName;
+            this.selectedPlace.groupName = placeGroupName;
+            this.selectedPlace.layerName = this.groupedPlaces[placeGroupName].layerName;
             this.selectedPlace.id = place.id;
             this.selectedPlace.latLng = latLng;
 
@@ -685,6 +710,74 @@ export default {
                     });
                 }
             }
+
+            this.selectedPlace.website = '';
+            if (place.officialWebsite) {
+                for (const [statementId, website] of Object.entries(place.officialWebsite)) {
+                    this.selectedPlace.website = website.value;
+                    break;
+                }
+            }
+
+            this.selectedPlace.operators = [];
+            if (place.operators) {
+                for (const [statementId, operator] of Object.entries(place.operators)) {
+                    this.selectedPlace.operators.push(operator.value);
+                }
+            }
+
+            this.selectedPlace.hasUses = [];
+            if (place.hasUses) {
+                for (const [statementId, hasUse] of Object.entries(place.hasUses)) {
+                    this.selectedPlace.hasUses.push(hasUse.value);
+                }
+            }
+
+            this.selectedPlace.startDate = {
+                locale: '',
+                value: null,
+            };
+
+            if (place.startTime) {
+                for (const [statementId, startDate] of Object.entries(place.startTime)) {
+                    this.selectedPlace.startDate = this.getDate(startDate.value, startDate.datePrecision);
+                    break;
+                }
+            }
+
+            this.selectedPlace.openingDate = {
+                locale: '',
+                value: null,
+            };
+
+            if (place.openingDate) {
+                for (const [statementId, openingDate] of Object.entries(place.openingDate)) {
+                    this.selectedPlace.openingDate = this.getDate(openingDate.value, openingDate.datePrecision);
+                    break;
+                }
+            }
+
+            this.selectedPlace.commemorates = [];
+            if (place.commemorates) {
+                for (const [statementId, commemorate] of Object.entries(place.commemorates)) {
+                    let hasLocationMarker = this.locationMarkers[commemorate.id] ? true : false;
+
+                    this.selectedPlace.commemorates.push({
+                        hasLocationMarker: hasLocationMarker,
+                        id: commemorate.id,
+                        label: commemorate.value,
+                    });
+                }
+            }
+
+            this.selectedPlace.commemoratedBy = [];
+            if (this.derivedPlacesData[this.selectedPlace.id] && this.derivedPlacesData[this.selectedPlace.id]['commemoratedBy']) {
+                this.selectedPlace.commemoratedBy = this.derivedPlacesData[this.selectedPlace.id]['commemoratedBy'];
+
+                for (const [statementId, commemoratedBy] of Object.entries(this.selectedPlace.commemoratedBy)) {
+                    commemoratedBy.hasLocationMarker = this.locationMarkers[commemoratedBy.id] ? true : false;
+                }
+            }
         },
         /**
          * Get locale date string base on Wikidata time precision.
@@ -804,6 +897,35 @@ export default {
             layerGroup.addTo(this.map);
             this.layers.addOverlay(layerGroup, this.groupedPlaces[placeGroupName].layerName);
             this.groupedPlaces[placeGroupName].layerGroup = layerGroup;
+        },
+        /**
+         * Derive location data to make it easily accessible to other locations,
+         * e.g. to know if a location is commemorated by a memorial.
+         */
+        derivePlaceData: function () {
+            let memorials = this.groupedPlaces['memorials'].places;
+
+            for (const [memorialId, memorial] of Object.entries(memorials)) {
+                for (const [statementId, commemorate] of Object.entries(memorial.commemorates)) {
+
+                    if (! this.derivedPlacesData.hasOwnProperty(commemorate.id)) {
+                        this.derivedPlacesData[commemorate.id] = {
+                            commemoratedBy: [],
+                        };
+                    }
+                    else if (! this.derivedPlacesData[commemorate.id].hasOwnProperty('commemoratedBy')) {
+                        this.derivedPlacesData[commemorate.id]['commemoratedBy'] = [];
+                    }
+                    else {
+                        // done
+                    }
+
+                    this.derivedPlacesData[commemorate.id]['commemoratedBy'].push({
+                        id: memorialId,
+                        label: memorial.label,
+                    });
+                }
+            }
         },
         /**
          * Switch location on map and location info.

@@ -46,6 +46,7 @@ class WikidataControllerTest extends TestCase
             'extPolicePrisons',
             'fieldOffices',
             'laborEducationCamps',
+            'memorials',
             'prisons',
             'statePoliceHeadquarters',
             'statePoliceOffices',
@@ -184,8 +185,10 @@ class WikidataControllerTest extends TestCase
         $statementId = $itemId . '-' . $this->faker->uuid;
 
         $validProperties = [
-            'P571' => 'inceptionDates',
-            'P576' => 'dissolvedDates',
+            'P571'  => 'inceptionDates',
+            'P576'  => 'dissolvedDates',
+            'P580'  => 'startTime',
+            'P1619' => 'openingDate',
         ];
         $propertyId = $this->faker->randomKey($validProperties);
         $propertyTime = $this->faker->date() . 'T00:00:00Z';
