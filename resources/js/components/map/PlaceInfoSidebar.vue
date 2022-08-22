@@ -53,7 +53,7 @@
             </template>
 
             <event
-                v-else-if="selectedPlace.groupName == 'events'"
+                v-if="selectedPlace.groupName == 'events'"
                 :selectedPlace="selectedPlace"
                 @switchLocation="$emit('switchLocation', $event)"
                 @undoZoomIntoPlace="$emit('undoZoomIntoPlace')"
@@ -61,7 +61,7 @@
             ></event>
 
             <gestapo-place
-                v-if="gestapoPlaceGroups.includes(selectedPlace.groupName)"
+                v-else-if="gestapoPlaceGroups.includes(selectedPlace.groupName)"
                 :selectedPlace="selectedPlace"
                 @switchLocation="$emit('switchLocation', $event)"
                 @undoZoomIntoPlace="$emit('undoZoomIntoPlace')"

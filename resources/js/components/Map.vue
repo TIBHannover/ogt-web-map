@@ -108,6 +108,7 @@ export default {
             layers: null,
             locationMarkers: [],
             map: null,
+            persons: [],
             selectedPlace: {
                 addresses: {
                     additional: [{
@@ -217,6 +218,12 @@ export default {
                     id: '',
                     label: '',
                 }],
+                perpetrators: [{
+                    hasLocationMarker: false,
+                    hasPersonData: false,
+                    id: '',
+                    label: '',
+                }],
                 predecessors: [{
                     hasLocationMarker: false,
                     id: '',
@@ -236,6 +243,11 @@ export default {
                 },
                 successors: [{
                     hasLocationMarker: false,
+                    id: '',
+                    label: '',
+                }],
+                victims: [{
+                    hasPersonData: false,
                     id: '',
                     label: '',
                 }],
@@ -776,6 +788,34 @@ export default {
 
                 for (const [statementId, commemoratedBy] of Object.entries(this.selectedPlace.commemoratedBy)) {
                     commemoratedBy.hasLocationMarker = this.locationMarkers[commemoratedBy.id] ? true : false;
+                }
+            }
+
+            this.selectedPlace.perpetrators = [];
+            if (place.perpetrators) {
+                for (const [statementId, perpetrator] of Object.entries(place.perpetrators)) {
+                    let hasPersonData = this.persons[perpetrator.id] ? true : false;
+                    let hasLocationMarker = this.locationMarkers[perpetrator.id] ? true : false;
+
+                    this.selectedPlace.perpetrators.push({
+                        hasLocationMarker: hasLocationMarker,
+                        hasPersonData: hasPersonData,
+                        id: perpetrator.id,
+                        label: perpetrator.value,
+                    });
+                }
+            }
+
+            this.selectedPlace.victims = [];
+            if (place.victims) {
+                for (const [statementId, victim] of Object.entries(place.victims)) {
+                    let hasPersonData = this.persons[victim.id] ? true : false;
+
+                    this.selectedPlace.victims.push({
+                        hasPersonData: hasPersonData,
+                        id: victim.id,
+                        label: victim.value,
+                    });
                 }
             }
         },
