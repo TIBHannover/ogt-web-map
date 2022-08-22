@@ -120,6 +120,10 @@ export default {
 </script>
 
 <style scoped>
+.hyphens-auto {
+    hyphens: auto;
+}
+
 /* to enable linebreaks for long labels */
 .white-space-normal {
     white-space: normal;

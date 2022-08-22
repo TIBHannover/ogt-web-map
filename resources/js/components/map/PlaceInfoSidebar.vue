@@ -104,7 +104,6 @@ export default {
 </script>
 
 <style scoped>
-/* move to top right */
 .hyphens-auto {
     hyphens: auto;
 }
