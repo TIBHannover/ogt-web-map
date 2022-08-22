@@ -246,6 +246,7 @@ export default {
                     id: '',
                     label: '',
                 }],
+                targets: [],
                 victims: [{
                     hasPersonData: false,
                     id: '',
@@ -816,6 +817,13 @@ export default {
                         id: victim.id,
                         label: victim.value,
                     });
+                }
+            }
+
+            this.selectedPlace.targets = [];
+            if (place.targets) {
+                for (const [statementId, target] of Object.entries(place.targets)) {
+                    this.selectedPlace.targets.push(target.value);
                 }
             }
         },

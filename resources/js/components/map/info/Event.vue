@@ -53,6 +53,23 @@
             </v-list-item>
             <v-divider></v-divider>
         </template>
+
+        <!-- targets - https://www.wikidata.org/wiki/Property:P533 -->
+        <template v-if="selectedPlace.targets.length > 0">
+            <v-list-item dense>
+                <v-list-item-content>
+                    <v-list-item-title>Ziel des Angriffs</v-list-item-title>
+                    <v-list-item-subtitle>
+                        <ul>
+                            <li v-for="target in selectedPlace.targets">
+                                {{ target }}
+                            </li>
+                        </ul>
+                    </v-list-item-subtitle>
+                </v-list-item-content>
+            </v-list-item>
+            <v-divider></v-divider>
+        </template>
     </div>
 </template>
 
