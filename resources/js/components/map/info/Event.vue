@@ -70,12 +70,19 @@
             </v-list-item>
             <v-divider></v-divider>
         </template>
+
+        <sources v-if="selectedPlace.sources.length > 0"
+                 :selectedPlace="selectedPlace">
+        </sources>
     </div>
 </template>
 
 <script>
+import Sources from './Sources';
+
 export default {
     name: 'Event',
+    components: {Sources},
     props: ['selectedPlace'],
 };
 </script>
