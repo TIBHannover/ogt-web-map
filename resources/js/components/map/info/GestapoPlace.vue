@@ -247,31 +247,19 @@
             <v-divider></v-divider>
         </template>
 
-        <!-- place is described by source - https://www.wikidata.org/wiki/Property:P1343 -->
-        <template v-if="selectedPlace.sources.length > 0">
-            <v-list-item dense>
-                <v-list-item-content>
-                    <v-list-item-title>Nachweise</v-list-item-title>
-                    <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
-                        <ul>
-                            <li v-for="source in selectedPlace.sources">
-                                {{ source.label }}<span v-if="source.pages">, S. {{ source.pages }}</span>
-                            </li>
-                        </ul>
-                    </v-list-item-subtitle>
-                </v-list-item-content>
-            </v-list-item>
-            <v-divider></v-divider>
-        </template>
+        <sources v-if="selectedPlace.sources.length > 0"
+                 :selectedPlace="selectedPlace">
+        </sources>
     </div>
 </template>
 
 <script>
 import AddressInfo from './AddressInfo';
+import Sources from './Sources';
 
 export default {
     name: 'GestapoPlace',
-    components: {AddressInfo},
+    components: {AddressInfo, Sources},
     props: ['selectedPlace'],
 };
 </script>
