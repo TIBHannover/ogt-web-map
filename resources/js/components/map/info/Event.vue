@@ -118,18 +118,25 @@
             <v-divider></v-divider>
         </template>
 
-        <sources v-if="selectedPlace.sources.length > 0"
-                 :selectedPlace="selectedPlace">
-        </sources>
+        <prisoner-count
+            v-if="selectedPlace.prisonerCounts.length > 0"
+            :selectedPlace="selectedPlace"
+        ></prisoner-count>
+
+        <sources
+            v-if="selectedPlace.sources.length > 0"
+            :selectedPlace="selectedPlace"
+        ></sources>
     </div>
 </template>
 
 <script>
+import PrisonerCount from './PrisonerCount';
 import Sources from './Sources';
 
 export default {
     name: 'Event',
-    components: {Sources},
+    components: {PrisonerCount, Sources},
     props: ['selectedPlace'],
 };
 </script>
