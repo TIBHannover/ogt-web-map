@@ -208,6 +208,7 @@ export default {
                 layerName: '',
                 mainImageUrl: '',
                 mainImageLegend: '',
+                numberOfCasualties: [],
                 openingDate: {
                     locale: '',
                     value: null,
@@ -824,6 +825,13 @@ export default {
             if (place.targets) {
                 for (const [statementId, target] of Object.entries(place.targets)) {
                     this.selectedPlace.targets.push(target.value);
+                }
+            }
+
+            this.selectedPlace.numberOfCasualties = [];
+            if (place.numberOfCasualties) {
+                for (const [statementId, numberOfCasualties] of Object.entries(place.numberOfCasualties)) {
+                    this.selectedPlace.numberOfCasualties.push(numberOfCasualties.value);
                 }
             }
         },

@@ -32,22 +32,35 @@
             <v-divider></v-divider>
         </template>
 
-        <!-- victims - https://www.wikidata.org/wiki/Property:P8032 -->
-        <template v-if="selectedPlace.victims.length > 0">
+        <!-- victims - https://www.wikidata.org/wiki/Property:P8032
+             number of casualties - https://www.wikidata.org/wiki/Property:P1590
+        -->
+        <template v-if="selectedPlace.victims.length > 0 || selectedPlace.numberOfCasualties.length > 0">
             <v-list-item dense>
                 <v-list-item-content>
                     <v-list-item-title>Geschädigte</v-list-item-title>
                     <v-list-item-subtitle>
-                        <ul>
-                            <li v-for="victim in selectedPlace.victims">
-                                <a v-if="victim.hasPersonData" href="#">
-                                    {{ victim.label }}
-                                </a>
-                                <template v-else>
-                                    {{ victim.label }}
-                                </template>
-                            </li>
-                        </ul>
+                        <div v-if="selectedPlace.numberOfCasualties.length > 0" class="my-2">
+                            Anzahl
+                            <ul>
+                                <li v-for="numberOfCasualties in selectedPlace.numberOfCasualties">
+                                    {{ numberOfCasualties }}
+                                </li>
+                            </ul>
+                        </div>
+                        <div v-if="selectedPlace.victims.length > 0" class="my-2">
+                            Namen
+                            <ul>
+                                <li v-for="victim in selectedPlace.victims">
+                                    <a v-if="victim.hasPersonData" href="#">
+                                        {{ victim.label }}
+                                    </a>
+                                    <template v-else>
+                                        {{ victim.label }}
+                                    </template>
+                                </li>
+                            </ul>
+                        </div>
                     </v-list-item-subtitle>
                 </v-list-item-content>
             </v-list-item>
