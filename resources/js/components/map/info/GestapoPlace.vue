@@ -75,25 +75,10 @@
             <v-divider></v-divider>
         </template>
 
-        <!-- prisoner count and source circumstances -->
-        <template v-if="selectedPlace.prisonerCounts.length > 0">
-            <v-list-item dense>
-                <v-list-item-content>
-                    <v-list-item-title>Inhaftierte</v-list-item-title>
-                    <v-list-item-subtitle>
-                        <ul>
-                            <li v-for="prisonerCount in selectedPlace.prisonerCounts">
-                                    <span v-if="prisonerCount.sourcingCircumstance">
-                                        {{ prisonerCount.sourcingCircumstance }}
-                                    </span>
-                                {{ prisonerCount.value }}
-                            </li>
-                        </ul>
-                    </v-list-item-subtitle>
-                </v-list-item-content>
-            </v-list-item>
-            <v-divider></v-divider>
-        </template>
+        <prisoner-count
+            v-if="selectedPlace.prisonerCounts.length > 0"
+            :selectedPlace="selectedPlace"
+        ></prisoner-count>
 
         <!-- associated significant events - https://www.wikidata.org/wiki/Property:P793 -->
         <template v-if="selectedPlace.events.length > 0">
@@ -255,11 +240,12 @@
 
 <script>
 import AddressInfo from './AddressInfo';
+import PrisonerCount from './PrisonerCount';
 import Sources from './Sources';
 
 export default {
     name: 'GestapoPlace',
-    components: {AddressInfo, Sources},
+    components: {AddressInfo, PrisonerCount, Sources},
     props: ['selectedPlace'],
 };
 </script>
