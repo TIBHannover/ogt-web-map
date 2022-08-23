@@ -209,6 +209,8 @@ export default {
                 mainImageUrl: '',
                 mainImageLegend: '',
                 numberOfCasualties: [],
+                numberOfDeaths: [],
+                numberOfSurvivors: [],
                 openingDate: {
                     locale: '',
                     value: null,
@@ -832,6 +834,20 @@ export default {
             if (place.numberOfCasualties) {
                 for (const [statementId, numberOfCasualties] of Object.entries(place.numberOfCasualties)) {
                     this.selectedPlace.numberOfCasualties.push(numberOfCasualties.value);
+                }
+            }
+
+            this.selectedPlace.numberOfDeaths = [];
+            if (place.numberOfDeaths) {
+                for (const [statementId, numberOfDeaths] of Object.entries(place.numberOfDeaths)) {
+                    this.selectedPlace.numberOfDeaths.push(numberOfDeaths.value);
+                }
+            }
+
+            this.selectedPlace.numberOfSurvivors = [];
+            if (place.numberOfSurvivors) {
+                for (const [statementId, numberOfSurvivors] of Object.entries(place.numberOfSurvivors)) {
+                    this.selectedPlace.numberOfSurvivors.push(numberOfSurvivors.value);
                 }
             }
         },

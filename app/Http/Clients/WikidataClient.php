@@ -73,10 +73,12 @@ class WikidataClient
         'P793'  => 'significantEvents',     // https://www.wikidata.org/wiki/Property:P793
         'P856'  => 'officialWebsite',       // https://www.wikidata.org/wiki/Property:P856
         'P1037' => 'directors',             // https://www.wikidata.org/wiki/Property:P1037
+        'P1120' => 'numberOfDeaths',        // https://www.wikidata.org/wiki/Property:P1120
         'P1128' => 'employeeCounts',        // https://www.wikidata.org/wiki/Property:P1128
         'P1343' => 'describedBySources',    // https://www.wikidata.org/wiki/Property:P1343
         'P1365' => 'replaces',              // https://www.wikidata.org/wiki/Property:P1365
         'P1366' => 'replacedBys',           // https://www.wikidata.org/wiki/Property:P1366
+        'P1561' => 'numberOfSurvivors',     // https://www.wikidata.org/wiki/Property:P1561
         'P1590' => 'numberOfCasualties',    // https://www.wikidata.org/wiki/Property:P1590
         'P1619' => 'openingDate',           // https://www.wikidata.org/wiki/Property:P1619
         'P5630' => 'prisonerCounts',        // https://www.wikidata.org/wiki/Property:P5630
@@ -146,7 +148,8 @@ class WikidataClient
                     ?property wikibase:propertyType ?propertyType.
                     FILTER(?property IN(
                         wd:P18, wd:P31, wd:P137, wd:P355, wd:P366, wd:P533, wd:P547, wd:P625, wd:P749, wd:P793, wd:P856, 
-                        wd:P1037, wd:P1128, wd:P1343, wd:P1365, wd:P1366, wd:P1590, wd:P5630, wd:P6375, wd:P8031, wd:P8032
+                        wd:P1037, wd:P1120, wd:P1128, wd:P1343, wd:P1365, wd:P1366, wd:P1561, wd:P1590, wd:P5630, 
+                        wd:P6375, wd:P8031, wd:P8032
                     ))
                     FILTER(?propertyType != wikibase:Time)
                     ?property wikibase:statementProperty ?ps.

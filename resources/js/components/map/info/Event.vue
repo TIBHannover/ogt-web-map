@@ -84,6 +84,40 @@
             <v-divider></v-divider>
         </template>
 
+        <!-- number of survivors - https://www.wikidata.org/wiki/Property:P1561 -->
+        <template v-if="selectedPlace.numberOfSurvivors.length > 0">
+            <v-list-item dense>
+                <v-list-item-content>
+                    <v-list-item-title>Überlebende</v-list-item-title>
+                    <v-list-item-subtitle>
+                        <ul>
+                            <li v-for="numberOfSurvivors in selectedPlace.numberOfSurvivors">
+                                {{ numberOfSurvivors }}
+                            </li>
+                        </ul>
+                    </v-list-item-subtitle>
+                </v-list-item-content>
+            </v-list-item>
+            <v-divider></v-divider>
+        </template>
+
+        <!-- number of deaths - https://www.wikidata.org/wiki/Property:P1120 -->
+        <template v-if="selectedPlace.numberOfDeaths.length > 0">
+            <v-list-item dense>
+                <v-list-item-content>
+                    <v-list-item-title>Getötete</v-list-item-title>
+                    <v-list-item-subtitle>
+                        <ul>
+                            <li v-for="numberOfDeaths in selectedPlace.numberOfDeaths">
+                                {{ numberOfDeaths }}
+                            </li>
+                        </ul>
+                    </v-list-item-subtitle>
+                </v-list-item-content>
+            </v-list-item>
+            <v-divider></v-divider>
+        </template>
+
         <sources v-if="selectedPlace.sources.length > 0"
                  :selectedPlace="selectedPlace">
         </sources>
