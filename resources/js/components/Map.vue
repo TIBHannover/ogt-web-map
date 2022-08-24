@@ -208,6 +208,7 @@ export default {
                 layerName: '',
                 mainImageUrl: '',
                 mainImageLegend: '',
+                numberOfArrests: [],
                 numberOfCasualties: [],
                 numberOfDeaths: [],
                 numberOfSurvivors: [],
@@ -848,6 +849,13 @@ export default {
             if (place.numberOfSurvivors) {
                 for (const [statementId, numberOfSurvivors] of Object.entries(place.numberOfSurvivors)) {
                     this.selectedPlace.numberOfSurvivors.push(numberOfSurvivors.value);
+                }
+            }
+
+            this.selectedPlace.numberOfArrests = [];
+            if (place.numberOfArrests) {
+                for (const [statementId, numberOfArrests] of Object.entries(place.numberOfArrests)) {
+                    this.selectedPlace.numberOfArrests.push(numberOfArrests.value);
                 }
             }
         },

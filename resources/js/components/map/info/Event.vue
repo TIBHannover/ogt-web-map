@@ -118,6 +118,23 @@
             <v-divider></v-divider>
         </template>
 
+        <!-- number of arrests - https://www.wikidata.org/wiki/Property:P5582 -->
+        <template v-if="selectedPlace.numberOfArrests.length > 0">
+            <v-list-item dense>
+                <v-list-item-content>
+                    <v-list-item-title>Festnahmen</v-list-item-title>
+                    <v-list-item-subtitle>
+                        <ul>
+                            <li v-for="numberOfArrests in selectedPlace.numberOfArrests">
+                                {{ numberOfArrests }}
+                            </li>
+                        </ul>
+                    </v-list-item-subtitle>
+                </v-list-item-content>
+            </v-list-item>
+            <v-divider></v-divider>
+        </template>
+
         <prisoner-count
             v-if="selectedPlace.prisonerCounts.length > 0"
             :selectedPlace="selectedPlace"
