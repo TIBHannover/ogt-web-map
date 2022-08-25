@@ -221,6 +221,10 @@ export default {
     padding-top: 7px;
 }
 
+.hyphens-auto {
+    hyphens: auto;
+}
+
 /* to enable linebreaks for long labels */
 .white-space-normal {
     white-space: normal;
