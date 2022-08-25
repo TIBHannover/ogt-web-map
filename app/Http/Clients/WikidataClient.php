@@ -159,7 +159,7 @@ class WikidataClient
                 UNION
                 {
                     ?property wikibase:statementValue ?psv.
-                    FILTER(?property IN(wd:P571, wd:P576, wd:P580, wd:582, wd:585, wd:P1619))
+                    FILTER(?property IN(wd:P571, wd:P576, wd:P580, wd:P582, wd:P585, wd:P1619))
                     ?statement ?psv ?propertyValueNode.
                     ?propertyValueNode wikibase:timeValue ?propertyValue;
                         wikibase:timePrecision ?propertyTimePrecision.

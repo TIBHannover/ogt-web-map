@@ -189,6 +189,10 @@ export default {
                     sourcingCircumstance: '',
                     value: 0,
                 }],
+                endDate: {
+                    locale: '',
+                    value: null,
+                },
                 events: [{
                     label: '',
                 }],
@@ -228,6 +232,10 @@ export default {
                     id: '',
                     label: '',
                 }],
+                pointInTime: {
+                    locale: '',
+                    value: null,
+                },
                 predecessors: [{
                     hasLocationMarker: false,
                     id: '',
@@ -770,6 +778,30 @@ export default {
             if (place.openingDate) {
                 for (const [statementId, openingDate] of Object.entries(place.openingDate)) {
                     this.selectedPlace.openingDate = this.getDate(openingDate.value, openingDate.datePrecision);
+                    break;
+                }
+            }
+
+            this.selectedPlace.endDate = {
+                locale: '',
+                value: null,
+            };
+
+            if (place.endTime) {
+                for (const [statementId, endTime] of Object.entries(place.endTime)) {
+                    this.selectedPlace.endDate = this.getDate(endTime.value, endTime.datePrecision);
+                    break;
+                }
+            }
+
+            this.selectedPlace.pointInTime = {
+                locale: '',
+                value: null,
+            };
+
+            if (place.pointInTime) {
+                for (const [statementId, pointInTime] of Object.entries(place.pointInTime)) {
+                    this.selectedPlace.pointInTime = this.getDate(pointInTime.value, pointInTime.datePrecision);
                     break;
                 }
             }

@@ -1,5 +1,36 @@
 <template>
     <div>
+        <!-- start time - https://www.wikidata.org/wiki/Property:P580
+             end time - https://www.wikidata.org/wiki/Property:P582     -->
+        <template v-if="selectedPlace.startDate.value || selectedPlace.endDate.value">
+            <v-list-item dense>
+                <v-list-item-content>
+                    <v-list-item-title>Laufzeit</v-list-item-title>
+                    <v-list-item-subtitle>
+                        <template v-if="selectedPlace.startDate.value">
+                            von {{ selectedPlace.startDate.locale }}
+                        </template>
+                        <template v-if="selectedPlace.endDate.value">
+                            bis {{ selectedPlace.endDate.locale }}
+                        </template>
+                    </v-list-item-subtitle>
+                </v-list-item-content>
+            </v-list-item>
+            <v-divider></v-divider>
+        </template>
+        <!-- point in time - https://www.wikidata.org/wiki/Property:P585 -->
+        <template v-else-if="selectedPlace.pointInTime.value">
+            <v-list-item dense>
+                <v-list-item-content>
+                    <v-list-item-title>Zeitpunkt</v-list-item-title>
+                    <v-list-item-subtitle>
+                        {{ selectedPlace.pointInTime.locale }}
+                    </v-list-item-subtitle>
+                </v-list-item-content>
+            </v-list-item>
+            <v-divider></v-divider>
+        </template>
+
         <!-- perpetrators - https://www.wikidata.org/wiki/Property:P8031 -->
         <template v-if="selectedPlace.perpetrators.length > 0">
             <v-list-item dense>
