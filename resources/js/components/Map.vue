@@ -158,6 +158,7 @@ export default {
                     label: '',
                 }],
                 description: '',
+                destinationPoints: [],
                 directors: [{
                     endDate: {
                         locale: '',
@@ -255,6 +256,7 @@ export default {
                     locale: '',
                     value: null,
                 },
+                startPoints: [],
                 successors: [{
                     hasLocationMarker: false,
                     id: '',
@@ -904,6 +906,20 @@ export default {
             if (place.significantPlaces) {
                 for (const [statementId, significantPlace] of Object.entries(place.significantPlaces)) {
                     this.selectedPlace.significantPlaces.push(significantPlace.value);
+                }
+            }
+
+            this.selectedPlace.startPoints = [];
+            if (place.startPoints) {
+                for (const [statementId, startPoint] of Object.entries(place.startPoints)) {
+                    this.selectedPlace.startPoints.push(startPoint.value);
+                }
+            }
+
+            this.selectedPlace.destinationPoints = [];
+            if (place.destinationPoints) {
+                for (const [statementId, destinationPoint] of Object.entries(place.destinationPoints)) {
+                    this.selectedPlace.destinationPoints.push(destinationPoint.value);
                 }
             }
         },

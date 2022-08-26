@@ -21,6 +21,35 @@
             <v-divider></v-divider>
         </template>
 
+        <!-- start point - https://www.wikidata.org/wiki/Property:P1427
+             destination point - https://www.wikidata.org/wiki/Property:P1444   -->
+        <template v-if="selectedPlace.startPoints.length > 0 || selectedPlace.destinationPoints.length > 0">
+            <v-list-item dense>
+                <v-list-item-content>
+                    <v-list-item-title>Start-/Zielort</v-list-item-title>
+                    <v-list-item-subtitle>
+                        <div v-if="selectedPlace.startPoints.length > 0" class="my-2">
+                            von
+                            <ul>
+                                <li v-for="startPoint in selectedPlace.startPoints">
+                                    {{ startPoint }}
+                                </li>
+                            </ul>
+                        </div>
+                        <div v-if="selectedPlace.destinationPoints.length > 0" class="my-2">
+                            nach
+                            <ul>
+                                <li v-for="destinationPoint in selectedPlace.destinationPoints">
+                                    {{ destinationPoint }}
+                                </li>
+                            </ul>
+                        </div>
+                    </v-list-item-subtitle>
+                </v-list-item-content>
+            </v-list-item>
+            <v-divider></v-divider>
+        </template>
+
         <!-- start time - https://www.wikidata.org/wiki/Property:P580
              end time - https://www.wikidata.org/wiki/Property:P582     -->
         <template v-if="selectedPlace.startDate.value || selectedPlace.endDate.value">
