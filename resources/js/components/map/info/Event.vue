@@ -1,5 +1,26 @@
 <template>
     <div>
+        <!-- location - https://www.wikidata.org/wiki/Property:P276
+             significant place - https://www.wikidata.org/wiki/Property:P7153   -->
+        <template v-if="selectedPlace.locations.length > 0 || selectedPlace.significantPlaces.length > 0">
+            <v-list-item dense>
+                <v-list-item-content>
+                    <v-list-item-title>Ort</v-list-item-title>
+                    <v-list-item-subtitle>
+                        <ul>
+                            <li v-for="location in selectedPlace.locations">
+                                {{ location }}
+                            </li>
+                            <li v-for="significantPlace in selectedPlace.significantPlaces">
+                                {{ significantPlace }}
+                            </li>
+                        </ul>
+                    </v-list-item-subtitle>
+                </v-list-item-content>
+            </v-list-item>
+            <v-divider></v-divider>
+        </template>
+
         <!-- start time - https://www.wikidata.org/wiki/Property:P580
              end time - https://www.wikidata.org/wiki/Property:P582     -->
         <template v-if="selectedPlace.startDate.value || selectedPlace.endDate.value">

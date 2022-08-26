@@ -210,6 +210,7 @@ export default {
                     lng: 0,
                 },
                 layerName: '',
+                locations: [],
                 mainImageUrl: '',
                 mainImageLegend: '',
                 numberOfArrests: [],
@@ -245,6 +246,7 @@ export default {
                     sourcingCircumstance: '',
                     value: 0,
                 }],
+                significantPlaces: [],
                 sources: [{
                     label: '',
                     pages: '',
@@ -888,6 +890,20 @@ export default {
             if (place.numberOfArrests) {
                 for (const [statementId, numberOfArrests] of Object.entries(place.numberOfArrests)) {
                     this.selectedPlace.numberOfArrests.push(numberOfArrests.value);
+                }
+            }
+
+            this.selectedPlace.locations = [];
+            if (place.locations) {
+                for (const [statementId, location] of Object.entries(place.locations)) {
+                    this.selectedPlace.locations.push(location.value);
+                }
+            }
+
+            this.selectedPlace.significantPlaces = [];
+            if (place.significantPlaces) {
+                for (const [statementId, significantPlace] of Object.entries(place.significantPlaces)) {
+                    this.selectedPlace.significantPlaces.push(significantPlace.value);
                 }
             }
         },

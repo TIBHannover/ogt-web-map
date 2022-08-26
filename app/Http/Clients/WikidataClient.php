@@ -59,6 +59,7 @@ class WikidataClient
         'P18'   => 'images',                // https://www.wikidata.org/wiki/Property:P18
         'P31'   => 'instances',             // https://www.wikidata.org/wiki/Property:P31
         'P137'  => 'operators',             // https://www.wikidata.org/wiki/Property:P137
+        'P276'  => 'locations',             // https://www.wikidata.org/wiki/Property:P276
         'P355'  => 'subsidiaries',          // https://www.wikidata.org/wiki/Property:P355
         'P366'  => 'hasUses',               // https://www.wikidata.org/wiki/Property:P366
         'P533'  => 'targets',               // https://www.wikidata.org/wiki/Property:P533
@@ -84,6 +85,7 @@ class WikidataClient
         'P5582' => 'numberOfArrests',       // https://www.wikidata.org/wiki/Property:P5582
         'P5630' => 'prisonerCounts',        // https://www.wikidata.org/wiki/Property:P5630
         'P6375' => 'streetAddresses',       // https://www.wikidata.org/wiki/Property:P6375
+        'P7153' => 'significantPlaces',     // https://www.wikidata.org/wiki/Property:P7153
         'P8031' => 'perpetrators',          // https://www.wikidata.org/wiki/Property:P8031
         'P8032' => 'victims',               // https://www.wikidata.org/wiki/Property:P8032
     ];
@@ -148,9 +150,9 @@ class WikidataClient
                 {
                     ?property wikibase:propertyType ?propertyType.
                     FILTER(?property IN(
-                        wd:P18, wd:P31, wd:P137, wd:P355, wd:P366, wd:P533, wd:P547, wd:P625, wd:P749, wd:P793, wd:P856, 
-                        wd:P1037, wd:P1120, wd:P1128, wd:P1343, wd:P1365, wd:P1366, wd:P1561, wd:P1590, wd:P5582, wd:P5630, 
-                        wd:P6375, wd:P8031, wd:P8032
+                        wd:P18, wd:P31, wd:P137, wd:P276, wd:P355, wd:P366, wd:P533, wd:P547, wd:P625, wd:P749, wd:P793, 
+                        wd:P856, wd:P1037, wd:P1120, wd:P1128, wd:P1343, wd:P1365, wd:P1366, wd:P1561, wd:P1590, wd:P5582, 
+                        wd:P5630, wd:P6375, wd:P7153, wd:P8031, wd:P8032
                     ))
                     FILTER(?propertyType != wikibase:Time)
                     ?property wikibase:statementProperty ?ps.
