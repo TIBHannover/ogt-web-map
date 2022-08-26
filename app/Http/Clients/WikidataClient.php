@@ -19,7 +19,9 @@ class WikidataClient
      * Groups of Wikidata Q-Ids of place instances.
      */
     const PLACE_GROUPS_IDS = [
-        'events'                  => [],
+        'events'                  => [
+            'Q6983405',     // https://www.wikidata.org/wiki/Q6983405       Nazi crime
+        ],
         'extPolicePrisons'        => [
             'Q108047650',   // https://www.wikidata.org/wiki/Q108047650     Extended police prison
             'Q108048094',   // https://www.wikidata.org/wiki/Q108048094     Police Detention Camp
@@ -57,24 +59,37 @@ class WikidataClient
         'P18'   => 'images',                // https://www.wikidata.org/wiki/Property:P18
         'P31'   => 'instances',             // https://www.wikidata.org/wiki/Property:P31
         'P137'  => 'operators',             // https://www.wikidata.org/wiki/Property:P137
+        'P276'  => 'locations',             // https://www.wikidata.org/wiki/Property:P276
         'P355'  => 'subsidiaries',          // https://www.wikidata.org/wiki/Property:P355
         'P366'  => 'hasUses',               // https://www.wikidata.org/wiki/Property:P366
+        'P533'  => 'targets',               // https://www.wikidata.org/wiki/Property:P533
         'P547'  => 'commemorates',          // https://www.wikidata.org/wiki/Property:P547
         'P571'  => 'inceptionDates',        // https://www.wikidata.org/wiki/Property:P571
         'P576'  => 'dissolvedDates',        // https://www.wikidata.org/wiki/Property:P576
         'P580'  => 'startTime',             // https://www.wikidata.org/wiki/Property:P580
+        'P582'  => 'endTime',               // https://www.wikidata.org/wiki/Property:P582
+        'P585'  => 'pointInTime',           // https://www.wikidata.org/wiki/Property:P585
         'P625'  => 'coordinates',           // https://www.wikidata.org/wiki/Property:P625
         'P749'  => 'parentOrganizations',   // https://www.wikidata.org/wiki/Property:P749
         'P793'  => 'significantEvents',     // https://www.wikidata.org/wiki/Property:P793
         'P856'  => 'officialWebsite',       // https://www.wikidata.org/wiki/Property:P856
         'P1037' => 'directors',             // https://www.wikidata.org/wiki/Property:P1037
+        'P1120' => 'numberOfDeaths',        // https://www.wikidata.org/wiki/Property:P1120
         'P1128' => 'employeeCounts',        // https://www.wikidata.org/wiki/Property:P1128
         'P1343' => 'describedBySources',    // https://www.wikidata.org/wiki/Property:P1343
         'P1365' => 'replaces',              // https://www.wikidata.org/wiki/Property:P1365
         'P1366' => 'replacedBys',           // https://www.wikidata.org/wiki/Property:P1366
+        'P1427' => 'startPoints',           // https://www.wikidata.org/wiki/Property:P1427
+        'P1444' => 'destinationPoints',     // https://www.wikidata.org/wiki/Property:P1444
+        'P1561' => 'numberOfSurvivors',     // https://www.wikidata.org/wiki/Property:P1561
+        'P1590' => 'numberOfCasualties',    // https://www.wikidata.org/wiki/Property:P1590
         'P1619' => 'openingDate',           // https://www.wikidata.org/wiki/Property:P1619
+        'P5582' => 'numberOfArrests',       // https://www.wikidata.org/wiki/Property:P5582
         'P5630' => 'prisonerCounts',        // https://www.wikidata.org/wiki/Property:P5630
         'P6375' => 'streetAddresses',       // https://www.wikidata.org/wiki/Property:P6375
+        'P7153' => 'significantPlaces',     // https://www.wikidata.org/wiki/Property:P7153
+        'P8031' => 'perpetrators',          // https://www.wikidata.org/wiki/Property:P8031
+        'P8032' => 'victims',               // https://www.wikidata.org/wiki/Property:P8032
     ];
 
     /**
@@ -103,36 +118,43 @@ class WikidataClient
     public function queryPlaces() : array
     {
         $query = '
-            SELECT 
-                ?item 
-                ?itemLabel 
-                ?itemDescription 
-                ?property 
-                ?statement 
-                ?propertyValue 
-                ?propertyValueLabel 
-                ?propertyTimePrecision 
-                ?qualifier 
-                ?qualifierValue 
-                ?qualifierValueLabel 
-                ?qualifierTimePrecision 
+            SELECT
+                ?item
+                ?itemLabel
+                ?itemDescription
+                ?property
+                ?statement
+                ?propertyValue
+                ?propertyValueLabel
+                ?propertyTimePrecision
+                ?qualifier
+                ?qualifierValue
+                ?qualifierValueLabel
+                ?qualifierTimePrecision
             WHERE {
                 {
-                    ?item wdt:P547 ?location.
-                    ?location wdt:P31 wd:Q106996250.    
+                    ?item wdt:P31 wd:Q106996250.
                 }
                 UNION
                 {
-                    ?item wdt:P31 wd:Q106996250.
-                }                               
+                    ?item wdt:P547 ?location.
+                    ?location wdt:P31 wd:Q106996250.
+                }
+                UNION
+                {
+                    ?item wdt:P31 wd:Q6983405;
+                          wdt:P8031 ?location.
+                    ?location wdt:P31 wd:Q106996250.
+                }
                 FILTER(EXISTS { ?item wdt:P625 ?coordinateLocation. })
                 ?property wikibase:claim ?claim.
                 ?item ?claim ?statement.
                 {
                     ?property wikibase:propertyType ?propertyType.
                     FILTER(?property IN(
-                        wd:P18, wd:P31, wd:P137, wd:P355, wd:P366, wd:P547, wd:P625, wd:P749, wd:P793, wd:P856, wd:P1037, 
-                        wd:P1128, wd:P1343, wd:P1365, wd:P1366, wd:P5630, wd:P6375
+                        wd:P18, wd:P31, wd:P137, wd:P276, wd:P355, wd:P366, wd:P533, wd:P547, wd:P625, wd:P749, wd:P793, 
+                        wd:P856, wd:P1037, wd:P1120, wd:P1128, wd:P1343, wd:P1365, wd:P1366, wd:P1427, wd:P1444, wd:P1561, 
+                        wd:P1590, wd:P5582, wd:P5630, wd:P6375, wd:P7153, wd:P8031, wd:P8032
                     ))
                     FILTER(?propertyType != wikibase:Time)
                     ?property wikibase:statementProperty ?ps.
@@ -141,7 +163,7 @@ class WikidataClient
                 UNION
                 {
                     ?property wikibase:statementValue ?psv.
-                    FILTER(?property IN(wd:P571, wd:P576, wd:P580, wd:P1619))
+                    FILTER(?property IN(wd:P571, wd:P576, wd:P580, wd:P582, wd:P585, wd:P1619))
                     ?statement ?psv ?propertyValueNode.
                     ?propertyValueNode wikibase:timeValue ?propertyValue;
                         wikibase:timePrecision ?propertyTimePrecision.
@@ -151,7 +173,7 @@ class WikidataClient
                         ?qualifier wikibase:propertyType ?qualifierType.
                         FILTER(?qualifier IN(wd:P304, wd:P625, wd:P1480, wd:P2096, wd:P6375))
                         FILTER(?qualifierType != wikibase:Time)
-                        ?qualifier wikibase:qualifier ?pq.      
+                        ?qualifier wikibase:qualifier ?pq.
                         ?statement ?pq ?qualifierValue.
                     }
                     UNION

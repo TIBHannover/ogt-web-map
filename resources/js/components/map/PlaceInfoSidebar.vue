@@ -52,8 +52,16 @@
                 <v-divider></v-divider>
             </template>
 
+            <event
+                v-if="selectedPlace.groupName == 'events'"
+                :selectedPlace="selectedPlace"
+                @switchLocation="$emit('switchLocation', $event)"
+                @undoZoomIntoPlace="$emit('undoZoomIntoPlace')"
+                @zoomIntoPlace="$emit('zoomIntoPlace')"
+            ></event>
+
             <gestapo-place
-                v-if="gestapoPlaceGroups.includes(selectedPlace.groupName)"
+                v-else-if="gestapoPlaceGroups.includes(selectedPlace.groupName)"
                 :selectedPlace="selectedPlace"
                 @switchLocation="$emit('switchLocation', $event)"
                 @undoZoomIntoPlace="$emit('undoZoomIntoPlace')"
@@ -72,12 +80,13 @@
 </template>
 
 <script>
+import Event from './info/Event';
 import GestapoPlace from './info/GestapoPlace';
 import MemorialPlace from './info/MemorialPlace';
 
 export default {
     name: 'PlaceInfoSidebar',
-    components: {GestapoPlace, MemorialPlace},
+    components: {Event, GestapoPlace, MemorialPlace},
     props: ['selectedPlace', 'showPlaceInfoSidebar'],
     data() {
         return {
@@ -95,7 +104,6 @@ export default {
 </script>
 
 <style scoped>
-/* move to top right */
 .hyphens-auto {
     hyphens: auto;
 }
