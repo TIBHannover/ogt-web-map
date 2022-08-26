@@ -43,6 +43,7 @@ class WikidataControllerTest extends TestCase
         ];
 
         $locationGroupNames = [
+            'events',
             'extPolicePrisons',
             'fieldOffices',
             'laborEducationCamps',
@@ -188,6 +189,8 @@ class WikidataControllerTest extends TestCase
             'P571'  => 'inceptionDates',
             'P576'  => 'dissolvedDates',
             'P580'  => 'startTime',
+            'P582'  => 'endTime',
+            'P585'  => 'pointInTime',
             'P1619' => 'openingDate',
         ];
         $propertyId = $this->faker->randomKey($validProperties);
