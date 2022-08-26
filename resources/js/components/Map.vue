@@ -108,6 +108,7 @@ export default {
             layers: null,
             locationMarkers: [],
             map: null,
+            persons: [],
             selectedPlace: {
                 addresses: {
                     additional: [{
@@ -157,6 +158,7 @@ export default {
                     label: '',
                 }],
                 description: '',
+                destinationPoints: [],
                 directors: [{
                     endDate: {
                         locale: '',
@@ -188,6 +190,10 @@ export default {
                     sourcingCircumstance: '',
                     value: 0,
                 }],
+                endDate: {
+                    locale: '',
+                    value: null,
+                },
                 events: [{
                     label: '',
                 }],
@@ -205,8 +211,13 @@ export default {
                     lng: 0,
                 },
                 layerName: '',
+                locations: [],
                 mainImageUrl: '',
                 mainImageLegend: '',
+                numberOfArrests: [],
+                numberOfCasualties: [],
+                numberOfDeaths: [],
+                numberOfSurvivors: [],
                 openingDate: {
                     locale: '',
                     value: null,
@@ -217,6 +228,16 @@ export default {
                     id: '',
                     label: '',
                 }],
+                perpetrators: [{
+                    hasLocationMarker: false,
+                    hasPersonData: false,
+                    id: '',
+                    label: '',
+                }],
+                pointInTime: {
+                    locale: '',
+                    value: null,
+                },
                 predecessors: [{
                     hasLocationMarker: false,
                     id: '',
@@ -226,6 +247,7 @@ export default {
                     sourcingCircumstance: '',
                     value: 0,
                 }],
+                significantPlaces: [],
                 sources: [{
                     label: '',
                     pages: '',
@@ -234,8 +256,15 @@ export default {
                     locale: '',
                     value: null,
                 },
+                startPoints: [],
                 successors: [{
                     hasLocationMarker: false,
+                    id: '',
+                    label: '',
+                }],
+                targets: [],
+                victims: [{
+                    hasPersonData: false,
                     id: '',
                     label: '',
                 }],
@@ -757,6 +786,30 @@ export default {
                 }
             }
 
+            this.selectedPlace.endDate = {
+                locale: '',
+                value: null,
+            };
+
+            if (place.endTime) {
+                for (const [statementId, endTime] of Object.entries(place.endTime)) {
+                    this.selectedPlace.endDate = this.getDate(endTime.value, endTime.datePrecision);
+                    break;
+                }
+            }
+
+            this.selectedPlace.pointInTime = {
+                locale: '',
+                value: null,
+            };
+
+            if (place.pointInTime) {
+                for (const [statementId, pointInTime] of Object.entries(place.pointInTime)) {
+                    this.selectedPlace.pointInTime = this.getDate(pointInTime.value, pointInTime.datePrecision);
+                    break;
+                }
+            }
+
             this.selectedPlace.commemorates = [];
             if (place.commemorates) {
                 for (const [statementId, commemorate] of Object.entries(place.commemorates)) {
@@ -776,6 +829,97 @@ export default {
 
                 for (const [statementId, commemoratedBy] of Object.entries(this.selectedPlace.commemoratedBy)) {
                     commemoratedBy.hasLocationMarker = this.locationMarkers[commemoratedBy.id] ? true : false;
+                }
+            }
+
+            this.selectedPlace.perpetrators = [];
+            if (place.perpetrators) {
+                for (const [statementId, perpetrator] of Object.entries(place.perpetrators)) {
+                    let hasPersonData = this.persons[perpetrator.id] ? true : false;
+                    let hasLocationMarker = this.locationMarkers[perpetrator.id] ? true : false;
+
+                    this.selectedPlace.perpetrators.push({
+                        hasLocationMarker: hasLocationMarker,
+                        hasPersonData: hasPersonData,
+                        id: perpetrator.id,
+                        label: perpetrator.value,
+                    });
+                }
+            }
+
+            this.selectedPlace.victims = [];
+            if (place.victims) {
+                for (const [statementId, victim] of Object.entries(place.victims)) {
+                    let hasPersonData = this.persons[victim.id] ? true : false;
+
+                    this.selectedPlace.victims.push({
+                        hasPersonData: hasPersonData,
+                        id: victim.id,
+                        label: victim.value,
+                    });
+                }
+            }
+
+            this.selectedPlace.targets = [];
+            if (place.targets) {
+                for (const [statementId, target] of Object.entries(place.targets)) {
+                    this.selectedPlace.targets.push(target.value);
+                }
+            }
+
+            this.selectedPlace.numberOfCasualties = [];
+            if (place.numberOfCasualties) {
+                for (const [statementId, numberOfCasualties] of Object.entries(place.numberOfCasualties)) {
+                    this.selectedPlace.numberOfCasualties.push(numberOfCasualties.value);
+                }
+            }
+
+            this.selectedPlace.numberOfDeaths = [];
+            if (place.numberOfDeaths) {
+                for (const [statementId, numberOfDeaths] of Object.entries(place.numberOfDeaths)) {
+                    this.selectedPlace.numberOfDeaths.push(numberOfDeaths.value);
+                }
+            }
+
+            this.selectedPlace.numberOfSurvivors = [];
+            if (place.numberOfSurvivors) {
+                for (const [statementId, numberOfSurvivors] of Object.entries(place.numberOfSurvivors)) {
+                    this.selectedPlace.numberOfSurvivors.push(numberOfSurvivors.value);
+                }
+            }
+
+            this.selectedPlace.numberOfArrests = [];
+            if (place.numberOfArrests) {
+                for (const [statementId, numberOfArrests] of Object.entries(place.numberOfArrests)) {
+                    this.selectedPlace.numberOfArrests.push(numberOfArrests.value);
+                }
+            }
+
+            this.selectedPlace.locations = [];
+            if (place.locations) {
+                for (const [statementId, location] of Object.entries(place.locations)) {
+                    this.selectedPlace.locations.push(location.value);
+                }
+            }
+
+            this.selectedPlace.significantPlaces = [];
+            if (place.significantPlaces) {
+                for (const [statementId, significantPlace] of Object.entries(place.significantPlaces)) {
+                    this.selectedPlace.significantPlaces.push(significantPlace.value);
+                }
+            }
+
+            this.selectedPlace.startPoints = [];
+            if (place.startPoints) {
+                for (const [statementId, startPoint] of Object.entries(place.startPoints)) {
+                    this.selectedPlace.startPoints.push(startPoint.value);
+                }
+            }
+
+            this.selectedPlace.destinationPoints = [];
+            if (place.destinationPoints) {
+                for (const [statementId, destinationPoint] of Object.entries(place.destinationPoints)) {
+                    this.selectedPlace.destinationPoints.push(destinationPoint.value);
                 }
             }
         },
