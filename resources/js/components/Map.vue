@@ -279,6 +279,7 @@ export default {
     },
     created() {
         this.getGroupedPlaces();
+        this.getPersons();
     },
     mounted() {
         this.setupLeafletMap();
@@ -324,6 +325,16 @@ export default {
 
             this.visualizePlaces(groupedPlaces);
             this.derivePlaceData();
+        },
+        /**
+         * Request persons data, for e.g. perpetrators.
+         */
+        async getPersons() {
+            await this.axios.get('/api/wikidata/persons').then(response => {
+                this.persons = response.data;
+            }).catch(error => {
+                console.log(error);
+            });
         },
         visualizePlaces: function (groupedPlaces) {
             for (const [group, places] of Object.entries(groupedPlaces)) {

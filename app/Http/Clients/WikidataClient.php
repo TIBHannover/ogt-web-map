@@ -57,19 +57,27 @@ class WikidataClient
      */
     const PROPERTY_LABEL_OF_ID = [
         'P18'   => 'images',                // https://www.wikidata.org/wiki/Property:P18
+        'P19'   => 'placeOfBirth',          // https://www.wikidata.org/wiki/Property:P19
+        'P20'   => 'placeOfDeath',          // https://www.wikidata.org/wiki/Property:P20
+        'P21'   => 'gender',                // https://www.wikidata.org/wiki/Property:P21
         'P31'   => 'instances',             // https://www.wikidata.org/wiki/Property:P31
+        'P108'  => 'employers',             // https://www.wikidata.org/wiki/Property:P108
         'P137'  => 'operators',             // https://www.wikidata.org/wiki/Property:P137
         'P276'  => 'locations',             // https://www.wikidata.org/wiki/Property:P276
         'P355'  => 'subsidiaries',          // https://www.wikidata.org/wiki/Property:P355
         'P366'  => 'hasUses',               // https://www.wikidata.org/wiki/Property:P366
         'P533'  => 'targets',               // https://www.wikidata.org/wiki/Property:P533
         'P547'  => 'commemorates',          // https://www.wikidata.org/wiki/Property:P547
+        'P569'  => 'dateOfBirth',           // https://www.wikidata.org/wiki/Property:P569
+        'P570'  => 'dateOfDeath',           // https://www.wikidata.org/wiki/Property:P570
         'P571'  => 'inceptionDates',        // https://www.wikidata.org/wiki/Property:P571
         'P576'  => 'dissolvedDates',        // https://www.wikidata.org/wiki/Property:P576
         'P580'  => 'startTime',             // https://www.wikidata.org/wiki/Property:P580
         'P582'  => 'endTime',               // https://www.wikidata.org/wiki/Property:P582
         'P585'  => 'pointInTime',           // https://www.wikidata.org/wiki/Property:P585
         'P625'  => 'coordinates',           // https://www.wikidata.org/wiki/Property:P625
+        'P734'  => 'familyName',            // https://www.wikidata.org/wiki/Property:P734
+        'P735'  => 'givenName',             // https://www.wikidata.org/wiki/Property:P735
         'P749'  => 'parentOrganizations',   // https://www.wikidata.org/wiki/Property:P749
         'P793'  => 'significantEvents',     // https://www.wikidata.org/wiki/Property:P793
         'P856'  => 'officialWebsite',       // https://www.wikidata.org/wiki/Property:P856
@@ -172,6 +180,94 @@ class WikidataClient
                     {
                         ?qualifier wikibase:propertyType ?qualifierType.
                         FILTER(?qualifier IN(wd:P304, wd:P625, wd:P1480, wd:P2096, wd:P6375))
+                        FILTER(?qualifierType != wikibase:Time)
+                        ?qualifier wikibase:qualifier ?pq.
+                        ?statement ?pq ?qualifierValue.
+                    }
+                    UNION
+                    {
+                        ?qualifier wikibase:qualifierValue ?pqv.
+                        FILTER(?qualifier IN(wd:P580, wd:P582, wd:P585, wd:P1319, wd:P1326, wd:P8554, wd:P8555))
+                        ?statement ?pqv ?qualifierValueNode.
+                        ?qualifierValueNode wikibase:timeValue ?qualifierValue;
+                            wikibase:timePrecision ?qualifierTimePrecision.
+                    }
+                }
+                SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". }
+            }
+            ORDER BY (?item) (?property) (?statement)';
+
+        return $this->requestWikidata($query);
+    }
+
+    /**
+     * Get persons data from Wikidata for e.g. perpetrators.
+     *
+     * @return array
+     */
+    public function queryPersons() : array
+    {
+        $query = '
+            SELECT DISTINCT
+                ?item
+                ?itemLabel
+                ?itemDescription
+                ?property
+                ?statement
+                ?propertyValue
+                ?propertyValueLabel
+                ?propertyTimePrecision
+                ?qualifier
+                ?qualifierValue
+                ?qualifierValueLabel
+                ?qualifierTimePrecision
+            WHERE {
+                ?location wdt:P31 wd:Q106996250.
+                FILTER(EXISTS { ?location wdt:P625 ?coordinateLocation. })
+                {
+                  ?item wdt:P108 ?location.
+                }
+                UNION
+                {
+                  ?location wdt:P1037 ?item.
+                }
+                UNION
+                {
+                  ?event wdt:P31 wd:Q6983405;
+                         wdt:P625 ?coordinateEvent;
+                         wdt:P8031 ?location;
+                         wdt:P8031 ?item.
+                  ?item wdt:P31 wd:Q5.
+                }
+                UNION
+                {
+                  ?event wdt:P31 wd:Q6983405;
+                         wdt:P625 ?coordinateEvent;
+                         wdt:P8031 ?location.
+                  ?item wdt:P793 ?event;
+                        wdt:P2868 wd:Q111080573;
+                }
+                ?property wikibase:claim ?claim.
+                ?item ?claim ?statement.
+                {
+                    ?property wikibase:propertyType ?propertyType.
+                    FILTER(?property IN(wd:P18, wd:P19, wd:P20, wd:P21, wd:P108, wd:P734, wd:P735, wd:P793, wd:P1343))
+                    FILTER(?propertyType != wikibase:Time)
+                    ?property wikibase:statementProperty ?ps.
+                    ?statement ?ps ?propertyValue.
+                }
+                UNION
+                {
+                    ?property wikibase:statementValue ?psv.
+                    FILTER(?property IN(wd:P569, wd:P570))
+                    ?statement ?psv ?propertyValueNode.
+                    ?propertyValueNode wikibase:timeValue ?propertyValue;
+                        wikibase:timePrecision ?propertyTimePrecision.
+                }
+                OPTIONAL {
+                    {
+                        ?qualifier wikibase:propertyType ?qualifierType.
+                        FILTER(?qualifier IN(wd:P304, wd:P2096))
                         FILTER(?qualifierType != wikibase:Time)
                         ?qualifier wikibase:qualifier ?pq.
                         ?statement ?pq ?qualifierValue.
