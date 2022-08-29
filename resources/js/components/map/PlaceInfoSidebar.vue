@@ -55,6 +55,7 @@
             <event
                 v-if="selectedPlace.groupName == 'events'"
                 :selectedPlace="selectedPlace"
+                @showPerson="$emit('showPerson', $event)"
                 @switchLocation="$emit('switchLocation', $event)"
                 @undoZoomIntoPlace="$emit('undoZoomIntoPlace')"
                 @zoomIntoPlace="$emit('zoomIntoPlace')"
@@ -63,6 +64,7 @@
             <gestapo-place
                 v-else-if="gestapoPlaceGroups.includes(selectedPlace.groupName)"
                 :selectedPlace="selectedPlace"
+                @showPerson="$emit('showPerson', $event)"
                 @switchLocation="$emit('switchLocation', $event)"
                 @undoZoomIntoPlace="$emit('undoZoomIntoPlace')"
                 @zoomIntoPlace="$emit('zoomIntoPlace')"

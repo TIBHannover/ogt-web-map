@@ -9,6 +9,7 @@
             :selectedPlace="selectedPlace"
             :showPlaceInfoSidebar="showPlaceInfoSidebar"
             @hidePlaceInfoSidebar="toggleShowPlaceInfoSidebar(false)"
+            @showPerson="showPerson($event)"
             @switchLocation="switchLocation"
             @undoZoomIntoPlace="restoreCachedMapView()"
             @zoomIntoPlace="setMapView(selectedPlace.latLng, 18, true)"
@@ -164,6 +165,8 @@ export default {
                         locale: '',
                         value: null,
                     },
+                    hasPersonData: false,
+                    id: '',
                     maxStartDate: {
                         locale: '',
                         value: null,
@@ -647,8 +650,12 @@ export default {
                     let minEndDate = director.earliestEndDate ?
                         this.getDate(director.earliestEndDate.value, director.earliestEndDate.datePrecision) : null;
 
+                    let hasPersonData = this.persons[director.id] ? true : false;
+
                     this.selectedPlace.directors.push({
                         endDate: endDate,
+                        hasPersonData: hasPersonData,
+                        id: director.id,
                         maxStartDate: maxStartDate,
                         minEndDate: minEndDate,
                         name: director.value,
@@ -1109,6 +1116,31 @@ export default {
             locationMarker.fire('click', {
                 latlng: latLng,
             });
+        },
+        /**
+         * Show person data in info sidebar.
+         *
+         * @param personId
+         */
+        showPerson: function (personId) {
+            let person = this.persons[personId];
+
+            this.selectedPlace.groupName = 'perpetrators';
+            this.selectedPlace.layerName = 'Täter*innen';
+            this.selectedPlace.id = person.id;
+            this.selectedPlace.label = person.label;
+            this.selectedPlace.description = person.description;
+
+            this.selectedPlace.mainImageUrl = '';
+            this.selectedPlace.mainImageLegend = '';
+
+            if (person.images) {
+                for (const [statementId, image] of Object.entries(person.images)) {
+                    this.selectedPlace.mainImageUrl = image.value;
+                    this.selectedPlace.mainImageLegend = image.mediaLegend ? image.mediaLegend.value : '';
+                    break;
+                }
+            }
         },
         /**
          * Show/Hide place info sidebar.

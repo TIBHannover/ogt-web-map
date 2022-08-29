@@ -46,7 +46,12 @@
                         <div class="mt-3" v-if="selectedPlace.directors.length > 0">
                             Leitung
                             <ul v-for="director in selectedPlace.directors" class="mb-3">
-                                <li>
+                                <li v-if="director.hasPersonData">
+                                    <a @click.stop="$emit('showPerson', director.id)" href="#">
+                                        {{ director.name }}
+                                    </a>
+                                </li>
+                                <li v-else>
                                     {{ director.name }}
                                 </li>
                                 <ul v-if="director.startDate && director.endDate">
