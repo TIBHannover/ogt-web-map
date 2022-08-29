@@ -75,6 +75,11 @@
                 @undoZoomIntoPlace="$emit('undoZoomIntoPlace')"
                 @zoomIntoPlace="$emit('zoomIntoPlace')"
             ></memorial-place>
+
+            <perpetrator
+                v-else-if="selectedPlace.groupName == 'perpetrators'"
+                :selectedPerson="selectedPlace"
+            ></perpetrator>
         </v-navigation-drawer>
     </div>
 </template>
@@ -83,10 +88,11 @@
 import Event from './info/Event';
 import GestapoPlace from './info/GestapoPlace';
 import MemorialPlace from './info/MemorialPlace';
+import Perpetrator from './info/Perpetrator';
 
 export default {
     name: 'PlaceInfoSidebar',
-    components: {Event, GestapoPlace, MemorialPlace},
+    components: {Event, GestapoPlace, MemorialPlace, Perpetrator},
     props: ['selectedPlace', 'showPlaceInfoSidebar'],
     data() {
         return {
