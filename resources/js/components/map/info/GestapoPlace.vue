@@ -75,7 +75,7 @@
                             </ul>
                         </div>
                         <div v-if="selectedPlace.employees.length > 0" class="my-2">
-                            Mitarbeiter:innen
+                            Mitarbeitende
                             <ul>
                                 <li v-for="employee in selectedPlace.employees">
                                     <a @click.stop="$emit('showPerson', employee.id)" href="#">
