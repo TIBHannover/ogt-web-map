@@ -38,6 +38,44 @@
             </v-list-item>
             <v-divider></v-divider>
         </template>
+
+        <!-- date of birth - https://www.wikidata.org/wiki/Property:P569
+             place of birth https://www.wikidata.org/wiki/Property:P19      -->
+        <template v-if="selectedPerson.placeOfBirth || selectedPerson.dateOfBirth.value">
+            <v-list-item dense>
+                <v-list-item-content>
+                    <v-list-item-title>Geburtsdatum/-ort</v-list-item-title>
+                    <v-list-item-subtitle>
+                        <template v-if="selectedPerson.dateOfBirth.value">
+                            {{ selectedPerson.dateOfBirth.locale }}
+                        </template>
+                        <template v-if="selectedPerson.placeOfBirth">
+                            in {{ selectedPerson.placeOfBirth }}
+                        </template>
+                    </v-list-item-subtitle>
+                </v-list-item-content>
+            </v-list-item>
+            <v-divider></v-divider>
+        </template>
+
+        <!-- date of death - https://www.wikidata.org/wiki/Property:P570
+             place of death - https://www.wikidata.org/wiki/Property:P20    -->
+        <template v-if="selectedPerson.placeOfDeath || selectedPerson.dateOfDeath.value">
+            <v-list-item dense>
+                <v-list-item-content>
+                    <v-list-item-title>Sterbedatum/-ort</v-list-item-title>
+                    <v-list-item-subtitle>
+                        <template v-if="selectedPerson.dateOfDeath.value">
+                            {{ selectedPerson.dateOfDeath.locale }}
+                        </template>
+                        <template v-if="selectedPerson.placeOfDeath">
+                            in {{ selectedPerson.placeOfDeath }}
+                        </template>
+                    </v-list-item-subtitle>
+                </v-list-item-content>
+            </v-list-item>
+            <v-divider></v-divider>
+        </template>
     </div>
 </template>
 

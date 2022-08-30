@@ -158,6 +158,14 @@ export default {
                     id: '',
                     label: '',
                 }],
+                dateOfBirth: {
+                    locale: '',
+                    value: null,
+                },
+                dateOfDeath: {
+                    locale: '',
+                    value: null,
+                },
                 description: '',
                 destinationPoints: [],
                 directors: [{
@@ -244,6 +252,8 @@ export default {
                     id: '',
                     label: '',
                 }],
+                placeOfBirth: '',
+                placeOfDeath: '',
                 pointInTime: {
                     locale: '',
                     value: null,
@@ -1205,6 +1215,46 @@ export default {
             if (person.gender) {
                 for (const [statementId, gender] of Object.entries(person.gender)) {
                     this.selectedPlace.gender = gender.value;
+                    break;
+                }
+            }
+
+            this.selectedPlace.placeOfBirth = '';
+            if (person.placeOfBirth) {
+                for (const [statementId, placeOfBirth] of Object.entries(person.placeOfBirth)) {
+                    this.selectedPlace.placeOfBirth = placeOfBirth.value;
+                    break;
+                }
+            }
+
+            this.selectedPlace.placeOfDeath = '';
+            if (person.placeOfDeath) {
+                for (const [statementId, placeOfDeath] of Object.entries(person.placeOfDeath)) {
+                    this.selectedPlace.placeOfDeath = placeOfDeath.value;
+                    break;
+                }
+            }
+
+            this.selectedPlace.dateOfBirth = {
+                locale: '',
+                value: null,
+            };
+
+            if (person.dateOfBirth) {
+                for (const [statementId, dateOfBirth] of Object.entries(person.dateOfBirth)) {
+                    this.selectedPlace.dateOfBirth = this.getDate(dateOfBirth.value, dateOfBirth.datePrecision);
+                    break;
+                }
+            }
+
+            this.selectedPlace.dateOfDeath = {
+                locale: '',
+                value: null,
+            };
+
+            if (person.dateOfDeath) {
+                for (const [statementId, dateOfDeath] of Object.entries(person.dateOfDeath)) {
+                    this.selectedPlace.dateOfDeath = this.getDate(dateOfDeath.value, dateOfDeath.datePrecision);
                     break;
                 }
             }
