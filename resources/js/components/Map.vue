@@ -1258,6 +1258,16 @@ export default {
                     break;
                 }
             }
+
+            this.selectedPlace.sources = [];
+            if (person.describedBySources) {
+                for (const [statementId, describedBySource] of Object.entries(person.describedBySources)) {
+                    this.selectedPlace.sources.push({
+                        label: describedBySource.value,
+                        pages: describedBySource.pages ? describedBySource.pages.value : '',
+                    });
+                }
+            }
         },
         /**
          * Show/Hide place info sidebar.

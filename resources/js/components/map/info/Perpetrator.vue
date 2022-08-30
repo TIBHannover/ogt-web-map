@@ -76,12 +76,20 @@
             </v-list-item>
             <v-divider></v-divider>
         </template>
+
+        <sources
+            v-if="selectedPerson.sources.length > 0"
+            :selectedPlace="selectedPerson"
+        ></sources>
     </div>
 </template>
 
 <script>
+import Sources from './Sources';
+
 export default {
     name: 'Perpetrator',
+    components: {Sources},
     props: ['selectedPerson'],
 };
 </script>
