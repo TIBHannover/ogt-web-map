@@ -66,6 +66,12 @@
             <v-divider></v-divider>
         </template>
 
+        <significant-event
+            v-if="selectedPerson.significantEvents.length > 0"
+            :selectedPlace="selectedPerson"
+            @switchLocation="$emit('switchLocation', $event)"
+        ></significant-event>
+
         <!-- date of birth - https://www.wikidata.org/wiki/Property:P569
              place of birth https://www.wikidata.org/wiki/Property:P19      -->
         <template v-if="selectedPerson.placeOfBirth || selectedPerson.dateOfBirth.value">
@@ -112,11 +118,12 @@
 </template>
 
 <script>
+import SignificantEvent from './SignificantEvent';
 import Sources from './Sources';
 
 export default {
     name: 'Perpetrator',
-    components: {Sources},
+    components: {SignificantEvent, Sources},
     props: ['selectedPerson'],
 };
 </script>

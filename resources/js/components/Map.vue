@@ -1293,6 +1293,20 @@ export default {
                     });
                 }
             }
+
+            this.selectedPlace.significantEvents = [];
+
+            if (person.significantEvents) {
+                for (const [statementId, significantEvent] of Object.entries(person.significantEvents)) {
+                    let hasLocationMarker = this.locationMarkers[significantEvent.id] ? true : false;
+
+                    this.selectedPlace.significantEvents.push({
+                        hasLocationMarker: hasLocationMarker,
+                        id: significantEvent.id,
+                        label: significantEvent.value,
+                    });
+                }
+            }
         },
         /**
          * Show/Hide place info sidebar.
