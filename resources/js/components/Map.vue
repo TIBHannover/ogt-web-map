@@ -204,6 +204,8 @@ export default {
                 events: [{
                     label: '',
                 }],
+                familyName: '',
+                givenName: '',
                 groupName: '',
                 hasUses: [],
                 id: '',
@@ -1179,6 +1181,20 @@ export default {
                     this.selectedPlace.mainImageUrl = image.value;
                     this.selectedPlace.mainImageLegend = image.mediaLegend ? image.mediaLegend.value : '';
                     break;
+                }
+            }
+
+            this.selectedPlace.givenName = '';
+            if (person.givenName) {
+                for (const [statementId, givenName] of Object.entries(person.givenName)) {
+                    this.selectedPlace.givenName = givenName.value;
+                }
+            }
+
+            this.selectedPlace.familyName = '';
+            if (person.familyName) {
+                for (const [statementId, familyName] of Object.entries(person.familyName)) {
+                    this.selectedPlace.familyName = familyName.value;
                 }
             }
         },
