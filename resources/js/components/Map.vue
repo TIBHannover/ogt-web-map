@@ -1188,6 +1188,7 @@ export default {
             if (person.givenName) {
                 for (const [statementId, givenName] of Object.entries(person.givenName)) {
                     this.selectedPlace.givenName = givenName.value;
+                    break;
                 }
             }
 
@@ -1195,6 +1196,7 @@ export default {
             if (person.familyName) {
                 for (const [statementId, familyName] of Object.entries(person.familyName)) {
                     this.selectedPlace.familyName = familyName.value;
+                    break;
                 }
             }
         },
