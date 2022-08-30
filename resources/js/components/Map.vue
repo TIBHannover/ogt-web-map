@@ -193,6 +193,10 @@ export default {
                     sourcingCircumstance: '',
                     value: 0,
                 }],
+                employees: [{
+                    id: '',
+                    label: '',
+                }],
                 endDate: {
                     locale: '',
                     value: null,
@@ -338,6 +342,8 @@ export default {
             }).catch(error => {
                 console.log(error);
             });
+
+            this.deriveLocationEmployees();
         },
         visualizePlaces: function (groupedPlaces) {
             for (const [group, places] of Object.entries(groupedPlaces)) {
@@ -940,6 +946,11 @@ export default {
                     this.selectedPlace.destinationPoints.push(destinationPoint.value);
                 }
             }
+
+            this.selectedPlace.employees = [];
+            if (this.derivedPlacesData[this.selectedPlace.id] && this.derivedPlacesData[this.selectedPlace.id]['employees']) {
+                this.selectedPlace.employees = this.derivedPlacesData[this.selectedPlace.id]['employees'];
+            }
         },
         /**
          * Get locale date string base on Wikidata time precision.
@@ -1086,6 +1097,35 @@ export default {
                         id: memorialId,
                         label: memorial.label,
                     });
+                }
+            }
+        },
+        /**
+         * Deriving location employees from personal data to make them easily accessible for location data.
+         */
+        deriveLocationEmployees: function () {
+            let persons = this.persons;
+
+            for (const [personId, person] of Object.entries(persons)) {
+                if (person.employers) {
+                    for (const [statementId, employer] of Object.entries(person.employers)) {
+                        if (! this.derivedPlacesData.hasOwnProperty(employer.id)) {
+                            this.derivedPlacesData[employer.id] = {
+                                employees: [],
+                            };
+                        }
+                        else if (! this.derivedPlacesData[employer.id].hasOwnProperty('employees')) {
+                            this.derivedPlacesData[employer.id]['employees'] = [];
+                        }
+                        else {
+                            // done
+                        }
+
+                        this.derivedPlacesData[employer.id]['employees'].push({
+                            id: personId,
+                            label: person.label,
+                        });
+                    }
                 }
             }
         },

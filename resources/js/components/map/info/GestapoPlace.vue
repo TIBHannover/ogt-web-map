@@ -43,7 +43,7 @@
                                 </template>
                             </li>
                         </ul>
-                        <div class="mt-3" v-if="selectedPlace.directors.length > 0">
+                        <div v-if="selectedPlace.directors.length > 0" class="my-2">
                             Leitung
                             <ul v-for="director in selectedPlace.directors" class="mb-3">
                                 <li v-if="director.hasPersonData">
@@ -72,6 +72,16 @@
                                         </template>
                                     </li>
                                 </ul>
+                            </ul>
+                        </div>
+                        <div v-if="selectedPlace.employees.length > 0" class="my-2">
+                            Bekannte Mitarbeiter:innen
+                            <ul>
+                                <li v-for="employee in selectedPlace.employees">
+                                    <a @click.stop="$emit('showPerson', employee.id)" href="#">
+                                        {{ employee.label }}
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </v-list-item-subtitle>
