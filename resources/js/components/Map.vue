@@ -214,9 +214,6 @@ export default {
                     locale: '',
                     value: null,
                 },
-                events: [{
-                    label: '',
-                }],
                 familyName: '',
                 gender: '',
                 givenName: '',
@@ -271,6 +268,11 @@ export default {
                 prisonerCounts: [{
                     sourcingCircumstance: '',
                     value: 0,
+                }],
+                significantEvents: [{
+                    hasLocationMarker: false,
+                    id: '',
+                    label: '',
                 }],
                 significantPlaces: [],
                 sources: [{
@@ -706,11 +708,15 @@ export default {
                 }
             }
 
-            this.selectedPlace.events = [];
+            this.selectedPlace.significantEvents = [];
 
             if (place.significantEvents) {
                 for (const [statementId, significantEvent] of Object.entries(place.significantEvents)) {
-                    this.selectedPlace.events.push({
+                    let hasLocationMarker = this.locationMarkers[significantEvent.id] ? true : false;
+
+                    this.selectedPlace.significantEvents.push({
+                        hasLocationMarker: hasLocationMarker,
+                        id: significantEvent.id,
                         label: significantEvent.value,
                     });
                 }
