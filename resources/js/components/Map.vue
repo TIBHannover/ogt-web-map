@@ -205,6 +205,7 @@ export default {
                     label: '',
                 }],
                 familyName: '',
+                gender: '',
                 givenName: '',
                 groupName: '',
                 hasUses: [],
@@ -1196,6 +1197,14 @@ export default {
             if (person.familyName) {
                 for (const [statementId, familyName] of Object.entries(person.familyName)) {
                     this.selectedPlace.familyName = familyName.value;
+                    break;
+                }
+            }
+
+            this.selectedPlace.gender = '';
+            if (person.gender) {
+                for (const [statementId, gender] of Object.entries(person.gender)) {
+                    this.selectedPlace.gender = gender.value;
                     break;
                 }
             }

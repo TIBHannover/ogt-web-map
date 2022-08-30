@@ -25,6 +25,19 @@
             </v-list-item>
             <v-divider></v-divider>
         </template>
+
+        <!-- sex or gender - https://www.wikidata.org/wiki/Property:P21 -->
+        <template v-if="selectedPerson.gender">
+            <v-list-item dense>
+                <v-list-item-content>
+                    <v-list-item-title>Geschlecht</v-list-item-title>
+                    <v-list-item-subtitle>
+                        {{ selectedPerson.gender }}
+                    </v-list-item-subtitle>
+                </v-list-item-content>
+            </v-list-item>
+            <v-divider></v-divider>
+        </template>
     </div>
 </template>
 
