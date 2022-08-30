@@ -81,6 +81,7 @@
             <perpetrator
                 v-else-if="selectedPlace.groupName == 'perpetrators'"
                 :selectedPerson="selectedPlace"
+                @switchLocation="$emit('switchLocation', $event)"
             ></perpetrator>
         </v-navigation-drawer>
     </div>

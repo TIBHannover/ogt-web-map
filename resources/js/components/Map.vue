@@ -205,6 +205,11 @@ export default {
                     id: '',
                     label: '',
                 }],
+                employers: [{
+                    hasLocationMarker: false,
+                    id: '',
+                    label: '',
+                }],
                 endDate: {
                     locale: '',
                     value: null,
@@ -1265,6 +1270,20 @@ export default {
                     this.selectedPlace.sources.push({
                         label: describedBySource.value,
                         pages: describedBySource.pages ? describedBySource.pages.value : '',
+                    });
+                }
+            }
+
+            this.selectedPlace.employers = [];
+
+            if (person.employers) {
+                for (const [statementId, employer] of Object.entries(person.employers)) {
+                    let hasLocationMarker = this.locationMarkers[employer.id] ? true : false;
+
+                    this.selectedPlace.employers.push({
+                        hasLocationMarker: hasLocationMarker,
+                        id: employer.id,
+                        label: employer.value,
                     });
                 }
             }
