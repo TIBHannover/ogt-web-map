@@ -973,7 +973,21 @@ export default {
 
             this.selectedPlace.employees = [];
             if (this.derivedPlacesData[this.selectedPlace.id] && this.derivedPlacesData[this.selectedPlace.id]['employees']) {
-                this.selectedPlace.employees = this.derivedPlacesData[this.selectedPlace.id]['employees'];
+                // add only employees who are not directors of a location
+                for (const [index, employee] of Object.entries(this.derivedPlacesData[this.selectedPlace.id]['employees'])) {
+                    let isDirector = false;
+
+                    for (const [index, director] of Object.entries(this.selectedPlace.directors)) {
+                        if (employee.id == director.id) {
+                            isDirector = true;
+                            break;
+                        }
+                    }
+
+                    if (! isDirector) {
+                        this.selectedPlace.employees.push(employee);
+                    }
+                }
             }
         },
         /**
