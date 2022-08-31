@@ -43,10 +43,15 @@
                                 </template>
                             </li>
                         </ul>
-                        <div class="mt-3" v-if="selectedPlace.directors.length > 0">
+                        <div v-if="selectedPlace.directors.length > 0" class="my-2">
                             Leitung
                             <ul v-for="director in selectedPlace.directors" class="mb-3">
-                                <li>
+                                <li v-if="director.hasPersonData">
+                                    <a @click.stop="$emit('showPerson', director.id)" href="#">
+                                        {{ director.name }}
+                                    </a>
+                                </li>
+                                <li v-else>
                                     {{ director.name }}
                                 </li>
                                 <ul v-if="director.startDate && director.endDate">
@@ -69,6 +74,16 @@
                                 </ul>
                             </ul>
                         </div>
+                        <div v-if="selectedPlace.employees.length > 0" class="my-2">
+                            Mitarbeitende
+                            <ul>
+                                <li v-for="employee in selectedPlace.employees">
+                                    <a @click.stop="$emit('showPerson', employee.id)" href="#">
+                                        {{ employee.label }}
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </v-list-item-subtitle>
                 </v-list-item-content>
             </v-list-item>
@@ -80,22 +95,11 @@
             :selectedPlace="selectedPlace"
         ></prisoner-count>
 
-        <!-- associated significant events - https://www.wikidata.org/wiki/Property:P793 -->
-        <template v-if="selectedPlace.events.length > 0">
-            <v-list-item dense>
-                <v-list-item-content>
-                    <v-list-item-title>Ereignisse</v-list-item-title>
-                    <v-list-item-subtitle>
-                        <ul class="hyphens-auto white-space-normal" lang="de">
-                            <li v-for="event in selectedPlace.events">
-                                {{ event.label }}
-                            </li>
-                        </ul>
-                    </v-list-item-subtitle>
-                </v-list-item-content>
-            </v-list-item>
-            <v-divider></v-divider>
-        </template>
+        <significant-event
+            v-if="selectedPlace.significantEvents.length > 0"
+            :selectedPlace="selectedPlace"
+            @switchLocation="$emit('switchLocation', $event)"
+        ></significant-event>
 
         <!-- parent organizations - https://www.wikidata.org/wiki/Property:P749 -->
         <template v-if="selectedPlace.parentOrganizations.length > 0">
@@ -241,11 +245,12 @@
 <script>
 import AddressInfo from './AddressInfo';
 import PrisonerCount from './PrisonerCount';
+import SignificantEvent from './SignificantEvent';
 import Sources from './Sources';
 
 export default {
     name: 'GestapoPlace',
-    components: {AddressInfo, PrisonerCount, Sources},
+    components: {AddressInfo, PrisonerCount, SignificantEvent, Sources},
     props: ['selectedPlace'],
 };
 </script>

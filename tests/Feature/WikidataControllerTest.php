@@ -25,6 +25,69 @@ class WikidataControllerTest extends TestCase
     }
 
     /**
+     * Test get Wikidata persons successfully request.
+     */
+    public function testGetWikidataPersonsSuccess()
+    {
+        $placeDataArray = [];
+        $expectedResponse = [];
+        $itemId = 'Q42';
+
+        [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData($itemId, 'Q5');
+        $placeDataArray[] = $placeInstanceData;
+
+        [$placeTimeData, $expectedPlaceTimeData] = $this->createPlaceTimeData($itemId);
+        $placeDataArray[] = $placeTimeData;
+
+        [$placeCoordinateData, $expectedPlaceCoordinateData] = $this->createPlaceCoordinateData($itemId);
+        $placeDataArray[] = $placeCoordinateData;
+
+        [$placeObjectData, $expectedPlaceObjectData] = $this->createPlaceObjectData($itemId);
+        $placeDataArray[] = $placeObjectData;
+
+        $expectedResponse[$itemId] = array_merge(
+            $expectedPlaceInstanceData[$itemId],
+            $expectedPlaceTimeData[$itemId],
+            $expectedPlaceCoordinateData[$itemId],
+            $expectedPlaceObjectData[$itemId]
+        );
+
+        $responseContentFake = [
+            'head'    => [
+                'vars' => [
+                    'item',
+                    'itemLabel',
+                    'itemDescription',
+                    'property',
+                    'statement',
+                    'propertyValue',
+                    'propertyValueLabel',
+                    'propertyTimePrecision',
+                    'qualifier',
+                    'qualifierValue',
+                    'qualifierValueLabel',
+                    'qualifierTimePrecision',
+                ],
+            ],
+            'results' => [
+                'bindings' => $placeDataArray,
+            ],
+        ];
+
+        Http::fake(
+            [
+                config('wikidata.url') . '*' => Http::response($responseContentFake, Response::HTTP_OK),
+            ]
+        );
+
+        Log::shouldReceive('warning')->never();
+
+        $this->get('/api/wikidata/persons')
+            ->assertStatus(Response::HTTP_OK)
+            ->assertExactJson($expectedResponse);
+    }
+
+    /**
      * Test get Wikidata places successfully request.
      * - test each valid place group
      */
@@ -58,6 +121,7 @@ class WikidataControllerTest extends TestCase
             $instanceId = Arr::random(WikidataClient::PLACE_GROUPS_IDS[$locationGroupName]);
             $itemId = 'Q' . $index;
             [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData($itemId, $instanceId);
+            unset($expectedPlaceInstanceData[$itemId]['instances']);
             $placeDataArray[] = $placeInstanceData;
 
             [$placeTimeData, $expectedPlaceTimeData] = $this->createPlaceTimeData($itemId);
@@ -125,6 +189,8 @@ class WikidataControllerTest extends TestCase
     {
         $itemLabel = $itemId . ' item label';
         $itemDescription = $itemId . ' item description';
+        $statementId = $itemId . '-' . $this->faker->uuid;
+        $propertyValueLabel = $instanceId . ' item label';
 
         $locationData = [
             'item'               => [
@@ -147,7 +213,7 @@ class WikidataControllerTest extends TestCase
             ],
             'statement'          => [
                 'type'  => 'uri',
-                'value' => self::WIKIDATA_ENTITY_URL . 'statement/' . $itemId . '-' . $this->faker->uuid,
+                'value' => self::WIKIDATA_ENTITY_URL . 'statement/' . $statementId,
             ],
             'propertyValue'      => [
                 'type'  => 'uri',
@@ -155,7 +221,7 @@ class WikidataControllerTest extends TestCase
             ],
             'propertyValueLabel' => [
                 'type'     => 'literal',
-                'value'    => 'Label of instance-of item',
+                'value'    => $propertyValueLabel,
                 'xml:lang' => 'de',
             ],
         ];
@@ -165,6 +231,12 @@ class WikidataControllerTest extends TestCase
                 'description' => $itemDescription,
                 'id'          => $itemId,
                 'label'       => $itemLabel,
+                'instances'   => [
+                    $statementId => [
+                        'id'    => $instanceId,
+                        'value' => $propertyValueLabel,
+                    ],
+                ],
             ],
         ];
 
@@ -186,6 +258,8 @@ class WikidataControllerTest extends TestCase
         $statementId = $itemId . '-' . $this->faker->uuid;
 
         $validProperties = [
+            'P569'  => 'dateOfBirth',
+            'P570'  => 'dateOfDeath',
             'P571'  => 'inceptionDates',
             'P576'  => 'dissolvedDates',
             'P580'  => 'startTime',
@@ -488,15 +562,18 @@ class WikidataControllerTest extends TestCase
 
         // valid instance id of group statePoliceOffices
         [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q1', 'Q108048310');
+        unset($expectedPlaceInstanceData['Q1']['instances']);
         $placeDataArray[] = $placeInstanceData;
 
         // valid instance id of group fieldOffices
         [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q1', 'Q108047775');
+        unset($expectedPlaceInstanceData['Q1']['instances']);
         $placeDataArray[] = $placeInstanceData;
         $expectedResponse['fieldOffices'] = $expectedPlaceInstanceData;
 
         // valid instance id of group prisons
         [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q1', 'Q40357');
+        unset($expectedPlaceInstanceData['Q1']['instances']);
         $placeDataArray[] = $placeInstanceData;
 
         $responseContentFake = [
@@ -553,11 +630,13 @@ class WikidataControllerTest extends TestCase
 
         // valid instance id Q108047541 of group fieldOffices
         [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q1', 'Q108047541');
+        unset($expectedPlaceInstanceData['Q1']['instances']);
         $placeDataArray[] = $placeInstanceData;
         $expectedResponse['fieldOffices'] = $expectedPlaceInstanceData;
 
         // invalid instance id Q987654321
         [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q2', 'Q111111111');
+        unset($expectedPlaceInstanceData['Q2']['instances']);
         $placeDataArray[] = $placeInstanceData;
 
         $responseContentFake = [
@@ -761,6 +840,7 @@ class WikidataControllerTest extends TestCase
     ) {
         $instanceId = Arr::random(WikidataClient::PLACE_GROUPS_IDS['statePoliceOffices']);
         [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q1', $instanceId);
+        unset($expectedPlaceInstanceData['Q1']['instances']);
 
         $responseNoDataReturned = [
             'head'    => [

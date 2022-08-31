@@ -90,6 +90,7 @@
                         <ul class="hyphens-auto white-space-normal" lang="de">
                             <li v-for="perpetrator in selectedPlace.perpetrators">
                                 <a v-if="perpetrator.hasPersonData"
+                                   @click.stop="$emit('showPerson', perpetrator.id)"
                                    href="#"
                                 >
                                     {{ perpetrator.label }}

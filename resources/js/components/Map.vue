@@ -9,6 +9,7 @@
             :selectedPlace="selectedPlace"
             :showPlaceInfoSidebar="showPlaceInfoSidebar"
             @hidePlaceInfoSidebar="toggleShowPlaceInfoSidebar(false)"
+            @showPerson="showPerson($event)"
             @switchLocation="switchLocation"
             @undoZoomIntoPlace="restoreCachedMapView()"
             @zoomIntoPlace="setMapView(selectedPlace.latLng, 18, true)"
@@ -157,6 +158,14 @@ export default {
                     id: '',
                     label: '',
                 }],
+                dateOfBirth: {
+                    locale: '',
+                    value: null,
+                },
+                dateOfDeath: {
+                    locale: '',
+                    value: null,
+                },
                 description: '',
                 destinationPoints: [],
                 directors: [{
@@ -164,6 +173,8 @@ export default {
                         locale: '',
                         value: null,
                     },
+                    hasPersonData: false,
+                    id: '',
                     maxStartDate: {
                         locale: '',
                         value: null,
@@ -190,13 +201,22 @@ export default {
                     sourcingCircumstance: '',
                     value: 0,
                 }],
+                employees: [{
+                    id: '',
+                    label: '',
+                }],
+                employers: [{
+                    hasLocationMarker: false,
+                    id: '',
+                    label: '',
+                }],
                 endDate: {
                     locale: '',
                     value: null,
                 },
-                events: [{
-                    label: '',
-                }],
+                familyName: '',
+                gender: '',
+                givenName: '',
                 groupName: '',
                 hasUses: [],
                 id: '',
@@ -234,6 +254,8 @@ export default {
                     id: '',
                     label: '',
                 }],
+                placeOfBirth: '',
+                placeOfDeath: '',
                 pointInTime: {
                     locale: '',
                     value: null,
@@ -246,6 +268,11 @@ export default {
                 prisonerCounts: [{
                     sourcingCircumstance: '',
                     value: 0,
+                }],
+                significantEvents: [{
+                    hasLocationMarker: false,
+                    id: '',
+                    label: '',
                 }],
                 significantPlaces: [],
                 sources: [{
@@ -279,6 +306,7 @@ export default {
     },
     created() {
         this.getGroupedPlaces();
+        this.getPersons();
     },
     mounted() {
         this.setupLeafletMap();
@@ -324,6 +352,18 @@ export default {
 
             this.visualizePlaces(groupedPlaces);
             this.derivePlaceData();
+        },
+        /**
+         * Request persons data, for e.g. perpetrators.
+         */
+        async getPersons() {
+            await this.axios.get('/api/wikidata/persons').then(response => {
+                this.persons = response.data;
+            }).catch(error => {
+                console.log(error);
+            });
+
+            this.deriveLocationEmployees();
         },
         visualizePlaces: function (groupedPlaces) {
             for (const [group, places] of Object.entries(groupedPlaces)) {
@@ -636,8 +676,12 @@ export default {
                     let minEndDate = director.earliestEndDate ?
                         this.getDate(director.earliestEndDate.value, director.earliestEndDate.datePrecision) : null;
 
+                    let hasPersonData = this.persons[director.id] ? true : false;
+
                     this.selectedPlace.directors.push({
                         endDate: endDate,
+                        hasPersonData: hasPersonData,
+                        id: director.id,
                         maxStartDate: maxStartDate,
                         minEndDate: minEndDate,
                         name: director.value,
@@ -664,11 +708,15 @@ export default {
                 }
             }
 
-            this.selectedPlace.events = [];
+            this.selectedPlace.significantEvents = [];
 
             if (place.significantEvents) {
                 for (const [statementId, significantEvent] of Object.entries(place.significantEvents)) {
-                    this.selectedPlace.events.push({
+                    let hasLocationMarker = this.locationMarkers[significantEvent.id] ? true : false;
+
+                    this.selectedPlace.significantEvents.push({
+                        hasLocationMarker: hasLocationMarker,
+                        id: significantEvent.id,
                         label: significantEvent.value,
                     });
                 }
@@ -922,6 +970,25 @@ export default {
                     this.selectedPlace.destinationPoints.push(destinationPoint.value);
                 }
             }
+
+            this.selectedPlace.employees = [];
+            if (this.derivedPlacesData[this.selectedPlace.id] && this.derivedPlacesData[this.selectedPlace.id]['employees']) {
+                // add only employees who are not directors of a location
+                for (const [index, employee] of Object.entries(this.derivedPlacesData[this.selectedPlace.id]['employees'])) {
+                    let isDirector = false;
+
+                    for (const [index, director] of Object.entries(this.selectedPlace.directors)) {
+                        if (employee.id == director.id) {
+                            isDirector = true;
+                            break;
+                        }
+                    }
+
+                    if (! isDirector) {
+                        this.selectedPlace.employees.push(employee);
+                    }
+                }
+            }
         },
         /**
          * Get locale date string base on Wikidata time precision.
@@ -930,7 +997,7 @@ export default {
          * @param {int} datePrecision       9 => year precision, 10 => month precision, 11 => day precision
          * @param {string} locale           default 'de-de'
          *
-         * @returns {{locale: string, value: Date}|null}
+         * @returns {{locale: string, value: Date}|{locale: string, value: null}}
          */
         getDate: function (dateTimeString, datePrecision, locale = 'de-de') {
             let dateFormatOptions = {};
@@ -958,7 +1025,10 @@ export default {
                     break;
 
                 default:
-                    return null;
+                    return {
+                        locale: '',
+                        value: null,
+                    };
             }
 
             let date = new Date(dateTimeString);
@@ -1072,6 +1142,35 @@ export default {
             }
         },
         /**
+         * Deriving location employees from personal data to make them easily accessible for location data.
+         */
+        deriveLocationEmployees: function () {
+            let persons = this.persons;
+
+            for (const [personId, person] of Object.entries(persons)) {
+                if (person.employers) {
+                    for (const [statementId, employer] of Object.entries(person.employers)) {
+                        if (! this.derivedPlacesData.hasOwnProperty(employer.id)) {
+                            this.derivedPlacesData[employer.id] = {
+                                employees: [],
+                            };
+                        }
+                        else if (! this.derivedPlacesData[employer.id].hasOwnProperty('employees')) {
+                            this.derivedPlacesData[employer.id]['employees'] = [];
+                        }
+                        else {
+                            // done
+                        }
+
+                        this.derivedPlacesData[employer.id]['employees'].push({
+                            id: personId,
+                            label: person.label,
+                        });
+                    }
+                }
+            }
+        },
+        /**
          * Switch location on map and location info.
          *
          * @param {string}      locationId
@@ -1098,6 +1197,133 @@ export default {
             locationMarker.fire('click', {
                 latlng: latLng,
             });
+        },
+        /**
+         * Show person data in info sidebar.
+         *
+         * @param personId
+         */
+        showPerson: function (personId) {
+            let person = this.persons[personId];
+
+            this.selectedPlace.groupName = 'perpetrators';
+            this.selectedPlace.layerName = 'Täter*innen';
+            this.selectedPlace.id = person.id;
+            this.selectedPlace.label = person.label;
+            this.selectedPlace.description = person.description;
+
+            this.selectedPlace.mainImageUrl = '';
+            this.selectedPlace.mainImageLegend = '';
+
+            if (person.images) {
+                for (const [statementId, image] of Object.entries(person.images)) {
+                    this.selectedPlace.mainImageUrl = image.value;
+                    this.selectedPlace.mainImageLegend = image.mediaLegend ? image.mediaLegend.value : '';
+                    break;
+                }
+            }
+
+            this.selectedPlace.givenName = '';
+            if (person.givenName) {
+                for (const [statementId, givenName] of Object.entries(person.givenName)) {
+                    this.selectedPlace.givenName = givenName.value;
+                    break;
+                }
+            }
+
+            this.selectedPlace.familyName = '';
+            if (person.familyName) {
+                for (const [statementId, familyName] of Object.entries(person.familyName)) {
+                    this.selectedPlace.familyName = familyName.value;
+                    break;
+                }
+            }
+
+            this.selectedPlace.gender = '';
+            if (person.gender) {
+                for (const [statementId, gender] of Object.entries(person.gender)) {
+                    this.selectedPlace.gender = gender.value;
+                    break;
+                }
+            }
+
+            this.selectedPlace.placeOfBirth = '';
+            if (person.placeOfBirth) {
+                for (const [statementId, placeOfBirth] of Object.entries(person.placeOfBirth)) {
+                    this.selectedPlace.placeOfBirth = placeOfBirth.value;
+                    break;
+                }
+            }
+
+            this.selectedPlace.placeOfDeath = '';
+            if (person.placeOfDeath) {
+                for (const [statementId, placeOfDeath] of Object.entries(person.placeOfDeath)) {
+                    this.selectedPlace.placeOfDeath = placeOfDeath.value;
+                    break;
+                }
+            }
+
+            this.selectedPlace.dateOfBirth = {
+                locale: '',
+                value: null,
+            };
+
+            if (person.dateOfBirth) {
+                for (const [statementId, dateOfBirth] of Object.entries(person.dateOfBirth)) {
+                    this.selectedPlace.dateOfBirth = this.getDate(dateOfBirth.value, dateOfBirth.datePrecision);
+                    break;
+                }
+            }
+
+            this.selectedPlace.dateOfDeath = {
+                locale: '',
+                value: null,
+            };
+
+            if (person.dateOfDeath) {
+                for (const [statementId, dateOfDeath] of Object.entries(person.dateOfDeath)) {
+                    this.selectedPlace.dateOfDeath = this.getDate(dateOfDeath.value, dateOfDeath.datePrecision);
+                    break;
+                }
+            }
+
+            this.selectedPlace.sources = [];
+            if (person.describedBySources) {
+                for (const [statementId, describedBySource] of Object.entries(person.describedBySources)) {
+                    this.selectedPlace.sources.push({
+                        label: describedBySource.value,
+                        pages: describedBySource.pages ? describedBySource.pages.value : '',
+                    });
+                }
+            }
+
+            this.selectedPlace.employers = [];
+
+            if (person.employers) {
+                for (const [statementId, employer] of Object.entries(person.employers)) {
+                    let hasLocationMarker = this.locationMarkers[employer.id] ? true : false;
+
+                    this.selectedPlace.employers.push({
+                        hasLocationMarker: hasLocationMarker,
+                        id: employer.id,
+                        label: employer.value,
+                    });
+                }
+            }
+
+            this.selectedPlace.significantEvents = [];
+
+            if (person.significantEvents) {
+                for (const [statementId, significantEvent] of Object.entries(person.significantEvents)) {
+                    let hasLocationMarker = this.locationMarkers[significantEvent.id] ? true : false;
+
+                    this.selectedPlace.significantEvents.push({
+                        hasLocationMarker: hasLocationMarker,
+                        id: significantEvent.id,
+                        label: significantEvent.value,
+                    });
+                }
+            }
         },
         /**
          * Show/Hide place info sidebar.
