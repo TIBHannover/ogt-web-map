@@ -997,7 +997,7 @@ export default {
          * @param {int} datePrecision       9 => year precision, 10 => month precision, 11 => day precision
          * @param {string} locale           default 'de-de'
          *
-         * @returns {{locale: string, value: Date}|null}
+         * @returns {{locale: string, value: Date}|{locale: string, value: null}}
          */
         getDate: function (dateTimeString, datePrecision, locale = 'de-de') {
             let dateFormatOptions = {};
@@ -1025,7 +1025,10 @@ export default {
                     break;
 
                 default:
-                    return null;
+                    return {
+                        locale: '',
+                        value: null,
+                    };
             }
 
             let date = new Date(dateTimeString);
