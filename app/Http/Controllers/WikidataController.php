@@ -11,6 +11,55 @@ use Illuminate\Validation\Rule;
 class WikidataController extends Controller
 {
     /**
+     * Get persons data from Wikidata for website map view and merge required data by person.
+     *
+     * @param WikidataClient $wikidataClient
+     *
+     * @return Response
+     */
+    public function getPersons(WikidataClient $wikidataClient) : Response
+    {
+        $personsResponse = $wikidataClient->queryPersons();
+        $validator = Validator::make($personsResponse, [
+            'head'             => 'required|array:vars|size:1',
+            'head.vars'        => [
+                'required',
+                'array',
+                'size:12',
+                Rule::in(
+                    [
+                        'item',
+                        'itemLabel',
+                        'itemDescription',
+                        'property',
+                        'statement',
+                        'propertyValue',
+                        'propertyValueLabel',
+                        'propertyTimePrecision',
+                        'qualifier',
+                        'qualifierValue',
+                        'qualifierValueLabel',
+                        'qualifierTimePrecision',
+                    ]
+                ),
+            ],
+            'results'          => 'required|array:bindings|size:1',
+            'results.bindings' => 'required|array',
+        ]);
+
+        if ($validator->fails())
+        {
+            Log::warning('Validation of Wikidata persons response failed.', $validator->errors()->all());
+
+            return response([], Response::HTTP_NO_CONTENT);
+        }
+
+        $persons = $wikidataClient->mergeItemsData($personsResponse['results']['bindings']);
+
+        return response($persons, Response::HTTP_OK);
+    }
+
+    /**
      * Get location data from Wikidata for website map view, merge required data by location and group by location type.
      *
      * @param WikidataClient $wikidataClient

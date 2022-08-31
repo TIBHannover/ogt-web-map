@@ -20,6 +20,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::get('/wikidata/persons', [WikidataController::class, 'getPersons']);
+
 Route::get('/wikidata/places', [WikidataController::class, 'getPlaces']);
 
 Route::get('/ping', [PingController::class, 'ping']);
