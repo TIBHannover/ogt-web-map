@@ -32,6 +32,7 @@
             <!-- location main image and image legend -->
             <div v-show="selectedPlace.mainImageUrl">
                 <v-img :alt="selectedPlace.mainImageLegend"
+                       contain
                        max-height="250"
                        :src="selectedPlace.mainImageUrl"
                        :title="selectedPlace.mainImageLegend"
