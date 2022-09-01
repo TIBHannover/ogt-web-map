@@ -26,13 +26,19 @@
             @zoomIntoPlace="$emit('zoomIntoPlace')"
         ></address-info>
 
-        <!-- number of employees at a given time, sourcing circumstances and directors in respective periods -->
-        <template v-if="selectedPlace.employeeCounts.length > 0">
+        <!-- number of  employees (point in time, sourcing circumstances) - https://www.wikidata.org/wiki/Property:P1128
+             director / manager (time period) - https://www.wikidata.org/wiki/Property:P1037
+             employer - https://www.wikidata.org/wiki/Property:P108
+        -->
+        <template v-if="selectedPlace.employeeCounts.length > 0 ||
+                        selectedPlace.directors.length > 0 ||
+                        selectedPlace.employees.length > 0"
+        >
             <v-list-item dense>
                 <v-list-item-content>
                     <v-list-item-title>Personalstärke</v-list-item-title>
                     <v-list-item-subtitle>
-                        <ul>
+                        <ul v-if="selectedPlace.employeeCounts.length > 0">
                             <li v-for="employeeCount in selectedPlace.employeeCounts">
                                 <template v-if="employeeCount.sourcingCircumstance">
                                     {{ employeeCount.sourcingCircumstance }}
@@ -43,9 +49,9 @@
                                 </template>
                             </li>
                         </ul>
-                        <div v-if="selectedPlace.directors.length > 0" class="my-2">
+                        <div v-if="selectedPlace.directors.length > 0" class="mt-2">
                             Leitung
-                            <ul v-for="director in selectedPlace.directors" class="mb-3">
+                            <ul v-for="director in selectedPlace.directors" class="mb-2">
                                 <li v-if="director.hasPersonData">
                                     <a @click.stop="$emit('showPerson', director.id)" href="#">
                                         {{ director.name }}
@@ -54,7 +60,7 @@
                                 <li v-else>
                                     {{ director.name }}
                                 </li>
-                                <ul v-if="director.startDate && director.endDate">
+                                <ul v-if="director.startDate || director.endDate">
                                     <li class="hyphens-auto white-space-normal" lang="de">
                                         <template v-if="director.startDate && director.maxStartDate">
                                             von zwischen {{ director.startDate.locale }} und
