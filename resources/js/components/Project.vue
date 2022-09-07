@@ -37,9 +37,10 @@
                         <v-list-item>
                             <v-list-item-content>
                                 <v-list-item-subtitle>
-                                    <a class="hyphens-auto white-space-normal"
-                                       href="#presentationsAndPublications"
-                                       lang="de"
+                                    <a
+                                        class="hyphens-auto white-space-normal"
+                                        href="#presentationsAndPublications"
+                                        lang="de"
                                     >
                                         Projektpräsentationen & Publikationen
                                     </a>
@@ -103,10 +104,14 @@
                                     </a>
                                 </v-list-item-subtitle>
                                 <v-list-item-subtitle>
-                                    <a class="hyphens-auto white-space-normal"
-                                       href="https://www.mwk.niedersachsen.de/startseite/aktuelles/presseinformationen/land-fordert-geistes-kultur-und-sozialwissenschaften-mit-4-5-mio-euro-191014.html"
-                                       lang="de"
-                                       target="_blank">Förderprogramm PRO*Niedersachsen</a>
+                                    <a
+                                        class="hyphens-auto white-space-normal"
+                                        href="https://www.mwk.niedersachsen.de/startseite/aktuelles/presseinformationen/land-fordert-geistes-kultur-und-sozialwissenschaften-mit-4-5-mio-euro-191014.html"
+                                        lang="de"
+                                        target="_blank"
+                                    >
+                                        Förderprogramm PRO*Niedersachsen
+                                    </a>
                                 </v-list-item-subtitle>
                             </v-list-item-content>
                         </v-list-item>
