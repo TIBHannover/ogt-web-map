@@ -144,7 +144,7 @@
                     <h2 class="text-h6 text-md-h5 mb-3">
                         Gestapo.Terror.Orte in Niedersachsen 1933–1945
                     </h2>
-                    <h3 class="text-subtitle-1 text-md-h6 mb-1">
+                    <h3 class="text-subtitle-2 text-md-h6 mb-1">
                         Spuren der Vergangenheit: Verbrechen der Gestapo digital sichtbar machen
                     </h3>
                     <p>
@@ -165,9 +165,9 @@
                         ergänzt werden.
                     </p>
 
-                    <h3 class="text-subtitle-1 text-md-h6 mb-1">
+                    <h2 class="text-h6 text-md-h5 mb-3">
                         Standorte und Infrastruktur flächendeckend untersuchen
-                    </h3>
+                    </h2>
                     <p>
                         Die Gestapo war eines der wichtigsten Terrorinstrumente des nationalsozialistischen Staates. Sie
                         verfolgte unter anderem politische Gegnerinnen und Gegner, setzte den staatlichen Antisemitismus
@@ -199,9 +199,9 @@
                         die Antragsteller beraten.
                     </p>
 
-                    <h3 class="text-subtitle-1 text-md-h6 mb-1">
+                    <h2 class="text-h6 text-md-h5 mb-3">
                         Geschichtliches Erbe digital zugänglich machen
-                    </h3>
+                    </h2>
                     <p>
                         Anhand von Standorten und Infrastruktur werden nicht nur die Tätigkeit der Gestapo erforscht,
                         sondern auch das Wissen über deren Verbrechen und die spätere Erinnerung daran digital
@@ -218,9 +218,9 @@
                         Lab (OSL) der TIB, wo das Projekt angesiedelt ist.
                     </blockquote>
 
-                    <h3 class="text-subtitle-1 text-md-h6 mb-1">
+                    <h2 class="text-h6 text-md-h5 mb-3">
                         Daten zum Gestapoterror miteinander vernetzen
-                    </h3>
+                    </h2>
                     <blockquote class="blockquote">
                         „Die im Projekt entwickelte digitale Landkarte bezieht neben den neuen Forschungsergebnissen
                         auch Informationen zu digitalen Objekten ein, die bereits an anderer Stelle existieren“ , so
@@ -234,9 +234,9 @@
                         einzelne niedersächsische Erinnerungsorte.
                     </p>
 
-                    <h3 class="text-subtitle-1 text-md-h6 mb-1">
+                    <h2 class="text-h6 text-md-h5 mb-3">
                         „Citizen Science“
-                    </h3>
+                    </h2>
                     <p>
                         Interessierte können kontinuierlich weitere Informationen in die Plattform einpflegen. Das ist
                         Partizipation im Sinne von „Citizen Science“ – oder Bürgerwissenschaft –, wo Laien die
@@ -268,7 +268,7 @@
                     <h2 class="text-h6 text-md-h5 mb-3">
                         Team
                     </h2>
-                    <h3 class="text-subtitle-1 text-md-h6 mb-1">
+                    <h3 class="text-subtitle-2 text-md-h6 mb-1">
                         Technische Informationsbibliothek (TIB) – Open Science Lab (OSL)
                     </h3>
                     <ul class="mb-4">
@@ -318,7 +318,7 @@
                     <h2 class="text-h6 text-md-h5 mb-3">
                         Partner
                     </h2>
-                    <h3 class="text-subtitle-1 text-md-h6 mb-1">
+                    <h3 class="text-subtitle-2 text-md-h6 mb-1">
                         Stiftung niedersächsische Gedenkstätten (SnG)
                     </h3>
                     <p>
@@ -345,7 +345,7 @@
                         <li>Silke Petry M.A. – Wissenschaftliche Mitarbeiterin</li>
                     </ul>
 
-                    <h3 class="text-subtitle-1 text-md-h6 mb-1">
+                    <h3 class="text-subtitle-2 text-md-h6 mb-1">
                         Gedenkstätten Gestapokeller und Augustaschacht
                     </h3>
                     <div class="pb-16">
