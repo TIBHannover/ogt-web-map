@@ -64,19 +64,22 @@
                                 </v-list-item-title>
                                 <v-list-item-subtitle class="mb-2">
                                     <a href="https://www.tib.eu/de/" target="_blank">
-                                        <v-img alt="Logo der Technische Informationsbibliothek (TIB)"
-                                               contain
-                                               :src="this.$ogtGlobals.proxyPath + '/images/logo-tib.png'"
-                                               style="max-width: 270px"
+                                        <v-img
+                                            alt="Logo der Technische Informationsbibliothek (TIB)"
+                                            contain
+                                            max-width="200px"
+                                            :src="this.$ogtGlobals.proxyPath + '/images/logo-tib.png'"
                                         ></v-img>
                                     </a>
                                 </v-list-item-subtitle>
                                 <v-list-item-subtitle>
                                     <a href="https://www.stiftung-ng.de/" target="_blank">
-                                        <v-img alt="Logo der Stiftung niedersächsische Gedenkstätten"
-                                               contain
-                                               :src="this.$ogtGlobals.proxyPath + '/images/logo-sng.svg'"
-                                               style="max-width: 270px"
+                                        <v-img
+                                            alt="Logo der Stiftung niedersächsische Gedenkstätten"
+                                            contain
+                                            max-height="150px"
+                                            max-width="200px"
+                                            :src="this.$ogtGlobals.proxyPath + '/images/logo-sng.svg'"
                                         ></v-img>
                                     </a>
                                 </v-list-item-subtitle>
@@ -94,8 +97,8 @@
                                         <v-img
                                             alt="Logo der Förderung durch das Niedersächsisches Ministerium für Wissenschaft und Kultur"
                                             contain
+                                            max-width="200px"
                                             :src="this.$ogtGlobals.proxyPath + '/images/logo-mwk-funding.png'"
-                                            style="max-width: 270px"
                                         ></v-img>
                                     </a>
                                 </v-list-item-subtitle>
