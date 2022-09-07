@@ -242,12 +242,80 @@
                     <h1 class="text-h5 text-md-h4 mb-5">
                         Projektpräsentationen & Publikationen
                     </h1>
+                    <h2 class="text-h6 text-md-h5 mb-3">
+                        Präsentationen
+                    </h2>
+                    <ul class="mb-4">
+                        <li>
+                            03.07.2022 –
+                            <a href="https://zenodo.org/record/6817273" target="_blank">
+                                Überwachung und Terror – die Gestapo als Instrument des NS-Regimes
+                            </a>
+                        </li>
+                        <li>
+                            22.09.2021 –
+                            <a href="https://zenodo.org/record/5589811" target="_blank">
+                                Projektpräsentation zur Tagung „Digital Memory – Digital History – Digital Mapping.
+                                Transformationen von Erinnerungskulturen und Holocaust-Education“
+                            </a>
+                        </li>
+                    </ul>
+
+                    <h2 class="text-h6 text-md-h5 mb-3">
+                        Publikationen
+                    </h2>
+                    <ul class="mb-4">
+                        <li>
+                            <a href="https://www.stiftung-ng.de/fileadmin/dateien/Stiftung/ueber_uns/Jahresberichte/Jahresbericht_SNG_2020_Web.pdf"
+                               target="_blank"
+                            >
+                                Stiftung niedersächsische Gedenkstätten – Jahresbericht 2020
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://projects.tib.eu/ogt-orte-des-gestapoterrors/projekt/"
+                               target="_blank"
+                            >
+                                OGT Projektwebsite der TIB
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.tib.eu/de/forschung-entwicklung/projektuebersicht/projektsteckbrief/ogt-orte-des-gestapoterrors"
+                               target="_blank"
+                            >
+                                Projektprofil
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://zenodo.org/record/4313236" target="_blank">
+                                Auszug aus dem Projektantrag
+                            </a>
+                        </li>
+                    </ul>
                 </section>
 
                 <section id="pressReports" class="mb-16">
                     <h1 class="text-h5 text-md-h4 mb-5">
                         Presseberichte
                     </h1>
+                    <ul class="mb-4">
+                        <li>
+                            14.09.2020 – BuB – Forum Bibliothek und Information –
+                            <a href="https://b-u-b.de/verbrechen-der-gestapo-digital-sichtbar-machen/#intro"
+                               target="_blank"
+                            >
+                                Verbrechen der Gestapo digital sichtbar machen
+                            </a>
+                        </li>
+                        <li>
+                            25.08.2020 – TIB-Pressemitteilung –
+                            <a href="https://www.tib.eu/de/die-tib/neuigkeiten-und-termine/aktuelles/detail/spuren-der-vergangenheit-verbrechen-der-gestapo-digital-sichtbar-machen"
+                               target="_blank"
+                            >
+                                Spuren der Vergangenheit: Verbrechen der Gestapo digital sichtbar machen
+                            </a>
+                        </li>
+                    </ul>
                 </section>
             </v-col>
         </v-row>
