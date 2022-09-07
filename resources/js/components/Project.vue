@@ -11,6 +11,9 @@
         </v-row>
 
         <v-row>
+            <!-- space reserved for opened navigation menu -->
+            <v-col class="hidden-sm-and-down" style="min-width: 375px; max-width: 375px"></v-col>
+
             <!-- table of contents sidebar -->
             <v-col class="col-12 col-sm-2 order-sm-last" style="min-width: 300px">
                 <section class="sticky-top pt-3">
