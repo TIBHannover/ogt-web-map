@@ -348,30 +348,30 @@
                     <h3 class="text-subtitle-2 text-md-h6 mb-1">
                         Gedenkstätten Gestapokeller und Augustaschacht
                     </h3>
-                    <div class="pb-16">
-                        <div class="float-left">
+                    <v-row class="mb-4" justify="start">
+                        <v-col style="max-width: 185px">
                             <a href="https://gedenkstaetten-augustaschacht-osnabrueck.de/augustaschacht"
                                target="_blank"
                             >
                                 <v-img
                                     alt="Logo der Gedenkstätte Augustaschacht"
-                                    height="60px"
+                                    contain
+                                    max-height="64px"
                                     :src="this.$ogtGlobals.proxyPath + '/images/logo-augustaschacht.svg'"
-                                    width="175px"
                                 ></v-img>
                             </a>
-                        </div>
-                        <div class="float-left">
+                        </v-col>
+                        <v-col style="max-width: 185px">
                             <a href="https://gedenkstaetten-augustaschacht-osnabrueck.de/gestapokeller" target="_blank">
                                 <v-img
                                     alt="Logo der Gedenkstätte Gestapokeller"
-                                    height="60px"
+                                    contain
+                                    max-height="64px"
                                     :src="this.$ogtGlobals.proxyPath + '/images/logo-gestapokeller.svg'"
-                                    width="175px"
                                 ></v-img>
                             </a>
-                        </div>
-                    </div>
+                        </v-col>
+                    </v-row>
                 </section>
 
                 <section id="presentationsAndPublications" class="mb-16">
