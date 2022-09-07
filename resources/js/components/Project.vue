@@ -282,11 +282,24 @@
                             <a href="https://vivo.tib.eu/fis/individual/n0000-0002-3075-7640" target="_blank">
                                 Prof. Dr. Ina Blümel
                             </a>
-                            &nbsp;– Projektleitung
+                            &nbsp;– Projektleitung –
+                            <a @click.stop="email('job/cmvfnfm')">
+                                E-Mail
+                            </a>
                         </li>
-                        <li>Lisa Groh-Trautmann (ab 02/2022) – Projektkoordination & Recherche</li>
+                        <li>
+                            Lisa Groh-Trautmann (ab 02/2022) – Projektkoordination & Recherche –
+                            <a @click.stop="email('mjtb/hspi')">
+                                E-Mail
+                            </a>
+                        </li>
                         <li>Dr. Janine Doerry (bis 10/2021) – Projektkoordination & Recherche</li>
-                        <li>Nils Casties – Webentwicklung & Projektkoordination</li>
+                        <li>
+                            Nils Casties – Webentwicklung & Projektkoordination –
+                            <a @click.stop="email('ojmt/dbtujft')">
+                                E-Mail
+                            </a>
+                        </li>
                         <li>
                             <a href="https://vivo.tib.eu/fis/individual/n0000-0002-2593-8754" target="_blank">
                                 Lucia Sohmen
@@ -449,6 +462,34 @@
 <script>
 export default {
     name: 'Project',
+    methods: {
+        /**
+         * Set decrypted email link to open with default mail program.
+         *
+         * @param encryptedEmail
+         */
+        email: function (encryptedEmail) {
+            window.location.href = this.decryptEmail('nbjmup;' + encryptedEmail + 'Aujc/fv');
+        },
+        /**
+         * Decrypt email - https://www.math.uni-hamburg.de/it/dienste/encryptma.html
+         *
+         * @param encryptedEmail
+         * @returns {string} decrypted email
+         */
+        decryptEmail: function (encryptedEmail) {
+            let utf16CharCode = 0;
+            let decryptedEmail = '';
+            for (let i = 0; i < encryptedEmail.length; i++) {
+                utf16CharCode = encryptedEmail.charCodeAt(i);
+                if (utf16CharCode >= 8364) {
+                    utf16CharCode = 128;
+                }
+                decryptedEmail += String.fromCharCode(utf16CharCode - (1));
+            }
+            return decryptedEmail;
+        },
+    },
 };
 </script>
 
