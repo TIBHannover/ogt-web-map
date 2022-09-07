@@ -2,7 +2,7 @@
     <div>
         <!-- button to open navigation sidebar -->
         <v-btn
-            absolute
+            fixed
             class="mt-5"
             color="white"
             fab
@@ -15,7 +15,7 @@
 
         <!-- navigation sidebar -->
         <v-navigation-drawer
-            absolute
+            fixed
             class="grey lighten-3"
             hide-overlay
             mobile-breakpoint="750"
