@@ -208,6 +208,18 @@
                             ></v-img>
                         </a>
                     </p>
+                    <ul class="mb-4">
+                        <li>
+                            Dr. Elke Gryglewski – Geschäftsführung Stiftung niedersächsische Gedenkstätten | Leitung der
+                            Gedenkstätte Bergen-Belsen
+                        </li>
+                        <li>Dr. Rolf Keller – Leitung Gedenkstättenförderung Niedersachsen</li>
+                        <li>Marc Ellinghaus – Leitung Bildung und Begegnung der Gedenkstätte Bergen-Belsen</li>
+                        <li>Stephanie Billib – Presse- und Öffentlichkeitsarbeit</li>
+                        <li>Dr. Janine Doerry – Wissenschaftliche Mitarbeiterin</li>
+                        <li>Juliane Hummel M.A. – Wissenschaftliche Mitarbeiterin</li>
+                        <li>Silke Petry M.A. – Wissenschaftliche Mitarbeiterin</li>
+                    </ul>
 
                     <h3 class="text-subtitle-1 text-md-h6 mb-1">
                         Gedenkstätten Gestapokeller und Augustaschacht
