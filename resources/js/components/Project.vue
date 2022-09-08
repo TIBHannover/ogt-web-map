@@ -316,7 +316,7 @@
                     </ul>
 
                     <h2 class="text-h6 text-md-h5 mb-3">
-                        Partner
+                        Partner:innen
                     </h2>
                     <h3 class="text-subtitle-2 text-md-h6 mb-1">
                         Stiftung niedersächsische Gedenkstätten (SnG)
