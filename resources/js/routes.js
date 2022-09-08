@@ -21,6 +21,7 @@ export const routes = [
         path: '/map',
         component: Map,
     },
+    /*
     {
         name: 'charts',
         path: '/charts',
@@ -36,5 +37,6 @@ export const routes = [
         path: '/charts/photos',
         component: Photos,
     },
+    */
     {path: '*', redirect: '/welcome'},
 ];

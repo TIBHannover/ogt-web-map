@@ -42,6 +42,7 @@ export default {
                     path: '/map',
                     toMenu: 'mainMenu',
                 },
+                /*
                 {
                     title: 'Datenvisualisierung',
                     icon: 'mdi-chart-areaspline',
@@ -58,6 +59,7 @@ export default {
                     icon: 'mdi-translate',
                     toMenu: 'languageConfig',
                 },
+                */
                 {
                     title: 'Impressum & Datenschutz',
                     icon: 'mdi-information-outline',

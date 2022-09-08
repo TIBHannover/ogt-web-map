@@ -66,16 +66,20 @@
                 v-model="activeTab"
             >
                 <!-- layers options -->
+                <!--
                 <v-tab-item>
                     <layer-options
                         :groupedPlaces="groupedPlaces"
                     ></layer-options>
                 </v-tab-item>
+                -->
 
                 <!-- time period options -->
+                <!--
                 <v-tab-item>
                     <date-range></date-range>
                 </v-tab-item>
+                -->
 
                 <!-- place select options -->
                 <v-tab-item>
@@ -103,6 +107,7 @@ export default {
             activeTab: 0,
             isMapOptionsDisplayed: false,
             tabs: [
+                /*
                 {
                     name: 'Layers',
                     icon: 'mdi-layers',
@@ -111,6 +116,7 @@ export default {
                     name: 'Zeitraum',
                     icon: 'mdi-map-clock',
                 },
+                */
                 {
                     name: 'Auswahl',
                     icon: 'mdi-view-list',

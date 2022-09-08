@@ -83,10 +83,12 @@ export default {
                     label: 'Kartenansicht',
                     routeTo: '/map',
                 },
+                /*
                 {
                     label: 'Datenvisualisierung',
                     routeTo: '/charts',
                 },
+                */
             ],
             menuButtonsShowTimeoutId: null,
             selectedLayoutId: 4,
