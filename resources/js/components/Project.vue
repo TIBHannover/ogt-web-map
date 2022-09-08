@@ -283,20 +283,20 @@
                                 Prof. Dr. Ina Blümel
                             </a>
                             &nbsp;– Projektleitung –
-                            <a @click.stop="email('job/cmvfnfm')">
+                            <a @click.stop="setMailToLink('job/cmvfnfm')">
                                 E-Mail
                             </a>
                         </li>
                         <li>
                             Lisa Groh-Trautmann (ab 02/2022) – Projektkoordination & Recherche –
-                            <a @click.stop="email('mjtb/hspi')">
+                            <a @click.stop="setMailToLink('mjtb/hspi')">
                                 E-Mail
                             </a>
                         </li>
                         <li>Dr. Janine Doerry (bis 10/2021) – Projektkoordination & Recherche</li>
                         <li>
                             Nils Casties – Webentwicklung & Projektkoordination –
-                            <a @click.stop="email('ojmt/dbtujft')">
+                            <a @click.stop="setMailToLink('ojmt/dbtujft')">
                                 E-Mail
                             </a>
                         </li>
@@ -468,8 +468,8 @@ export default {
          *
          * @param encryptedEmail
          */
-        email: function (encryptedEmail) {
-            window.location.href = this.decryptEmail('nbjmup;' + encryptedEmail + 'Aujc/fv');
+        setMailToLink: function (encryptedEmail) {
+            window.location.href = 'mailto:' + this.decryptEmail(encryptedEmail + 'Aujc/fv');
         },
         /**
          * Decrypt email - https://www.math.uni-hamburg.de/it/dienste/encryptma.html
