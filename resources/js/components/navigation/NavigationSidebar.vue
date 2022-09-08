@@ -61,11 +61,11 @@
                 @setActiveMenu="activeMenu = $event"
             ></language-config>
 
-            <general-info-sub-menu
-                v-show="['generalInfoSubMenu', 'imprintView', 'dataProtectionView'].includes(activeMenu)"
+            <legal-texts
+                v-show="['dataProtectionView', 'imprintView', 'legalTexts'].includes(activeMenu)"
                 :active-menu="activeMenu"
                 @setActiveMenu="activeMenu = $event"
-            ></general-info-sub-menu>
+            ></legal-texts>
         </v-navigation-drawer>
     </div>
 </template>
@@ -74,13 +74,13 @@
 
 import ChartsMenu from './ChartsMenu';
 import Contribute from './Contribute';
-import GeneralInfoSubMenu from './GeneralInfoSubMenu';
 import LanguageConfig from './LanguageConfig';
+import LegalTexts from './LegalTexts';
 import MainMenu from './MainMenu';
 
 export default {
     name: 'NavigationSidebar',
-    components: {ChartsMenu, Contribute, GeneralInfoSubMenu, LanguageConfig, MainMenu},
+    components: {ChartsMenu, Contribute, LanguageConfig, LegalTexts, MainMenu},
     data() {
         return {
             activeMenu: 'mainMenu',

@@ -1,6 +1,6 @@
 <template>
     <v-list rounded>
-        <v-list-item @click.stop="$emit('setActiveMenu', 'generalInfoSubMenu')">
+        <v-list-item @click.stop="$emit('setActiveMenu', 'legalTexts')">
             <v-list-item-icon>
                 <v-icon>mdi-backburger</v-icon>
             </v-list-item-icon>

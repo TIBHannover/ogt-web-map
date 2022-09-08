@@ -2,7 +2,7 @@
     <div>
         <v-list
             rounded
-            v-show="activeMenu === 'generalInfoSubMenu'"
+            v-show="activeMenu === 'legalTexts'"
         >
             <v-list-item @click.stop="$emit('setActiveMenu', 'mainMenu')">
                 <v-list-item-icon>
@@ -13,7 +13,7 @@
                 </v-list-item-content>
             </v-list-item>
             <v-divider></v-divider>
-            <v-subheader class="text-uppercase">Allgemeine Infos</v-subheader>
+            <v-subheader class="text-uppercase">Rechtliche Informationen</v-subheader>
             <v-list-item
                 v-for="menuItem in menuItems"
                 :key="menuItem.title"
@@ -46,7 +46,7 @@ import DataProtection from './DataProtection';
 import Imprint from './Imprint';
 
 export default {
-    name: 'GeneralInfoSubMenu',
+    name: 'LegalTexts',
     components: {DataProtection, Imprint},
     props: ['activeMenu'],
     data() {
