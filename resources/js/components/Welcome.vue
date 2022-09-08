@@ -47,12 +47,14 @@
             </p>
             <template v-for="menuButton in menuButtons">
                 <router-link :to="menuButton.routeTo">
+                    <!-- workaround display: inline-block to hide link underline in Chrome browser -->
                     <v-btn
                         class="mx-10 my-3"
                         color="white"
                         outlined
                         rounded
                         x-large
+                        style="display: inline-block"
                     >
                         {{ menuButton.label }}
                     </v-btn>
