@@ -8,9 +8,9 @@
         <v-footer fixed padless width="100%" class="grey">
             <v-card class="flex grey" flat>
                 <v-card-text class="pa-0 text-subtitle-2 font-weight-bold text--darken-4 text-center">
-                    DIESE WEBSITE IST NOCH IM AUFBAU /<br>
-                    THIS WEBSITE IS STILL UNDER CONSTRUCTION<br>
-                    Feedback und Anregungen an: <a @click.stop="setMailToLink('mjtb/hspi')">E-Mail</a>
+                    DIESE WEBSITE IST NOCH IM AUFBAU – Feedback und Anregungen an: <a @click.stop="setMailToLink('mjtb/hspi')">E-Mail</a> /
+                    <br>
+                    THIS WEBSITE IS STILL UNDER CONSTRUCTION – questions and suggestions to: <a @click.stop="setMailToLink('mjtb/hspi')">E-Mail</a>
                 </v-card-text>
             </v-card>
         </v-footer>
