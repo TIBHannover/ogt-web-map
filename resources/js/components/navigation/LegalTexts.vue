@@ -1,9 +1,6 @@
 <template>
     <div>
-        <v-list
-            rounded
-            v-show="activeMenu === 'legalTexts'"
-        >
+        <v-list rounded>
             <v-list-item @click.stop="$emit('setActiveMenu', 'mainMenu')">
                 <v-list-item-icon>
                     <v-icon>mdi-backburger</v-icon>
@@ -14,30 +11,22 @@
             </v-list-item>
             <v-divider></v-divider>
             <v-subheader class="text-uppercase">Rechtliche Informationen</v-subheader>
-            <v-list-item
-                v-for="menuItem in menuItems"
-                :key="menuItem.title"
-                @click.stop="$emit('setActiveMenu', menuItem.toMenu)"
-            >
-                <v-list-item-icon>
-                    <v-icon>{{ menuItem.icon }}</v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
-                    <v-list-item-title>{{ menuItem.title }}</v-list-item-title>
-                </v-list-item-content>
-            </v-list-item>
-            <v-divider></v-divider>
+            <v-list-item-group v-model="selectedLegalText" active-class="selectedItemBorder" mandatory>
+                <v-list-item v-for="(menuItem, index) in menuItems" :key="index" :value="menuItem.id">
+                    <v-list-item-icon>
+                        <v-icon>{{ menuItem.icon }}</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                        <v-list-item-title>{{ menuItem.label }}</v-list-item-title>
+                    </v-list-item-content>
+                </v-list-item>
+            </v-list-item-group>
         </v-list>
+        <v-divider></v-divider>
 
-        <imprint
-            v-show="activeMenu === 'imprintView'"
-            @setActiveMenu="$emit('setActiveMenu', $event)"
-        ></imprint>
+        <data-protection v-show="selectedLegalText == 'dataProtection'"></data-protection>
 
-        <data-protection
-            v-show="activeMenu === 'dataProtectionView'"
-            @setActiveMenu="$emit('setActiveMenu', $event)"
-        ></data-protection>
+        <imprint v-show="selectedLegalText == 'imprint'"></imprint>
     </div>
 </template>
 
@@ -48,26 +37,29 @@ import Imprint from './Imprint';
 export default {
     name: 'LegalTexts',
     components: {DataProtection, Imprint},
-    props: ['activeMenu'],
     data() {
         return {
             menuItems: [
                 {
-                    title: 'Impressum',
-                    icon: 'mdi-information-outline',
-                    toMenu: 'imprintView',
+                    icon: 'mdi-database-lock-outline',
+                    id: 'dataProtection',
+                    label: 'Datenschutz',
                 },
                 {
-                    title: 'Datenschutz',
-                    icon: 'mdi-information-outline',
-                    toMenu: 'dataProtectionView',
+                    icon: 'mdi-fingerprint',
+                    id: 'imprint',
+                    label: 'Impressum',
                 },
             ],
+            selectedLegalText: 'dataProtection',
         };
     },
 };
 </script>
 
 <style scoped>
-
+.selectedItemBorder {
+    /* grey darken-4 */
+    border: 2px dashed #212121;
+}
 </style>

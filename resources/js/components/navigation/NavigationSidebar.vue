@@ -62,8 +62,7 @@
             ></language-config>
 
             <legal-texts
-                v-show="['dataProtectionView', 'imprintView', 'legalTexts'].includes(activeMenu)"
-                :active-menu="activeMenu"
+                v-show="activeMenu === 'legalTexts'"
                 @setActiveMenu="activeMenu = $event"
             ></legal-texts>
         </v-navigation-drawer>
