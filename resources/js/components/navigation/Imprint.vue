@@ -82,9 +82,29 @@
         <v-list-item>
             <v-list-item-content>
                 <v-list-item-title>Urheberrechtshinweis:</v-list-item-title>
-                <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
-                    Das Layout der Homepage, die verwendeten Grafiken sowie die sonstigen Inhalte sind
-                    urheberrechtlich geschützt.
+                <v-list-item-subtitle class="hyphens-auto text-justify white-space-normal" lang="de">
+                    Das Layout der Homepage, die verwendeten Grafiken und Kartenmarker-Icons sowie die sonstigen
+                    Inhalte sind urheberrechtlich geschützt.
+                    <br><br>
+                    <div class="font-weight-bold">Material Design Icons</div>
+                    Für die Icons im Navigations- und im Kartenoptionsmenü der Website verwenden wir dankend
+                    <a href="https://materialdesignicons.com/" target="_blank">Material Design Icons</a>,
+                    die der Apache 2.0 Lizenz unterliegen:
+                    <a href="https://dev.materialdesignicons.com/license" target="_blank">
+                        https://dev.materialdesignicons.com/license
+                    </a>
+                    <br><br>
+                    <div class="font-weight-bold">Wikidata und Wikimedia Commons</div>
+                    Die auf der Websitekarte dargestellten Inhalte sind von Wikidata (struktrierte Metadaten) und
+                    Wikimedia Commons (Bilder) eingebunden, die unter einer gemeinfreien Creative Commons Lizenz
+                    verfügbar sind. Die Verwendung ist konform mit den Wikimedia Foundation Nutzungsbedingungen. Jeder
+                    einzelne dargestellte Datensatz ist mit dem dazugehörigen Wikidata Dateneintrag verlinkt und kann
+                    über die Webadresse
+                    <a href="https://www.wikidata.org/wiki/" target="_blank">https://www.wikidata.org/wiki/</a>
+                    eingesehen werden. Jedes Bild ist mit dem dazugehörigen Wikimedia Commons Eintrag verlinkt und kann
+                    über die Webadresse
+                    <a href="https://commons.wikimedia.org/wiki" target="_blank">https://commons.wikimedia.org/wiki</a>
+                    eingesehen werden.
                 </v-list-item-subtitle>
             </v-list-item-content>
         </v-list-item>
