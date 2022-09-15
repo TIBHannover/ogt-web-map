@@ -42,7 +42,7 @@ export default {
             groupedPlaces: {
                 events: {
                     color: '#D26211',
-                    iconUrl: '/images/leaflet/markerIcons/greyFilled/events.svg',
+                    iconName: 'events.svg',
                     layerGroup: null,
                     layerName: 'Ereignisse',
                     places: [],
@@ -51,7 +51,7 @@ export default {
                 },
                 extPolicePrisons: {
                     color: '#3AAFAF',
-                    iconUrl: '/images/leaflet/markerIcons/greyFilled/extPolicePrisons.svg',
+                    iconName: 'extPolicePrisons.svg',
                     layerGroup: null,
                     layerName: 'Erweiterte Polizeigefängnisse',
                     places: [],
@@ -59,7 +59,7 @@ export default {
                 },
                 fieldOffices: {
                     color: '#2b83cb',
-                    iconUrl: '/images/leaflet/markerIcons/greyFilled/fieldOffices.svg',
+                    iconName: 'fieldOffices.svg',
                     layerGroup: null,
                     layerName: 'Außendienststellen',
                     places: [],
@@ -67,7 +67,7 @@ export default {
                 },
                 laborEducationCamps: {
                     color: '#743aaf',
-                    iconUrl: '/images/leaflet/markerIcons/greyFilled/laborEducationCamps.svg',
+                    iconName: 'laborEducationCamps.svg',
                     layerGroup: null,
                     layerName: 'Arbeitserziehungslager',
                     places: [],
@@ -75,7 +75,7 @@ export default {
                 },
                 memorials: {
                     color: '#D255BE',
-                    iconUrl: '/images/leaflet/markerIcons/greyFilled/memorials.svg',
+                    iconName: 'memorials.svg',
                     layerGroup: null,
                     layerName: 'Erinnerungsorte',
                     places: [],
@@ -83,7 +83,7 @@ export default {
                 },
                 prisons: {
                     color: '#38ab3e',
-                    iconUrl: '/images/leaflet/markerIcons/greyFilled/prisons.svg',
+                    iconName: 'prisons.svg',
                     layerGroup: null,
                     layerName: 'Gefängnisse',
                     places: [],
@@ -91,7 +91,7 @@ export default {
                 },
                 statePoliceHeadquarters: {
                     color: '#af3a3a',
-                    iconUrl: '/images/leaflet/markerIcons/greyFilled/statePoliceHeadquarters.svg',
+                    iconName: 'statePoliceHeadquarters.svg',
                     layerGroup: null,
                     layerName: 'Staatspolizeileitstellen',
                     places: [],
@@ -99,7 +99,7 @@ export default {
                 },
                 statePoliceOffices: {
                     color: '#bcbb29',
-                    iconUrl: '/images/leaflet/markerIcons/greyFilled/statePoliceOffices.svg',
+                    iconName: 'statePoliceOffices.svg',
                     layerGroup: null,
                     layerName: 'Staatspolizeistellen',
                     places: [],
@@ -109,6 +109,7 @@ export default {
             layers: null,
             locationMarkers: [],
             map: null,
+            mapMarkerIconsPath: '/images/leaflet/markerIcons/greyFilled/',
             persons: [],
             selectedPlace: {
                 addresses: {
@@ -376,7 +377,7 @@ export default {
         },
         createPlaceMarkers: function (placeGroupName, places) {
             let placeMarkers = [];
-            let iconUrl = this.$ogtGlobals.proxyPath + this.groupedPlaces[placeGroupName].iconUrl;
+            let iconUrl = this.$ogtGlobals.proxyPath + this.mapMarkerIconsPath + this.groupedPlaces[placeGroupName].iconName;
             const defaultIcon = L.icon({
                 iconUrl: iconUrl,
                 // Workaround to use same marker icons for Retina and non-Retina displays.
