@@ -70,10 +70,12 @@ export default {
                 'Graue Symbole (transparent)',
                 'Farbige Symbole (transparent)',
                 'Leaflet Standard Kartenmarker',
-                'Graue Symbole',
-                'Farbige Symbole',
+                'Graue Symbole (hellgrau gefüllt)',
+                'Farbige Symbole v1 (dunkelweiß gefüllt)',
+                'Farbige Symbole v2 (hellgrau gefüllt)',
+                'Farbige Symbole v2 (dunkelweiß gefüllt)',
             ],
-            mapMarkerStyleSelected: 3,
+            mapMarkerStyleSelected: 5,
             mapGreyscaleLabels: ['Graustufen deaktiviert', 'Graustufen aktiviert'],
             mapGreyscaleSelected: 1,
         };
@@ -111,11 +113,17 @@ export default {
             else if (this.mapMarkerStyleSelected == 4) {
                 mapMarkerSubPath = '/coloredFilled/';
             }
+            else if (this.mapMarkerStyleSelected == 5) {
+                mapMarkerSubPath = '/coloredFilledGrey/';
+            }
+            else if (this.mapMarkerStyleSelected == 6) {
+                mapMarkerSubPath = '/coloredFilledWhite/';
+            }
             else {
                 // default case
             }
 
-            const subPathRegex = /\/(greyTransparent|coloredTransparent|default|greyFilled|coloredFilled)\//g;
+            const subPathRegex = /\/(greyTransparent|coloredTransparent|default|greyFilled|coloredFilled|coloredFilledGrey|coloredFilledWhite)\//g;
             const imageFileTypeRegex = /\.(svg|png)$/g;
             const anyNonDigitRegex = /\D/g;
 
