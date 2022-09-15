@@ -1,14 +1,14 @@
 <template>
     <v-container fluid>
         <v-checkbox
-            v-for="(group, groupName) in groupedPlaces"
+            v-for="groupName in groupedPlacesOrder"
             v-model="checkedPlaceLayerGroups"
             class="mx-4"
-            :color="group.color"
+            :color="groupedPlaces[groupName].color"
             dense
             hide-details
             :key="groupName + '-checkbox'"
-            :label="group.layerName"
+            :label="groupedPlaces[groupName].layerName"
             :value="groupName"
         ></v-checkbox>
 
@@ -16,7 +16,7 @@
 
         <v-subheader>Erfasste Gestapo Terror Orte</v-subheader>
         <v-autocomplete
-            v-for="(group, groupName) in groupedPlaces"
+            v-for="groupName in groupedPlacesOrder"
             v-model="selectedPlace"
             v-show="checkedPlaceLayerGroups.includes(groupName)"
             class="mx-4 my-2"
@@ -24,9 +24,9 @@
             dense
             hide-details
             item-text="placeLabelWithIndex"
-            :items="group.placesByCoordinates"
+            :items="groupedPlaces[groupName].placesByCoordinates"
             :key="groupName"
-            :label="group.layerName"
+            :label="groupedPlaces[groupName].layerName"
             outlined
             return-object
             rounded
@@ -41,6 +41,16 @@ export default {
     data() {
         return {
             checkedPlaceLayerGroups: Object.keys(this.groupedPlaces),
+            groupedPlacesOrder: [
+                'statePoliceHeadquarters',
+                'statePoliceOffices',
+                'fieldOffices',
+                'prisons',
+                'extPolicePrisons',
+                'laborEducationCamps',
+                'events',
+                'memorials',
+            ],
             selectedPlace: null,
         };
     },
