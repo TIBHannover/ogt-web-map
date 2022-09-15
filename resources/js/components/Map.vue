@@ -109,7 +109,7 @@ export default {
             layers: null,
             locationMarkers: [],
             map: null,
-            mapMarkerIconsPath: '/images/leaflet/markerIcons/greyFilled/',
+            mapMarkerIconsPath: '/images/leaflet/markerIcons/coloredFilledGrey/',
             persons: [],
             selectedPlace: {
                 addresses: {
