@@ -41,7 +41,7 @@ export default {
             derivedPlacesData: {},
             groupedPlaces: {
                 events: {
-                    color: '#D26211',
+                    color: '#8c1f21',
                     iconName: 'events.svg',
                     layerGroup: null,
                     layerName: 'Ereignisse',
@@ -50,7 +50,7 @@ export default {
                     placesByCoordinates: [],
                 },
                 extPolicePrisons: {
-                    color: '#3AAFAF',
+                    color: '#3d3b3d',
                     iconName: 'extPolicePrisons.svg',
                     layerGroup: null,
                     layerName: 'Erweiterte Polizeigefängnisse',
@@ -58,7 +58,7 @@ export default {
                     placesByCoordinates: [],
                 },
                 fieldOffices: {
-                    color: '#2b83cb',
+                    color: '#456879',
                     iconName: 'fieldOffices.svg',
                     layerGroup: null,
                     layerName: 'Außendienststellen',
@@ -66,7 +66,7 @@ export default {
                     placesByCoordinates: [],
                 },
                 laborEducationCamps: {
-                    color: '#743aaf',
+                    color: '#3d3b3d',
                     iconName: 'laborEducationCamps.svg',
                     layerGroup: null,
                     layerName: 'Arbeitserziehungslager',
@@ -74,7 +74,7 @@ export default {
                     placesByCoordinates: [],
                 },
                 memorials: {
-                    color: '#D255BE',
+                    color: '#f3a923',
                     iconName: 'memorials.svg',
                     layerGroup: null,
                     layerName: 'Erinnerungsorte',
@@ -82,7 +82,7 @@ export default {
                     placesByCoordinates: [],
                 },
                 prisons: {
-                    color: '#38ab3e',
+                    color: '#3d3b3d',
                     iconName: 'prisons.svg',
                     layerGroup: null,
                     layerName: 'Gefängnisse',
@@ -90,7 +90,7 @@ export default {
                     placesByCoordinates: [],
                 },
                 statePoliceHeadquarters: {
-                    color: '#af3a3a',
+                    color: '#456879',
                     iconName: 'statePoliceHeadquarters.svg',
                     layerGroup: null,
                     layerName: 'Staatspolizeileitstellen',
@@ -98,7 +98,7 @@ export default {
                     placesByCoordinates: [],
                 },
                 statePoliceOffices: {
-                    color: '#bcbb29',
+                    color: '#456879',
                     iconName: 'statePoliceOffices.svg',
                     layerGroup: null,
                     layerName: 'Staatspolizeistellen',
