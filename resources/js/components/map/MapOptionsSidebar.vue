@@ -82,6 +82,7 @@
                     <places-selection
                         :groupedPlaces="groupedPlaces"
                         :map="map"
+                        :mapMarkerIconsPath="mapMarkerIconsPath"
                     ></places-selection>
                 </v-tab-item>
             </v-tabs-items>
@@ -97,7 +98,7 @@ import PlacesSelection from './options/PlacesSelection';
 export default {
     name: 'MapOptionsSidebar',
     components: {DateRange, LayerOptions, PlacesSelection},
-    props: ['groupedPlaces', 'map'],
+    props: ['groupedPlaces', 'map', 'mapMarkerIconsPath'],
     data() {
         return {
             activeTab: 0,

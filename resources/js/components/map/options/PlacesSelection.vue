@@ -1,19 +1,26 @@
 <template>
     <v-container fluid>
-        <v-checkbox
-            v-for="groupName in groupedPlacesOrder"
-            v-model="checkedPlaceLayerGroups"
-            class="mx-4"
-            :color="groupedPlaces[groupName].color"
-            dense
-            hide-details
-            :key="groupName + '-checkbox'"
-            :label="groupedPlaces[groupName].layerName"
-            :value="groupName"
-        ></v-checkbox>
+        <!-- selection for location groups -->
+        <v-row v-for="groupName in groupedPlacesOrder" class="pt-1" :key="groupName + '-row'">
+            <v-col class="py-0" style="max-width: 60px">
+                <v-img
+                    max-width="34px"
+                    :src="$ogtGlobals.proxyPath + mapMarkerIconsPath + groupedPlaces[groupName].iconName"
+                ></v-img>
+            </v-col>
+            <v-col class="py-0">
+                <v-checkbox
+                    v-model="checkedPlaceLayerGroups"
+                    :color="groupedPlaces[groupName].color"
+                    dense
+                    hide-details
+                    :label="groupedPlaces[groupName].layerName"
+                    :value="groupName"
+                ></v-checkbox>
+            </v-col>
+        </v-row>
 
-        <v-divider class="my-2"></v-divider>
-
+        <v-divider class="mt-4"></v-divider>
         <v-subheader>Erfasste Gestapo Terror Orte</v-subheader>
         <v-autocomplete
             v-for="groupName in groupedPlacesOrder"
@@ -37,7 +44,7 @@
 <script>
 export default {
     name: 'PlacesSelection',
-    props: ['groupedPlaces', 'map'],
+    props: ['groupedPlaces', 'map', 'mapMarkerIconsPath'],
     data() {
         return {
             checkedPlaceLayerGroups: Object.keys(this.groupedPlaces),

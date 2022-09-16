@@ -3,6 +3,7 @@
         <map-options-sidebar
             :groupedPlaces="groupedPlaces"
             :map="map"
+            :mapMarkerIconsPath="mapMarkerIconsPath"
         ></map-options-sidebar>
 
         <place-info-sidebar
