@@ -4,6 +4,7 @@ const Project = () => import('./components/Project.vue');
 const Charts = () => import('./components/Charts.vue');
 const Database = () => import('./components/charts/Database.vue');
 const Photos = () => import('./components/charts/Photos.vue');
+const Collaboration = () => import('./components/Collaboration.vue');
 
 export const routes = [
     {
@@ -35,6 +36,11 @@ export const routes = [
         name: 'charts-photos',
         path: '/charts/photos',
         component: Photos,
+    },
+    {
+        name: 'collaboration',
+        path: '/collaboration',
+        component: Collaboration,
     },
     {path: '*', redirect: '/welcome'},
 ];

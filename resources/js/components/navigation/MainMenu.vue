@@ -49,9 +49,10 @@ export default {
                     toMenu: 'chartsMenu',
                 },
                 {
-                    title: 'Mitmachen',
+                    title: 'Mitforschen',
                     icon: 'mdi-at',
-                    toMenu: 'contributeView',
+                    path: '/collaboration',
+                    toMenu: 'mainMenu',
                 },
                 {
                     title: 'Sprache',
