@@ -51,11 +51,6 @@
                 @setActiveMenu="activeMenu = $event"
             ></charts-menu>
 
-            <contribute
-                v-show="activeMenu === 'contributeView'"
-                @setActiveMenu="activeMenu = $event"
-            ></contribute>
-
             <language-config
                 v-show="activeMenu === 'languageConfig'"
                 @setActiveMenu="activeMenu = $event"
@@ -72,14 +67,13 @@
 <script>
 
 import ChartsMenu from './ChartsMenu';
-import Contribute from './Contribute';
 import LanguageConfig from './LanguageConfig';
 import LegalTexts from './LegalTexts';
 import MainMenu from './MainMenu';
 
 export default {
     name: 'NavigationSidebar',
-    components: {ChartsMenu, Contribute, LanguageConfig, LegalTexts, MainMenu},
+    components: {ChartsMenu, LanguageConfig, LegalTexts, MainMenu},
     data() {
         return {
             activeMenu: 'mainMenu',
