@@ -53,6 +53,7 @@
                     class="font-weight-bold"
                     :key="index"
                     v-for="(tab, index) in tabs"
+                    v-if="tab.show"
                 >
                     {{ tab.name }}
                     <v-icon>{{ tab.icon }}</v-icon>
@@ -66,14 +67,14 @@
                 v-model="activeTab"
             >
                 <!-- layers options -->
-                <v-tab-item>
+                <v-tab-item v-if="! this.$ogtGlobals.isProductionEnv">
                     <layer-options
                         :groupedPlaces="groupedPlaces"
                     ></layer-options>
                 </v-tab-item>
 
                 <!-- time period options -->
-                <v-tab-item>
+                <v-tab-item v-if="! this.$ogtGlobals.isProductionEnv">
                     <date-range></date-range>
                 </v-tab-item>
 
@@ -107,14 +108,17 @@ export default {
                 {
                     name: 'Layers',
                     icon: 'mdi-layers',
+                    show: ! this.$ogtGlobals.isProductionEnv,
                 },
                 {
                     name: 'Zeitraum',
                     icon: 'mdi-map-clock',
+                    show: ! this.$ogtGlobals.isProductionEnv,
                 },
                 {
                     name: 'Auswahl',
                     icon: 'mdi-view-list',
+                    show: true,
                 },
             ],
         };
