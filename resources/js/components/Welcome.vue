@@ -8,6 +8,7 @@
     >
         <!-- button to switch between alternative page layouts -->
         <v-btn
+            v-if="! this.$ogtGlobals.isProductionEnv"
             absolute
             class="noneTextTransform"
             @click.stop="switchPageLayout()"
@@ -43,7 +44,7 @@
                 <span class="text-h5 white--text text-sm-h3 ml-1">in Niedersachsen 1933 – 1945</span>
                 <br>
             </p>
-            <template v-for="menuButton in menuButtons">
+            <template v-for="menuButton in menuButtons" v-if="menuButton.show">
                 <router-link :to="menuButton.routeTo">
                     <v-btn
                         class="mx-10 my-3"
@@ -76,14 +77,17 @@ export default {
                 {
                     label: 'Projekt',
                     routeTo: '/project',
+                    show: true,
                 },
                 {
                     label: 'Kartenansicht',
                     routeTo: '/map',
+                    show: true,
                 },
                 {
                     label: 'Datenvisualisierung',
                     routeTo: '/charts',
+                    show: ! this.$ogtGlobals.isProductionEnv,
                 },
             ],
             menuButtonsShowTimeoutId: null,
