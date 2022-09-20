@@ -11,6 +11,7 @@ import Vuetify from 'vuetify';
 window.Vue = Vue;
 
 Vue.prototype.$ogtGlobals = {
+    isProductionEnv: process.env.MIX_APP_ENV == 'production' ? true : false,
     // reverse proxy sub path, required to load resources within Vue files
     proxyPath: process.env.MIX_PROXY_PATH ?? '',
 };
