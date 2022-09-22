@@ -57,7 +57,7 @@
             <template v-if="selectedPlace.id in itemDescriptions">
                 <v-list-item dense>
                     <v-list-item-content>
-                        <v-expansion-panels focusable>
+                        <v-expansion-panels v-model="itemDescriptionPanel" focusable>
                             <v-expansion-panel class="grey lighten-3" style="max-width: 99%">
                                 <v-expansion-panel-header>
                                     <v-list-item-title>Langbeschreibung</v-list-item-title>
@@ -134,8 +134,29 @@ export default {
                 'statePoliceHeadquarters',
                 'statePoliceOffices',
             ],
+            itemDescriptionPanel: [],
             itemDescriptions: this.$ogtGlobals.texts.itemDescriptions,
         };
+    },
+    methods: {
+        /**
+         * Close opened item description panel.
+         */
+        closePanels: function () {
+            this.itemDescriptionPanel = [];
+        },
+    },
+    watch: {
+        /**
+         * When the displayed map location item is changed, then...
+         * - close opened panels
+         *
+         * @param newSelectedPlaceId Wikidata item id
+         * @param oldSelectedPlaceId Wikidata item id
+         */
+        'selectedPlace.id': function (newSelectedPlaceId, oldSelectedPlaceId) {
+            this.closePanels();
+        },
     },
 };
 </script>
