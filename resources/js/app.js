@@ -7,11 +7,15 @@ import VueAxios from 'vue-axios';
 import axios from 'axios';
 import {routes} from './routes';
 import Vuetify from 'vuetify';
+import {itemDescriptions} from '../lang/de/itemDescriptions';
 
 window.Vue = Vue;
 
 Vue.prototype.$ogtGlobals = {
     isProductionEnv: process.env.MIX_APP_ENV == 'production' ? true : false,
+    texts: {
+        itemDescriptions: itemDescriptions,
+    },
     // reverse proxy sub path, required to load resources within Vue files
     proxyPath: process.env.MIX_PROXY_PATH ?? '',
 };
