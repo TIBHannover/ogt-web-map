@@ -330,6 +330,7 @@
                         </li>
                     </ul>
                 </section>
+                <br><br>
             </v-col>
         </v-row>
 

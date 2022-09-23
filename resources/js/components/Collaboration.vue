@@ -200,6 +200,7 @@
                         „Gestapo.Terror.Orte“ veröffentlicht werden.
                     </p>
                 </section>
+                <br><br>
             </v-col>
         </v-row>
     </v-container>
