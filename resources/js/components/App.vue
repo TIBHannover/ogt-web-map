@@ -4,15 +4,17 @@
         <v-main>
             <router-view></router-view>
         </v-main>
+        <info-footer></info-footer>
     </v-app>
 </template>
 
 <script>
+import InfoFooter from './InfoFooter';
 import NavigationSidebar from './navigation/NavigationSidebar';
 
 export default {
     name: 'App',
-    components: {NavigationSidebar},
+    components: {InfoFooter, NavigationSidebar},
 };
 </script>
 
