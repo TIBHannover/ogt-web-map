@@ -51,7 +51,7 @@ export default {
                     icon: 'mdi-chart-areaspline',
                     path: '/charts',
                     show: ! this.$ogtGlobals.isProductionEnv,
-                    toMenu: 'chartsMenu',
+                    toMenu: 'mainMenu',
                 },
                 {
                     title: 'Mitforschen',
