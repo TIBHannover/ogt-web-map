@@ -93,7 +93,7 @@ const graphViewRelationsQuery = `
     GROUP BY ?nodeFrom ?nodeFromLabel ?rgb ?nodeTo ?nodeToLabel ?nodeToImage`;
 
 const graphViewRelations = Object.freeze({
-    imageUrl: '/images/charts/wdqs-graph-view-relations.png',
+    imageUrl: '/images/charts/graph-view-relations.png',
     queryUrl: getQueryUrl(graphViewRelationsQuery),
     subtitle:
         `Ein interaktiver Graph, der die hierarchische Anordnung und Untersuchung von Daten zu Organisationen, 
