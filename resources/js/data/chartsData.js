@@ -5,8 +5,8 @@
  * @returns {string}
  */
 function getQueryUrl(query) {
-    query = query.replace(/\s+/g, ' ').replace(/\sSELECT/i, '\nSELECT');
-    return 'https://query.wikidata.org/embed.html#' + encodeURIComponent(query);
+    let trimmedQuery = query.trim().replace(/\s+/g, ' ').replace(/\sSELECT/i, '\nSELECT');
+    return 'https://query.wikidata.org/embed.html#' + encodeURIComponent(trimmedQuery);
 }
 
 // View relations between
