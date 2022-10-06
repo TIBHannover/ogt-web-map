@@ -46,11 +46,6 @@
                 @setActiveMenu="activeMenu = $event"
             ></main-menu>
 
-            <charts-menu
-                v-show="activeMenu === 'chartsMenu'"
-                @setActiveMenu="activeMenu = $event"
-            ></charts-menu>
-
             <language-config
                 v-show="activeMenu === 'languageConfig'"
                 @setActiveMenu="activeMenu = $event"
@@ -66,14 +61,13 @@
 
 <script>
 
-import ChartsMenu from './ChartsMenu';
 import LanguageConfig from './LanguageConfig';
 import LegalTexts from './LegalTexts';
 import MainMenu from './MainMenu';
 
 export default {
     name: 'NavigationSidebar',
-    components: {ChartsMenu, LanguageConfig, LegalTexts, MainMenu},
+    components: {LanguageConfig, LegalTexts, MainMenu},
     data() {
         return {
             activeMenu: 'mainMenu',

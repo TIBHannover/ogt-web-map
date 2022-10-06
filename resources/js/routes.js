@@ -2,8 +2,6 @@ const Welcome = () => import('./components/Welcome.vue');
 const Map = () => import('./components/Map.vue');
 const Project = () => import('./components/Project.vue');
 const Charts = () => import('./components/Charts.vue');
-const Database = () => import('./components/charts/Database.vue');
-const Photos = () => import('./components/charts/Photos.vue');
 const Collaboration = () => import('./components/Collaboration.vue');
 
 export const routes = [
@@ -26,16 +24,6 @@ export const routes = [
         name: 'charts',
         path: '/charts',
         component: Charts,
-    },
-    {
-        name: 'charts-database',
-        path: '/charts/database',
-        component: Database,
-    },
-    {
-        name: 'charts-photos',
-        path: '/charts/photos',
-        component: Photos,
     },
     {
         name: 'collaboration',
