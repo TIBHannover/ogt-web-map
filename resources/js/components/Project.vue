@@ -169,10 +169,10 @@
                             <email encryptedEmail="job/cmvfnfm"></email>
                         </li>
                         <li>
-                            Lisa Groh-Trautmann (ab 02/2022) – Projektkoordination & Recherche –
+                            Lisa Groh-Trautmann (M.A. Geschichtswissenschaften) – Wissenschaftliche Mitarbeiterin,
+                            Projektkoordination & Recherche –
                             <email encryptedEmail="mjtb/hspi"></email>
                         </li>
-                        <li>Dr. Janine Doerry (bis 10/2021) – Projektkoordination & Recherche</li>
                         <li>
                             Nils Casties – Webentwicklung & Projektkoordination –
                             <email encryptedEmail="ojmt/dbtujft"></email>
