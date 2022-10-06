@@ -50,8 +50,8 @@ export default {
                     title: 'Datenvisualisierung',
                     icon: 'mdi-chart-areaspline',
                     path: '/charts',
-                    show: ! this.$ogtGlobals.isProductionEnv,
-                    toMenu: 'chartsMenu',
+                    show: true,
+                    toMenu: 'mainMenu',
                 },
                 {
                     title: 'Mitforschen',
