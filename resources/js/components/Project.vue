@@ -132,6 +132,10 @@
                         Lehrer, Mitarbeitende von Gedenkstätten sowie andere Vermittlungspersonen statt“, sagt Lambert
                         Heller, Leiter des OSL.
                     </blockquote>
+                    <p>
+                        Weitere Informationen zum Thema Mitforschen finden sich hier:
+                        <router-link to="/collaboration">Mitforschen</router-link>
+                    </p>
                 </section>
 
                 <section id="teamAndPartners" class="mb-16">
