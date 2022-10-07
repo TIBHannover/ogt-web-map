@@ -56,11 +56,6 @@
                         verfolgte unter anderem politische Gegnerinnen und Gegner, setzte den staatlichen Antisemitismus
                         und Rassismus durch und erhielt die Kriegswirtschaft aufrecht.
                     </p>
-                    <blockquote class="blockquote">
-                        „Die Gestapo war mit besonderer Macht ausgestattet: Sie konnte eigenmächtig Strafen verhängen
-                        und vollstrecken, sie folterte Verdächtige und tötete Gefangene“, betont Dr. Jens-Christian
-                        Wagner, Geschäftsführer der Stiftung niedersächsische Gedenkstätten.
-                    </blockquote>
                     <p>
                         Der Gestapo gelang es wie in vielen anderen Regionen auch im Bereich des heutigen Landes
                         Niedersachsen, ihre Unterlagen kurz vor Ende des Zweiten Weltkriegs weitgehend zu vernichten.
@@ -72,15 +67,6 @@
                         Niedersachsen von 1933–1945. Die damaligen Dienstsitze und Haftstätten werden erstmals
                         flächendeckend als grundlegende Faktoren der Gestapotätigkeit untersucht.
                     </p>
-                    <blockquote class="blockquote">
-                        „Standorte und Infrastruktur der Gestapo sind neue Untersuchungsfelder. Bisher hatte die
-                        Forschung vor allem Personal, Aufgaben und Organisation der Gestapo im Blick“, erläutert Dr.
-                        Janine Doerry.
-                    </blockquote>
-                    <p>
-                        Als Mitarbeiterin der Gedenkstätten Gestapokeller und Augustaschacht e. V. aus Osnabrück hat sie
-                        die Antragsteller beraten.
-                    </p>
 
                     <h2 class="text-h6 text-md-h5 mb-3">
                         Geschichtliches Erbe digital zugänglich machen
@@ -90,25 +76,14 @@
                         sondern auch das Wissen über deren Verbrechen und die spätere Erinnerung daran digital
                         zugänglich gemacht. Als kulturelles Erbe Niedersachsens werden dabei insbesondere
                         Gedenkstättensammlungen, themenspezifische Archivbestände und Baudenkmale erschlossen und
-                        erforscht. Die während der NS-Zeit mehrfach wechselnden Standorte der Gestapo und die heutigen
-                        Erinnerungsorte werden in der vierdimensionalen digitalen Landkarte – mit orts- und
-                        zeitbezogenen Daten – dargestellt.
+                        erforscht. Das so aufbereitete Geschichtswissen lag bislang vor allem in Form analoger Texte
+                        vor. OGT trägt somit zur Digitalisierung und interaktiven Dissemination dieser Forschungsdaten
+                        bei und bietet Tools, um diese auswerten.
                     </p>
-                    <blockquote class="blockquote">
-                        „Wir als TIB sind für die digitale Erschließung und Aufbereitung der Daten zuständig und werden
-                        dafür sorgen, dass sie frei zugänglich sind und damit beispielsweise für die Bildungsarbeit oder
-                        für weitere Forschung verwendet werden können“ , erklärt Prof. Dr. Ina Blümel vom Open Science
-                        Lab (OSL) der TIB, wo das Projekt angesiedelt ist.
-                    </blockquote>
 
                     <h2 class="text-h6 text-md-h5 mb-3">
                         Daten zum Gestapoterror miteinander vernetzen
                     </h2>
-                    <blockquote class="blockquote">
-                        „Die im Projekt entwickelte digitale Landkarte bezieht neben den neuen Forschungsergebnissen
-                        auch Informationen zu digitalen Objekten ein, die bereits an anderer Stelle existieren“ , so
-                        Prof. Dr. Blümel.
-                    </blockquote>
                     <p>
                         Insbesondere werden Datensätze zu historischen Stätten, Institutionen und Ereignissen verlinkt,
                         die in frei zugänglichen Datenbanken wie dem Digitalen Denkmalatlas Niedersachsen, Wikidata,
@@ -126,12 +101,6 @@
                         Möglichkeit haben, sich in wissenschaftliche Projekte einzubringen. Die Plattform kann darüber
                         hinaus auch in der schulischen und außerschulischen Bildungsarbeit genutzt werden.
                     </p>
-                    <blockquote class="blockquote">
-                        „Jenseits des Klassenzimmers können hier neben den klassischen Lernmethoden auch lokale
-                        Gedenkorte einbezogen werden. Hierzu finden gezielte Weiterbildungsmaßnahmen für Lehrerinnen und
-                        Lehrer, Mitarbeitende von Gedenkstätten sowie andere Vermittlungspersonen statt“, sagt Lambert
-                        Heller, Leiter des OSL.
-                    </blockquote>
                     <p>
                         Weitere Informationen zum Thema Mitforschen finden sich hier:
                         <router-link to="/collaboration">Mitforschen</router-link>
