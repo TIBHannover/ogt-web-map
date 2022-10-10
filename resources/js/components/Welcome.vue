@@ -83,8 +83,8 @@ export default {
                     routeTo: '/map',
                 },
                 {
-                    label: 'Datenvisualisierung',
-                    routeTo: '/charts',
+                    label: 'Mitforschen',
+                    routeTo: '/collaboration',
                 },
             ],
             menuButtonsShowTimeoutId: null,

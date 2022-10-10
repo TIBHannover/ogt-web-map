@@ -41,6 +41,41 @@
                         bleiben.
                     </p>
                 </section>
+
+                <section id="examples" class="mt-3 mb-16">
+                    <h1 class="text-h5 text-md-h4 mb-5">
+                        Beispiele
+                    </h1>
+                    <p>
+                        Die interaktive Karte befindet sich im Aufbau. Folgende Datensätze sind weitestgehend
+                        ausgearbeitet und können als Beispiele dienen:
+                    </p>
+                    <ul class="mb-4">
+                        <li>
+                            Gestapoterrororte
+                            <ul>
+                                <li>Staatspolizeileitstelle: Staatspolizeileitstelle Hannover</li>
+                                <li>Staatspolizeistelle: Staatspolizeistelle Osnabrück</li>
+                                <li>Außendienststelle: Staatspolizeiaußenstelle Osnabrück</li>
+                            </ul>
+                        </li>
+                        <li>
+                            Ereignisse
+                            <ul>
+                                <li>Verfolgung von Hilde Reinköster und Josef Grzeskowiak (Melle)</li>
+                                <li>Erschießungen auf dem Seelhorster Friedhof 1945 (Hannover)</li>
+                            </ul>
+                        </li>
+                        <li>
+                            Erinnerungsorte
+                            <ul>
+                                <li>Gedenkstätte Augustaschacht (Osnabrück)</li>
+                                <li>Gedenkstätte Gestapokeller (Osnabrück)</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </section>
+
                 <section id="coResearch" class="mt-3 mb-16">
                     <h1 class="text-h5 text-md-h4 mb-5">
                         Wie kann ich mitforschen?
@@ -219,6 +254,10 @@ export default {
                 {
                     href: '#citizenScience',
                     label: '"Gestapo.Terror.Orte" - Ein Citizen Science Projekt',
+                },
+                {
+                    href: '#examples',
+                    label: 'Beispiele',
                 },
                 {
                     href: '#coResearch',
