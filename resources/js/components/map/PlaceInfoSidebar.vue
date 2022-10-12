@@ -4,6 +4,7 @@
         <v-navigation-drawer
             v-model="showPlaceInfoSidebar"
             absolute
+            class="z-index-5"
             color="grey lighten-3"
             hide-overlay
             mobile-breakpoint="750"
@@ -169,5 +170,10 @@ export default {
 /* to enable linebreaks for long labels */
 .white-space-normal {
     white-space: normal;
+}
+
+/* to move the place info sidebar to the foreground to cover the navigation menu button (z-index 4) */
+.z-index-5 {
+    z-index: 5;
 }
 </style>
