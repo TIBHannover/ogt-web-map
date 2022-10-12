@@ -51,26 +51,14 @@
                         ausgearbeitet und können als Beispiele dienen:
                     </p>
                     <ul class="mb-4">
-                        <li>
-                            Gestapoterrororte
+                        <li v-for="example in examples">
+                            {{ example.group }}
                             <ul>
-                                <li>Staatspolizeileitstelle: Staatspolizeileitstelle Hannover</li>
-                                <li>Staatspolizeistelle: Staatspolizeistelle Osnabrück</li>
-                                <li>Außendienststelle: Staatspolizeiaußenstelle Osnabrück</li>
-                            </ul>
-                        </li>
-                        <li>
-                            Ereignisse
-                            <ul>
-                                <li>Verfolgung von Hilde Reinköster und Josef Grzeskowiak (Melle)</li>
-                                <li>Erschießungen auf dem Seelhorster Friedhof 1945 (Hannover)</li>
-                            </ul>
-                        </li>
-                        <li>
-                            Erinnerungsorte
-                            <ul>
-                                <li>Gedenkstätte Augustaschacht (Osnabrück)</li>
-                                <li>Gedenkstätte Gestapokeller (Osnabrück)</li>
+                                <li v-for="location in example.locations">
+                                    <router-link :to="{ name: 'map', query: { qId: location.qId } }">
+                                        {{ location.label }}
+                                    </router-link>
+                                </li>
                             </ul>
                         </li>
                     </ul>
@@ -250,6 +238,60 @@ export default {
     components: {Email, TableOfContentsSidebar},
     data() {
         return {
+            examples: [
+                {
+                    group: 'Gestapoterrororte',
+                    locations: [
+                        {
+                            label: 'Staatspolizeileitstelle: Staatspolizeileitstelle Hannover',
+                            qId: 'Q106625639',
+                        },
+                        {
+                            label: 'Staatspolizeistelle: Staatspolizeistelle Osnabrück',
+                            qId: 'Q106625285',
+                        },
+                        {
+                            label: 'Außendienststelle: Staatspolizeiaußenstelle Osnabrück',
+                            qId: 'Q106625716',
+                        },
+                    ],
+                },
+                {
+                    group: 'Ereignisse',
+                    locations: [
+                        {
+                            label: 'Verfolgung von Hilde Reinköster und Josef Grzeskowiak (Melle)',
+                            qId: 'Q111009615',
+                        },
+                        {
+                            label: 'Erschießungen auf dem Seelhorster Friedhof 1945 (Hannover)',
+                            qId: 'Q108733201',
+                        },
+                    ],
+                },
+                {
+                    group: 'Täter:innen',
+                    locations: [
+                        {
+                            label: 'Friedrich Kicker',
+                            qId: 'Q111050692',
+                        },
+                    ],
+                },
+                {
+                    group: 'Erinnerungsorte',
+                    locations: [
+                        {
+                            label: 'Gedenkstätte Augustaschacht (Osnabrück)',
+                            qId: 'Q106104164',
+                        },
+                        {
+                            label: 'Gedenkstätte Gestapokeller (Osnabrück)',
+                            qId: 'Q106626141',
+                        },
+                    ],
+                },
+            ],
             headings: [
                 {
                     href: '#citizenScience',
