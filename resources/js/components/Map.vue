@@ -1357,12 +1357,16 @@ export default {
             }
         },
         /**
-         * Show/Hide place info sidebar.
+         * Show/Hide place info sidebar and close opened navigation sidebar.
          *
          * @param bool status Show or hide place info sidebar.
          */
         toggleShowPlaceInfoSidebar: function (status) {
             this.showPlaceInfoSidebar = status;
+
+            if (status) {
+                document.getElementById('closeNavigationSidebar').click();
+            }
         },
         /**
          * Switch to cached map view.

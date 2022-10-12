@@ -30,10 +30,7 @@
                     <v-list-item-subtitle>in Niedersachsen 1933–1945</v-list-item-subtitle>
                 </v-list-item-content>
                 <v-list-item-action>
-                    <v-btn
-                        icon
-                        @click.stop="isMenuDisplayed = !isMenuDisplayed"
-                    >
+                    <v-btn id="closeNavigationSidebar" @click.stop="isMenuDisplayed = false" icon>
                         <v-icon>mdi-close</v-icon>
                     </v-btn>
                 </v-list-item-action>
