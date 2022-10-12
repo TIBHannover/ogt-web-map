@@ -16,6 +16,7 @@
         <!-- map options sidebar -->
         <v-navigation-drawer
             absolute
+            class="z-index-4"
             color="grey lighten-3"
             hide-overlay
             mobile-breakpoint="750"
@@ -130,5 +131,10 @@ export default {
 /* reduced font size, so sidebar has space for four icon+text v-tabs */
 .v-tab {
     font-size: 9px;
+}
+
+/* to move the map options sidebar to the foreground to cover the under construction footer (z-index 3) */
+.z-index-4 {
+    z-index: 4;
 }
 </style>

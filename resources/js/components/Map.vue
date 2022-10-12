@@ -354,6 +354,7 @@ export default {
 
             this.visualizePlaces(groupedPlaces);
             this.derivePlaceData();
+            this.checkUrlForLocation();
         },
         /**
          * Request persons data, for e.g. perpetrators.
@@ -366,6 +367,7 @@ export default {
             });
 
             this.deriveLocationEmployees();
+            this.checkUrlForPerson();
         },
         visualizePlaces: function (groupedPlaces) {
             for (const [group, places] of Object.entries(groupedPlaces)) {
@@ -447,7 +449,7 @@ export default {
                         latLng: placeCoordinate.value,
                         marker: marker,
                     });
-                };
+                }
             }
 
             return placeMarkers;
@@ -1173,19 +1175,46 @@ export default {
             }
         },
         /**
+         * Check for URL query parameters to display a specific location on map.
+         */
+        checkUrlForLocation: function () {
+            if ('qId' in this.$route.query && this.$route.query.qId in this.locationMarkers) {
+                this.switchLocation({locationId: this.$route.query.qId, zoom: 14});
+                this.$router.push({path: '/map'});
+            }
+        },
+        /**
+         * Check for URL query parameters to display a specific person on map.
+         */
+        checkUrlForPerson: function () {
+            if ('qId' in this.$route.query && this.$route.query.qId in this.persons) {
+                this.toggleShowPlaceInfoSidebar(true);
+                this.showPerson(this.$route.query.qId);
+                this.$router.push({path: '/map'});
+            }
+        },
+        /**
          * Switch location on map and location info.
          *
-         * @param {string}      locationId
-         * @param {object|null} latLng      default null
+         * @param {string}              locationId
+         * @param {object|null}         latLng      default null
+         * @param {number|undefined}    zoom        zoom level, default undefined
          */
-        switchLocation: function ({locationId, latLng = null}) {
+        switchLocation: function ({locationId, latLng = null, zoom = undefined}) {
+            let locationMarkers = this.locationMarkers[locationId];
+
+            if (locationMarkers == undefined) {
+                // no markers for location found
+                return;
+            }
+
             let locationMarker = null;
 
             if (latLng) {
-                locationMarker = this.locationMarkers[locationId][Object.values(latLng).join(',')];
+                locationMarker = locationMarkers[Object.values(latLng).join(',')];
             }
             else {
-                let locationMarkerLatLng = Object.keys(this.locationMarkers[locationId])[0];
+                let locationMarkerLatLng = Object.keys(locationMarkers)[0];
                 locationMarker = this.locationMarkers[locationId][locationMarkerLatLng];
                 latLng = locationMarker.getLatLng();
             }
@@ -1194,7 +1223,7 @@ export default {
             locationMarker.remove();
             locationMarker.addTo(this.map);
 
-            this.map.flyTo(latLng);
+            this.map.flyTo(latLng, zoom);
 
             locationMarker.fire('click', {
                 latlng: latLng,
@@ -1328,12 +1357,16 @@ export default {
             }
         },
         /**
-         * Show/Hide place info sidebar.
+         * Show/Hide place info sidebar and close opened navigation sidebar.
          *
          * @param bool status Show or hide place info sidebar.
          */
         toggleShowPlaceInfoSidebar: function (status) {
             this.showPlaceInfoSidebar = status;
+
+            if (status) {
+                document.getElementById('closeNavigationSidebar').click();
+            }
         },
         /**
          * Switch to cached map view.
