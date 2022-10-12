@@ -45,7 +45,7 @@
                 <br>
             </p>
             <template v-for="menuButton in menuButtons">
-                <router-link :to="menuButton.routeTo">
+                <router-link :to="menuButton.routeTo" class="text-decoration-none">
                     <v-btn
                         class="mx-10 my-3"
                         color="white"
