@@ -104,8 +104,8 @@ class WikidataController extends Controller
         }
 
         $locations = $wikidataClient->mergeItemsData($placesResponse['results']['bindings']);
-        $locationsByType = $wikidataClient->groupLocationsByType($locations);
+        $groupedLocations = $wikidataClient->groupItemsByProperty($locations, WikidataClient::PLACE_GROUPS_IDS, 'P31');
 
-        return response($locationsByType, Response::HTTP_OK);
+        return response($groupedLocations, Response::HTTP_OK);
     }
 }

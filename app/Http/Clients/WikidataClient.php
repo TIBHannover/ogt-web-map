@@ -443,49 +443,65 @@ class WikidataClient
     }
 
     /**
-     * Group locations by item's instance-of IDs. Locations are assigned to the first location group found.
+     * Group items by values of a Wikidata property. Items are assigned to the first group found.
      *
-     * @param array $locations
+     * @param array  $items      Wikidata item.
+     * @param array  $groups     Valid available groups.
+     * @param string $propertyId Wikidata property id, e.g. P31.
      *
      * @return array
      */
-    public function groupLocationsByType(array $locations) : array
+    public function groupItemsByProperty(array $items, array $groups, string $propertyId) : array
     {
-        // return all location groups, even if empty
-        $groupedLocations = array_fill_keys(array_keys(self::PLACE_GROUPS_IDS), []);
+        // return all item groups, even if empty
+        $groupedItems = array_fill_keys(array_keys($groups), []);
 
-        foreach ($locations as $locationId => $location)
+        foreach ($items as $itemId => $item)
         {
-            $instanceOfLabel = self::PROPERTY_LABEL_OF_ID['P31'];
-            $instanceIds = Arr::pluck($location[$instanceOfLabel], 'id');
+            $propertyLabel = self::PROPERTY_LABEL_OF_ID[$propertyId];
 
-            $hasLocationGroup = false;
-
-            foreach (self::PLACE_GROUPS_IDS as $groupName => $groupIds)
+            if (! isset($item[$propertyLabel]))
             {
-                if (! empty(array_intersect($instanceIds, $groupIds)))
-                {
-                    Arr::forget($location, $instanceOfLabel);
-                    $groupedLocations[$groupName][$locationId] = $location;
-                    $hasLocationGroup = true;
+                Log::warning(
+                    'The item cannot be assigned to a group because it does not have the required Wikidata property.',
+                    [
+                        'itemId'        => $itemId,
+                        'propertyLabel' => $propertyLabel,
+                    ]
+                );
 
-                    // group each location into exactly one location group
+                continue;
+            }
+
+            $propertyIds = Arr::pluck($item[$propertyLabel], 'id');
+
+            $foundGroup = false;
+
+            foreach ($groups as $groupName => $groupIds)
+            {
+                if (! empty(array_intersect($propertyIds, $groupIds)))
+                {
+                    Arr::forget($item, $propertyLabel);
+                    $groupedItems[$groupName][$itemId] = $item;
+                    $foundGroup = true;
+
+                    // group each item into exactly one item group
                     break;
                 }
             }
 
-            if (! $hasLocationGroup)
+            if (! $foundGroup)
             {
                 Log::warning(
-                    'The location cannot be assigned to a map marker category based on its Wikidata instances.',
+                    'The item cannot be assigned to a group because it does not have a valid Wikidata property value for available groups.',
                     [
-                        'instanceIds' => $instanceIds,
-                        'locationId'  => $locationId,
+                        'itemId'      => $itemId,
+                        'propertyIds' => $propertyIds,
                     ]
                 );
             }
         }
 
-        return $groupedLocations;
+        return $groupedItems;
     }
 }
