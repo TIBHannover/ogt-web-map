@@ -153,6 +153,7 @@ export default {
                     id: '',
                     label: '',
                 }],
+                citizenships: [],
                 commemoratedBy: [{
                     hasLocationMarker: false,
                     id: '',
@@ -1391,6 +1392,13 @@ export default {
                 for (const [statementId, dateOfDeath] of Object.entries(person.dateOfDeath)) {
                     this.selectedPlace.dateOfDeath = this.getDate(dateOfDeath.value, dateOfDeath.datePrecision);
                     break;
+                }
+            }
+
+            this.selectedPlace.citizenships = [];
+            if (person.citizenships) {
+                for (const [statementId, citizenship] of Object.entries(person.citizenships)) {
+                    this.selectedPlace.citizenships.push(citizenship.value);
                 }
             }
 

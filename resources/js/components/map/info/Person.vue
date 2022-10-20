@@ -77,6 +77,23 @@
             <v-divider></v-divider>
         </template>
 
+        <!-- country of citizenship - https://www.wikidata.org/wiki/Property:P27 -->
+        <template v-if="selectedPerson.citizenships.length > 0">
+            <v-list-item dense>
+                <v-list-item-content>
+                    <v-list-item-title>Staatsangehörigkeit</v-list-item-title>
+                    <v-list-item-subtitle>
+                        <ul>
+                            <li v-for="citizenship in selectedPerson.citizenships">
+                                {{ citizenship }}
+                            </li>
+                        </ul>
+                    </v-list-item-subtitle>
+                </v-list-item-content>
+            </v-list-item>
+            <v-divider></v-divider>
+        </template>
+
         <significant-event
             v-if="selectedPerson.significantEvents.length > 0"
             :selectedPlace="selectedPerson"
