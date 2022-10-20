@@ -111,7 +111,10 @@ export default {
             locationMarkers: [],
             map: null,
             mapMarkerIconsPath: '/images/leaflet/markerIcons/coloredFilledGrey/',
-            persons: [],
+            persons: {
+                perpetrators: {},
+                victims: {},
+            },
             selectedPlace: {
                 addresses: {
                     additional: [{
@@ -680,7 +683,7 @@ export default {
                     let minEndDate = director.earliestEndDate ?
                         this.getDate(director.earliestEndDate.value, director.earliestEndDate.datePrecision) : null;
 
-                    let hasPersonData = this.persons[director.id] ? true : false;
+                    let hasPersonData = this.persons.perpetrators[director.id] ? true : false;
 
                     this.selectedPlace.directors.push({
                         endDate: endDate,
@@ -887,7 +890,7 @@ export default {
             this.selectedPlace.perpetrators = [];
             if (place.perpetrators) {
                 for (const [statementId, perpetrator] of Object.entries(place.perpetrators)) {
-                    let hasPersonData = this.persons[perpetrator.id] ? true : false;
+                    let hasPersonData = this.persons.perpetrators[perpetrator.id] ? true : false;
                     let hasLocationMarker = this.locationMarkers[perpetrator.id] ? true : false;
 
                     this.selectedPlace.perpetrators.push({
@@ -902,7 +905,7 @@ export default {
             this.selectedPlace.victims = [];
             if (place.victims) {
                 for (const [statementId, victim] of Object.entries(place.victims)) {
-                    let hasPersonData = this.persons[victim.id] ? true : false;
+                    let hasPersonData = this.persons.victims[victim.id] ? true : false;
 
                     this.selectedPlace.victims.push({
                         hasPersonData: hasPersonData,
@@ -1149,11 +1152,11 @@ export default {
          * Deriving location employees from personal data to make them easily accessible for location data.
          */
         deriveLocationEmployees: function () {
-            let persons = this.persons;
+            let perpetrators = this.persons.perpetrators;
 
-            for (const [personId, person] of Object.entries(persons)) {
-                if (person.employers) {
-                    for (const [statementId, employer] of Object.entries(person.employers)) {
+            for (const [perpetratorId, perpetrator] of Object.entries(perpetrators)) {
+                if (perpetrator.employers) {
+                    for (const [statementId, employer] of Object.entries(perpetrator.employers)) {
                         if (! this.derivedPlacesData.hasOwnProperty(employer.id)) {
                             this.derivedPlacesData[employer.id] = {
                                 employees: [],
@@ -1167,8 +1170,8 @@ export default {
                         }
 
                         this.derivedPlacesData[employer.id]['employees'].push({
-                            id: personId,
-                            label: person.label,
+                            id: perpetratorId,
+                            label: perpetrator.label,
                         });
                     }
                 }
@@ -1187,7 +1190,12 @@ export default {
          * Check for URL query parameters to display a specific person on map.
          */
         checkUrlForPerson: function () {
-            if ('qId' in this.$route.query && this.$route.query.qId in this.persons) {
+            if ('qId' in this.$route.query &&
+                (
+                    this.$route.query.qId in this.persons.perpetrators ||
+                    this.$route.query.qId in this.persons.victims
+                )
+            ) {
                 this.toggleShowPlaceInfoSidebar(true);
                 this.showPerson(this.$route.query.qId);
                 this.$router.push({path: '/map'});
@@ -1235,10 +1243,21 @@ export default {
          * @param personId
          */
         showPerson: function (personId) {
-            let person = this.persons[personId];
+            let person = {};
+            this.selectedPlace.groupName = '';
+            this.selectedPlace.layerName = '';
 
-            this.selectedPlace.groupName = 'perpetrators';
-            this.selectedPlace.layerName = 'Täter*innen';
+            if (personId in this.persons.victims) {
+                person = this.persons.victims[personId];
+                this.selectedPlace.groupName = 'victims';
+                this.selectedPlace.layerName = 'Geschädigte';
+            }
+            else if (personId in this.persons.perpetrators) {
+                person = this.persons.perpetrators[personId];
+                this.selectedPlace.groupName = 'perpetrators';
+                this.selectedPlace.layerName = 'Täter*innen';
+            }
+
             this.selectedPlace.id = person.id;
             this.selectedPlace.label = person.label;
             this.selectedPlace.description = person.description;
