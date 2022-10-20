@@ -77,6 +77,12 @@
             <v-divider></v-divider>
         </template>
 
+        <significant-event
+            v-if="selectedPerson.significantEvents.length > 0"
+            :selectedPlace="selectedPerson"
+            @switchLocation="$emit('switchLocation', $event)"
+        ></significant-event>
+
         <perpetrator
             v-if="selectedPerson.groupName == 'perpetrators'"
             :selectedPerson="selectedPerson"
@@ -87,12 +93,6 @@
             :selectedPerson="selectedPerson"
             @switchLocation="$emit('switchLocation', $event)"
         ></victim>
-
-        <significant-event
-            v-if="selectedPerson.significantEvents.length > 0"
-            :selectedPlace="selectedPerson"
-            @switchLocation="$emit('switchLocation', $event)"
-        ></significant-event>
 
         <sources
             v-if="selectedPerson.sources.length > 0"

@@ -1187,17 +1187,23 @@ export default {
             }
         },
         /**
-         * Check for URL query parameters to display a specific person on map.
+         * Check for URL query parameters to display a specific person in map info sidebar.
          */
         checkUrlForPerson: function () {
-            if ('qId' in this.$route.query &&
-                (
-                    this.$route.query.qId in this.persons.perpetrators ||
-                    this.$route.query.qId in this.persons.victims
-                )
-            ) {
-                this.toggleShowPlaceInfoSidebar(true);
-                this.showPerson(this.$route.query.qId);
+            if ('qId' in this.$route.query) {
+                if (this.$route.query.qId in this.persons.victims) {
+                    this.showPerson({
+                        id: this.$route.query.qId,
+                        group: 'victims',
+                    });
+                }
+                else if (this.$route.query.qId in this.persons.perpetrators) {
+                    this.showPerson({
+                        id: this.$route.query.qId,
+                        group: 'perpetrators',
+                    });
+                }
+
                 this.$router.push({path: '/map'});
             }
         },
@@ -1238,26 +1244,77 @@ export default {
             });
         },
         /**
-         * Show person data in info sidebar.
+         * Show person data in map info sidebar.
          *
-         * @param personId
+         * @param {string} id    Wikidata item id.
+         * @param {string} group Group of person.
          */
-        showPerson: function (personId) {
-            let person = {};
-            this.selectedPlace.groupName = '';
-            this.selectedPlace.layerName = '';
+        showPerson: function ({id, group = ''}) {
+            this.toggleShowPlaceInfoSidebar(true);
+            this.selectedPlace.groupName = group;
 
-            if (personId in this.persons.victims) {
-                person = this.persons.victims[personId];
-                this.selectedPlace.groupName = 'victims';
-                this.selectedPlace.layerName = 'Geschädigte';
-            }
-            else if (personId in this.persons.perpetrators) {
-                person = this.persons.perpetrators[personId];
-                this.selectedPlace.groupName = 'perpetrators';
-                this.selectedPlace.layerName = 'Täter*innen';
+            if (! ['perpetrators', 'victims'].includes(this.selectedPlace.groupName)) {
+                if (id in this.persons.victims) {
+                    this.selectedPlace.groupName = 'victims';
+                }
+                else if (id in this.persons.perpetrators) {
+                    this.selectedPlace.groupName = 'perpetrators';
+                }
+                else {
+                    this.toggleShowPlaceInfoSidebar(false);
+                    return;
+                }
             }
 
+            let person = this.persons[this.selectedPlace.groupName][id];
+
+            if (this.selectedPlace.groupName == 'victims') {
+                this.setSelectedVictimData(person);
+            }
+            else if (this.selectedPlace.groupName == 'perpetrators') {
+                this.setSelectedPerpetratorData(person);
+            }
+
+            this.setSelectedPersonData(person);
+        },
+        /**
+         * Set the perpetrator data of the selected person to be displayed in the map info sidebar.
+         *
+         * @param {object} person
+         */
+        setSelectedPerpetratorData: function (person) {
+            this.selectedPlace.layerName = 'Täter*innen';
+
+            this.selectedPlace.employers = [];
+
+            if (person.employers) {
+                for (const [statementId, employer] of Object.entries(person.employers)) {
+                    let hasLocationMarker = this.locationMarkers[employer.id] ? true : false;
+
+                    this.selectedPlace.employers.push({
+                        hasLocationMarker: hasLocationMarker,
+                        id: employer.id,
+                        label: employer.value,
+                    });
+                }
+            }
+        },
+        /**
+         * Set the victim data of the selected person to be displayed in the map info sidebar.
+         *
+         * @param {object} person
+         */
+        setSelectedVictimData: function (person) {
+            this.selectedPlace.layerName = 'Geschädigte';
+
+            // Haftort(e):
+        },
+        /**
+         * Set the default data for the selected person to be displayed in the map info sidebar.
+         *
+         * @param {object} person
+         */
+        setSelectedPersonData: function (person) {
             this.selectedPlace.id = person.id;
             this.selectedPlace.label = person.label;
             this.selectedPlace.description = person.description;
@@ -1343,20 +1400,6 @@ export default {
                     this.selectedPlace.sources.push({
                         label: describedBySource.value,
                         pages: describedBySource.pages ? describedBySource.pages.value : '',
-                    });
-                }
-            }
-
-            this.selectedPlace.employers = [];
-
-            if (person.employers) {
-                for (const [statementId, employer] of Object.entries(person.employers)) {
-                    let hasLocationMarker = this.locationMarkers[employer.id] ? true : false;
-
-                    this.selectedPlace.employers.push({
-                        hasLocationMarker: hasLocationMarker,
-                        id: employer.id,
-                        label: employer.value,
                     });
                 }
             }

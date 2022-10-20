@@ -89,9 +89,13 @@
                     <v-list-item-subtitle>
                         <ul class="hyphens-auto white-space-normal" lang="de">
                             <li v-for="perpetrator in selectedPlace.perpetrators">
-                                <a v-if="perpetrator.hasPersonData"
-                                   @click.stop="$emit('showPerson', perpetrator.id)"
-                                   href="#"
+                                <a
+                                    v-if="perpetrator.hasPersonData"
+                                    @click.stop="$emit('showPerson', {
+                                        id: perpetrator.id,
+                                        group: 'perpetrators',
+                                    })"
+                                    href="#"
                                 >
                                     {{ perpetrator.label }}
                                 </a>
@@ -134,7 +138,14 @@
                             Namen
                             <ul>
                                 <li v-for="victim in selectedPlace.victims">
-                                    <a v-if="victim.hasPersonData" href="#">
+                                    <a
+                                        v-if="victim.hasPersonData"
+                                        @click.stop="$emit('showPerson', {
+                                            id: victim.id,
+                                            group: 'victims',
+                                        })"
+                                        href="#"
+                                    >
                                         {{ victim.label }}
                                     </a>
                                     <template v-else>

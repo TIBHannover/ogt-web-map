@@ -53,7 +53,13 @@
                             Leitung
                             <ul v-for="director in selectedPlace.directors" class="mb-2">
                                 <li v-if="director.hasPersonData">
-                                    <a @click.stop="$emit('showPerson', director.id)" href="#">
+                                    <a
+                                        @click.stop="$emit('showPerson', {
+                                            id: director.id,
+                                            group: 'perpetrators',
+                                        })"
+                                        href="#"
+                                    >
                                         {{ director.name }}
                                     </a>
                                 </li>
@@ -84,7 +90,13 @@
                             Mitarbeitende
                             <ul>
                                 <li v-for="employee in selectedPlace.employees">
-                                    <a @click.stop="$emit('showPerson', employee.id)" href="#">
+                                    <a
+                                        @click.stop="$emit('showPerson', {
+                                            id: employee.id,
+                                            group: 'perpetrators',
+                                        })"
+                                        href="#"
+                                    >
                                         {{ employee.label }}
                                     </a>
                                 </li>
