@@ -174,6 +174,19 @@ export default {
                 },
                 description: '',
                 destinationPoints: [],
+                detentions: [{
+                    endDate: {
+                        locale: '',
+                        value: null,
+                    },
+                    hasLocationMarker: false,
+                    id: '',
+                    name: '',
+                    startDate: {
+                        locale: '',
+                        value: null,
+                    },
+                }],
                 directors: [{
                     endDate: {
                         locale: '',
@@ -1308,7 +1321,29 @@ export default {
         setSelectedVictimData: function (person) {
             this.selectedPlace.layerName = 'Geschädigte';
 
-            // Haftort(e):
+            this.selectedPlace.detentions = [];
+
+            if (person.detentionPlaces) {
+                for (const [statementId, detention] of Object.entries(person.detentionPlaces)) {
+                    let hasLocationMarker = this.locationMarkers[detention.id] ? true : false;
+
+                    let startDate = detention.startTime ?
+                        this.getDate(detention.startTime.value, detention.startTime.datePrecision) : null;
+
+                    let endDate = detention.endTime ?
+                        this.getDate(detention.endTime.value, detention.endTime.datePrecision) : null;
+
+                    this.selectedPlace.detentions.push({
+                        endDate: endDate,
+                        hasLocationMarker: hasLocationMarker,
+                        id: detention.id,
+                        name: detention.value,
+                        startDate: startDate,
+                    });
+                }
+
+                this.selectedPlace.detentions.sort(this.sortByDate);
+            }
         },
         /**
          * Set the default data for the selected person to be displayed in the map info sidebar.
