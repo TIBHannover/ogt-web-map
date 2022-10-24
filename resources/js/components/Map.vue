@@ -39,7 +39,16 @@ export default {
                 },
                 zoomLevel: 0,
             },
-            derivedPlacesData: {},
+            derivedPlacesData: {
+                // <locationId>: {
+                //      commemoratedBy: [],
+                //      employees: [],
+                //      prisoners: [{
+                //          id: '',
+                //          name: '',
+                //      }],
+                // }
+            },
             groupedPlaces: {
                 events: {
                     color: '#8c1f21',
@@ -284,6 +293,10 @@ export default {
                     id: '',
                     label: '',
                 }],
+                prisoners: [{
+                    id: '',
+                    name: '',
+                }],
                 prisonerCounts: [{
                     sourcingCircumstance: '',
                     value: 0,
@@ -384,6 +397,7 @@ export default {
             });
 
             this.deriveLocationEmployees();
+            this.deriveLocationPrisoners();
             this.checkUrlForPerson();
         },
         visualizePlaces: function (groupedPlaces) {
@@ -1010,6 +1024,12 @@ export default {
                     }
                 }
             }
+
+            this.selectedPlace.prisoners = [];
+            let derivedPlacesData = this.derivedPlacesData[this.selectedPlace.id];
+            if (derivedPlacesData && derivedPlacesData.prisoners) {
+                this.selectedPlace.prisoners = derivedPlacesData.prisoners;
+            }
         },
         /**
          * Get locale date string base on Wikidata time precision.
@@ -1163,7 +1183,7 @@ export default {
             }
         },
         /**
-         * Deriving location employees from personal data to make them easily accessible for location data.
+         * Deriving location employees from perpetrator data to make them easily accessible for location data.
          */
         deriveLocationEmployees: function () {
             let perpetrators = this.persons.perpetrators;
@@ -1186,6 +1206,35 @@ export default {
                         this.derivedPlacesData[employer.id]['employees'].push({
                             id: perpetratorId,
                             label: perpetrator.label,
+                        });
+                    }
+                }
+            }
+        },
+        /**
+         * Deriving location prisoners from victim data to make them easily accessible for location data.
+         */
+        deriveLocationPrisoners: function () {
+            let victims = this.persons.victims;
+
+            for (const [victimId, victim] of Object.entries(victims)) {
+                if (victim.detentionPlaces) {
+                    for (const [statementId, detentionPlace] of Object.entries(victim.detentionPlaces)) {
+                        if (! this.derivedPlacesData.hasOwnProperty(detentionPlace.id)) {
+                            this.derivedPlacesData[detentionPlace.id] = {
+                                prisoners: [],
+                            };
+                        }
+                        else if (! this.derivedPlacesData[detentionPlace.id].hasOwnProperty('prisoners')) {
+                            this.derivedPlacesData[detentionPlace.id]['prisoners'] = [];
+                        }
+                        else {
+                            // done
+                        }
+
+                        this.derivedPlacesData[detentionPlace.id]['prisoners'].push({
+                            id: victimId,
+                            name: victim.label,
                         });
                     }
                 }

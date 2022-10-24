@@ -253,8 +253,8 @@
         </template>
 
         <prisoner-count
-            v-if="selectedPlace.prisonerCounts.length > 0"
             :selectedPlace="selectedPlace"
+            @showPerson="$emit('showPerson', $event)"
         ></prisoner-count>
 
         <sources
