@@ -40,7 +40,7 @@
 
 <script>
 export default {
-    name: 'PrisonerCount',
+    name: 'Prisoners',
     props: ['selectedPlace'],
 };
 </script>

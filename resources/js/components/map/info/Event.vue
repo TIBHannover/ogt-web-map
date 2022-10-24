@@ -252,10 +252,10 @@
             <v-divider></v-divider>
         </template>
 
-        <prisoner-count
+        <prisoners
             :selectedPlace="selectedPlace"
             @showPerson="$emit('showPerson', $event)"
-        ></prisoner-count>
+        ></prisoners>
 
         <sources
             v-if="selectedPlace.sources.length > 0"
@@ -265,12 +265,12 @@
 </template>
 
 <script>
-import PrisonerCount from './PrisonerCount';
+import Prisoners from './Prisoners';
 import Sources from './Sources';
 
 export default {
     name: 'Event',
-    components: {PrisonerCount, Sources},
+    components: {Prisoners, Sources},
     props: ['selectedPlace'],
 };
 </script>

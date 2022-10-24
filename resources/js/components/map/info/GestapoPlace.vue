@@ -108,10 +108,10 @@
             <v-divider></v-divider>
         </template>
 
-        <prisoner-count
+        <prisoners
             :selectedPlace="selectedPlace"
             @showPerson="$emit('showPerson', $event)"
-        ></prisoner-count>
+        ></prisoners>
 
         <significant-event
             v-if="selectedPlace.significantEvents.length > 0"
@@ -262,13 +262,13 @@
 
 <script>
 import AddressInfo from './AddressInfo';
-import PrisonerCount from './PrisonerCount';
+import Prisoners from './Prisoners';
 import SignificantEvent from './SignificantEvent';
 import Sources from './Sources';
 
 export default {
     name: 'GestapoPlace',
-    components: {AddressInfo, PrisonerCount, SignificantEvent, Sources},
+    components: {AddressInfo, Prisoners, SignificantEvent, Sources},
     props: ['selectedPlace'],
 };
 </script>
