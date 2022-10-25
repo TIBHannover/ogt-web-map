@@ -53,7 +53,13 @@
                             Leitung
                             <ul v-for="director in selectedPlace.directors" class="mb-2">
                                 <li v-if="director.hasPersonData">
-                                    <a @click.stop="$emit('showPerson', director.id)" href="#">
+                                    <a
+                                        @click.stop="$emit('showPerson', {
+                                            id: director.id,
+                                            group: 'perpetrators',
+                                        })"
+                                        href="#"
+                                    >
                                         {{ director.name }}
                                     </a>
                                 </li>
@@ -84,8 +90,14 @@
                             Mitarbeitende
                             <ul>
                                 <li v-for="employee in selectedPlace.employees">
-                                    <a @click.stop="$emit('showPerson', employee.id)" href="#">
-                                        {{ employee.label }}
+                                    <a
+                                        @click.stop="$emit('showPerson', {
+                                            id: employee.id,
+                                            group: 'perpetrators',
+                                        })"
+                                        href="#"
+                                    >
+                                        {{ employee.name }}
                                     </a>
                                 </li>
                             </ul>
@@ -96,10 +108,10 @@
             <v-divider></v-divider>
         </template>
 
-        <prisoner-count
-            v-if="selectedPlace.prisonerCounts.length > 0"
+        <prisoners
             :selectedPlace="selectedPlace"
-        ></prisoner-count>
+            @showPerson="$emit('showPerson', $event)"
+        ></prisoners>
 
         <significant-event
             v-if="selectedPlace.significantEvents.length > 0"
@@ -229,10 +241,10 @@
                                        })"
                                    href="#"
                                 >
-                                    {{ commemoratedBy.label }}
+                                    {{ commemoratedBy.name }}
                                 </a>
                                 <div v-else>
-                                    {{ commemoratedBy.label }}
+                                    {{ commemoratedBy.name }}
                                 </div>
                             </li>
                         </ul>
@@ -250,13 +262,13 @@
 
 <script>
 import AddressInfo from './AddressInfo';
-import PrisonerCount from './PrisonerCount';
+import Prisoners from './Prisoners';
 import SignificantEvent from './SignificantEvent';
 import Sources from './Sources';
 
 export default {
     name: 'GestapoPlace',
-    components: {AddressInfo, PrisonerCount, SignificantEvent, Sources},
+    components: {AddressInfo, Prisoners, SignificantEvent, Sources},
     props: ['selectedPlace'],
 };
 </script>

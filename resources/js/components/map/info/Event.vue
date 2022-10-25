@@ -89,9 +89,13 @@
                     <v-list-item-subtitle>
                         <ul class="hyphens-auto white-space-normal" lang="de">
                             <li v-for="perpetrator in selectedPlace.perpetrators">
-                                <a v-if="perpetrator.hasPersonData"
-                                   @click.stop="$emit('showPerson', perpetrator.id)"
-                                   href="#"
+                                <a
+                                    v-if="perpetrator.hasPersonData"
+                                    @click.stop="$emit('showPerson', {
+                                        id: perpetrator.id,
+                                        group: 'perpetrators',
+                                    })"
+                                    href="#"
                                 >
                                     {{ perpetrator.label }}
                                 </a>
@@ -134,11 +138,18 @@
                             Namen
                             <ul>
                                 <li v-for="victim in selectedPlace.victims">
-                                    <a v-if="victim.hasPersonData" href="#">
-                                        {{ victim.label }}
+                                    <a
+                                        v-if="victim.hasPersonData"
+                                        @click.stop="$emit('showPerson', {
+                                            id: victim.id,
+                                            group: 'victims',
+                                        })"
+                                        href="#"
+                                    >
+                                        {{ victim.name }}
                                     </a>
                                     <template v-else>
-                                        {{ victim.label }}
+                                        {{ victim.name }}
                                     </template>
                                 </li>
                             </ul>
@@ -241,10 +252,10 @@
             <v-divider></v-divider>
         </template>
 
-        <prisoner-count
-            v-if="selectedPlace.prisonerCounts.length > 0"
+        <prisoners
             :selectedPlace="selectedPlace"
-        ></prisoner-count>
+            @showPerson="$emit('showPerson', $event)"
+        ></prisoners>
 
         <sources
             v-if="selectedPlace.sources.length > 0"
@@ -254,12 +265,12 @@
 </template>
 
 <script>
-import PrisonerCount from './PrisonerCount';
+import Prisoners from './Prisoners';
 import Sources from './Sources';
 
 export default {
     name: 'Event',
-    components: {PrisonerCount, Sources},
+    components: {Prisoners, Sources},
     props: ['selectedPlace'],
 };
 </script>
