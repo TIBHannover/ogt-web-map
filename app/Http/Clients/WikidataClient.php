@@ -16,6 +16,24 @@ use Illuminate\Support\Str;
 class WikidataClient
 {
     /**
+     * Groups of Wikidata Q-Ids of person roles.
+     */
+    const PERSON_GROUPS_IDS = [
+        'perpetrators' => [
+            'Q111080573',   // https://www.wikidata.org/wiki/Q111080573     perpetrator of the Nazi regime
+        ],
+        'victims'      => [
+            'Q2026714',     // https://www.wikidata.org/wiki/Q2026714       victim of the Nazi regime
+            'Q2744762',     // https://www.wikidata.org/wiki/Q2744762       non-Jewish victim of the Nazi regime
+            'Q5883980',     // https://www.wikidata.org/wiki/Q5883980       Holocaust victim
+            'Q12409870',    // https://www.wikidata.org/wiki/Q12409870      Holocaust survivor
+            'Q111510085',   // https://www.wikidata.org/wiki/Q111510085     Porajmos victim
+            'Q111510497',   // https://www.wikidata.org/wiki/Q111510497     Porajmos survivor
+            'Q113980000',   // https://www.wikidata.org/wiki/Q113980000     Nazi euthanasia victim
+        ],
+    ];
+
+    /**
      * Groups of Wikidata Q-Ids of place instances.
      */
     const PLACE_GROUPS_IDS = [
@@ -60,6 +78,7 @@ class WikidataClient
         'P19'   => 'placeOfBirth',          // https://www.wikidata.org/wiki/Property:P19
         'P20'   => 'placeOfDeath',          // https://www.wikidata.org/wiki/Property:P20
         'P21'   => 'gender',                // https://www.wikidata.org/wiki/Property:P21
+        'P27'   => 'citizenships',          // https://www.wikidata.org/wiki/Property:P27
         'P31'   => 'instances',             // https://www.wikidata.org/wiki/Property:P31
         'P108'  => 'employers',             // https://www.wikidata.org/wiki/Property:P108
         'P137'  => 'operators',             // https://www.wikidata.org/wiki/Property:P137
@@ -92,6 +111,8 @@ class WikidataClient
         'P1561' => 'numberOfSurvivors',     // https://www.wikidata.org/wiki/Property:P1561
         'P1590' => 'numberOfCasualties',    // https://www.wikidata.org/wiki/Property:P1590
         'P1619' => 'openingDate',           // https://www.wikidata.org/wiki/Property:P1619
+        'P2632' => 'detentionPlaces',       // https://www.wikidata.org/wiki/Property:P2632
+        'P2868' => 'subjectRoles',          // https://www.wikidata.org/wiki/Property:P2868
         'P5582' => 'numberOfArrests',       // https://www.wikidata.org/wiki/Property:P5582
         'P5630' => 'prisonerCounts',        // https://www.wikidata.org/wiki/Property:P5630
         'P6375' => 'streetAddresses',       // https://www.wikidata.org/wiki/Property:P6375
@@ -201,7 +222,7 @@ class WikidataClient
     }
 
     /**
-     * Get persons data from Wikidata for e.g. perpetrators.
+     * Get persons data from Wikidata for perpetrators and victims.
      *
      * @return array
      */
@@ -221,37 +242,41 @@ class WikidataClient
                 ?qualifierValue
                 ?qualifierValueLabel
                 ?qualifierTimePrecision
-            WHERE {
+            WHERE 
+            {
                 ?location wdt:P31 wd:Q106996250.
                 FILTER(EXISTS { ?location wdt:P625 ?coordinateLocation. })
+                ?item wdt:P31 wd:Q5.
                 {
-                  ?item wdt:P108 ?location.
+                    ?item (wdt:P108|wdt:P2632) ?location.
                 }
                 UNION
                 {
-                  ?location wdt:P1037 ?item.
+                    ?location wdt:P1037 ?item.
                 }
                 UNION
                 {
-                  ?event wdt:P31 wd:Q6983405;
-                         wdt:P625 ?coordinateEvent;
-                         wdt:P8031 ?location;
-                         wdt:P8031 ?item.
-                  ?item wdt:P31 wd:Q5.
-                }
-                UNION
-                {
-                  ?event wdt:P31 wd:Q6983405;
-                         wdt:P625 ?coordinateEvent;
-                         wdt:P8031 ?location.
-                  ?item wdt:P793 ?event;
-                        wdt:P2868 wd:Q111080573;
+                    ?event wdt:P31 wd:Q6983405;
+                           wdt:P625 ?coordinateEvent;
+                           wdt:P8031 ?location.
+                    {
+                        ?event (wdt:P8031|wdt:P8032) ?item. 
+                    }
+                    UNION
+                    {
+                        VALUES ?validSubjectRoles { wd:Q111080573 wd:Q2026714 }.
+                        ?item wdt:P793 ?event;
+                              wdt:P2868/wdt:P279? ?validSubjectRoles.
+                    }
                 }
                 ?property wikibase:claim ?claim.
                 ?item ?claim ?statement.
                 {
                     ?property wikibase:propertyType ?propertyType.
-                    FILTER(?property IN(wd:P18, wd:P19, wd:P20, wd:P21, wd:P108, wd:P734, wd:P735, wd:P793, wd:P1343))
+                    FILTER(?property IN(
+                        wd:P18, wd:P19, wd:P20, wd:P21, wd:P27, wd:P108, wd:P734, wd:P735, wd:P793, wd:P1343, wd:P2632, 
+                        wd:P2868
+                    ))
                     FILTER(?propertyType != wikibase:Time)
                     ?property wikibase:statementProperty ?ps.
                     ?statement ?ps ?propertyValue.
@@ -264,7 +289,8 @@ class WikidataClient
                     ?propertyValueNode wikibase:timeValue ?propertyValue;
                         wikibase:timePrecision ?propertyTimePrecision.
                 }
-                OPTIONAL {
+                OPTIONAL 
+                {
                     {
                         ?qualifier wikibase:propertyType ?qualifierType.
                         FILTER(?qualifier IN(wd:P304, wd:P2096))
@@ -443,49 +469,65 @@ class WikidataClient
     }
 
     /**
-     * Group locations by item's instance-of IDs. Locations are assigned to the first location group found.
+     * Group items by values of a Wikidata property. Items are assigned to the first group found.
      *
-     * @param array $locations
+     * @param array  $items      Wikidata item.
+     * @param array  $groups     Valid available groups.
+     * @param string $propertyId Wikidata property id, e.g. P31.
      *
      * @return array
      */
-    public function groupLocationsByType(array $locations) : array
+    public function groupItemsByProperty(array $items, array $groups, string $propertyId) : array
     {
-        // return all location groups, even if empty
-        $groupedLocations = array_fill_keys(array_keys(self::PLACE_GROUPS_IDS), []);
+        // return all item groups, even if empty
+        $groupedItems = array_fill_keys(array_keys($groups), []);
 
-        foreach ($locations as $locationId => $location)
+        foreach ($items as $itemId => $item)
         {
-            $instanceOfLabel = self::PROPERTY_LABEL_OF_ID['P31'];
-            $instanceIds = Arr::pluck($location[$instanceOfLabel], 'id');
+            $propertyLabel = self::PROPERTY_LABEL_OF_ID[$propertyId];
 
-            $hasLocationGroup = false;
-
-            foreach (self::PLACE_GROUPS_IDS as $groupName => $groupIds)
+            if (! isset($item[$propertyLabel]))
             {
-                if (! empty(array_intersect($instanceIds, $groupIds)))
-                {
-                    Arr::forget($location, $instanceOfLabel);
-                    $groupedLocations[$groupName][$locationId] = $location;
-                    $hasLocationGroup = true;
+                Log::warning(
+                    'The item cannot be assigned to a group because it does not have the required Wikidata property.',
+                    [
+                        'itemId'        => $itemId,
+                        'propertyLabel' => $propertyLabel,
+                    ]
+                );
 
-                    // group each location into exactly one location group
+                continue;
+            }
+
+            $propertyIds = Arr::pluck($item[$propertyLabel], 'id');
+
+            $foundGroup = false;
+
+            foreach ($groups as $groupName => $groupIds)
+            {
+                if (! empty(array_intersect($propertyIds, $groupIds)))
+                {
+                    Arr::forget($item, $propertyLabel);
+                    $groupedItems[$groupName][$itemId] = $item;
+                    $foundGroup = true;
+
+                    // group each item into exactly one item group
                     break;
                 }
             }
 
-            if (! $hasLocationGroup)
+            if (! $foundGroup)
             {
                 Log::warning(
-                    'The location cannot be assigned to a map marker category based on its Wikidata instances.',
+                    'The item cannot be assigned to a group because it does not have a valid Wikidata property value for available groups.',
                     [
-                        'instanceIds' => $instanceIds,
-                        'locationId'  => $locationId,
+                        'itemId'      => $itemId,
+                        'propertyIds' => $propertyIds,
                     ]
                 );
             }
         }
 
-        return $groupedLocations;
+        return $groupedItems;
     }
 }

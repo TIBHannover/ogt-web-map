@@ -20,6 +20,7 @@ class WikidataController extends Controller
     public function getPersons(WikidataClient $wikidataClient) : Response
     {
         $personsResponse = $wikidataClient->queryPersons();
+
         $validator = Validator::make($personsResponse, [
             'head'             => 'required|array:vars|size:1',
             'head.vars'        => [
@@ -55,8 +56,9 @@ class WikidataController extends Controller
         }
 
         $persons = $wikidataClient->mergeItemsData($personsResponse['results']['bindings']);
+        $groupedPersons = $wikidataClient->groupItemsByProperty($persons, WikidataClient::PERSON_GROUPS_IDS, 'P2868');
 
-        return response($persons, Response::HTTP_OK);
+        return response($groupedPersons, Response::HTTP_OK);
     }
 
     /**
@@ -104,8 +106,8 @@ class WikidataController extends Controller
         }
 
         $locations = $wikidataClient->mergeItemsData($placesResponse['results']['bindings']);
-        $locationsByType = $wikidataClient->groupLocationsByType($locations);
+        $groupedLocations = $wikidataClient->groupItemsByProperty($locations, WikidataClient::PLACE_GROUPS_IDS, 'P31');
 
-        return response($locationsByType, Response::HTTP_OK);
+        return response($groupedLocations, Response::HTTP_OK);
     }
 }

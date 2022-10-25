@@ -39,7 +39,27 @@ export default {
                 },
                 zoomLevel: 0,
             },
-            derivedPlacesData: {},
+            derivedPlacesData: {
+                // <locationId>: {
+                //      commemoratedBy: [{
+                //          id: '',
+                //          name: '',
+                //      }],
+                //      employees: [{
+                //          id: '',
+                //          name: '',
+                //      }],
+                //      victims: [{
+                //          hasPersonData: true,
+                //          id: '',
+                //          name: '',
+                //      }],
+                //      prisoners: [{
+                //          id: '',
+                //          name: '',
+                //      }],
+                // }
+            },
             groupedPlaces: {
                 events: {
                     color: '#8c1f21',
@@ -111,7 +131,10 @@ export default {
             locationMarkers: [],
             map: null,
             mapMarkerIconsPath: '/images/leaflet/markerIcons/coloredFilledGrey/',
-            persons: [],
+            persons: {
+                perpetrators: {},
+                victims: {},
+            },
             selectedPlace: {
                 addresses: {
                     additional: [{
@@ -150,10 +173,11 @@ export default {
                     id: '',
                     label: '',
                 }],
+                citizenships: [],
                 commemoratedBy: [{
                     hasLocationMarker: false,
                     id: '',
-                    label: '',
+                    name: '',
                 }],
                 commemorates: [{
                     hasLocationMarker: false,
@@ -170,6 +194,19 @@ export default {
                 },
                 description: '',
                 destinationPoints: [],
+                detentions: [{
+                    endDate: {
+                        locale: '',
+                        value: null,
+                    },
+                    hasLocationMarker: false,
+                    id: '',
+                    name: '',
+                    startDate: {
+                        locale: '',
+                        value: null,
+                    },
+                }],
                 directors: [{
                     endDate: {
                         locale: '',
@@ -205,7 +242,7 @@ export default {
                 }],
                 employees: [{
                     id: '',
-                    label: '',
+                    name: '',
                 }],
                 employers: [{
                     hasLocationMarker: false,
@@ -267,6 +304,10 @@ export default {
                     id: '',
                     label: '',
                 }],
+                prisoners: [{
+                    id: '',
+                    name: '',
+                }],
                 prisonerCounts: [{
                     sourcingCircumstance: '',
                     value: 0,
@@ -295,7 +336,7 @@ export default {
                 victims: [{
                     hasPersonData: false,
                     id: '',
-                    label: '',
+                    name: '',
                 }],
                 website: '',
             },
@@ -367,6 +408,7 @@ export default {
             });
 
             this.deriveLocationEmployees();
+            this.deriveDataFromVictims();
             this.checkUrlForPerson();
         },
         visualizePlaces: function (groupedPlaces) {
@@ -680,7 +722,7 @@ export default {
                     let minEndDate = director.earliestEndDate ?
                         this.getDate(director.earliestEndDate.value, director.earliestEndDate.datePrecision) : null;
 
-                    let hasPersonData = this.persons[director.id] ? true : false;
+                    let hasPersonData = this.persons.perpetrators[director.id] ? true : false;
 
                     this.selectedPlace.directors.push({
                         endDate: endDate,
@@ -875,19 +917,10 @@ export default {
                 }
             }
 
-            this.selectedPlace.commemoratedBy = [];
-            if (this.derivedPlacesData[this.selectedPlace.id] && this.derivedPlacesData[this.selectedPlace.id]['commemoratedBy']) {
-                this.selectedPlace.commemoratedBy = this.derivedPlacesData[this.selectedPlace.id]['commemoratedBy'];
-
-                for (const [statementId, commemoratedBy] of Object.entries(this.selectedPlace.commemoratedBy)) {
-                    commemoratedBy.hasLocationMarker = this.locationMarkers[commemoratedBy.id] ? true : false;
-                }
-            }
-
             this.selectedPlace.perpetrators = [];
             if (place.perpetrators) {
                 for (const [statementId, perpetrator] of Object.entries(place.perpetrators)) {
-                    let hasPersonData = this.persons[perpetrator.id] ? true : false;
+                    let hasPersonData = this.persons.perpetrators[perpetrator.id] ? true : false;
                     let hasLocationMarker = this.locationMarkers[perpetrator.id] ? true : false;
 
                     this.selectedPlace.perpetrators.push({
@@ -900,14 +933,17 @@ export default {
             }
 
             this.selectedPlace.victims = [];
+            let gatheredVictimIds = [];
             if (place.victims) {
                 for (const [statementId, victim] of Object.entries(place.victims)) {
-                    let hasPersonData = this.persons[victim.id] ? true : false;
+                    gatheredVictimIds.push(victim.id);
+
+                    let hasPersonData = this.persons.victims[victim.id] ? true : false;
 
                     this.selectedPlace.victims.push({
                         hasPersonData: hasPersonData,
                         id: victim.id,
-                        label: victim.value,
+                        name: victim.value,
                     });
                 }
             }
@@ -975,10 +1011,27 @@ export default {
                 }
             }
 
+            this.selectedPlace.commemoratedBy = [];
             this.selectedPlace.employees = [];
-            if (this.derivedPlacesData[this.selectedPlace.id] && this.derivedPlacesData[this.selectedPlace.id]['employees']) {
+            this.selectedPlace.prisoners = [];
+
+            let derivedPlacesData = this.derivedPlacesData[this.selectedPlace.id];
+
+            if (! derivedPlacesData) {
+                return;
+            }
+
+            if (derivedPlacesData.commemoratedBy) {
+                this.selectedPlace.commemoratedBy = derivedPlacesData.commemoratedBy;
+
+                for (const [statementId, commemoratedBy] of Object.entries(this.selectedPlace.commemoratedBy)) {
+                    commemoratedBy.hasLocationMarker = this.locationMarkers[commemoratedBy.id] ? true : false;
+                }
+            }
+
+            if (derivedPlacesData.employees) {
                 // add only employees who are not directors of a location
-                for (const [index, employee] of Object.entries(this.derivedPlacesData[this.selectedPlace.id]['employees'])) {
+                for (const [index, employee] of Object.entries(derivedPlacesData.employees)) {
                     let isDirector = false;
 
                     for (const [index, director] of Object.entries(this.selectedPlace.directors)) {
@@ -991,6 +1044,21 @@ export default {
                     if (! isDirector) {
                         this.selectedPlace.employees.push(employee);
                     }
+                }
+            }
+
+            if (derivedPlacesData.prisoners) {
+                // personal data is always available, there is no need to check if the person can be linked
+                this.selectedPlace.prisoners = derivedPlacesData.prisoners;
+            }
+
+            if (derivedPlacesData.victims) {
+                for (const [index, victim] of Object.entries(derivedPlacesData.victims)) {
+                    if (gatheredVictimIds.includes(victim.id)) {
+                        continue;
+                    }
+
+                    this.selectedPlace.victims.push(victim);
                 }
             }
         },
@@ -1140,20 +1208,20 @@ export default {
 
                     this.derivedPlacesData[commemorate.id]['commemoratedBy'].push({
                         id: memorialId,
-                        label: memorial.label,
+                        name: memorial.label,
                     });
                 }
             }
         },
         /**
-         * Deriving location employees from personal data to make them easily accessible for location data.
+         * Deriving location employees from perpetrator data to make them easily accessible for location data.
          */
         deriveLocationEmployees: function () {
-            let persons = this.persons;
+            let perpetrators = this.persons.perpetrators;
 
-            for (const [personId, person] of Object.entries(persons)) {
-                if (person.employers) {
-                    for (const [statementId, employer] of Object.entries(person.employers)) {
+            for (const [perpetratorId, perpetrator] of Object.entries(perpetrators)) {
+                if (perpetrator.employers) {
+                    for (const [statementId, employer] of Object.entries(perpetrator.employers)) {
                         if (! this.derivedPlacesData.hasOwnProperty(employer.id)) {
                             this.derivedPlacesData[employer.id] = {
                                 employees: [],
@@ -1167,8 +1235,60 @@ export default {
                         }
 
                         this.derivedPlacesData[employer.id]['employees'].push({
-                            id: personId,
-                            label: person.label,
+                            id: perpetratorId,
+                            name: perpetrator.label,
+                        });
+                    }
+                }
+            }
+        },
+        /**
+         * Deriving location prisoners and event victims
+         * from victim data to make them easily accessible for location/event data.
+         */
+        deriveDataFromVictims: function () {
+            let victims = this.persons.victims;
+
+            for (const [victimId, victim] of Object.entries(victims)) {
+                if (victim.detentionPlaces) {
+                    for (const [statementId, detentionPlace] of Object.entries(victim.detentionPlaces)) {
+                        if (! this.derivedPlacesData.hasOwnProperty(detentionPlace.id)) {
+                            this.derivedPlacesData[detentionPlace.id] = {
+                                prisoners: [],
+                            };
+                        }
+                        else if (! this.derivedPlacesData[detentionPlace.id].hasOwnProperty('prisoners')) {
+                            this.derivedPlacesData[detentionPlace.id]['prisoners'] = [];
+                        }
+                        else {
+                            // done
+                        }
+
+                        this.derivedPlacesData[detentionPlace.id]['prisoners'].push({
+                            id: victimId,
+                            name: victim.label,
+                        });
+                    }
+                }
+
+                if (victim.significantEvents) {
+                    for (const [statementId, significantEvent] of Object.entries(victim.significantEvents)) {
+                        if (! this.derivedPlacesData.hasOwnProperty(significantEvent.id)) {
+                            this.derivedPlacesData[significantEvent.id] = {
+                                victims: [],
+                            };
+                        }
+                        else if (! this.derivedPlacesData[significantEvent.id].hasOwnProperty('victims')) {
+                            this.derivedPlacesData[significantEvent.id]['victims'] = [];
+                        }
+                        else {
+                            // done
+                        }
+
+                        this.derivedPlacesData[significantEvent.id]['victims'].push({
+                            hasPersonData: true,
+                            id: victimId,
+                            name: victim.label,
                         });
                     }
                 }
@@ -1184,12 +1304,23 @@ export default {
             }
         },
         /**
-         * Check for URL query parameters to display a specific person on map.
+         * Check for URL query parameters to display a specific person in map info sidebar.
          */
         checkUrlForPerson: function () {
-            if ('qId' in this.$route.query && this.$route.query.qId in this.persons) {
-                this.toggleShowPlaceInfoSidebar(true);
-                this.showPerson(this.$route.query.qId);
+            if ('qId' in this.$route.query) {
+                if (this.$route.query.qId in this.persons.victims) {
+                    this.showPerson({
+                        id: this.$route.query.qId,
+                        group: 'victims',
+                    });
+                }
+                else if (this.$route.query.qId in this.persons.perpetrators) {
+                    this.showPerson({
+                        id: this.$route.query.qId,
+                        group: 'perpetrators',
+                    });
+                }
+
                 this.$router.push({path: '/map'});
             }
         },
@@ -1230,15 +1361,99 @@ export default {
             });
         },
         /**
-         * Show person data in info sidebar.
+         * Show person data in map info sidebar.
          *
-         * @param personId
+         * @param {string} id    Wikidata item id.
+         * @param {string} group Group of person.
          */
-        showPerson: function (personId) {
-            let person = this.persons[personId];
+        showPerson: function ({id, group = ''}) {
+            this.toggleShowPlaceInfoSidebar(true);
+            this.selectedPlace.groupName = group;
 
-            this.selectedPlace.groupName = 'perpetrators';
+            if (! ['perpetrators', 'victims'].includes(this.selectedPlace.groupName)) {
+                if (id in this.persons.victims) {
+                    this.selectedPlace.groupName = 'victims';
+                }
+                else if (id in this.persons.perpetrators) {
+                    this.selectedPlace.groupName = 'perpetrators';
+                }
+                else {
+                    this.toggleShowPlaceInfoSidebar(false);
+                    return;
+                }
+            }
+
+            let person = this.persons[this.selectedPlace.groupName][id];
+
+            if (this.selectedPlace.groupName == 'victims') {
+                this.setSelectedVictimData(person);
+            }
+            else if (this.selectedPlace.groupName == 'perpetrators') {
+                this.setSelectedPerpetratorData(person);
+            }
+
+            this.setSelectedPersonData(person);
+        },
+        /**
+         * Set the perpetrator data of the selected person to be displayed in the map info sidebar.
+         *
+         * @param {object} person
+         */
+        setSelectedPerpetratorData: function (person) {
             this.selectedPlace.layerName = 'Täter*innen';
+
+            this.selectedPlace.employers = [];
+
+            if (person.employers) {
+                for (const [statementId, employer] of Object.entries(person.employers)) {
+                    let hasLocationMarker = this.locationMarkers[employer.id] ? true : false;
+
+                    this.selectedPlace.employers.push({
+                        hasLocationMarker: hasLocationMarker,
+                        id: employer.id,
+                        label: employer.value,
+                    });
+                }
+            }
+        },
+        /**
+         * Set the victim data of the selected person to be displayed in the map info sidebar.
+         *
+         * @param {object} person
+         */
+        setSelectedVictimData: function (person) {
+            this.selectedPlace.layerName = 'Geschädigte';
+
+            this.selectedPlace.detentions = [];
+
+            if (person.detentionPlaces) {
+                for (const [statementId, detention] of Object.entries(person.detentionPlaces)) {
+                    let hasLocationMarker = this.locationMarkers[detention.id] ? true : false;
+
+                    let startDate = detention.startTime ?
+                        this.getDate(detention.startTime.value, detention.startTime.datePrecision) : null;
+
+                    let endDate = detention.endTime ?
+                        this.getDate(detention.endTime.value, detention.endTime.datePrecision) : null;
+
+                    this.selectedPlace.detentions.push({
+                        endDate: endDate,
+                        hasLocationMarker: hasLocationMarker,
+                        id: detention.id,
+                        name: detention.value,
+                        startDate: startDate,
+                    });
+                }
+
+                this.selectedPlace.detentions.sort(this.sortByDate);
+            }
+        },
+        /**
+         * Set the default data for the selected person to be displayed in the map info sidebar.
+         *
+         * @param {object} person
+         */
+        setSelectedPersonData: function (person) {
             this.selectedPlace.id = person.id;
             this.selectedPlace.label = person.label;
             this.selectedPlace.description = person.description;
@@ -1318,26 +1533,19 @@ export default {
                 }
             }
 
+            this.selectedPlace.citizenships = [];
+            if (person.citizenships) {
+                for (const [statementId, citizenship] of Object.entries(person.citizenships)) {
+                    this.selectedPlace.citizenships.push(citizenship.value);
+                }
+            }
+
             this.selectedPlace.sources = [];
             if (person.describedBySources) {
                 for (const [statementId, describedBySource] of Object.entries(person.describedBySources)) {
                     this.selectedPlace.sources.push({
                         label: describedBySource.value,
                         pages: describedBySource.pages ? describedBySource.pages.value : '',
-                    });
-                }
-            }
-
-            this.selectedPlace.employers = [];
-
-            if (person.employers) {
-                for (const [statementId, employer] of Object.entries(person.employers)) {
-                    let hasLocationMarker = this.locationMarkers[employer.id] ? true : false;
-
-                    this.selectedPlace.employers.push({
-                        hasLocationMarker: hasLocationMarker,
-                        id: employer.id,
-                        label: employer.value,
                     });
                 }
             }
