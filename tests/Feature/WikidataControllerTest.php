@@ -30,27 +30,41 @@ class WikidataControllerTest extends TestCase
     public function testGetWikidataPersonsSuccess()
     {
         $placeDataArray = [];
-        $expectedResponse = [];
-        $itemId = 'Q42';
+        $expectedResponse = [
+            'perpetrators' => [],
+            'victims'      => [],
+        ];
 
-        [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData($itemId, 'Q5');
-        $placeDataArray[] = $placeInstanceData;
+        $personGroupNames = [
+            'perpetrators',
+            'victims',
+        ];
 
-        [$placeTimeData, $expectedPlaceTimeData] = $this->createPlaceTimeData($itemId);
-        $placeDataArray[] = $placeTimeData;
+        foreach ($personGroupNames as $index => $personGroupName)
+        {
+            $groupId = Arr::random(WikidataClient::PERSON_GROUPS_IDS[$personGroupName]);
+            $itemId = 'Q' . $index;
 
-        [$placeCoordinateData, $expectedPlaceCoordinateData] = $this->createPlaceCoordinateData($itemId);
-        $placeDataArray[] = $placeCoordinateData;
+            [$placeInstanceData, $expectedPlaceInstanceData] =
+                $this->createPropertyDataForGrouping($itemId, $groupId, 'P2868');
+            $placeDataArray[] = $placeInstanceData;
 
-        [$placeObjectData, $expectedPlaceObjectData] = $this->createPlaceObjectData($itemId);
-        $placeDataArray[] = $placeObjectData;
+            [$placeTimeData, $expectedPlaceTimeData] = $this->createPlaceTimeData($itemId);
+            $placeDataArray[] = $placeTimeData;
 
-        $expectedResponse[$itemId] = array_merge(
-            $expectedPlaceInstanceData[$itemId],
-            $expectedPlaceTimeData[$itemId],
-            $expectedPlaceCoordinateData[$itemId],
-            $expectedPlaceObjectData[$itemId]
-        );
+            [$placeCoordinateData, $expectedPlaceCoordinateData] = $this->createPlaceCoordinateData($itemId);
+            $placeDataArray[] = $placeCoordinateData;
+
+            [$placeObjectData, $expectedPlaceObjectData] = $this->createPlaceObjectData($itemId);
+            $placeDataArray[] = $placeObjectData;
+
+            $expectedResponse[$personGroupName][$itemId] = array_merge(
+                $expectedPlaceInstanceData[$itemId],
+                $expectedPlaceTimeData[$itemId],
+                $expectedPlaceCoordinateData[$itemId],
+                $expectedPlaceObjectData[$itemId]
+            );
+        }
 
         $responseContentFake = [
             'head'    => [
@@ -120,8 +134,8 @@ class WikidataControllerTest extends TestCase
         {
             $instanceId = Arr::random(WikidataClient::PLACE_GROUPS_IDS[$locationGroupName]);
             $itemId = 'Q' . $index;
-            [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData($itemId, $instanceId);
-            unset($expectedPlaceInstanceData[$itemId]['instances']);
+            [$placeInstanceData, $expectedPlaceInstanceData] =
+                $this->createPropertyDataForGrouping($itemId, $instanceId, 'P31');
             $placeDataArray[] = $placeInstanceData;
 
             [$placeTimeData, $expectedPlaceTimeData] = $this->createPlaceTimeData($itemId);
@@ -177,20 +191,20 @@ class WikidataControllerTest extends TestCase
     }
 
     /**
-     * Create valid place instance-of data for Wikidata response mockup and
-     * expected data returned by get location data request.
+     * Create valid data for Wikidata response mockup to group item and expected data returned by request.
      *
-     * @param string $itemId e.g. Q42
-     * @param string $instanceId
+     * @param string $itemId  e.g. Q42
+     * @param string $groupId e.g. Q111080573 for perpetrators
+     * @param string $groupPropertyId e.g. P31 for instance of
      *
      * @return array
      */
-    private function createPlaceInstanceData(string $itemId, string $instanceId) : array
+    private function createPropertyDataForGrouping(string $itemId, string $groupId, string $groupPropertyId) : array
     {
         $itemLabel = $itemId . ' item label';
         $itemDescription = $itemId . ' item description';
         $statementId = $itemId . '-' . $this->faker->uuid;
-        $propertyValueLabel = $instanceId . ' item label';
+        $propertyValueLabel = $groupId . ' item label';
 
         $locationData = [
             'item'               => [
@@ -209,7 +223,7 @@ class WikidataControllerTest extends TestCase
             ],
             'property'           => [
                 'type'  => 'uri',
-                'value' => self::WIKIDATA_ENTITY_URL . 'P31', // instance-of property id
+                'value' => self::WIKIDATA_ENTITY_URL . $groupPropertyId,
             ],
             'statement'          => [
                 'type'  => 'uri',
@@ -217,7 +231,7 @@ class WikidataControllerTest extends TestCase
             ],
             'propertyValue'      => [
                 'type'  => 'uri',
-                'value' => self::WIKIDATA_ENTITY_URL . $instanceId, // instance-of item id
+                'value' => self::WIKIDATA_ENTITY_URL . $groupId,
             ],
             'propertyValueLabel' => [
                 'type'     => 'literal',
@@ -231,12 +245,6 @@ class WikidataControllerTest extends TestCase
                 'description' => $itemDescription,
                 'id'          => $itemId,
                 'label'       => $itemLabel,
-                'instances'   => [
-                    $statementId => [
-                        'id'    => $instanceId,
-                        'value' => $propertyValueLabel,
-                    ],
-                ],
             ],
         ];
 
@@ -561,19 +569,18 @@ class WikidataControllerTest extends TestCase
         ];
 
         // valid instance id of group statePoliceOffices
-        [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q1', 'Q108048310');
-        unset($expectedPlaceInstanceData['Q1']['instances']);
+        [$placeInstanceData, $expectedPlaceInstanceData] =
+            $this->createPropertyDataForGrouping('Q1', 'Q108048310', 'P31');
         $placeDataArray[] = $placeInstanceData;
 
         // valid instance id of group fieldOffices
-        [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q1', 'Q108047775');
-        unset($expectedPlaceInstanceData['Q1']['instances']);
+        [$placeInstanceData, $expectedPlaceInstanceData] =
+            $this->createPropertyDataForGrouping('Q1', 'Q108047775', 'P31');
         $placeDataArray[] = $placeInstanceData;
         $expectedResponse['fieldOffices'] = $expectedPlaceInstanceData;
 
         // valid instance id of group prisons
-        [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q1', 'Q40357');
-        unset($expectedPlaceInstanceData['Q1']['instances']);
+        [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPropertyDataForGrouping('Q1', 'Q40357', 'P31');
         $placeDataArray[] = $placeInstanceData;
 
         $responseContentFake = [
@@ -629,14 +636,14 @@ class WikidataControllerTest extends TestCase
         ];
 
         // valid instance id Q108047541 of group fieldOffices
-        [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q1', 'Q108047541');
-        unset($expectedPlaceInstanceData['Q1']['instances']);
+        [$placeInstanceData, $expectedPlaceInstanceData] =
+            $this->createPropertyDataForGrouping('Q1', 'Q108047541', 'P31');
         $placeDataArray[] = $placeInstanceData;
         $expectedResponse['fieldOffices'] = $expectedPlaceInstanceData;
 
         // invalid instance id Q987654321
-        [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q2', 'Q111111111');
-        unset($expectedPlaceInstanceData['Q2']['instances']);
+        [$placeInstanceData, $expectedPlaceInstanceData] =
+            $this->createPropertyDataForGrouping('Q2', 'Q111111111', 'P31');
         $placeDataArray[] = $placeInstanceData;
 
         $responseContentFake = [
@@ -668,10 +675,10 @@ class WikidataControllerTest extends TestCase
         );
 
         Log::shouldReceive('warning')->once()->with(
-            'The location cannot be assigned to a map marker category based on its Wikidata instances.',
+            'The item cannot be assigned to a group because it does not have a valid Wikidata property value for available groups.',
             [
-                'instanceIds' => ['Q111111111'],
-                'locationId'  => 'Q2',
+                'itemId' => 'Q2',
+                'propertyIds' => ['Q111111111'],
             ]
         );
 
@@ -839,8 +846,8 @@ class WikidataControllerTest extends TestCase
         array $failedValidationMessages
     ) {
         $instanceId = Arr::random(WikidataClient::PLACE_GROUPS_IDS['statePoliceOffices']);
-        [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPlaceInstanceData('Q1', $instanceId);
-        unset($expectedPlaceInstanceData['Q1']['instances']);
+        [$placeInstanceData, $expectedPlaceInstanceData] =
+            $this->createPropertyDataForGrouping('Q1', $instanceId, 'P31');
 
         $responseNoDataReturned = [
             'head'    => [
