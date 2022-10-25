@@ -408,8 +408,7 @@ export default {
             });
 
             this.deriveLocationEmployees();
-            this.deriveLocationPrisoners();
-            this.deriveEventVictims();
+            this.deriveDataFromVictims();
             this.checkUrlForPerson();
         },
         visualizePlaces: function (groupedPlaces) {
@@ -1244,9 +1243,10 @@ export default {
             }
         },
         /**
-         * Deriving location prisoners from victim data to make them easily accessible for location data.
+         * Deriving location prisoners and event victims
+         * from victim data to make them easily accessible for location/event data.
          */
-        deriveLocationPrisoners: function () {
+        deriveDataFromVictims: function () {
             let victims = this.persons.victims;
 
             for (const [victimId, victim] of Object.entries(victims)) {
@@ -1270,15 +1270,7 @@ export default {
                         });
                     }
                 }
-            }
-        },
-        /**
-         * Deriving event victims from victim data to make them easily accessible for event data.
-         */
-        deriveEventVictims: function () {
-            let victims = this.persons.victims;
 
-            for (const [victimId, victim] of Object.entries(victims)) {
                 if (victim.significantEvents) {
                     for (const [statementId, significantEvent] of Object.entries(victim.significantEvents)) {
                         if (! this.derivedPlacesData.hasOwnProperty(significantEvent.id)) {
