@@ -49,6 +49,11 @@ export default {
                 //          id: '',
                 //          name: '',
                 //      }],
+                //      victims: [{
+                //          hasPersonData: true,
+                //          id: '',
+                //          name: '',
+                //      }],
                 //      prisoners: [{
                 //          id: '',
                 //          name: '',
@@ -331,7 +336,7 @@ export default {
                 victims: [{
                     hasPersonData: false,
                     id: '',
-                    label: '',
+                    name: '',
                 }],
                 website: '',
             },
@@ -404,6 +409,7 @@ export default {
 
             this.deriveLocationEmployees();
             this.deriveLocationPrisoners();
+            this.deriveEventVictims();
             this.checkUrlForPerson();
         },
         visualizePlaces: function (groupedPlaces) {
@@ -928,14 +934,17 @@ export default {
             }
 
             this.selectedPlace.victims = [];
+            let gatheredVictimIds = [];
             if (place.victims) {
                 for (const [statementId, victim] of Object.entries(place.victims)) {
+                    gatheredVictimIds.push(victim.id);
+
                     let hasPersonData = this.persons.victims[victim.id] ? true : false;
 
                     this.selectedPlace.victims.push({
                         hasPersonData: hasPersonData,
                         id: victim.id,
-                        label: victim.value,
+                        name: victim.value,
                     });
                 }
             }
@@ -1042,6 +1051,16 @@ export default {
             if (derivedPlacesData.prisoners) {
                 // personal data is always available, there is no need to check if the person can be linked
                 this.selectedPlace.prisoners = derivedPlacesData.prisoners;
+            }
+
+            if (derivedPlacesData.victims) {
+                for (const [index, victim] of Object.entries(derivedPlacesData.victims)) {
+                    if (gatheredVictimIds.includes(victim.id)) {
+                        continue;
+                    }
+
+                    this.selectedPlace.victims.push(victim);
+                }
             }
         },
         /**
@@ -1246,6 +1265,36 @@ export default {
                         }
 
                         this.derivedPlacesData[detentionPlace.id]['prisoners'].push({
+                            id: victimId,
+                            name: victim.label,
+                        });
+                    }
+                }
+            }
+        },
+        /**
+         * Deriving event victims from victim data to make them easily accessible for event data.
+         */
+        deriveEventVictims: function () {
+            let victims = this.persons.victims;
+
+            for (const [victimId, victim] of Object.entries(victims)) {
+                if (victim.significantEvents) {
+                    for (const [statementId, significantEvent] of Object.entries(victim.significantEvents)) {
+                        if (! this.derivedPlacesData.hasOwnProperty(significantEvent.id)) {
+                            this.derivedPlacesData[significantEvent.id] = {
+                                victims: [],
+                            };
+                        }
+                        else if (! this.derivedPlacesData[significantEvent.id].hasOwnProperty('victims')) {
+                            this.derivedPlacesData[significantEvent.id]['victims'] = [];
+                        }
+                        else {
+                            // done
+                        }
+
+                        this.derivedPlacesData[significantEvent.id]['victims'].push({
+                            hasPersonData: true,
                             id: victimId,
                             name: victim.label,
                         });

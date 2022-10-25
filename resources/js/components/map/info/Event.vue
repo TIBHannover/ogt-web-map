@@ -146,10 +146,10 @@
                                         })"
                                         href="#"
                                     >
-                                        {{ victim.label }}
+                                        {{ victim.name }}
                                     </a>
                                     <template v-else>
-                                        {{ victim.label }}
+                                        {{ victim.name }}
                                     </template>
                                 </li>
                             </ul>
