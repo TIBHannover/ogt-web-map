@@ -41,8 +41,14 @@ export default {
             },
             derivedPlacesData: {
                 // <locationId>: {
-                //      commemoratedBy: [],
-                //      employees: [],
+                //      commemoratedBy: [{
+                //          id: '',
+                //          name: '',
+                //      }],
+                //      employees: [{
+                //          id: '',
+                //          name: '',
+                //      }],
                 //      prisoners: [{
                 //          id: '',
                 //          name: '',
@@ -166,7 +172,7 @@ export default {
                 commemoratedBy: [{
                     hasLocationMarker: false,
                     id: '',
-                    label: '',
+                    name: '',
                 }],
                 commemorates: [{
                     hasLocationMarker: false,
@@ -231,7 +237,7 @@ export default {
                 }],
                 employees: [{
                     id: '',
-                    label: '',
+                    name: '',
                 }],
                 employers: [{
                     hasLocationMarker: false,
@@ -906,15 +912,6 @@ export default {
                 }
             }
 
-            this.selectedPlace.commemoratedBy = [];
-            if (this.derivedPlacesData[this.selectedPlace.id] && this.derivedPlacesData[this.selectedPlace.id]['commemoratedBy']) {
-                this.selectedPlace.commemoratedBy = this.derivedPlacesData[this.selectedPlace.id]['commemoratedBy'];
-
-                for (const [statementId, commemoratedBy] of Object.entries(this.selectedPlace.commemoratedBy)) {
-                    commemoratedBy.hasLocationMarker = this.locationMarkers[commemoratedBy.id] ? true : false;
-                }
-            }
-
             this.selectedPlace.perpetrators = [];
             if (place.perpetrators) {
                 for (const [statementId, perpetrator] of Object.entries(place.perpetrators)) {
@@ -1006,10 +1003,27 @@ export default {
                 }
             }
 
+            this.selectedPlace.commemoratedBy = [];
             this.selectedPlace.employees = [];
-            if (this.derivedPlacesData[this.selectedPlace.id] && this.derivedPlacesData[this.selectedPlace.id]['employees']) {
+            this.selectedPlace.prisoners = [];
+
+            let derivedPlacesData = this.derivedPlacesData[this.selectedPlace.id];
+
+            if (! derivedPlacesData) {
+                return;
+            }
+
+            if (derivedPlacesData.commemoratedBy) {
+                this.selectedPlace.commemoratedBy = derivedPlacesData.commemoratedBy;
+
+                for (const [statementId, commemoratedBy] of Object.entries(this.selectedPlace.commemoratedBy)) {
+                    commemoratedBy.hasLocationMarker = this.locationMarkers[commemoratedBy.id] ? true : false;
+                }
+            }
+
+            if (derivedPlacesData.employees) {
                 // add only employees who are not directors of a location
-                for (const [index, employee] of Object.entries(this.derivedPlacesData[this.selectedPlace.id]['employees'])) {
+                for (const [index, employee] of Object.entries(derivedPlacesData.employees)) {
                     let isDirector = false;
 
                     for (const [index, director] of Object.entries(this.selectedPlace.directors)) {
@@ -1025,9 +1039,8 @@ export default {
                 }
             }
 
-            this.selectedPlace.prisoners = [];
-            let derivedPlacesData = this.derivedPlacesData[this.selectedPlace.id];
-            if (derivedPlacesData && derivedPlacesData.prisoners) {
+            if (derivedPlacesData.prisoners) {
+                // personal data is always available, there is no need to check if the person can be linked
                 this.selectedPlace.prisoners = derivedPlacesData.prisoners;
             }
         },
@@ -1177,7 +1190,7 @@ export default {
 
                     this.derivedPlacesData[commemorate.id]['commemoratedBy'].push({
                         id: memorialId,
-                        label: memorial.label,
+                        name: memorial.label,
                     });
                 }
             }
@@ -1205,7 +1218,7 @@ export default {
 
                         this.derivedPlacesData[employer.id]['employees'].push({
                             id: perpetratorId,
-                            label: perpetrator.label,
+                            name: perpetrator.label,
                         });
                     }
                 }

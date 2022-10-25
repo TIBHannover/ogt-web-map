@@ -97,7 +97,7 @@
                                         })"
                                         href="#"
                                     >
-                                        {{ employee.label }}
+                                        {{ employee.name }}
                                     </a>
                                 </li>
                             </ul>
@@ -241,10 +241,10 @@
                                        })"
                                    href="#"
                                 >
-                                    {{ commemoratedBy.label }}
+                                    {{ commemoratedBy.name }}
                                 </a>
                                 <div v-else>
-                                    {{ commemoratedBy.label }}
+                                    {{ commemoratedBy.name }}
                                 </div>
                             </li>
                         </ul>
