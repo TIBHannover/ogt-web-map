@@ -3,15 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Http\Clients\WikidataClient;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
 class WikidataController extends Controller
 {
     /**
-     * Get persons data from Wikidata for website map view and merge required data by person.
+     * Get persons data from Wikidata for website map view, merge required data by person, group by person role, and
+     * cache data in file.
      *
      * @param WikidataClient $wikidataClient
      *
@@ -57,6 +60,26 @@ class WikidataController extends Controller
 
         $persons = $wikidataClient->mergeItemsData($personsResponse['results']['bindings']);
         $groupedPersons = $wikidataClient->groupItemsByProperty($persons, WikidataClient::PERSON_GROUPS_IDS, 'P2868');
+
+        Storage::disk('local')->put(config('wikidata.cachedPersonsFile'), json_encode($groupedPersons));
+
+        return response($groupedPersons, Response::HTTP_OK);
+    }
+
+    /**
+     * Get cached Wikidata persons data from file.
+     *
+     * @return Response
+     * @throws FileNotFoundException
+     */
+    public function getCachedPersons() : Response
+    {
+        $groupedPersons = array_fill_keys(array_keys(WikidataClient::PERSON_GROUPS_IDS), []);
+
+        if (Storage::disk('local')->exists(config('wikidata.cachedPersonsFile')))
+        {
+            $groupedPersons = Storage::disk('local')->get(config('wikidata.cachedPersonsFile'));
+        }
 
         return response($groupedPersons, Response::HTTP_OK);
     }

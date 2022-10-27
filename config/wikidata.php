@@ -1,5 +1,6 @@
 <?php
 
 return [
-    'url' => 'https://query.wikidata.org/sparql',
+    'cachedPersonsFile' => 'persons.json',
+    'url'               => 'https://query.wikidata.org/sparql',
 ];
