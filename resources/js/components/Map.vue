@@ -398,18 +398,53 @@ export default {
             this.checkUrlForLocation();
         },
         /**
-         * Request persons data, for e.g. perpetrators.
+         * Request persons data from cached file and Wikidata for perpetrators and victims.
          */
-        async getPersons() {
-            await this.axios.get('/api/wikidata/persons').then(response => {
+        getPersons() {
+            this.axios.get('/api/wikidata/persons/cache').then(response => {
                 this.persons = response.data;
+                this.processPersonsData();
+                this.checkUrlForPerson();
             }).catch(error => {
                 console.log(error);
             });
 
+            this.axios.get('/api/wikidata/persons').then(response => {
+                this.persons = response.data;
+                this.processPersonsData();
+                this.updateShownInfos();
+            }).catch(error => {
+                console.log(error);
+            });
+        },
+        /**
+         * Process retrieved persons data to derive data for locations and to show/update person data in map info sidebar.
+         */
+        processPersonsData() {
             this.deriveLocationEmployees();
             this.deriveDataFromVictims();
-            this.checkUrlForPerson();
+        },
+        /**
+         * Update persons data displayed in opened info sidebar of the map.
+         */
+        updateShownInfos() {
+            if (! this.showPlaceInfoSidebar) {
+                return;
+            }
+
+            const personGroups = Object.keys(this.persons);
+            const locationGroups = Object.keys(this.groupedPlaces);
+
+            if (personGroups.includes(this.selectedPlace.groupName)) {
+                this.showPerson({
+                    id: this.selectedPlace.id,
+                    group: this.selectedPlace.groupName,
+                });
+            }
+            else if (locationGroups.includes(this.selectedPlace.groupName)) {
+                let location = this.groupedPlaces[this.selectedPlace.groupName]['places'][this.selectedPlace.id];
+                this.setSelectedPlace(location, this.selectedPlace.latLng, this.selectedPlace.groupName);
+            }
         },
         visualizePlaces: function (groupedPlaces) {
             for (const [group, places] of Object.entries(groupedPlaces)) {
@@ -1217,6 +1252,10 @@ export default {
          * Deriving location employees from perpetrator data to make them easily accessible for location data.
          */
         deriveLocationEmployees: function () {
+            for (const [locationId, location] of Object.entries(this.derivedPlacesData)) {
+                delete location.employees;
+            }
+
             let perpetrators = this.persons.perpetrators;
 
             for (const [perpetratorId, perpetrator] of Object.entries(perpetrators)) {
@@ -1247,6 +1286,11 @@ export default {
          * from victim data to make them easily accessible for location/event data.
          */
         deriveDataFromVictims: function () {
+            for (const [locationId, location] of Object.entries(this.derivedPlacesData)) {
+                delete location.prisoners;
+                delete location.victims;
+            }
+
             let victims = this.persons.victims;
 
             for (const [victimId, victim] of Object.entries(victims)) {
