@@ -21,6 +21,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::get('/wikidata/persons', [WikidataController::class, 'getPersons']);
+Route::get('/wikidata/persons/cache', [WikidataController::class, 'getCachedPersons']);
 
 Route::get('/wikidata/places', [WikidataController::class, 'getPlaces']);
 
