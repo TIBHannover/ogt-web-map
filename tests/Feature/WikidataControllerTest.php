@@ -193,9 +193,9 @@ class WikidataControllerTest extends TestCase
     /**
      * Create valid data for Wikidata response mockup to group item and expected data returned by request.
      *
-     * @param string $itemId  e.g. Q42
-     * @param string $groupId e.g. Q111080573 for perpetrators
-     * @param string $groupPropertyId e.g. P31 for instance of
+     * @param string $itemId          e.g. Q42
+     * @param string $groupId         e.g. Q111080573 for perpetrators
+     * @param string $groupPropertyId e.g. P31 for instance of or P2868 for subject has role
      *
      * @return array
      */
@@ -240,11 +240,22 @@ class WikidataControllerTest extends TestCase
             ],
         ];
 
+        $validGroupProperties = [
+            'P31'   => 'instances',
+            'P2868' => 'subjectRoles',
+        ];
+
         $expectedLocationData = [
             $itemId => [
-                'description' => $itemDescription,
-                'id'          => $itemId,
-                'label'       => $itemLabel,
+                'description'                           => $itemDescription,
+                'id'                                    => $itemId,
+                'label'                                 => $itemLabel,
+                $validGroupProperties[$groupPropertyId] => [
+                    $statementId => [
+                        'id'    => $groupId,
+                        'value' => $propertyValueLabel,
+                    ],
+                ],
             ],
         ];
 
@@ -572,16 +583,18 @@ class WikidataControllerTest extends TestCase
         [$placeInstanceData, $expectedPlaceInstanceData] =
             $this->createPropertyDataForGrouping('Q1', 'Q108048310', 'P31');
         $placeDataArray[] = $placeInstanceData;
+        $expectedResponse['fieldOffices'] = $expectedPlaceInstanceData;
 
         // valid instance id of group fieldOffices
         [$placeInstanceData, $expectedPlaceInstanceData] =
             $this->createPropertyDataForGrouping('Q1', 'Q108047775', 'P31');
         $placeDataArray[] = $placeInstanceData;
-        $expectedResponse['fieldOffices'] = $expectedPlaceInstanceData;
+        $expectedResponse['fieldOffices']['Q1']['instances'] += $expectedPlaceInstanceData['Q1']['instances'];
 
         // valid instance id of group prisons
         [$placeInstanceData, $expectedPlaceInstanceData] = $this->createPropertyDataForGrouping('Q1', 'Q40357', 'P31');
         $placeDataArray[] = $placeInstanceData;
+        $expectedResponse['fieldOffices']['Q1']['instances'] += $expectedPlaceInstanceData['Q1']['instances'];
 
         $responseContentFake = [
             'head'    => [

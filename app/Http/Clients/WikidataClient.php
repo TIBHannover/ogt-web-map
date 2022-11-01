@@ -507,7 +507,6 @@ class WikidataClient
             {
                 if (! empty(array_intersect($propertyIds, $groupIds)))
                 {
-                    Arr::forget($item, $propertyLabel);
                     $groupedItems[$groupName][$itemId] = $item;
                     $foundGroup = true;
 
