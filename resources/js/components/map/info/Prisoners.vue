@@ -6,7 +6,10 @@
         -->
         <v-list-item dense>
             <v-list-item-content>
-                <v-list-item-title>Inhaftierte</v-list-item-title>
+                <v-list-item-title>
+                    <template v-if="selectedPlace.isDeportationEvent">Deportierte</template>
+                    <template v-else>Inhaftierte</template>
+                </v-list-item-title>
                 <v-list-item-subtitle>
                     <ul v-if="selectedPlace.prisonerCounts.length > 0">
                         <li v-for="prisonerCount in selectedPlace.prisonerCounts">
