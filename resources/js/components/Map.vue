@@ -245,9 +245,25 @@ export default {
                     name: '',
                 }],
                 employers: [{
+                    endDate: {
+                        locale: '',
+                        value: null,
+                    },
                     hasLocationMarker: false,
                     id: '',
-                    label: '',
+                    maxStartDate: {
+                        locale: '',
+                        value: null,
+                    },
+                    minEndDate: {
+                        locale: '',
+                        value: null,
+                    },
+                    name: '',
+                    startDate: {
+                        locale: '',
+                        value: null,
+                    },
                 }],
                 endDate: {
                     locale: '',
@@ -1483,19 +1499,109 @@ export default {
         setSelectedPerpetratorData: function (person) {
             this.selectedPlace.layerName = 'Täter*innen';
 
-            this.selectedPlace.employers = [];
+            this.selectedPlace.employers = this.getPropertyData(person.employers, true, true, false);
+        },
+        /**
+         * Get item property data and optional include time periods, linked locations and linked persons.
+         *
+         * @param {object} itemProperty
+         * @param {boolean} addTimePeriods
+         * @param {boolean} addLinkedLocation
+         * @param {boolean} addLinkedPerson
+         * @returns {*[]}
+         */
+        getPropertyData: function (itemProperty, addTimePeriods = false, addLinkedLocation = false, addLinkedPerson = false) {
+            let propertyDataArray = [];
 
-            if (person.employers) {
-                for (const [statementId, employer] of Object.entries(person.employers)) {
-                    let hasLocationMarker = this.locationMarkers[employer.id] ? true : false;
-
-                    this.selectedPlace.employers.push({
-                        hasLocationMarker: hasLocationMarker,
-                        id: employer.id,
-                        label: employer.value,
-                    });
-                }
+            if (! itemProperty) {
+                return propertyDataArray;
             }
+
+            for (const [statementId, propertyData] of Object.entries(itemProperty)) {
+                let data = {
+                    id: propertyData.id,
+                    name: propertyData.value,
+                };
+
+                if (addTimePeriods) {
+                    data = {...data, ...this.getPropertyDataTimePeriods(propertyData)};
+                }
+
+                if (addLinkedLocation) {
+                    data.hasLocationMarker = this.hasLocationMarker(propertyData.id);
+                }
+
+                if (addLinkedPerson) {
+                    data.hasPersonData = this.hasPersonData(propertyData.id);
+                }
+
+                propertyDataArray.push(data);
+            }
+
+            propertyDataArray.sort(this.sortByDate);
+
+            return propertyDataArray;
+        },
+        /**
+         * Get time periods for item property data.
+         *
+         * @param {object} propertyData
+         * @returns {{
+         *              maxStartDate: (null|{locale: string, value: Date}|{locale: string, value: null}),
+         *              endDate: (null|{locale: string, value: Date}|{locale: string, value: null}),
+         *              minEndDate: (null|{locale: string, value: Date}|{locale: string, value: null}),
+         *              startDate: (null|{locale: string, value: Date}|{locale: string, value: null}),
+         *          }}
+         */
+        getPropertyDataTimePeriods: function (propertyData) {
+            let startDate = null;
+
+            if (propertyData.startTime) {
+                startDate = this.getDate(propertyData.startTime.value, propertyData.startTime.datePrecision);
+            }
+            else if (propertyData.earliestDate) {
+                startDate = this.getDate(propertyData.earliestDate.value, propertyData.earliestDate.datePrecision);
+            }
+
+            let maxStartDate = propertyData.latestStartDate ?
+                this.getDate(propertyData.latestStartDate.value, propertyData.latestStartDate.datePrecision) : null;
+
+            let endDate = null;
+
+            if (propertyData.endTime) {
+                endDate = this.getDate(propertyData.endTime.value, propertyData.endTime.datePrecision);
+            }
+            else if (propertyData.latestDate) {
+                endDate = this.getDate(propertyData.latestDate.value, propertyData.latestDate.datePrecision);
+            }
+
+            let minEndDate = propertyData.earliestEndDate ?
+                this.getDate(propertyData.earliestEndDate.value, propertyData.earliestEndDate.datePrecision) : null;
+
+            return {
+                endDate: endDate,
+                maxStartDate: maxStartDate,
+                minEndDate: minEndDate,
+                startDate: startDate,
+            };
+        },
+        /**
+         * Check if the location has a map marker.
+         *
+         * @param {string} locationId A Wikidata item Q-Id.
+         * @returns {boolean}
+         */
+        hasLocationMarker: function (locationId) {
+            return this.locationMarkers[locationId] ? true : false;
+        },
+        /**
+         * Check if person details are available.
+         *
+         * @param {string} personId A Wikidata item Q-Id.
+         * @returns {boolean}
+         */
+        hasPersonData: function (personId) {
+            return (this.persons.victims[personId] || this.persons.perpetrators[personId]) ? true : false;
         },
         /**
          * Set the victim data of the selected person to be displayed in the map info sidebar.
