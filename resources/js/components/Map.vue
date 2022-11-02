@@ -756,49 +756,7 @@ export default {
                 this.selectedPlace.employeeCounts.sort(this.sortByPointInTime);
             }
 
-            this.selectedPlace.directors = [];
-
-            if (place.directors) {
-                for (const [statementId, director] of Object.entries(place.directors)) {
-                    let startDate = null;
-
-                    if (director.startTime) {
-                        startDate = this.getDate(director.startTime.value, director.startTime.datePrecision);
-                    }
-                    else if (director.earliestDate) {
-                        startDate = this.getDate(director.earliestDate.value, director.earliestDate.datePrecision);
-                    }
-
-                    let maxStartDate = director.latestStartDate ?
-                        this.getDate(director.latestStartDate.value, director.latestStartDate.datePrecision) : null;
-
-                    let endDate = null;
-
-                    if (director.endTime) {
-                        endDate = this.getDate(director.endTime.value, director.endTime.datePrecision);
-                    }
-                    else if (director.latestDate) {
-                        endDate = this.getDate(director.latestDate.value, director.latestDate.datePrecision);
-                    }
-
-                    let minEndDate = director.earliestEndDate ?
-                        this.getDate(director.earliestEndDate.value, director.earliestEndDate.datePrecision) : null;
-
-                    let hasPersonData = this.persons.perpetrators[director.id] ? true : false;
-
-                    this.selectedPlace.directors.push({
-                        endDate: endDate,
-                        hasPersonData: hasPersonData,
-                        id: director.id,
-                        maxStartDate: maxStartDate,
-                        minEndDate: minEndDate,
-                        name: director.value,
-                        startDate: startDate,
-                    });
-                }
-
-                this.selectedPlace.directors.sort(this.sortByDate);
-            }
+            this.selectedPlace.directors = this.getPropertyData(place.directors, true, false, true);
 
             this.selectedPlace.prisonerCounts = [];
 
