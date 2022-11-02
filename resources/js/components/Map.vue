@@ -263,6 +263,7 @@ export default {
                     locale: '',
                     value: null,
                 },
+                isDeportationEvent: false,
                 label: '',
                 // Leaflet LatLng geographical point object
                 latLng: {
@@ -348,6 +349,16 @@ export default {
         };
     },
     created() {
+        this.WIKIDATA_ID_CLASSES = Object.freeze({
+            deportation: [
+                'Q379693',      // deportation - https://www.wikidata.org/wiki/Q379693
+                'Q5883983',     // Holocaust train transports - https://www.wikidata.org/wiki/Q5883983
+                                // - subclass of deportation
+                'Q61927259',    // Holocaust train transport - https://www.wikidata.org/wiki/Q61927259
+                                // - part of Holocaust train transports
+            ],
+        });
+
         this.getGroupedPlaces();
         this.getPersons();
     },
@@ -789,6 +800,8 @@ export default {
                 }
             }
 
+            this.selectedPlace.isDeportationEvent = this.hasItemPropertyClass(place, 'instances', 'deportation');
+
             this.selectedPlace.significantEvents = [];
 
             if (place.significantEvents) {
@@ -1096,6 +1109,30 @@ export default {
                     this.selectedPlace.victims.push(victim);
                 }
             }
+        },
+        /**
+         * Check, if one of the property values of an item matches a certain class of Wikidata ID's.
+         *
+         * @param item
+         * @param propertyName
+         * @param className
+         * @returns {boolean}
+         */
+        hasItemPropertyClass: function (item, propertyName, className) {
+            let hasItemPropertyClass = false;
+
+            if (item[propertyName]) {
+                const wikidataItemIds = this.WIKIDATA_ID_CLASSES[className];
+
+                for (const [statementId, propertyValue] of Object.entries(item[propertyName])) {
+                    if (wikidataItemIds.includes(propertyValue.id)) {
+                        hasItemPropertyClass = true;
+                        break;
+                    }
+                }
+            }
+
+            return hasItemPropertyClass;
         },
         /**
          * Get locale date string base on Wikidata time precision.
