@@ -51,45 +51,45 @@
                         </ul>
                         <div v-if="selectedPlace.directors.length > 0" class="mt-2">
                             Leitung
-                            <ul v-for="director in selectedPlace.directors" class="mb-2">
-                                <li v-if="director.hasPersonData">
-                                    <a
-                                        @click.stop="$emit('showPerson', {
+                            <ul>
+                                <li v-for="director in selectedPlace.directors" class="mb-2">
+                                    <a v-if="director.hasPersonData"
+                                       @click.stop="$emit('showPerson', {
                                             id: director.id,
                                             group: 'perpetrators',
                                         })"
-                                        href="#"
+                                       href="#"
                                     >
                                         {{ director.name }}
                                     </a>
+                                    <template v-else>
+                                        {{ director.name }}
+                                    </template>
+                                    <ul v-if="director.startDate || director.endDate">
+                                        <li class="white-space-normal">
+                                            <template v-if="director.startDate && director.maxStartDate">
+                                                von zwischen {{ director.startDate.locale }} und
+                                                {{ director.maxStartDate.locale }}
+                                            </template>
+                                            <template v-else-if="director.startDate">
+                                                von {{ director.startDate.locale }}
+                                            </template>
+                                            <template v-if="director.minEndDate && director.endDate">
+                                                bis zwischen {{ director.minEndDate.locale }} und
+                                                {{ director.endDate.locale }}
+                                            </template>
+                                            <template v-else-if="director.endDate">
+                                                bis {{ director.endDate.locale }}
+                                            </template>
+                                        </li>
+                                    </ul>
                                 </li>
-                                <li v-else>
-                                    {{ director.name }}
-                                </li>
-                                <ul v-if="director.startDate || director.endDate">
-                                    <li class="hyphens-auto white-space-normal" lang="de">
-                                        <template v-if="director.startDate && director.maxStartDate">
-                                            von zwischen {{ director.startDate.locale }} und
-                                            {{ director.maxStartDate.locale }}
-                                        </template>
-                                        <template v-else-if="director.startDate">
-                                            von {{ director.startDate.locale }}
-                                        </template>
-                                        <template v-if="director.minEndDate && director.endDate">
-                                            bis zwischen {{ director.minEndDate.locale }} und
-                                            {{ director.endDate.locale }}
-                                        </template>
-                                        <template v-else-if="director.endDate">
-                                            bis {{ director.endDate.locale }}
-                                        </template>
-                                    </li>
-                                </ul>
                             </ul>
                         </div>
                         <div v-if="selectedPlace.employees.length > 0" class="my-2">
                             Mitarbeitende
                             <ul>
-                                <li v-for="employee in selectedPlace.employees">
+                                <li v-for="employee in selectedPlace.employees" class="mb-2">
                                     <a
                                         @click.stop="$emit('showPerson', {
                                             id: employee.id,
@@ -99,6 +99,24 @@
                                     >
                                         {{ employee.name }}
                                     </a>
+                                    <ul v-if="employee.startDate || employee.endDate">
+                                        <li class="white-space-normal">
+                                            <template v-if="employee.startDate && employee.maxStartDate">
+                                                von zwischen {{ employee.startDate.locale }} und
+                                                {{ employee.maxStartDate.locale }}
+                                            </template>
+                                            <template v-else-if="employee.startDate">
+                                                von {{ employee.startDate.locale }}
+                                            </template>
+                                            <template v-if="employee.minEndDate && employee.endDate">
+                                                bis zwischen {{ employee.minEndDate.locale }} und
+                                                {{ employee.endDate.locale }}
+                                            </template>
+                                            <template v-else-if="employee.endDate">
+                                                bis {{ employee.endDate.locale }}
+                                            </template>
+                                        </li>
+                                    </ul>
                                 </li>
                             </ul>
                         </div>
@@ -274,10 +292,6 @@ export default {
 </script>
 
 <style scoped>
-.hyphens-auto {
-    hyphens: auto;
-}
-
 /* to enable linebreaks for long labels */
 .white-space-normal {
     white-space: normal;
