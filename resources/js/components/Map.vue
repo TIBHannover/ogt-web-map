@@ -46,8 +46,14 @@ export default {
                 //          name: '',
                 //      }],
                 //      employees: [{
+                //          earliestDate: { locale: '', value: null, },
+                //          earliestEndDate: { locale: '', value: null, },
+                //          endTime: { locale: '', value: null, },
                 //          id: '',
-                //          name: '',
+                //          latestDate: { locale: '', value: null, },
+                //          latestStartDate: { locale: '', value: null, },
+                //          startTime: { locale: '', value: null, },
+                //          value: '',
                 //      }],
                 //      victims: [{
                 //          hasPersonData: true,
@@ -241,8 +247,24 @@ export default {
                     value: 0,
                 }],
                 employees: [{
+                    endDate: {
+                        locale: '',
+                        value: null,
+                    },
                     id: '',
+                    maxStartDate: {
+                        locale: '',
+                        value: null,
+                    },
+                    minEndDate: {
+                        locale: '',
+                        value: null,
+                    },
                     name: '',
+                    startDate: {
+                        locale: '',
+                        value: null,
+                    },
                 }],
                 employers: [{
                     endDate: {
@@ -1051,23 +1073,9 @@ export default {
                 }
             }
 
-            if (derivedPlacesData.employees) {
-                // add only employees who are not directors of a location
-                for (const [index, employee] of Object.entries(derivedPlacesData.employees)) {
-                    let isDirector = false;
-
-                    for (const [index, director] of Object.entries(this.selectedPlace.directors)) {
-                        if (employee.id == director.id) {
-                            isDirector = true;
-                            break;
-                        }
-                    }
-
-                    if (! isDirector) {
-                        this.selectedPlace.employees.push(employee);
-                    }
-                }
-            }
+            let directorIds = this.selectedPlace.directors.map(director => director.id);
+            // only employees who are not directors of a location
+            this.selectedPlace.employees = this.getPropertyData(derivedPlacesData.employees, true, false, false, directorIds);
 
             if (derivedPlacesData.prisoners) {
                 // personal data is always available, there is no need to check if the person can be linked
@@ -1285,8 +1293,14 @@ export default {
                         }
 
                         this.derivedPlacesData[employer.id]['employees'].push({
+                            earliestDate: employer.earliestDate,
+                            earliestEndDate: employer.earliestEndDate,
+                            endTime: employer.endTime,
                             id: perpetratorId,
-                            name: perpetrator.label,
+                            latestDate: employer.latestDate,
+                            latestStartDate: employer.latestStartDate,
+                            startTime: employer.startTime,
+                            value: perpetrator.label,
                         });
                     }
                 }
@@ -1466,9 +1480,10 @@ export default {
          * @param {boolean} addTimePeriods
          * @param {boolean} addLinkedLocation
          * @param {boolean} addLinkedPerson
+         * @param {array} excludedIds
          * @returns {*[]}
          */
-        getPropertyData: function (itemProperty, addTimePeriods = false, addLinkedLocation = false, addLinkedPerson = false) {
+        getPropertyData: function (itemProperty, addTimePeriods = false, addLinkedLocation = false, addLinkedPerson = false, excludedIds = []) {
             let propertyDataArray = [];
 
             if (! itemProperty) {
@@ -1476,6 +1491,10 @@ export default {
             }
 
             for (const [statementId, propertyData] of Object.entries(itemProperty)) {
+                if (excludedIds.includes(propertyData.id)) {
+                    continue;
+                }
+
                 let data = {
                     id: propertyData.id,
                     name: propertyData.value,

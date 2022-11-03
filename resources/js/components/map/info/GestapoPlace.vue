@@ -89,7 +89,7 @@
                         <div v-if="selectedPlace.employees.length > 0" class="my-2">
                             Mitarbeitende
                             <ul>
-                                <li v-for="employee in selectedPlace.employees">
+                                <li v-for="employee in selectedPlace.employees" class="mb-2">
                                     <a
                                         @click.stop="$emit('showPerson', {
                                             id: employee.id,
@@ -99,6 +99,24 @@
                                     >
                                         {{ employee.name }}
                                     </a>
+                                    <ul v-if="employee.startDate || employee.endDate">
+                                        <li class="white-space-normal">
+                                            <template v-if="employee.startDate && employee.maxStartDate">
+                                                von zwischen {{ employee.startDate.locale }} und
+                                                {{ employee.maxStartDate.locale }}
+                                            </template>
+                                            <template v-else-if="employee.startDate">
+                                                von {{ employee.startDate.locale }}
+                                            </template>
+                                            <template v-if="employee.minEndDate && employee.endDate">
+                                                bis zwischen {{ employee.minEndDate.locale }} und
+                                                {{ employee.endDate.locale }}
+                                            </template>
+                                            <template v-else-if="employee.endDate">
+                                                bis {{ employee.endDate.locale }}
+                                            </template>
+                                        </li>
+                                    </ul>
                                 </li>
                             </ul>
                         </div>
