@@ -46,8 +46,14 @@ export default {
                 //          name: '',
                 //      }],
                 //      employees: [{
+                //          earliestDate: { locale: '', value: null, },
+                //          earliestEndDate: { locale: '', value: null, },
+                //          endTime: { locale: '', value: null, },
                 //          id: '',
-                //          name: '',
+                //          latestDate: { locale: '', value: null, },
+                //          latestStartDate: { locale: '', value: null, },
+                //          startTime: { locale: '', value: null, },
+                //          value: '',
                 //      }],
                 //      victims: [{
                 //          hasPersonData: true,
@@ -241,13 +247,45 @@ export default {
                     value: 0,
                 }],
                 employees: [{
+                    endDate: {
+                        locale: '',
+                        value: null,
+                    },
                     id: '',
+                    maxStartDate: {
+                        locale: '',
+                        value: null,
+                    },
+                    minEndDate: {
+                        locale: '',
+                        value: null,
+                    },
                     name: '',
+                    startDate: {
+                        locale: '',
+                        value: null,
+                    },
                 }],
                 employers: [{
+                    endDate: {
+                        locale: '',
+                        value: null,
+                    },
                     hasLocationMarker: false,
                     id: '',
-                    label: '',
+                    maxStartDate: {
+                        locale: '',
+                        value: null,
+                    },
+                    minEndDate: {
+                        locale: '',
+                        value: null,
+                    },
+                    name: '',
+                    startDate: {
+                        locale: '',
+                        value: null,
+                    },
                 }],
                 endDate: {
                     locale: '',
@@ -740,49 +778,7 @@ export default {
                 this.selectedPlace.employeeCounts.sort(this.sortByPointInTime);
             }
 
-            this.selectedPlace.directors = [];
-
-            if (place.directors) {
-                for (const [statementId, director] of Object.entries(place.directors)) {
-                    let startDate = null;
-
-                    if (director.startTime) {
-                        startDate = this.getDate(director.startTime.value, director.startTime.datePrecision);
-                    }
-                    else if (director.earliestDate) {
-                        startDate = this.getDate(director.earliestDate.value, director.earliestDate.datePrecision);
-                    }
-
-                    let maxStartDate = director.latestStartDate ?
-                        this.getDate(director.latestStartDate.value, director.latestStartDate.datePrecision) : null;
-
-                    let endDate = null;
-
-                    if (director.endTime) {
-                        endDate = this.getDate(director.endTime.value, director.endTime.datePrecision);
-                    }
-                    else if (director.latestDate) {
-                        endDate = this.getDate(director.latestDate.value, director.latestDate.datePrecision);
-                    }
-
-                    let minEndDate = director.earliestEndDate ?
-                        this.getDate(director.earliestEndDate.value, director.earliestEndDate.datePrecision) : null;
-
-                    let hasPersonData = this.persons.perpetrators[director.id] ? true : false;
-
-                    this.selectedPlace.directors.push({
-                        endDate: endDate,
-                        hasPersonData: hasPersonData,
-                        id: director.id,
-                        maxStartDate: maxStartDate,
-                        minEndDate: minEndDate,
-                        name: director.value,
-                        startDate: startDate,
-                    });
-                }
-
-                this.selectedPlace.directors.sort(this.sortByDate);
-            }
+            this.selectedPlace.directors = this.getPropertyData(place.directors, true, false, true);
 
             this.selectedPlace.prisonerCounts = [];
 
@@ -1077,23 +1073,9 @@ export default {
                 }
             }
 
-            if (derivedPlacesData.employees) {
-                // add only employees who are not directors of a location
-                for (const [index, employee] of Object.entries(derivedPlacesData.employees)) {
-                    let isDirector = false;
-
-                    for (const [index, director] of Object.entries(this.selectedPlace.directors)) {
-                        if (employee.id == director.id) {
-                            isDirector = true;
-                            break;
-                        }
-                    }
-
-                    if (! isDirector) {
-                        this.selectedPlace.employees.push(employee);
-                    }
-                }
-            }
+            let directorIds = this.selectedPlace.directors.map(director => director.id);
+            // only employees who are not directors of a location
+            this.selectedPlace.employees = this.getPropertyData(derivedPlacesData.employees, true, false, false, directorIds);
 
             if (derivedPlacesData.prisoners) {
                 // personal data is always available, there is no need to check if the person can be linked
@@ -1311,8 +1293,14 @@ export default {
                         }
 
                         this.derivedPlacesData[employer.id]['employees'].push({
+                            earliestDate: employer.earliestDate,
+                            earliestEndDate: employer.earliestEndDate,
+                            endTime: employer.endTime,
                             id: perpetratorId,
-                            name: perpetrator.label,
+                            latestDate: employer.latestDate,
+                            latestStartDate: employer.latestStartDate,
+                            startTime: employer.startTime,
+                            value: perpetrator.label,
                         });
                     }
                 }
@@ -1483,19 +1471,114 @@ export default {
         setSelectedPerpetratorData: function (person) {
             this.selectedPlace.layerName = 'Täter*innen';
 
-            this.selectedPlace.employers = [];
+            this.selectedPlace.employers = this.getPropertyData(person.employers, true, true, false);
+        },
+        /**
+         * Get item property data and optional include time periods, linked locations and linked persons.
+         *
+         * @param {object} itemProperty
+         * @param {boolean} addTimePeriods
+         * @param {boolean} addLinkedLocation
+         * @param {boolean} addLinkedPerson
+         * @param {array} excludedIds
+         * @returns {*[]}
+         */
+        getPropertyData: function (itemProperty, addTimePeriods = false, addLinkedLocation = false, addLinkedPerson = false, excludedIds = []) {
+            let propertyDataArray = [];
 
-            if (person.employers) {
-                for (const [statementId, employer] of Object.entries(person.employers)) {
-                    let hasLocationMarker = this.locationMarkers[employer.id] ? true : false;
-
-                    this.selectedPlace.employers.push({
-                        hasLocationMarker: hasLocationMarker,
-                        id: employer.id,
-                        label: employer.value,
-                    });
-                }
+            if (! itemProperty) {
+                return propertyDataArray;
             }
+
+            for (const [statementId, propertyData] of Object.entries(itemProperty)) {
+                if (excludedIds.includes(propertyData.id)) {
+                    continue;
+                }
+
+                let data = {
+                    id: propertyData.id,
+                    name: propertyData.value,
+                };
+
+                if (addTimePeriods) {
+                    data = {...data, ...this.getPropertyDataTimePeriods(propertyData)};
+                }
+
+                if (addLinkedLocation) {
+                    data.hasLocationMarker = this.hasLocationMarker(propertyData.id);
+                }
+
+                if (addLinkedPerson) {
+                    data.hasPersonData = this.hasPersonData(propertyData.id);
+                }
+
+                propertyDataArray.push(data);
+            }
+
+            propertyDataArray.sort(this.sortByDate);
+
+            return propertyDataArray;
+        },
+        /**
+         * Get time periods for item property data.
+         *
+         * @param {object} propertyData
+         * @returns {{
+         *              maxStartDate: (null|{locale: string, value: Date}|{locale: string, value: null}),
+         *              endDate: (null|{locale: string, value: Date}|{locale: string, value: null}),
+         *              minEndDate: (null|{locale: string, value: Date}|{locale: string, value: null}),
+         *              startDate: (null|{locale: string, value: Date}|{locale: string, value: null}),
+         *          }}
+         */
+        getPropertyDataTimePeriods: function (propertyData) {
+            let startDate = null;
+
+            if (propertyData.startTime) {
+                startDate = this.getDate(propertyData.startTime.value, propertyData.startTime.datePrecision);
+            }
+            else if (propertyData.earliestDate) {
+                startDate = this.getDate(propertyData.earliestDate.value, propertyData.earliestDate.datePrecision);
+            }
+
+            let maxStartDate = propertyData.latestStartDate ?
+                this.getDate(propertyData.latestStartDate.value, propertyData.latestStartDate.datePrecision) : null;
+
+            let endDate = null;
+
+            if (propertyData.endTime) {
+                endDate = this.getDate(propertyData.endTime.value, propertyData.endTime.datePrecision);
+            }
+            else if (propertyData.latestDate) {
+                endDate = this.getDate(propertyData.latestDate.value, propertyData.latestDate.datePrecision);
+            }
+
+            let minEndDate = propertyData.earliestEndDate ?
+                this.getDate(propertyData.earliestEndDate.value, propertyData.earliestEndDate.datePrecision) : null;
+
+            return {
+                endDate: endDate,
+                maxStartDate: maxStartDate,
+                minEndDate: minEndDate,
+                startDate: startDate,
+            };
+        },
+        /**
+         * Check if the location has a map marker.
+         *
+         * @param {string} locationId A Wikidata item Q-Id.
+         * @returns {boolean}
+         */
+        hasLocationMarker: function (locationId) {
+            return this.locationMarkers[locationId] ? true : false;
+        },
+        /**
+         * Check if person details are available.
+         *
+         * @param {string} personId A Wikidata item Q-Id.
+         * @returns {boolean}
+         */
+        hasPersonData: function (personId) {
+            return (this.persons.victims[personId] || this.persons.perpetrators[personId]) ? true : false;
         },
         /**
          * Set the victim data of the selected person to be displayed in the map info sidebar.
