@@ -444,6 +444,7 @@ export default {
 
             this.visualizePlaces(groupedPlaces);
             this.derivePlaceData();
+            this.updateInfoSidebarData();
             this.checkUrlForLocation();
         },
         /**
@@ -461,7 +462,6 @@ export default {
             this.axios.get('/api/wikidata/persons').then(response => {
                 this.persons = response.data;
                 this.processPersonsData();
-                this.updateShownInfos();
             }).catch(error => {
                 console.log(error);
             });
@@ -472,11 +472,12 @@ export default {
         processPersonsData() {
             this.deriveLocationEmployees();
             this.deriveDataFromVictims();
+            this.updateInfoSidebarData();
         },
         /**
-         * Update persons data displayed in opened info sidebar of the map.
+         * Update locations/persons data displayed in opened info sidebar of the map.
          */
-        updateShownInfos() {
+        updateInfoSidebarData() {
             if (! this.showPlaceInfoSidebar) {
                 return;
             }
