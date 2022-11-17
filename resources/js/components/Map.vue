@@ -1378,20 +1378,23 @@ export default {
          */
         checkUrlForPerson: function () {
             if ('qId' in this.$route.query) {
+                let personGroup = '';
+
                 if (this.$route.query.qId in this.persons.victims) {
-                    this.showPerson({
-                        id: this.$route.query.qId,
-                        group: 'victims',
-                    });
+                    personGroup = 'victims';
                 }
                 else if (this.$route.query.qId in this.persons.perpetrators) {
-                    this.showPerson({
-                        id: this.$route.query.qId,
-                        group: 'perpetrators',
-                    });
+                    personGroup = 'perpetrators';
                 }
 
-                this.$router.push({path: '/map'});
+                if (personGroup != '') {
+                    this.showPerson({
+                        id: this.$route.query.qId,
+                        group: personGroup,
+                    });
+
+                    this.$router.push({path: '/map'});
+                }
             }
         },
         /**
