@@ -602,14 +602,17 @@ export default {
             const imageKeys = place.images ? Object.keys(place.images) : [];
             const imagesCounted = imageKeys.length;
 
-            if (imagesCounted == 1) {
-                // case: only one location image available, show this
+            const coordinatesKeys = place.coordinates ? Object.keys(place.coordinates) : [];
+            const coordinatesCounted = coordinatesKeys.length;
+
+            if (imagesCounted == 1 && coordinatesCounted == 1) {
+                // case: only one location image available and only one location coordinate, show this image
                 this.selectedPlace.mainImageUrl = place.images[imageKeys[0]].value;
                 this.selectedPlace.mainImageLegend =
                     place.images[imageKeys[0]].mediaLegend ? place.images[imageKeys[0]].mediaLegend.value : '';
             }
-            else if (imagesCounted > 1) {
-                // case: multiple images available for location, show image that belongs to coordinates, otherwise none
+            else if (imagesCounted > 0) {
+                // case: one or more images available for location, show image that belongs to coordinates, otherwise none
                 imageKeys.some((imageKey) => {
                     let image = place.images[imageKey];
 
