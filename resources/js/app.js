@@ -36,5 +36,13 @@ const app = new Vue({
     el: '#app',
     render: h => h(App),
     router: router,
-    vuetify: new Vuetify(),
+    vuetify: new Vuetify({
+        theme: {
+            themes: {
+                light: {
+                    anchor: 'black', // defaults to 'primary'
+                },
+            },
+        },
+    }),
 });
