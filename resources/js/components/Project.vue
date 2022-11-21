@@ -4,7 +4,7 @@
         <!-- header -->
         <v-row>
             <v-col>
-                <h1 class="text-h4 text-md-h3 text-center py-4">
+                <h1 class="text-h4 text-md-h3 text-center py-4 font-family-courier font-weight-bold">
                     Projekt
                 </h1>
             </v-col>
@@ -19,28 +19,28 @@
             </v-col>
 
             <!-- scrollable content -->
-            <v-col class="hyphens-auto text-justify" lang="de">
-                <section id="researchObjectives" class="mt-3 mb-16">
-                    <h1 class="text-h5 text-md-h4 mb-5">
+            <v-col class="hyphens-auto" lang="de">
+                <section id="researchObjectives" class="mt-3">
+                    <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
                         Forschungsfragen & Projektziele
                     </h1>
+                    <!--
                     <h2 class="text-h6 text-md-h5 mb-3">
                         Gestapo.Terror.Orte in Niedersachsen 1933–1945
                     </h2>
                     <h3 class="text-subtitle-2 text-md-h6 mb-1">
                         Spuren der Vergangenheit: Verbrechen der Gestapo digital sichtbar machen
                     </h3>
+                    -->
                     <p>
                         Wo befanden sich Orte des Gestapoterrors in Niedersachsen? Welche Gebäude nutzte die politische
                         Polizei während des Nationalsozialismus? Wo waren die Dienstsitze, wo die Haftstätten der
                         Geheimen Staatspolizei?
-                    </p>
-                    <p>
+                        <br>
                         Mit Hilfe der interaktive Landkarte „Gestapo.Terror.Orte in Niedersachsen 1933–1945“ werden
                         Daten zu den Orten des Gestapoterrors im heutigen Niedersachsen erhoben, dargestellt und
                         ausgewertet.
-                    </p>
-                    <p>
+                        <br>
                         So wird die Tätigkeit der Gestapo mit Blick auf deren Standorte und Infrastruktur erforscht und
                         das vorhandene Wissen über die Verbrechen der Gestapo und die spätere Erinnerung daran digital
                         zugänglich gemacht. Die interaktive Landkarte kann von niedersächsischen Gedenkstätten und
@@ -48,27 +48,25 @@
                         ergänzt werden.
                     </p>
 
-                    <h2 class="text-h6 text-md-h5 mb-3">
+                    <h2 class="text-h6 text-md-h5">
                         Standorte und Infrastruktur flächendeckend untersuchen
                     </h2>
                     <p>
                         Die Gestapo war eines der wichtigsten Terrorinstrumente des nationalsozialistischen Staates. Sie
                         verfolgte unter anderem politische Gegnerinnen und Gegner, setzte den staatlichen Antisemitismus
                         und Rassismus durch und erhielt die Kriegswirtschaft aufrecht.
-                    </p>
-                    <p>
+                        <br>
                         Der Gestapo gelang es wie in vielen anderen Regionen auch im Bereich des heutigen Landes
                         Niedersachsen, ihre Unterlagen kurz vor Ende des Zweiten Weltkriegs weitgehend zu vernichten.
                         Insbesondere Nachkriegsermittlungen und Parallelüberlieferungen ermöglichen jedoch die
                         Rekonstruktion der Tätigkeit der Gestapo.
-                    </p>
-                    <p>
+                        <br>
                         Im Mittelpunkt des Forschungsprojektes stehen die Orte des Gestapoterrors im Bereich des Landes
                         Niedersachsen von 1933–1945. Die damaligen Dienstsitze und Haftstätten werden erstmals
                         flächendeckend als grundlegende Faktoren der Gestapotätigkeit untersucht.
                     </p>
 
-                    <h2 class="text-h6 text-md-h5 mb-3">
+                    <h2 class="text-h6 text-md-h5">
                         Geschichtliches Erbe digital zugänglich machen
                     </h2>
                     <p>
@@ -81,7 +79,7 @@
                         bei und bietet Tools, um diese auswerten.
                     </p>
 
-                    <h2 class="text-h6 text-md-h5 mb-3">
+                    <h2 class="text-h6 text-md-h5">
                         Daten zum Gestapoterror miteinander vernetzen
                     </h2>
                     <p>
@@ -92,7 +90,7 @@
                         einzelne niedersächsische Erinnerungsorte.
                     </p>
 
-                    <h2 class="text-h6 text-md-h5 mb-3">
+                    <h2 class="text-h6 text-md-h5">
                         „Citizen Science“
                     </h2>
                     <p>
@@ -103,17 +101,21 @@
                     </p>
                     <p>
                         Weitere Informationen zum Thema Mitforschen finden sich hier:
-                        <router-link to="/collaboration">Mitforschen</router-link>
+                        <span class="text-no-wrap">
+                            &#10132;
+                            <router-link to="/collaboration">
+                                Mitforschen
+                            </router-link>
+                        </span>
                     </p>
                 </section>
 
-                <section id="teamAndPartners" class="mb-16">
-                    <h1 class="text-h5 text-md-h4 mb-5">
+                <v-divider></v-divider>
+
+                <section id="teamAndPartners" class="mt-3">
+                    <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
                         Team & Partner:innen
                     </h1>
-                    <h2 class="text-h6 text-md-h5 mb-3">
-                        Einleitung
-                    </h2>
                     <p>
                         Das Projekt „Orte des Gestapoterrors im heutigen Niedersachsen“ (OGT) ist ein
                         Kooperationsprojekt zwischen der Stiftung niedersächsische Gedenkstätten (SnG), zu deren Auftrag
@@ -121,54 +123,68 @@
                         der Technischen Informationsbibliothek (TIB), die auf die digitale Erschließung und Aufbereitung
                         von Daten und deren freie Zugänglichkeit spezialisiert ist.
                     </p>
-                    <h2 class="text-h6 text-md-h5 mb-3">
+                    <h2 class="text-h6 text-md-h5">
                         Team
                     </h2>
-                    <h3 class="text-subtitle-2 text-md-h6 mb-1">
-                        Technische Informationsbibliothek (TIB) – Open Science Lab (OSL)
-                    </h3>
-                    <ul class="mb-4">
-                        <li>
-                            <a href="https://vivo.tib.eu/fis/individual/n0000-0003-0232-7085" target="_blank">
-                                Lambert Heller
-                            </a>
-                            &nbsp;– Leitung Open Science Lab der TIB
-                        </li>
-                        <li>
-                            <a href="https://vivo.tib.eu/fis/individual/n0000-0002-3075-7640" target="_blank">
-                                Prof. Dr. Ina Blümel
-                            </a>
-                            &nbsp;– Projektleitung –
-                            <email encryptedEmail="job/cmvfnfm"></email>
-                        </li>
-                        <li>
-                            Lisa Groh-Trautmann (M.A. Geschichtswissenschaften) – Wissenschaftliche Mitarbeiterin,
-                            Projektkoordination & Recherche –
-                            <email encryptedEmail="mjtb/hspi"></email>
-                        </li>
-                        <li>
-                            Nils Casties – Webentwicklung & Projektkoordination –
-                            <email encryptedEmail="ojmt/dbtujft"></email>
-                        </li>
-                        <li>
-                            <a href="https://vivo.tib.eu/fis/individual/n0000-0002-2593-8754" target="_blank">
-                                Lucia Sohmen
-                            </a>
-                            &nbsp;– Wissenschaftliche Mitarbeiterin
-                        </li>
-                        <li>
-                            <a href="https://nadinekloever.com/" target="_blank">
-                                Nadine Klöver
-                            </a>
-                            &nbsp;– Grafik-Design | Advertising-Design
-                        </li>
-                        <li>Tobias Mielich – Studentischer Mitarbeiter, Fachmaster Geschichte (Master of Arts)</li>
-                    </ul>
+                    <p>Technische Informationsbibliothek (TIB) – Open Science Lab (OSL)</p>
 
-                    <h2 class="text-h6 text-md-h5 mb-3">
+                    <p>
+                        <span class="font-weight-bold">Lambert Heller</span>
+                        / Leitung Open Science Lab der TIB
+                        <br>
+                        <a href="https://vivo.tib.eu/fis/individual/n0000-0003-0232-7085" target="_blank">
+                            https://vivo.tib.eu/fis/individual/n0000-0003-0232-7085
+                        </a>
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Prof. Dr. Ina Blümel</span>
+                        &nbsp;/ Projektleitung
+                        <br>
+                        <a href="https://vivo.tib.eu/fis/individual/n0000-0002-3075-7640" target="_blank">
+                            https://vivo.tib.eu/fis/individual/n0000-0002-3075-7640
+                        </a>
+                        <br>
+                        <email encryptedEmail="job/cmvfnfm" :showEmail=true></email>
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Lisa Groh-Trautmann</span>
+                        (M.A. Geschichtswissenschaften) / Wissenschaftliche Mitarbeiterin,
+                        Projektkoordination & Recherche
+                        <br>
+                        <email encryptedEmail="mjtb/hspi" :showEmail=true></email>
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Nils Casties</span>
+                        / Webentwicklung & Projektkoordination
+                        <br>
+                        <email encryptedEmail="ojmt/dbtujft" :showEmail=true></email>
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Lucia Sohmen</span>
+                        / Wissenschaftliche Mitarbeiterin
+                        <br>
+                        <a href="https://vivo.tib.eu/fis/individual/n0000-0002-2593-8754" target="_blank">
+                            https://vivo.tib.eu/fis/individual/n0000-0002-2593-8754
+                        </a>
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Nadine Klöver</span>
+                        / Grafik-Design
+                        <br>
+                        <a href="https://nadinekloever.com" target="_blank">
+                            https://nadinekloever.com
+                        </a>
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Tobias Mielich</span>
+                        / Studentischer Mitarbeiter, Fachmaster Geschichte (Master of Arts)
+                    </p>
+
+
+                    <h2 class="text-h6 text-md-h5">
                         Partner:innen
                     </h2>
-                    <h3 class="text-subtitle-2 text-md-h6 mb-1">
+                    <h3 class="text-subtitle-1 text-md-h6">
                         Stiftung niedersächsische Gedenkstätten (SnG)
                     </h3>
                     <p>
@@ -182,20 +198,45 @@
                             ></v-img>
                         </a>
                     </p>
-                    <ul class="mb-4">
-                        <li>
-                            Dr. Elke Gryglewski – Geschäftsführung Stiftung niedersächsische Gedenkstätten | Leitung der
-                            Gedenkstätte Bergen-Belsen
-                        </li>
-                        <li>Dr. Rolf Keller – Leitung Gedenkstättenförderung Niedersachsen</li>
-                        <li>Marc Ellinghaus – Leitung Bildung und Begegnung der Gedenkstätte Bergen-Belsen</li>
-                        <li>Stephanie Billib – Presse- und Öffentlichkeitsarbeit</li>
-                        <li>Dr. Janine Doerry – Wissenschaftliche Mitarbeiterin</li>
-                        <li>Juliane Hummel M.A. – Wissenschaftliche Mitarbeiterin</li>
-                        <li>Silke Petry M.A. – Wissenschaftliche Mitarbeiterin</li>
-                    </ul>
+                    <p>
+                        <span class="font-weight-bold">Dr. Elke Gryglewski</span>
+                        <br>
+                        Geschäftsführung Stiftung niedersächsische Gedenkstätten
+                        <br>
+                        Leitung der Gedenkstätte Bergen-Belsen
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Dr. Rolf Keller</span>
+                        <br>
+                        Leitung Gedenkstättenförderung Niedersachsen
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Marc Ellinghaus</span>
+                        <br>
+                        Leitung Bildung und Begegnung der Gedenkstätte Bergen-Belsen
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Stephanie Billib</span>
+                        <br>
+                        Presse- und Öffentlichkeitsarbeit
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Dr. Janine Doerry</span>
+                        <br>
+                        Wissenschaftliche Mitarbeiterin
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Juliane Hummel M.A.</span>
+                        <br>
+                        Wissenschaftliche Mitarbeiterin
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Silke Petry M.A.</span>
+                        <br>
+                        Wissenschaftliche Mitarbeiterin
+                    </p>
 
-                    <h3 class="text-subtitle-2 text-md-h6 mb-1">
+                    <h3 class="text-subtitle-1 text-md-h6">
                         Gedenkstätten Gestapokeller und Augustaschacht
                     </h3>
                     <v-row class="mb-4" justify="start">
@@ -224,84 +265,81 @@
                     </v-row>
                 </section>
 
-                <section id="presentationsAndPublications" class="mb-16">
-                    <h1 class="text-h5 text-md-h4 mb-5">
+                <v-divider></v-divider>
+
+                <section id="presentationsAndPublications" class="mt-3">
+                    <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
                         Projektpräsentationen & Publikationen
                     </h1>
-                    <h2 class="text-h6 text-md-h5 mb-3">
+                    <h2 class="text-h6 text-md-h5">
                         Präsentationen
                     </h2>
-                    <ul class="mb-4">
-                        <li>
-                            03.07.2022 –
-                            <a href="https://zenodo.org/record/6817273" target="_blank">
-                                Überwachung und Terror – die Gestapo als Instrument des NS-Regimes
-                            </a>
-                        </li>
-                        <li>
-                            22.09.2021 –
-                            <a href="https://zenodo.org/record/5589811" target="_blank">
-                                Projektpräsentation zur Tagung „Digital Memory – Digital History – Digital Mapping.
-                                Transformationen von Erinnerungskulturen und Holocaust-Education“
-                            </a>
-                        </li>
-                    </ul>
+                    <p>
+                        03.07.2022
+                        <br>
+                        <a href="https://zenodo.org/record/6817273" target="_blank">
+                            Überwachung und Terror – die Gestapo als Instrument des NS-Regimes
+                        </a>
+                    </p>
+                    <p>
+                        22.09.2021
+                        <br>
+                        <a href="https://zenodo.org/record/5589811" target="_blank">
+                            Projektpräsentation zur Tagung „Digital Memory – Digital History – Digital Mapping.
+                            Transformationen von Erinnerungskulturen und Holocaust-Education“
+                        </a>
+                    </p>
 
-                    <h2 class="text-h6 text-md-h5 mb-3">
+                    <h2 class="text-h6 text-md-h5">
                         Publikationen
                     </h2>
-                    <ul class="mb-4">
-                        <li>
-                            <a href="https://www.stiftung-ng.de/fileadmin/dateien/Stiftung/ueber_uns/Jahresberichte/Jahresbericht_SNG_2020_Web.pdf"
-                               target="_blank"
-                            >
-                                Stiftung niedersächsische Gedenkstätten – Jahresbericht 2020
-                            </a>
-                        </li>
-                        <li>
-                            <a href="https://projects.tib.eu/ogt-orte-des-gestapoterrors/projekt/"
-                               target="_blank"
-                            >
-                                OGT Projektwebsite der TIB
-                            </a>
-                        </li>
-                        <li>
-                            <a href="https://www.tib.eu/de/forschung-entwicklung/projektuebersicht/projektsteckbrief/ogt-orte-des-gestapoterrors"
-                               target="_blank"
-                            >
-                                Projektprofil
-                            </a>
-                        </li>
-                        <li>
-                            <a href="https://zenodo.org/record/4313236" target="_blank">
-                                Auszug aus dem Projektantrag
-                            </a>
-                        </li>
-                    </ul>
-                </section>
+                    <p>
+                        <a href="https://www.stiftung-ng.de/fileadmin/dateien/Stiftung/ueber_uns/Jahresberichte/Jahresbericht_SNG_2020_Web.pdf"
+                           target="_blank"
+                        >
+                            Stiftung niedersächsische Gedenkstätten – Jahresbericht 2020
+                        </a>
+                        <br>
+                        <a href="https://projects.tib.eu/ogt-orte-des-gestapoterrors/projekt/"
+                           target="_blank"
+                        >
+                            OGT Projektwebsite der TIB
+                        </a>
+                        <br>
+                        <a href="https://www.tib.eu/de/forschung-entwicklung/projektuebersicht/projektsteckbrief/ogt-orte-des-gestapoterrors"
+                           target="_blank"
+                        >
+                            Projektprofil
+                        </a>
+                        <br>
+                        <a href="https://zenodo.org/record/4313236" target="_blank">
+                            Auszug aus dem Projektantrag
+                        </a>
+                    </p>
 
-                <section id="pressReports" class="mb-16">
-                    <h1 class="text-h5 text-md-h4 mb-5">
+                    <h2 class="text-h6 text-md-h5">
                         Presseberichte
-                    </h1>
-                    <ul class="mb-4">
-                        <li>
-                            14.09.2020 – BuB – Forum Bibliothek und Information –
-                            <a href="https://b-u-b.de/verbrechen-der-gestapo-digital-sichtbar-machen/#intro"
-                               target="_blank"
-                            >
-                                Verbrechen der Gestapo digital sichtbar machen
-                            </a>
-                        </li>
-                        <li>
-                            25.08.2020 – TIB-Pressemitteilung –
-                            <a href="https://www.tib.eu/de/die-tib/neuigkeiten-und-termine/aktuelles/detail/spuren-der-vergangenheit-verbrechen-der-gestapo-digital-sichtbar-machen"
-                               target="_blank"
-                            >
-                                Spuren der Vergangenheit: Verbrechen der Gestapo digital sichtbar machen
-                            </a>
-                        </li>
-                    </ul>
+                    </h2>
+                    <p>
+                        14.09.2020
+                        <br>
+                        BuB – Forum Bibliothek und Information –
+                        <a href="https://b-u-b.de/verbrechen-der-gestapo-digital-sichtbar-machen/#intro"
+                           target="_blank"
+                        >
+                            Verbrechen der Gestapo digital sichtbar machen
+                        </a>
+                    </p>
+                    <p>
+                        25.08.2020
+                        <br>
+                        TIB-Pressemitteilung –
+                        <a href="https://www.tib.eu/de/die-tib/neuigkeiten-und-termine/aktuelles/detail/spuren-der-vergangenheit-verbrechen-der-gestapo-digital-sichtbar-machen"
+                           target="_blank"
+                        >
+                            Spuren der Vergangenheit: Verbrechen der Gestapo digital sichtbar machen
+                        </a>
+                    </p>
                 </section>
                 <br><br>
             </v-col>
@@ -332,10 +370,6 @@ export default {
                     href: '#presentationsAndPublications',
                     label: 'Projektpräsentationen & Publikationen',
                 },
-                {
-                    href: '#pressReports',
-                    label: 'Presseberichte',
-                },
             ],
         };
     },
@@ -343,6 +377,10 @@ export default {
 </script>
 
 <style scoped>
+.font-family-courier {
+    font-family: Courier !important;
+}
+
 .hyphens-auto {
     hyphens: auto;
 }
