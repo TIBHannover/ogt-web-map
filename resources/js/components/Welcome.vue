@@ -1,7 +1,7 @@
 <template>
     <v-container
         class="grey lighten-3 justify-center"
-        :class="{ background: showBackgroundImage, 'xs-bg-x-shifted': $vuetify.breakpoint.xs && ([2, 4].includes(selectedLayoutId)) }"
+        :class="{ background: showBackgroundImage, 'xs-bg-x-shifted': $vuetify.breakpoint.xs && ([2, 4, 5].includes(selectedLayoutId)) }"
         fill-height
         fluid
         :style="{ backgroundImage: showBackgroundImage ? 'url(' + backgroundImageUrl + ')' : 'none' }"
@@ -38,21 +38,35 @@
             :class="{'mt-300': ([2, 3].includes(selectedLayoutId))}"
             v-show="showMenuButtons"
         >
-            <p class="text-h1 white--text" v-show="showHeaderText">
+            <p class="text-h1 white--text" v-show="showHeaderText && (selectedLayoutId == 4)">
                 <span class="text-h4 white--text text-sm-h1">Gestapo.Terror.Orte</span>
                 <br>
                 <span class="text-h5 white--text text-sm-h3 ml-1">in Niedersachsen 1933 – 1945</span>
                 <br>
             </p>
+            <template v-if="showHeaderText && (selectedLayoutId == 5)">
+                <h1 class="text-h4 white--text text-sm-h3 text-md-h2 text-lg-h1 font-family-courier font-weight-bold">
+                    Gestapo.Terror.Orte
+                </h1>
+                <h3 class="text-h5 white--text text-md-h4 text-lg-h3 ml-1 mb-7">
+                    in Niedersachsen 1933–1945
+                </h3>
+            </template>
             <template v-for="menuButton in menuButtons">
                 <router-link :to="menuButton.routeTo" class="text-decoration-none">
                     <v-btn
                         class="mx-10 my-3"
+                        :class="{ 'opacity-2': (selectedLayoutId == 5) }"
                         color="white"
                         outlined
                         rounded
                         x-large
+                        :min-width="selectedLayoutId == 5 ? '230px' : 'false'"
+                        :elevation="selectedLayoutId == 5 ? '24' : 'false'"
                     >
+                        <v-icon left v-if="selectedLayoutId == 5">
+                            mdi-arrow-right-thick
+                        </v-icon>
                         {{ menuButton.label }}
                     </v-btn>
                 </router-link>
@@ -72,7 +86,7 @@ export default {
             // C: background image, cover, menu buttons => background image text lost on small devices
             // D: background image, stretched to height & width (100%), show menu buttons delayed => background image looks distorted
             // E: background image, cover, menu buttons, title as text => style (e.g. font type, spacing) must be adjusted
-            layoutLabels: ['A', 'B', 'C', 'D', 'E'],
+            layoutLabels: ['A', 'B', 'C', 'D', 'E', 'F'],
             menuButtons: [
                 {
                     label: 'Projekt',
@@ -141,6 +155,14 @@ export default {
                 this.showMenuButtons = true;
                 backgroundSize = 'cover';
             }
+            else if (this.selectedLayoutId == 5) {
+                this.backgroundImageUrl = this.$ogtGlobals.proxyPath + '/images/backgroundWithoutText.jpg';
+                this.showBackgroundImage = true;
+                this.showBanner = false;
+                this.showHeaderText = true;
+                this.showMenuButtons = true;
+                backgroundSize = 'cover';
+            }
 
             const backgrounds = document.querySelectorAll('.background');
 
@@ -171,6 +193,14 @@ export default {
 /* to lowercase text within Vuetify buttons */
 .noneTextTransform {
     text-transform: none;
+}
+
+.font-family-courier {
+    font-family: Courier !important;
+}
+
+.opacity-2 {
+    background-color:rgba(255,255,255,0.2);
 }
 
 /* shift center of background image for extra small window sizes (< 600px) */
