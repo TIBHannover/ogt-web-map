@@ -117,13 +117,13 @@ export default {
                 mapMarkerSubPath = '/coloredFilledGrey/';
             }
             else if (this.mapMarkerStyleSelected == 6) {
-                mapMarkerSubPath = '/coloredFilledWhite/';
+                mapMarkerSubPath = '/coloredFilledDirtyWhite/';
             }
             else {
                 // default case
             }
 
-            const subPathRegex = /\/(greyTransparent|coloredTransparent|default|greyFilled|coloredFilled|coloredFilledGrey|coloredFilledWhite)\//g;
+            const subPathRegex = /\/(greyTransparent|coloredTransparent|default|greyFilled|coloredFilled|coloredFilledGrey|coloredFilledDirtyWhite)\//g;
             const imageFileTypeRegex = /\.(svg|png)$/g;
             const anyNonDigitRegex = /\D/g;
 
