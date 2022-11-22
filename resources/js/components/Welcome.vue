@@ -67,7 +67,7 @@
                         <v-icon left v-if="selectedLayoutId == 5">
                             mdi-arrow-right-thick
                         </v-icon>
-                        {{ menuButton.label }}
+                        &#10132; {{ menuButton.label }}
                     </v-btn>
                 </router-link>
             </template>
