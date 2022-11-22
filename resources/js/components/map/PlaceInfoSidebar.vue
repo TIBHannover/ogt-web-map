@@ -5,7 +5,7 @@
             v-model="showPlaceInfoSidebar"
             absolute
             class="z-index-5"
-            color="grey lighten-3"
+            color="white"
             hide-overlay
             mobile-breakpoint="750"
             width="375px"
