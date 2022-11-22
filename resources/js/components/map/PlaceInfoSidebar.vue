@@ -65,7 +65,7 @@
                                 </v-expansion-panel-header>
                                 <v-expansion-panel-content class="mt-4">
                                     <v-list-item-subtitle
-                                        class="hyphens-auto text-justify white-space-normal"
+                                        class="hyphens-auto white-space-normal"
                                         lang="de"
                                     >
                                         <p v-for="textPart in itemDescriptions[selectedPlace.id].textParts">
