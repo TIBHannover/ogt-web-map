@@ -74,6 +74,7 @@ export default {
                 'Farbige Symbole v1 (dunkelweiß gefüllt)',
                 'Farbige Symbole v2 (hellgrau gefüllt)',
                 'Farbige Symbole v2 (dunkelweiß gefüllt)',
+                'Farbige Symbole v2 (weiß gefüllt)',
             ],
             mapMarkerStyleSelected: 5,
             mapGreyscaleLabels: ['Graustufen deaktiviert', 'Graustufen aktiviert'],
@@ -119,11 +120,14 @@ export default {
             else if (this.mapMarkerStyleSelected == 6) {
                 mapMarkerSubPath = '/coloredFilledDirtyWhite/';
             }
+            else if (this.mapMarkerStyleSelected == 7) {
+                mapMarkerSubPath = '/coloredFilledWhite/';
+            }
             else {
                 // default case
             }
 
-            const subPathRegex = /\/(greyTransparent|coloredTransparent|default|greyFilled|coloredFilled|coloredFilledGrey|coloredFilledDirtyWhite)\//g;
+            const subPathRegex = /\/(greyTransparent|coloredTransparent|default|greyFilled|coloredFilled|coloredFilledGrey|coloredFilledDirtyWhite|coloredFilledWhite)\//g;
             const imageFileTypeRegex = /\.(svg|png)$/g;
             const anyNonDigitRegex = /\D/g;
 
