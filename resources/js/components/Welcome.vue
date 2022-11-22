@@ -102,7 +102,7 @@ export default {
                 },
             ],
             menuButtonsShowTimeoutId: null,
-            selectedLayoutId: 4,
+            selectedLayoutId: 5,
             showBackgroundImage: true,
             showBanner: false,
             showHeaderText: false,
