@@ -530,6 +530,7 @@ export default {
                     let marker = L.marker(placeCoordinate.value, {
                         icon: defaultIcon,
                         title: place.label,
+                        riseOnHover: true,
                     });
 
                     let markerPopUpHtmlTemplate = `
