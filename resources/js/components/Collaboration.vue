@@ -4,7 +4,7 @@
         <!-- header -->
         <v-row>
             <v-col>
-                <h1 class="text-h4 text-md-h3 text-center py-4">
+                <h1 class="text-h4 text-md-h3 text-center py-4 font-family-courier">
                     Mitforschen
                 </h1>
             </v-col>
@@ -318,5 +318,9 @@ export default {
 <style scoped>
 .hyphens-auto {
     hyphens: auto;
+}
+
+.font-family-courier {
+    font-family: Courier !important;
 }
 </style>
