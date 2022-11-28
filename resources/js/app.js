@@ -1,6 +1,8 @@
 require('./bootstrap');
 
 import '@mdi/font/css/materialdesignicons.css';
+// how to import only required icons?
+//import { mdiArrowRightThick } from '@mdi/js';
 import Vue from 'vue';
 import App from './components/App.vue';
 import VueRouter from 'vue-router';

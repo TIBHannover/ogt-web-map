@@ -141,6 +141,7 @@ export default {
                 perpetrators: {},
                 victims: {},
             },
+            //selectedMapMarker: null,
             selectedPlace: {
                 addresses: {
                     additional: [{
@@ -521,6 +522,21 @@ export default {
                 shadowSize: [76, 52], // default [41, 41]
             });
 
+            /*
+            const highlightIcon = L.icon({
+                iconUrl: iconUrl,
+                // Workaround to use same marker icons for Retina and non-Retina displays.
+                // - default file '/images/leaflet/marker-icon-2x.png'
+                iconRetinaUrl: iconUrl,
+                shadowUrl: this.$ogtGlobals.proxyPath + '/images/leaflet/marker-shadow.png',
+                iconSize: [58, 63], // default [25, 41]
+                iconAnchor: [24, 52], // default [12, 41]
+                popupAnchor: [1, -34],
+                tooltipAnchor: [16, -28],
+                shadowSize: [76, 52], // default [41, 41]
+            });
+            */
+
             for (const [placeId, place] of Object.entries(places)) {
                 let countedPlaceCoordinates = Object.keys(place.coordinates).length;
                 let coordinatesIndex = 0;
@@ -533,6 +549,7 @@ export default {
                         riseOnHover: true,
                     });
 
+                    /*
                     let markerPopUpHtmlTemplate = `
                         <div class="popUpTopic">
                             <a href="https://www.wikidata.org/wiki/${placeId}" target="_blank">
@@ -544,6 +561,9 @@ export default {
                         </div>
                         <br>
                         ${place.description}`;
+                    */
+
+                    let markerPopUpHtmlTemplate = `<div class="popUpTopic">${place.label}</div>`;
 
                     marker.bindPopup(markerPopUpHtmlTemplate, {
                         minWidth: 333,
@@ -553,6 +573,21 @@ export default {
                         this.setSelectedPlace(place, event.latlng, placeGroupName);
                         this.toggleShowPlaceInfoSidebar(true);
 
+                        /*
+                        if (this.selectedMapMarker) {
+                            //let ic = this.selectedMapMarker.getIcon();
+                            //ic.options.iconSize = [48, 53];
+                            //this.selectedMapMarker.setIcon(ic);
+                            //var icon = centerMarker.options.icon;
+                            //icon.options.iconSize = [newwidth, newheight];
+                            //centerMarker.setIcon(icon);
+                        }
+                        */
+
+                        //marker.setIcon(highlightIcon);
+                        //this.selectedMapMarker = marker;
+
+                        /*
                         const zoomInButton = marker.getPopup().getElement().getElementsByClassName('zoomInButton')[0];
 
                         let vm = this;
@@ -560,6 +595,7 @@ export default {
                         zoomInButton.onclick = function () {
                             vm.map.flyTo(event.latlng, 18);
                         };
+                        */
                     });
 
                     placeMarkers.push(marker);
