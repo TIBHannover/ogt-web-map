@@ -16,7 +16,8 @@ const mix = require('laravel-mix');
 
 /* set reverse proxy sub-path required for generated links to resources */
 if (['production', 'testing'].includes(process.env.APP_ENV)) {
-    mix.setResourceRoot(process.env.ASSET_URL ?? '');
+    // not required for local development for envs (local / production)
+    // mix.setResourceRoot(process.env.ASSET_URL ?? '');
     mix.webpackConfig({
         output: {
             publicPath: process.env.MIX_PROXY_PATH + '/',
