@@ -14,6 +14,7 @@
         </v-btn>
 
         <!-- navigation sidebar -->
+        <!-- add :app="this.$route.name == 'glossary'" property? -->
         <v-navigation-drawer
             fixed
             class="white"
