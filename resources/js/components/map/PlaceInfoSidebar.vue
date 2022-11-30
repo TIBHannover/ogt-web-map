@@ -13,7 +13,7 @@
             <!-- place info header, link to wikidata item, close sidebar button -->
             <v-list-item>
                 <v-list-item-content>
-                    <v-list-item-title class="text-h6 text-sm-h5 white-space-normal">
+                    <v-list-item-title class="text-h6 text-sm-h5 white-space-normal font-family-courier font-weight-bold">
                         {{ selectedPlace.label }}
                     </v-list-item-title>
                     <v-list-item-subtitle>{{ selectedPlace.layerName }}</v-list-item-subtitle>
@@ -175,5 +175,9 @@ export default {
 /* to move the place info sidebar to the foreground to cover the navigation menu button (z-index 4) */
 .z-index-5 {
     z-index: 5;
+}
+
+.font-family-courier {
+    font-family: Courier !important;
 }
 </style>
