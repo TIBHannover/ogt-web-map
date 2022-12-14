@@ -40,6 +40,13 @@ export default {
                     toMenu: 'mainMenu',
                 },
                 {
+                    title: 'Glossar',
+                    icon: 'mdi-order-alphabetical-ascending',
+                    path: '/glossary',
+                    show: true,
+                    toMenu: 'mainMenu',
+                },
+                {
                     title: 'Kartenansicht',
                     icon: 'mdi-map-search-outline',
                     path: '/map',

@@ -1,6 +1,7 @@
 const Welcome = () => import('./components/Welcome.vue');
 const Map = () => import('./components/Map.vue');
 const Project = () => import('./components/Project.vue');
+const Glossary = () => import('./components/Glossary.vue');
 const Charts = () => import('./components/Charts.vue');
 const Collaboration = () => import('./components/Collaboration.vue');
 
@@ -14,6 +15,11 @@ export const routes = [
         name: 'project',
         path: '/project',
         component: Project,
+    },
+    {
+        name: 'glossary',
+        path: '/glossary',
+        component: Glossary,
     },
     {
         name: 'map',
