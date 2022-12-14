@@ -71,6 +71,11 @@ export default {
             isMenuDisplayed: false,
         };
     },
+    watch: {
+        isMenuDisplayed(newStatus, oldStatus) {
+            this.$emit('isMenuDisplayed', newStatus);
+        },
+    },
 };
 </script>
 
