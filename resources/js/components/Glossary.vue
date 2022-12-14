@@ -8,6 +8,19 @@
                     </h1>
                 </v-col>
             </v-row>
+
+            <v-row>
+                <v-col>
+                    <v-text-field
+                        v-model="search"
+                        clearable
+                        color="black"
+                        hint="Die Bezeichnungen und die Beschreibungen der Glossareinträge werden durchsucht."
+                        label="Glossar durchsuchen..."
+                        prepend-inner-icon="mdi-text-search-variant"
+                    ></v-text-field>
+                </v-col>
+            </v-row>
         </div>
     </v-container>
 </template>
@@ -19,6 +32,7 @@ export default {
     data() {
         return {
             freeClientWidth: document.documentElement.clientWidth,
+            search: null,
         };
     },
     created() {
