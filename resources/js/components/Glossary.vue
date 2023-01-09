@@ -28,13 +28,45 @@
             <v-row>
                 <v-col>
                     <v-text-field
-                        v-model="search"
+                        v-model="searchTerm"
                         clearable
                         color="black"
                         hint="Die Bezeichnungen und die Beschreibungen der Glossareinträge werden durchsucht."
                         label="Glossar durchsuchen..."
                         prepend-inner-icon="mdi-text-search-variant"
                     ></v-text-field>
+                </v-col>
+            </v-row>
+
+            <v-row>
+                <v-col>
+                    <v-expansion-panels focusable>
+                        <v-expansion-panel
+                            v-for="(glossaryItem, glossaryItemLabel) in this.glossaryData"
+                            :key="glossaryItemLabel"
+                            v-show="filterGlossaryItems(glossaryItemLabel, glossaryItem.descriptions)"
+                            class="hyphens-auto"
+                            lang="de"
+                        >
+                            <v-expansion-panel-header class="font-weight-bold">
+                                {{ glossaryItemLabel }}
+                            </v-expansion-panel-header>
+
+                            <v-expansion-panel-content>
+                                <p v-for="description in glossaryItem.descriptions">
+                                    {{ description }}
+                                </p>
+
+                                <h4 v-if="glossaryItem.sources.length > 0" class="font-weight-bold">
+                                    Quellen:
+                                </h4>
+
+                                <p v-for="source in glossaryItem.sources">
+                                    {{ source }}
+                                </p>
+                            </v-expansion-panel-content>
+                        </v-expansion-panel>
+                    </v-expansion-panels>
                 </v-col>
             </v-row>
         </div>
@@ -54,7 +86,7 @@ export default {
             freeClientWidth: document.documentElement.clientWidth,
             glossaryData: glossaryData,
             glossaryIndex: [GLOSSARY_INDEX_ALL],
-            search: null,
+            searchTerm: '',
             selectedGlossaryIndex: GLOSSARY_INDEX_ALL,
         };
     },
@@ -90,6 +122,29 @@ export default {
                     this.glossaryIndex.push(firstChar);
                 }
             }
+        },
+        /**
+         * Filter glossary items by selected glossary index and search term.
+         *
+         * @param {string} glossaryItemLabel
+         * @param {array} glossaryItemDescriptions
+         * @returns {boolean}
+         */
+        filterGlossaryItems: function (glossaryItemLabel, glossaryItemDescriptions) {
+            let glossaryItemDescription = glossaryItemDescriptions.join();
+
+            if ([GLOSSARY_INDEX_ALL, glossaryItemLabel.charAt(0)].includes(this.selectedGlossaryIndex)
+                &&
+                (
+                    this.searchTerm == '' ||
+                    glossaryItemLabel.match(RegExp(this.searchTerm, 'i')) ||
+                    glossaryItemDescription.match(RegExp(this.searchTerm, 'i'))
+                )
+            ) {
+                return true;
+            }
+
+            return false;
         },
     },
 };
