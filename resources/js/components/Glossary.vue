@@ -40,7 +40,7 @@
 
             <v-row>
                 <v-col>
-                    <v-expansion-panels focusable>
+                    <v-expansion-panels v-model="openedGlossaryPanel" focusable>
                         <v-expansion-panel
                             v-for="(glossaryItem, glossaryItemLabel) in this.glossaryData"
                             :key="glossaryItemLabel"
@@ -53,9 +53,10 @@
                             </v-expansion-panel-header>
 
                             <v-expansion-panel-content>
-                                <p v-for="description in glossaryItem.descriptions">
-                                    {{ description }}
-                                </p>
+                                <p v-for="description in glossaryItem.descriptions"
+                                   @click="showLinkedGlossaryItem"
+                                   v-html="description"
+                                ></p>
 
                                 <h5 v-if="glossaryItem.sources.length > 0" class="font-weight-bold">
                                     Quellen:
@@ -86,6 +87,7 @@ export default {
             freeClientWidth: document.documentElement.clientWidth,
             glossaryData: glossaryData,
             glossaryIndex: [GLOSSARY_INDEX_ALL],
+            openedGlossaryPanel: null,
             searchTerm: null,
             selectedGlossaryIndex: GLOSSARY_INDEX_ALL,
         };
@@ -99,6 +101,7 @@ export default {
     mounted() {
         this.setFreeClientWidth();
         this.setGlossaryIndex();
+        this.linkGlossaryItems();
     },
     methods: {
         /**
@@ -145,6 +148,41 @@ export default {
             }
 
             return false;
+        },
+        /**
+         * Link glossary items within glossary texts.
+         */
+        linkGlossaryItems() {
+            const glossaryItemLabels = Object.keys(this.glossaryData);
+
+            for (let [glossaryItemLabel, glossaryItemData] of Object.entries(this.glossaryData)) {
+                glossaryItemData.descriptions.forEach((description, descriptionIndex) => {
+                    glossaryItemLabels.forEach((label, labelIndex) => {
+
+                        if (label == glossaryItemLabel) {
+                            return;
+                        }
+
+                        let regex = new RegExp(`\\b(${label}[ens]{0,2})\\b`, 'gi');
+                        let replacement = `<a href='javascript:' data-glossary-index='${labelIndex}' data-search-term='${label}'>$1</a>`;
+
+                        description = description.replace(regex, replacement);
+                        glossaryItemData.descriptions[descriptionIndex] = description;
+                    });
+                });
+            }
+        },
+        /**
+         * Show glossary entry linked in a glossary text.
+         *
+         * @param event
+         */
+        showLinkedGlossaryItem(event) {
+            if (event.target.hasAttribute('data-glossary-index')) {
+                this.selectedGlossaryIndex = GLOSSARY_INDEX_ALL;
+                this.searchTerm = event.target.getAttribute('data-search-term');
+                this.openedGlossaryPanel = parseInt(event.target.getAttribute('data-glossary-index'));
+            }
         },
     },
 };
