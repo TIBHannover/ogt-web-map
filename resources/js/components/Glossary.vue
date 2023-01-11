@@ -86,7 +86,7 @@ export default {
             freeClientWidth: document.documentElement.clientWidth,
             glossaryData: glossaryData,
             glossaryIndex: [GLOSSARY_INDEX_ALL],
-            searchTerm: '',
+            searchTerm: null,
             selectedGlossaryIndex: GLOSSARY_INDEX_ALL,
         };
     },
@@ -130,13 +130,13 @@ export default {
          * @param {array} glossaryItemDescriptions
          * @returns {boolean}
          */
-        filterGlossaryItems: function (glossaryItemLabel, glossaryItemDescriptions) {
+        filterGlossaryItems(glossaryItemLabel, glossaryItemDescriptions) {
             let glossaryItemDescription = glossaryItemDescriptions.join();
 
             if ([GLOSSARY_INDEX_ALL, glossaryItemLabel.charAt(0)].includes(this.selectedGlossaryIndex)
                 &&
                 (
-                    this.searchTerm == '' ||
+                    this.searchTerm === null ||
                     glossaryItemLabel.match(RegExp(this.searchTerm, 'i')) ||
                     glossaryItemDescription.match(RegExp(this.searchTerm, 'i'))
                 )
