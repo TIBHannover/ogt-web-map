@@ -57,9 +57,9 @@
                                     {{ description }}
                                 </p>
 
-                                <h4 v-if="glossaryItem.sources.length > 0" class="font-weight-bold">
+                                <h5 v-if="glossaryItem.sources.length > 0" class="font-weight-bold">
                                     Quellen:
-                                </h4>
+                                </h5>
 
                                 <p v-for="source in glossaryItem.sources">
                                     {{ source }}
