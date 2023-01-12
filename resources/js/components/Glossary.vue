@@ -54,10 +54,14 @@
                             </v-expansion-panel-header>
 
                             <v-expansion-panel-content>
-                                <p v-for="description in glossaryItem.descriptions"
-                                   @click="showLinkedGlossaryItem"
-                                   v-html="description"
-                                ></p>
+                                <template v-for="description in glossaryItem.descriptions">
+                                    <ul v-if="Array.isArray(description)" class="noBullets mb-4">
+                                        <li v-for="enumerationText in description">
+                                            {{ enumerationText }}
+                                        </li>
+                                    </ul>
+                                    <p v-else @click="showLinkedGlossaryItem" v-html="description"></p>
+                                </template>
 
                                 <h5 v-if="glossaryItem.sources.length > 0" class="font-weight-bold">
                                     Quellen:
@@ -157,6 +161,12 @@ export default {
 
             for (let [glossaryItemLabel, glossaryItemData] of Object.entries(this.glossaryData)) {
                 glossaryItemData.descriptions.forEach((description, descriptionIndex) => {
+
+                    // skip case enumeration description
+                    if (Array.isArray(description)) {
+                        return;
+                    }
+
                     glossaryItemLabels.forEach((label, labelIndex) => {
 
                         if (label == glossaryItemLabel) {
@@ -167,8 +177,9 @@ export default {
                         let replacement = `<a href='javascript:' data-glossary-index='${labelIndex}' data-search-term='${label}'>$1</a>`;
 
                         description = description.replace(regex, replacement);
-                        glossaryItemData.descriptions[descriptionIndex] = description;
                     });
+
+                    glossaryItemData.descriptions[descriptionIndex] = description;
                 });
 
                 glossaryItemData.sources.forEach((source, sourceIndex) => {
@@ -205,6 +216,10 @@ export default {
 
 .hyphens-auto {
     hyphens: auto;
+}
+
+.noBullets {
+    list-style-type: none;
 }
 
 .pl-375 {
