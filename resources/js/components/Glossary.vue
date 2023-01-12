@@ -63,9 +63,7 @@
                                     Quellen:
                                 </h5>
 
-                                <p v-for="source in glossaryItem.sources">
-                                    {{ source }}
-                                </p>
+                                <p v-for="source in glossaryItem.sources" v-html="source"></p>
                             </v-expansion-panel-content>
                         </v-expansion-panel>
                     </v-expansion-panels>
@@ -170,6 +168,10 @@ export default {
                         description = description.replace(regex, replacement);
                         glossaryItemData.descriptions[descriptionIndex] = description;
                     });
+                });
+
+                glossaryItemData.sources.forEach((source, sourceIndex) => {
+                    glossaryItemData.sources[sourceIndex] = source.replace(/(^https:.[^ ]*)/i, '<a href=\'$1\' target=\'_blank\'>$1</a>');
                 });
             }
         },
