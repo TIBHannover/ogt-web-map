@@ -11,9 +11,10 @@
 
             <v-row>
                 <v-col>
-                    <v-btn-toggle v-model="selectedGlossaryIndex" class="flex-wrap" group>
+                    <v-btn-toggle v-model="selectedGlossaryIndex" class="flex-wrap" group mandatory>
                         <v-btn
-                            v-for="indexLetter in this.glossaryIndex" :key="indexLetter"
+                            v-for="indexLetter in this.glossaryIndex"
+                            :key="indexLetter"
                             class="button-toggle-border mb-3 mr-3"
                             fab
                             small
