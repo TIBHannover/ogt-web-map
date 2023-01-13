@@ -8,7 +8,8 @@
                     :src="$ogtGlobals.proxyPath + mapMarkerIconsPath + groupedPlaces[groupName].iconName"
                 ></v-img>
             </v-col>
-            <v-col class="py-0">
+
+            <v-col class="pa-0">
                 <v-checkbox
                     v-model="checkedPlaceLayerGroups"
                     :color="groupedPlaces[groupName].color"
@@ -17,6 +18,16 @@
                     :label="groupedPlaces[groupName].layerName"
                     :value="groupName"
                 ></v-checkbox>
+            </v-col>
+
+            <v-col class="py-0" style="max-width: 55px">
+                <router-link :to="{ name: 'glossary', hash: '#' + groupName }">
+                    <v-btn icon>
+                        <v-icon class="mt-1">
+                            mdi-information-outline
+                        </v-icon>
+                    </v-btn>
+                </router-link>
             </v-col>
         </v-row>
 
@@ -83,7 +94,8 @@ export default {
             for (const [group, places] of Object.entries(this.groupedPlaces)) {
                 if (newCheckedPlaceLayerGroups.includes(group)) {
                     places.layerGroup.addTo(this.map);
-                } else {
+                }
+                else {
                     places.layerGroup.remove();
                 }
             }
