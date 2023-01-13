@@ -44,12 +44,12 @@
                     <v-expansion-panels v-model="openedGlossaryPanel" focusable>
                         <v-expansion-panel
                             v-for="(glossaryItem, glossaryItemLabel) in this.glossaryData"
-                            :key="glossaryItemLabel"
+                            :key="glossaryItem.id"
                             v-show="filterGlossaryItems(glossaryItemLabel, glossaryItem.descriptions)"
                             class="hyphens-auto"
                             lang="de"
                         >
-                            <v-expansion-panel-header class="font-weight-bold">
+                            <v-expansion-panel-header :id="glossaryItem.id" class="font-weight-bold">
                                 {{ glossaryItemLabel }}
                             </v-expansion-panel-header>
 
@@ -106,6 +106,7 @@ export default {
         this.setFreeClientWidth();
         this.setGlossaryIndex();
         this.linkGlossaryItems();
+        this.showGlossaryItemByUrlHash();
     },
     methods: {
         /**
@@ -185,6 +186,22 @@ export default {
                 glossaryItemData.sources.forEach((source, sourceIndex) => {
                     glossaryItemData.sources[sourceIndex] = source.replace(/(^https:.[^ ]*)/i, '<a href=\'$1\' target=\'_blank\'>$1</a>');
                 });
+            }
+        },
+        /**
+         * Show glossary entry linked in URL hash.
+         */
+        showGlossaryItemByUrlHash() {
+            const urlHash = this.$route.hash;
+
+            if (urlHash == '') {
+                return;
+            }
+
+            const expansionPanelHeader = document.getElementById(urlHash.substring(1));
+
+            if (expansionPanelHeader) {
+                expansionPanelHeader.click();
             }
         },
         /**

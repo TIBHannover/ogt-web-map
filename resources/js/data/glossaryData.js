@@ -1,5 +1,6 @@
 const glossaryItems = {
     'Arbeitserziehungslager': {
+        id: 'laborEducationCamps',
         descriptions: [
             `Arbeitserziehungslager (AEL) waren neben Konzentrationslagern, Erweiterten Polizeigefängnissen und anderen 
             ein Lagertyp im nationalsozialistischen Verfolgungs- und Vernichtungsapparat. Arbeitserziehungslager 
@@ -30,6 +31,7 @@ const glossaryItems = {
         ],
     },
     'Erweitertes Polizeigefängnis': {
+        id: 'extPolicePrisons',
         descriptions: [
             `Seit 1941 lassen sich Gründungen eines neuen Lagertyps unter der Leitung der Gestapo sowohl in den 
             besetzten Gebieten, also auch im Altreich und damit in Niedersachsen nachweisen. Ab 1943 wurde dieser 
@@ -67,6 +69,7 @@ const glossaryItems = {
         ],
     },
     'Gestapa': {
+        id: 'gestapa',
         descriptions: [
             `Das Geheime Staatspolizeiamt, kurz Gestapa, war eine Landesbehörde mit Sitz in der Prinz-Albrecht-Straße 8 
             in Berlin, die als Zentrale der Gestapo mit untergeordneten Staatspolizeileitstellen in allen 
@@ -89,6 +92,7 @@ const glossaryItems = {
         ],
     },
     'Polizeigefängnis': {
+        id: 'prisons',
         descriptions: [
             `Das Polizeigefängnis diente zur Zeit der Weimarer Republik zur kurzfristigen Inhaftierung. Es galt als 
             „Übergangsgefängnis“, in dem die Insassen nur wenige Stunden oder Tage verbrachten. Seine Funktion war auf 
@@ -116,6 +120,7 @@ const glossaryItems = {
         ],
     },
     'Reichspogromnacht': {
+        id: 'novemberPogroms',
         descriptions: [
             `Ein Pogrom ist eine gewalttätige Aktion gegen Minderheiten, meist religiöse, ethnische oder politische. Die 
             Reichspogromnacht (auch Novemberpogrome genannt) während der NS-Zeit fand reichsweit vom 9.11.1938 bis zum 
@@ -150,6 +155,7 @@ const glossaryItems = {
         ],
     },
     'RSHA': {
+        id: 'rsha',
         descriptions: [
             `Das Reichssicherheitshauptamt, abgekürzt RSHA, war eine nationalsozialistische Institution, welche 
             unterschiedliche polizeiliche, parteiliche und ministerielle Organisationen bündelte. Es wurde am 27. 
@@ -192,6 +198,7 @@ const glossaryItems = {
         ],
     },
     'Staatspolizeileitstelle': {
+        id: 'statePoliceHeadquarters',
         descriptions: [
             `Staatspolizeileitstellen waren regionale Dienststellen der Gestapo, die als Leitstellen von regionalen 
             Gestapostrukturen fungierten und über eigene Befugnissen und Handlungsspielräumen verfügten. Sie waren 
@@ -234,6 +241,7 @@ const glossaryItems = {
         ],
     },
     'Terror': {
+        id: 'terror',
         descriptions: [
             `Terror bezeichnet die systematische Verbreitung von Angst und Schrecken durch ausgeübte oder angedrohte 
             Gewallt. Terror zielt häufig auf Durchsetzung von politischen Forderungen ab.`,
