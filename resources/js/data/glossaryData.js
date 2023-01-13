@@ -7,7 +7,7 @@ const glossaryItems = {
             unterstanden dem Reichssicherheitshauptamt (RSHA) und der Gestapo und waren somit eine polizeiliche 
             Terroreinrichtung. Sie wurden im Deutschen Reich und in den besetzten Gebieten ab 1940 eingerichtet, 
             vermehrt ab Beginn des Vernichtungskrieges gegen die Sowjetunion 1941. Zum Ende des Krieges gab es im 
-            deutschen Herrschaftsbereich ca. 200 Arbeitserziehungslager.¹`,
+            deutschen Herrschaftsbereich ca. 200 Arbeitserziehungslager.`,
             `Lokale Staatspolizeistellen oder Staatspolizeileitstellen konnten mit Zustimmung des RSHA 
             Arbeitserziehungslager einrichten und betreiben. Sie entstanden oft in Kooperation mit großen 
             Industriebetrieben, auf deren Werksgelände oder in deren räumlicher Nähe. Das erklärt auch die Funktion von 
@@ -27,7 +27,7 @@ const glossaryItems = {
             Sicherheitspolizisten oder Angehörigen des Werkschutzes oder rekrutierte Zivilisten.`,
         ],
         sources: [
-            `¹ Lotfi, Gabriele. KZ der Gestapo: Arbeitserziehungslager im Dritten Reich. Stuttgart: Dt. Verl.-Anst., 2000, S.10-11.`,
+            `Lotfi, Gabriele. KZ der Gestapo: Arbeitserziehungslager im Dritten Reich. Stuttgart: Dt. Verl.-Anst., 2000, S.10-11.`,
         ],
     },
     'Erweitertes Polizeigefängnis': {
