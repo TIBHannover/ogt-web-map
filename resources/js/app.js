@@ -30,6 +30,15 @@ const router = new VueRouter({
     base: '/ogt/',
     mode: 'history',
     routes: routes,
+    scrollBehavior(to, from, savedPosition) {
+        if (to.hash) {
+            return {
+                behavior: 'smooth',
+                // , offset: { x: 0, y: 10 }
+                selector: to.hash,
+            };
+        }
+    },
 });
 
 const app = new Vue({
