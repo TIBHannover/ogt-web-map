@@ -158,7 +158,18 @@ export default {
          * Link glossary items within glossary texts.
          */
         linkGlossaryItems() {
-            const glossaryItemLabels = Object.keys(this.glossaryData);
+            let searchTerms = [];
+
+            // create regex search terms for glossary item labels
+            for (const [glossaryItemLabel, glossaryItemData] of Object.entries(this.glossaryData)) {
+
+                let termRegex = glossaryItemLabel.replace('s ', '[ens]{0,3} ').replace(/[ne]?$/, '[ens]{0,3}');
+
+                searchTerms.push({
+                    'label': glossaryItemLabel,
+                    'regex': termRegex,
+                });
+            }
 
             for (let [glossaryItemLabel, glossaryItemData] of Object.entries(this.glossaryData)) {
                 glossaryItemData.descriptions.forEach((description, descriptionIndex) => {
@@ -168,14 +179,14 @@ export default {
                         return;
                     }
 
-                    glossaryItemLabels.forEach((label, labelIndex) => {
+                    searchTerms.forEach((term, termIndex) => {
 
-                        if (label == glossaryItemLabel) {
+                        if (term.label == glossaryItemLabel) {
                             return;
                         }
 
-                        let regex = new RegExp(`\\b(${label}[ens]{0,2})\\b`, 'gi');
-                        let replacement = `<a href='javascript:' data-glossary-index='${labelIndex}' data-search-term='${label}'>$1</a>`;
+                        let regex = new RegExp(`(^| |\\.|\\()(${term.regex})( |,|\\.|$|\\))`, 'gi');
+                        let replacement = `$1<a href='javascript:' data-glossary-index='${termIndex}' data-search-term='${term.label}'>$2</a>$3`;
 
                         description = description.replace(regex, replacement);
                     });
