@@ -89,7 +89,7 @@ export default {
     data() {
         return {
             freeClientWidth: document.documentElement.clientWidth,
-            glossaryData: glossaryData,
+            glossaryData: structuredClone(glossaryData),
             glossaryIndex: [GLOSSARY_INDEX_ALL],
             openedGlossaryPanel: null,
             searchTerm: null,
