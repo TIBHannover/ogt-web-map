@@ -67,7 +67,7 @@
                                     Quellen:
                                 </h5>
 
-                                <p v-for="source in glossaryItem.sources" v-html="source"></p>
+                                <p v-for="source in glossaryItem.sources" class="text-body-2" v-html="source"></p>
                             </v-expansion-panel-content>
                         </v-expansion-panel>
                     </v-expansion-panels>
