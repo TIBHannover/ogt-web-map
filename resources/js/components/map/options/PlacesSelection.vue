@@ -21,13 +21,16 @@
             </v-col>
 
             <v-col class="py-0" style="max-width: 55px">
-                <router-link :to="{ name: 'glossary', hash: '#' + groupName }">
-                    <v-btn icon>
-                        <v-icon class="mt-1">
-                            mdi-information-outline
-                        </v-icon>
-                    </v-btn>
-                </router-link>
+                <v-tooltip :color="groupedPlaces[groupName].color" left>
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn icon :to="{ name: 'glossary', hash: '#' + groupName }" v-bind="attrs" v-on="on">
+                            <v-icon class="mt-1" :color="groupedPlaces[groupName].color">
+                                mdi-information-outline
+                            </v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Im Glossar anzeigen</span>
+                </v-tooltip>
             </v-col>
         </v-row>
 
