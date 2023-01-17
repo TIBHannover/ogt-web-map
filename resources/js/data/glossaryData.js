@@ -1,4 +1,15 @@
 const glossaryItems = {
+    /*
+    '': {
+        id: '',
+        descriptions: [
+            ``,
+        ],
+        sources: [
+            ``,
+        ],
+    },
+    */
     'Arbeitserziehungslager': {
         id: 'laborEducationCamps',
         descriptions: [
@@ -28,6 +39,52 @@ const glossaryItems = {
         ],
         sources: [
             `Lotfi, Gabriele. KZ der Gestapo: Arbeitserziehungslager im Dritten Reich. Stuttgart: Dt. Verl.-Anst., 2000, S.10-11.`,
+        ],
+    },
+    'Außendienststellen': {
+        id: 'fieldOffices',
+        descriptions: [
+            `(Staatspolizei-)außendienststellen waren Zweigstellen der Gestapo. Außendienststellen waren 
+            Dienststellenstandorte der Gestapo, die einer Staatspolizeistelle und/oder einer Staatspolizeileitstelle 
+            unterstanden. Außendienststellen wurden eingerichtet, um größere Gebiete besser kontrollieren zu können. 
+            Teilweise hatten Außendienststellen auch besondere Aufgaben, wie bspw. die Überwachung von Grenzübergängen. 
+            Außendienststellen waren unterschiedlich strukturiert. Es gab Standorte, an denen nur sehr wenigen 
+            Mitarbeiterinnen und Mitarbeiter eingesetzt wurden und die nicht in Abteilungen untergliedert waren. Größere 
+            Standorte waren häufig ähnlich strukturiert, wie die übergeordneten Staatspolizeistellen und/oder 
+            Staatspolizeileitstellen und besaßen mehrere Abteilungen. Auch Gefängniszellen lassen sich an Standorten von 
+            Außendienststellen nachweisen.`,
+        ],
+        sources: [],
+    },
+    'Ereignisse': {
+        id: 'events',
+        descriptions: [
+            `Die konkreten Tätigkeiten der Gestapo werden als Ereignisse dargestellt. Es handelt sich hierbei um von der 
+            Gestapo begangene Verbrechen wie bspw. der Inhaftierung einzelner Personen oder Personengruppen, aber auch 
+            um die Ermordung von Menschen. Der inhaltliche Fokus des Projekts “OGT - Orte des Gestapoterrors” liegt auf 
+            den Dienstsitzen und Haftstätten der Gestapo, weshalb nur einige wenige Ereignisse beispielhaft aufgenommen 
+            wurden.`,
+        ],
+        sources: [],
+    },
+    'Erinnerungsorte': {
+        id: 'memorials',
+        descriptions: [
+            `Der Begriff Erinnerungsort wurde von dem französischen Historiker Pierre Nora (*1931) geprägt. Er basiert 
+            auf der Annahme, dass sich das kollektive Gedächtnis – also das geteilte Gedächtnis – einer sozialen Gruppe 
+            an bestimmten Orten kristallisiert. Diese Orte prägen als historisch-soziale Bezugspunkte die jeweilige 
+            Erinnerungskultur . Der Begriff „Ort“ ist im übertragenen Sinne zu verstehen und kann sich unterschiedlich 
+            manifestieren. Zum Beispiel als Lernort, wie bspw. Gedenkstätten, als Erinnerungszeichen, wie bspw. 
+            Gedenktafel und Mahnmale, aber auch als historisches Ereignis, Institution, Buch, Begriff usw. Diese „Orte“ 
+            besitzen eine besonders aufgeladene symbolische Bedeutung, die für die jeweilige Gruppe identitätsstiftende 
+            Funktion hat.`,
+            `Unter dem Oberbegriff Erinnerungsorte werden auf der Karte „Gestapo.Terror.Orte“ physisch erlebbare Orte 
+            erfasst, die an die Verbrechen der Gestapo erinnern. Es handelt sich um Gedenkstätten, aber auch um andere 
+            Erinnerungszeichen, wie Gedenktafeln, Mahnmale usw.`,
+        ],
+        sources: [
+            `Jan Assmann: Das kulturelle Gedächtnis. Schrift, Erinnerung und politische Identität in frühen Hochkulturen. München 1999.`,
+            `Pierre Nora: Zwischen Geschichte und Gedächtnis. Frankfurt/Main 1998.`,
         ],
     },
     'Erweitertes Polizeigefängnis': {
@@ -68,6 +125,29 @@ const glossaryItems = {
             `Elisabeth Thalhofer: Entgrenzung der Gewalt. Gestapo-Lager in der Endphase des Dritten Reiches. Paderborn [u.a.] 2010`,
         ],
     },
+    'Gefängnisse': {
+        id: 'prisons',
+        descriptions: [
+            `Die Gefängnisse der Gestapo waren neben den Konzentrationslagern zentrale Orte des Terrors gegen 
+            politischen Gegner*innen und anderen Verfolgtengruppen des NS-Regimes. Mit der „Verordnung zum Schutz von 
+            Volk und Staat“ vom 28. Februar 1933 wurde das Repressionsinstrument der so genannten „Schutzhaft“ 
+            eingerichtet. Die „Schutzhaft“ bildete die gesetzliche Grundlage, die es erlaubte, Menschen ohne 
+            richterliche Kontrolle und Verurteilung zu verhaften und auf unbestimmte Zeit zu inhaftieren.`,
+            `Seit März 1933 entstanden zahlreiche „Schutzhaftabteilungen“, die die Gestapo für Inhaftierungen nutzte. 
+            Diese Zellen befanden sich in Polizeigefängnissen, aber auch in Justizgefängnissen und Zuchthäusern, die zu 
+            diesem Zweck von der Justiz zur Verfügung gestellt wurden.`,
+            `Unter Gefängnisse werden alle Haftstätten verzeichnet, die von der Gestapo (mit-) genutzt wurden. Es kann 
+            sich hierbei um Polizeigefängnisse handeln, aber bspw. auch um einzelne Zellen in Justizgefängnissen 
+            handeln. Erweiterte Polizeigefängnisse und Arbeitserziehungslager werden als Haftstätten, die der Gestapo 
+            unterstanden und zur Inhaftierung eine große Anzahl an Gefangenen dienten, gesondert aufgeführt.`,
+            `Die Haftbedingungen in den von der Gestapo genutzten Zellen waren brutal. Folterungen mit zum Teil 
+            Todesfolgen von Gefangenen wurde an vielen Standorten nachgewiesen.`,
+        ],
+        sources: [
+            `Elisabeth Thalhofer: Entgrenzung der Gewalt. Gestapo-Lager in der Endphase des Dritten Reiches. Paderborn [u.a.] 2010.`,
+            `https://www.bundesarchiv.de/zwangsarbeit/haftstaetten/index.php?tab=22`,
+        ],
+    },
     'Gestapa': {
         id: 'gestapa',
         descriptions: [
@@ -92,7 +172,7 @@ const glossaryItems = {
         ],
     },
     'Polizeigefängnis': {
-        id: 'prisons',
+        id: 'policePrisons',
         descriptions: [
             `Das Polizeigefängnis diente zur Zeit der Weimarer Republik zur kurzfristigen Inhaftierung. Es galt als 
             „Übergangsgefängnis“, in dem die Insassen nur wenige Stunden oder Tage verbrachten. Seine Funktion war auf 
@@ -196,6 +276,19 @@ const glossaryItems = {
             „Prinz-Albrecht-Gelände“ ; eine Dokumentation ; 10., verb. Aufl. Berlin: Arenhövel, 1995.`,
             `https://www.dhm.de/lemo/kapitel/ns-regime/ns-organisationen/reichssicherheitshauptamt.html`,
         ],
+    },
+    'Staatspolizeistelle': {
+        id: 'statePoliceOffices',
+        descriptions: [
+            `Staatspolizeistellen waren regionale Dienststellen der Gestapo, die in der hierarchischen Struktur der 
+            Gestapo-Dienststellen den Staatspolizeileitstellen untergeordnet waren. Diese hierarchische Ordnung war 
+            jedoch nicht konstant. Staatspolizeistellen konnten zu Staatspolizeileitstellen heraufgestuft werden so 
+            Kompetenzen hinzu gewinnen. Desgleichen konnten Staatspolizeileitstellen Staatspolizeistellen herabgestuft 
+            werden. Herab- oder Heraufstufungen geschahen häufig im Zusammenhang mit Gebietsreformen oder Kompetenzbündelungen.`,
+            `Eine Staatspolizeistelle besaß mehre Abteilungen. Die Zahl der beschäftigten Gestapobeamten und anderen 
+            Mitarbeiter*innen schwankte stark.`,
+        ],
+        sources: [],
     },
     'Staatspolizeileitstelle': {
         id: 'statePoliceHeadquarters',
