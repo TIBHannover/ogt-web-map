@@ -41,7 +41,7 @@ const glossaryItems = {
             `Lotfi, Gabriele. KZ der Gestapo: Arbeitserziehungslager im Dritten Reich. Stuttgart: Dt. Verl.-Anst., 2000, S.10-11.`,
         ],
     },
-    'Außendienststellen': {
+    'Außendienststelle': {
         id: 'fieldOffices',
         descriptions: [
             `(Staatspolizei-)außendienststellen waren Zweigstellen der Gestapo. Außendienststellen waren 
@@ -56,7 +56,7 @@ const glossaryItems = {
         ],
         sources: [],
     },
-    'Ereignisse': {
+    'Ereignis': {
         id: 'events',
         descriptions: [
             `Die konkreten Tätigkeiten der Gestapo werden als Ereignisse dargestellt. Es handelt sich hierbei um von der 
@@ -67,7 +67,7 @@ const glossaryItems = {
         ],
         sources: [],
     },
-    'Erinnerungsorte': {
+    'Erinnerungsort': {
         id: 'memorials',
         descriptions: [
             `Der Begriff Erinnerungsort wurde von dem französischen Historiker Pierre Nora (*1931) geprägt. Er basiert 
@@ -125,7 +125,7 @@ const glossaryItems = {
             `Elisabeth Thalhofer: Entgrenzung der Gewalt. Gestapo-Lager in der Endphase des Dritten Reiches. Paderborn [u.a.] 2010`,
         ],
     },
-    'Gefängnisse': {
+    'Gefängnis': {
         id: 'prisons',
         descriptions: [
             `Die Gefängnisse der Gestapo waren neben den Konzentrationslagern zentrale Orte des Terrors gegen 
@@ -172,7 +172,7 @@ const glossaryItems = {
         ],
     },
     'Polizeigefängnis': {
-        id: 'policePrisons',
+        id: 'policePrison',
         descriptions: [
             `Das Polizeigefängnis diente zur Zeit der Weimarer Republik zur kurzfristigen Inhaftierung. Es galt als 
             „Übergangsgefängnis“, in dem die Insassen nur wenige Stunden oder Tage verbrachten. Seine Funktion war auf 
