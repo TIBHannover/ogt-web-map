@@ -27,8 +27,8 @@
                     <v-img
                         class="mx-auto"
                         max-width="1150"
-                        :src="this.$ogtGlobals.proxyPath + '/images/de/banner.jpg'">
-                    </v-img>
+                        :src="this.$ogtGlobals.proxyPath + '/images/static/bannerDe.jpg'"
+                    ></v-img>
                 </router-link>
             </v-col>
         </v-row>
@@ -66,7 +66,7 @@ export default {
     name: 'Welcome',
     data() {
         return {
-            backgroundImageUrl: this.$ogtGlobals.proxyPath + '/images/de/backgroundWithText.png',
+            backgroundImageUrl: this.$ogtGlobals.proxyPath + '/images/static/startPageBackground.jpg',
             // A: banner and grey background
             // B: background image, stretched to width (100%) => grey background at top and bottom on small displays
             // C: background image, cover, menu buttons => background image text lost on small devices
@@ -104,7 +104,7 @@ export default {
             clearTimeout(this.menuButtonsShowTimeoutId);
             let backgroundSize = '100% auto';
             this.selectedLayoutId = (this.selectedLayoutId + 1) % this.layoutLabels.length;
-            this.backgroundImageUrl = this.$ogtGlobals.proxyPath + '/images/de/backgroundWithText.png';
+            this.backgroundImageUrl = this.$ogtGlobals.proxyPath + '/images/static/startPageBackgroundWithHeadline.png';
 
             if (this.selectedLayoutId == 0) {
                 this.showBackgroundImage = false;
@@ -134,7 +134,7 @@ export default {
                 this.setMenuButtonsShowTimeout();
             }
             else if (this.selectedLayoutId == 4) {
-                this.backgroundImageUrl = this.$ogtGlobals.proxyPath + '/images/backgroundWithoutText.jpg';
+                this.backgroundImageUrl = this.$ogtGlobals.proxyPath + '/images/static/startPageBackground.jpg';
                 this.showBackgroundImage = true;
                 this.showBanner = false;
                 this.showHeaderText = true;
