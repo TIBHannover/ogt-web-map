@@ -4,7 +4,10 @@
         :class="{ background: showBackgroundImage, 'xs-bg-x-shifted': $vuetify.breakpoint.xs && ([2, 4].includes(selectedLayoutId)) }"
         fill-height
         fluid
-        :style="{ backgroundImage: showBackgroundImage ? 'url(' + backgroundImageUrl + ')' : 'none' }"
+        :style="{
+            backgroundImage: showBackgroundImage ?
+                'url(' + backgroundImageUrl + '), url(' + backgroundImageUrlFallback1 + '), url(' + backgroundImageUrlFallback2 + ')' : 'none'
+        }"
     >
         <!-- button to switch between alternative page layouts -->
         <v-btn
@@ -62,11 +65,15 @@
 </template>
 
 <script>
+const OGT_TIB_URL = 'https://service.tib.eu/ogt';
+
 export default {
     name: 'Welcome',
     data() {
         return {
             backgroundImageUrl: this.$ogtGlobals.proxyPath + '/images/static/startPageBackground.jpg',
+            backgroundImageUrlFallback1: OGT_TIB_URL + '/images/static/startPageBackground.jpg',
+            backgroundImageUrlFallback2: this.$ogtGlobals.proxyPath + '/images/solid-grey.svg',
             // A: banner and grey background
             // B: background image, stretched to width (100%) => grey background at top and bottom on small displays
             // C: background image, cover, menu buttons => background image text lost on small devices
@@ -105,6 +112,7 @@ export default {
             let backgroundSize = '100% auto';
             this.selectedLayoutId = (this.selectedLayoutId + 1) % this.layoutLabels.length;
             this.backgroundImageUrl = this.$ogtGlobals.proxyPath + '/images/static/startPageBackgroundWithHeadline.png';
+            this.backgroundImageUrlFallback1 = OGT_TIB_URL + '/images/static/startPageBackgroundWithHeadline.png';
 
             if (this.selectedLayoutId == 0) {
                 this.showBackgroundImage = false;
@@ -135,6 +143,7 @@ export default {
             }
             else if (this.selectedLayoutId == 4) {
                 this.backgroundImageUrl = this.$ogtGlobals.proxyPath + '/images/static/startPageBackground.jpg';
+                this.backgroundImageUrlFallback1 = OGT_TIB_URL + '/images/static/startPageBackground.jpg';
                 this.showBackgroundImage = true;
                 this.showBanner = false;
                 this.showHeaderText = true;
