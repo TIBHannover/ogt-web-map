@@ -163,7 +163,7 @@ export default {
             // create regex search terms for glossary item labels
             for (const [glossaryItemLabel, glossaryItemData] of Object.entries(this.glossaryData)) {
 
-                let termRegex = glossaryItemLabel.replace('s ', '[ens]{0,3} ').replace(/[ne]?$/, '[ens]{0,3}');
+                let termRegex = glossaryItemLabel.replace('s ', '[ens]{0,3} ') + '[ens]{0,3}';
 
                 searchTerms.push({
                     'label': glossaryItemLabel,
