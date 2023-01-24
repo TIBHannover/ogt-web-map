@@ -123,7 +123,7 @@ Software you need to run the OGT website and how to install them for **Ubuntu**.
 2. Create env, generate key, install libs, compile files and start Laravel development server.  
    ```sh
    cd ogt-api/
-   cp .env.example .env
+   cp .env.local .env
    php artisan key:generate
    composer install
    npm install
