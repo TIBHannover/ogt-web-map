@@ -12,7 +12,7 @@ import {itemDescriptions} from '../lang/de/itemDescriptions';
 window.Vue = Vue;
 
 Vue.prototype.$ogtGlobals = {
-    isProductionEnv: process.env.MIX_APP_ENV == 'production' ? true : false,
+    isTestingEnv: process.env.MIX_APP_ENV == 'testing' ? true : false,
     texts: {
         itemDescriptions: itemDescriptions,
     },

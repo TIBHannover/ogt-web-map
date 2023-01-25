@@ -68,14 +68,14 @@
                 v-model="activeTab"
             >
                 <!-- layers options -->
-                <v-tab-item v-if="! this.$ogtGlobals.isProductionEnv">
+                <v-tab-item v-if="this.$ogtGlobals.isTestingEnv">
                     <layer-options
                         :groupedPlaces="groupedPlaces"
                     ></layer-options>
                 </v-tab-item>
 
                 <!-- time period options -->
-                <v-tab-item v-if="! this.$ogtGlobals.isProductionEnv">
+                <v-tab-item v-if="this.$ogtGlobals.isTestingEnv">
                     <date-range></date-range>
                 </v-tab-item>
 
@@ -109,12 +109,12 @@ export default {
                 {
                     name: 'Layers',
                     icon: 'mdi-layers',
-                    show: ! this.$ogtGlobals.isProductionEnv,
+                    show: this.$ogtGlobals.isTestingEnv,
                 },
                 {
                     name: 'Zeitraum',
                     icon: 'mdi-map-clock',
-                    show: ! this.$ogtGlobals.isProductionEnv,
+                    show: this.$ogtGlobals.isTestingEnv,
                 },
                 {
                     name: 'Auswahl',

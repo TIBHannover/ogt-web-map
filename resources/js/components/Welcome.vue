@@ -11,7 +11,7 @@
     >
         <!-- button to switch between alternative page layouts -->
         <v-btn
-            v-if="! this.$ogtGlobals.isProductionEnv"
+            v-if="this.$ogtGlobals.isTestingEnv"
             absolute
             class="noneTextTransform"
             @click.stop="switchPageLayout()"

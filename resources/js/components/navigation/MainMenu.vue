@@ -70,7 +70,7 @@ export default {
                 {
                     title: 'Sprache',
                     icon: 'mdi-translate',
-                    show: ! this.$ogtGlobals.isProductionEnv,
+                    show: this.$ogtGlobals.isTestingEnv,
                     toMenu: 'languageConfig',
                 },
                 {
