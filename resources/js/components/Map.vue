@@ -506,9 +506,16 @@ export default {
             }
         },
         createPlaceMarkers: function (placeGroupName, places) {
+            let hideEvents = false;
+
+            if (placeGroupName == 'events' && ! this.$ogtGlobals.isTestingEnv) {
+                hideEvents = true;
+            }
+
             let placeMarkers = [];
             let iconUrl = this.$ogtGlobals.proxyPath + this.mapMarkerIconsPath + this.groupedPlaces[placeGroupName].iconName;
             const defaultIcon = L.icon({
+                className: hideEvents ? 'displayNone' : '',
                 iconUrl: iconUrl,
                 // Workaround to use same marker icons for Retina and non-Retina displays.
                 // - default file '/images/leaflet/marker-icon-2x.png'
@@ -545,6 +552,7 @@ export default {
                         ${place.description}`;
 
                     marker.bindPopup(markerPopUpHtmlTemplate, {
+                        className: hideEvents ? 'displayNone' : '',
                         minWidth: 333,
                     });
 
@@ -1239,7 +1247,11 @@ export default {
         createPlacesLayerGroups: function (placeGroupName, placeMarkers) {
             let layerGroup = L.layerGroup(placeMarkers);
             layerGroup.addTo(this.map);
-            this.layers.addOverlay(layerGroup, this.groupedPlaces[placeGroupName].layerName);
+
+            if (this.$ogtGlobals.isTestingEnv || placeGroupName != 'events') {
+                this.layers.addOverlay(layerGroup, this.groupedPlaces[placeGroupName].layerName);
+            }
+
             this.groupedPlaces[placeGroupName].layerGroup = layerGroup;
         },
         /**
@@ -1779,6 +1791,10 @@ export default {
 </script>
 
 <style>
+.displayNone {
+    display: none !important;
+}
+
 .popUpTopic {
     font-weight: bold;
 }
