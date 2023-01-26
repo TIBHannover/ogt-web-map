@@ -1,9 +1,22 @@
 {
-    "name": "laravel/laravel",
+    "name": "tibhannover/ogt-web-map",
     "type": "project",
-    "description": "The Laravel Framework.",
-    "keywords": ["framework", "laravel"],
-    "license": "MIT",
+    "description": "OGT project web map about places of Gestapo terror (1933-1945) in present-day Lower Saxony.",
+    "homepage": "https://service.tib.eu/ogt",
+    "keywords": ["gestapo", "laravel", "leaflet", "lower saxony", "map", "osm", "sparql", "vue", "vuetify", "wikidata"],
+    "license": "GPL-3.0-only",
+    "authors": [
+        {
+            "name": "Nils Casties",
+            "email": "nils.casties@gmail.com",
+            "role": "Developer"
+        },
+        {
+            "name": "Lisa Groh-Trautmann",
+            "email": "lisa.groh@tib.eu",
+            "role": "Historian"
+        }
+    ],
     "require": {
         "php": "^7.3|^8.0",
         "fideloper/proxy": "^4.4",
