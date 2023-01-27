@@ -17,7 +17,6 @@
         <v-navigation-drawer
             absolute
             class="z-index-4"
-            color="grey lighten-3"
             hide-overlay
             mobile-breakpoint="750"
             right
@@ -27,7 +26,9 @@
             <!-- map options header -->
             <v-list-item>
                 <v-list-item-content>
-                    <v-list-item-title class="text-h6 text-sm-h5">Kartenoptionen</v-list-item-title>
+                    <v-list-item-title class="font-family-courier font-weight-bold text-h6 text-sm-h5">
+                        Kartenoptionen
+                    </v-list-item-title>
                     <v-list-item-subtitle>passe die Ansicht individuell an</v-list-item-subtitle>
                 </v-list-item-content>
                 <v-list-item-action>
@@ -128,6 +129,10 @@ export default {
 </script>
 
 <style scoped>
+.font-family-courier {
+    font-family: Courier !important;
+}
+
 /* reduced font size, so sidebar has space for four icon+text v-tabs */
 .v-tab {
     font-size: 9px;
