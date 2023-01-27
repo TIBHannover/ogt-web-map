@@ -12,7 +12,9 @@
             <!-- place info header, link to wikidata item, close sidebar button -->
             <v-list-item>
                 <v-list-item-content>
-                    <v-list-item-title class="text-h6 text-sm-h5 white-space-normal">
+                    <v-list-item-title
+                        class="font-family-courier font-weight-bold text-h6 text-sm-h5 white-space-normal"
+                    >
                         {{ selectedPlace.label }}
                     </v-list-item-title>
                     <v-list-item-subtitle>{{ selectedPlace.layerName }}</v-list-item-subtitle>
@@ -162,6 +164,10 @@ export default {
 </script>
 
 <style scoped>
+.font-family-courier {
+    font-family: Courier !important;
+}
+
 .hyphens-auto {
     hyphens: auto;
 }

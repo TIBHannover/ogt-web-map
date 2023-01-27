@@ -25,7 +25,9 @@
             <!-- navigation header -->
             <v-list-item>
                 <v-list-item-content>
-                    <v-list-item-title class="text-h6 text-sm-h5">Gestapo.Terror.Orte</v-list-item-title>
+                    <v-list-item-title class="font-family-courier font-weight-bold text-h6 text-sm-h5">
+                        Gestapo.Terror.Orte
+                    </v-list-item-title>
                     <v-list-item-subtitle>in Niedersachsen 1933–1945</v-list-item-subtitle>
                 </v-list-item-content>
                 <v-list-item-action>
@@ -79,5 +81,7 @@ export default {
 </script>
 
 <style scoped>
-
+.font-family-courier {
+    font-family: Courier !important;
+}
 </style>
