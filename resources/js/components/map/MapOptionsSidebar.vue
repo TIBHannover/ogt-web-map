@@ -27,7 +27,7 @@
             <!-- map options header -->
             <v-list-item>
                 <v-list-item-content>
-                    <v-list-item-title class="text-h6 text-sm-h5">Kartenoptionen</v-list-item-title>
+                    <v-list-item-title class="text-h6 text-sm-h5 font-family-courier font-weight-bold">Kartenoptionen</v-list-item-title>
                     <v-list-item-subtitle>passe die Ansicht individuell an</v-list-item-subtitle>
                 </v-list-item-content>
                 <v-list-item-action>
@@ -136,5 +136,9 @@ export default {
 /* to move the map options sidebar to the foreground to cover the under construction footer (z-index 3) */
 .z-index-4 {
     z-index: 4;
+}
+
+.font-family-courier {
+    font-family: Courier !important;
 }
 </style>
