@@ -17,7 +17,6 @@
         <!-- add :app="this.$route.name == 'glossary'" property? -->
         <v-navigation-drawer
             fixed
-            class="white"
             hide-overlay
             mobile-breakpoint="750"
             width="375px"
@@ -27,7 +26,9 @@
             <!-- navigation header -->
             <v-list-item>
                 <v-list-item-content>
-                    <v-list-item-title class="text-h6 text-sm-h5 font-family-courier font-weight-bold">Gestapo.Terror.Orte</v-list-item-title>
+                    <v-list-item-title class="font-family-courier font-weight-bold text-h6 text-sm-h5">
+                        Gestapo.Terror.Orte
+                    </v-list-item-title>
                     <v-list-item-subtitle>in Niedersachsen 1933–1945</v-list-item-subtitle>
                 </v-list-item-content>
                 <v-list-item-action>
