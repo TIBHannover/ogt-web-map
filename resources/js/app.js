@@ -15,7 +15,7 @@ import {itemDescriptions} from '../lang/de/itemDescriptions';
 window.Vue = Vue;
 
 Vue.prototype.$ogtGlobals = {
-    isProductionEnv: process.env.MIX_APP_ENV == 'production' ? true : false,
+    isTestingEnv: process.env.MIX_APP_ENV == 'testing' ? true : false,
     texts: {
         itemDescriptions: itemDescriptions,
     },
@@ -33,6 +33,15 @@ const router = new VueRouter({
     base: '/ogt/',
     mode: 'history',
     routes: routes,
+    scrollBehavior(to, from, savedPosition) {
+        if (to.hash) {
+            return {
+                behavior: 'smooth',
+                // , offset: { x: 0, y: 10 }
+                selector: to.hash,
+            };
+        }
+    },
 });
 
 const app = new Vue({

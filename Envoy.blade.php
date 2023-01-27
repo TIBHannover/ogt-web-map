@@ -167,6 +167,14 @@
     rm -rf {{ $newReleaseDir }}/storage
     ln -nfs {{ $appDir }}/storage {{ $newReleaseDir }}/storage
 
+    {{ logConsole($env, "Prepare images directory") }}
+    test -d {{ $appDir }}/images || sudo mkdir -p {{ $appDir }}/images
+    sudo chown -R www-data:www-data {{ $appDir }}/images
+
+    {{ logConsole($env, "Linking images directory") }}
+    rm -rf {{ $newReleaseDir }}/public/images/static
+    ln -nfs {{ $appDir }}/images {{ $newReleaseDir }}/public/images/static
+
     {{ logConsole($env, "Linking current release") }}
     ln -nfs {{ $newReleaseDir }} {{ $appDir }}/current
 @endtask
