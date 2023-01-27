@@ -165,7 +165,8 @@ export default {
                 backgroundSize = 'cover';
             }
             else if (this.selectedLayoutId == 5) {
-                this.backgroundImageUrl = this.$ogtGlobals.proxyPath + '/images/backgroundWithoutText.jpg';
+                this.backgroundImageUrl = this.$ogtGlobals.proxyPath + '/images/static/startPageBackground.jpg';
+                this.backgroundImageUrlFallback1 = OGT_TIB_URL + '/images/static/startPageBackground.jpg';
                 this.showBackgroundImage = true;
                 this.showBanner = false;
                 this.showHeaderText = true;
