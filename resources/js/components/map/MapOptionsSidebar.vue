@@ -17,7 +17,6 @@
         <v-navigation-drawer
             absolute
             class="z-index-4"
-            color="grey lighten-3"
             hide-overlay
             mobile-breakpoint="750"
             right
