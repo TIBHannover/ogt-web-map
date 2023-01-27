@@ -66,10 +66,7 @@
                                     <v-list-item-title>Langbeschreibung</v-list-item-title>
                                 </v-expansion-panel-header>
                                 <v-expansion-panel-content class="mt-4">
-                                    <v-list-item-subtitle
-                                        class="hyphens-auto text-justify white-space-normal"
-                                        lang="de"
-                                    >
+                                    <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
                                         <p v-for="textPart in itemDescriptions[selectedPlace.id].textParts">
                                             {{ textPart }}
                                         </p>
