@@ -5,7 +5,6 @@
             v-model="showPlaceInfoSidebar"
             absolute
             class="z-index-5"
-            color="grey lighten-3"
             hide-overlay
             mobile-breakpoint="750"
             width="375px"
@@ -13,7 +12,10 @@
             <!-- place info header, link to wikidata item, close sidebar button -->
             <v-list-item>
                 <v-list-item-content>
-                    <v-list-item-title class="text-h6 text-sm-h5 white-space-normal">
+                    <v-list-item-title
+                        class="font-family-courier font-weight-bold hyphens-auto text-h6 text-sm-h5 white-space-normal"
+                        lang="de"
+                    >
                         {{ selectedPlace.label }}
                     </v-list-item-title>
                     <v-list-item-subtitle>{{ selectedPlace.layerName }}</v-list-item-subtitle>
@@ -64,10 +66,7 @@
                                     <v-list-item-title>Langbeschreibung</v-list-item-title>
                                 </v-expansion-panel-header>
                                 <v-expansion-panel-content class="mt-4">
-                                    <v-list-item-subtitle
-                                        class="hyphens-auto text-justify white-space-normal"
-                                        lang="de"
-                                    >
+                                    <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
                                         <p v-for="textPart in itemDescriptions[selectedPlace.id].textParts">
                                             {{ textPart }}
                                         </p>
@@ -163,6 +162,10 @@ export default {
 </script>
 
 <style scoped>
+.font-family-courier {
+    font-family: Courier !important;
+}
+
 .hyphens-auto {
     hyphens: auto;
 }
