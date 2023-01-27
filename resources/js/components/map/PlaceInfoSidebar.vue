@@ -13,7 +13,8 @@
             <v-list-item>
                 <v-list-item-content>
                     <v-list-item-title
-                        class="font-family-courier font-weight-bold text-h6 text-sm-h5 white-space-normal"
+                        class="font-family-courier font-weight-bold hyphens-auto text-h6 text-sm-h5 white-space-normal"
+                        lang="de"
                     >
                         {{ selectedPlace.label }}
                     </v-list-item-title>
