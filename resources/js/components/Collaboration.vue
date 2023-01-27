@@ -51,7 +51,9 @@
                         ausgearbeitet und können als Beispiele dienen:
                     </p>
                     <ul class="mb-4">
-                        <li v-for="example in examples">
+                        <li v-for="example in examples"
+                            v-if="$ogtGlobals.isTestingEnv || example.group != 'Ereignisse'"
+                        >
                             {{ example.group }}
                             <ul>
                                 <li v-for="location in example.locations">
