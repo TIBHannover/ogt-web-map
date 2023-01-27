@@ -1,7 +1,12 @@
 <template>
     <v-container fluid>
         <!-- selection for location groups -->
-        <v-row v-for="groupName in groupedPlacesOrder" class="pt-1" :key="groupName + '-row'">
+        <v-row
+            v-for="groupName in groupedPlacesOrder"
+            v-if="$ogtGlobals.isTestingEnv || groupName != 'events'"
+            class="pt-1"
+            :key="groupName + '-row'"
+        >
             <v-col class="py-0" style="max-width: 60px">
                 <v-img
                     max-width="34px"
@@ -38,6 +43,7 @@
         <v-subheader>Erfasste Gestapo Terror Orte</v-subheader>
         <v-autocomplete
             v-for="groupName in groupedPlacesOrder"
+            v-if="$ogtGlobals.isTestingEnv || groupName != 'events'"
             v-model="selectedPlace"
             v-show="checkedPlaceLayerGroups.includes(groupName)"
             class="mx-4 my-2"
