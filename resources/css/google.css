@@ -1,0 +1,9 @@
+/* roboto-900 - latin */
+@font-face {
+    font-family: 'mytype';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 400;
+    src: url('/fonts/mytype.woff2') format('woff2');
+}
+
