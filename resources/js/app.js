@@ -3,6 +3,11 @@ require('./bootstrap');
 import '@mdi/font/css/materialdesignicons.css';
 // how to import only required icons?
 //import { mdiArrowRightThick } from '@mdi/js';
+
+import "@fontsource/roboto/latin.css";
+//import "@fontsource/special-elite/latin.css";
+//import "@fontsource/im-fell-dw-pica/latin.css"
+
 import Vue from 'vue';
 import App from './components/App.vue';
 import VueRouter from 'vue-router';
@@ -49,6 +54,14 @@ const app = new Vue({
     render: h => h(App),
     router: router,
     vuetify: new Vuetify({
+        /*
+        icons: {
+            iconfont: 'mdiSvg',
+            values: {
+                mdiArrowRightThick: mdiArrowRightThick,
+            },
+        },
+        */
         theme: {
             themes: {
                 light: {
