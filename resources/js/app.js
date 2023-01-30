@@ -1,6 +1,7 @@
 require('./bootstrap');
 
 import '@mdi/font/css/materialdesignicons.css';
+import '@fontsource/roboto/latin.css';
 
 import Vue from 'vue';
 import App from './components/App.vue';
