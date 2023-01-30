@@ -1,5 +1,7 @@
 require('./bootstrap');
 
+import '@mdi/font/css/materialdesignicons.css';
+
 import Vue from 'vue';
 import App from './components/App.vue';
 import VueRouter from 'vue-router';
