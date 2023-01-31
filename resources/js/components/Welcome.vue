@@ -13,7 +13,7 @@
         <v-btn
             v-if="this.$ogtGlobals.isTestingEnv"
             absolute
-            class="noneTextTransform"
+            class="text-transform-none"
             @click.stop="switchPageLayout()"
             color="white"
             right
@@ -178,7 +178,7 @@ export default {
 }
 
 /* to lowercase text within Vuetify buttons */
-.noneTextTransform {
+.text-transform-none {
     text-transform: none;
 }
 
