@@ -5,7 +5,7 @@ import '@mdi/font/css/materialdesignicons.css';
 //import { mdiArrowRightThick } from '@mdi/js';
 
 import '@fontsource/roboto/latin.css';
-//import "@fontsource/special-elite/latin.css";
+import "@fontsource/special-elite/latin.css";
 //import "@fontsource/im-fell-dw-pica/latin.css"
 
 import Vue from 'vue';

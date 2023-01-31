@@ -163,7 +163,7 @@ export default {
 
 <style scoped>
 .font-family-courier {
-    font-family: Courier !important;
+    font-family: "Special Elite" !important;
 }
 
 .hyphens-auto {

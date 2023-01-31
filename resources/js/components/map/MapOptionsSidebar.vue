@@ -130,7 +130,7 @@ export default {
 
 <style scoped>
 .font-family-courier {
-    font-family: Courier !important;
+    font-family: "Special Elite" !important;
 }
 
 /* reduced font size, so sidebar has space for four icon+text v-tabs */
