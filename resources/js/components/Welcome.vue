@@ -48,7 +48,7 @@
                 <br>
             </p>
             <div v-if="showHeaderText && (selectedLayoutId == 5)" class="white--text">
-                <div class="font-family-courier mb-2 text-h4 text-sm-h3 text-md-h2 text-lg-h1">
+                <div class="font-family-special-elite mb-2 text-h4 text-sm-h3 text-md-h2 text-lg-h1">
                     Gestapo.Terror.Orte
                 </div>
                 <div class="mb-7 ml-1 text-h5 text-md-h4 text-lg-h3">
@@ -96,7 +96,7 @@ export default {
             // C: background image, cover, menu buttons => background image text lost on small devices
             // D: background image, stretched to height & width (100%), show menu buttons delayed => background image looks distorted
             // E: background image, cover, menu buttons, title as text => style (e.g. font type, spacing) must be adjusted
-            // F: like E, but headline in Courier, buttons with icons, same width, left-aligned, background color, elevated, lowercase letters and without border
+            // F: like E, but headline in Special Elite, buttons with icons, same width, left-aligned, background color, elevated, lowercase letters and without border
             layoutLabels: ['A', 'B', 'C', 'D', 'E', 'F'],
             menuButtons: [
                 {
@@ -208,8 +208,8 @@ export default {
     border: none;
 }
 
-.font-family-courier {
-    font-family: Courier !important;
+.font-family-special-elite {
+    font-family: "Special Elite" !important;
 }
 
 .mt-300 {
