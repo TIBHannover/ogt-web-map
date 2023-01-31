@@ -16,6 +16,7 @@
     },
     "dependencies": {
         "@fontsource/roboto": "^4.5.8",
+        "@fontsource/special-elite": "^4.5.8",
         "@mdi/font": "^7.1.96",
         "laravel-mix": "^6.0.6",
         "leaflet": "^1.7.1",
