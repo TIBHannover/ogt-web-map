@@ -15,7 +15,7 @@ const mix = require('laravel-mix');
 console.log("process.env.ASSET_URL = ", process.env.ASSET_URL);
 //console.log("mix", mix.dump())
 //console.log("mix", mix.dumpWebpackConfig())
-//mix.setResourceRoot(process.env.ASSET_URL ?? '');
+mix.setResourceRoot(process.env.ASSET_URL ?? '');
 
 /* set reverse proxy sub-path required for generated links to resources */
 if (['production', 'testing'].includes(process.env.APP_ENV)) {
