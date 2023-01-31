@@ -219,7 +219,7 @@ export default {
 }
 
 .opacity-35 {
-    background-color: rgba(255, 255, 255, 0.35);
+    background-color: rgba(98, 94, 91, 0.35);
 }
 
 /* shift center of background image for extra small window sizes (< 600px) */
