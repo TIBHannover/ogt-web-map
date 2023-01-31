@@ -48,29 +48,33 @@
                 <br>
             </p>
             <template v-if="showHeaderText && (selectedLayoutId == 5)">
-                <h1 class="text-h4 white--text text-sm-h3 text-md-h2 text-lg-h1 font-family-courier font-weight-bold">
+                <div class="text-h4 white--text text-sm-h3 text-md-h2 text-lg-h1 font-family-courier font-weight-bold mb-2">
                     Gestapo.Terror.Orte
-                </h1>
-                <h3 class="text-h5 white--text text-md-h4 text-lg-h3 ml-1 mb-7">
-                    in Niedersachsen 1933–1945
-                </h3>
+                </div>
+                <div class="text-h5 white--text text-md-h4 text-lg-h3 ml-1 mb-7">
+                    in Niedersachsen 1933 – 1945
+                </div>
             </template>
+
             <template v-for="menuButton in menuButtons">
                 <router-link :to="menuButton.routeTo" class="text-decoration-none">
                     <v-btn
-                        class="mx-10 my-3"
-                        :class="{ 'opacity-2': (selectedLayoutId == 5) }"
+                        class="my-3"
+                        :class="{
+                            'justify-start ml-1 mr-5 noneTextTransform borderNone opacity-35 text-h6':  (selectedLayoutId == 5),
+                            'mx-10':  (selectedLayoutId != 5),
+                        }"
                         color="white"
                         outlined
                         rounded
                         x-large
-                        :min-width="selectedLayoutId == 5 ? '230px' : 'false'"
+                        :min-width="selectedLayoutId == 5 ? '200px' : 'false'"
                         :elevation="selectedLayoutId == 5 ? '24' : 'false'"
                     >
                         <v-icon left v-if="selectedLayoutId == 5">
                             mdi-arrow-right-thick
                         </v-icon>
-                        &#10132; {{ menuButton.label }}
+                        {{ menuButton.label }}
                     </v-btn>
                 </router-link>
             </template>
@@ -93,6 +97,7 @@ export default {
             // C: background image, cover, menu buttons => background image text lost on small devices
             // D: background image, stretched to height & width (100%), show menu buttons delayed => background image looks distorted
             // E: background image, cover, menu buttons, title as text => style (e.g. font type, spacing) must be adjusted
+            // F: like E
             layoutLabels: ['A', 'B', 'C', 'D', 'E', 'F'],
             menuButtons: [
                 {
@@ -196,6 +201,10 @@ export default {
     background-size: 100% auto;
 }
 
+.font-family-courier {
+    font-family: Courier !important;
+}
+
 .mt-300 {
     margin-top: 300px;
 }
@@ -205,12 +214,12 @@ export default {
     text-transform: none;
 }
 
-.font-family-courier {
-    font-family: Courier !important;
+.borderNone {
+    border: none;
 }
 
-.opacity-2 {
-    background-color:rgba(255,255,255,0.2);
+.opacity-35 {
+    background-color: rgba(255, 255, 255, 0.35);
 }
 
 /* shift center of background image for extra small window sizes (< 600px) */
