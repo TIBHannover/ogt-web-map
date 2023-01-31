@@ -4,7 +4,7 @@
         <!-- header -->
         <v-row>
             <v-col>
-                <h1 class="text-h4 text-md-h3 text-center py-4 font-family-courier font-weight-bold">
+                <h1 class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-center text-h4 text-md-h3" lang="de">
                     Projekt
                 </h1>
             </v-col>
@@ -377,7 +377,7 @@ export default {
 </script>
 
 <style scoped>
-.font-family-courier {
+.font-family-special-elite {
     font-family: "Special Elite" !important;
 }
 

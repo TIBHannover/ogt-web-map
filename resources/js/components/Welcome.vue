@@ -13,7 +13,7 @@
         <v-btn
             v-if="this.$ogtGlobals.isTestingEnv"
             absolute
-            class="noneTextTransform"
+            class="text-transform-none"
             @click.stop="switchPageLayout()"
             color="white"
             right
@@ -47,31 +47,30 @@
                 <span class="text-h5 white--text text-sm-h3 ml-1">in Niedersachsen 1933 – 1945</span>
                 <br>
             </p>
-            <template v-if="showHeaderText && (selectedLayoutId == 5)">
-                <div class="text-h4 white--text text-sm-h3 text-md-h2 text-lg-h1 font-family-courier font-weight-bold mb-2">
+            <div v-if="showHeaderText && (selectedLayoutId == 5)" class="white--text">
+                <div class="font-family-special-elite mb-2 text-h4 text-sm-h3 text-md-h2 text-lg-h1">
                     Gestapo.Terror.Orte
                 </div>
-                <div class="text-h5 white--text text-md-h4 text-lg-h3 ml-1 mb-7">
+                <div class="mb-7 ml-1 text-h5 text-md-h4 text-lg-h3">
                     in Niedersachsen 1933 – 1945
                 </div>
-            </template>
-
+            </div>
             <template v-for="menuButton in menuButtons">
                 <router-link :to="menuButton.routeTo" class="text-decoration-none">
                     <v-btn
                         class="my-3"
                         :class="{
-                            'justify-start ml-1 mr-5 noneTextTransform borderNone opacity-35 text-h6':  (selectedLayoutId == 5),
-                            'mx-10':  (selectedLayoutId != 5),
+                            'background-color-grey border-none justify-start ml-1 mr-5 text-h6 text-transform-none':  selectedLayoutId == 5,
+                            'mx-10':  selectedLayoutId != 5,
                         }"
                         color="white"
+                        :elevation="selectedLayoutId == 5 ? '24' : 'false'"
+                        :min-width="selectedLayoutId == 5 ? '200px' : 'false'"
                         outlined
                         rounded
                         x-large
-                        :min-width="selectedLayoutId == 5 ? '200px' : 'false'"
-                        :elevation="selectedLayoutId == 5 ? '24' : 'false'"
                     >
-                        <v-icon left v-if="selectedLayoutId == 5">
+                        <v-icon v-if="selectedLayoutId == 5" left>
                             mdi-arrow-right-thick
                         </v-icon>
                         {{ menuButton.label }}
@@ -97,7 +96,7 @@ export default {
             // C: background image, cover, menu buttons => background image text lost on small devices
             // D: background image, stretched to height & width (100%), show menu buttons delayed => background image looks distorted
             // E: background image, cover, menu buttons, title as text => style (e.g. font type, spacing) must be adjusted
-            // F: like E
+            // F: like E, but headline in Special Elite, buttons with icons, same width, left-aligned, background color, elevated, lowercase letters and without border
             layoutLabels: ['A', 'B', 'C', 'D', 'E', 'F'],
             menuButtons: [
                 {
@@ -201,7 +200,15 @@ export default {
     background-size: 100% auto;
 }
 
-.font-family-courier {
+.background-color-grey {
+    background-color: rgba(94, 94, 94, 0.35);
+}
+
+.border-none {
+    border: none;
+}
+
+.font-family-special-elite {
     font-family: "Special Elite" !important;
 }
 
@@ -210,16 +217,8 @@ export default {
 }
 
 /* to lowercase text within Vuetify buttons */
-.noneTextTransform {
+.text-transform-none {
     text-transform: none;
-}
-
-.borderNone {
-    border: none;
-}
-
-.opacity-35 {
-    background-color: rgba(98, 94, 91, 0.35);
 }
 
 /* shift center of background image for extra small window sizes (< 600px) */

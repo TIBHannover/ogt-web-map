@@ -4,7 +4,7 @@
         <!-- header -->
         <v-row class="ml-14 ml-sm-n3">
             <v-col>
-                <h1 class="hyphens-auto py-4 text-center text-h4 text-md-h3 font-family-courier" lang="de">
+                <h1 class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-center text-h4 text-md-h3" lang="de">
                     Datenvisualisierung
                 </h1>
             </v-col>
@@ -130,6 +130,10 @@ export default {
     margin-bottom: 110px;
 }
 
+.font-family-special-elite {
+    font-family: "Special Elite" !important;
+}
+
 .hyphens-auto {
     hyphens: auto;
 }
@@ -143,9 +147,5 @@ iframe {
 /* workaround to avoid the button not being fully visible on small devices */
 .maxWidth100 {
     max-width: 100%;
-}
-
-.font-family-courier {
-    font-family: "Special Elite" !important;
 }
 </style>

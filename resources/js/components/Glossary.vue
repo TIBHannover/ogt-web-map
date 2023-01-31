@@ -3,7 +3,7 @@
         <div :class="{'pl-4': freeClientWidth == 0 && isMenuDisplayed}">
             <v-row :class="{'ml-15': freeClientWidth < 75 && ! isMenuDisplayed}">
                 <v-col>
-                    <h1 class="font-family-courier font-weight-bold hyphens-auto text-h4 text-md-h3 py-4" lang="de">
+                    <h1 class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-h4 text-md-h3" lang="de">
                         Glossar
                     </h1>
                 </v-col>
@@ -238,7 +238,7 @@ export default {
     border-width: thin !important;
 }
 
-.font-family-courier {
+.font-family-special-elite {
     font-family: "Special Elite" !important;
 }
 

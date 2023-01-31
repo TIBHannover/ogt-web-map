@@ -4,7 +4,7 @@
         <!-- header -->
         <v-row>
             <v-col>
-                <h1 class="text-h4 text-md-h3 text-center py-4 font-family-courier">
+                <h1 class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-center text-h4 text-md-h3" lang="de">
                     Mitforschen
                 </h1>
             </v-col>
@@ -318,11 +318,11 @@ export default {
 </script>
 
 <style scoped>
-.hyphens-auto {
-    hyphens: auto;
+.font-family-special-elite {
+    font-family: "Special Elite" !important;
 }
 
-.font-family-courier {
-    font-family: "Special Elite" !important;
+.hyphens-auto {
+    hyphens: auto;
 }
 </style>
