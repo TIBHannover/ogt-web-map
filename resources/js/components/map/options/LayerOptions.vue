@@ -67,13 +67,13 @@ export default {
             layerLabels: ['OpenStreetMap', 'Niedersachsen 1933–1945'],
             layerSelected: 0,
             mapMarkerStyleLabels: [
-                'Graue Symbole (transparent)',
-                'Farbige Symbole (transparent)',
+                'Dunkelgraue Symbole (transparent)',
+                'Farbige Symbole v1 (transparent)',
                 'Leaflet Standard Kartenmarker',
-                'Graue Symbole (hellgrau gefüllt)',
-                'Farbige Symbole v1 (dunkelweiß gefüllt)',
+                'Dunkelgraue Symbole (grau gefüllt)',
+                'Farbige Symbole v1 (hellgrau gefüllt)',
+                'Farbige Symbole v2 (grau gefüllt)',
                 'Farbige Symbole v2 (hellgrau gefüllt)',
-                'Farbige Symbole v2 (dunkelweiß gefüllt)',
             ],
             mapMarkerStyleSelected: 5,
             mapGreyscaleLabels: ['Graustufen deaktiviert', 'Graustufen aktiviert'],
@@ -117,13 +117,13 @@ export default {
                 mapMarkerSubPath = '/coloredFilledGrey/';
             }
             else if (this.mapMarkerStyleSelected == 6) {
-                mapMarkerSubPath = '/coloredFilledWhite/';
+                mapMarkerSubPath = '/coloredFilledLightGrey/';
             }
             else {
                 // default case
             }
 
-            const subPathRegex = /\/(greyTransparent|coloredTransparent|default|greyFilled|coloredFilled|coloredFilledGrey|coloredFilledWhite)\//g;
+            const subPathRegex = /\/(greyTransparent|coloredTransparent|default|greyFilled|coloredFilled|coloredFilledGrey|coloredFilledLightGrey)\//g;
             const imageFileTypeRegex = /\.(svg|png)$/g;
             const anyNonDigitRegex = /\D/g;
 
