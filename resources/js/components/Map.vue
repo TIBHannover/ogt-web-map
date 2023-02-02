@@ -421,7 +421,11 @@ export default {
             this.setCachedMapView();
 
             // add layers control to switch between different base layers and switch overlays on/off
-            this.layers = L.control.layers(baseLayers).addTo(this.map);
+            this.layers = L.control.layers(baseLayers);
+
+            if (this.$ogtGlobals.isTestingEnv) {
+                this.layers.addTo(this.map);
+            }
 
             this.map.zoomControl.setPosition('topright');
 
