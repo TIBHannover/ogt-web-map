@@ -67,15 +67,17 @@ export default {
             layerLabels: ['OpenStreetMap', 'Niedersachsen 1933–1945'],
             layerSelected: 0,
             mapMarkerStyleLabels: [
-                'Graue Symbole (transparent)',
-                'Farbige Symbole (transparent)',
+                'Dunkelgraue Symbole (transparent)',
+                'Farbige Symbole v1 (transparent)',
                 'Leaflet Standard Kartenmarker',
-                'Graue Symbole (hellgrau gefüllt)',
-                'Farbige Symbole v1 (dunkelweiß gefüllt)',
+                'Dunkelgraue Symbole (grau gefüllt)',
+                'Farbige Symbole v1 (hellgrau gefüllt)',
+                'Farbige Symbole v2 (grau gefüllt)',
                 'Farbige Symbole v2 (hellgrau gefüllt)',
-                'Farbige Symbole v2 (dunkelweiß gefüllt)',
+                'Farbige Symbole v2 (weiß gefüllt)',
+                'Farbige Symbole v3 (weiß gefüllt)',
             ],
-            mapMarkerStyleSelected: 5,
+            mapMarkerStyleSelected: 7,
             mapGreyscaleLabels: ['Graustufen deaktiviert', 'Graustufen aktiviert'],
             mapGreyscaleSelected: 1,
         };
@@ -117,13 +119,19 @@ export default {
                 mapMarkerSubPath = '/coloredFilledGrey/';
             }
             else if (this.mapMarkerStyleSelected == 6) {
+                mapMarkerSubPath = '/coloredFilledLightGrey/';
+            }
+            else if (this.mapMarkerStyleSelected == 7) {
                 mapMarkerSubPath = '/coloredFilledWhite/';
+            }
+            else if (this.mapMarkerStyleSelected == 8) {
+                mapMarkerSubPath = '/coloredFilledWhiteV3/';
             }
             else {
                 // default case
             }
 
-            const subPathRegex = /\/(greyTransparent|coloredTransparent|default|greyFilled|coloredFilled|coloredFilledGrey|coloredFilledWhite)\//g;
+            const subPathRegex = /\/(greyTransparent|coloredTransparent|default|greyFilled|coloredFilled|coloredFilledGrey|coloredFilledLightGrey|coloredFilledWhite|coloredFilledWhiteV3)\//g;
             const imageFileTypeRegex = /\.(svg|png)$/g;
             const anyNonDigitRegex = /\D/g;
 
