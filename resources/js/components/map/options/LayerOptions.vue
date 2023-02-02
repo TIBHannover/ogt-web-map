@@ -77,7 +77,7 @@ export default {
                 'Farbige Symbole v2 (weiß gefüllt)',
                 'Farbige Symbole v3 (weiß gefüllt)',
             ],
-            mapMarkerStyleSelected: 5,
+            mapMarkerStyleSelected: 7,
             mapGreyscaleLabels: ['Graustufen deaktiviert', 'Graustufen aktiviert'],
             mapGreyscaleSelected: 1,
         };

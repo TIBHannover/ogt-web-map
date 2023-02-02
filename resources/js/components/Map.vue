@@ -136,7 +136,7 @@ export default {
             layers: null,
             locationMarkers: [],
             map: null,
-            mapMarkerIconsPath: '/images/leaflet/markerIcons/coloredFilledGrey/',
+            mapMarkerIconsPath: '/images/leaflet/markerIcons/coloredFilledWhite/',
             persons: {
                 perpetrators: {},
                 victims: {},
