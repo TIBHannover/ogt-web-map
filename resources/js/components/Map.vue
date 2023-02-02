@@ -515,7 +515,7 @@ export default {
             let placeMarkers = [];
             let iconUrl = this.$ogtGlobals.proxyPath + this.mapMarkerIconsPath + this.groupedPlaces[placeGroupName].iconName;
             const defaultIcon = L.icon({
-                className: hideEvents ? 'displayNone' : '',
+                className: hideEvents ? 'd-none' : '',
                 iconUrl: iconUrl,
                 // Workaround to use same marker icons for Retina and non-Retina displays.
                 // - default file '/images/leaflet/marker-icon-2x.png'
@@ -540,34 +540,13 @@ export default {
                         title: place.label,
                     });
 
-                    let markerPopUpHtmlTemplate = `
-                        <div class="popUpTopic">
-                            <a href="https://www.wikidata.org/wiki/${placeId}" target="_blank">
-                                ${place.label}
-                            </a>
-                            <button class="zoomInButton">
-                                &#x1f50d;
-                            </button>
-                        </div>
-                        <br>
-                        ${place.description}`;
-
-                    marker.bindPopup(markerPopUpHtmlTemplate, {
-                        className: hideEvents ? 'displayNone' : '',
-                        minWidth: 333,
+                    marker.bindPopup(place.label, {
+                        className: hideEvents ? 'd-none' : 'font-weight-bold',
                     });
 
                     marker.on('click', event => {
                         this.setSelectedPlace(place, event.latlng, placeGroupName);
                         this.toggleShowPlaceInfoSidebar(true);
-
-                        const zoomInButton = marker.getPopup().getElement().getElementsByClassName('zoomInButton')[0];
-
-                        let vm = this;
-
-                        zoomInButton.onclick = function () {
-                            vm.map.flyTo(event.latlng, 18);
-                        };
                     });
 
                     placeMarkers.push(marker);
@@ -1792,25 +1771,6 @@ export default {
 </script>
 
 <style>
-.displayNone {
-    display: none !important;
-}
-
-.popUpTopic {
-    font-weight: bold;
-}
-
-.popUpTopicCategory {
-    font-style: italic;
-}
-
-.zoomInButton {
-    background-color: inherit;
-    border: none;
-    cursor: pointer;
-    font-size: 20px;
-}
-
 /* top-right Leaflet control */
 .leaflet-top.leaflet-right {
     margin-top: 80px;
