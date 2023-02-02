@@ -536,6 +536,7 @@ export default {
                 for (const [statementId, placeCoordinate] of Object.entries(place.coordinates)) {
                     let marker = L.marker(placeCoordinate.value, {
                         icon: defaultIcon,
+                        riseOnHover: true,
                         title: place.label,
                     });
 
