@@ -15,12 +15,9 @@
         "postcss": "^8.1.14"
     },
     "dependencies": {
-        "@fontsource/courier-prime": "^4.5.9",
-        "@fontsource/im-fell-dw-pica": "^4.5.8",
         "@fontsource/roboto": "^4.5.8",
         "@fontsource/special-elite": "^4.5.8",
         "@mdi/font": "^7.1.96",
-        "@mdi/js": "^7.1.96",
         "laravel-mix": "^6.0.6",
         "leaflet": "^1.7.1",
         "vue": "^2.6.14",
