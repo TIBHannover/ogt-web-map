@@ -61,6 +61,13 @@ export default {
                     toMenu: 'mainMenu',
                 },
                 {
+                    title: 'Datenvisualisierung (new)',
+                    icon: 'mdi-chart-areaspline',
+                    path: '/charts-new',
+                    show: true,
+                    toMenu: 'mainMenu',
+                },
+                {
                     title: 'Mitforschen',
                     icon: 'mdi-at',
                     path: '/collaboration',
