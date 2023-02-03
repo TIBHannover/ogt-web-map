@@ -67,9 +67,6 @@ export default {
             layerLabels: ['OpenStreetMap', 'Niedersachsen 1933–1945'],
             layerSelected: 0,
             mapMarkerStyleLabels: [
-                'Dunkelgraue Symbole (transparent)',
-                'Farbige Symbole v1 (transparent)',
-                'Leaflet Standard Kartenmarker',
                 'Dunkelgraue Symbole (grau gefüllt)',
                 'Farbige Symbole v1 (hellgrau gefüllt)',
                 'Farbige Symbole v2 (grau gefüllt)',
@@ -77,7 +74,7 @@ export default {
                 'Farbige Symbole v2 (weiß gefüllt)',
                 'Farbige Symbole v3 (weiß gefüllt)',
             ],
-            mapMarkerStyleSelected: 5,
+            mapMarkerStyleSelected: 4,
             mapGreyscaleLabels: ['Graustufen deaktiviert', 'Graustufen aktiviert'],
             mapGreyscaleSelected: 1,
         };
@@ -87,77 +84,36 @@ export default {
          * Switch between map marker styles.
          */
         switchMapMarkerStyle() {
-            let mapMarkerSubPath = '/greyTransparent/';
-            let mapMarkerFileType = '.svg';
-            let mapMarkerWidth = '48px';
-            let mapMarkerHeight = '53px';
-            let mapMarkerMarginLeft = '-24px';
-            let mapMarkerMarginTop = '-52px';
-            let mapMarkerShadowWidth = '76px';
-            let mapMarkerShadowHeight = '52px';
+            let mapMarkerSubPath = '';
 
-            if (this.mapMarkerStyleSelected == 1) {
-                mapMarkerSubPath = '/coloredTransparent/';
-            }
-            else if (this.mapMarkerStyleSelected == 2) {
-                mapMarkerSubPath = '/default/';
-                mapMarkerFileType = '.png';
-                mapMarkerWidth = '25px';
-                mapMarkerHeight = '41px';
-                mapMarkerMarginLeft = '-12px';
-                mapMarkerMarginTop = '-41px';
-                mapMarkerShadowWidth = '41px';
-                mapMarkerShadowHeight = '41px';
-            }
-            else if (this.mapMarkerStyleSelected == 3) {
+            if (this.mapMarkerStyleSelected == 0) {
                 mapMarkerSubPath = '/greyFilled/';
             }
-            else if (this.mapMarkerStyleSelected == 4) {
+            else if (this.mapMarkerStyleSelected == 1) {
                 mapMarkerSubPath = '/coloredFilled/';
             }
-            else if (this.mapMarkerStyleSelected == 5) {
+            else if (this.mapMarkerStyleSelected == 2) {
                 mapMarkerSubPath = '/coloredFilledGrey/';
             }
-            else if (this.mapMarkerStyleSelected == 6) {
+            else if (this.mapMarkerStyleSelected == 3) {
                 mapMarkerSubPath = '/coloredFilledLightGrey/';
             }
-            else if (this.mapMarkerStyleSelected == 7) {
+            else if (this.mapMarkerStyleSelected == 4) {
                 mapMarkerSubPath = '/coloredFilledWhite/';
             }
-            else if (this.mapMarkerStyleSelected == 8) {
+            else if (this.mapMarkerStyleSelected == 5) {
                 mapMarkerSubPath = '/coloredFilledWhiteV3/';
             }
-            else {
-                // default case
-            }
 
-            const subPathRegex = /\/(greyTransparent|coloredTransparent|default|greyFilled|coloredFilled|coloredFilledGrey|coloredFilledLightGrey|coloredFilledWhite|coloredFilledWhiteV3)\//g;
-            const imageFileTypeRegex = /\.(svg|png)$/g;
-            const anyNonDigitRegex = /\D/g;
+            const subPathRegex = /\/(greyFilled|coloredFilled|coloredFilledGrey|coloredFilledLightGrey|coloredFilledWhite|coloredFilledWhiteV3)\//g;
 
             // update marker icons and shadows within layer groups (required for enable/disable layer groups)
             for (const [groupName, placesData] of Object.entries(this.groupedPlaces)) {
                 this.groupedPlaces[groupName].layerGroup.getLayers().forEach(marker => {
                     let markerIconOptions = marker.getIcon().options;
                     let iconUrl = markerIconOptions.iconUrl.replace(subPathRegex, mapMarkerSubPath);
-                    iconUrl = iconUrl.replace(imageFileTypeRegex, mapMarkerFileType);
                     markerIconOptions.iconUrl = iconUrl;
                     markerIconOptions.iconRetinaUrl = iconUrl;
-
-                    markerIconOptions.iconSize = [
-                        mapMarkerWidth.replace(anyNonDigitRegex, ''),
-                        mapMarkerHeight.replace(anyNonDigitRegex, ''),
-                    ];
-
-                    markerIconOptions.iconAnchor = [
-                        mapMarkerMarginLeft.replace(anyNonDigitRegex, ''),
-                        mapMarkerMarginTop.replace(anyNonDigitRegex, ''),
-                    ];
-
-                    markerIconOptions.shadowSize = [
-                        mapMarkerShadowWidth.replace(anyNonDigitRegex, ''),
-                        mapMarkerShadowHeight.replace(anyNonDigitRegex, ''),
-                    ];
                 });
             }
 
@@ -165,20 +121,6 @@ export default {
             const leafletMarkerIcons = document.querySelectorAll('.leaflet-marker-icon');
             leafletMarkerIcons.forEach(leafletMarkerIcon => {
                 leafletMarkerIcon.src = leafletMarkerIcon.src.replace(subPathRegex, mapMarkerSubPath);
-                leafletMarkerIcon.src = leafletMarkerIcon.src.replace(imageFileTypeRegex, mapMarkerFileType);
-                leafletMarkerIcon.style.height = mapMarkerHeight;
-                leafletMarkerIcon.style.width = mapMarkerWidth;
-                leafletMarkerIcon.style.marginLeft = mapMarkerMarginLeft;
-                leafletMarkerIcon.style.marginTop = mapMarkerMarginTop;
-            });
-
-            // update marker shadows on map
-            const leafletMarkerShadows = document.querySelectorAll('.leaflet-marker-shadow');
-            leafletMarkerShadows.forEach(leafletMarkerShadow => {
-                leafletMarkerShadow.style.height = mapMarkerShadowHeight;
-                leafletMarkerShadow.style.width = mapMarkerShadowWidth;
-                leafletMarkerShadow.style.marginLeft = mapMarkerMarginLeft;
-                leafletMarkerShadow.style.marginTop = mapMarkerMarginTop;
             });
         },
         /**

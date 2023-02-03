@@ -136,7 +136,7 @@ export default {
             layers: null,
             locationMarkers: [],
             map: null,
-            mapMarkerIconsPath: '/images/leaflet/markerIcons/coloredFilledGrey/',
+            mapMarkerIconsPath: '/images/leaflet/markerIcons/coloredFilledWhite/',
             persons: {
                 perpetrators: {},
                 victims: {},
@@ -422,7 +422,11 @@ export default {
             this.setCachedMapView();
 
             // add layers control to switch between different base layers and switch overlays on/off
-            this.layers = L.control.layers(baseLayers).addTo(this.map);
+            this.layers = L.control.layers(baseLayers);
+
+            if (this.$ogtGlobals.isTestingEnv) {
+                this.layers.addTo(this.map);
+            }
 
             this.map.zoomControl.setPosition('topright');
 
@@ -516,7 +520,7 @@ export default {
             let placeMarkers = [];
             let iconUrl = this.$ogtGlobals.proxyPath + this.mapMarkerIconsPath + this.groupedPlaces[placeGroupName].iconName;
             const defaultIcon = L.icon({
-                className: hideEvents ? 'displayNone' : '',
+                className: hideEvents ? 'd-none' : '',
                 iconUrl: iconUrl,
                 // Workaround to use same marker icons for Retina and non-Retina displays.
                 // - default file '/images/leaflet/marker-icon-2x.png'
@@ -552,29 +556,12 @@ export default {
                 for (const [statementId, placeCoordinate] of Object.entries(place.coordinates)) {
                     let marker = L.marker(placeCoordinate.value, {
                         icon: defaultIcon,
-                        title: place.label,
                         riseOnHover: true,
+                        title: place.label,
                     });
 
-                    /*
-                    let markerPopUpHtmlTemplate = `
-                        <div class="popUpTopic">
-                            <a href="https://www.wikidata.org/wiki/${placeId}" target="_blank">
-                                ${place.label}
-                            </a>
-                            <button class="zoomInButton">
-                                &#x1f50d;
-                            </button>
-                        </div>
-                        <br>
-                        ${place.description}`;
-                    */
-
-                    let markerPopUpHtmlTemplate = `<div class="popUpTopic">${place.label}</div>`;
-
-                    marker.bindPopup(markerPopUpHtmlTemplate, {
-                        className: hideEvents ? 'displayNone' : '',
-                        minWidth: 333,
+                    marker.bindPopup(place.label, {
+                        className: hideEvents ? 'd-none' : 'font-weight-bold',
                     });
 
                     marker.on('click', event => {
@@ -594,16 +581,6 @@ export default {
 
                         //marker.setIcon(highlightIcon);
                         //this.selectedMapMarker = marker;
-
-                        /*
-                        const zoomInButton = marker.getPopup().getElement().getElementsByClassName('zoomInButton')[0];
-
-                        let vm = this;
-
-                        zoomInButton.onclick = function () {
-                            vm.map.flyTo(event.latlng, 18);
-                        };
-                        */
                     });
 
                     placeMarkers.push(marker);
@@ -1828,25 +1805,6 @@ export default {
 </script>
 
 <style>
-.displayNone {
-    display: none !important;
-}
-
-.popUpTopic {
-    font-weight: bold;
-}
-
-.popUpTopicCategory {
-    font-style: italic;
-}
-
-.zoomInButton {
-    background-color: inherit;
-    border: none;
-    cursor: pointer;
-    font-size: 20px;
-}
-
 /* top-right Leaflet control */
 .leaflet-top.leaflet-right {
     margin-top: 80px;
