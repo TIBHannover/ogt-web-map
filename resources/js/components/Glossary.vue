@@ -1,5 +1,5 @@
 <template>
-    <v-container id="glossaryContainer" :class="{'pl-375': isMenuDisplayed}">
+    <v-container id="container" class="mb-110" :class="{'pl-375': isMenuDisplayed}">
         <div :class="{'pl-4': freeClientWidth == 0 && isMenuDisplayed}">
             <v-row :class="{'ml-15': freeClientWidth < 75 && ! isMenuDisplayed}">
                 <v-col>
@@ -74,7 +74,6 @@
                 </v-col>
             </v-row>
         </div>
-        <br><br><br><br><br>
     </v-container>
 </template>
 
@@ -115,9 +114,9 @@ export default {
          * @param event
          */
         setFreeClientWidth(event) {
-            const glossaryContainer = document.getElementById('glossaryContainer');
+            const container = document.getElementById('container');
 
-            this.freeClientWidth = (document.documentElement.clientWidth - glossaryContainer.clientWidth) / 2;
+            this.freeClientWidth = (document.documentElement.clientWidth - container.clientWidth) / 2;
         },
         /**
          *  Set first letter of glossary entries as index for the glossary.
@@ -244,6 +243,11 @@ export default {
 
 .hyphens-auto {
     hyphens: auto;
+}
+
+/* space for footer to avoid that footer covers content */
+.mb-110 {
+    margin-bottom: 110px;
 }
 
 .noBullets {
