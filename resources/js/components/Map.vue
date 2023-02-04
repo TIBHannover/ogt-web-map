@@ -1,4 +1,5 @@
 <template>
+    <!-- v-resize="onResize" -->
     <div>
         <map-options-sidebar
             :groupedPlaces="groupedPlaces"
@@ -16,8 +17,8 @@
             @zoomIntoPlace="setMapView(selectedPlace.latLng, 18, true)"
         ></place-info-sidebar>
 
-        <!-- leaflet map -->
-        <div id="leafletMapId"></div>
+        <!-- leaflet map style="width: 1650px" -->
+        <div id="leafletMapId" ></div>
     </div>
 </template>
 
@@ -25,12 +26,14 @@
 import Leaflet from 'leaflet/dist/leaflet';
 import MapOptionsSidebar from './map/MapOptionsSidebar';
 import PlaceInfoSidebar from './map/PlaceInfoSidebar';
+//import {nextTick} from 'vue';
 
 export default {
     name: 'Map',
     components: {Leaflet, MapOptionsSidebar, PlaceInfoSidebar},
     data() {
         return {
+            //renderComponent: true,
             cachedMapView: {
                 // Leaflet LatLng geographical point object
                 latLng: {
@@ -385,7 +388,19 @@ export default {
                 Q5727902: 'ca.',
                 Q47035128: '>',
             },
+            /*
+            windowSize: {
+                x: 0,
+                y: 0,
+            },
+            */
         };
+    },
+    beforeCreate() {
+        //this.$forceUpdate();
+        //console.log("beforeCreate");
+        //document.getElementById("leafletMapId").style.width = "100%";
+        //this.forceRerender();
     },
     created() {
         this.WIKIDATA_ID_CLASSES = Object.freeze({
@@ -398,13 +413,77 @@ export default {
             ],
         });
 
+        //this.$forceUpdate();
+        //console.log("created");
+        //document.getElementById("leafletMapId").style.width = "100%";
+
         this.getGroupedPlaces();
         this.getPersons();
     },
+    beforeMount() {
+        //console.log("beforeMount");
+        //this.$forceUpdate();
+        //document.getElementById("leafletMapId").style.width = "100%";
+    },
     mounted() {
+        //this.$forceUpdate();
+
+        //document.documentElement.clientWidth = 100;
+
+        //console.log("document.documentElement.clientWidth = ", document.documentElement.clientWidth);
+        //document.getElementById("leafletMapId").style.width = document.documentElement.clientWidth + 'px';
+
+        //console.log("mounted");
+        //var container = document.getElementById("leafletMapId");
+        //var content = container.innerHTML;
+        //container.innerHTML = content;
+
+        //document.getElementById('leafletMapId').style.display = 'none';
+        //document.getElementById('leafletMapId').exitFullscreen();
+        //document.exitFullscreen();
+        //this.$(window).trigger('resize');
+        //nextTick();
+        //this.$forceUpdate();
+
+        //document.getElementById('leafletMapId').style.display = 'block';
+        //console.log(document.getElementById('leafletMapId').style);
+
+        //container.style.width = "1672px";
+        //nextTick();
+        //document.getElementById("leafletMapId").style.width = "1672px";
+
+        //this.$forceUpdate();
+
         this.setupLeafletMap();
+
+        //this.$forceUpdate();
+        //this.onResize();
+        //document.getElementById("leafletMapId").style.width = "100%";
+        //document.getElementById("leafletMapId").style.width = '100%';
+        //this.$forceUpdate();
     },
     methods: {
+        /*
+        reload() {
+            this.$forceUpdate();
+            document.getElementById("leafletMapId").style.width = "100%";
+        },
+        onResize: function () {
+            this.windowSize = { x: window.innerWidth, y: window.innerHeight }
+        },
+        async forceRerender() {
+            console.log("forceRerender start");
+            // Remove MyComponent from the DOM
+            this.renderComponent = false;
+
+            // Wait for the change to get flushed to the DOM
+            await this.$nextTick();
+
+            // Add the component back in
+            this.renderComponent = true;
+            console.log("forceRerender end");
+        },
+        */
         setupLeafletMap: function () {
             let baseLayers = {};
 
@@ -418,6 +497,17 @@ export default {
                 zoom: configLeaflet.zoom,
                 layers: [baseLayers[configLeaflet.initialLayerName]],
             });
+
+            //this.map.off();
+            //this.map.on();
+            //this.map.remove();
+            //this.map.viewreset();
+            //this.map.fire('resize');
+            //this.map.fire('viewreset');
+            //window.dispatchEvent(new Event("resize"));
+
+            //this.$forceUpdate();
+            //this.forceRerender();
 
             this.setCachedMapView();
 
@@ -1815,6 +1905,15 @@ export default {
 .leaflet-tile-pane {
     filter: grayscale(1);
 }
+
+/*
+#leafletMapId {
+    height: 100%;
+    position: absolute;
+    width: 100%;
+    z-index: 0;
+}
+*/
 </style>
 
 <style scoped>
