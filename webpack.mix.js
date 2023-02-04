@@ -12,15 +12,10 @@ const mix = require('laravel-mix');
  */
 
 /* required for Leaflet layer control icon */
-console.log("process.env.ASSET_URL = ", process.env.ASSET_URL);
-//console.log("mix", mix.dump())
-//console.log("mix", mix.dumpWebpackConfig())
 mix.setResourceRoot(process.env.ASSET_URL ?? '');
 
 /* set reverse proxy sub-path required for generated links to resources */
 if (['production', 'testing'].includes(process.env.APP_ENV)) {
-    // not required for local development for envs (local / production)
-    // mix.setResourceRoot(process.env.ASSET_URL ?? '');
     mix.webpackConfig({
         output: {
             publicPath: process.env.MIX_PROXY_PATH + '/',
