@@ -1,8 +1,8 @@
 <template>
     <v-container id="container" class="mb-110" :class="{'pl-375': isMenuDisplayed}">
         <div :class="{'pl-4': freeClientWidth == 0 && isMenuDisplayed}">
-            <!-- :style="{'padding-left': (freeClientWidth < 75 && ! isMenuDisplayed) ? ((1*(75-freeClientWidth)) + 'px') : ''}" -->
-            <v-row :class="{'ml-15': freeClientWidth < 75 && ! isMenuDisplayed}">
+            <v-row :style="{'padding-left': (freeClientWidth < 75 && ! isMenuDisplayed) ? ((1*(75-freeClientWidth)) + 'px') : ''}">
+            <!-- <v-row :class="{'ml-15': freeClientWidth < 75 && ! isMenuDisplayed}"> -->
                 <v-col>
                     <h1 class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-h4 text-md-h3" lang="de">
                         Glossar

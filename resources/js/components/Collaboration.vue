@@ -3,8 +3,11 @@
 
         <!-- header -->
         <v-row>
+            <!-- space reserved for opened navigation menu -->
+            <v-col class="hidden-sm-and-down" style="min-width: 375px; max-width: 375px"></v-col>
+
             <v-col>
-                <h1 class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-center text-h4 text-md-h3" lang="de">
+                <h1 class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-h4 text-md-h3" lang="de">
                     Mitforschen
                 </h1>
             </v-col>
@@ -19,7 +22,7 @@
             </v-col>
 
             <!-- scrollable content -->
-            <v-col class="hyphens-auto text-justify" lang="de">
+            <v-col class="hyphens-auto" lang="de">
                 <section id="citizenScience" class="mt-3 mb-16">
                     <h1 class="text-h5 text-md-h4 mb-5">
                         "Gestapo.Terror.Orte" - Ein Citizen Science Projekt
