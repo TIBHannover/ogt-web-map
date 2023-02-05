@@ -89,13 +89,13 @@
 
                 <v-divider></v-divider>
 
-                <section id="coResearch" class="mt-3">
+                <section id="coResearch" class="mt-3 mb-5">
                     <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
                         Wie kann ich mitforschen?
                     </h1>
-                    <v-expansion-panels focusable inset>
-                        <v-expansion-panel class="grey lighten-3">
-                            <v-expansion-panel-header class="text-h6 text-md-h5">
+                    <v-expansion-panels focusable>
+                        <v-expansion-panel class="hyphens-auto" lang="de">
+                            <v-expansion-panel-header class="font-weight-bold">
                                 Schulische und außerschulische Jugendgruppen
                             </v-expansion-panel-header>
                             <v-expansion-panel-content>
@@ -111,7 +111,7 @@
                                 <p>
                                     Hierfür gibt es verschiedene Möglichkeiten:
                                 </p>
-                                <ul class="mb-4">
+                                <ul class="noBullets mb-4">
                                     <li>
                                         <p>Selbstständige Teilnahme</p>
                                         <p>
@@ -143,8 +143,8 @@
                             </v-expansion-panel-content>
                         </v-expansion-panel>
 
-                        <v-expansion-panel class="grey lighten-3">
-                            <v-expansion-panel-header class="text-h6 text-md-h5">
+                        <v-expansion-panel class="hyphens-auto" lang="de">
+                            <v-expansion-panel-header class="font-weight-bold">
                                 Gedenkstätten
                             </v-expansion-panel-header>
                             <v-expansion-panel-content>
@@ -170,8 +170,8 @@
                             </v-expansion-panel-content>
                         </v-expansion-panel>
 
-                        <v-expansion-panel class="grey lighten-3">
-                            <v-expansion-panel-header class="text-h6 text-md-h5">
+                        <v-expansion-panel class="hyphens-auto" lang="de">
+                            <v-expansion-panel-header class="font-weight-bold">
                                 Geschichtswissenschaftler*innen
                             </v-expansion-panel-header>
                             <v-expansion-panel-content>
@@ -185,8 +185,8 @@
                             </v-expansion-panel-content>
                         </v-expansion-panel>
 
-                        <v-expansion-panel class="grey lighten-3">
-                            <v-expansion-panel-header class="text-h6 text-md-h5">
+                        <v-expansion-panel class="hyphens-auto" lang="de">
+                            <v-expansion-panel-header class="font-weight-bold">
                                 Geschichtsvereine, Initiativen, Einzelpersonen
                             </v-expansion-panel-header>
                             <v-expansion-panel-content>
@@ -349,5 +349,9 @@ export default {
 
 .hyphens-auto {
     hyphens: auto;
+}
+
+.noBullets {
+    list-style-type: none;
 }
 </style>
