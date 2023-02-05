@@ -1,9 +1,12 @@
 <template>
     <section class="sticky-top pt-3">
-        <h6 class="text-h6">Inhaltsübersicht</h6>
+        <!--<h6 class="text-h6">Inhaltsübersicht</h6>-->
         <div class="toc-border-left">
-            <v-list-item v-for="heading in headings" :key=heading.href>
+            <v-list-item v-for="(heading, index) in headings" :key=heading.href>
                 <v-list-item-content>
+                    <v-list-item-title v-if="index == 0" class="mb-4 font-weight-bold">
+                        Inhaltsübersicht
+                    </v-list-item-title>
                     <v-list-item-subtitle>
                         <a class="hyphens-auto white-space-normal" :href=heading.href lang="de">
                             {{ heading.label }}
@@ -15,7 +18,7 @@
 
             <v-list-item three-line>
                 <v-list-item-content>
-                    <v-list-item-title class="mb-4">
+                    <v-list-item-title class="mb-4 font-weight-bold">
                         Kooperationsprojekt
                     </v-list-item-title>
                     <v-list-item-subtitle class="mb-2">
@@ -45,7 +48,7 @@
 
             <v-list-item three-line>
                 <v-list-item-content>
-                    <v-list-item-title class="mb-4">
+                    <v-list-item-title class="mb-4 font-weight-bold">
                         Förderung
                     </v-list-item-title>
                     <v-list-item-subtitle class="mb-2">
@@ -74,7 +77,7 @@
 
             <v-list-item two-line>
                 <v-list-item-content>
-                    <v-list-item-title class="mb-4">
+                    <v-list-item-title class="mb-4 font-weight-bold">
                         Laufzeit
                     </v-list-item-title>
                     <v-list-item-subtitle>
