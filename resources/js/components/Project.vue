@@ -3,8 +3,11 @@
 
         <!-- header -->
         <v-row>
+            <!-- space reserved for opened navigation menu -->
+            <v-col class="hidden-sm-and-down" style="min-width: 375px; max-width: 375px"></v-col>
+
             <v-col>
-                <h1 class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-center text-h4 text-md-h3" lang="de">
+                <h1 class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-h4 text-md-h3" lang="de">
                     Projekt
                 </h1>
             </v-col>
