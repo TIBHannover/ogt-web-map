@@ -39,11 +39,13 @@
                         Wo befanden sich Orte des Gestapoterrors in Niedersachsen? Welche Gebäude nutzte die politische
                         Polizei während des Nationalsozialismus? Wo waren die Dienstsitze, wo die Haftstätten der
                         Geheimen Staatspolizei?
-                        <br>
+                    </p>
+                    <p>
                         Mit Hilfe der interaktive Landkarte „Gestapo.Terror.Orte in Niedersachsen 1933–1945“ werden
                         Daten zu den Orten des Gestapoterrors im heutigen Niedersachsen erhoben, dargestellt und
                         ausgewertet.
-                        <br>
+                    </p>
+                    <p>
                         So wird die Tätigkeit der Gestapo mit Blick auf deren Standorte und Infrastruktur erforscht und
                         das vorhandene Wissen über die Verbrechen der Gestapo und die spätere Erinnerung daran digital
                         zugänglich gemacht. Die interaktive Landkarte kann von niedersächsischen Gedenkstätten und
@@ -58,12 +60,14 @@
                         Die Gestapo war eines der wichtigsten Terrorinstrumente des nationalsozialistischen Staates. Sie
                         verfolgte unter anderem politische Gegnerinnen und Gegner, setzte den staatlichen Antisemitismus
                         und Rassismus durch und erhielt die Kriegswirtschaft aufrecht.
-                        <br>
+                    </p>
+                    <p>
                         Der Gestapo gelang es wie in vielen anderen Regionen auch im Bereich des heutigen Landes
                         Niedersachsen, ihre Unterlagen kurz vor Ende des Zweiten Weltkriegs weitgehend zu vernichten.
                         Insbesondere Nachkriegsermittlungen und Parallelüberlieferungen ermöglichen jedoch die
                         Rekonstruktion der Tätigkeit der Gestapo.
-                        <br>
+                    </p>
+                    <p>
                         Im Mittelpunkt des Forschungsprojektes stehen die Orte des Gestapoterrors im Bereich des Landes
                         Niedersachsen von 1933–1945. Die damaligen Dienstsitze und Haftstätten werden erstmals
                         flächendeckend als grundlegende Faktoren der Gestapotätigkeit untersucht.

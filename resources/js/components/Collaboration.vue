@@ -23,8 +23,8 @@
 
             <!-- scrollable content -->
             <v-col class="hyphens-auto" lang="de">
-                <section id="citizenScience" class="mt-3 mb-16">
-                    <h1 class="text-h5 text-md-h4 mb-5">
+                <section id="citizenScience" class="mt-3">
+                    <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
                         "Gestapo.Terror.Orte" - Ein Citizen Science Projekt
                     </h1>
                     <p>
@@ -45,14 +45,31 @@
                     </p>
                 </section>
 
-                <section id="examples" class="mt-3 mb-16">
-                    <h1 class="text-h5 text-md-h4 mb-5">
+                <v-divider></v-divider>
+
+                <section id="examples" class="mt-3">
+                    <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
                         Beispiele
                     </h1>
                     <p>
                         Die interaktive Karte befindet sich im Aufbau. Folgende Datensätze sind weitestgehend
                         ausgearbeitet und können als Beispiele dienen:
                     </p>
+
+                    <p v-for="example in examples"
+                        v-if="$ogtGlobals.isTestingEnv || example.group != 'Ereignisse'"
+                    >
+                        <span class="font-weight-bold">{{ example.group }}</span>
+                        <br>
+                        <span v-for="location in example.locations">
+                            <router-link :to="{ name: 'map', query: { qId: location.qId } }">
+                                {{ location.label }}
+                            </router-link>
+                            <br>
+                        </span>
+                    </p>
+
+                    <!--
                     <ul class="mb-4">
                         <li v-for="example in examples"
                             v-if="$ogtGlobals.isTestingEnv || example.group != 'Ereignisse'"
@@ -67,10 +84,13 @@
                             </ul>
                         </li>
                     </ul>
+                    -->
                 </section>
 
-                <section id="coResearch" class="mt-3 mb-16">
-                    <h1 class="text-h5 text-md-h4 mb-5">
+                <v-divider></v-divider>
+
+                <section id="coResearch" class="mt-3">
+                    <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
                         Wie kann ich mitforschen?
                     </h1>
                     <v-expansion-panels focusable inset>
@@ -188,8 +208,10 @@
                     </v-expansion-panels>
                 </section>
 
-                <section id="projectIdeas" class="mt-3 mb-16">
-                    <h1 class="text-h5 text-md-h4 mb-5">
+                <v-divider></v-divider>
+
+                <section id="projectIdeas" class="mt-3">
+                    <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
                         Projektideen
                     </h1>
                     <p>
@@ -198,7 +220,7 @@
                         Projekte sind möglich.
                     </p>
 
-                    <h2 class="text-h6 text-md-h5 mb-3">
+                    <h2 class="text-h6 text-md-h5">
                         Spuren der Geschichte in meiner Umgebung – ein Fotoprojekt
                     </h2>
                     <p>
@@ -208,7 +230,7 @@
                         hochgeladen und schließlich auf „Gestapo.Terror.Orte“ angezeigt werden.
                     </p>
 
-                    <h2 class="text-h6 text-md-h5 mb-3">
+                    <h2 class="text-h6 text-md-h5">
                         Biografie Projekt
                     </h2>
                     <p>
@@ -219,7 +241,7 @@
                         „Gestapo.Terror.Orte“ veröffentlicht.
                     </p>
 
-                    <h2 class="text-h6 text-md-h5 mb-3">
+                    <h2 class="text-h6 text-md-h5">
                         Archivfunde
                     </h2>
                     <p>
