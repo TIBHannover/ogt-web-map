@@ -15,7 +15,7 @@
         <!-- charts overview -->
         <section v-if="showOverview">
             <v-row>
-                <v-col class="hyphens-auto text-justify" cols=12 lang="de">
+                <v-col class="hyphens-auto" cols=12 lang="de">
                     <h2 class="mb-3 text-h6 text-md-h5">
                         Visualisierung von Daten zu Organisationen, Ereignissen, Erinnerungsorten, Tätern und
                         Geschädigten
@@ -38,7 +38,7 @@
                         <v-card-title>
                             {{ chart.title }}
                         </v-card-title>
-                        <v-card-subtitle class="hyphens-auto text-justify" lang="de">
+                        <v-card-subtitle class="hyphens-auto" lang="de">
                             {{ chart.subtitle }}
                         </v-card-subtitle>
                         <v-card-actions>
@@ -75,7 +75,7 @@
             <h1 class="text-h5 text-md-h4 my-5">
                 {{ selectedChart.title }}
             </h1>
-            <p class="hyphens-auto text-justify" lang="de">
+            <p class="hyphens-auto" lang="de">
                 {{ selectedChart.subtitle }}
             </p>
 
