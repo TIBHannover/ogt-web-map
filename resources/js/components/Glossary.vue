@@ -1,80 +1,80 @@
 <template>
-    <v-container id="container" class="mb-110" :class="{'pl-375': isMenuDisplayed}">
-        <div :class="{'pl-4': freeClientWidth == 0 && isMenuDisplayed}">
-            <v-row :style="{'padding-left': (freeClientWidth < 75 && ! isMenuDisplayed) ? ((1*(75-freeClientWidth)) + 'px') : ''}">
-            <!-- <v-row :class="{'ml-15': freeClientWidth < 75 && ! isMenuDisplayed}"> -->
-                <v-col>
-                    <h1 class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-h4 text-md-h3" lang="de">
-                        Glossar
-                    </h1>
-                </v-col>
-            </v-row>
+    <v-container id="container" class="mb-110" :class="{'pl-391': isMenuDisplayed}">
 
-            <v-row>
-                <v-col>
-                    <v-btn-toggle v-model="selectedGlossaryIndex" class="flex-wrap" group mandatory>
-                        <v-btn
-                            v-for="indexLetter in this.glossaryIndex"
-                            :key="indexLetter"
-                            class="button-toggle-border mb-3 mr-3"
-                            fab
-                            small
-                            :value="indexLetter"
-                        >
-                            {{ indexLetter }}
-                        </v-btn>
-                    </v-btn-toggle>
-                </v-col>
-            </v-row>
+        <v-row :style="{
+            'padding-left': (freeClientWidth < 75 && ! isMenuDisplayed) ? ((75 - freeClientWidth) + 'px') : 0
+        }">
+            <v-col>
+                <h1 class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-h4 text-md-h3" lang="de">
+                    Glossar
+                </h1>
+            </v-col>
+        </v-row>
 
-            <v-row>
-                <v-col>
-                    <v-text-field
-                        v-model="searchTerm"
-                        clearable
-                        color="black"
-                        hint="Die Bezeichnungen und die Beschreibungen der Glossareinträge werden durchsucht."
-                        label="Glossar durchsuchen..."
-                        prepend-inner-icon="mdi-text-search-variant"
-                    ></v-text-field>
-                </v-col>
-            </v-row>
+        <v-row>
+            <v-col>
+                <v-btn-toggle v-model="selectedGlossaryIndex" class="flex-wrap" group mandatory>
+                    <v-btn
+                        v-for="indexLetter in this.glossaryIndex"
+                        :key="indexLetter"
+                        class="button-toggle-border mb-3 mr-3"
+                        fab
+                        small
+                        :value="indexLetter"
+                    >
+                        {{ indexLetter }}
+                    </v-btn>
+                </v-btn-toggle>
+            </v-col>
+        </v-row>
 
-            <v-row>
-                <v-col>
-                    <v-expansion-panels v-model="openedGlossaryPanel" focusable>
-                        <v-expansion-panel
-                            v-for="(glossaryItem, glossaryItemLabel) in this.glossaryData"
-                            :key="glossaryItem.id"
-                            v-show="filterGlossaryItems(glossaryItemLabel, glossaryItem.descriptions)"
-                            class="hyphens-auto"
-                            lang="de"
-                        >
-                            <v-expansion-panel-header :id="glossaryItem.id" class="font-weight-bold">
-                                {{ glossaryItemLabel }}
-                            </v-expansion-panel-header>
+        <v-row>
+            <v-col>
+                <v-text-field
+                    v-model="searchTerm"
+                    clearable
+                    color="black"
+                    hint="Die Bezeichnungen und die Beschreibungen der Glossareinträge werden durchsucht."
+                    label="Glossar durchsuchen..."
+                    prepend-inner-icon="mdi-text-search-variant"
+                ></v-text-field>
+            </v-col>
+        </v-row>
 
-                            <v-expansion-panel-content>
-                                <template v-for="description in glossaryItem.descriptions">
-                                    <ul v-if="Array.isArray(description)" class="noBullets mb-4">
-                                        <li v-for="enumerationText in description">
-                                            {{ enumerationText }}
-                                        </li>
-                                    </ul>
-                                    <p v-else @click="showLinkedGlossaryItem" v-html="description"></p>
-                                </template>
+        <v-row>
+            <v-col>
+                <v-expansion-panels v-model="openedGlossaryPanel" focusable>
+                    <v-expansion-panel
+                        v-for="(glossaryItem, glossaryItemLabel) in this.glossaryData"
+                        :key="glossaryItem.id"
+                        v-show="filterGlossaryItems(glossaryItemLabel, glossaryItem.descriptions)"
+                        class="hyphens-auto"
+                        lang="de"
+                    >
+                        <v-expansion-panel-header :id="glossaryItem.id" class="font-weight-bold">
+                            {{ glossaryItemLabel }}
+                        </v-expansion-panel-header>
 
-                                <h5 v-if="glossaryItem.sources.length > 0" class="font-weight-bold">
-                                    Quellen:
-                                </h5>
+                        <v-expansion-panel-content>
+                            <template v-for="description in glossaryItem.descriptions">
+                                <ul v-if="Array.isArray(description)" class="noBullets mb-4">
+                                    <li v-for="enumerationText in description">
+                                        {{ enumerationText }}
+                                    </li>
+                                </ul>
+                                <p v-else @click="showLinkedGlossaryItem" v-html="description"></p>
+                            </template>
 
-                                <p v-for="source in glossaryItem.sources" class="text-body-2" v-html="source"></p>
-                            </v-expansion-panel-content>
-                        </v-expansion-panel>
-                    </v-expansion-panels>
-                </v-col>
-            </v-row>
-        </div>
+                            <h5 v-if="glossaryItem.sources.length > 0" class="font-weight-bold">
+                                Quellen:
+                            </h5>
+
+                            <p v-for="source in glossaryItem.sources" class="text-body-2" v-html="source"></p>
+                        </v-expansion-panel-content>
+                    </v-expansion-panel>
+                </v-expansion-panels>
+            </v-col>
+        </v-row>
     </v-container>
 </template>
 
@@ -110,7 +110,7 @@ export default {
     },
     methods: {
         /**
-         * Determine width of free space between glossary content and client border.
+         * Determine width of free space between content and client border.
          *
          * @param event
          */
@@ -255,7 +255,8 @@ export default {
     list-style-type: none;
 }
 
-.pl-375 {
-    padding-left: 375px;
+/* space for opened navigation sidebar to avoid that navigation sidebar covers content */
+.pl-391 {
+    padding-left: 391px;
 }
 </style>
