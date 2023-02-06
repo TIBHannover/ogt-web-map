@@ -47,13 +47,6 @@ export default {
                     toMenu: 'mainMenu',
                 },
                 {
-                    title: 'Glossar (new)',
-                    icon: 'mdi-order-alphabetical-ascending',
-                    path: '/glossary-new',
-                    show: true,
-                    toMenu: 'mainMenu',
-                },
-                {
                     title: 'Kartenansicht',
                     icon: 'mdi-map-search-outline',
                     path: '/map',
@@ -64,13 +57,6 @@ export default {
                     title: 'Datenvisualisierung',
                     icon: 'mdi-chart-areaspline',
                     path: '/charts',
-                    show: true,
-                    toMenu: 'mainMenu',
-                },
-                {
-                    title: 'Datenvisualisierung (new)',
-                    icon: 'mdi-chart-areaspline',
-                    path: '/charts-new',
                     show: true,
                     toMenu: 'mainMenu',
                 },

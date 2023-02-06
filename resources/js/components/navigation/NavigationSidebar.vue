@@ -14,9 +14,8 @@
         </v-btn>
 
         <!-- navigation sidebar -->
-        <!-- add :app="this.$route.name == 'glossary'" property? -->
         <v-navigation-drawer
-            :app="this.$route.name == 'glossary-new' || this.$route.name == 'welcome'"
+            app="this.$route.name != 'map'"
             fixed
             hide-overlay
             mobile-breakpoint="750"
