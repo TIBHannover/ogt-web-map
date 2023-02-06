@@ -24,7 +24,15 @@
                             mehr Daten vorhanden sind, desto vollständiger werden die Übersichten. Dieses Ziel kann nur
                             durch die Hilfe vieler erreicht werden. Informationen, wie mitgeforscht werden kann, finde sich
                             hier:
-                            <router-link to="/collaboration">Mitforschen</router-link>
+                            <span class="text-no-wrap">
+                                &#10132;
+                                <v-icon left>
+                                    mdi-arrow-right-thick
+                                </v-icon>
+                                <router-link to="/collaboration">
+                                    Mitforschen
+                                </router-link>
+                            </span>
                         </p>
                     </v-col>
                 </v-row>
