@@ -105,7 +105,10 @@
                     </p>
                     <p>
                         Weitere Informationen zum Thema Mitforschen finden sich hier:
-                        <router-link to="/collaboration">Mitforschen</router-link>
+                        <span class="text-no-wrap">
+                            &#10132;
+                            <router-link to="/collaboration">Mitforschen</router-link>
+                        </span>
                     </p>
                 </section>
 
