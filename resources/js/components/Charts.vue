@@ -1,5 +1,5 @@
 <template>
-    <v-container id="container" class="mb-110">
+    <v-container id="container" class="mb-110" :class="{'pl-391': isMenuDisplayed}">
 
         <!-- header -->
         <v-row :style="{
@@ -135,11 +135,6 @@ export default {
 </script>
 
 <style scoped>
-/* space for footer to avoid that footer covers content */
-.mb-110 {
-    margin-bottom: 110px;
-}
-
 .font-family-special-elite {
     font-family: "Special Elite" !important;
 }
@@ -157,5 +152,15 @@ iframe {
 /* workaround to avoid the button not being fully visible on small devices */
 .maxWidth100 {
     max-width: 100%;
+}
+
+/* space for footer to avoid that footer covers content */
+.mb-110 {
+    margin-bottom: 110px;
+}
+
+/* space for opened navigation sidebar to avoid that navigation sidebar covers content */
+.pl-391 {
+    padding-left: 391px;
 }
 </style>
