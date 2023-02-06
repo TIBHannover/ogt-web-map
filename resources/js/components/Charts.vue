@@ -1,10 +1,12 @@
 <template>
-    <v-container class="mb-110">
+    <v-container id="container" class="mb-110" :class="{'pl-391': isMenuDisplayed}">
 
         <!-- header -->
-        <v-row class="ml-14 ml-sm-n3">
+        <v-row :style="{
+            'padding-left': (freeClientWidth < 75 && ! isMenuDisplayed) ? ((75 - freeClientWidth) + 'px') : 0
+        }">
             <v-col>
-                <h1 class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-center text-h4 text-md-h3" lang="de">
+                <h1 class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-h4 text-md-h3" lang="de">
                     Datenvisualisierung
                 </h1>
             </v-col>
@@ -13,7 +15,7 @@
         <!-- charts overview -->
         <section v-if="showOverview">
             <v-row>
-                <v-col class="hyphens-auto text-justify" cols=12 lang="de">
+                <v-col class="hyphens-auto" cols=12 lang="de">
                     <h2 class="mb-3 text-h6 text-md-h5">
                         Visualisierung von Daten zu Organisationen, Ereignissen, Erinnerungsorten, Tätern und
                         Geschädigten
@@ -23,7 +25,10 @@
                         mehr Daten vorhanden sind, desto vollständiger werden die Übersichten. Dieses Ziel kann nur
                         durch die Hilfe vieler erreicht werden. Informationen, wie mitgeforscht werden kann, finde sich
                         hier:
-                        <router-link to="/collaboration">Mitforschen</router-link>
+                        <span class="text-no-wrap">
+                            &#10132;
+                            <router-link to="/collaboration">Mitforschen</router-link>
+                        </span>
                     </p>
                 </v-col>
             </v-row>
@@ -36,7 +41,7 @@
                         <v-card-title>
                             {{ chart.title }}
                         </v-card-title>
-                        <v-card-subtitle class="hyphens-auto text-justify" lang="de">
+                        <v-card-subtitle class="hyphens-auto" lang="de">
                             {{ chart.subtitle }}
                         </v-card-subtitle>
                         <v-card-actions>
@@ -73,7 +78,7 @@
             <h1 class="text-h5 text-md-h4 my-5">
                 {{ selectedChart.title }}
             </h1>
-            <p class="hyphens-auto text-justify" lang="de">
+            <p class="hyphens-auto" lang="de">
                 {{ selectedChart.subtitle }}
             </p>
 
@@ -90,14 +95,35 @@ import chartsData from '../data/chartsData';
 
 export default {
     name: 'Charts',
+    props: ['isMenuDisplayed'],
     data() {
         return {
             charts: chartsData,
+            freeClientWidth: document.documentElement.clientWidth,
             selectedChart: null,
             showOverview: true,
         };
     },
+    created() {
+        window.addEventListener('resize', this.setFreeClientWidth);
+    },
+    destroyed() {
+        window.removeEventListener('resize', this.setFreeClientWidth);
+    },
+    mounted() {
+        this.setFreeClientWidth();
+    },
     methods: {
+        /**
+         * Determine width of free space between content and client border.
+         *
+         * @param event
+         */
+        setFreeClientWidth(event) {
+            const container = document.getElementById('container');
+
+            this.freeClientWidth = (document.documentElement.clientWidth - container.clientWidth) / 2;
+        },
         /**
          * Show selected chart and hide charts overview.
          *
@@ -112,11 +138,6 @@ export default {
 </script>
 
 <style scoped>
-/* space for footer to avoid that footer covers content */
-.mb-110 {
-    margin-bottom: 110px;
-}
-
 .font-family-special-elite {
     font-family: "Special Elite" !important;
 }
@@ -134,5 +155,15 @@ iframe {
 /* workaround to avoid the button not being fully visible on small devices */
 .maxWidth100 {
     max-width: 100%;
+}
+
+/* space for footer to avoid that footer covers content */
+.mb-110 {
+    margin-bottom: 110px;
+}
+
+/* space for opened navigation sidebar to avoid that navigation sidebar covers content */
+.pl-391 {
+    padding-left: 391px;
 }
 </style>
