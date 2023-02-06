@@ -26,7 +26,7 @@
                             hier:
                             <span class="text-no-wrap">
                                 &#10132;
-                                <v-icon left>
+                                <v-icon left color="black">
                                     mdi-arrow-right-thick
                                 </v-icon>
                                 <router-link to="/collaboration">
