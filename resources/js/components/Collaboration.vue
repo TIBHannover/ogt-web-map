@@ -69,7 +69,6 @@
                         </span>
                     </p>
 
-                    <!--
                     <ul class="mb-4">
                         <li v-for="example in examples"
                             v-if="$ogtGlobals.isTestingEnv || example.group != 'Ereignisse'"
@@ -84,7 +83,6 @@
                             </ul>
                         </li>
                     </ul>
-                    -->
                 </section>
 
                 <v-divider></v-divider>
@@ -111,7 +109,32 @@
                                 <p>
                                     Hierfür gibt es verschiedene Möglichkeiten:
                                 </p>
-                                <ul class="noBullets mb-4">
+                                <p>
+                                    <span class="font-weight-bold">Selbstständige Teilnahme</span>
+                                    <br>
+                                    <span>
+                                        Lehrende können Projekteinheiten selbstständig vorbereiten. Zur Klärung von
+                                        Fragen kann die Projektkoordination unter der E-Mailadresse
+                                        <email encryptedEmail="phu/qspkfdu" :showEmail=true></email>
+                                        erreicht werden.
+                                    </span>
+                                </p>
+                                <p>
+                                    <span class="font-weight-bold">Kooperation "Remember Me!"</span>
+                                    <br>
+                                    <span>
+                                            Im Rahmen des Projektes „Remember Me!“ werden kostenlos betreute Workshops
+                                            angeboten. Diese können nach Absprache vor Ort in der Schule, an
+                                            ausgesuchten Gedenkorten in der Nähe oder virtuell stattfinden. Weitere
+                                            Informationen zu "Remember Me!" und Teilnahmemöglichkeiten finden sich hier:
+                                            <a href="https://projects.tib.eu/rememberme-data/ueber-das-projekt/"
+                                               target="_blank"
+                                            >
+                                                Über das Projekt - Remember Me
+                                            </a>
+                                    </span>
+                                </p>
+                                <ul class="mb-4">
                                     <li>
                                         <p>Selbstständige Teilnahme</p>
                                         <p>
@@ -236,7 +259,11 @@
                     <p>
                         Biografien von Geschädigten oder Gestapo Mitarbeiter:innen werden recherchiert. Die gewonnenen
                         Daten werden mit Hilfe von
-                        <a href="https://www.wikidata.org" target="_blank">Wikidata</a>
+                        <span class="text-no-wrap">
+                            <a href="https://www.wikidata.org" target="_blank">
+                                Wikidata<v-icon small style="vertical-align: top;">mdi-open-in-new</v-icon>
+                            </a>
+                        </span>
                         der Allgemeinheit zur Verfügung gestellt. Diese Daten werden anschließend auf
                         „Gestapo.Terror.Orte“ veröffentlicht.
                     </p>
