@@ -91,7 +91,7 @@
 import chartsData from '../data/chartsData';
 
 export default {
-    name: 'Charts',
+    name: 'Charts2',
     props: ['isMenuDisplayed'],
     data() {
         return {

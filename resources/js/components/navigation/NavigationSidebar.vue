@@ -16,6 +16,7 @@
         <!-- navigation sidebar -->
         <!-- add :app="this.$route.name == 'glossary'" property? -->
         <v-navigation-drawer
+            :app="this.$route.name == 'glossary-new'"
             fixed
             hide-overlay
             mobile-breakpoint="750"
