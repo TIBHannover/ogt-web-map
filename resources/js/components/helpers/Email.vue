@@ -1,5 +1,6 @@
 <template>
-    <a @click.stop="setMailToLink(encryptedEmail)">
+    <a @click.stop="setMailToLink(encryptedEmail)" class="text-no-wrap">
+        <v-icon v-if="showIcon" dense>mdi-email-outline</v-icon>
         <span id="showEmail" v-show="showEmail">
             <span id="localPart">{{ decryptedEmail }}</span><span id="domain">{{ domain }}</span>{{ domainSuffix }}
         </span>
@@ -18,6 +19,10 @@ export default {
             required: true,
         },
         showEmail: {
+            type: Boolean,
+            default: false,
+        },
+        showIcon: {
             type: Boolean,
             default: false,
         },
