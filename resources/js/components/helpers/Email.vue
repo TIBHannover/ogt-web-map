@@ -1,10 +1,10 @@
 <template>
     <a @click.stop="setMailToLink(encryptedEmail)" class="text-no-wrap">
         <v-icon v-if="showIcon" dense>mdi-email-outline</v-icon>
-        <span id="showEmail" v-show="showEmail">
+        <span id="showEmail" v-if="showEmail">
             <span id="localPart">{{ decryptedEmail }}</span><span id="domain">{{ domain }}</span>{{ domainSuffix }}
         </span>
-        <span v-show="!showEmail">
+        <span v-if="!showEmail">
             E-Mail
         </span>
     </a>
