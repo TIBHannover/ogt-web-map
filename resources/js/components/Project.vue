@@ -138,20 +138,20 @@
                             <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
                         </a>
                         <br>
-                        <email encryptedEmail="job/cmvfnfm" :showEmail=true></email>
+                        <email encryptedEmail="job/cmvfnfm" :showEmail=true :showIcon=true></email>
                     </p>
                     <p>
                         <span class="font-weight-bold">Lisa Groh-Trautmann</span>
                         (M.A. Geschichtswissenschaften) / Wissenschaftliche Mitarbeiterin, Projektkoordination &
                         Recherche
                         <br>
-                        <email encryptedEmail="mjtb/hspi" :showEmail=true></email>
+                        <email encryptedEmail="mjtb/hspi" :showEmail=true :showIcon=true></email>
                     </p>
                     <p>
                         <span class="font-weight-bold">Nils Casties</span>
                         / Webentwicklung & Projektkoordination
                         <br>
-                        <email encryptedEmail="ojmt/dbtujft" :showEmail=true></email>
+                        <email encryptedEmail="ojmt/dbtujft" :showEmail=true :showIcon=true></email>
                     </p>
                     <p>
                         <span class="font-weight-bold">Lucia Sohmen</span>
