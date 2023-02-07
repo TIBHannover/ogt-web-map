@@ -23,12 +23,6 @@
                     <h1 class="text-h5 text-md-h4 mb-5">
                         Forschungsfragen & Projektziele
                     </h1>
-                    <h2 class="text-h6 text-md-h5 mb-3">
-                        Gestapo.Terror.Orte in Niedersachsen 1933–1945
-                    </h2>
-                    <h3 class="text-subtitle-2 text-md-h6 mb-1">
-                        Spuren der Vergangenheit: Verbrechen der Gestapo digital sichtbar machen
-                    </h3>
                     <p>
                         Wo befanden sich Orte des Gestapoterrors in Niedersachsen? Welche Gebäude nutzte die politische
                         Polizei während des Nationalsozialismus? Wo waren die Dienstsitze, wo die Haftstätten der
@@ -113,9 +107,6 @@
                     <h1 class="text-h5 text-md-h4 mb-5">
                         Team & Partner:innen
                     </h1>
-                    <h2 class="text-h6 text-md-h5 mb-3">
-                        Einleitung
-                    </h2>
                     <p>
                         Das Projekt „Orte des Gestapoterrors im heutigen Niedersachsen“ (OGT) ist ein
                         Kooperationsprojekt zwischen der Stiftung niedersächsische Gedenkstätten (SnG), zu deren Auftrag
@@ -286,12 +277,10 @@
                             </a>
                         </li>
                     </ul>
-                </section>
 
-                <section id="pressReports" class="mb-16">
-                    <h1 class="text-h5 text-md-h4 mb-5">
+                    <h2 class="text-h6 text-md-h5 mb-3">
                         Presseberichte
-                    </h1>
+                    </h2>
                     <ul class="mb-4">
                         <li>
                             14.09.2020 – BuB – Forum Bibliothek und Information –
@@ -343,10 +332,6 @@ export default {
                 {
                     href: '#presentationsAndPublications',
                     label: 'Projektpräsentationen & Publikationen',
-                },
-                {
-                    href: '#pressReports',
-                    label: 'Presseberichte',
                 },
             ],
         };
