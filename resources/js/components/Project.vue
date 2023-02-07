@@ -120,43 +120,61 @@
                     <h3 class="text-subtitle-2 text-md-h6 mb-1">
                         Technische Informationsbibliothek (TIB) – Open Science Lab (OSL)
                     </h3>
-                    <ul class="mb-4">
-                        <li>
-                            <a href="https://vivo.tib.eu/fis/individual/n0000-0003-0232-7085" target="_blank">
-                                Lambert Heller
-                            </a>
-                            &nbsp;– Leitung Open Science Lab der TIB
-                        </li>
-                        <li>
-                            <a href="https://vivo.tib.eu/fis/individual/n0000-0002-3075-7640" target="_blank">
-                                Prof. Dr. Ina Blümel
-                            </a>
-                            &nbsp;– Projektleitung –
-                            <email encryptedEmail="job/cmvfnfm"></email>
-                        </li>
-                        <li>
-                            Lisa Groh-Trautmann (M.A. Geschichtswissenschaften) – Wissenschaftliche Mitarbeiterin,
-                            Projektkoordination & Recherche –
-                            <email encryptedEmail="mjtb/hspi"></email>
-                        </li>
-                        <li>
-                            Nils Casties – Webentwicklung & Projektkoordination –
-                            <email encryptedEmail="ojmt/dbtujft"></email>
-                        </li>
-                        <li>
-                            <a href="https://vivo.tib.eu/fis/individual/n0000-0002-2593-8754" target="_blank">
-                                Lucia Sohmen
-                            </a>
-                            &nbsp;– Wissenschaftliche Mitarbeiterin
-                        </li>
-                        <li>
-                            <a href="https://nadinekloever.com/" target="_blank">
-                                Nadine Klöver
-                            </a>
-                            &nbsp;– Grafik-Design | Advertising-Design
-                        </li>
-                        <li>Tobias Mielich – Studentischer Mitarbeiter, Fachmaster Geschichte (Master of Arts)</li>
-                    </ul>
+                    <p>
+                        <span class="font-weight-bold">Lambert Heller</span>
+                        / Leitung Open Science Lab der TIB
+                        <br>
+                        <a href="https://vivo.tib.eu/fis/individual/n0000-0003-0232-7085" target="_blank">
+                            https://vivo.tib.eu/fis/individual/n0000-0003-0232-7085
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+                        </a>
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Prof. Dr. Ina Blümel</span>
+                        / Projektleitung
+                        <br>
+                        <a href="https://vivo.tib.eu/fis/individual/n0000-0002-3075-7640" target="_blank">
+                            https://vivo.tib.eu/fis/individual/n0000-0002-3075-7640
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+                        </a>
+                        <br>
+                        <email encryptedEmail="job/cmvfnfm" :showEmail=true></email>
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Lisa Groh-Trautmann</span>
+                        (M.A. Geschichtswissenschaften) / Wissenschaftliche Mitarbeiterin, Projektkoordination &
+                        Recherche
+                        <br>
+                        <email encryptedEmail="mjtb/hspi" :showEmail=true></email>
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Nils Casties</span>
+                        / Webentwicklung & Projektkoordination
+                        <br>
+                        <email encryptedEmail="ojmt/dbtujft" :showEmail=true></email>
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Lucia Sohmen</span>
+                        / Wissenschaftliche Mitarbeiterin
+                        <br>
+                        <a href="https://vivo.tib.eu/fis/individual/n0000-0002-2593-8754" target="_blank">
+                            https://vivo.tib.eu/fis/individual/n0000-0002-2593-8754
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+                        </a>
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Nadine Klöver</span>
+                        / Grafik-Design
+                        <br>
+                        <a href="https://nadinekloever.com" target="_blank">
+                            https://nadinekloever.com
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+                        </a>
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Tobias Mielich</span>
+                        / Studentischer Mitarbeiter, Fachmaster Geschichte (Master of Arts)
+                    </p>
 
                     <h2 class="text-h6 text-md-h5 mb-3">
                         Partner:innen
@@ -175,18 +193,43 @@
                             ></v-img>
                         </a>
                     </p>
-                    <ul class="mb-4">
-                        <li>
-                            Dr. Elke Gryglewski – Geschäftsführung Stiftung niedersächsische Gedenkstätten | Leitung der
-                            Gedenkstätte Bergen-Belsen
-                        </li>
-                        <li>Dr. Rolf Keller – Leitung Gedenkstättenförderung Niedersachsen</li>
-                        <li>Marc Ellinghaus – Leitung Bildung und Begegnung der Gedenkstätte Bergen-Belsen</li>
-                        <li>Stephanie Billib – Presse- und Öffentlichkeitsarbeit</li>
-                        <li>Dr. Janine Doerry – Wissenschaftliche Mitarbeiterin</li>
-                        <li>Juliane Hummel M.A. – Wissenschaftliche Mitarbeiterin</li>
-                        <li>Silke Petry M.A. – Wissenschaftliche Mitarbeiterin</li>
-                    </ul>
+                    <p>
+                        <span class="font-weight-bold">Dr. Elke Gryglewski</span>
+                        <br>
+                        Geschäftsführung Stiftung niedersächsische Gedenkstätten
+                        <br>
+                        Leitung der Gedenkstätte Bergen-Belsen
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Dr. Rolf Keller</span>
+                        <br>
+                        Leitung Gedenkstättenförderung Niedersachsen
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Marc Ellinghaus</span>
+                        <br>
+                        Leitung Bildung und Begegnung der Gedenkstätte Bergen-Belsen
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Stephanie Billib</span>
+                        <br>
+                        Presse- und Öffentlichkeitsarbeit
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Dr. Janine Doerry</span>
+                        <br>
+                        Wissenschaftliche Mitarbeiterin
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Juliane Hummel M.A.</span>
+                        <br>
+                        Wissenschaftliche Mitarbeiterin
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Silke Petry M.A.</span>
+                        <br>
+                        Wissenschaftliche Mitarbeiterin
+                    </p>
 
                     <h3 class="text-subtitle-2 text-md-h6 mb-1">
                         Gedenkstätten Gestapokeller und Augustaschacht
@@ -224,83 +267,80 @@
                     <h2 class="text-h6 text-md-h5 mb-3">
                         Präsentationen
                     </h2>
-                    <ul class="mb-4">
-                        <li>
-                            03.07.2022 –
-                            <a href="https://zenodo.org/record/6817273" target="_blank">
-                                Überwachung und Terror – die Gestapo als Instrument des NS-Regimes
-                                <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
-                            </a>
-                        </li>
-                        <li>
-                            22.09.2021 –
-                            <a href="https://zenodo.org/record/5589811" target="_blank">
-                                Projektpräsentation zur Tagung „Digital Memory – Digital History – Digital Mapping.
-                                Transformationen von Erinnerungskulturen und Holocaust-Education“
-                                <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
-                            </a>
-                        </li>
-                    </ul>
+                    <p>
+                        03.07.2022
+                        <br>
+                        <a href="https://zenodo.org/record/6817273" target="_blank">
+                            Überwachung und Terror – die Gestapo als Instrument des NS-Regimes
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+                        </a>
+                    </p>
+                    <p>
+                        22.09.2021
+                        <br>
+                        <a href="https://zenodo.org/record/5589811" target="_blank">
+                            Projektpräsentation zur Tagung „Digital Memory – Digital History – Digital Mapping.
+                            Transformationen von Erinnerungskulturen und Holocaust-Education“
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+                        </a>
+                    </p>
 
                     <h2 class="text-h6 text-md-h5 mb-3">
                         Publikationen
                     </h2>
-                    <ul class="mb-4">
-                        <li>
-                            <a href="https://www.stiftung-ng.de/fileadmin/dateien/Stiftung/ueber_uns/Jahresberichte/Jahresbericht_SNG_2020_Web.pdf"
-                               target="_blank"
-                            >
-                                Stiftung niedersächsische Gedenkstätten – Jahresbericht 2020
-                                <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="https://projects.tib.eu/ogt-orte-des-gestapoterrors/projekt/"
-                               target="_blank"
-                            >
-                                OGT Projektwebsite der TIB
-                                <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="https://www.tib.eu/de/forschung-entwicklung/projektuebersicht/projektsteckbrief/ogt-orte-des-gestapoterrors"
-                               target="_blank"
-                            >
-                                Projektprofil
-                                <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="https://zenodo.org/record/4313236" target="_blank">
-                                Auszug aus dem Projektantrag
-                                <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
-                            </a>
-                        </li>
-                    </ul>
+                    <p>
+                        <a href="https://www.stiftung-ng.de/fileadmin/dateien/Stiftung/ueber_uns/Jahresberichte/Jahresbericht_SNG_2020_Web.pdf"
+                           target="_blank"
+                        >
+                            Stiftung niedersächsische Gedenkstätten – Jahresbericht 2020
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+                        </a>
+                        <br>
+                        <a href="https://projects.tib.eu/ogt-orte-des-gestapoterrors/projekt/"
+                           target="_blank"
+                        >
+                            OGT Projektwebsite der TIB
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+                        </a>
+                        <br>
+                        <a href="https://www.tib.eu/de/forschung-entwicklung/projektuebersicht/projektsteckbrief/ogt-orte-des-gestapoterrors"
+                           target="_blank"
+                        >
+                            Projektprofil
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+                        </a>
+                        <br>
+                        <a href="https://zenodo.org/record/4313236" target="_blank">
+                            Auszug aus dem Projektantrag
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+                        </a>
+                    </p>
 
                     <h2 class="text-h6 text-md-h5 mb-3">
                         Presseberichte
                     </h2>
-                    <ul class="mb-4">
-                        <li>
-                            14.09.2020 – BuB – Forum Bibliothek und Information –
-                            <a href="https://www.b-u-b.de/detail/verbrechen-der-gestapo-digital-sichtbar-machen"
-                               target="_blank"
-                            >
-                                Verbrechen der Gestapo digital sichtbar machen
-                                <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
-                            </a>
-                        </li>
-                        <li>
-                            25.08.2020 – TIB-Pressemitteilung –
-                            <a href="https://www.tib.eu/de/die-tib/neuigkeiten-und-termine/aktuelles/detail/spuren-der-vergangenheit-verbrechen-der-gestapo-digital-sichtbar-machen"
-                               target="_blank"
-                            >
-                                Spuren der Vergangenheit: Verbrechen der Gestapo digital sichtbar machen
-                                <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
-                            </a>
-                        </li>
-                    </ul>
+                    <p>
+                        14.09.2020
+                        <br>
+                        BuB – Forum Bibliothek und Information –
+                        <a href="https://www.b-u-b.de/detail/verbrechen-der-gestapo-digital-sichtbar-machen"
+                           target="_blank"
+                        >
+                            Verbrechen der Gestapo digital sichtbar machen
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+                        </a>
+                    </p>
+                    <p>
+                        25.08.2020
+                        <br>
+                        TIB-Pressemitteilung –
+                        <a href="https://www.tib.eu/de/die-tib/neuigkeiten-und-termine/aktuelles/detail/spuren-der-vergangenheit-verbrechen-der-gestapo-digital-sichtbar-machen"
+                           target="_blank"
+                        >
+                            Spuren der Vergangenheit: Verbrechen der Gestapo digital sichtbar machen
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+                        </a>
+                    </p>
                 </section>
                 <br><br>
             </v-col>
