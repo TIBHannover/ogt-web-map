@@ -1,11 +1,14 @@
 <template>
     <section class="sticky-top pt-3">
-        <h6 class="text-h6">Inhaltsübersicht</h6>
         <div class="toc-border-left">
-            <v-list-item v-for="heading in headings" :key=heading.href>
+            <v-list-item v-for="(heading, index) in headings" :key=heading.href>
                 <v-list-item-content>
+                    <v-list-item-title v-if="index == 0" class="font-weight-bold mb-4">
+                        Inhaltsübersicht
+                    </v-list-item-title>
                     <v-list-item-subtitle>
-                        <a class="hyphens-auto white-space-normal" :href=heading.href lang="de">
+                        &#10132;
+                        <a class="white-space-normal" :href=heading.href>
                             {{ heading.label }}
                         </a>
                     </v-list-item-subtitle>
@@ -15,7 +18,7 @@
 
             <v-list-item three-line>
                 <v-list-item-content>
-                    <v-list-item-title class="mb-4">
+                    <v-list-item-title class="font-weight-bold mb-4">
                         Kooperationsprojekt
                     </v-list-item-title>
                     <v-list-item-subtitle class="mb-2">
@@ -45,7 +48,7 @@
 
             <v-list-item three-line>
                 <v-list-item-content>
-                    <v-list-item-title class="mb-4">
+                    <v-list-item-title class="font-weight-bold mb-4">
                         Förderung
                     </v-list-item-title>
                     <v-list-item-subtitle class="mb-2">
@@ -65,7 +68,10 @@
                             lang="de"
                             target="_blank"
                         >
-                            Förderprogramm PRO*Niedersachsen
+                            Förderprogramm
+                            <span class="text-no-wrap">
+                                PRO*Niedersachsen<v-icon small>mdi-open-in-new</v-icon>
+                            </span>
                         </a>
                     </v-list-item-subtitle>
                 </v-list-item-content>
@@ -74,7 +80,7 @@
 
             <v-list-item two-line>
                 <v-list-item-content>
-                    <v-list-item-title class="mb-4">
+                    <v-list-item-title class="font-weight-bold mb-4">
                         Laufzeit
                     </v-list-item-title>
                     <v-list-item-subtitle>
