@@ -238,6 +238,7 @@
                             03.07.2022 –
                             <a href="https://zenodo.org/record/6817273" target="_blank">
                                 Überwachung und Terror – die Gestapo als Instrument des NS-Regimes
+                                <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
                             </a>
                         </li>
                         <li>
@@ -245,6 +246,7 @@
                             <a href="https://zenodo.org/record/5589811" target="_blank">
                                 Projektpräsentation zur Tagung „Digital Memory – Digital History – Digital Mapping.
                                 Transformationen von Erinnerungskulturen und Holocaust-Education“
+                                <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
                             </a>
                         </li>
                     </ul>
@@ -258,6 +260,7 @@
                                target="_blank"
                             >
                                 Stiftung niedersächsische Gedenkstätten – Jahresbericht 2020
+                                <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
                             </a>
                         </li>
                         <li>
@@ -265,6 +268,7 @@
                                target="_blank"
                             >
                                 OGT Projektwebsite der TIB
+                                <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
                             </a>
                         </li>
                         <li>
@@ -272,11 +276,13 @@
                                target="_blank"
                             >
                                 Projektprofil
+                                <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
                             </a>
                         </li>
                         <li>
                             <a href="https://zenodo.org/record/4313236" target="_blank">
                                 Auszug aus dem Projektantrag
+                                <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
                             </a>
                         </li>
                     </ul>
@@ -289,10 +295,11 @@
                     <ul class="mb-4">
                         <li>
                             14.09.2020 – BuB – Forum Bibliothek und Information –
-                            <a href="https://b-u-b.de/verbrechen-der-gestapo-digital-sichtbar-machen/#intro"
+                            <a href="https://www.b-u-b.de/detail/verbrechen-der-gestapo-digital-sichtbar-machen"
                                target="_blank"
                             >
                                 Verbrechen der Gestapo digital sichtbar machen
+                                <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
                             </a>
                         </li>
                         <li>
@@ -301,6 +308,7 @@
                                target="_blank"
                             >
                                 Spuren der Vergangenheit: Verbrechen der Gestapo digital sichtbar machen
+                                <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
                             </a>
                         </li>
                     </ul>
@@ -379,5 +387,10 @@ export default {
 /* space for opened navigation sidebar to avoid that navigation sidebar covers content */
 .pl-391 {
     padding-left: 391px;
+}
+
+/* for external link icon */
+.vertical-align-top {
+    vertical-align: top;
 }
 </style>
