@@ -1,5 +1,5 @@
 <template>
-    <v-container id="container" :class="{'pl-391': isMenuDisplayed}">
+    <v-container id="container" class="mb-110" :class="{'pl-391': isMenuDisplayed}">
 
         <!-- header -->
         <v-row :style="{
@@ -19,7 +19,7 @@
 
             <!-- scrollable content -->
             <v-col class="hyphens-auto" lang="de">
-                <section id="citizenScience" class="mt-3 mb-16">
+                <section id="citizenScience">
                     <h1 class="text-h5 text-md-h4 mb-5">
                         "Gestapo.Terror.Orte" - Ein Citizen Science Projekt
                     </h1>
@@ -41,7 +41,9 @@
                     </p>
                 </section>
 
-                <section id="examples" class="mt-3 mb-16">
+                <v-divider class="my-6"></v-divider>
+
+                <section id="examples">
                     <h1 class="text-h5 text-md-h4 mb-5">
                         Beispiele
                     </h1>
@@ -62,7 +64,9 @@
                     </p>
                 </section>
 
-                <section id="coResearch" class="mt-3 mb-16">
+                <v-divider class="my-6"></v-divider>
+
+                <section id="coResearch">
                     <h1 class="text-h5 text-md-h4 mb-5">
                         Wie kann ich mitforschen?
                     </h1>
@@ -192,7 +196,9 @@
                     </v-expansion-panels>
                 </section>
 
-                <section id="projectIdeas" class="mt-3 mb-16">
+                <v-divider class="mb-6 mt-8"></v-divider>
+
+                <section id="projectIdeas">
                     <h1 class="text-h5 text-md-h4 mb-5">
                         Projektideen
                     </h1>
@@ -202,7 +208,7 @@
                         Projekte sind möglich.
                     </p>
 
-                    <h2 class="text-h6 text-md-h5 mb-3">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         Spuren der Geschichte in meiner Umgebung – ein Fotoprojekt
                     </h2>
                     <p>
@@ -215,7 +221,7 @@
                         hochgeladen und schließlich auf „Gestapo.Terror.Orte“ angezeigt werden.
                     </p>
 
-                    <h2 class="text-h6 text-md-h5 mb-3">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         Biografie Projekt
                     </h2>
                     <p>
@@ -229,7 +235,7 @@
                         „Gestapo.Terror.Orte“ veröffentlicht.
                     </p>
 
-                    <h2 class="text-h6 text-md-h5 mb-3">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         Archivfunde
                     </h2>
                     <p>
@@ -238,7 +244,6 @@
                         „Gestapo.Terror.Orte“ veröffentlicht werden.
                     </p>
                 </section>
-                <br><br>
             </v-col>
         </v-row>
     </v-container>
@@ -360,6 +365,11 @@ export default {
 
 .hyphens-auto {
     hyphens: auto;
+}
+
+/* space for footer to avoid that footer covers content */
+.mb-110 {
+    margin-bottom: 110px;
 }
 
 /* space for opened navigation sidebar to avoid that navigation sidebar covers content */
