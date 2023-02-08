@@ -1,5 +1,5 @@
 <template>
-    <v-container id="container" class="grey lighten-3" fluid>
+    <v-container id="container" :class="{'pl-391': isMenuDisplayed}">
 
         <!-- header -->
         <v-row :style="{
@@ -13,9 +13,6 @@
         </v-row>
 
         <v-row>
-            <!-- space reserved for opened navigation menu -->
-            <v-col class="hidden-sm-and-down" style="min-width: 375px; max-width: 375px"></v-col>
-
             <v-col class="col-12 col-sm-2 order-sm-last" style="min-width: 310px">
                 <table-of-contents-sidebar :headings="headings"></table-of-contents-sidebar>
             </v-col>
@@ -349,5 +346,10 @@ export default {
 
 .hyphens-auto {
     hyphens: auto;
+}
+
+/* space for opened navigation sidebar to avoid that navigation sidebar covers content */
+.pl-391 {
+    padding-left: 391px;
 }
 </style>
