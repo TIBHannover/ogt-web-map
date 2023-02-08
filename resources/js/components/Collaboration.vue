@@ -49,20 +49,16 @@
                         Die interaktive Karte befindet sich im Aufbau. Folgende Datensätze sind weitestgehend
                         ausgearbeitet und können als Beispiele dienen:
                     </p>
-                    <ul class="mb-4">
-                        <li v-for="example in examples"
-                            v-if="$ogtGlobals.isTestingEnv || example.group != 'Ereignisse'"
-                        >
-                            {{ example.group }}
-                            <ul>
-                                <li v-for="location in example.locations">
-                                    <router-link :to="{ name: 'map', query: { qId: location.qId } }">
-                                        {{ location.label }}
-                                    </router-link>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
+                    <p v-for="example in examples" v-if="$ogtGlobals.isTestingEnv || example.group != 'Ereignisse'">
+                        <span class="font-weight-bold">{{ example.group }}</span>
+                        <br>
+                        <span v-for="location in example.locations">
+                            <router-link :to="{ name: 'map', query: { qId: location.qId } }">
+                                {{ location.label }}
+                            </router-link>
+                            <br>
+                        </span>
+                    </p>
                 </section>
 
                 <section id="coResearch" class="mt-3 mb-16">
@@ -87,31 +83,31 @@
                                 <p>
                                     Hierfür gibt es verschiedene Möglichkeiten:
                                 </p>
-                                <ul class="mb-4">
-                                    <li>
-                                        <p>Selbstständige Teilnahme</p>
-                                        <p>
-                                            Lehrende können Projekteinheiten selbstständig vorbereiten. Zur Klärung von
-                                            Fragen kann die Projektkoordination unter der E-Mailadresse
-                                            <email encryptedEmail="phu/qspkfdu" :showEmail=true></email>
-                                            erreicht werden.
-                                        </p>
-                                    </li>
-                                    <li>
-                                        <p>Kooperation "Remember Me!"</p>
-                                        <p>
-                                            Im Rahmen des Projektes „Remember Me!“ werden kostenlos betreute Workshops
-                                            angeboten. Diese können nach Absprache vor Ort in der Schule, an
-                                            ausgesuchten Gedenkorten in der Nähe oder virtuell stattfinden. Weitere
-                                            Informationen zu "Remember Me!" und Teilnahmemöglichkeiten finden sich hier:
-                                            <a href="https://projects.tib.eu/rememberme-data/ueber-das-projekt/"
-                                               target="_blank"
-                                            >
-                                                Über das Projekt - Remember Me
-                                            </a>
-                                        </p>
-                                    </li>
-                                </ul>
+                                <p>
+                                    <span class="font-weight-bold">Selbstständige Teilnahme</span>
+                                    <br>
+                                    <span>
+                                        Lehrende können Projekteinheiten selbstständig vorbereiten. Zur Klärung von
+                                        Fragen kann die Projektkoordination unter der E-Mailadresse
+                                        <email encryptedEmail="phu/qspkfdu" :showEmail=true></email>
+                                        erreicht werden.
+                                    </span>
+                                </p>
+                                <p>
+                                    <span class="font-weight-bold">Kooperation "Remember Me!"</span>
+                                    <br>
+                                    <span>
+                                        Im Rahmen des Projektes „Remember Me!“ werden kostenlos betreute Workshops
+                                        angeboten. Diese können nach Absprache vor Ort in der Schule, an
+                                        ausgesuchten Gedenkorten in der Nähe oder virtuell stattfinden. Weitere
+                                        Informationen zu "Remember Me!" und Teilnahmemöglichkeiten finden sich hier:
+                                        <a href="https://projects.tib.eu/rememberme-data/ueber-das-projekt/"
+                                           target="_blank"
+                                        >
+                                            Über das Projekt - Remember Me
+                                        </a>
+                                    </span>
+                                </p>
                                 <p>
                                     Einige Projektideen finden sich hier:
                                     <a class="hyphens-auto" href="#projectIdeas" lang="de">Projektideen</a>
