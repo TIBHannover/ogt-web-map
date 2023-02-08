@@ -70,9 +70,9 @@
                     <h1 class="text-h5 text-md-h4 mb-5">
                         Wie kann ich mitforschen?
                     </h1>
-                    <v-expansion-panels focusable inset>
-                        <v-expansion-panel class="grey lighten-3">
-                            <v-expansion-panel-header class="text-h6 text-md-h5">
+                    <v-expansion-panels focusable>
+                        <v-expansion-panel>
+                            <v-expansion-panel-header class="font-weight-bold">
                                 Schulische und außerschulische Jugendgruppen
                             </v-expansion-panel-header>
                             <v-expansion-panel-content>
@@ -125,8 +125,8 @@
                             </v-expansion-panel-content>
                         </v-expansion-panel>
 
-                        <v-expansion-panel class="grey lighten-3">
-                            <v-expansion-panel-header class="text-h6 text-md-h5">
+                        <v-expansion-panel>
+                            <v-expansion-panel-header class="font-weight-bold">
                                 Gedenkstätten
                             </v-expansion-panel-header>
                             <v-expansion-panel-content>
@@ -155,8 +155,8 @@
                             </v-expansion-panel-content>
                         </v-expansion-panel>
 
-                        <v-expansion-panel class="grey lighten-3">
-                            <v-expansion-panel-header class="text-h6 text-md-h5">
+                        <v-expansion-panel>
+                            <v-expansion-panel-header class="font-weight-bold">
                                 Geschichtswissenschaftler*innen
                             </v-expansion-panel-header>
                             <v-expansion-panel-content>
@@ -170,8 +170,8 @@
                             </v-expansion-panel-content>
                         </v-expansion-panel>
 
-                        <v-expansion-panel class="grey lighten-3">
-                            <v-expansion-panel-header class="text-h6 text-md-h5">
+                        <v-expansion-panel>
+                            <v-expansion-panel-header class="font-weight-bold">
                                 Geschichtsvereine, Initiativen, Einzelpersonen
                             </v-expansion-panel-header>
                             <v-expansion-panel-content>
