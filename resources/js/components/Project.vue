@@ -20,7 +20,7 @@
             <!-- scrollable content -->
             <v-col class="hyphens-auto" lang="de">
                 <section id="researchObjectives">
-                    <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
+                    <h1 class="text-h5 text-md-h4 mb-5">
                         Forschungsfragen & Projektziele
                     </h1>
                     <p>
@@ -106,7 +106,7 @@
                 <v-divider class="my-6"></v-divider>
 
                 <section id="teamAndPartners">
-                    <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
+                    <h1 class="text-h5 text-md-h4 mb-5">
                         Team & Partner:innen
                     </h1>
                     <p>
@@ -269,7 +269,7 @@
                 <v-divider class="my-6"></v-divider>
 
                 <section id="presentationsAndPublications">
-                    <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
+                    <h1 class="text-h5 text-md-h4 mb-5">
                         Projektpräsentationen & Publikationen
                     </h1>
                     <h2 class="font-weight-medium text-h6 text-md-h5">
