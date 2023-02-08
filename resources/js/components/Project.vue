@@ -20,7 +20,7 @@
             <!-- scrollable content -->
             <v-col class="hyphens-auto" lang="de">
                 <section id="researchObjectives" class="mt-3 mb-16">
-                    <h1 class="text-h5 text-md-h4 mb-5">
+                    <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
                         Forschungsfragen & Projektziele
                     </h1>
                     <p>
@@ -41,7 +41,7 @@
                         ergänzt werden.
                     </p>
 
-                    <h2 class="text-h6 text-md-h5 mb-3">
+                    <h2 class="font-weight-medium text-h6 text-md-h5 mb-3">
                         Standorte und Infrastruktur flächendeckend untersuchen
                     </h2>
                     <p>
@@ -61,7 +61,7 @@
                         flächendeckend als grundlegende Faktoren der Gestapotätigkeit untersucht.
                     </p>
 
-                    <h2 class="text-h6 text-md-h5 mb-3">
+                    <h2 class="font-weight-medium text-h6 text-md-h5 mb-3">
                         Geschichtliches Erbe digital zugänglich machen
                     </h2>
                     <p>
@@ -74,7 +74,7 @@
                         bei und bietet Tools, um diese auswerten.
                     </p>
 
-                    <h2 class="text-h6 text-md-h5 mb-3">
+                    <h2 class="font-weight-medium text-h6 text-md-h5 mb-3">
                         Daten zum Gestapoterror miteinander vernetzen
                     </h2>
                     <p>
@@ -85,7 +85,7 @@
                         einzelne niedersächsische Erinnerungsorte.
                     </p>
 
-                    <h2 class="text-h6 text-md-h5 mb-3">
+                    <h2 class="font-weight-medium text-h6 text-md-h5 mb-3">
                         „Citizen Science“
                     </h2>
                     <p>
@@ -104,7 +104,7 @@
                 </section>
 
                 <section id="teamAndPartners" class="mb-16">
-                    <h1 class="text-h5 text-md-h4 mb-5">
+                    <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
                         Team & Partner:innen
                     </h1>
                     <p>
@@ -114,10 +114,10 @@
                         der Technischen Informationsbibliothek (TIB), die auf die digitale Erschließung und Aufbereitung
                         von Daten und deren freie Zugänglichkeit spezialisiert ist.
                     </p>
-                    <h2 class="text-h6 text-md-h5 mb-3">
+                    <h2 class="font-weight-medium text-h6 text-md-h5 mb-3">
                         Team
                     </h2>
-                    <h3 class="text-subtitle-2 text-md-h6 mb-1">
+                    <h3 class="text-h6 mb-1" :class="{ 'font-weight-regular': $vuetify.breakpoint.mdAndDown }">
                         Technische Informationsbibliothek (TIB) – Open Science Lab (OSL)
                     </h3>
                     <p>
@@ -176,10 +176,10 @@
                         / Studentischer Mitarbeiter, Fachmaster Geschichte (Master of Arts)
                     </p>
 
-                    <h2 class="text-h6 text-md-h5 mb-3">
+                    <h2 class="font-weight-medium text-h6 text-md-h5 mb-3">
                         Partner:innen
                     </h2>
-                    <h3 class="text-subtitle-2 text-md-h6 mb-1">
+                    <h3 class="text-h6 mb-1" :class="{ 'font-weight-regular': $vuetify.breakpoint.mdAndDown }">
                         Stiftung niedersächsische Gedenkstätten (SnG)
                     </h3>
                     <p>
@@ -231,7 +231,7 @@
                         Wissenschaftliche Mitarbeiterin
                     </p>
 
-                    <h3 class="text-subtitle-2 text-md-h6 mb-1">
+                    <h3 class="text-h6 mb-1" :class="{ 'font-weight-regular': $vuetify.breakpoint.mdAndDown }">
                         Gedenkstätten Gestapokeller und Augustaschacht
                     </h3>
                     <v-row class="mb-4" justify="start">
@@ -261,10 +261,10 @@
                 </section>
 
                 <section id="presentationsAndPublications" class="mb-16">
-                    <h1 class="text-h5 text-md-h4 mb-5">
+                    <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
                         Projektpräsentationen & Publikationen
                     </h1>
-                    <h2 class="text-h6 text-md-h5 mb-3">
+                    <h2 class="font-weight-medium text-h6 text-md-h5 mb-3">
                         Präsentationen
                     </h2>
                     <p>
@@ -285,7 +285,7 @@
                         </a>
                     </p>
 
-                    <h2 class="text-h6 text-md-h5 mb-3">
+                    <h2 class="font-weight-medium text-h6 text-md-h5 mb-3">
                         Publikationen
                     </h2>
                     <p>
@@ -316,7 +316,7 @@
                         </a>
                     </p>
 
-                    <h2 class="text-h6 text-md-h5 mb-3">
+                    <h2 class="font-weight-medium text-h6 text-md-h5 mb-3">
                         Presseberichte
                     </h2>
                     <p>
