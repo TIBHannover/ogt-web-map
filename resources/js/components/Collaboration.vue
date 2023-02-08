@@ -17,7 +17,7 @@
             <!-- space reserved for opened navigation menu -->
             <v-col class="hidden-sm-and-down" style="min-width: 375px; max-width: 375px"></v-col>
 
-            <v-col class="col-12 col-sm-2 order-sm-last" style="min-width: 300px">
+            <v-col class="col-12 col-sm-2 order-sm-last" style="min-width: 310px">
                 <table-of-contents-sidebar :headings="headings"></table-of-contents-sidebar>
             </v-col>
 

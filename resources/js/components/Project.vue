@@ -1,11 +1,10 @@
 <template>
-    <v-container class="grey lighten-3" fluid>
+    <v-container id="container" class="mb-110" :class="{'pl-391': isMenuDisplayed}">
 
         <!-- header -->
-        <v-row>
-            <!-- space reserved for opened navigation menu -->
-            <v-col class="hidden-sm-and-down" style="min-width: 375px; max-width: 375px"></v-col>
-
+        <v-row :style="{
+            'padding-left': (freeClientWidth < 75 && ! isMenuDisplayed) ? ((75 - freeClientWidth) + 'px') : 0
+        }">
             <v-col>
                 <h1 class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-h4 text-md-h3" lang="de">
                     Projekt
@@ -14,27 +13,16 @@
         </v-row>
 
         <v-row>
-            <!-- space reserved for opened navigation menu -->
-            <v-col class="hidden-sm-and-down" style="min-width: 375px; max-width: 375px"></v-col>
-
-            <v-col class="col-12 col-sm-2 order-sm-last" style="min-width: 300px">
+            <v-col class="col-12 col-sm-2 order-sm-last" style="min-width: 310px">
                 <table-of-contents-sidebar :headings="headings"></table-of-contents-sidebar>
             </v-col>
 
             <!-- scrollable content -->
             <v-col class="hyphens-auto" lang="de">
-                <section id="researchObjectives" class="mt-3">
-                    <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
+                <section id="researchObjectives">
+                    <h1 class="text-h5 text-md-h4 mb-5">
                         Forschungsfragen & Projektziele
                     </h1>
-                    <!--
-                    <h2 class="text-h6 text-md-h5 mb-3">
-                        Gestapo.Terror.Orte in Niedersachsen 1933–1945
-                    </h2>
-                    <h3 class="text-subtitle-2 text-md-h6 mb-1">
-                        Spuren der Vergangenheit: Verbrechen der Gestapo digital sichtbar machen
-                    </h3>
-                    -->
                     <p>
                         Wo befanden sich Orte des Gestapoterrors in Niedersachsen? Welche Gebäude nutzte die politische
                         Polizei während des Nationalsozialismus? Wo waren die Dienstsitze, wo die Haftstätten der
@@ -53,7 +41,7 @@
                         ergänzt werden.
                     </p>
 
-                    <h2 class="text-h6 text-md-h5">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         Standorte und Infrastruktur flächendeckend untersuchen
                     </h2>
                     <p>
@@ -73,7 +61,7 @@
                         flächendeckend als grundlegende Faktoren der Gestapotätigkeit untersucht.
                     </p>
 
-                    <h2 class="text-h6 text-md-h5">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         Geschichtliches Erbe digital zugänglich machen
                     </h2>
                     <p>
@@ -86,7 +74,7 @@
                         bei und bietet Tools, um diese auswerten.
                     </p>
 
-                    <h2 class="text-h6 text-md-h5">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         Daten zum Gestapoterror miteinander vernetzen
                     </h2>
                     <p>
@@ -97,7 +85,7 @@
                         einzelne niedersächsische Erinnerungsorte.
                     </p>
 
-                    <h2 class="text-h6 text-md-h5">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         „Citizen Science“
                     </h2>
                     <p>
@@ -110,17 +98,15 @@
                         Weitere Informationen zum Thema Mitforschen finden sich hier:
                         <span class="text-no-wrap">
                             &#10132;
-                            <router-link to="/collaboration">
-                                Mitforschen
-                            </router-link>
+                            <router-link to="/collaboration">Mitforschen</router-link>
                         </span>
                     </p>
                 </section>
 
-                <v-divider></v-divider>
+                <v-divider class="my-6"></v-divider>
 
-                <section id="teamAndPartners" class="mt-3">
-                    <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
+                <section id="teamAndPartners">
+                    <h1 class="text-h5 text-md-h4 mb-5">
                         Team & Partner:innen
                     </h1>
                     <p>
@@ -130,41 +116,44 @@
                         der Technischen Informationsbibliothek (TIB), die auf die digitale Erschließung und Aufbereitung
                         von Daten und deren freie Zugänglichkeit spezialisiert ist.
                     </p>
-                    <h2 class="text-h6 text-md-h5">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         Team
                     </h2>
-                    <p>Technische Informationsbibliothek (TIB) – Open Science Lab (OSL)</p>
-
+                    <h3 class="text-h6 mb-1" :class="{ 'font-weight-regular': $vuetify.breakpoint.mdAndDown }">
+                        Technische Informationsbibliothek (TIB) – Open Science Lab (OSL)
+                    </h3>
                     <p>
                         <span class="font-weight-bold">Lambert Heller</span>
                         / Leitung Open Science Lab der TIB
                         <br>
                         <a href="https://vivo.tib.eu/fis/individual/n0000-0003-0232-7085" target="_blank">
                             https://vivo.tib.eu/fis/individual/n0000-0003-0232-7085
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
                         </a>
                     </p>
                     <p>
                         <span class="font-weight-bold">Prof. Dr. Ina Blümel</span>
-                        &nbsp;/ Projektleitung
+                        / Projektleitung
                         <br>
                         <a href="https://vivo.tib.eu/fis/individual/n0000-0002-3075-7640" target="_blank">
                             https://vivo.tib.eu/fis/individual/n0000-0002-3075-7640
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
                         </a>
                         <br>
-                        <email encryptedEmail="job/cmvfnfm" :showEmail=true></email>
+                        <email encryptedEmail="job/cmvfnfm" :showEmail=true :showIcon=true></email>
                     </p>
                     <p>
                         <span class="font-weight-bold">Lisa Groh-Trautmann</span>
-                        (M.A. Geschichtswissenschaften) / Wissenschaftliche Mitarbeiterin,
-                        Projektkoordination & Recherche
+                        (M.A. Geschichtswissenschaften) / Wissenschaftliche Mitarbeiterin, Projektkoordination &
+                        Recherche
                         <br>
-                        <email encryptedEmail="mjtb/hspi" :showEmail=true></email>
+                        <email encryptedEmail="mjtb/hspi" :showEmail=true :showIcon=true></email>
                     </p>
                     <p>
                         <span class="font-weight-bold">Nils Casties</span>
                         / Webentwicklung & Projektkoordination
                         <br>
-                        <email encryptedEmail="ojmt/dbtujft" :showEmail=true></email>
+                        <email encryptedEmail="ojmt/dbtujft" :showEmail=true :showIcon=true></email>
                     </p>
                     <p>
                         <span class="font-weight-bold">Lucia Sohmen</span>
@@ -172,6 +161,7 @@
                         <br>
                         <a href="https://vivo.tib.eu/fis/individual/n0000-0002-2593-8754" target="_blank">
                             https://vivo.tib.eu/fis/individual/n0000-0002-2593-8754
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
                         </a>
                     </p>
                     <p>
@@ -180,6 +170,7 @@
                         <br>
                         <a href="https://nadinekloever.com" target="_blank">
                             https://nadinekloever.com
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
                         </a>
                     </p>
                     <p>
@@ -187,11 +178,10 @@
                         / Studentischer Mitarbeiter, Fachmaster Geschichte (Master of Arts)
                     </p>
 
-
-                    <h2 class="text-h6 text-md-h5">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         Partner:innen
                     </h2>
-                    <h3 class="text-subtitle-1 text-md-h6">
+                    <h3 class="text-h6 mb-1" :class="{ 'font-weight-regular': $vuetify.breakpoint.mdAndDown }">
                         Stiftung niedersächsische Gedenkstätten (SnG)
                     </h3>
                     <p>
@@ -243,42 +233,46 @@
                         Wissenschaftliche Mitarbeiterin
                     </p>
 
-                    <h3 class="text-subtitle-1 text-md-h6">
+                    <h3 class="text-h6 mb-1" :class="{ 'font-weight-regular': $vuetify.breakpoint.mdAndDown }">
                         Gedenkstätten Gestapokeller und Augustaschacht
                     </h3>
-                    <v-row class="mb-4" justify="start">
-                        <v-col style="max-width: 185px">
-                            <a href="https://gedenkstaetten-augustaschacht-osnabrueck.de/augustaschacht"
-                               target="_blank"
-                            >
-                                <v-img
-                                    alt="Logo der Gedenkstätte Augustaschacht"
-                                    contain
-                                    max-height="64px"
-                                    :src="this.$ogtGlobals.proxyPath + '/images/logo-augustaschacht.svg'"
-                                ></v-img>
-                            </a>
-                        </v-col>
-                        <v-col style="max-width: 185px">
-                            <a href="https://gedenkstaetten-augustaschacht-osnabrueck.de/gestapokeller" target="_blank">
-                                <v-img
-                                    alt="Logo der Gedenkstätte Gestapokeller"
-                                    contain
-                                    max-height="64px"
-                                    :src="this.$ogtGlobals.proxyPath + '/images/logo-gestapokeller.svg'"
-                                ></v-img>
-                            </a>
-                        </v-col>
-                    </v-row>
+                    <p>
+                        <v-row justify="start">
+                            <v-col style="max-width: 185px">
+                                <a href="https://gedenkstaetten-augustaschacht-osnabrueck.de/augustaschacht"
+                                   target="_blank"
+                                >
+                                    <v-img
+                                        alt="Logo der Gedenkstätte Augustaschacht"
+                                        contain
+                                        max-height="64px"
+                                        :src="this.$ogtGlobals.proxyPath + '/images/logo-augustaschacht.svg'"
+                                    ></v-img>
+                                </a>
+                            </v-col>
+                            <v-col style="max-width: 185px">
+                                <a href="https://gedenkstaetten-augustaschacht-osnabrueck.de/gestapokeller"
+                                   target="_blank"
+                                >
+                                    <v-img
+                                        alt="Logo der Gedenkstätte Gestapokeller"
+                                        contain
+                                        max-height="64px"
+                                        :src="this.$ogtGlobals.proxyPath + '/images/logo-gestapokeller.svg'"
+                                    ></v-img>
+                                </a>
+                            </v-col>
+                        </v-row>
+                    </p>
                 </section>
 
-                <v-divider></v-divider>
+                <v-divider class="my-6"></v-divider>
 
-                <section id="presentationsAndPublications" class="mt-3">
-                    <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
+                <section id="presentationsAndPublications">
+                    <h1 class="text-h5 text-md-h4 mb-5">
                         Projektpräsentationen & Publikationen
                     </h1>
-                    <h2 class="text-h6 text-md-h5">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         Präsentationen
                     </h2>
                     <p>
@@ -286,6 +280,7 @@
                         <br>
                         <a href="https://zenodo.org/record/6817273" target="_blank">
                             Überwachung und Terror – die Gestapo als Instrument des NS-Regimes
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
                         </a>
                     </p>
                     <p>
@@ -294,10 +289,11 @@
                         <a href="https://zenodo.org/record/5589811" target="_blank">
                             Projektpräsentation zur Tagung „Digital Memory – Digital History – Digital Mapping.
                             Transformationen von Erinnerungskulturen und Holocaust-Education“
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
                         </a>
                     </p>
 
-                    <h2 class="text-h6 text-md-h5">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         Publikationen
                     </h2>
                     <p>
@@ -305,36 +301,41 @@
                            target="_blank"
                         >
                             Stiftung niedersächsische Gedenkstätten – Jahresbericht 2020
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
                         </a>
                         <br>
                         <a href="https://projects.tib.eu/ogt-orte-des-gestapoterrors/projekt/"
                            target="_blank"
                         >
                             OGT Projektwebsite der TIB
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
                         </a>
                         <br>
                         <a href="https://www.tib.eu/de/forschung-entwicklung/projektuebersicht/projektsteckbrief/ogt-orte-des-gestapoterrors"
                            target="_blank"
                         >
                             Projektprofil
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
                         </a>
                         <br>
                         <a href="https://zenodo.org/record/4313236" target="_blank">
                             Auszug aus dem Projektantrag
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
                         </a>
                     </p>
 
-                    <h2 class="text-h6 text-md-h5">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         Presseberichte
                     </h2>
                     <p>
                         14.09.2020
                         <br>
                         BuB – Forum Bibliothek und Information –
-                        <a href="https://b-u-b.de/verbrechen-der-gestapo-digital-sichtbar-machen/#intro"
+                        <a href="https://www.b-u-b.de/detail/verbrechen-der-gestapo-digital-sichtbar-machen"
                            target="_blank"
                         >
                             Verbrechen der Gestapo digital sichtbar machen
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
                         </a>
                     </p>
                     <p>
@@ -345,13 +346,12 @@
                            target="_blank"
                         >
                             Spuren der Vergangenheit: Verbrechen der Gestapo digital sichtbar machen
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
                         </a>
                     </p>
                 </section>
-                <br><br>
             </v-col>
         </v-row>
-
     </v-container>
 </template>
 
@@ -361,9 +361,11 @@ import TableOfContentsSidebar from './navigation/TableOfContentsSidebar';
 
 export default {
     name: 'Project',
+    props: ['isMenuDisplayed'],
     components: {Email, TableOfContentsSidebar},
     data() {
         return {
+            freeClientWidth: document.documentElement.clientWidth,
             headings: [
                 {
                     href: '#researchObjectives',
@@ -380,6 +382,27 @@ export default {
             ],
         };
     },
+    created() {
+        window.addEventListener('resize', this.setFreeClientWidth);
+    },
+    destroyed() {
+        window.removeEventListener('resize', this.setFreeClientWidth);
+    },
+    mounted() {
+        this.setFreeClientWidth();
+    },
+    methods: {
+        /**
+         * Determine width of free space between content and client border.
+         *
+         * @param event
+         */
+        setFreeClientWidth(event) {
+            const container = document.getElementById('container');
+
+            this.freeClientWidth = (document.documentElement.clientWidth - container.clientWidth) / 2;
+        },
+    },
 };
 </script>
 
@@ -390,5 +413,20 @@ export default {
 
 .hyphens-auto {
     hyphens: auto;
+}
+
+/* space for footer to avoid that footer covers content */
+.mb-110 {
+    margin-bottom: 110px;
+}
+
+/* space for opened navigation sidebar to avoid that navigation sidebar covers content */
+.pl-391 {
+    padding-left: 391px;
+}
+
+/* for external link icon */
+.vertical-align-top {
+    vertical-align: top;
 }
 </style>
