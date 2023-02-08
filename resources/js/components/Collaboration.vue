@@ -21,7 +21,7 @@
             </v-col>
 
             <!-- scrollable content -->
-            <v-col class="hyphens-auto text-justify" lang="de">
+            <v-col class="hyphens-auto" lang="de">
                 <section id="citizenScience" class="mt-3 mb-16">
                     <h1 class="text-h5 text-md-h4 mb-5">
                         "Gestapo.Terror.Orte" - Ein Citizen Science Projekt
