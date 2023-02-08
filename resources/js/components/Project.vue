@@ -1,5 +1,5 @@
 <template>
-    <v-container id="container" :class="{'pl-391': isMenuDisplayed}">
+    <v-container id="container" class="mb-110" :class="{'pl-391': isMenuDisplayed}">
 
         <!-- header -->
         <v-row :style="{
@@ -19,7 +19,7 @@
 
             <!-- scrollable content -->
             <v-col class="hyphens-auto" lang="de">
-                <section id="researchObjectives" class="mt-3 mb-16">
+                <section id="researchObjectives">
                     <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
                         Forschungsfragen & Projektziele
                     </h1>
@@ -41,7 +41,7 @@
                         ergänzt werden.
                     </p>
 
-                    <h2 class="font-weight-medium text-h6 text-md-h5 mb-3">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         Standorte und Infrastruktur flächendeckend untersuchen
                     </h2>
                     <p>
@@ -61,7 +61,7 @@
                         flächendeckend als grundlegende Faktoren der Gestapotätigkeit untersucht.
                     </p>
 
-                    <h2 class="font-weight-medium text-h6 text-md-h5 mb-3">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         Geschichtliches Erbe digital zugänglich machen
                     </h2>
                     <p>
@@ -74,7 +74,7 @@
                         bei und bietet Tools, um diese auswerten.
                     </p>
 
-                    <h2 class="font-weight-medium text-h6 text-md-h5 mb-3">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         Daten zum Gestapoterror miteinander vernetzen
                     </h2>
                     <p>
@@ -85,7 +85,7 @@
                         einzelne niedersächsische Erinnerungsorte.
                     </p>
 
-                    <h2 class="font-weight-medium text-h6 text-md-h5 mb-3">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         „Citizen Science“
                     </h2>
                     <p>
@@ -103,7 +103,9 @@
                     </p>
                 </section>
 
-                <section id="teamAndPartners" class="mb-16">
+                <v-divider class="my-6"></v-divider>
+
+                <section id="teamAndPartners">
                     <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
                         Team & Partner:innen
                     </h1>
@@ -114,7 +116,7 @@
                         der Technischen Informationsbibliothek (TIB), die auf die digitale Erschließung und Aufbereitung
                         von Daten und deren freie Zugänglichkeit spezialisiert ist.
                     </p>
-                    <h2 class="font-weight-medium text-h6 text-md-h5 mb-3">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         Team
                     </h2>
                     <h3 class="text-h6 mb-1" :class="{ 'font-weight-regular': $vuetify.breakpoint.mdAndDown }">
@@ -176,7 +178,7 @@
                         / Studentischer Mitarbeiter, Fachmaster Geschichte (Master of Arts)
                     </p>
 
-                    <h2 class="font-weight-medium text-h6 text-md-h5 mb-3">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         Partner:innen
                     </h2>
                     <h3 class="text-h6 mb-1" :class="{ 'font-weight-regular': $vuetify.breakpoint.mdAndDown }">
@@ -234,37 +236,43 @@
                     <h3 class="text-h6 mb-1" :class="{ 'font-weight-regular': $vuetify.breakpoint.mdAndDown }">
                         Gedenkstätten Gestapokeller und Augustaschacht
                     </h3>
-                    <v-row class="mb-4" justify="start">
-                        <v-col style="max-width: 185px">
-                            <a href="https://gedenkstaetten-augustaschacht-osnabrueck.de/augustaschacht"
-                               target="_blank"
-                            >
-                                <v-img
-                                    alt="Logo der Gedenkstätte Augustaschacht"
-                                    contain
-                                    max-height="64px"
-                                    :src="this.$ogtGlobals.proxyPath + '/images/logo-augustaschacht.svg'"
-                                ></v-img>
-                            </a>
-                        </v-col>
-                        <v-col style="max-width: 185px">
-                            <a href="https://gedenkstaetten-augustaschacht-osnabrueck.de/gestapokeller" target="_blank">
-                                <v-img
-                                    alt="Logo der Gedenkstätte Gestapokeller"
-                                    contain
-                                    max-height="64px"
-                                    :src="this.$ogtGlobals.proxyPath + '/images/logo-gestapokeller.svg'"
-                                ></v-img>
-                            </a>
-                        </v-col>
-                    </v-row>
+                    <p>
+                        <v-row justify="start">
+                            <v-col style="max-width: 185px">
+                                <a href="https://gedenkstaetten-augustaschacht-osnabrueck.de/augustaschacht"
+                                   target="_blank"
+                                >
+                                    <v-img
+                                        alt="Logo der Gedenkstätte Augustaschacht"
+                                        contain
+                                        max-height="64px"
+                                        :src="this.$ogtGlobals.proxyPath + '/images/logo-augustaschacht.svg'"
+                                    ></v-img>
+                                </a>
+                            </v-col>
+                            <v-col style="max-width: 185px">
+                                <a href="https://gedenkstaetten-augustaschacht-osnabrueck.de/gestapokeller"
+                                   target="_blank"
+                                >
+                                    <v-img
+                                        alt="Logo der Gedenkstätte Gestapokeller"
+                                        contain
+                                        max-height="64px"
+                                        :src="this.$ogtGlobals.proxyPath + '/images/logo-gestapokeller.svg'"
+                                    ></v-img>
+                                </a>
+                            </v-col>
+                        </v-row>
+                    </p>
                 </section>
 
-                <section id="presentationsAndPublications" class="mb-16">
+                <v-divider class="my-6"></v-divider>
+
+                <section id="presentationsAndPublications">
                     <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
                         Projektpräsentationen & Publikationen
                     </h1>
-                    <h2 class="font-weight-medium text-h6 text-md-h5 mb-3">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         Präsentationen
                     </h2>
                     <p>
@@ -285,7 +293,7 @@
                         </a>
                     </p>
 
-                    <h2 class="font-weight-medium text-h6 text-md-h5 mb-3">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         Publikationen
                     </h2>
                     <p>
@@ -316,7 +324,7 @@
                         </a>
                     </p>
 
-                    <h2 class="font-weight-medium text-h6 text-md-h5 mb-3">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         Presseberichte
                     </h2>
                     <p>
@@ -342,10 +350,8 @@
                         </a>
                     </p>
                 </section>
-                <br><br>
             </v-col>
         </v-row>
-
     </v-container>
 </template>
 
@@ -407,6 +413,11 @@ export default {
 
 .hyphens-auto {
     hyphens: auto;
+}
+
+/* space for footer to avoid that footer covers content */
+.mb-110 {
+    margin-bottom: 110px;
 }
 
 /* space for opened navigation sidebar to avoid that navigation sidebar covers content */
