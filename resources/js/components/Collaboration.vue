@@ -53,6 +53,7 @@
                         <span class="font-weight-bold">{{ example.group }}</span>
                         <br>
                         <span v-for="location in example.locations">
+                            &#10132;
                             <router-link :to="{ name: 'map', query: { qId: location.qId } }">
                                 {{ location.label }}
                             </router-link>
@@ -89,7 +90,7 @@
                                     <span>
                                         Lehrende können Projekteinheiten selbstständig vorbereiten. Zur Klärung von
                                         Fragen kann die Projektkoordination unter der E-Mailadresse
-                                        <email encryptedEmail="phu/qspkfdu" :showEmail=true></email>
+                                        <email encryptedEmail="phu/qspkfdu" :showEmail=true :showIcon=true></email>
                                         erreicht werden.
                                     </span>
                                 </p>
@@ -101,16 +102,21 @@
                                         angeboten. Diese können nach Absprache vor Ort in der Schule, an
                                         ausgesuchten Gedenkorten in der Nähe oder virtuell stattfinden. Weitere
                                         Informationen zu "Remember Me!" und Teilnahmemöglichkeiten finden sich hier:
-                                        <a href="https://projects.tib.eu/rememberme-data/ueber-das-projekt/"
+                                        <a class="text-no-wrap"
+                                           href="https://projects.tib.eu/rememberme-data/ueber-das-projekt/"
                                            target="_blank"
                                         >
                                             Über das Projekt - Remember Me
+                                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
                                         </a>
                                     </span>
                                 </p>
                                 <p>
                                     Einige Projektideen finden sich hier:
-                                    <a class="hyphens-auto" href="#projectIdeas" lang="de">Projektideen</a>
+                                    <span class="text-no-wrap">
+                                        &#10132;
+                                        <a class="hyphens-auto" href="#projectIdeas" lang="de">Projektideen</a>
+                                    </span>
                                 </p>
                             </v-expansion-panel-content>
                         </v-expansion-panel>
@@ -127,14 +133,17 @@
                                     Geschichte und Angeboten von Gedenkstätten werden auf der interaktiven Landkarte
                                     angezeigt und können von den Gedenkstätten ergänzt werden. Die Projektkoordination
                                     steht über die E-Mailadresse
-                                    <email encryptedEmail="phu/qspkfdu" :showEmail=true></email>
+                                    <email encryptedEmail="phu/qspkfdu" :showEmail=true :showIcon=true></email>
                                     für Absprachen zur Verfügung.
                                 </p>
                                 <p>
                                     Eine Zusammenarbeit mit Gedenkstätten ist zudem im Rahmen von Projekten mit
                                     schulischen und außerschulischen Jugendgruppen stattfinden. Einige Projektideen
                                     finden sich hier:
-                                    <a class="hyphens-auto" href="#projectIdeas" lang="de">Projektideen</a>
+                                    <span class="text-no-wrap">
+                                        &#10132;
+                                        <a class="hyphens-auto" href="#projectIdeas" lang="de">Projektideen</a>
+                                    </span>
                                 </p>
                                 <p>
                                     Des Weiteren können von Gedenkstätten erhobene Forschungsdaten eingelesen werden.
@@ -151,7 +160,7 @@
                                     Forschungsdaten können auf "Gestapo.Terror.Orte" veröffentlicht und mit weiteren
                                     Daten in Verbindung gesetzt werden. Die Projektkoordination steht über die
                                     E-Mailadresse
-                                    <email encryptedEmail="phu/qspkfdu" :showEmail=true></email>
+                                    <email encryptedEmail="phu/qspkfdu" :showEmail=true :showIcon=true></email>
                                     für Absprachen zur Verfügung.
                                 </p>
                             </v-expansion-panel-content>
@@ -168,12 +177,15 @@
                                 </p>
                                 <p>
                                     Die Projektkoordination steht über die E-Mailadresse
-                                    <email encryptedEmail="phu/qspkfdu" :showEmail=true></email>
+                                    <email encryptedEmail="phu/qspkfdu" :showEmail=true :showIcon=true></email>
                                     zur Beratung zur Verfügung.
                                 </p>
                                 <p>
                                     Einige Projektideen finden sich hier:
-                                    <a class="hyphens-auto" href="#projectIdeas" lang="de">Projektideen</a>
+                                    <span class="text-no-wrap">
+                                        &#10132;
+                                        <a class="hyphens-auto" href="#projectIdeas" lang="de">Projektideen</a>
+                                    </span>
                                 </p>
                             </v-expansion-panel-content>
                         </v-expansion-panel>
@@ -196,7 +208,10 @@
                     <p>
                         Die auf „Gestapo.Terror.Orte“ vorzeichneten Orte des Gestapoterrors werden besucht und dort
                         Fotografien angefertigt, die anschließend auf
-                        <a href="https://commons.wikimedia.org" target="_blank">Wikimedia Commons</a>
+                        <a class="text-no-wrap" href="https://commons.wikimedia.org" target="_blank">
+                            Wikimedia Commons
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+                        </a>
                         hochgeladen und schließlich auf „Gestapo.Terror.Orte“ angezeigt werden.
                     </p>
 
@@ -206,7 +221,10 @@
                     <p>
                         Biografien von Geschädigten oder Gestapo Mitarbeiter:innen werden recherchiert. Die gewonnenen
                         Daten werden mit Hilfe von
-                        <a href="https://www.wikidata.org" target="_blank">Wikidata</a>
+                        <a class="text-no-wrap" href="https://www.wikidata.org" target="_blank">
+                            Wikidata
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+                        </a>
                         der Allgemeinheit zur Verfügung gestellt. Diese Daten werden anschließend auf
                         „Gestapo.Terror.Orte“ veröffentlicht.
                     </p>
@@ -347,5 +365,10 @@ export default {
 /* space for opened navigation sidebar to avoid that navigation sidebar covers content */
 .pl-391 {
     padding-left: 391px;
+}
+
+/* for external link icon */
+.vertical-align-top {
+    vertical-align: top;
 }
 </style>
