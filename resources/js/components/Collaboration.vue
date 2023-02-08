@@ -1,8 +1,10 @@
 <template>
-    <v-container class="grey lighten-3" fluid>
+    <v-container id="container" class="grey lighten-3" fluid>
 
         <!-- header -->
-        <v-row>
+        <v-row :style="{
+            'padding-left': (freeClientWidth < 75 && ! isMenuDisplayed) ? ((75 - freeClientWidth) + 'px') : 0
+        }">
             <v-col>
                 <h1 class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-h4 text-md-h3" lang="de">
                     Mitforschen
@@ -237,6 +239,7 @@ import TableOfContentsSidebar from './navigation/TableOfContentsSidebar';
 
 export default {
     name: 'Collaboration',
+    props: ['isMenuDisplayed'],
     components: {Email, TableOfContentsSidebar},
     data() {
         return {
@@ -312,7 +315,29 @@ export default {
                     label: 'Projektideen',
                 },
             ],
+            freeClientWidth: document.documentElement.clientWidth,
         };
+    },
+    created() {
+        window.addEventListener('resize', this.setFreeClientWidth);
+    },
+    destroyed() {
+        window.removeEventListener('resize', this.setFreeClientWidth);
+    },
+    mounted() {
+        this.setFreeClientWidth();
+    },
+    methods: {
+        /**
+         * Determine width of free space between content and client border.
+         *
+         * @param event
+         */
+        setFreeClientWidth(event) {
+            const container = document.getElementById('container');
+
+            this.freeClientWidth = (document.documentElement.clientWidth - container.clientWidth) / 2;
+        },
     },
 };
 </script>
