@@ -1,5 +1,5 @@
 <template>
-    <v-container id="container" class="mb-110" :class="{'pl-391': isMenuDisplayed}">
+    <v-container id="container" class="mb-110">
 
         <!-- header -->
         <v-row :style="{

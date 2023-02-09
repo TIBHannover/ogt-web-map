@@ -18,7 +18,7 @@
         ></place-info-sidebar>
 
         <!-- leaflet map style="width: 1650px" -->
-        <div id="leafletMapId" ></div>
+        <div id="leafletMapId"></div>
     </div>
 </template>
 
@@ -430,8 +430,8 @@ export default {
 
         //document.documentElement.clientWidth = 100;
 
-        //console.log("document.documentElement.clientWidth = ", document.documentElement.clientWidth);
-        //document.getElementById("leafletMapId").style.width = document.documentElement.clientWidth + 'px';
+        console.log("document.documentElement.clientWidth = ", document.documentElement.clientWidth);
+        document.getElementById("leafletMapId").style.width = document.documentElement.clientWidth + 'px';
 
         //console.log("mounted");
         //var container = document.getElementById("leafletMapId");

@@ -1,5 +1,5 @@
 <template>
-    <v-container id="container" class="mb-110" :class="{'pl-391': isMenuDisplayed}">
+    <v-container id="container" class="mb-110">
 
         <v-row :style="{
             'padding-left': (freeClientWidth < 75 && ! isMenuDisplayed) ? ((75 - freeClientWidth) + 'px') : 0

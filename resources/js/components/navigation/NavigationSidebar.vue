@@ -15,7 +15,7 @@
 
         <!-- navigation sidebar -->
         <v-navigation-drawer
-            app="this.$route.name != 'map'"
+            :app="this.$route.name != 'map'"
             fixed
             hide-overlay
             mobile-breakpoint="750"
