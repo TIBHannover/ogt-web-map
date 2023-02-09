@@ -7,10 +7,14 @@
                         Inhaltsübersicht
                     </v-list-item-title>
                     <v-list-item-subtitle>
-                        &#10132;
-                        <a class="white-space-normal" :href=heading.href>
-                            {{ heading.label }}
-                        </a>
+                        <v-row>
+                            <v-col cols="1">&#10132;</v-col>
+                            <v-col>
+                                <a class="white-space-normal" :href=heading.href>
+                                    {{ heading.label }}
+                                </a>
+                            </v-col>
+                        </v-row>
                     </v-list-item-subtitle>
                 </v-list-item-content>
             </v-list-item>
