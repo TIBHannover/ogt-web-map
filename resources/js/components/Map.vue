@@ -401,7 +401,13 @@ export default {
         this.getPersons();
     },
     mounted() {
+        // Workaround so that the map is drawn with a 100% width instead of a gray area on the right side caused by
+        // disabling the "app" property for the navbar on map view, so navbar behaves like a map overlay.
+        let leafletMap = document.getElementById('leafletMapId');
+        leafletMap.style.width = document.documentElement.clientWidth + 'px';
+
         this.setupLeafletMap();
+        leafletMap.style.width = '100%';
     },
     methods: {
         setupLeafletMap: function () {

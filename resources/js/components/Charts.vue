@@ -1,5 +1,5 @@
 <template>
-    <v-container id="container" class="mb-110" :class="{'pl-391': isMenuDisplayed}">
+    <v-container id="container" class="mb-110">
 
         <!-- header -->
         <v-row :style="{
@@ -160,10 +160,5 @@ iframe {
 /* space for footer to avoid that footer covers content */
 .mb-110 {
     margin-bottom: 110px;
-}
-
-/* space for opened navigation sidebar to avoid that navigation sidebar covers content */
-.pl-391 {
-    padding-left: 391px;
 }
 </style>
