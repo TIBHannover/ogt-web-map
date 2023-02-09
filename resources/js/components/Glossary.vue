@@ -1,5 +1,5 @@
 <template>
-    <v-container id="container" class="mb-110" :class="{'pl-391': isMenuDisplayed}">
+    <v-container id="container" class="mb-110">
 
         <v-row :style="{
             'padding-left': (freeClientWidth < 75 && ! isMenuDisplayed) ? ((75 - freeClientWidth) + 'px') : 0
@@ -253,10 +253,5 @@ export default {
 
 .noBullets {
     list-style-type: none;
-}
-
-/* space for opened navigation sidebar to avoid that navigation sidebar covers content */
-.pl-391 {
-    padding-left: 391px;
 }
 </style>
