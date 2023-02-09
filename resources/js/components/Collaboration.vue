@@ -1,11 +1,10 @@
 <template>
-    <v-container class="grey lighten-3" fluid>
+    <v-container id="container" class="mb-110" :class="{'pl-391': isMenuDisplayed}">
 
         <!-- header -->
-        <v-row>
-            <!-- space reserved for opened navigation menu -->
-            <v-col class="hidden-sm-and-down" style="min-width: 375px; max-width: 375px"></v-col>
-
+        <v-row :style="{
+            'padding-left': (freeClientWidth < 75 && ! isMenuDisplayed) ? ((75 - freeClientWidth) + 'px') : 0
+        }">
             <v-col>
                 <h1 class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-h4 text-md-h3" lang="de">
                     Mitforschen
@@ -14,17 +13,14 @@
         </v-row>
 
         <v-row>
-            <!-- space reserved for opened navigation menu -->
-            <v-col class="hidden-sm-and-down" style="min-width: 375px; max-width: 375px"></v-col>
-
             <v-col class="col-12 col-sm-2 order-sm-last" style="min-width: 310px">
                 <table-of-contents-sidebar :headings="headings"></table-of-contents-sidebar>
             </v-col>
 
             <!-- scrollable content -->
             <v-col class="hyphens-auto" lang="de">
-                <section id="citizenScience" class="mt-3">
-                    <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
+                <section id="citizenScience">
+                    <h1 class="text-h5 text-md-h4 mb-5">
                         "Gestapo.Terror.Orte" - Ein Citizen Science Projekt
                     </h1>
                     <p>
@@ -45,54 +41,37 @@
                     </p>
                 </section>
 
-                <v-divider></v-divider>
+                <v-divider class="my-6"></v-divider>
 
-                <section id="examples" class="mt-3">
-                    <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
+                <section id="examples">
+                    <h1 class="text-h5 text-md-h4 mb-5">
                         Beispiele
                     </h1>
                     <p>
                         Die interaktive Karte befindet sich im Aufbau. Folgende Datensätze sind weitestgehend
                         ausgearbeitet und können als Beispiele dienen:
                     </p>
-
-                    <p v-for="example in examples"
-                        v-if="$ogtGlobals.isTestingEnv || example.group != 'Ereignisse'"
-                    >
+                    <p v-for="example in examples" v-if="$ogtGlobals.isTestingEnv || example.group != 'Ereignisse'">
                         <span class="font-weight-bold">{{ example.group }}</span>
                         <br>
                         <span v-for="location in example.locations">
+                            &#10132;
                             <router-link :to="{ name: 'map', query: { qId: location.qId } }">
                                 {{ location.label }}
                             </router-link>
                             <br>
                         </span>
                     </p>
-
-                    <ul class="mb-4">
-                        <li v-for="example in examples"
-                            v-if="$ogtGlobals.isTestingEnv || example.group != 'Ereignisse'"
-                        >
-                            {{ example.group }}
-                            <ul>
-                                <li v-for="location in example.locations">
-                                    <router-link :to="{ name: 'map', query: { qId: location.qId } }">
-                                        {{ location.label }}
-                                    </router-link>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
                 </section>
 
-                <v-divider></v-divider>
+                <v-divider class="my-6"></v-divider>
 
-                <section id="coResearch" class="mt-3 mb-5">
-                    <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
+                <section id="coResearch">
+                    <h1 class="text-h5 text-md-h4 mb-5">
                         Wie kann ich mitforschen?
                     </h1>
                     <v-expansion-panels focusable>
-                        <v-expansion-panel class="hyphens-auto" lang="de">
+                        <v-expansion-panel>
                             <v-expansion-panel-header class="font-weight-bold">
                                 Schulische und außerschulische Jugendgruppen
                             </v-expansion-panel-header>
@@ -115,7 +94,7 @@
                                     <span>
                                         Lehrende können Projekteinheiten selbstständig vorbereiten. Zur Klärung von
                                         Fragen kann die Projektkoordination unter der E-Mailadresse
-                                        <email encryptedEmail="phu/qspkfdu" :showEmail=true></email>
+                                        <email encryptedEmail="phu/qspkfdu" :showEmail=true :showIcon=true></email>
                                         erreicht werden.
                                     </span>
                                 </p>
@@ -123,50 +102,30 @@
                                     <span class="font-weight-bold">Kooperation "Remember Me!"</span>
                                     <br>
                                     <span>
-                                            Im Rahmen des Projektes „Remember Me!“ werden kostenlos betreute Workshops
-                                            angeboten. Diese können nach Absprache vor Ort in der Schule, an
-                                            ausgesuchten Gedenkorten in der Nähe oder virtuell stattfinden. Weitere
-                                            Informationen zu "Remember Me!" und Teilnahmemöglichkeiten finden sich hier:
-                                            <a href="https://projects.tib.eu/rememberme-data/ueber-das-projekt/"
-                                               target="_blank"
-                                            >
-                                                Über das Projekt - Remember Me
-                                            </a>
+                                        Im Rahmen des Projektes „Remember Me!“ werden kostenlos betreute Workshops
+                                        angeboten. Diese können nach Absprache vor Ort in der Schule, an
+                                        ausgesuchten Gedenkorten in der Nähe oder virtuell stattfinden. Weitere
+                                        Informationen zu "Remember Me!" und Teilnahmemöglichkeiten finden sich hier:
+                                        <a class="text-no-wrap"
+                                           href="https://projects.tib.eu/rememberme-data/ueber-das-projekt/"
+                                           target="_blank"
+                                        >
+                                            Über das Projekt - Remember Me
+                                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+                                        </a>
                                     </span>
                                 </p>
-                                <ul class="mb-4">
-                                    <li>
-                                        <p>Selbstständige Teilnahme</p>
-                                        <p>
-                                            Lehrende können Projekteinheiten selbstständig vorbereiten. Zur Klärung von
-                                            Fragen kann die Projektkoordination unter der E-Mailadresse
-                                            <email encryptedEmail="phu/qspkfdu" :showEmail=true></email>
-                                            erreicht werden.
-                                        </p>
-                                    </li>
-                                    <li>
-                                        <p>Kooperation "Remember Me!"</p>
-                                        <p>
-                                            Im Rahmen des Projektes „Remember Me!“ werden kostenlos betreute Workshops
-                                            angeboten. Diese können nach Absprache vor Ort in der Schule, an
-                                            ausgesuchten Gedenkorten in der Nähe oder virtuell stattfinden. Weitere
-                                            Informationen zu "Remember Me!" und Teilnahmemöglichkeiten finden sich hier:
-                                            <a href="https://projects.tib.eu/rememberme-data/ueber-das-projekt/"
-                                               target="_blank"
-                                            >
-                                                Über das Projekt - Remember Me
-                                            </a>
-                                        </p>
-                                    </li>
-                                </ul>
                                 <p>
                                     Einige Projektideen finden sich hier:
-                                    <a class="hyphens-auto" href="#projectIdeas" lang="de">Projektideen</a>
+                                    <span class="text-no-wrap">
+                                        &#10132;
+                                        <a class="hyphens-auto" href="#projectIdeas" lang="de">Projektideen</a>
+                                    </span>
                                 </p>
                             </v-expansion-panel-content>
                         </v-expansion-panel>
 
-                        <v-expansion-panel class="hyphens-auto" lang="de">
+                        <v-expansion-panel>
                             <v-expansion-panel-header class="font-weight-bold">
                                 Gedenkstätten
                             </v-expansion-panel-header>
@@ -178,14 +137,17 @@
                                     Geschichte und Angeboten von Gedenkstätten werden auf der interaktiven Landkarte
                                     angezeigt und können von den Gedenkstätten ergänzt werden. Die Projektkoordination
                                     steht über die E-Mailadresse
-                                    <email encryptedEmail="phu/qspkfdu" :showEmail=true></email>
+                                    <email encryptedEmail="phu/qspkfdu" :showEmail=true :showIcon=true></email>
                                     für Absprachen zur Verfügung.
                                 </p>
                                 <p>
                                     Eine Zusammenarbeit mit Gedenkstätten ist zudem im Rahmen von Projekten mit
                                     schulischen und außerschulischen Jugendgruppen stattfinden. Einige Projektideen
                                     finden sich hier:
-                                    <a class="hyphens-auto" href="#projectIdeas" lang="de">Projektideen</a>
+                                    <span class="text-no-wrap">
+                                        &#10132;
+                                        <a class="hyphens-auto" href="#projectIdeas" lang="de">Projektideen</a>
+                                    </span>
                                 </p>
                                 <p>
                                     Des Weiteren können von Gedenkstätten erhobene Forschungsdaten eingelesen werden.
@@ -193,7 +155,7 @@
                             </v-expansion-panel-content>
                         </v-expansion-panel>
 
-                        <v-expansion-panel class="hyphens-auto" lang="de">
+                        <v-expansion-panel>
                             <v-expansion-panel-header class="font-weight-bold">
                                 Geschichtswissenschaftler*innen
                             </v-expansion-panel-header>
@@ -202,13 +164,13 @@
                                     Forschungsdaten können auf "Gestapo.Terror.Orte" veröffentlicht und mit weiteren
                                     Daten in Verbindung gesetzt werden. Die Projektkoordination steht über die
                                     E-Mailadresse
-                                    <email encryptedEmail="phu/qspkfdu" :showEmail=true></email>
+                                    <email encryptedEmail="phu/qspkfdu" :showEmail=true :showIcon=true></email>
                                     für Absprachen zur Verfügung.
                                 </p>
                             </v-expansion-panel-content>
                         </v-expansion-panel>
 
-                        <v-expansion-panel class="hyphens-auto" lang="de">
+                        <v-expansion-panel>
                             <v-expansion-panel-header class="font-weight-bold">
                                 Geschichtsvereine, Initiativen, Einzelpersonen
                             </v-expansion-panel-header>
@@ -219,22 +181,25 @@
                                 </p>
                                 <p>
                                     Die Projektkoordination steht über die E-Mailadresse
-                                    <email encryptedEmail="phu/qspkfdu" :showEmail=true></email>
+                                    <email encryptedEmail="phu/qspkfdu" :showEmail=true :showIcon=true></email>
                                     zur Beratung zur Verfügung.
                                 </p>
                                 <p>
                                     Einige Projektideen finden sich hier:
-                                    <a class="hyphens-auto" href="#projectIdeas" lang="de">Projektideen</a>
+                                    <span class="text-no-wrap">
+                                        &#10132;
+                                        <a class="hyphens-auto" href="#projectIdeas" lang="de">Projektideen</a>
+                                    </span>
                                 </p>
                             </v-expansion-panel-content>
                         </v-expansion-panel>
                     </v-expansion-panels>
                 </section>
 
-                <v-divider></v-divider>
+                <v-divider class="mb-6 mt-8"></v-divider>
 
-                <section id="projectIdeas" class="mt-3">
-                    <h1 class="text-h5 text-md-h4 mb-5 text-uppercase">
+                <section id="projectIdeas">
+                    <h1 class="text-h5 text-md-h4 mb-5">
                         Projektideen
                     </h1>
                     <p>
@@ -243,32 +208,34 @@
                         Projekte sind möglich.
                     </p>
 
-                    <h2 class="text-h6 text-md-h5">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         Spuren der Geschichte in meiner Umgebung – ein Fotoprojekt
                     </h2>
                     <p>
                         Die auf „Gestapo.Terror.Orte“ vorzeichneten Orte des Gestapoterrors werden besucht und dort
                         Fotografien angefertigt, die anschließend auf
-                        <a href="https://commons.wikimedia.org" target="_blank">Wikimedia Commons</a>
+                        <a class="text-no-wrap" href="https://commons.wikimedia.org" target="_blank">
+                            Wikimedia Commons
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+                        </a>
                         hochgeladen und schließlich auf „Gestapo.Terror.Orte“ angezeigt werden.
                     </p>
 
-                    <h2 class="text-h6 text-md-h5">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         Biografie Projekt
                     </h2>
                     <p>
                         Biografien von Geschädigten oder Gestapo Mitarbeiter:innen werden recherchiert. Die gewonnenen
                         Daten werden mit Hilfe von
-                        <span class="text-no-wrap">
-                            <a href="https://www.wikidata.org" target="_blank">
-                                Wikidata<v-icon small style="vertical-align: top;">mdi-open-in-new</v-icon>
-                            </a>
-                        </span>
+                        <a class="text-no-wrap" href="https://www.wikidata.org" target="_blank">
+                            Wikidata
+                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+                        </a>
                         der Allgemeinheit zur Verfügung gestellt. Diese Daten werden anschließend auf
                         „Gestapo.Terror.Orte“ veröffentlicht.
                     </p>
 
-                    <h2 class="text-h6 text-md-h5">
+                    <h2 class="font-weight-medium text-h6 text-md-h5">
                         Archivfunde
                     </h2>
                     <p>
@@ -277,7 +244,6 @@
                         „Gestapo.Terror.Orte“ veröffentlicht werden.
                     </p>
                 </section>
-                <br><br>
             </v-col>
         </v-row>
     </v-container>
@@ -289,6 +255,7 @@ import TableOfContentsSidebar from './navigation/TableOfContentsSidebar';
 
 export default {
     name: 'Collaboration',
+    props: ['isMenuDisplayed'],
     components: {Email, TableOfContentsSidebar},
     data() {
         return {
@@ -364,7 +331,29 @@ export default {
                     label: 'Projektideen',
                 },
             ],
+            freeClientWidth: document.documentElement.clientWidth,
         };
+    },
+    created() {
+        window.addEventListener('resize', this.setFreeClientWidth);
+    },
+    destroyed() {
+        window.removeEventListener('resize', this.setFreeClientWidth);
+    },
+    mounted() {
+        this.setFreeClientWidth();
+    },
+    methods: {
+        /**
+         * Determine width of free space between content and client border.
+         *
+         * @param event
+         */
+        setFreeClientWidth(event) {
+            const container = document.getElementById('container');
+
+            this.freeClientWidth = (document.documentElement.clientWidth - container.clientWidth) / 2;
+        },
     },
 };
 </script>
@@ -378,7 +367,18 @@ export default {
     hyphens: auto;
 }
 
-.noBullets {
-    list-style-type: none;
+/* space for footer to avoid that footer covers content */
+.mb-110 {
+    margin-bottom: 110px;
+}
+
+/* space for opened navigation sidebar to avoid that navigation sidebar covers content */
+.pl-391 {
+    padding-left: 391px;
+}
+
+/* for external link icon */
+.vertical-align-top {
+    vertical-align: top;
 }
 </style>
