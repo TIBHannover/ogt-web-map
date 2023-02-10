@@ -9,7 +9,7 @@
                         <li class="hyphens-auto white-space-normal" lang="de">
                             {{
                                 selectedPlace.addresses.selected.label ?
-                                    selectedPlace.addresses.selected.label : 'Anschrift N/A'
+                                    selectedPlace.addresses.selected.label : UNKNOWN_ADDRESS
                             }}
                         </li>
                         <ul>
@@ -23,9 +23,12 @@
                                     bis {{ selectedPlace.addresses.selected.endDate.locale }}
                                 </template>
                             </li>
-                            <li>
+                            <li v-if="selectedPlace.addresses.selected.latLng && ! selectedPlace.addresses.selected.isUncertain">
                                 {{ selectedPlace.addresses.selected.latLng.lat }},
                                 {{ selectedPlace.addresses.selected.latLng.lng }}
+                            </li>
+                            <li v-else>
+                                {{ UNKNOWN_COORDINATES }}
                             </li>
                         </ul>
                     </ul>
@@ -40,10 +43,10 @@
                                        })"
                                    href="#"
                                 >
-                                    {{ additionalAddress.label ? additionalAddress.label : 'Anschrift N/A' }}
+                                    {{ additionalAddress.label ? additionalAddress.label : UNKNOWN_ADDRESS }}
                                 </a>
                                 <template v-else>
-                                    {{ additionalAddress.label ? additionalAddress.label : 'Anschrift N/A' }}
+                                    {{ additionalAddress.label ? additionalAddress.label : UNKNOWN_ADDRESS }}
                                 </template>
                             </li>
                             <ul>
@@ -55,11 +58,11 @@
                                         bis {{ additionalAddress.endDate.locale }}
                                     </template>
                                 </li>
-                                <li v-if="additionalAddress.latLng">
+                                <li v-if="additionalAddress.latLng && ! additionalAddress.isUncertain">
                                     {{ additionalAddress.latLng.lat }}, {{ additionalAddress.latLng.lng }}
                                 </li>
                                 <li v-else>
-                                    Koordinaten N/A
+                                    {{ UNKNOWN_COORDINATES }}
                                 </li>
                             </ul>
                         </ul>
@@ -83,6 +86,10 @@
 export default {
     name: 'AddressInfo',
     props: ['selectedPlace'],
+    created() {
+        this.UNKNOWN_ADDRESS = 'Die Adresse ist unbekannt.';
+        this.UNKNOWN_COORDINATES = 'Der genaue Standort ist unbekannt.';
+    },
 };
 </script>
 
