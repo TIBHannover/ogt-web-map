@@ -148,6 +148,7 @@ export default {
                             locale: '',
                             value: null,
                         },
+                        isUncertain: false,
                         label: '',
                         latLng: {
                             lat: 0,
@@ -163,6 +164,7 @@ export default {
                             locale: '',
                             value: null,
                         },
+                        isUncertain: false,
                         label: '',
                         latLng: {
                             lat: 0,
@@ -664,8 +666,16 @@ export default {
                 let endDate = coordinate.endTime ?
                     this.getDate(coordinate.endTime.value, coordinate.endTime.datePrecision) : null;
 
+                // check if the coordinate is specified as uncertain (= inaccurate) in Wikidata
+                // uncertainty - https://www.wikidata.org/wiki/Q13649246
+                let isUncertain = false;
+                if (coordinate.sourcingCircumstance && coordinate.sourcingCircumstance.id == 'Q13649246') {
+                    isUncertain = true;
+                }
+
                 let address = {
                     endDate: endDate,
+                    isUncertain: isUncertain,
                     label: label,
                     latLng: coordinate.value,
                     startDate: startDate,
