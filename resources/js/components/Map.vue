@@ -1,5 +1,4 @@
 <template>
-    <!-- v-resize="onResize" -->
     <div>
         <map-options-sidebar
             :groupedPlaces="groupedPlaces"
@@ -17,7 +16,7 @@
             @zoomIntoPlace="setMapView(selectedPlace.latLng, 18, true)"
         ></place-info-sidebar>
 
-        <!-- leaflet map style="width: 1650px" -->
+        <!-- leaflet map -->
         <div id="leafletMapId"></div>
     </div>
 </template>
@@ -26,14 +25,12 @@
 import Leaflet from 'leaflet/dist/leaflet';
 import MapOptionsSidebar from './map/MapOptionsSidebar';
 import PlaceInfoSidebar from './map/PlaceInfoSidebar';
-//import {nextTick} from 'vue';
 
 export default {
     name: 'Map',
     components: {Leaflet, MapOptionsSidebar, PlaceInfoSidebar},
     data() {
         return {
-            //renderComponent: true,
             cachedMapView: {
                 // Leaflet LatLng geographical point object
                 latLng: {
@@ -144,7 +141,6 @@ export default {
                 perpetrators: {},
                 victims: {},
             },
-            //selectedMapMarker: null,
             selectedPlace: {
                 addresses: {
                     additional: [{
@@ -152,6 +148,7 @@ export default {
                             locale: '',
                             value: null,
                         },
+                        isUncertain: false,
                         label: '',
                         latLng: {
                             lat: 0,
@@ -167,6 +164,7 @@ export default {
                             locale: '',
                             value: null,
                         },
+                        isUncertain: false,
                         label: '',
                         latLng: {
                             lat: 0,
@@ -388,19 +386,7 @@ export default {
                 Q5727902: 'ca.',
                 Q47035128: '>',
             },
-            /*
-            windowSize: {
-                x: 0,
-                y: 0,
-            },
-            */
         };
-    },
-    beforeCreate() {
-        //this.$forceUpdate();
-        //console.log("beforeCreate");
-        //document.getElementById("leafletMapId").style.width = "100%";
-        //this.forceRerender();
     },
     created() {
         this.WIKIDATA_ID_CLASSES = Object.freeze({
@@ -413,77 +399,19 @@ export default {
             ],
         });
 
-        //this.$forceUpdate();
-        //console.log("created");
-        //document.getElementById("leafletMapId").style.width = "100%";
-
         this.getGroupedPlaces();
         this.getPersons();
     },
-    beforeMount() {
-        //console.log("beforeMount");
-        //this.$forceUpdate();
-        //document.getElementById("leafletMapId").style.width = "100%";
-    },
     mounted() {
-        //this.$forceUpdate();
-
-        //document.documentElement.clientWidth = 100;
-
-        console.log("document.documentElement.clientWidth = ", document.documentElement.clientWidth);
-        document.getElementById("leafletMapId").style.width = document.documentElement.clientWidth + 'px';
-
-        //console.log("mounted");
-        //var container = document.getElementById("leafletMapId");
-        //var content = container.innerHTML;
-        //container.innerHTML = content;
-
-        //document.getElementById('leafletMapId').style.display = 'none';
-        //document.getElementById('leafletMapId').exitFullscreen();
-        //document.exitFullscreen();
-        //this.$(window).trigger('resize');
-        //nextTick();
-        //this.$forceUpdate();
-
-        //document.getElementById('leafletMapId').style.display = 'block';
-        //console.log(document.getElementById('leafletMapId').style);
-
-        //container.style.width = "1672px";
-        //nextTick();
-        //document.getElementById("leafletMapId").style.width = "1672px";
-
-        //this.$forceUpdate();
+        // Workaround so that the map is drawn with a 100% width instead of a gray area on the right side caused by
+        // disabling the "app" property for the navbar on map view, so navbar behaves like a map overlay.
+        let leafletMap = document.getElementById('leafletMapId');
+        leafletMap.style.width = document.documentElement.clientWidth + 'px';
 
         this.setupLeafletMap();
-
-        //this.$forceUpdate();
-        //this.onResize();
-        //document.getElementById("leafletMapId").style.width = "100%";
-        //document.getElementById("leafletMapId").style.width = '100%';
-        //this.$forceUpdate();
+        leafletMap.style.width = '100%';
     },
     methods: {
-        /*
-        reload() {
-            this.$forceUpdate();
-            document.getElementById("leafletMapId").style.width = "100%";
-        },
-        onResize: function () {
-            this.windowSize = { x: window.innerWidth, y: window.innerHeight }
-        },
-        async forceRerender() {
-            console.log("forceRerender start");
-            // Remove MyComponent from the DOM
-            this.renderComponent = false;
-
-            // Wait for the change to get flushed to the DOM
-            await this.$nextTick();
-
-            // Add the component back in
-            this.renderComponent = true;
-            console.log("forceRerender end");
-        },
-        */
         setupLeafletMap: function () {
             let baseLayers = {};
 
@@ -497,17 +425,6 @@ export default {
                 zoom: configLeaflet.zoom,
                 layers: [baseLayers[configLeaflet.initialLayerName]],
             });
-
-            //this.map.off();
-            //this.map.on();
-            //this.map.remove();
-            //this.map.viewreset();
-            //this.map.fire('resize');
-            //this.map.fire('viewreset');
-            //window.dispatchEvent(new Event("resize"));
-
-            //this.$forceUpdate();
-            //this.forceRerender();
 
             this.setCachedMapView();
 
@@ -623,21 +540,6 @@ export default {
                 shadowSize: [76, 52], // default [41, 41]
             });
 
-            /*
-            const highlightIcon = L.icon({
-                iconUrl: iconUrl,
-                // Workaround to use same marker icons for Retina and non-Retina displays.
-                // - default file '/images/leaflet/marker-icon-2x.png'
-                iconRetinaUrl: iconUrl,
-                shadowUrl: this.$ogtGlobals.proxyPath + '/images/leaflet/marker-shadow.png',
-                iconSize: [58, 63], // default [25, 41]
-                iconAnchor: [24, 52], // default [12, 41]
-                popupAnchor: [1, -34],
-                tooltipAnchor: [16, -28],
-                shadowSize: [76, 52], // default [41, 41]
-            });
-            */
-
             for (const [placeId, place] of Object.entries(places)) {
                 let countedPlaceCoordinates = Object.keys(place.coordinates).length;
                 let coordinatesIndex = 0;
@@ -657,20 +559,6 @@ export default {
                     marker.on('click', event => {
                         this.setSelectedPlace(place, event.latlng, placeGroupName);
                         this.toggleShowPlaceInfoSidebar(true);
-
-                        /*
-                        if (this.selectedMapMarker) {
-                            //let ic = this.selectedMapMarker.getIcon();
-                            //ic.options.iconSize = [48, 53];
-                            //this.selectedMapMarker.setIcon(ic);
-                            //var icon = centerMarker.options.icon;
-                            //icon.options.iconSize = [newwidth, newheight];
-                            //centerMarker.setIcon(icon);
-                        }
-                        */
-
-                        //marker.setIcon(highlightIcon);
-                        //this.selectedMapMarker = marker;
                     });
 
                     placeMarkers.push(marker);
@@ -778,8 +666,16 @@ export default {
                 let endDate = coordinate.endTime ?
                     this.getDate(coordinate.endTime.value, coordinate.endTime.datePrecision) : null;
 
+                // check if the coordinate is specified as uncertain (= inaccurate) in Wikidata
+                // uncertainty - https://www.wikidata.org/wiki/Q13649246
+                let isUncertain = false;
+                if (coordinate.sourcingCircumstance && coordinate.sourcingCircumstance.id == 'Q13649246') {
+                    isUncertain = true;
+                }
+
                 let address = {
                     endDate: endDate,
+                    isUncertain: isUncertain,
                     label: label,
                     latLng: coordinate.value,
                     startDate: startDate,
@@ -1905,15 +1801,6 @@ export default {
 .leaflet-tile-pane {
     filter: grayscale(1);
 }
-
-/*
-#leafletMapId {
-    height: 100%;
-    position: absolute;
-    width: 100%;
-    z-index: 0;
-}
-*/
 </style>
 
 <style scoped>

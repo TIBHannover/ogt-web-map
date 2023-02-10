@@ -20,7 +20,9 @@
             <!-- scrollable content -->
             <v-col class="hyphens-auto" lang="de">
                 <section id="researchObjectives">
-                    <h1 class="text-h5 text-md-h4 mb-5">
+                    <h1 class="font-weight-medium text-h5 text-md-h4 mb-5"
+                        :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
+                    >
                         Forschungsfragen & Projektziele
                     </h1>
                     <p>
@@ -106,7 +108,9 @@
                 <v-divider class="my-6"></v-divider>
 
                 <section id="teamAndPartners">
-                    <h1 class="text-h5 text-md-h4 mb-5">
+                    <h1 class="font-weight-medium text-h5 text-md-h4 mb-5"
+                        :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
+                    >
                         Team & Partner:innen
                     </h1>
                     <p>
@@ -269,7 +273,9 @@
                 <v-divider class="my-6"></v-divider>
 
                 <section id="presentationsAndPublications">
-                    <h1 class="text-h5 text-md-h4 mb-5">
+                    <h1 class="font-weight-medium text-h5 text-md-h4 mb-5"
+                        :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
+                    >
                         Projektpräsentationen & Publikationen
                     </h1>
                     <h2 class="font-weight-medium text-h6 text-md-h5">
@@ -411,6 +417,10 @@ export default {
     font-family: "Special Elite" !important;
 }
 
+.font-size-29 {
+    font-size: 1.8125rem !important;
+}
+
 .hyphens-auto {
     hyphens: auto;
 }
@@ -418,11 +428,6 @@ export default {
 /* space for footer to avoid that footer covers content */
 .mb-110 {
     margin-bottom: 110px;
-}
-
-/* space for opened navigation sidebar to avoid that navigation sidebar covers content */
-.pl-391 {
-    padding-left: 391px;
 }
 
 /* for external link icon */

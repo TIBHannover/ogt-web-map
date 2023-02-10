@@ -254,9 +254,4 @@ export default {
 .noBullets {
     list-style-type: none;
 }
-
-/* space for opened navigation sidebar to avoid that navigation sidebar covers content */
-.pl-391 {
-    padding-left: 391px;
-}
 </style>

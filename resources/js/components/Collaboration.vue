@@ -20,7 +20,9 @@
             <!-- scrollable content -->
             <v-col class="hyphens-auto" lang="de">
                 <section id="citizenScience">
-                    <h1 class="text-h5 text-md-h4 mb-5">
+                    <h1 class="font-weight-medium text-h5 text-md-h4 mb-5"
+                        :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
+                    >
                         "Gestapo.Terror.Orte" - Ein Citizen Science Projekt
                     </h1>
                     <p>
@@ -44,7 +46,9 @@
                 <v-divider class="my-6"></v-divider>
 
                 <section id="examples">
-                    <h1 class="text-h5 text-md-h4 mb-5">
+                    <h1 class="font-weight-medium text-h5 text-md-h4 mb-5"
+                        :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
+                    >
                         Beispiele
                     </h1>
                     <p>
@@ -67,7 +71,9 @@
                 <v-divider class="my-6"></v-divider>
 
                 <section id="coResearch">
-                    <h1 class="text-h5 text-md-h4 mb-5">
+                    <h1 class="font-weight-medium text-h5 text-md-h4 mb-5"
+                        :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
+                    >
                         Wie kann ich mitforschen?
                     </h1>
                     <v-expansion-panels focusable>
@@ -199,7 +205,9 @@
                 <v-divider class="mb-6 mt-8"></v-divider>
 
                 <section id="projectIdeas">
-                    <h1 class="text-h5 text-md-h4 mb-5">
+                    <h1 class="font-weight-medium text-h5 text-md-h4 mb-5"
+                        :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
+                    >
                         Projektideen
                     </h1>
                     <p>
@@ -363,6 +371,10 @@ export default {
     font-family: "Special Elite" !important;
 }
 
+.font-size-29 {
+    font-size: 1.8125rem !important;
+}
+
 .hyphens-auto {
     hyphens: auto;
 }
@@ -370,11 +382,6 @@ export default {
 /* space for footer to avoid that footer covers content */
 .mb-110 {
     margin-bottom: 110px;
-}
-
-/* space for opened navigation sidebar to avoid that navigation sidebar covers content */
-.pl-391 {
-    padding-left: 391px;
 }
 
 /* for external link icon */

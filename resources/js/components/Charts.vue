@@ -161,9 +161,4 @@ iframe {
 .mb-110 {
     margin-bottom: 110px;
 }
-
-/* space for opened navigation sidebar to avoid that navigation sidebar covers content */
-.pl-391 {
-    padding-left: 391px;
-}
 </style>
