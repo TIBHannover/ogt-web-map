@@ -3,7 +3,7 @@
         <!-- addresses with associated coordinates and time periods, as well as option to zoom in/out of location. -->
         <v-list-item dense>
             <v-list-item-content>
-                <v-list-item-title>Adresse(n)</v-list-item-title>
+                <v-list-item-title>Standort(e)</v-list-item-title>
                 <v-list-item-subtitle>
                     <ul>
                         <li class="hyphens-auto white-space-normal" lang="de">
