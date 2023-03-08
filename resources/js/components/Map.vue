@@ -385,6 +385,7 @@ export default {
             sourceCircumstances: {
                 Q5727902: 'ca.',
                 Q47035128: '>',
+                Q52834024: '<',
             },
         };
     },
