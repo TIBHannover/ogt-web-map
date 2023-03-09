@@ -1,9 +1,12 @@
 const glossaryItems = {
-    /*
+    /* template
     '': {
         id: '',
         descriptions: [
             ``,
+            [
+                ``,
+            ],
         ],
         sources: [
             ``,
@@ -39,6 +42,14 @@ const glossaryItems = {
         ],
         sources: [
             `Lotfi, Gabriele. KZ der Gestapo: Arbeitserziehungslager im Dritten Reich. Stuttgart: Dt. Verl.-Anst., 2000, S.10-11.`,
+            `Tech, Andrea. Arbeitserziehungslager in Nordwestdeutschland 1940 - 1945. Bergen-Belsen-Schriften. - 
+            Göttingen: Vandenhoeck & Ruprecht, 1995-2005; ZDB-ID: 2119525-0 6. Göttingen: Vandenhoeck & Ruprecht, 2003.`,
+            `Thalhofer, Elisabeth. Entgrenzung der Gewalt: Gestapo-Lager in der Endphase des Dritten Reiches. Sammlung 
+            Schöningh zur Geschichte und Gegenwart. Paderborn: Schöningh, 2010.`,
+            `Lotfi, Gabriele. KZ der Gestapo: Arbeitserziehungslager im Dritten Reich. Stuttgart: Dt. Verl.-Anst., 2000.`,
+            `Königseder, Angelika. „Die Stellung der Arbeitserziehungslager im NS-Haftsystem zwischen Polizeihaft- und 
+            Konzentrationslagern“. In Nationalsozialistische Zwangslager. Strukturen und Regionen. Täter und Opfer., 
+            herausgegeben von Wolfgang Benz, Barbara Distel, und Angelika Königseder, 81–96. Dachau: Dachauer Hefte, 2011.`,
         ],
     },
     'Außendienststelle': {
@@ -55,6 +66,68 @@ const glossaryItems = {
             Außendienststellen nachweisen.`,
         ],
         sources: [],
+    },
+    'Denunziation': {
+        id: 'denunciation',
+        descriptions: [
+            `Denunziation bedeutet das Erstatten einer Anzeige durch einen Denunzianten aus meist persönlichen, 
+            niedrigen Beweggründen.`,
+            `Denunziation war eine wesentliche Voraussetzung für das Funktionieren der NS-Diktatur. Ein*e Denunziant*in 
+            zeigte angeblich oder tatsächlich gegen den Nationalsozialismus und seine Ideologien gerichtetes Verhalten 
+            an und ermöglichte so die Verfolgung der beschuldigten Menschen.`,
+            `Die Beschäftigung mit Denunziationen während der NS-Zeit wiederlegt das jahrzehntelang dominante Bild einer 
+            allmächtigen und allgegenwärtigen Gestapo. Der Mythos ihrer Omnipotenz gilt heute als Schutzbehauptung der 
+            deutschen Nachkriegsgesellschaft. Die Gestapo war auch auf Grund ihres geringen Personalstands auf 
+            Denunziationen aus der Bevölkerung angewiesen. Denunziant*innen wandten sich nicht unbedingt direkt an die 
+            Gestapo, vielmehr gaben andere staatliche und kommunale Stellen die entsprechenden Hinweise weiter.`,
+            `In allen Schichten der deutschen Bevölkerung war eine Denunziationsbereitschaft vorhanden. Denunziationen 
+            reichten bis in die Familien hinein. Kinder und Jugendliche wurden beispielsweise dazu aufgefordert, ihre 
+            Eltern zu denunzieren, falls diese z. B. ausländische Sender hörten. Aufgrund von Denunziationen wurden 
+            Widerstandsgruppen zerschlagen und Zehntausende Menschen verhaftet und verurteilt. Auch viele versteckte 
+            Jüdinnen und Juden wurden durch Denunzianten verraten.`,
+        ],
+        sources: [
+            `Diewald-Kerkmann, Gisela. „Denunziantentum und Gestapo: die freiwilligen Helfer aus der Bevölkerung“. In 
+            Die Gestapo- Mythos und Realität, herausgegeben von Gerhard Paul und Klaus-Michael Mallmann, 288–305. 
+            Darmstadt: Wissenschaftliche Buchgesellschaft, 1995.`,
+            `Gellately, Robert. „Allwissend und allgegenwärtig?: Entstehung, Funktion und Wandel des Gestapo-Mythos“. 
+            In Die Gestapo- Mythos und Realität, herausgegeben von Gerhard Paul und Klaus-Michael Mallmann, 47–72. 
+            Darmstadt: Wissenschaftliche Buchgesellschaft, 1995.`,
+            `https://werkstattgeschichte.de/wp-content/uploads/2018/10/Marszolek_Denunziation_1997.pdf`,
+        ],
+    },
+    'Deportation': {
+        id: 'deportation',
+        descriptions: [
+            `Deportation bedeutet die zwangsweise Verschickung von Menschen von ihren Wohnsitzen zu vorbestimmten 
+            Aufenthaltsorte. Deportationen können vom eigenen Staat oder von einer fremden Besatzungsmacht durchgeführt 
+            werden. Die Deportierten verlassen dabei den Machtbereich des Staates, der die Deportation durchführt, nicht.`,
+            `Während des Zweiten Weltkriegs deportierte der NS-Staat eine große Anzahl von Angehörigen von 
+            Verfolgtengruppen aus Deutschland und aus besetzten Gebieten. Es handelte sich insbesondere um Jüd*innen und 
+            Sinti*zze und Rom*nja. Die Deportationen waren folglich ein Bestandteil der Shoah und des Porajmos. 
+            Deportationszüge starteten von Sammelstellen in Ballungsräumen in brachten die Deportierten in Ghettos oder 
+            direkt in Konzentrationslager. Geplant wurde die massenweise Deportation von Jüd*innen und Sinti*zze und 
+            Rom*nja auf der Wannseekonferenz am 20. Januar 1942.  Die örtlichen Gestapodienststellen organisierten die 
+            Deportationen und führten diese in Kooperation mit anderen lokalen Polizeikräften durch.  Die Häftlinge 
+            wurden von der Deutschen Reichsbahn unter menschenunwürdigen Bedingungen in versiegelten Viehwaggons transportiert.`,
+        ],
+        sources: [
+            `Zimmermann, Michael. „Die Gestapo und die regionale Organisation der Judendeportationen: das Beispiel der 
+            Stapo-Leitstelle Düsseldorf“. In Die Gestapo- Mythos und Realität, herausgegeben von Gerhard Paul und 
+            Klaus-Michael Mallmann, 357–72. Darmstadt: Wissenschaftliche Buchgesellschaft, 1995.`,
+            `Schmid, Hans-Dieter, Marlis Buchholz, und Burmeister, Stefanie, Hrsg. Ahlem: die Geschichte einer jüdischen 
+            Gartenbauschule und ihres Einflusses auf Gartenbau und Landschaftsarchitektur in Deutschland und Israel. 2. 
+            ergänzte Auflage. Schriftenreihe der Gedenkstätte Ahlem. - Hannover: Team Kultur der Region Hannover, 2011-; 
+            ZDB-ID: 26009274 1. Bremen: Edition Temmen, 2017.`,
+            `Dohnke, Kai. Nationalsozialismus in Norddeutschland: ein Atlas. Erstausg. Hamburg: Europa-Verl., 2001.`,
+            `Berlit-Jackstien, Julia, und Karljosef Kreter, Hrsg. Abgeschoben in den Tod: die Deportation von 1001 
+            jüdischen Hannoveranerinnen und Hannoveranern am 15. Dezember 1941 nach Riga; Schriften zur 
+            Erinnerungskultur in Hannover. - Hannover: Hahn, 2011-; ZDB-ID: 2676835-5 1. Hannover: Hahn, 2011.`,
+            `Asdonk, Jupp. „Es waren doch unsere Nachbarn!“: Deportationen in Ostwestfalen-Lippe 1941-1945. Bielefelder 
+            Beiträge zur Stadt- und Regionalgeschichte. - Bielefeld: [Wechselnde Verleger], 1981- 24. Bielefeld: Gieselmann, 2012.`,
+            `https://www.bpb.de/shop/zeitschriften/izpb/151942/massenmord-und-holocaust`,
+            `https://www.yadvashem.org/yv/de/exhibitions/deportations/overview.asp`,
+        ],
     },
     'Ereignis': {
         id: 'events',
@@ -171,6 +244,63 @@ const glossaryItems = {
             `https://www.bpb.de/kurz-knapp/hintergrund-aktuell/280733/vor-85-jahren-nazis-bauen-macht-der-gestapo-aus/`,
         ],
     },
+    'Hauptamt Sicherheitspolizei': {
+        id: 'mainOfficeSecurityPolice',
+        descriptions: [
+            `Am 26. Juni 1936 wurde das Hauptamt Sicherheitspolizei gegründet. Die Gründung des Hauptamts 
+            Sicherheitspolizei war Teil des Verschmelzungsprozesses zwischen staatlichen und politischen Organen und 
+            gehörte zur Machteroberung Heinrich Himmlers im nationalsozialistischen System. Das Hauptamt 
+            Sicherheitspolizei bündelte und zentralisierte die Leitung der Kriminalpolizei und der Gestapo.`,
+            `Durch das Hauptamt Sicherheitspolizei wurde die Gestapo zentralisiert und erhielt eine größere 
+            Machtposition im NS-Staat. Hauptaufgabe des Hauptamts Sicherheitspolizei war die Bekämpfung politischer und 
+            ideologischer Gegner*innen. Das Hauptamt Sicherheitspolizei war zudem an der Kriegsvorbereitung und den 
+            Verbrechen beim Überfall auf Polen beteiligt.`,
+            `Es bestand von 1936 bis 1939 und gliederte sich in folgende Bereiche:`,
+            [
+                `Amt Verwaltung und Recht`,
+                `Amt Kriminalpolizei`,
+                `Amt Politische Polizei.`,
+            ],
+            `Die oben genannten Ämter hatten wiederum mehrere Abteilungen und Referate. 1939 ging das Hauptamt 
+            Sicherheitspolizei im RSHA auf.`,
+        ],
+        sources: [
+            `Tuchel, Johannes. „Gestapa und Reichssicherheitshauptamt: die Berliner Zentralinstitutionen der Gestapo“. 
+            In Die Gestapo- Mythos und Realität, herausgegeben von Gerhard Paul und Klaus-Michael Mallmann, 84–100. 
+            Darmstadt: Wissenschaftliche Buchgesellschaft, 1995, S. 95-97.`,
+            `Dams, Carsten, und Michael Stolle. Die Gestapo: Herrschaft und Terror im Dritten Reich. Originalausgabe, 
+            4., Aktualisierte Auflage. C.H. Beck Paperback. - München: C.H. Beck, 2014-; ZDB-ID: 2816336-9 1856. 
+            München: Verlag C.H. Beck, 2017.`,
+            `https://www.dhm.de/lemo/kapitel/ns-regime/ns-organisationen/reichssicherheitshauptamt.html`,
+        ],
+    },
+    'Heutiges Niedersachsen': {
+        id: 'todayLowerSaxony',
+        descriptions: [
+            `Das heutige Bundesland Niedersachsen in der Bundesrepublik Deutschland entstand am 1. November 1946 aus dem 
+            Zusammenschluss des Landes Hannover (ehemals preußischen Provinz Hannover) und den Freistaaten Braunschweig, 
+            Oldenburg und Schaumburg-Lippe.`,
+            `Große Teile des heutigen Niedersachsens lagen zur Zeit des Nationalsozialismus in der preußischen Provinz 
+            Hannover. Preußen hatte eine Sonderrolle während der NS-Zeit inne, da das Land schon ab 1932 der 
+            Reichsregierung unterstellt war und die Nationalsozialisten so unmittelbar nach Regierungsantritt Zugriff auf 
+            Preußische Institutionen erlangten. Folglich kontrollierten die Nationalsozialisten auch die Gestapo in der 
+            preußischen Provinz Hannover ab 1933.`,
+            `Nordwestdeutschland lag nach dem Zweiten Weltkrieg größtenteils in der britischen Besatzungszone. Der 
+            Verordnung Nr.46 der britischen Militärregierung vom 23. August 1946 „betreffend die Auflösung der Provinzen 
+            des ehemaligen Landes Preußen in der Britischen Zone und ihre Neubildung als selbständige Länder“ folgend, 
+            wurde auf dem Gebiet der preußischen Provinz Hannover zunächst das Land Hannover gegründet. Dessen 
+            Ministerpräsident Hinrich Wilhelm Kopf regte die Bildung eines Landes Niedersachsen an, das möglichst große 
+            Gebiete in der Mitte der britischen Zone abdecken sollte. Da die Aufteilung ihrer Besatzungszone in große 
+            Länder auch den Interessen der Briten entsprach, wurde am 8. November rückwirkend zum 1. November 1946 das 
+            Land Niedersachsen mit der Hauptstadt Hannover gegründet.`,
+        ],
+        sources: [
+            `Carl-Hans Hauptmeyer: Niedersachsen. Landesgeschichte und historische Regionalentwicklung im Überblick, 
+            Oldenburg 2004. Online verfügbar unter: 
+            https://www.niedersachsen.de/75-Jahre-Niedersachsen/75-jahre-niedersachsen-ein-uberblick-199653.html`,
+            `https://www.niedersachsen.de/75-Jahre-Niedersachsen/75-jahre-niedersachsen-ein-uberblick-199653.html`,
+        ],
+    },
     'Polizeigefängnis': {
         id: 'policePrison',
         descriptions: [
@@ -232,6 +362,7 @@ const glossaryItems = {
             2215990-3 33. Hannover: Landeshauptstadt Hannover, 2008.`,
             `https://www.bpb.de/kurz-knapp/lexika/politiklexikon/296465/pogrom/`,
             `https://www.jmberlin.de/thema-9-november-1938`,
+            `https://pogrome1938-niedersachsen.de/novemberpogrome-1938/`,
         ],
     },
     'RSHA': {
@@ -349,8 +480,8 @@ const glossaryItems = {
             verfolgt und vernichtet und so die nationalsozialistische Herrschaft gestützt.`,
         ],
         sources: [
+            `https://www.bpb.de/kurz-knapp/lexika/politiklexikon/18334/terror-terrorismus/`,
             `https://www.bpb.de/themen/medien-journalismus/krieg-in-den-medien/500450/terror/`,
-            `https://www.bpb.de/themen/linksextremismus/geschichte-der-raf/49218/die-definition-von-terrorismus/`,
         ],
     },
 };
