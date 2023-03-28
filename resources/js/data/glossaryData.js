@@ -244,6 +244,46 @@ const glossaryItems = {
             `https://www.bpb.de/kurz-knapp/hintergrund-aktuell/280733/vor-85-jahren-nazis-bauen-macht-der-gestapo-aus/`,
         ],
     },
+    'Gestapo': {
+        id: 'gestapo',
+        descriptions: [
+            `Die Gestapo (kurz für Geheime Staatspolizei) war die Politische Polizei des NS-Regimes. In fast allen 
+            Ländern des Deutschen Reichs gab es schon vor 1933 eine Politische Polizei. Die Politische Polizei ist eine 
+            Sonderform der Polizeiarbeit, die zur Herrschaftsabsicherung des politischen Systems dient. Schon vor 1933 
+            ermittelten die Politischen Polizeien der Länder aber hauptsächlich im linken politischen Milieu.`,
+            `Eine als Gestapo bezeichnete Organisation schuf Hermann Göring in seiner Funktion als preußischer 
+            Innenminister im April 1933. Diese war für Preußen, zu dem große Teile des heutigen Niedersachsens gehörten, 
+            zuständig. Die Gestapo in Preußen wurde zunächst von Rudolf Diels und ab April 1934 von Reinhard Heydrich 
+            geleitet. Als Zentrale der Gestapo in Preußen fungierte das Gestapa. Nachdem Heinrich Himmler 1936 zum 
+            „Chef der deutschen Polizei“ ernannt wurde, zentralisierte er die verschiedenen Politischen Polizeien der 
+            Länder reichseinheitlich unter der preußischen Bezeichnung Gestapo. Im Zuge dieser Zentralisierung wurde die 
+            Gestapo mit der Kriminalpolizei im Hauptamt Sicherheitspolizei zusammengefasst. Ab September 1939 wurde das 
+            Hauptamt Sicherheitspolizei in das neu gegründete RSHA eingegliedert.`,
+            `Aufgabe der Gestapo war die systematische Bekämpfung von tatsächlichen oder vermeintlichen Gegner*innen des 
+            NS-Regimes. Bis 1936 verfolgte die Gestapo vor allem politische Gegner*innen insbesondere des linken 
+            Spektrums, indem sie sie in „Schutzhaft“ nahm. Ab 1937 kam die politisch-rassische Verfolgung hinzu, die sich 
+            gegen jüdische Menschen sowie Sinti*zze und Rom*nja richtete. Darüber hinaus sorgte die Gestapo für den 
+            Ausschluss jeder von der nationalsozialistischen Norm abweichenden Lebens- und Verhaltensform aus der 
+            Gesellschaft. Mit Beginn des Zweiten Weltkrieges im September 1939 zielten die Tätigkeiten der Gestapo 
+            darauf ab, die deutsche Wehr- und Wirtschaftskraft durch repressive Maßnahmen zu erhalten. Dazu dienten auch 
+            die von ihr selbst gegründeten und betriebenen Arbeitserziehungslager und Erweiterte Polizeigefängnisse. 
+            Außerdem organisierte die Gestapo die Deportation der zuvor ausgegrenzten Jüd*innen in Ghettos und 
+            Vernichtungslager. In der zweiten Kriegshälfte wurde die Beobachtung und Unterdrückung der ab 1942 
+            massenweise im Deutschen Reich eingesetzten Zwangsarbeiter*innen zu einer weiteren Aufgabe der Gestapo. Auf 
+            dem Gebiet des heutigen Niedersachsens oblag der Gestapo zudem die Überwachung der Grenzen an der Nordsee 
+            und zu den Niederlanden.`,
+            `Bis in die 1990er Jahre dominierte das Bild einer allmächtigen und allgegenwärtigen Gestapo. Dieses wurde 
+            mittlerweile als Mythos enttarnt. Die Gestapo war, auch aufgrund ihrer relativ geringen Personalstärke, auf 
+            die weit verbreitete Bereitschaft von Bevölkerung und Behörden zur Zusammenarbeit angewiesen. Oft handelte 
+            sie nicht initiativ, sondern reagierte auf Hinweise von sogenannten Vertrauensleuten und aufgrund von 
+            Denunziationen.`,
+        ],
+        sources: [
+            `https://gedenkstaettenfoerderung.stiftung-ng.de/de/forschung-dokumentation/ss-gestapo-polizei/`,
+            `https://www.dhm.de/lemo/kapitel/ns-regime/ns-organisationen/gestapo/`,
+            `https://www.bpb.de/kurz-knapp/hintergrund-aktuell/280733/vor-85-jahren-nazis-bauen-macht-der-gestapo-aus/`,
+        ],
+    },
     'Hauptamt Sicherheitspolizei': {
         id: 'mainOfficeSecurityPolice',
         descriptions: [
