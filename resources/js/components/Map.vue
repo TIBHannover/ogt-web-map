@@ -177,9 +177,17 @@ export default {
                     },
                 },
                 childOrganizations: [{
+                    endDate: {
+                        locale: '',
+                        value: null,
+                    },
                     hasLocationMarker: false,
                     id: '',
                     label: '',
+                    startDate: {
+                        locale: '',
+                        value: null,
+                    },
                 }],
                 citizenships: [],
                 commemoratedBy: [{
@@ -324,9 +332,17 @@ export default {
                 },
                 operators: [],
                 parentOrganizations: [{
+                    endDate: {
+                        locale: '',
+                        value: null,
+                    },
                     hasLocationMarker: false,
                     id: '',
                     label: '',
+                    startDate: {
+                        locale: '',
+                        value: null,
+                    },
                 }],
                 perpetrators: [{
                     hasLocationMarker: false,
@@ -344,6 +360,10 @@ export default {
                     hasLocationMarker: false,
                     id: '',
                     label: '',
+                    pointInTime: {
+                        locale: '',
+                        value: null,
+                    },
                 }],
                 prisoners: [{
                     id: '',
@@ -372,6 +392,10 @@ export default {
                     hasLocationMarker: false,
                     id: '',
                     label: '',
+                    pointInTime: {
+                        locale: '',
+                        value: null,
+                    },
                 }],
                 targets: [],
                 victims: [{
@@ -831,12 +855,22 @@ export default {
                 for (const [statementId, parentOrganization] of Object.entries(place.parentOrganizations)) {
                     let hasLocationMarker = this.locationMarkers[parentOrganization.id] ? true : false;
 
+                    let startDate = parentOrganization.startTime ?
+                        this.getDate(parentOrganization.startTime.value, parentOrganization.startTime.datePrecision) : null;
+
+                    let endDate = parentOrganization.endTime ?
+                        this.getDate(parentOrganization.endTime.value, parentOrganization.endTime.datePrecision) : null;
+
                     this.selectedPlace.parentOrganizations.push({
+                        endDate: endDate,
                         hasLocationMarker: hasLocationMarker,
                         id: parentOrganization.id,
                         label: parentOrganization.value,
+                        startDate: startDate,
                     });
                 }
+
+                this.selectedPlace.parentOrganizations.sort(this.sortByDate);
             }
 
             this.selectedPlace.childOrganizations = [];
@@ -845,12 +879,22 @@ export default {
                 for (const [statementId, subsidiary] of Object.entries(place.subsidiaries)) {
                     let hasLocationMarker = this.locationMarkers[subsidiary.id] ? true : false;
 
+                    let startDate = subsidiary.startTime ?
+                        this.getDate(subsidiary.startTime.value, subsidiary.startTime.datePrecision) : null;
+
+                    let endDate = subsidiary.endTime ?
+                        this.getDate(subsidiary.endTime.value, subsidiary.endTime.datePrecision) : null;
+
                     this.selectedPlace.childOrganizations.push({
+                        endDate: endDate,
                         hasLocationMarker: hasLocationMarker,
                         id: subsidiary.id,
                         label: subsidiary.value,
+                        startDate: startDate,
                     });
                 }
+
+                this.selectedPlace.childOrganizations.sort(this.sortByDate);
             }
 
             this.selectedPlace.predecessors = [];
@@ -859,12 +903,18 @@ export default {
                 for (const [statementId, replace] of Object.entries(place.replaces)) {
                     let hasLocationMarker = this.locationMarkers[replace.id] ? true : false;
 
+                    let pointInTime = replace.pointInTime ?
+                        this.getDate(replace.pointInTime.value, replace.pointInTime.datePrecision) : null;
+
                     this.selectedPlace.predecessors.push({
                         hasLocationMarker: hasLocationMarker,
                         id: replace.id,
                         label: replace.value,
+                        pointInTime: pointInTime,
                     });
                 }
+
+                this.selectedPlace.predecessors.sort(this.sortByPointInTime);
             }
 
             this.selectedPlace.successors = [];
@@ -873,12 +923,18 @@ export default {
                 for (const [statementId, replacedBy] of Object.entries(place.replacedBys)) {
                     let hasLocationMarker = this.locationMarkers[replacedBy.id] ? true : false;
 
+                    let pointInTime = replacedBy.pointInTime ?
+                        this.getDate(replacedBy.pointInTime.value, replacedBy.pointInTime.datePrecision) : null;
+
                     this.selectedPlace.successors.push({
                         hasLocationMarker: hasLocationMarker,
                         id: replacedBy.id,
                         label: replacedBy.value,
+                        pointInTime: pointInTime,
                     });
                 }
+
+                this.selectedPlace.successors.sort(this.sortByPointInTime);
             }
 
             this.selectedPlace.sources = [];
