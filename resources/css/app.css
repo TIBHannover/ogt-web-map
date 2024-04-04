@@ -1,6 +1,26 @@
 @import "~vuetify/dist/vuetify.min.css";
 
+:root {
+    --color-primary: #AF1414;
+}
+
 html {
     /* https://vuetifyjs.com/en/getting-started/frequently-asked-questions/#scrollbar-overflow */
     overflow-y: auto;
+}
+
+.col {  /* override */
+    padding: 1rem 2.5rem;
+}
+
+.button {
+    cursor: pointer;
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background-color: var(--color-primary);
+    color: white;
+    font-weight: 600;
+}
+.button:hover {
+    filter: brightness(0.95);
 }

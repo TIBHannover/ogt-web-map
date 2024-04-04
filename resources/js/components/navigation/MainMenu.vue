@@ -61,6 +61,13 @@ export default {
                     toMenu: 'mainMenu',
                 },
                 {
+                    title: 'Eintrag anlegen',
+                    icon: 'mdi-plus',
+                    path: '/forms',
+                    show: true,
+                    toMenu: 'mainMenu',
+                },
+                {
                     title: 'Mitforschen',
                     icon: 'mdi-at',
                     path: '/collaboration',
