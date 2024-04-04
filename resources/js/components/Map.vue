@@ -543,16 +543,10 @@ export default {
             }
         },
         createPlaceMarkers: function (placeGroupName, places) {
-            let hideEvents = false;
-
-            if (placeGroupName == 'events' && ! this.$ogtGlobals.isTestingEnv) {
-                hideEvents = true;
-            }
-
             let placeMarkers = [];
             let iconUrl = this.$ogtGlobals.proxyPath + this.mapMarkerIconsPath + this.groupedPlaces[placeGroupName].iconName;
             const defaultIcon = L.icon({
-                className: hideEvents ? 'd-none' : '',
+                className: '',
                 iconUrl: iconUrl,
                 // Workaround to use same marker icons for Retina and non-Retina displays.
                 // - default file '/images/leaflet/marker-icon-2x.png'
@@ -578,7 +572,7 @@ export default {
                     });
 
                     marker.bindPopup(place.label, {
-                        className: hideEvents ? 'd-none' : 'font-weight-bold',
+                        className: 'font-weight-bold',
                     });
 
                     marker.on('click', event => {
