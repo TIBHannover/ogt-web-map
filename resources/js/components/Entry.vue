@@ -59,7 +59,7 @@
 import glossaryData from '../data/glossaryData';
 
 export default {
-    name: 'Forms',
+    name: 'Entry',
     props: ['isMenuDisplayed'],
     data() {
         return {

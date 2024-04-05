@@ -63,7 +63,14 @@ export default {
                 {
                     title: 'Eintrag anlegen',
                     icon: 'mdi-plus',
-                    path: '/forms',
+                    path: '/entry',
+                    show: true,
+                    toMenu: 'mainMenu',
+                },
+                {
+                    title: 'Literatur',
+                    icon: 'mdi-book-multiple',
+                    path: '/bibliography',
                     show: true,
                     toMenu: 'mainMenu',
                 },
