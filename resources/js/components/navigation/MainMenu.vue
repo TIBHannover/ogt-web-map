@@ -60,13 +60,13 @@ export default {
                     show: true,
                     toMenu: 'mainMenu',
                 },
-                {
+                /* {
                     title: 'Eintrag anlegen',
                     icon: 'mdi-plus',
                     path: '/entry',
                     show: true,
                     toMenu: 'mainMenu',
-                },
+                }, */
                 {
                     title: 'Literatur',
                     icon: 'mdi-book-multiple',

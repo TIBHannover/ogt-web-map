@@ -3,7 +3,7 @@ const Map = () => import('./components/Map.vue');
 const Project = () => import('./components/Project.vue');
 const Glossary = () => import('./components/Glossary.vue');
 const Charts = () => import('./components/Charts.vue');
-const Entry = () => import('./components/Entry.vue');
+// const Entry = () => import('./components/Entry.vue');
 const Bibliography = () => import('./components/Bibliography.vue');
 const Collaboration = () => import('./components/Collaboration.vue');
 
@@ -33,11 +33,11 @@ export const routes = [
         path: '/charts',
         component: Charts,
     },
-    {
+    /* {
         name: 'entry',
         path: '/entry',
         component: Entry,
-    },
+    }, */
     {
         name: 'bibliography',
         path: '/bibliography',
