@@ -154,12 +154,6 @@
                         <email encryptedEmail="mjtb/hspi" :showEmail=true :showIcon=true></email>
                     </p>
                     <p>
-                        <span class="font-weight-bold">Nils Casties</span>
-                        / Webentwicklung & Projektkoordination
-                        <br>
-                        <email encryptedEmail="ojmt/dbtujft" :showEmail=true :showIcon=true></email>
-                    </p>
-                    <p>
                         <span class="font-weight-bold">Lucia Sohmen</span>
                         / Wissenschaftliche Mitarbeiterin
                         <br>

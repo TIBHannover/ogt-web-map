@@ -4,17 +4,15 @@
         <v-main class="grey lighten-3">
             <router-view :isMenuDisplayed="isMenuDisplayed"></router-view>
         </v-main>
-        <info-footer></info-footer>
     </v-app>
 </template>
 
 <script>
-import InfoFooter from './InfoFooter';
 import NavigationSidebar from './navigation/NavigationSidebar';
 
 export default {
     name: 'App',
-    components: {InfoFooter, NavigationSidebar},
+    components: {NavigationSidebar},
     data() {
         return {
             isMenuDisplayed: false,
