@@ -1299,9 +1299,7 @@ export default {
             let layerGroup = L.layerGroup(placeMarkers);
             layerGroup.addTo(this.map);
 
-            if (this.$ogtGlobals.isTestingEnv || placeGroupName != 'events') {
-                this.layers.addOverlay(layerGroup, this.groupedPlaces[placeGroupName].layerName);
-            }
+            this.layers.addOverlay(layerGroup, this.groupedPlaces[placeGroupName].layerName);
 
             this.groupedPlaces[placeGroupName].layerGroup = layerGroup;
         },

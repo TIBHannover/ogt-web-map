@@ -5,7 +5,7 @@
         <v-list-item>
             <v-list-item-content>
                 <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
-                    Impressum zu dieser Website – zugleich Anbieterkennzeichnung gem. § 5 Telemediengesetz (TMG)
+                    Impressum zu dieser Website – zugleich Anbieterkennzeichnung gem. § 5 Digitale Dienste Gesetz (DDG)
                 </v-list-item-subtitle>
             </v-list-item-content>
         </v-list-item>
@@ -73,7 +73,7 @@
             <v-list-item-content>
                 <v-list-item-title>Redaktion:</v-list-item-title>
                 <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
-                    Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV: Dr. Sandra Niemeyer; E-Mail:<br>
+                    Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV: Dr. Sandra Niemeyer; E-Mail:<br>
                     <email encryptedEmail="tboesb/ojfnfzfs" :showEmail=true></email>
                 </v-list-item-subtitle>
             </v-list-item-content>

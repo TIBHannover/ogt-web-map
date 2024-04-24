@@ -154,15 +154,6 @@
                         <email encryptedEmail="mjtb/hspi" :showEmail=true :showIcon=true></email>
                     </p>
                     <p>
-                        <span class="font-weight-bold">Lucia Sohmen</span>
-                        / Wissenschaftliche Mitarbeiterin
-                        <br>
-                        <a href="https://vivo.tib.eu/fis/individual/n0000-0002-2593-8754" target="_blank">
-                            https://vivo.tib.eu/fis/individual/n0000-0002-2593-8754
-                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
-                        </a>
-                    </p>
-                    <p>
                         <span class="font-weight-bold">Nadine Klöver</span>
                         / Grafik-Design
                         <br>
@@ -174,6 +165,8 @@
                     <p>
                         <span class="font-weight-bold">Tobias Mielich</span>
                         / Studentischer Mitarbeiter, Fachmaster Geschichte (Master of Arts)
+                        <br>
+                        <email encryptedEmail="upcjbt/njfmjdi" :showEmail=true :showIcon=true></email>
                     </p>
 
                     <h2 class="font-weight-medium text-h6 text-md-h5">
@@ -201,7 +194,7 @@
                         Leitung der Gedenkstätte Bergen-Belsen
                     </p>
                     <p>
-                        <span class="font-weight-bold">Dr. Rolf Keller</span>
+                        <span class="font-weight-bold">Dr. Achim Rohde</span>
                         <br>
                         Leitung Gedenkstättenförderung Niedersachsen
                     </p>
