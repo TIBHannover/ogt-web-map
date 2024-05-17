@@ -483,6 +483,19 @@ export default {
             this.derivePlaceData();
             this.updateInfoSidebarData();
             this.checkUrlForLocation();
+            
+            const searchParams = new URLSearchParams(document.location.search);
+            const searchID = searchParams.get("id");
+            const searchGroup = searchParams.get("group");
+            const searchLat = searchParams.get("lat");
+            const searchLng = searchParams.get("lng");
+
+            if(!searchID || !searchGroup || !searchLat || !searchLng) return;
+            const place = ((this.groupedPlaces[searchGroup] || {}).places || {})[searchID];
+            place && setTimeout(() => {
+                this.setSelectedPlace(place, { lat: parseFloat(searchLat), lng: parseFloat(searchLng) }, searchGroup)
+                this.toggleShowPlaceInfoSidebar(true);
+            }, 500);
         },
         /**
          * Request persons data from cached file and Wikidata for perpetrators and victims.
@@ -614,6 +627,8 @@ export default {
             this.selectedPlace.layerName = this.groupedPlaces[placeGroupName].layerName;
             this.selectedPlace.id = place.id;
             this.selectedPlace.latLng = latLng;
+
+            window.history.replaceState(null, null, encodeURI(`${document.location.pathname}?id=${place.id}&group=${placeGroupName}&lat=${latLng.lat}&lng=${latLng.lng}`));
 
             this.selectedPlace.mainImageUrl = '';
             this.selectedPlace.mainImageLegend = '';
@@ -959,7 +974,8 @@ export default {
             this.selectedPlace.hasUses = [];
             if (place.hasUses) {
                 for (const [statementId, hasUse] of Object.entries(place.hasUses)) {
-                    this.selectedPlace.hasUses.push(hasUse.value);
+                    const value = (hasUse.value === "Ausbildung") ? "Bildungsarbeit" : hasUse.value;
+                    this.selectedPlace.hasUses.push(value);
                 }
             }
 

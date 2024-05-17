@@ -88,7 +88,7 @@
                         Laufzeit
                     </v-list-item-title>
                     <v-list-item-subtitle>
-                        01/2024 – 12/2025
+                        11/2020 – 12/2025
                     </v-list-item-subtitle>
                 </v-list-item-content>
             </v-list-item>

@@ -36,19 +36,22 @@
         >
             <v-list-item dense>
                 <v-list-item-content>
-                    <v-list-item-title>Personalstärke</v-list-item-title>
+                    <v-list-item-title>Personal</v-list-item-title>
                     <v-list-item-subtitle>
-                        <ul v-if="selectedPlace.employeeCounts.length > 0">
-                            <li v-for="employeeCount in selectedPlace.employeeCounts">
-                                <template v-if="employeeCount.sourcingCircumstance">
-                                    {{ employeeCount.sourcingCircumstance }}
-                                </template>
-                                {{ employeeCount.value }}
-                                <template v-if="employeeCount.pointInTime">
-                                    ({{ employeeCount.pointInTime.locale }})
-                                </template>
-                            </li>
-                        </ul>
+                        <div v-if="selectedPlace.employeeCounts.length > 0" class="my-2">
+                            Personalstärke
+                            <ul>
+                                <li v-for="employeeCount in selectedPlace.employeeCounts">
+                                    <template v-if="employeeCount.sourcingCircumstance">
+                                        {{ employeeCount.sourcingCircumstance }}
+                                    </template>
+                                    {{ employeeCount.value }}
+                                    <template v-if="employeeCount.pointInTime">
+                                        ({{ employeeCount.pointInTime.locale }})
+                                    </template>
+                                </li>
+                            </ul>
+                        </div>
                         <div v-if="selectedPlace.directors.length > 0" class="mt-2">
                             Leitung
                             <ul>
