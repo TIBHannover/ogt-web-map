@@ -460,7 +460,7 @@ export default {
                 this.layers.addTo(this.map);
             }
 
-            this.map.zoomControl.setPosition('topright');
+            this.map.zoomControl.setPosition('bottomright');
 
             // add scale control using metric system
             L.control.scale({
@@ -1857,9 +1857,19 @@ export default {
 
 <style>
 /* top-right Leaflet control */
-.leaflet-top.leaflet-right {
-    margin-top: 80px;
-    margin-right: 10px;
+.leaflet-bottom.leaflet-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: auto;
+    left: 0;
+}
+.leaflet-control {
+    display: flex;
+}
+.leaflet-control a {
+    border-radius: 2px !important;
+    border-bottom: 1px solid #ccc !important;
 }
 
 /* greyscale map tiles */
