@@ -1871,6 +1871,9 @@ export default {
     border-radius: 2px !important;
     border-bottom: 1px solid #ccc !important;
 }
+.leaflet-control-attribution {
+    display: block;
+}
 
 /* greyscale map tiles */
 .leaflet-tile-pane {

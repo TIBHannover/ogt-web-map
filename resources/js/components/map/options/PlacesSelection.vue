@@ -1,6 +1,15 @@
 <template>
     <v-container fluid>
         <!-- selection for location groups -->
+        <v-row>
+            <v-col class="py-0" style="max-width: 60px"></v-col>
+            <v-col class="pa-0">
+                <div class="select-all" @click="selectAll()">
+                    <div></div>
+                    Alle wählen
+                </div>
+            </v-col>
+        </v-row>
         <v-row
             v-for="groupName in groupedPlacesOrder"
             class="pt-1"
@@ -63,6 +72,13 @@
 export default {
     name: 'PlacesSelection',
     props: ['groupedPlaces', 'map', 'mapMarkerIconsPath'],
+    methods: {
+        selectAll() {
+            this.checkedPlaceLayerGroups = (this.checkedPlaceLayerGroups.length !== Object.keys(this.groupedPlaces).length)
+            ? Object.keys(this.groupedPlaces)
+            : [];
+        }
+    },
     data() {
         return {
             checkedPlaceLayerGroups: Object.keys(this.groupedPlaces),
@@ -76,7 +92,7 @@ export default {
                 'events',
                 'memorials',
             ],
-            selectedPlace: null,
+            selectedPlace: null
         };
     },
     watch: {
@@ -115,6 +131,45 @@ export default {
 /* set width of drop-down-lists of selectable places */
 .v-autocomplete__content {
     max-width: 307px;
+}
+
+.select-all {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin-top: 18px;
+    margin-bottom: 12px;
+    width: fit-content;
+    white-space: nowrap;
+}
+.select-all > div {
+    content: "";
+    flex: 1 0 auto;
+    display: block;
+    position: relative;
+    margin-left: 4px;
+    margin-right: 14px;
+    width: 15px;
+    height: 15px;
+    background-color: #D0D0D0;
+    border-radius: 2px;
+}
+.select-all > div::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -17.5px;
+    margin-left: -17.5px;
+    width: 35px;
+    height: 35px;
+    background-color: #F0F0F0;
+    border-radius: 100%;
+    opacity: 0;
+    z-index: -1;
+}
+.select-all > div:hover::after {
+    opacity: 0.5;
 }
 </style>
 
