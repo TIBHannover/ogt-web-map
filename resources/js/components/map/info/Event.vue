@@ -85,28 +85,32 @@
         <template v-if="selectedPlace.perpetrators.length > 0">
             <v-list-item dense>
                 <v-list-item-content>
-                    <v-list-item-title>Täter</v-list-item-title>
+                    <v-list-item-title>Täter:innen</v-list-item-title>
                     <v-list-item-subtitle>
                         <ul class="hyphens-auto white-space-normal" lang="de">
                             <li v-for="perpetrator in selectedPlace.perpetrators">
-                                <a
-                                    v-if="perpetrator.hasPersonData"
-                                    @click.stop="$emit('showPerson', {
-                                        id: perpetrator.id,
-                                        group: 'perpetrators',
+                                <div v-if="perpetrator.hasPersonData || perpetrator.hasLocationMarker">
+                                    <h4 v-if="perpetrator.hasPersonData">Person(en)</h4>
+                                    <a
+                                        v-if="perpetrator.hasPersonData"
+                                        @click.stop="$emit('showPerson', {
+                                            id: perpetrator.id,
+                                            group: 'perpetrators',
+                                        })"
+                                        href="#"
+                                    >
+                                        {{ perpetrator.label }}
+                                    </a>
+                                    <h4 v-if="perpetrator.hasLocationMarker">Institution(en)</h4>
+                                    <a v-if="perpetrator.hasLocationMarker"
+                                    @click.stop="$emit('switchLocation', {
+                                        locationId: perpetrator.id,
                                     })"
                                     href="#"
-                                >
-                                    {{ perpetrator.label }}
-                                </a>
-                                <a v-else-if="perpetrator.hasLocationMarker"
-                                   @click.stop="$emit('switchLocation', {
-                                       locationId: perpetrator.id,
-                                   })"
-                                   href="#"
-                                >
-                                    {{ perpetrator.label }}
-                                </a>
+                                    >
+                                        {{ perpetrator.label }}
+                                    </a>
+                                </div>
                                 <template v-else>
                                     {{ perpetrator.label }}
                                 </template>
