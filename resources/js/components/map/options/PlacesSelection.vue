@@ -6,7 +6,7 @@
             <v-col class="pa-0">
                 <div class="select-all" @click="selectAll()">
                     <div></div>
-                    Alle wählen
+                    Alle
                 </div>
             </v-col>
         </v-row>

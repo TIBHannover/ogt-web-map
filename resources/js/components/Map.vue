@@ -1,10 +1,15 @@
 <template>
-    <div>
+    <div class="wrapper">
         <map-options-sidebar
             :groupedPlaces="groupedPlaces"
             :map="map"
             :mapMarkerIconsPath="mapMarkerIconsPath"
         ></map-options-sidebar>
+
+        <map-timeline
+            :groupedPlaces="groupedPlaces"
+            :map="map"
+        ></map-timeline>
 
         <place-info-sidebar
             :selectedPlace="selectedPlace"
@@ -24,13 +29,18 @@
 <script>
 import Leaflet from 'leaflet/dist/leaflet';
 import MapOptionsSidebar from './map/MapOptionsSidebar';
+import MapTimeline from './map/MapTimeline';
 import PlaceInfoSidebar from './map/PlaceInfoSidebar';
 
 export default {
     name: 'Map',
-    components: {Leaflet, MapOptionsSidebar, PlaceInfoSidebar},
+    components: {Leaflet, MapOptionsSidebar, MapTimeline, PlaceInfoSidebar},
     data() {
         return {
+            rawGroupedPlaces: {},
+            markers: [],
+            minYear: -Infinity,
+            maxYear: Infinity,
             cachedMapView: {
                 // Leaflet LatLng geographical point object
                 latLng: {
@@ -471,15 +481,13 @@ export default {
          * Request grouped places of Gestapo terror.
          */
         async getGroupedPlaces() {
-            let groupedPlaces = {};
-
             await this.axios.get('/api/wikidata/places').then(response => {
-                groupedPlaces = response.data;
+                this.rawGroupedPlaces = response.data;
             }).catch(error => {
                 console.log(error);
             });
 
-            this.visualizePlaces(groupedPlaces);
+            this.visualizePlaces(this.rawGroupedPlaces);
             this.derivePlaceData();
             this.updateInfoSidebarData();
             this.checkUrlForLocation();
@@ -546,14 +554,24 @@ export default {
                 this.setSelectedPlace(location, this.selectedPlace.latLng, this.selectedPlace.groupName);
             }
         },
+        setYearRange(min, max) {
+            this.minYear = min;
+            this.maxYear = max;
+
+            this.refresh();
+        },
         visualizePlaces: function (groupedPlaces) {
             for (const [group, places] of Object.entries(groupedPlaces)) {
                 this.groupedPlaces[group]['places'] = places;
-
+                
                 let placeMarkers = this.createPlaceMarkers(group, places);
-
                 this.createPlacesLayerGroups(group, placeMarkers);
+                this.markers.push(...placeMarkers);
             }
+        },
+        refresh() {
+            this.markers.forEach(m => this.map.removeLayer(m));
+            this.visualizePlaces(this.rawGroupedPlaces);
         },
         createPlaceMarkers: function (placeGroupName, places) {
             let placeMarkers = [];
@@ -573,6 +591,17 @@ export default {
             });
 
             for (const [placeId, place] of Object.entries(places)) {
+                const getDateProp = key => {
+                    return place[key]?.value
+                    || Object.values(place[key] ?? {})[0]?.value;
+                };
+                const date = getDateProp("inceptionDates")
+                        ?? getDateProp("dissolvedDates")
+                        ?? getDateProp("endTime")
+                        ?? getDateProp("startTime");
+                const year = date ? new Date(date).getFullYear() : 0;
+                if(year && (year < this.minYear || year > this.maxYear)) continue;
+
                 let countedPlaceCoordinates = Object.keys(place.coordinates).length;
                 let coordinatesIndex = 0;
                 this.locationMarkers[placeId] = [];
@@ -1855,6 +1884,11 @@ export default {
 };
 </script>
 
+<style scoped>
+.wrapper {
+    height: 100%;
+}
+</style>
 <style>
 /* top-right Leaflet control */
 .leaflet-bottom.leaflet-right {
