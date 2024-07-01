@@ -230,7 +230,7 @@
                             </div>
                             <ul v-if="predecessor.pointInTime">
                                 <li>
-                                    ab {{ predecessor.pointInTime.locale }}
+                                    bis {{ predecessor.pointInTime.locale }}
                                 </li>
                             </ul>
                         </div>
