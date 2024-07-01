@@ -590,18 +590,19 @@ export default {
                 shadowSize: [76, 52], // default [41, 41]
             });
 
+                console.log(placeGroupName)
             for (const [placeId, place] of Object.entries(places)) {
                 const getDateProp = key => {
                     return place[key]?.value
                     || Object.values(place[key] ?? {})[0]?.value;
                 };
-                const date = getDateProp("inceptionDates")
+                const year = getDateProp("inceptionDates")
                         ?? getDateProp("dissolvedDates")
                         ?? getDateProp("endTime")
-                        ?? getDateProp("startTime");
-                const year = date ? new Date(date).getFullYear() : 0;
+                        ?? getDateProp("startTime")
+                        ?? ((placeGroupName !== "memorials") ? 1945 : new Date().getFullYear());
                 if(year && (year < this.minYear || year > this.maxYear)) continue;
-
+                
                 let countedPlaceCoordinates = Object.keys(place.coordinates).length;
                 let coordinatesIndex = 0;
                 this.locationMarkers[placeId] = [];
@@ -1904,6 +1905,10 @@ export default {
 .leaflet-control a {
     border-radius: 2px !important;
     border-bottom: 1px solid #ccc !important;
+}
+.leaflet-control-zoom span {
+    display: block;
+    transform: translateY(-2px);
 }
 .leaflet-control-attribution {
     display: block;
