@@ -174,5 +174,11 @@ export default {
 </style>
 
 <style scoped>
-
+.py-0 {
+    padding-left: 0.75rem !important;
+    padding-right: 0.25rem !important;
+}
+.pa-0 {
+    padding-left: 0 !important;
+}
 </style>

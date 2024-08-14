@@ -6,10 +6,10 @@
             :mapMarkerIconsPath="mapMarkerIconsPath"
         ></map-options-sidebar>
 
-        <map-timeline
+        <!-- <map-timeline
             :groupedPlaces="groupedPlaces"
             :map="map"
-        ></map-timeline>
+        ></map-timeline> -->
 
         <place-info-sidebar
             :selectedPlace="selectedPlace"
@@ -589,8 +589,7 @@ export default {
                 tooltipAnchor: [16, -28],
                 shadowSize: [76, 52], // default [41, 41]
             });
-
-                console.log(placeGroupName)
+            
             for (const [placeId, place] of Object.entries(places)) {
                 const getDateProp = key => {
                     return place[key]?.value
@@ -1912,6 +1911,9 @@ export default {
 }
 .leaflet-control-attribution {
     display: block;
+}
+.leaflet-control-layers {
+    display: none !important;
 }
 
 /* greyscale map tiles */

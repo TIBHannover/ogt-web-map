@@ -101,6 +101,94 @@ const graphViewRelations = Object.freeze({
     title: 'Verknüpfung der Daten',
 });
 
+// G 2
+
+const graph2 = Object.freeze({
+    imageUrl: '/images/charts/graph-view-relations.png',
+    queryUrl: getQueryUrl(`
+    #defaultView:Graph
+    SELECT ?location ?locationLabel ?employee ?employeeLabel
+    WHERE {
+    ?location      wdt:P31   wd:Q106996250 ;
+                    wdt:P1037 ?employee .
+    ?employee      wdt:P31   wd:Q5 ;
+                    wdt:P108  wd:Q43250 .
+    SERVICE wikibase:label {
+        bd:serviceParam wikibase:language "[AUTO_LANGUAGE],de,en"
+    }
+    }
+    LIMIT 500
+    `),
+    subtitle:
+        `Ein interaktiver Graph, der die erfassten Gestapo-Mitarbeiter*innen in leitenden Positionen in Beziehung zu ihren Einsatzorten setzt.`,
+    title: 'Einsatzorte erfasster Gestapo-Mitarbeiter*innen',
+});
+
+//G 3
+
+const graph3 = Object.freeze({
+    imageUrl: '/images/charts/graph-view-relations.png',
+    queryUrl: getQueryUrl(`
+    #defaultView:Graph
+    SELECT DISTINCT
+    ?police ?policeLabel
+    ?prison ?prisonLabel
+    ?memorial ?memorialLabel
+    ?relatedLocation ?relatedLocationLabel
+    WHERE {
+    {
+        ?police           wdt:P279  wd:Q35535 ;
+                        wdt:P31   wd:Q106996250 .
+        ?relatedLocation  wdt:P355   wd:Q106996250 .
+    } UNION {
+        ?prison           wdt:P31   wd:Q40357 ,
+                            ?o ;
+                        wdt:P749  ?relatedLocation .
+        ?relatedLocation  wdt:P31   wd:Q106996250 .
+        FILTER (?o IN (wd:Q106996250, wd:Q277565))
+    } UNION {
+        ?memorial         wdt:P31   wd:Q5003624 ;
+                        wdt:P547  ?relatedLocation .
+        ?relatedLocation  wdt:P31   wd:Q106996250 .
+    }
+    SERVICE wikibase:label {
+        bd:serviceParam wikibase:language "[AUTO_LANGUAGE],de,en"
+    }
+    }
+    LIMIT 500
+    `),
+    subtitle:
+        `Ein interaktiver Graph, der die aufzeigt, wie die verschiedenen Orte um das Wirken der Gestapo im Verhältnis standen bzw. stehen.`,
+    title: 'Verhältnis von Dienststellen, Haftstätten, und Erinnerungsorten',
+});
+
+// T 1
+
+const table1 = Object.freeze({
+    imageUrl: '/images/charts/graph-view-relations.png',
+    queryUrl: getQueryUrl(`
+    #defaultView:Table
+    SELECT ?memorial ?memorialLabel ?openingDate
+    WHERE {
+    ?memorial    wdt:P31   wd:Q5003624 ;
+                wdt:P547  ?location ;
+                wdt:P1619 ?openingDate .
+    ?location    wdt:P31   wd:Q106996250 .
+    SERVICE wikibase:label {
+        bd:serviceParam wikibase:language "[AUTO_LANGUAGE],de,en"
+    }
+    }
+    ORDER BY ASC(?openingDate)
+    LIMIT 500
+    `),
+    subtitle:
+        `Eine Tabelle, die die verschiedenen Erinnerungsorte zu Gestapo-Verbrechen sortiert nach Eröffungsdatum auflistet.`,
+    title: 'Erinnerungsorte und zugehörige Eröffnungsdaten',
+});
+
 export default Object.freeze({
     graphViewRelations,
+    graph2,
+    graph3,
+    table1
 });
