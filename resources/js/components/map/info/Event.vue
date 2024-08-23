@@ -5,7 +5,7 @@
         <template v-if="selectedPlace.locations.length > 0 || selectedPlace.significantPlaces.length > 0">
             <v-list-item dense>
                 <v-list-item-content>
-                    <v-list-item-title>Ort</v-list-item-title>
+                    <v-list-item-title>Ort(e)</v-list-item-title>
                     <v-list-item-subtitle>
                         <ul>
                             <li v-for="location in selectedPlace.locations">
@@ -50,6 +50,30 @@
             <v-divider></v-divider>
         </template>
 
+        <!-- coordinate location - https://www.wikidata.org/wiki/Property:P625 -->
+        <v-list-item dense>
+            <v-list-item-content>
+                <v-list-item-title>Koordinaten</v-list-item-title>
+                <v-list-item-subtitle>
+                    <ul>
+                        <li>
+                            {{ selectedPlace.addresses.selected.latLng.lat }},
+                            {{ selectedPlace.addresses.selected.latLng.lng }}
+                        </li>
+                    </ul>
+                </v-list-item-subtitle>
+            </v-list-item-content>
+            <v-list-item-action class="flex-direction-row ml-0 my-0">
+                <v-btn @click.stop="$emit('zoomIntoPlace')" icon>
+                    <v-icon>mdi-magnify-plus</v-icon>
+                </v-btn>
+                <v-btn @click.stop="$emit('undoZoomIntoPlace')" icon>
+                    <v-icon>mdi-undo-variant</v-icon>
+                </v-btn>
+            </v-list-item-action>
+        </v-list-item>
+        <v-divider></v-divider>
+
         <!-- start time - https://www.wikidata.org/wiki/Property:P580
              end time - https://www.wikidata.org/wiki/Property:P582     -->
         <template v-if="selectedPlace.startDate.value || selectedPlace.endDate.value">
@@ -85,7 +109,7 @@
         <template v-if="selectedPlace.perpetrators.length > 0">
             <v-list-item dense>
                 <v-list-item-content>
-                    <v-list-item-title>Täter:innen</v-list-item-title>
+                    <v-list-item-title>Täter*in</v-list-item-title>
                     <v-list-item-subtitle>
                         <ul class="hyphens-auto white-space-normal" lang="de">
                             <li v-for="perpetrator in selectedPlace.perpetrators">
@@ -164,7 +188,8 @@
             <v-divider></v-divider>
         </template>
 
-        <!-- targets - https://www.wikidata.org/wiki/Property:P533 -->
+        <!-- targets - https://www.wikidata.org/wiki/Property:P533 (previous) -->
+        <!-- targets - https://www.wikidata.org/wiki/Property:P828 -->
         <template v-if="selectedPlace.targets.length > 0">
             <v-list-item dense>
                 <v-list-item-content>
@@ -180,30 +205,6 @@
             </v-list-item>
             <v-divider></v-divider>
         </template>
-
-        <!-- coordinate location - https://www.wikidata.org/wiki/Property:P625 -->
-        <v-list-item dense>
-            <v-list-item-content>
-                <v-list-item-title>Koordinaten</v-list-item-title>
-                <v-list-item-subtitle>
-                    <ul>
-                        <li>
-                            {{ selectedPlace.addresses.selected.latLng.lat }},
-                            {{ selectedPlace.addresses.selected.latLng.lng }}
-                        </li>
-                    </ul>
-                </v-list-item-subtitle>
-            </v-list-item-content>
-            <v-list-item-action class="flex-direction-row ml-0 my-0">
-                <v-btn @click.stop="$emit('zoomIntoPlace')" icon>
-                    <v-icon>mdi-magnify-plus</v-icon>
-                </v-btn>
-                <v-btn @click.stop="$emit('undoZoomIntoPlace')" icon>
-                    <v-icon>mdi-undo-variant</v-icon>
-                </v-btn>
-            </v-list-item-action>
-        </v-list-item>
-        <v-divider></v-divider>
 
         <!-- number of survivors - https://www.wikidata.org/wiki/Property:P1561 -->
         <template v-if="selectedPlace.numberOfSurvivors.length > 0">
@@ -226,7 +227,7 @@
         <template v-if="selectedPlace.numberOfDeaths.length > 0">
             <v-list-item dense>
                 <v-list-item-content>
-                    <v-list-item-title>Getötete</v-list-item-title>
+                    <v-list-item-title>Ermordete</v-list-item-title>
                     <v-list-item-subtitle>
                         <ul>
                             <li v-for="numberOfDeaths in selectedPlace.numberOfDeaths">

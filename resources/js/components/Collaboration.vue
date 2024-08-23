@@ -30,7 +30,7 @@
                         Polizei während des Nationalsozialismus? Wo waren die Dienstsitze, wo die Haftstätten der
                         Geheimen Staatspolizei? Wie sehen die Orte des Gestapoterrors heute aus? Wie wurden die Orte
                         nach 1945 genutzt? Welche Berichte können uns den Terror der Gestapo nachvollziehen lassen? Wer
-                        waren die Täter:innen? Was haben die Täter:innen nach 1945 gemacht? Wurden ihre Taten geahndet?
+                        waren die Täter*innen? Was haben die Täter*innen nach 1945 gemacht? Wurden ihre Taten geahndet?
                         Wer wurde von der Gestapo verfolgt? Wie erinnern wir heute an die Verbrechen der Gestapo?
                     </p>
                     <p>
@@ -233,7 +233,7 @@
                         Biografie Projekt
                     </h2>
                     <p>
-                        Biografien von Geschädigten oder Gestapo Mitarbeiter:innen werden recherchiert. Die gewonnenen
+                        Biografien von Geschädigten oder Gestapo Mitarbeiter*innen werden recherchiert. Die gewonnenen
                         Daten werden mit Hilfe von
                         <a class="text-no-wrap" href="https://www.wikidata.org" target="_blank">
                             Wikidata
@@ -299,7 +299,7 @@ export default {
                     ],
                 },
                 {
-                    group: 'Täter:innen',
+                    group: 'Täter*innen',
                     locations: [
                         {
                             label: 'Friedrich Kicker',

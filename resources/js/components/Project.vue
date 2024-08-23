@@ -111,7 +111,7 @@
                     <h1 class="font-weight-medium text-h5 text-md-h4 mb-5"
                         :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
                     >
-                        Team & Partner:innen
+                        Team & Partner*innen
                     </h1>
                     <p>
                         Das Projekt „Orte des Gestapoterrors im heutigen Niedersachsen“ (OGT) ist ein
@@ -170,7 +170,7 @@
                     </p>
 
                     <h2 class="font-weight-medium text-h6 text-md-h5">
-                        Partner:innen
+                        Partner*innen
                     </h2>
                     <h3 class="text-h6 mb-1" :class="{ 'font-weight-regular': $vuetify.breakpoint.mdAndDown }">
                         Stiftung niedersächsische Gedenkstätten (SnG)
@@ -366,7 +366,7 @@ export default {
                 },
                 {
                     href: '#teamAndPartners',
-                    label: 'Team & Partner:innen',
+                    label: 'Team & Partner*innen',
                 },
                 {
                     href: '#presentationsAndPublications',
