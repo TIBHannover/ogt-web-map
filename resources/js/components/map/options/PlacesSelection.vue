@@ -114,14 +114,15 @@ export default {
          * @param oldCheckedPlaceLayerGroups
          */
         checkedPlaceLayerGroups(newCheckedPlaceLayerGroups, oldCheckedPlaceLayerGroups) {
-            for (const [group, places] of Object.entries(this.groupedPlaces)) {
+            /* for (const [group, places] of Object.entries(this.groupedPlaces)) {
                 if (newCheckedPlaceLayerGroups.includes(group)) {
                     places.layerGroup.addTo(this.map);
                 }
                 else {
                     places.layerGroup.remove();
                 }
-            }
+            } */
+            this.$parent.$parent.$parent.$parent.$parent.applyFilters(null, null, newCheckedPlaceLayerGroups);
         },
     },
 };

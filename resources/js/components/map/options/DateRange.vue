@@ -19,7 +19,7 @@
                 v-for="(timePeriodOption, index) in timePeriodOptions"
                 :key="index"
                 :label="timePeriodOption"
-                @click="setDateRangeBySelectedTimePeriod"
+                @click="applyFiltersBySelectedTimePeriod"
                 color="grey darken-4"
                 :value="index"
             ></v-radio>
@@ -80,7 +80,7 @@ export default {
         },
     },
     methods: {
-        setDateRangeBySelectedTimePeriod() {
+        applyFiltersBySelectedTimePeriod() {
             switch (this.selectedTimePeriod) {
                 case 0:
                     this.dateRange = ['1933-01-01', '1945-12-31'];

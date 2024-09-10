@@ -6,10 +6,10 @@
             :mapMarkerIconsPath="mapMarkerIconsPath"
         ></map-options-sidebar>
 
-        <!-- <map-timeline
+        <map-timeline
             :groupedPlaces="groupedPlaces"
             :map="map"
-        ></map-timeline> -->
+        ></map-timeline>
 
         <place-info-sidebar
             :selectedPlace="selectedPlace"
@@ -39,8 +39,15 @@ export default {
         return {
             rawGroupedPlaces: {},
             markers: [],
-            minYear: -Infinity,
-            maxYear: Infinity,
+            minDate: {
+                year: -Infinity,
+                month: -Infinity
+            },
+            maxDate: {
+                year: Infinity,
+                month: Infinity
+            },
+            groupNames: null,
             cachedMapView: {
                 // Leaflet LatLng geographical point object
                 latLng: {
@@ -145,6 +152,7 @@ export default {
             },
             layers: null,
             locationMarkers: [],
+            markersDate: new Map(),
             map: null,
             mapMarkerIconsPath: '/images/leaflet/markerIcons/coloredFilledWhite/',
             persons: {
@@ -563,11 +571,24 @@ export default {
                 this.setSelectedPlace(location, this.selectedPlace.latLng, this.selectedPlace.groupName);
             }
         },
-        setYearRange(min, max) {
-            this.minYear = min;
-            this.maxYear = max;
+        applyFilters(minDate, maxDate, groupNames) {
+            this.minDate = minDate ?? this.minDate;
+            this.maxDate = maxDate ?? this.maxDate;
+            this.groupNames = groupNames ?? this.groupNames;
 
-            this.refresh();
+            Array.from(this.markersDate.entries())
+            .forEach(entry => {
+                const groupName = entry[1].groupName;
+                const date = new Date(entry[1].date);
+                const year = date.getFullYear();
+                const month = date.getMonth();
+                const applies = (year > this.minDate.year || (year === this.minDate.year && month >= this.minDate.month))
+                               && (year < this.maxDate.year || (year === this.maxDate.year && month <= this.maxDate.month))
+                               && (!this.groupNames || this.groupNames.includes(groupName));
+                applies
+                ? entry[0].addTo(this.map)
+                : entry[0].remove();
+            });
         },
         visualizePlaces: function (groupedPlaces) {
             for (const [group, places] of Object.entries(groupedPlaces)) {
@@ -577,10 +598,6 @@ export default {
                 this.createPlacesLayerGroups(group, placeMarkers);
                 this.markers.push(...placeMarkers);
             }
-        },
-        refresh() {
-            this.markers.forEach(m => this.map.removeLayer(m));
-            this.visualizePlaces(this.rawGroupedPlaces);
         },
         createPlaceMarkers: function (placeGroupName, places) {
             let placeMarkers = [];
@@ -600,17 +617,6 @@ export default {
             });
             
             for (const [placeId, place] of Object.entries(places)) {
-                const getDateProp = key => {
-                    return place[key]?.value
-                    || Object.values(place[key] ?? {})[0]?.value;
-                };
-                const year = getDateProp("inceptionDates")
-                        ?? getDateProp("dissolvedDates")
-                        ?? getDateProp("endTime")
-                        ?? getDateProp("startTime")
-                        ?? ((placeGroupName !== "memorials") ? 1945 : new Date().getFullYear());
-                if(year && (year < this.minYear || year > this.maxYear)) continue;
-                
                 let countedPlaceCoordinates = Object.keys(place.coordinates).length;
                 let coordinatesIndex = 0;
                 this.locationMarkers[placeId] = [];
@@ -640,6 +646,19 @@ export default {
                     }
 
                     this.locationMarkers[placeId][Object.values(placeCoordinate.value).join(',')] = marker;
+                    const getDateProp = key => {
+                        return place[key]?.value
+                        || Object.values(place[key] ?? {})[0]?.value;
+                    };
+                    const date = getDateProp("inceptionDates")
+                        ?? getDateProp("dissolvedDates")
+                        ?? getDateProp("endTime")
+                        ?? getDateProp("startTime")
+                        ?? ((placeGroupName !== "memorials") ? new Date(1945).toDateString() : new Date().toDateString());
+                    this.markersDate.set(marker, {
+                        date,
+                        groupName: placeGroupName
+                    });
 
                     this.groupedPlaces[placeGroupName]['placesByCoordinates'].push({
                         placeLabelWithIndex: placeLabelWithIndex,
