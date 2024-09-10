@@ -53,7 +53,7 @@
         <!-- coordinate location - https://www.wikidata.org/wiki/Property:P625 -->
         <v-list-item dense>
             <v-list-item-content>
-                <v-list-item-title>Koordinaten</v-list-item-title>
+                <v-list-item-title>Koordinaten Ausgangsort</v-list-item-title>
                 <v-list-item-subtitle>
                     <ul>
                         <li>
@@ -109,7 +109,7 @@
         <template v-if="selectedPlace.perpetrators.length > 0">
             <v-list-item dense>
                 <v-list-item-content>
-                    <v-list-item-title>Täter*in</v-list-item-title>
+                    <v-list-item-title>Täter*innen</v-list-item-title>
                     <v-list-item-subtitle>
                         <ul class="hyphens-auto white-space-normal" lang="de">
                             <li v-for="perpetrator in selectedPlace.perpetrators">

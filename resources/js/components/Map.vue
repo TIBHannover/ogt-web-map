@@ -505,13 +505,13 @@ export default {
                         id: searchPID,
                         group: searchGroup
                     });
-                }, 500);
+                }, 750);
             } else if(searchID && searchGroup && searchLat && searchLng) {
                 const place = ((this.groupedPlaces[searchGroup] || {}).places || {})[searchID];
                 place && setTimeout(() => {
                     this.setSelectedPlace(place, { lat: parseFloat(searchLat), lng: parseFloat(searchLng) }, searchGroup)
                     this.toggleShowPlaceInfoSidebar(true);
-                }, 500);
+                }, 750);
             }
         },
         /**

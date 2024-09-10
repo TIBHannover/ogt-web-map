@@ -18,7 +18,11 @@
                     >
                         {{ selectedPlace.label }}
                     </v-list-item-title>
-                    <v-list-item-subtitle>{{ selectedPlace.layerName.replace(/^Ereignisse$/, "Ereignis") }}</v-list-item-subtitle>
+                    <v-list-item-subtitle>{{
+                        selectedPlace.layerName
+                        .replace(/^Ereignisse$/, "Ereignis")
+                        .replace(/^Täter\*innen$/, "Täter*in")
+                    }}</v-list-item-subtitle>
                 </v-list-item-content>
                 <v-list-item-action>
                     <v-btn @click.stop="$emit('hidePlaceInfoSidebar')" icon>
