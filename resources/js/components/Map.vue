@@ -493,17 +493,26 @@ export default {
             this.checkUrlForLocation();
             
             const searchParams = new URLSearchParams(document.location.search);
+            const searchPID = searchParams.get("pid");
             const searchID = searchParams.get("id");
             const searchGroup = searchParams.get("group");
             const searchLat = searchParams.get("lat");
             const searchLng = searchParams.get("lng");
 
-            if(!searchID || !searchGroup || !searchLat || !searchLng) return;
-            const place = ((this.groupedPlaces[searchGroup] || {}).places || {})[searchID];
-            place && setTimeout(() => {
-                this.setSelectedPlace(place, { lat: parseFloat(searchLat), lng: parseFloat(searchLng) }, searchGroup)
-                this.toggleShowPlaceInfoSidebar(true);
-            }, 500);
+            if(searchPID && searchGroup) {
+                setTimeout(() => {
+                    this.showPerson({
+                        id: searchPID,
+                        group: searchGroup
+                    });
+                }, 500);
+            } else if(searchID && searchGroup && searchLat && searchLng) {
+                const place = ((this.groupedPlaces[searchGroup] || {}).places || {})[searchID];
+                place && setTimeout(() => {
+                    this.setSelectedPlace(place, { lat: parseFloat(searchLat), lng: parseFloat(searchLng) }, searchGroup)
+                    this.toggleShowPlaceInfoSidebar(true);
+                }, 500);
+            }
         },
         /**
          * Request persons data from cached file and Wikidata for perpetrators and victims.
@@ -1575,6 +1584,8 @@ export default {
             }
 
             this.setSelectedPersonData(person);
+            
+            window.history.replaceState(null, null, encodeURI(`${document.location.pathname}?pid=${person.id}&group=${this.selectedPlace.groupName}`));
         },
         /**
          * Set the perpetrator data of the selected person to be displayed in the map info sidebar.
