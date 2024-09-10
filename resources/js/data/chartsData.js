@@ -106,7 +106,7 @@ const graphViewRelations = Object.freeze({
 const graph2 = Object.freeze({
     imageUrl: '/images/charts/graph-view-relations.png',
     queryUrl: getQueryUrl(`
-    #defaultView:Graph
+    #defaultView:ScatterChart
     SELECT ?location ?locationLabel ?employee ?employeeLabel
     WHERE {
     ?location      wdt:P31   wd:Q106996250 ;
@@ -129,33 +129,31 @@ const graph2 = Object.freeze({
 const graph3 = Object.freeze({
     imageUrl: '/images/charts/graph-view-relations.png',
     queryUrl: getQueryUrl(`
-    #defaultView:Graph
-    SELECT DISTINCT
-    ?police ?policeLabel
-    ?prison ?prisonLabel
-    ?memorial ?memorialLabel
-    ?relatedLocation ?relatedLocationLabel
+    #defaultView:Table
+    SELECT
+    (COUNT (DISTINCT ?police) AS ?policeCount)
+    (COUNT (DISTINCT ?prison) AS ?prisonCount)
+    (COUNT (DISTINCT ?memorial) AS ?memorialCount)
     WHERE {
     {
-        ?police           wdt:P279  wd:Q35535 ;
-                        wdt:P31   wd:Q106996250 .
-        ?relatedLocation  wdt:P355   wd:Q106996250 .
+        ?police           wdt:P31   wd:Q106996250 ,
+                                    ?o .
+        FILTER (?o IN (wd:Q108047567, wd:Q108047676, wd:Q108047581))
     } UNION {
-        ?prison           wdt:P31   wd:Q40357 ,
-                            ?o ;
-                        wdt:P749  ?relatedLocation .
-        ?relatedLocation  wdt:P31   wd:Q106996250 .
-        FILTER (?o IN (wd:Q106996250, wd:Q277565))
+        ?prison           wdt:P31   wd:Q106996250 ,
+                                    ?o .
+        FILTER (?o IN (wd:Q277565, wd:Q40357, wd:Q108047581))
     } UNION {
         ?memorial         wdt:P31   wd:Q5003624 ;
-                        wdt:P547  ?relatedLocation .
-        ?relatedLocation  wdt:P31   wd:Q106996250 .
+                        wdt:P547  ?pgt .
+        ?pgt              wdt:P31   wd:Q106996250 .
     }
     SERVICE wikibase:label {
         bd:serviceParam wikibase:language "[AUTO_LANGUAGE],de,en"
     }
     }
-    LIMIT 500
+    GROUP BY ?prisonCount ?memorialCount
+    LIMIT 5000
     `),
     subtitle:
         `Ein interaktiver Graph, der die aufzeigt, wie die verschiedenen Orte um das Wirken der Gestapo im Verhältnis standen bzw. stehen.`,
@@ -167,7 +165,7 @@ const graph3 = Object.freeze({
 const table1 = Object.freeze({
     imageUrl: '/images/charts/graph-view-relations.png',
     queryUrl: getQueryUrl(`
-    #defaultView:Table
+    #defaultView:Timeline
     SELECT ?memorial ?memorialLabel ?openingDate
     WHERE {
     ?memorial    wdt:P31   wd:Q5003624 ;
