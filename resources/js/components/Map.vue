@@ -579,12 +579,12 @@ export default {
             Array.from(this.markersDate.entries())
             .forEach(entry => {
                 const groupName = entry[1].groupName;
-                const date = new Date(entry[1].date);
-                const year = date.getFullYear();
-                const month = date.getMonth();
-                const applies = (year > this.minDate.year || (year === this.minDate.year && month >= this.minDate.month))
-                               && (year < this.maxDate.year || (year === this.maxDate.year && month <= this.maxDate.month))
+                const startDate = new Date(entry[1].startDate);
+                const endDate = new Date(entry[1].endDate);
+                const applies = (endDate.getFullYear() > this.minDate.year || (endDate.getFullYear() === this.minDate.year && endDate.getMonth() >= this.minDate.month))
+                               && (startDate.getFullYear() < this.maxDate.year || (startDate.getFullYear() === this.maxDate.year && startDate.getMonth() <= this.maxDate.month))
                                && (!this.groupNames || this.groupNames.includes(groupName));
+                               
                 applies
                 ? entry[0].addTo(this.map)
                 : entry[0].remove();
@@ -650,13 +650,13 @@ export default {
                         return place[key]?.value
                         || Object.values(place[key] ?? {})[0]?.value;
                     };
-                    const date = getDateProp("inceptionDates")
-                        ?? getDateProp("dissolvedDates")
-                        ?? getDateProp("endTime")
-                        ?? getDateProp("startTime")
-                        ?? ((placeGroupName !== "memorials") ? new Date(1945).toDateString() : new Date().toDateString());
                     this.markersDate.set(marker, {
-                        date,
+                        startDate: getDateProp("inceptionDates")
+                            ?? getDateProp("startTime")
+                            ?? ((placeGroupName === "memorials") ? new Date("1945-05-08").toDateString() : new Date("1933-01-30").toDateString()),
+                        endDate: getDateProp("dissolvedDates")
+                            ?? getDateProp("endTime")
+                            ?? ((placeGroupName === "memorials") ? new Date().toDateString() : new Date("1945-05-08").toDateString()),
                         groupName: placeGroupName
                     });
 

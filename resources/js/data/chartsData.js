@@ -104,7 +104,7 @@ const graphViewRelations = Object.freeze({
 // G 2
 
 const graph2 = Object.freeze({
-    imageUrl: '/images/charts/graph-view-relations.png',
+    imageUrl: '/images/charts/graph-view-2.png',
     queryUrl: getQueryUrl(`
     #defaultView:ScatterChart
     SELECT ?location ?locationLabel ?employee ?employeeLabel
@@ -127,7 +127,7 @@ const graph2 = Object.freeze({
 //G 3
 
 const graph3 = Object.freeze({
-    imageUrl: '/images/charts/graph-view-relations.png',
+    imageUrl: '/images/charts/graph-view-3.png',
     queryUrl: getQueryUrl(`
     #defaultView:Table
     SELECT
@@ -138,7 +138,7 @@ const graph3 = Object.freeze({
     {
         ?police           wdt:P31   wd:Q106996250 ,
                                     ?o .
-        FILTER (?o IN (wd:Q108047567, wd:Q108047676, wd:Q108047581))
+        FILTER (?o IN (wd:Q35535, wd:Q108047567, wd:Q108047676, wd:Q108047581, wd:Q108047541, wd:Q2101520))
     } UNION {
         ?prison           wdt:P31   wd:Q106996250 ,
                                     ?o .
@@ -160,13 +160,13 @@ const graph3 = Object.freeze({
     title: 'Verhältnis von Dienststellen, Haftstätten, und Erinnerungsorten',
 });
 
-// T 1
+// G 4
 
-const table1 = Object.freeze({
-    imageUrl: '/images/charts/graph-view-relations.png',
+const graph4 = Object.freeze({
+    imageUrl: '/images/charts/graph-view-4.png',
     queryUrl: getQueryUrl(`
     #defaultView:Timeline
-    SELECT ?memorial ?memorialLabel ?openingDate
+    SELECT DISTINCT ?memorial ?memorialLabel ?openingDate
     WHERE {
     ?memorial    wdt:P31   wd:Q5003624 ;
                 wdt:P547  ?location ;
@@ -188,5 +188,5 @@ export default Object.freeze({
     graphViewRelations,
     graph2,
     graph3,
-    table1
+    graph4
 });
