@@ -162,7 +162,8 @@ class WikidataClient
                 ?qualifierTimePrecision
             WHERE {
                 {
-                    ?item wdt:P31 wd:Q106996250.
+                    ?item p:P31 ?itemStatement.
+                    ?itemStatement ps:P31 wd:Q106996250.
                 }
                 UNION
                 {
@@ -181,8 +182,8 @@ class WikidataClient
                 {
                     ?property wikibase:propertyType ?propertyType.
                     FILTER(?property IN(
-                        wd:P18, wd:P31, wd:P137, wd:P276, wd:P355, wd:P366, wd:P533, wd:P547, wd:P625, wd:P749, wd:P793, 
-                        wd:P856, wd:P1037, wd:P1120, wd:P1128, wd:P1343, wd:P1365, wd:P1366, wd:P1427, wd:P1444, wd:P1561, 
+                        wd:P18, wd:P31, wd:P137, wd:P276, wd:P355, wd:P366, wd:P533, wd:P547, wd:P625, wd:P749, wd:P793,
+                        wd:P856, wd:P1037, wd:P1120, wd:P1128, wd:P1343, wd:P1365, wd:P1366, wd:P1427, wd:P1444, wd:P1561,
                         wd:P1590, wd:P5582, wd:P5630, wd:P6375, wd:P7153, wd:P8031, wd:P8032
                     ))
                     FILTER(?propertyType != wikibase:Time)
@@ -242,7 +243,7 @@ class WikidataClient
                 ?qualifierValue
                 ?qualifierValueLabel
                 ?qualifierTimePrecision
-            WHERE 
+            WHERE
             {
                 ?location wdt:P31 wd:Q106996250.
                 FILTER(EXISTS { ?location wdt:P625 ?coordinateLocation. })
@@ -260,7 +261,7 @@ class WikidataClient
                            wdt:P625 ?coordinateEvent;
                            wdt:P8031 ?location.
                     {
-                        ?event (wdt:P8031|wdt:P8032) ?item. 
+                        ?event (wdt:P8031|wdt:P8032) ?item.
                     }
                     UNION
                     {
@@ -274,7 +275,7 @@ class WikidataClient
                 {
                     ?property wikibase:propertyType ?propertyType.
                     FILTER(?property IN(
-                        wd:P18, wd:P19, wd:P20, wd:P21, wd:P27, wd:P108, wd:P734, wd:P735, wd:P793, wd:P1343, wd:P2632, 
+                        wd:P18, wd:P19, wd:P20, wd:P21, wd:P27, wd:P108, wd:P734, wd:P735, wd:P793, wd:P1343, wd:P2632,
                         wd:P2868
                     ))
                     FILTER(?propertyType != wikibase:Time)
@@ -289,7 +290,7 @@ class WikidataClient
                     ?propertyValueNode wikibase:timeValue ?propertyValue;
                         wikibase:timePrecision ?propertyTimePrecision.
                 }
-                OPTIONAL 
+                OPTIONAL
                 {
                     {
                         ?qualifier wikibase:propertyType ?qualifierType.
