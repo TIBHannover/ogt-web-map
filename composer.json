@@ -36,8 +36,8 @@
   "require": {
     "php": "^8.2|^8.4",
     "guzzlehttp/guzzle": "^7.0.1",
-    "illuminate/contracts": "11",
-    "laravel/framework": "11",
+    "illuminate/contracts": "^11",
+    "laravel/framework": "^11.6",
     "laravel/tinker": "^2.5",
     "spatie/laravel-ignition": "^2.9"
   },
