@@ -2,8 +2,8 @@
     <div>
         <!-- employer - https://www.wikidata.org/wiki/Property:P108 -->
         <template v-if="selectedPerson.employers.length > 0">
-            <v-list-item dense>
-                <v-list-item-content>
+            <v-list-item density="compact">
+                
                     <v-list-item-title>Einsatzort</v-list-item-title>
                     <v-list-item-subtitle>
                         <ul>
@@ -40,7 +40,7 @@
                             </li>
                         </ul>
                     </v-list-item-subtitle>
-                </v-list-item-content>
+                
             </v-list-item>
             <v-divider></v-divider>
         </template>

@@ -3,7 +3,7 @@
         <!-- template content only, not yet functional -->
         <v-radio-group
             v-model="layerSelected"
-            dense
+            density="compact"
             disabled
             label="Wähle eine Kartenansicht aus:"
             mandatory
@@ -12,7 +12,7 @@
         >
             <v-radio
                 v-for="(layerLabel, index) in layerLabels"
-                color="grey darken-4"
+                color="grey-darken-4"
                 :key="index"
                 :label="layerLabel"
                 :value="index"
@@ -24,15 +24,15 @@
         <v-subheader>Debug Optionen</v-subheader>
         <v-radio-group
             v-model="mapGreyscaleSelected"
-            @change="toggleMapGreyscale()"
-            dense
+            @update:model-value="toggleMapGreyscale()"
+            density="compact"
             label="De-/Aktiviere die Karten Graustufen aus:"
             mandatory
             prepend-icon="mdi-map"
         >
             <v-radio
                 v-for="(mapGreyscaleLabel, index) in mapGreyscaleLabels"
-                color="grey darken-4"
+                color="grey-darken-4"
                 :key="index"
                 :label="mapGreyscaleLabel"
                 :value="index"
@@ -41,15 +41,15 @@
 
         <v-radio-group
             v-model="mapMarkerStyleSelected"
-            @change="switchMapMarkerStyle()"
-            dense
+            @update:model-value="switchMapMarkerStyle()"
+            density="compact"
             label="Wähle einen Kartenmarker Style aus:"
             mandatory
             prepend-icon="mdi-map-marker"
         >
             <v-radio
                 v-for="(mapMarkerStyleLabel, index) in mapMarkerStyleLabels"
-                color="grey darken-4"
+                color="grey-darken-4"
                 :key="index"
                 :label="mapMarkerStyleLabel"
                 :value="index"

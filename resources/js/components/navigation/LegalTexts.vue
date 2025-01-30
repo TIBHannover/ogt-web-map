@@ -1,26 +1,22 @@
 <template>
     <div>
         <v-list rounded>
-            <v-list-item @click.stop="$emit('setActiveMenu', 'mainMenu')">
-                <v-list-item-icon>
+            <v-list-item @click.stop="$emit('setActiveMenu', 'mainMenu')" rounded="pill" class="d-flex py-4 my-2 mx-2">
+                <v-list-item-title>
                     <v-icon>mdi-backburger</v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
-                    <v-list-item-title>zurück ins Hauptmenü</v-list-item-title>
-                </v-list-item-content>
+                    <span class="ml-5">zurück ins Hauptmenü</span>
+                </v-list-item-title>
             </v-list-item>
             <v-divider></v-divider>
-            <v-subheader class="text-uppercase">Rechtliche Informationen</v-subheader>
-            <v-list-item-group v-model="selectedLegalText" active-class="selectedItemBorder" mandatory>
-                <v-list-item v-for="(menuItem, index) in menuItems" :key="index" :value="menuItem.id">
-                    <v-list-item-icon>
+            <v-list-subheader class="text-uppercase">Rechtliche Informationen</v-list-subheader>
+            <v-list v-model="selectedLegalText" active-class="selectedItemBorder" mandatory>
+                <v-list-item v-for="(menuItem, index) in menuItems" :key="index" :value="menuItem.id" @click="selectLegalText(menuItem.id)" rounded="pill" class="mx-2 my-2">
+                    <v-list-item-title>
                         <v-icon>{{ menuItem.icon }}</v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-content>
-                        <v-list-item-title>{{ menuItem.label }}</v-list-item-title>
-                    </v-list-item-content>
+                        <span class="ml-5">{{ menuItem.label }}</span>
+                    </v-list-item-title>
                 </v-list-item>
-            </v-list-item-group>
+            </v-list>
         </v-list>
         <v-divider></v-divider>
 
@@ -53,6 +49,11 @@ export default {
             ],
             selectedLegalText: 'dataProtection',
         };
+    },
+    methods: {
+        selectLegalText(id) {
+            this.selectedLegalText = id;
+        },
     },
 };
 </script>

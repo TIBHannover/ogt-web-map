@@ -7,7 +7,7 @@
             @click.stop="isMapOptionsDisplayed = !isMapOptionsDisplayed"
             color="white"
             fab
-            right
+            location="right"
             v-show="!isMapOptionsDisplayed"
         >
             <v-icon>mdi-tune</v-icon>
@@ -17,20 +17,20 @@
         <v-navigation-drawer
             absolute
             class="z-index-4"
-            hide-overlay
+            :scrim="false"
             mobile-breakpoint="750"
-            right
+            location="right"
             width="375px"
             v-model="isMapOptionsDisplayed"
         >
             <!-- map options header -->
             <v-list-item>
-                <v-list-item-content>
+                
                     <v-list-item-title class="font-family-special-elite font-weight-bold text-h6 text-sm-h5">
                         Kartenoptionen
                     </v-list-item-title>
                     <v-list-item-subtitle>passe die Ansicht individuell an</v-list-item-subtitle>
-                </v-list-item-content>
+                
                 <v-list-item-action>
                     <v-btn
                         @click.stop="isMapOptionsDisplayed = !isMapOptionsDisplayed"
@@ -45,10 +45,10 @@
 
             <!-- map options tabs -->
             <v-tabs
-                background-color="transparent"
-                color="grey darken-4"
+                bg-color="transparent"
+                color="grey-darken-4"
                 fixed-tabs
-                icons-and-text
+                stacked
                 v-model="activeTab"
             >
                 <v-tab
@@ -65,7 +65,7 @@
             <v-divider></v-divider>
 
             <v-tabs-items
-                class="transparent"
+                class="bg-transparent"
                 v-model="activeTab"
             >
                 <!-- layers options -->

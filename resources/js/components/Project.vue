@@ -1,3 +1,7 @@
+<script setup>
+    import { useDisplay } from 'vuetify'
+    const display = useDisplay()
+</script>
 <template>
   <v-container id="container" class="mb-110">
     <!-- header -->
@@ -31,7 +35,7 @@
         <section id="researchObjectives">
           <h1
             class="font-weight-medium text-h5 text-md-h4 mb-5"
-            :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
+            :class="{ 'font-size-29': display.mdAndUp }"
           >
             Forschungsfragen & Projektziele
           </h1>
@@ -136,7 +140,7 @@
         <section id="teamAndPartners">
           <h1
             class="font-weight-medium text-h5 text-md-h4 mb-5"
-            :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
+            :class="{ 'font-size-29': display.mdAndUp }"
           >
             Team & Partner*innen
           </h1>
@@ -152,7 +156,7 @@
           <h2 class="font-weight-medium text-h6 text-md-h5">Team</h2>
           <h3
             class="text-h6 mb-1"
-            :class="{ 'font-weight-regular': $vuetify.breakpoint.mdAndDown }"
+            :class="{ 'font-weight-regular': display.mdAndDown }"
           >
             Technische Informationsbibliothek (TIB) – Open Science Lab (OSL)
           </h3>
@@ -165,7 +169,7 @@
               target="_blank"
             >
               https://vivo.tib.eu/fis/individual/n0000-0003-0232-7085
-              <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+              <v-icon size="small" class="vertical-align-top">mdi-open-in-new</v-icon>
             </a>
           </p>
           <p>
@@ -177,7 +181,7 @@
               target="_blank"
             >
               https://vivo.tib.eu/fis/individual/n0000-0002-3075-7640
-              <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+              <v-icon size="small" class="vertical-align-top">mdi-open-in-new</v-icon>
             </a>
             <br />
             <email
@@ -203,7 +207,7 @@
             <br />
             <a href="https://nadinekloever.com" target="_blank">
               https://nadinekloever.com
-              <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+              <v-icon size="small" class="vertical-align-top">mdi-open-in-new</v-icon>
             </a>
           </p>
           <p>
@@ -230,7 +234,7 @@
           <h2 class="font-weight-medium text-h6 text-md-h5">Partner*innen</h2>
           <h3
             class="text-h6 mb-1"
-            :class="{ 'font-weight-regular': $vuetify.breakpoint.mdAndDown }"
+            :class="{ 'font-weight-regular': display.mdAndDown }"
           >
             Stiftung niedersächsische Gedenkstätten (SnG)
           </h3>
@@ -285,7 +289,7 @@
 
           <h3
             class="text-h6 mb-1"
-            :class="{ 'font-weight-regular': $vuetify.breakpoint.mdAndDown }"
+            :class="{ 'font-weight-regular': display.mdAndDown }"
           >
             Gedenkstätten Gestapokeller und Augustaschacht
           </h3>
@@ -332,7 +336,7 @@
         <section id="presentationsAndPublications">
           <h1
             class="font-weight-medium text-h5 text-md-h4 mb-5"
-            :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
+            :class="{ 'font-size-29': display.mdAndUp }"
           >
             Projektpräsentationen & Publikationen
           </h1>
@@ -342,7 +346,7 @@
             <br />
             <a href="https://zenodo.org/record/6817273" target="_blank">
               Überwachung und Terror – die Gestapo als Instrument des NS-Regimes
-              <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+              <v-icon size="small" class="vertical-align-top">mdi-open-in-new</v-icon>
             </a>
           </p>
           <p>
@@ -352,7 +356,7 @@
               Projektpräsentation zur Tagung „Digital Memory – Digital History –
               Digital Mapping. Transformationen von Erinnerungskulturen und
               Holocaust-Education“
-              <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+              <v-icon size="small" class="vertical-align-top">mdi-open-in-new</v-icon>
             </a>
           </p>
 
@@ -363,7 +367,7 @@
               target="_blank"
             >
               Stiftung niedersächsische Gedenkstätten – Jahresbericht 2020
-              <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+              <v-icon size="small" class="vertical-align-top">mdi-open-in-new</v-icon>
             </a>
             <br />
             <a
@@ -371,7 +375,7 @@
               target="_blank"
             >
               OGT Projektwebsite der TIB
-              <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+              <v-icon size="small" class="vertical-align-top">mdi-open-in-new</v-icon>
             </a>
             <br />
             <a
@@ -379,12 +383,12 @@
               target="_blank"
             >
               Projektprofil
-              <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+              <v-icon size="small" class="vertical-align-top">mdi-open-in-new</v-icon>
             </a>
             <br />
             <a href="https://zenodo.org/record/4313236" target="_blank">
               Auszug aus dem Projektantrag
-              <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+              <v-icon size="small" class="vertical-align-top">mdi-open-in-new</v-icon>
             </a>
           </p>
 
@@ -398,7 +402,7 @@
               target="_blank"
             >
               Verbrechen der Gestapo digital sichtbar machen
-              <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+              <v-icon size="small" class="vertical-align-top">mdi-open-in-new</v-icon>
             </a>
           </p>
           <p>
@@ -411,7 +415,7 @@
             >
               Spuren der Vergangenheit: Verbrechen der Gestapo digital sichtbar
               machen
-              <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+              <v-icon size="small" class="vertical-align-top">mdi-open-in-new</v-icon>
             </a>
           </p>
         </section>
@@ -450,7 +454,7 @@ export default {
   created() {
     window.addEventListener("resize", this.setFreeClientWidth);
   },
-  destroyed() {
+  unmounted() {
     window.removeEventListener("resize", this.setFreeClientWidth);
   },
   mounted() {

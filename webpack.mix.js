@@ -24,7 +24,15 @@ if (['production', 'testing'].includes(process.env.APP_ENV)) {
 }
 
 mix.js('resources/js/app.js', 'public/js')
-    .vue()
+    .vue(
+        {
+          options: {
+            compilerOptions: {
+              //isCustomElement: (tag) => ['v-main', 'v-app', 'v-icon', 'v-button', 'v-container', 'v-btn', 'v-list', 'v-list-item-title', 'v-list-item', 'v-subheader', 'v-divider', 'v-list-item-subtitle', 'v-list-item-group', 'v-list-item-action', 'v-list-item-icon', 'v-list-item-content', 'v-navigation-drawer'].includes(tag),
+            },
+          },
+        }
+    )
     .postCss('resources/css/app.css', 'public/css', [
         //
     ]);

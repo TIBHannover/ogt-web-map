@@ -45,7 +45,7 @@
                             {{ chart.subtitle }}
                         </v-card-subtitle>
                         <v-card-actions>
-                            <v-btn @click.stop="showChart(chart)" outlined rounded>
+                            <v-btn @click.stop="showChart(chart)" variant="outlined" rounded>
                                 Anzeigen
                             </v-btn>
                         </v-card-actions>
@@ -58,17 +58,17 @@
         <section v-if="!showOverview">
             <v-row justify="space-between">
                 <v-col sm="5">
-                    <v-btn @click.stop="showOverview = !showOverview" outlined rounded>
-                        <v-icon left>
+                    <v-btn @click.stop="showOverview = !showOverview" variant="outlined" rounded>
+                        <v-icon start>
                             mdi-arrow-left
                         </v-icon>
                         Zurück zur Übersicht
                     </v-btn>
                 </v-col>
                 <v-col class="maxWidth100" sm="5">
-                    <v-btn class="float-sm-right" :href="selectedChart.queryUrl" outlined rounded target="_blank">
+                    <v-btn class="float-sm-right" :href="selectedChart.queryUrl" variant="outlined" rounded target="_blank">
                         Im Wikidata Query Service anzeigen
-                        <v-icon right>
+                        <v-icon end>
                             mdi-open-in-new
                         </v-icon>
                     </v-btn>
@@ -107,7 +107,7 @@ export default {
     created() {
         window.addEventListener('resize', this.setFreeClientWidth);
     },
-    destroyed() {
+    unmounted() {
         window.removeEventListener('resize', this.setFreeClientWidth);
     },
     mounted() {

@@ -1,8 +1,8 @@
 <template>
     <div>
         <!-- addresses with associated coordinates and time periods, as well as option to zoom in/out of location. -->
-        <v-list-item dense>
-            <v-list-item-content>
+        <v-list-item density="compact">
+            
                 <v-list-item-title>Standort</v-list-item-title>
                 <v-list-item-subtitle>
                     <div class="hyphens-auto white-space-normal" lang="de">
@@ -31,7 +31,7 @@
                         </li>
                     </ul>
                 </v-list-item-subtitle>
-            </v-list-item-content>
+            
             <v-list-item-action class="flex-direction-row ml-0 my-0">
                 <v-btn @click.stop="$emit('zoomIntoPlace')" icon>
                     <v-icon>mdi-magnify-plus</v-icon>
@@ -41,8 +41,8 @@
                 </v-btn>
             </v-list-item-action>
         </v-list-item>
-        <v-list-item v-if="selectedPlace.addresses.additional.length > 0" dense>
-            <v-list-item-content>
+        <v-list-item v-if="selectedPlace.addresses.additional.length > 0" density="compact">
+            
                 <v-list-item-title>Weitere Standorte</v-list-item-title>
                 <v-list-item-subtitle>
                     <div v-for="additionalAddress in selectedPlace.addresses.additional" class="mb-3">
@@ -78,7 +78,7 @@
                         </ul>
                     </div>
                 </v-list-item-subtitle>
-            </v-list-item-content>
+            
         </v-list-item>
         <v-divider></v-divider>
     </div>

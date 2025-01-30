@@ -48,5 +48,5 @@ export const routes = [
         path: '/collaboration',
         component: Collaboration,
     },
-    {path: '*', redirect: '/welcome'},
+    {path: '/:catchAll(.*)', redirect: '/welcome'},
 ];

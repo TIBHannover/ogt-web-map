@@ -3,8 +3,8 @@
         <!-- location - https://www.wikidata.org/wiki/Property:P276
              significant place - https://www.wikidata.org/wiki/Property:P7153   -->
         <template v-if="selectedPlace.locations.length > 0 || selectedPlace.significantPlaces.length > 0">
-            <v-list-item dense>
-                <v-list-item-content>
+            <v-list-item density="compact">
+                
                     <v-list-item-title>Ort(e)</v-list-item-title>
                     <v-list-item-subtitle>
                         <ul>
@@ -16,7 +16,7 @@
                             </li>
                         </ul>
                     </v-list-item-subtitle>
-                </v-list-item-content>
+                
             </v-list-item>
             <v-divider></v-divider>
         </template>
@@ -24,8 +24,8 @@
         <!-- start point - https://www.wikidata.org/wiki/Property:P1427
              destination point - https://www.wikidata.org/wiki/Property:P1444   -->
         <template v-if="selectedPlace.startPoints.length > 0 || selectedPlace.destinationPoints.length > 0">
-            <v-list-item dense>
-                <v-list-item-content>
+            <v-list-item density="compact">
+                
                     <v-list-item-title>Start-/Zielort</v-list-item-title>
                     <v-list-item-subtitle>
                         <div v-if="selectedPlace.startPoints.length > 0" class="my-2">
@@ -45,14 +45,14 @@
                             </ul>
                         </div>
                     </v-list-item-subtitle>
-                </v-list-item-content>
+                
             </v-list-item>
             <v-divider></v-divider>
         </template>
 
         <!-- coordinate location - https://www.wikidata.org/wiki/Property:P625 -->
-        <v-list-item dense>
-            <v-list-item-content>
+        <v-list-item density="compact">
+            
                 <v-list-item-title>Koordinaten Ausgangsort</v-list-item-title>
                 <v-list-item-subtitle>
                     <ul>
@@ -62,7 +62,7 @@
                         </li>
                     </ul>
                 </v-list-item-subtitle>
-            </v-list-item-content>
+            
             <v-list-item-action class="flex-direction-row ml-0 my-0">
                 <v-btn @click.stop="$emit('zoomIntoPlace')" icon>
                     <v-icon>mdi-magnify-plus</v-icon>
@@ -77,8 +77,8 @@
         <!-- start time - https://www.wikidata.org/wiki/Property:P580
              end time - https://www.wikidata.org/wiki/Property:P582     -->
         <template v-if="selectedPlace.startDate.value || selectedPlace.endDate.value">
-            <v-list-item dense>
-                <v-list-item-content>
+            <v-list-item density="compact">
+                
                     <v-list-item-title>Laufzeit</v-list-item-title>
                     <v-list-item-subtitle>
                         <template v-if="selectedPlace.startDate.value">
@@ -88,27 +88,27 @@
                             bis {{ selectedPlace.endDate.locale }}
                         </template>
                     </v-list-item-subtitle>
-                </v-list-item-content>
+                
             </v-list-item>
             <v-divider></v-divider>
         </template>
         <!-- point in time - https://www.wikidata.org/wiki/Property:P585 -->
         <template v-else-if="selectedPlace.pointInTime.value">
-            <v-list-item dense>
-                <v-list-item-content>
+            <v-list-item density="compact">
+                
                     <v-list-item-title>Zeitpunkt</v-list-item-title>
                     <v-list-item-subtitle>
                         {{ selectedPlace.pointInTime.locale }}
                     </v-list-item-subtitle>
-                </v-list-item-content>
+                
             </v-list-item>
             <v-divider></v-divider>
         </template>
 
         <!-- perpetrators - https://www.wikidata.org/wiki/Property:P8031 -->
         <template v-if="selectedPlace.perpetrators.length > 0">
-            <v-list-item dense>
-                <v-list-item-content>
+            <v-list-item density="compact">
+                
                     <v-list-item-title>Täter*innen</v-list-item-title>
                     <v-list-item-subtitle>
                         <ul class="hyphens-auto white-space-normal" lang="de">
@@ -141,7 +141,7 @@
                             </li>
                         </ul>
                     </v-list-item-subtitle>
-                </v-list-item-content>
+                
             </v-list-item>
             <v-divider></v-divider>
         </template>
@@ -150,8 +150,8 @@
              number of casualties - https://www.wikidata.org/wiki/Property:P1590
         -->
         <template v-if="selectedPlace.victims.length > 0 || selectedPlace.numberOfCasualties.length > 0">
-            <v-list-item dense>
-                <v-list-item-content>
+            <v-list-item density="compact">
+                
                     <v-list-item-title>Geschädigte</v-list-item-title>
                     <v-list-item-subtitle>
                         <div v-if="selectedPlace.numberOfCasualties.length > 0" class="my-2">
@@ -183,7 +183,7 @@
                             </ul>
                         </div>
                     </v-list-item-subtitle>
-                </v-list-item-content>
+                
             </v-list-item>
             <v-divider></v-divider>
         </template>
@@ -191,8 +191,8 @@
         <!-- targets - https://www.wikidata.org/wiki/Property:P533 (previous) -->
         <!-- targets - https://www.wikidata.org/wiki/Property:P828 -->
         <template v-if="selectedPlace.targets.length > 0">
-            <v-list-item dense>
-                <v-list-item-content>
+            <v-list-item density="compact">
+                
                     <v-list-item-title>Ziel des Angriffs</v-list-item-title>
                     <v-list-item-subtitle>
                         <ul>
@@ -201,15 +201,15 @@
                             </li>
                         </ul>
                     </v-list-item-subtitle>
-                </v-list-item-content>
+                
             </v-list-item>
             <v-divider></v-divider>
         </template>
 
         <!-- number of survivors - https://www.wikidata.org/wiki/Property:P1561 -->
         <template v-if="selectedPlace.numberOfSurvivors.length > 0">
-            <v-list-item dense>
-                <v-list-item-content>
+            <v-list-item density="compact">
+                
                     <v-list-item-title>Überlebende</v-list-item-title>
                     <v-list-item-subtitle>
                         <ul>
@@ -218,15 +218,15 @@
                             </li>
                         </ul>
                     </v-list-item-subtitle>
-                </v-list-item-content>
+                
             </v-list-item>
             <v-divider></v-divider>
         </template>
 
         <!-- number of deaths - https://www.wikidata.org/wiki/Property:P1120 -->
         <template v-if="selectedPlace.numberOfDeaths.length > 0">
-            <v-list-item dense>
-                <v-list-item-content>
+            <v-list-item density="compact">
+                
                     <v-list-item-title>Ermordete</v-list-item-title>
                     <v-list-item-subtitle>
                         <ul>
@@ -235,15 +235,15 @@
                             </li>
                         </ul>
                     </v-list-item-subtitle>
-                </v-list-item-content>
+                
             </v-list-item>
             <v-divider></v-divider>
         </template>
 
         <!-- number of arrests - https://www.wikidata.org/wiki/Property:P5582 -->
         <template v-if="selectedPlace.numberOfArrests.length > 0">
-            <v-list-item dense>
-                <v-list-item-content>
+            <v-list-item density="compact">
+                
                     <v-list-item-title>Festnahmen</v-list-item-title>
                     <v-list-item-subtitle>
                         <ul>
@@ -252,7 +252,7 @@
                             </li>
                         </ul>
                     </v-list-item-subtitle>
-                </v-list-item-content>
+                
             </v-list-item>
             <v-divider></v-divider>
         </template>

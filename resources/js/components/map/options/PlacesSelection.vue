@@ -34,9 +34,9 @@
             </v-col>
 
             <v-col class="py-0" style="max-width: 55px">
-                <v-tooltip :color="groupedPlaces[groupName].color" left>
-                    <template v-slot:activator="{ on, attrs }">
-                        <v-btn icon :to="{ name: 'glossary', hash: '#' + groupName }" v-bind="attrs" v-on="on">
+                <v-tooltip :color="groupedPlaces[groupName].color" location="left">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon :to="{ name: 'glossary', hash: '#' + groupName }" v-bind="props">
                             <v-icon class="mt-1" :color="groupedPlaces[groupName].color">
                                 mdi-information-outline
                             </v-icon>
@@ -54,14 +54,14 @@
             v-model="selectedPlace"
             v-show="checkedPlaceLayerGroups.includes(groupName)"
             class="mx-4 my-2"
-            color="grey darken-4"
-            dense
+            color="grey-darken-4"
+            density="compact"
             hide-details
-            item-text="placeLabelWithIndex"
+            item-title="placeLabelWithIndex"
             :items="groupedPlaces[groupName].placesByCoordinates"
             :key="groupName"
             :label="groupedPlaces[groupName].layerName"
-            outlined
+            variant="outlined"
             return-object
             rounded
         ></v-autocomplete>

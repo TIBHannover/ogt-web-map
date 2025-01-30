@@ -1,8 +1,8 @@
 <template>
     <div>
         <!-- associated significant events - https://www.wikidata.org/wiki/Property:P793 -->
-        <v-list-item dense>
-            <v-list-item-content>
+        <v-list-item density="compact">
+            
                 <v-list-item-title>Ereignisse</v-list-item-title>
                 <v-list-item-subtitle>
                     <ul class="hyphens-auto white-space-normal" lang="de">
@@ -19,7 +19,7 @@
                         </li>
                     </ul>
                 </v-list-item-subtitle>
-            </v-list-item-content>
+            
         </v-list-item>
         <v-divider></v-divider>
     </div>

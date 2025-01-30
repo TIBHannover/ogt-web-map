@@ -1,22 +1,22 @@
 <template>
-    <v-container class="grey lighten-3 justify-center" fill-height fluid>
+    <v-container class="bg-grey-lighten-3 justify-center" fill-height fluid>
 
         <!-- content, if no slides displayed -->
         <div v-show="!showSlides" class="text-center">
             <p class="text-h4 text-md-h1">Projektbeschreibung</p>
-            <v-btn @click.stop="showSlides = !showSlides" rounded small>Folien anzeigen</v-btn>
+            <v-btn @click.stop="showSlides = !showSlides" rounded size="small">Folien anzeigen</v-btn>
         </div>
 
         <!-- slides -->
         <v-carousel v-show="showSlides" height="100%">
             <!-- slides close button -->
-            <v-btn @click.stop="showSlides = !showSlides" absolute class="z-index-1" color="black" icon right top>
+            <v-btn @click.stop="showSlides = !showSlides" absolute class="z-index-1" color="black" icon location="right top" >
                 <v-icon>mdi-close</v-icon>
             </v-btn>
 
             <!-- slides structure -->
             <v-carousel-item v-for="(slide, index) in slides" :key="index">
-                <v-sheet color="grey lighten-3" height="100%" tile>
+                <v-sheet color="grey-lighten-3" height="100%" tile>
                     <v-row align="center" class="fill-height" justify="center">
                         <v-col v-if="slide.image" class="px-70">
                             <v-img class="mx-auto" max-width="1150" :src="slide.image"></v-img>

@@ -2,37 +2,39 @@
     <div>
         <!-- button to open navigation sidebar -->
         <v-btn
-            fixed
-            class="mt-5"
+            position="fixed"
+            location="top left"
+            rounded="circle"
+            size="56px"
+            class="mt-5 ml-5"
             color="white"
-            fab
-            left
             v-show="!isMenuDisplayed"
-            @click.stop="isMenuDisplayed = !isMenuDisplayed"
+            @click.stop="toggleMenu"
         >
             <v-icon>mdi-menu</v-icon>
         </v-btn>
 
         <!-- navigation sidebar -->
         <v-navigation-drawer
-            :app="this.$route.name != 'map'"
-            fixed
-            hide-overlay
-            mobile-breakpoint="750"
-            width="375px"
             v-model="isMenuDisplayed"
-            :disable-route-watcher="$vuetify.breakpoint.smAndUp"
+            :scrim="false"
+            mobile-breakpoint="sm"
+            width="375"
+            max-width="375"
+            :location="display.mobile ? 'bottom' : undefined"
+            :disable-route-watcher="display.smAndDown"
+            :class="{isOpen: isMenuDisplayed}"
+            class="mainMenu"
+            :app
         >
             <!-- navigation header -->
-            <v-list-item>
-                <v-list-item-content>
-                    <v-list-item-title class="font-family-special-elite font-weight-bold text-h6 text-sm-h5">
-                        Gestapo.Terror.Orte
-                    </v-list-item-title>
-                    <v-list-item-subtitle>in Niedersachsen 1933–1945</v-list-item-subtitle>
-                </v-list-item-content>
-                <v-list-item-action>
-                    <v-btn id="closeNavigationSidebar" @click.stop="isMenuDisplayed = false" icon>
+            <v-list-item class="w-100 position-relative py-5">
+                <v-list-item-title class="font-family-special-elite font-weight-bold text-h6 text-sm-h5">
+                    Gestapo.Terror.Orte
+                </v-list-item-title>
+                <v-list-item-subtitle>in Niedersachsen 1933–1945</v-list-item-subtitle>
+                <v-list-item-action class="position-absolute right-0 top-0 mr-5 mt-5">
+                    <v-btn id="closeNavigationSidebar" @click.stop="toggleMenu"  icon>
                         <v-icon>mdi-close</v-icon>
                     </v-btn>
                 </v-list-item-action>
@@ -57,30 +59,21 @@
         </v-navigation-drawer>
     </div>
 </template>
+<script setup>
+    import { ref, watch } from 'vue';
+    import { useDisplay} from 'vuetify';
+    import LanguageConfig from './LanguageConfig';
+    import LegalTexts from './LegalTexts';
+    import MainMenu from './MainMenu';
+    const display = ref(useDisplay());
 
-<script>
+    const activeMenu = ref('mainMenu');
+    const isMenuDisplayed = ref(false);
 
-import LanguageConfig from './LanguageConfig';
-import LegalTexts from './LegalTexts';
-import MainMenu from './MainMenu';
-
-export default {
-    name: 'NavigationSidebar',
-    components: {LanguageConfig, LegalTexts, MainMenu},
-    data() {
-        return {
-            activeMenu: 'mainMenu',
-            isMenuDisplayed: false,
-        };
-    },
-    watch: {
-        isMenuDisplayed(newStatus, oldStatus) {
-            this.$emit('isMenuDisplayed', newStatus);
-        },
-    },
-};
+    function toggleMenu() {
+        isMenuDisplayed.value = !isMenuDisplayed.value;
+    }
 </script>
-
 <style scoped>
 .font-family-special-elite {
     font-family: "Special Elite" !important;

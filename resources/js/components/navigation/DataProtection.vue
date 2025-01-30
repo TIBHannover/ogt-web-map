@@ -1,9 +1,9 @@
 <template>
-    <v-list>
-        <v-subheader class="text-h5">Datenschutzerklärung</v-subheader>
+    <v-list lines="false">
+        <v-list-subheader class="text-h5">Datenschutzerklärung</v-list-subheader>
 
         <v-list-item>
-            <v-list-item-content>
+
                 <v-list-item-subtitle class="hyphens-auto text-justify white-space-normal" lang="de">
                     Datenschutz hat einen hohen Stellenwert für die Technische Informationsbibliothek (TIB). Eine
                     Nutzung der Dienstleistungen der TIB ist grundsätzlich ohne jede Angabe personenbezogener Daten
@@ -25,11 +25,11 @@
                         Datenschutz-Grundverordnung (DSGVO)</a>
                     zu verstehen.
                 </v-list-item-subtitle>
-            </v-list-item-content>
+
         </v-list-item>
 
         <v-list-item>
-            <v-list-item-content>
+
                 <v-list-item-title class="hyphens-auto white-space-normal" lang="de">
                     Name und Anschrift des für die Verarbeitung Verantwortlichen
                 </v-list-item-title>
@@ -47,11 +47,11 @@
                     <br>
                     Website: <a href="https://www.tib.eu" target="_blank">www.tib.eu</a>
                 </v-list-item-subtitle>
-            </v-list-item-content>
+
         </v-list-item>
 
         <v-list-item>
-            <v-list-item-content>
+
                 <v-list-item-title class="hyphens-auto white-space-normal" lang="de">
                     Name und Anschrift der Datenschutzbeauftragten
                 </v-list-item-title>
@@ -78,11 +78,11 @@
                     Jede betroffene Person kann sich jederzeit bei allen Fragen und Anregungen zum Datenschutz direkt an
                     unsere Datenschutzbeauftragte wenden.
                 </v-list-item-subtitle>
-            </v-list-item-content>
+
         </v-list-item>
 
         <v-list-item>
-            <v-list-item-content>
+
                 <v-list-item-title class="hyphens-auto white-space-normal" lang="de">
                     Kontaktmöglichkeit über die Internetseiten
                 </v-list-item-title>
@@ -95,11 +95,11 @@
                     übermittelten personenbezogenen Daten werden automatisch intern und nur zum Zweck der Bearbeitung
                     oder der Kontaktaufnahme zur betroffenen Person gespeichert.
                 </v-list-item-subtitle>
-            </v-list-item-content>
+
         </v-list-item>
 
         <v-list-item>
-            <v-list-item-content>
+
                 <v-list-item-title>
                     Webseite mit Cookies
                 </v-list-item-title>
@@ -112,11 +112,11 @@
                     gelöscht werden. Nur technisch notwendige Cookies werden verwendet, die die fehlerfreie Funktion der
                     Website ermöglichen.
                 </v-list-item-subtitle>
-            </v-list-item-content>
+
         </v-list-item>
 
         <v-list-item>
-            <v-list-item-content>
+
                 <v-list-item-title class="hyphens-auto white-space-normal" lang="de">
                     Erfassung von allgemeinen Daten und Informationen (Logfiles)
                 </v-list-item-title>
@@ -138,11 +138,11 @@
                     Diese Daten sind in der Regel nicht einer bestimmten Person zuordenbar. Eine Zusammenführung dieser
                     Daten mit anderen Datenquellen wird nicht vorgenommen.
                 </v-list-item-subtitle>
-            </v-list-item-content>
+
         </v-list-item>
 
         <v-list-item>
-            <v-list-item-content>
+
                 <v-list-item-title>
                     Plugins und Tools
                     <br><br>
@@ -164,7 +164,7 @@
                         https://wiki.osmfoundation.org/wiki/Privacy_Policy
                     </a>
                 </v-list-item-subtitle>
-            </v-list-item-content>
+
         </v-list-item>
     </v-list>
 </template>

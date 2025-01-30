@@ -3,8 +3,8 @@
         <!-- inception - https://www.wikidata.org/wiki/Property:P571 -->
         <!-- dissolved, abolished or demolished date - https://www.wikidata.org/wiki/Property:P576 -->
         <template v-if="selectedPlace.inceptionDate.value || selectedPlace.dissolvedDate.value">
-            <v-list-item dense>
-                <v-list-item-content>
+            <v-list-item density="compact">
+                
                     <v-list-item-title>Laufzeit</v-list-item-title>
                     <v-list-item-subtitle>
                         <template v-if="selectedPlace.inceptionDate.value">
@@ -14,7 +14,7 @@
                             bis {{ selectedPlace.dissolvedDate.locale }}
                         </template>
                     </v-list-item-subtitle>
-                </v-list-item-content>
+                
             </v-list-item>
             <v-divider></v-divider>
         </template>
@@ -34,8 +34,8 @@
                         selectedPlace.directors.length > 0 ||
                         selectedPlace.employees.length > 0"
         >
-            <v-list-item dense>
-                <v-list-item-content>
+            <v-list-item density="compact">
+                
                     <v-list-item-title>Personal</v-list-item-title>
                     <v-list-item-subtitle>
                         <div v-if="selectedPlace.employeeCounts.length > 0" class="my-2">
@@ -124,7 +124,7 @@
                             </ul>
                         </div>
                     </v-list-item-subtitle>
-                </v-list-item-content>
+                
             </v-list-item>
             <v-divider></v-divider>
         </template>
@@ -142,8 +142,8 @@
 
         <!-- parent organizations (time period) - https://www.wikidata.org/wiki/Property:P749 -->
         <template v-if="selectedPlace.parentOrganizations.length > 0">
-            <v-list-item dense>
-                <v-list-item-content>
+            <v-list-item density="compact">
+                
                     <v-list-item-title>Übergeordnete Organisation</v-list-item-title>
                     <v-list-item-subtitle class="white-space-normal">
                         <div v-for="parentOrganization in selectedPlace.parentOrganizations" class="mb-3">
@@ -170,15 +170,15 @@
                             </ul>
                         </div>
                     </v-list-item-subtitle>
-                </v-list-item-content>
+                
             </v-list-item>
             <v-divider></v-divider>
         </template>
 
         <!-- child organizations (time period) - https://www.wikidata.org/wiki/Property:P355 -->
         <template v-if="selectedPlace.childOrganizations.length > 0">
-            <v-list-item dense>
-                <v-list-item-content>
+            <v-list-item density="compact">
+                
                     <v-list-item-title>Nachgeordnete Organisation</v-list-item-title>
                     <v-list-item-subtitle class="white-space-normal">
                         <div v-for="childOrganization in selectedPlace.childOrganizations" class="mb-3">
@@ -205,15 +205,15 @@
                             </ul>
                         </div>
                     </v-list-item-subtitle>
-                </v-list-item-content>
+                
             </v-list-item>
             <v-divider></v-divider>
         </template>
 
         <!-- replaces (point in time) - https://www.wikidata.org/wiki/Property:P1365 -->
         <template v-if="selectedPlace.predecessors.length > 0">
-            <v-list-item dense>
-                <v-list-item-content>
+            <v-list-item density="compact">
+                
                     <v-list-item-title>Vorgängerorganisation (zeitlich)</v-list-item-title>
                     <v-list-item-subtitle class="white-space-normal">
                         <div v-for="predecessor in selectedPlace.predecessors" class="mb-3">
@@ -235,15 +235,15 @@
                             </ul>
                         </div>
                     </v-list-item-subtitle>
-                </v-list-item-content>
+                
             </v-list-item>
             <v-divider></v-divider>
         </template>
 
         <!-- replaced by (point in time) - https://www.wikidata.org/wiki/Property:P1366 -->
         <template v-if="selectedPlace.successors.length > 0">
-            <v-list-item dense>
-                <v-list-item-content>
+            <v-list-item density="compact">
+                
                     <v-list-item-title>Nachfolgeorganisation (zeitlich)</v-list-item-title>
                     <v-list-item-subtitle class="white-space-normal">
                         <div v-for="successor in selectedPlace.successors" class="mb-3">
@@ -265,15 +265,15 @@
                             </ul>
                         </div>
                     </v-list-item-subtitle>
-                </v-list-item-content>
+                
             </v-list-item>
             <v-divider></v-divider>
         </template>
 
         <!-- location commemorated by -->
         <template v-if="selectedPlace.commemoratedBy.length > 0">
-            <v-list-item dense>
-                <v-list-item-content>
+            <v-list-item density="compact">
+                
                     <v-list-item-title>Erinnerungsort</v-list-item-title>
                     <v-list-item-subtitle>
                         <ul>
@@ -292,7 +292,7 @@
                             </li>
                         </ul>
                     </v-list-item-subtitle>
-                </v-list-item-content>
+                
             </v-list-item>
             <v-divider></v-divider>
         </template>

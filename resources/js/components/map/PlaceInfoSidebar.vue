@@ -2,16 +2,18 @@
     <div>
         <!-- place info sidebar -->
         <v-navigation-drawer
-            v-model="showPlaceInfoSidebar"
+            :modelValue="showPlaceInfoSidebar"
+            @update:modelValue="showPlaceInfoSidebar = $event"
             absolute
             class="z-index-5"
-            hide-overlay
-            mobile-breakpoint="750"
-            width="375px"
+            :scrim="false"
+            mobile-breakpoint="sm"
+            max-width="375"
+            width="375"
         >
             <!-- place info header, link to wikidata item, close sidebar button -->
             <v-list-item>
-                <v-list-item-content>
+
                     <v-list-item-title
                         class="font-family-special-elite font-weight-bold hyphens-auto text-h6 text-sm-h5 white-space-normal"
                         lang="de"
@@ -23,7 +25,7 @@
                         .replace(/^Ereignisse$/, "Ereignis")
                         .replace(/^Täter\*innen$/, "Täter*in")
                     }}</v-list-item-subtitle>
-                </v-list-item-content>
+
                 <v-list-item-action>
                     <v-btn @click.stop="$emit('hidePlaceInfoSidebar')" icon>
                         <v-icon>mdi-close</v-icon>
@@ -49,36 +51,36 @@
 
             <!-- Wikidata item brief description -->
             <template v-if="selectedPlace.description">
-                <v-list-item dense>
-                    <v-list-item-content>
+                <v-list-item density="compact">
+
                         <v-list-item-title>Kurzbeschreibung</v-list-item-title>
                         <v-list-item-subtitle class="hyphens-auto text-justify white-space-normal" lang="de">
                             {{ selectedPlace.description }}
                         </v-list-item-subtitle>
-                    </v-list-item-content>
+
                 </v-list-item>
                 <v-divider></v-divider>
             </template>
 
             <!-- detailed item description -->
             <template v-if="selectedPlace.id in itemDescriptions">
-                <v-list-item dense>
-                    <v-list-item-content>
+                <v-list-item density="compact">
+
                         <v-expansion-panels v-model="itemDescriptionPanel" focusable>
-                            <v-expansion-panel class="grey lighten-3" style="max-width: 99%">
-                                <v-expansion-panel-header>
+                            <v-expansion-panel class="bg-grey-lighten-3" style="max-width: 99%">
+                                <v-expansion-panel-title>
                                     <v-list-item-title>Langbeschreibung</v-list-item-title>
-                                </v-expansion-panel-header>
-                                <v-expansion-panel-content class="mt-4">
+                                </v-expansion-panel-title>
+                                <v-expansion-panel-text class="mt-4">
                                     <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
                                         <p v-for="textPart in itemDescriptions[selectedPlace.id].textParts">
                                             {{ textPart }}
                                         </p>
                                     </v-list-item-subtitle>
-                                </v-expansion-panel-content>
+                                </v-expansion-panel-text>
                             </v-expansion-panel>
                         </v-expansion-panels>
-                    </v-list-item-content>
+
                 </v-list-item>
                 <v-divider></v-divider>
             </template>

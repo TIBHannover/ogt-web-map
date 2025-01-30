@@ -1,61 +1,58 @@
-require('./bootstrap');
+import('./bootstrap');
 
 import '@mdi/font/css/materialdesignicons.css';
 import '@fontsource/roboto/latin.css';
 import '@fontsource/special-elite/latin.css';
 
-import Vue from 'vue';
-import App from './components/App.vue';
-import VueRouter from 'vue-router';
+import { createApp } from 'vue'
+import { createWebHistory, createRouter } from "vue-router";
 import VueAxios from 'vue-axios';
 import axios from 'axios';
 import {routes} from './routes';
-import Vuetify from 'vuetify';
+import 'vuetify/styles';
+import { createVuetify } from 'vuetify';
+import * as components from 'vuetify/components';
+import * as directives from 'vuetify/directives';
 import {itemDescriptions} from '../lang/de/itemDescriptions';
 
-window.Vue = Vue;
+import App from './components/App.vue';
 
-Vue.prototype.$ogtGlobals = {
-    isTestingEnv: process.env.MIX_APP_ENV == 'testing' ? true : false,
-    texts: {
-        itemDescriptions: itemDescriptions,
-    },
-    // reverse proxy sub path, required to load resources within Vue files
-    proxyPath: process.env.MIX_PROXY_PATH ?? '',
-};
-
-Vue.use(VueRouter);
-Vue.use(VueAxios, axios);
-Vue.use(Vuetify);
-
-Vue.axios.defaults.baseURL = process.env.MIX_BASE_URL ?? '';
-
-const router = new VueRouter({
-    base: '/ogt/',
-    mode: 'history',
-    routes: routes,
+const router = createRouter({
+    history: createWebHistory('/ogt/'),  // createWebHistory für den "history" mode verwenden
+    routes,
     scrollBehavior(to, from, savedPosition) {
         if (to.hash) {
             return {
                 behavior: 'smooth',
-                // , offset: { x: 0, y: 10 }
                 selector: to.hash,
             };
         }
     },
 });
 
-const app = new Vue({
-    el: '#app',
-    render: h => h(App),
-    router: router,
-    vuetify: new Vuetify({
-        theme: {
-            themes: {
-                light: {
-                    anchor: 'black', // defaults to 'primary'
-                },
+const vuetify = createVuetify({
+    components,
+    directives,
+    theme: {
+        themes: {
+            light: {
+                anchor: 'black',
             },
         },
-    }),
+    },
 });
+
+const app = createApp(App);
+app.config.globalProperties.$ogtGlobals = {
+    isTestingEnv: process.env.MIX_APP_ENV == 'testing' ? true : false,
+    texts: {
+        itemDescriptions: itemDescriptions,
+    },
+    proxyPath: process.env.MIX_PROXY_PATH ?? '',
+};
+
+app.use(VueAxios, axios);
+app.axios.defaults.baseURL = process.env.MIX_BASE_URL ?? '';
+app.use(router);
+app.use(vuetify);
+app.mount('#app');

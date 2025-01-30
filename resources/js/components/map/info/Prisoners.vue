@@ -4,8 +4,8 @@
              and sourcing circumstances - https://www.wikidata.org/wiki/Property:P1480
              and prisoner names based on their place of detention - https://www.wikidata.org/wiki/Property:P2632
         -->
-        <v-list-item dense>
-            <v-list-item-content>
+        <v-list-item density="compact">
+            
                 <v-list-item-title>
                     <template v-if="selectedPlace.isDeportationEvent">Deportierte</template>
                     <template v-else>Inhaftierte</template>
@@ -35,7 +35,7 @@
                         </ul>
                     </div>
                 </v-list-item-subtitle>
-            </v-list-item-content>
+            
         </v-list-item>
         <v-divider></v-divider>
     </div>
