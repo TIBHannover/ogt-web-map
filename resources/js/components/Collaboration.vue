@@ -1,7 +1,3 @@
-<script setup>
-    import { useDisplay } from 'vuetify'
-    const display = useDisplay()
-</script>
 <template>
     <v-container id="container" class="mb-110">
 
@@ -25,7 +21,7 @@
             <v-col class="hyphens-auto" lang="de">
                 <section id="citizenScience">
                     <h1 class="font-weight-medium text-h5 text-md-h4 mb-5"
-                        :class="{ 'font-size-29': display.mdAndUp }"
+                        :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
                     >
                         "Gestapo.Terror.Orte" - Ein Citizen Science Projekt
                     </h1>
@@ -51,7 +47,7 @@
 
                 <section id="examples">
                     <h1 class="font-weight-medium text-h5 text-md-h4 mb-5"
-                        :class="{ 'font-size-29': display.mdAndUp }"
+                        :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
                     >
                         Beispiele
                     </h1>
@@ -59,17 +55,15 @@
                         Die interaktive Karte befindet sich im Aufbau. Folgende Datensätze sind weitestgehend
                         ausgearbeitet und können als Beispiele dienen:
                     </p>
-                    <p v-for="example in examples">
-                        <span v-if="$ogtGlobals.isTestingEnv || example.group != 'Ereignisse'">
-                            <span class="font-weight-bold">{{ example.group }}</span>
+                    <p v-for="example in examples" v-if="$ogtGlobals.isTestingEnv || example.group != 'Ereignisse'">
+                        <span class="font-weight-bold">{{ example.group }}</span>
+                        <br>
+                        <span v-for="location in example.locations">
+                            &#10132;
+                            <router-link :to="{ name: 'map', query: { qId: location.qId } }">
+                                {{ location.label }}
+                            </router-link>
                             <br>
-                            <span v-for="location in example.locations">
-                                &#10132;
-                                <router-link :to="{ name: 'map', query: { qId: location.qId } }">
-                                    {{ location.label }}
-                                </router-link>
-                                <br>
-                            </span>
                         </span>
                     </p>
                 </section>
@@ -78,7 +72,7 @@
 
                 <section id="coResearch">
                     <h1 class="font-weight-medium text-h5 text-md-h4 mb-5"
-                        :class="{ 'font-size-29': display.mdAndUp }"
+                        :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
                     >
                         Wie kann ich mitforschen?
                     </h1>

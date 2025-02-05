@@ -2,40 +2,41 @@
     <div>
         <!-- button to open map options sidebar -->
         <v-btn
-            absolute
-            class="mt-5"
-            @click.stop="isMapOptionsDisplayed = !isMapOptionsDisplayed"
+            position="fixed"
+            location="top right"
+            rounded="circle"
+            size="56px"
+            class="mt-5 mr-5 z-index-4"
             color="white"
-            fab
-            location="right"
             v-show="!isMapOptionsDisplayed"
+            @click.stop="toggleMapOptions"
         >
             <v-icon>mdi-tune</v-icon>
         </v-btn>
 
         <!-- map options sidebar -->
         <v-navigation-drawer
-            absolute
+            v-model="isMapOptionsDisplayed"
             class="z-index-4"
             :scrim="false"
-            mobile-breakpoint="750"
+            mobile-breakpoint="sm"
             location="right"
-            width="375px"
-            v-model="isMapOptionsDisplayed"
+            width="375"
+            max-width="375"
         >
             <!-- map options header -->
             <v-list-item>
-                
-                    <v-list-item-title class="font-family-special-elite font-weight-bold text-h6 text-sm-h5">
-                        Kartenoptionen
-                    </v-list-item-title>
-                    <v-list-item-subtitle>passe die Ansicht individuell an</v-list-item-subtitle>
-                
+                <v-list-item-title
+                    class="font-family-special-elite font-weight-bold text-h6 text-sm-h5"
+                >
+                    Kartenoptionen
+                </v-list-item-title>
+                <v-list-item-subtitle
+                    >passe die Ansicht individuell an</v-list-item-subtitle
+                >
+
                 <v-list-item-action>
-                    <v-btn
-                        @click.stop="isMapOptionsDisplayed = !isMapOptionsDisplayed"
-                        icon
-                    >
+                    <v-btn @click.stop="toggleMapOptions" icon>
                         <v-icon>mdi-close</v-icon>
                     </v-btn>
                 </v-list-item-action>
@@ -55,7 +56,6 @@
                     class="font-weight-bold"
                     :key="index"
                     v-for="(tab, index) in tabs"
-                    v-if="tab.show"
                 >
                     {{ tab.name }}
                     <v-icon>{{ tab.icon }}</v-icon>
@@ -64,10 +64,7 @@
 
             <v-divider></v-divider>
 
-            <v-tabs-items
-                class="bg-transparent"
-                v-model="activeTab"
-            >
+            <v-tab class="bg-transparent" v-model="activeTab">
                 <!-- layers options -->
                 <!-- <v-tab-item v-if="this.$ogtGlobals.isTestingEnv">
                     <layer-options
@@ -81,50 +78,59 @@
                 </v-tab-item> -->
 
                 <!-- place select options -->
-                <v-tab-item>
+                <v-tab>
                     <places-selection
                         :groupedPlaces="groupedPlaces"
                         :map="map"
                         :mapMarkerIconsPath="mapMarkerIconsPath"
+                        @update-layer-groups="updateLayerGroups"
                     ></places-selection>
-                </v-tab-item>
-            </v-tabs-items>
+                </v-tab>
+            </v-tab>
         </v-navigation-drawer>
     </div>
 </template>
 
-<script>
-import DateRange from './options/DateRange';
-import LayerOptions from './options/LayerOptions';
-import PlacesSelection from './options/PlacesSelection';
+<script setup>
+import { ref } from "vue";
+import DateRange from "./options/DateRange";
+import LayerOptions from "./options/LayerOptions";
+import PlacesSelection from "./options/PlacesSelection";
 
-export default {
-    name: 'MapOptionsSidebar',
-    components: {DateRange, LayerOptions, PlacesSelection},
-    props: ['groupedPlaces', 'map', 'mapMarkerIconsPath'],
-    data() {
-        return {
-            activeTab: 0,
-            isMapOptionsDisplayed: false,
-            tabs: [
-                /* {
-                    name: 'Layers',
-                    icon: 'mdi-layers',
-                    show: this.$ogtGlobals.isTestingEnv,
-                },
-                {
-                    name: 'Zeitraum',
-                    icon: 'mdi-map-clock',
-                    show: this.$ogtGlobals.isTestingEnv,
-                }, */
-                {
-                    name: 'Auswahl',
-                    icon: 'mdi-view-list',
-                    show: true,
-                },
-            ],
-        };
-    }
+const props = defineProps({
+    groupedPlaces: {
+        type: Object,
+        required: true,
+    },
+    map: {
+        type: Object,
+        required: true,
+    },
+    mapMarkerIconsPath: {
+        type: String,
+        required: true,
+    },
+});
+
+const emit = defineEmits(["update-layer-groups"]);
+
+const activeTab = ref(0);
+const isMapOptionsDisplayed = ref(true);
+const tabs = ref([
+    {
+        name: "Auswahl",
+        icon: "mdi-view-list",
+        show: true,
+    },
+]);
+
+const toggleMapOptions = () => {
+    isMapOptionsDisplayed.value = !isMapOptionsDisplayed.value;
+};
+
+const updateLayerGroups = (value) => {
+    console.log("Mapoptionssudebar", value);
+    emit("update-layer-groups", value);
 };
 </script>
 

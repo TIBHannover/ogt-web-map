@@ -1,11 +1,8 @@
-<script setup>
-    import { useDisplay } from 'vuetify'
-    const display = useDisplay()
-</script>
 <template>
     <v-container
         class="background bg-grey-lighten-3 justify-center"
-        :class="{ 'xs-bg-x-shifted': display.xs}"
+        :class="{ 'xs-bg-x-shifted': $vuetify.breakpoint.xs }"
+        fill-height
         fluid
         :style="{
             backgroundImage: 'url(' + backgroundImageUrl + '), url(' + backgroundImageUrlFallback1 + '), url(' + backgroundImageUrlFallback2 + ')'
@@ -75,9 +72,6 @@ export default {
     background-position: center center;
     background-repeat: no-repeat;
     background-size: cover;
-    height: 100vh;
-    display: flex;
-    align-items: center;
 }
 
 .background-color-grey {

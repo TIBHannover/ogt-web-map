@@ -19,9 +19,13 @@
 </template>
 
 <script>
+import { inject } from 'vue';
+
 export default {
     name: 'MainMenu',
     data() {
+        const ogtGlobals = inject('ogtGlobals');
+        console.log(ogtGlobals.isTestingEnv);
         return {
             menuItems: [
                 {
@@ -83,7 +87,7 @@ export default {
                 {
                     title: 'Sprache',
                     icon: 'mdi-translate',
-                    show: this.$ogtGlobals.isTestingEnv,
+                    show: ogtGlobals.isTestingEnv,
                     toMenu: 'languageConfig',
                 },
                 {

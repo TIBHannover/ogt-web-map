@@ -6,7 +6,7 @@
             location="top left"
             rounded="circle"
             size="56px"
-            class="mt-5 ml-5"
+            class="mt-5 ml-5 z-index-4"
             color="white"
             v-show="!isMenuDisplayed"
             @click.stop="toggleMenu"
@@ -34,7 +34,7 @@
                 </v-list-item-title>
                 <v-list-item-subtitle>in Niedersachsen 1933–1945</v-list-item-subtitle>
                 <v-list-item-action class="position-absolute right-0 top-0 mr-5 mt-5">
-                    <v-btn id="closeNavigationSidebar" @click.stop="toggleMenu"  icon>
+                    <v-btn id="closeNavigationSidebar" @click.stop="closeMenu" icon>
                         <v-icon>mdi-close</v-icon>
                     </v-btn>
                 </v-list-item-action>
@@ -73,9 +73,15 @@
     function toggleMenu() {
         isMenuDisplayed.value = !isMenuDisplayed.value;
     }
+    function closeMenu() {
+        isMenuDisplayed.value = false;
+    }
 </script>
 <style scoped>
 .font-family-special-elite {
     font-family: "Special Elite" !important;
+}
+.z-index-4 {
+    z-index: 4;
 }
 </style>

@@ -1,7 +1,3 @@
-<script setup>
-    import { useDisplay } from 'vuetify'
-    const display = useDisplay()
-</script>
 <template>
   <v-container id="container" class="mb-110">
     <!-- header -->
@@ -35,7 +31,7 @@
         <section id="researchObjectives">
           <h1
             class="font-weight-medium text-h5 text-md-h4 mb-5"
-            :class="{ 'font-size-29': display.mdAndUp }"
+            :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
           >
             Forschungsfragen & Projektziele
           </h1>
@@ -140,7 +136,7 @@
         <section id="teamAndPartners">
           <h1
             class="font-weight-medium text-h5 text-md-h4 mb-5"
-            :class="{ 'font-size-29': display.mdAndUp }"
+            :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
           >
             Team & Partner*innen
           </h1>
@@ -156,7 +152,7 @@
           <h2 class="font-weight-medium text-h6 text-md-h5">Team</h2>
           <h3
             class="text-h6 mb-1"
-            :class="{ 'font-weight-regular': display.mdAndDown }"
+            :class="{ 'font-weight-regular': $vuetify.breakpoint.mdAndDown }"
           >
             Technische Informationsbibliothek (TIB) – Open Science Lab (OSL)
           </h3>
@@ -234,7 +230,7 @@
           <h2 class="font-weight-medium text-h6 text-md-h5">Partner*innen</h2>
           <h3
             class="text-h6 mb-1"
-            :class="{ 'font-weight-regular': display.mdAndDown }"
+            :class="{ 'font-weight-regular': $vuetify.breakpoint.mdAndDown }"
           >
             Stiftung niedersächsische Gedenkstätten (SnG)
           </h3>
@@ -245,7 +241,7 @@
                 contain
                 max-height="150px"
                 max-width="200px"
-                :src="this.$ogtGlobals.proxyPath + '/images/logo-sng.svg'"
+                :src="ogtGlobals.proxyPath + '/images/logo-sng.svg'"
               ></v-img>
             </a>
           </p>
@@ -289,7 +285,7 @@
 
           <h3
             class="text-h6 mb-1"
-            :class="{ 'font-weight-regular': display.mdAndDown }"
+            :class="{ 'font-weight-regular': $vuetify.breakpoint.mdAndDown }"
           >
             Gedenkstätten Gestapokeller und Augustaschacht
           </h3>
@@ -336,7 +332,7 @@
         <section id="presentationsAndPublications">
           <h1
             class="font-weight-medium text-h5 text-md-h4 mb-5"
-            :class="{ 'font-size-29': display.mdAndUp }"
+            :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
           >
             Projektpräsentationen & Publikationen
           </h1>
@@ -423,7 +419,10 @@
     </v-row>
   </v-container>
 </template>
-
+<script setup>
+import { ref, inject } from 'vue'
+const ogtGlobals = inject('ogtGlobals')
+</script>
 <script>
 import Email from "./helpers/Email";
 import TableOfContentsSidebar from "./navigation/TableOfContentsSidebar";

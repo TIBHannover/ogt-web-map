@@ -2,8 +2,8 @@
     <div>
         <!-- place info sidebar -->
         <v-navigation-drawer
-            :modelValue="showPlaceInfoSidebar"
-            @update:modelValue="showPlaceInfoSidebar = $event"
+            :model-value="showPlaceInfoSidebar"
+            @update:model-value="$emit('hidePlaceInfoSidebar')"
             absolute
             class="z-index-5"
             :scrim="false"
@@ -27,11 +27,14 @@
                     }}</v-list-item-subtitle>
 
                 <v-list-item-action>
-                    <v-btn @click.stop="$emit('hidePlaceInfoSidebar')" icon>
+                    <v-btn @click="$emit('hidePlaceInfoSidebar')" icon>
                         <v-icon>mdi-close</v-icon>
                     </v-btn>
-                    <a :href="'https://www.wikidata.org/wiki/' + selectedPlace.id" target="_blank">
-                        <v-img max-width="45" :src="this.$ogtGlobals.proxyPath + '/images/wikidata-logo.svg'"></v-img>
+                    <a :href="`https://www.wikidata.org/wiki/${selectedPlace.id}`" target="_blank">
+                        <v-img
+                            :src="`${ogtGlobals?.proxyPath}/images/wikidata-logo.svg`"
+                            max-width="45"
+                        ></v-img>
                     </a>
                 </v-list-item-action>
             </v-list-item>
@@ -63,7 +66,7 @@
             </template>
 
             <!-- detailed item description -->
-            <template v-if="selectedPlace.id in itemDescriptions">
+            <template v-if="itemDescriptions && selectedPlace?.id && itemDescriptions[selectedPlace.id]">
                 <v-list-item density="compact">
 
                         <v-expansion-panels v-model="itemDescriptionPanel" focusable>
@@ -73,9 +76,11 @@
                                 </v-expansion-panel-title>
                                 <v-expansion-panel-text class="mt-4">
                                     <v-list-item-subtitle class="hyphens-auto white-space-normal" lang="de">
-                                        <p v-for="textPart in itemDescriptions[selectedPlace.id].textParts">
-                                            {{ textPart }}
-                                        </p>
+                                        <template v-if="itemDescriptions && selectedPlace.id && itemDescriptions[selectedPlace.id]">
+                                            <p v-for="(textPart, index) in itemDescriptions[selectedPlace.id]?.textParts" :key="index">
+                                                {{ textPart }}
+                                            </p>
+                                        </template>
                                     </v-list-item-subtitle>
                                 </v-expansion-panel-text>
                             </v-expansion-panel>
@@ -119,52 +124,66 @@
         </v-navigation-drawer>
     </div>
 </template>
+<script setup>
+    import { ref, computed, watch, inject } from 'vue';
+    import Event from './info/Event';
+    import GestapoPlace from './info/GestapoPlace';
+    import MemorialPlace from './info/MemorialPlace';
+    import Person from './info/Person';
+    const ogtGlobals = inject('ogtGlobals');
 
-<script>
-import Event from './info/Event';
-import GestapoPlace from './info/GestapoPlace';
-import MemorialPlace from './info/MemorialPlace';
-import Person from './info/Person';
+    const emits = defineEmits(['hidePlaceInfoSidebar', 'showPerson', 'switchLocation', 'undoZoomIntoPlace', 'zoomIntoPlace']);
 
-export default {
-    name: 'PlaceInfoSidebar',
-    components: {Event, GestapoPlace, MemorialPlace, Person},
-    props: ['selectedPlace', 'showPlaceInfoSidebar'],
-    data() {
-        return {
-            gestapoPlaceGroups: [
-                'extPolicePrisons',
-                'fieldOffices',
-                'laborEducationCamps',
-                'prisons',
-                'statePoliceHeadquarters',
-                'statePoliceOffices',
-            ],
-            itemDescriptionPanel: [],
-            itemDescriptions: this.$ogtGlobals.texts.itemDescriptions,
-        };
-    },
-    methods: {
-        /**
-         * Close opened item description panel.
-         */
-        closePanels: function () {
-            this.itemDescriptionPanel = [];
+    const props = defineProps({
+        selectedPlace: {
+            type: Object,
+            required: true,
+            default: () => ({})
         },
-    },
-    watch: {
-        /**
-         * When the displayed map location item is changed, then...
-         * - close opened panels
-         *
-         * @param newSelectedPlaceId Wikidata item id
-         * @param oldSelectedPlaceId Wikidata item id
-         */
-        'selectedPlace.id': function (newSelectedPlaceId, oldSelectedPlaceId) {
-            this.closePanels();
-        },
-    },
-};
+        showPlaceInfoSidebar: {
+            type: Boolean,
+            required: true
+        }
+    });
+
+    const itemDescriptionPanel = ref([]);
+    const itemDescriptions = ref(window?.$ogtGlobals?.texts?.itemDescriptions || {});
+
+    const gestapoPlaceGroups = [
+        'extPolicePrisons',
+        'fieldOffices',
+        'laborEducationCamps',
+        'prisons',
+        'statePoliceHeadquarters',
+        'statePoliceOffices',
+    ];
+
+    const drawerModel = computed({
+        get: () => props.showPlaceInfoSidebar,
+        set: (value) => emit('hidePlaceInfoSidebar', value)
+    });
+
+    const getComponent = computed(() => {
+        const groupName = props.selectedPlace?.groupName;
+        if (!groupName) return null;
+
+        if (groupName === 'events') return Event;
+        if (gestapoPlaceGroups.includes(groupName)) return GestapoPlace;
+        if (groupName === 'memorials') return MemorialPlace;
+        if (['perpetrators', 'victims'].includes(groupName)) return Person;
+        return null;
+    });
+
+    const closePanels = () => {
+        itemDescriptionPanel.value = [];
+    };
+
+    watch(() => props.selectedPlace?.id, (newId, oldId) => {
+        if (newId !== oldId) {
+        closePanels();
+        }
+    });
+
 </script>
 
 <style scoped>

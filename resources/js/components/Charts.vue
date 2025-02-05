@@ -37,7 +37,7 @@
             <v-row>
                 <v-col class="col-12 col-sm-6" v-for="(chart, chartName) in this.charts" :key="chartName">
                     <v-card>
-                        <v-img :src="$ogtGlobals.proxyPath + chart.imageUrl"></v-img>
+                        <v-img :src="`${ogtGlobals.proxyPath}` + chart.imageUrl"></v-img>
                         <v-card-title>
                             {{ chart.title }}
                         </v-card-title>
