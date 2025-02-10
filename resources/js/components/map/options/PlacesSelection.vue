@@ -41,13 +41,13 @@
                     <template v-slot:activator="{ props }">
                         <v-btn
                             icon
+                            rounded="circle"
+                            size="26px"
+                            class="mt-1"
                             :to="{ name: 'glossary', hash: '#' + groupName }"
                             v-bind="props"
                         >
-                            <v-icon
-                                class="mt-1"
-                                :color="groupedPlaces[groupName].color"
-                            >
+                            <v-icon :color="groupedPlaces[groupName].color">
                                 mdi-information-outline
                             </v-icon>
                         </v-btn>
@@ -58,10 +58,10 @@
         </v-row>
 
         <v-divider class="mt-4"></v-divider>
-        <v-subheader>Erfasste Gestapo Terror Orte</v-subheader>
+        <v-list-subheader>Erfasste Gestapo Terror Orte</v-list-subheader>
         <v-autocomplete
             v-for="groupName in groupedPlacesOrder"
-            v-model="selectedPlace"
+            v-model="selectedPlaces[groupName]"
             v-show="checkedPlaceLayerGroups.includes(groupName)"
             class="mx-4 my-2"
             color="grey-darken-4"
@@ -115,6 +115,19 @@ const groupedPlacesOrder = [
     "memorials",
 ];
 
+const selectedPlaces = ref({});
+groupedPlacesOrder.forEach((groupName) => {
+    selectedPlaces.value[groupName] = null;
+});
+
+const clearOtherSelections = (currentGroupName) => {
+    Object.keys(selectedPlaces.value).forEach((groupName) => {
+        if (groupName !== currentGroupName) {
+            selectedPlaces.value[groupName] = null;
+        }
+    });
+};
+
 const selectAll = () => {
     checkedPlaceLayerGroups.value =
         checkedPlaceLayerGroups.value.length !==
@@ -124,17 +137,23 @@ const selectAll = () => {
 };
 
 // Watchers
-watch(selectedPlace, (newPlace, oldPlace) => {
-    console.log("watch selected place");
-    if (newPlace) {
-        props.map.flyTo(newPlace.latLng);
-        newPlace.marker.fire("click", { latlng: newPlace.latLng });
-    }
+//
+groupedPlacesOrder.forEach((groupName) => {
+    watch(
+        () => selectedPlaces.value[groupName],
+        (newPlace) => {
+            console.log("newplace watcher", newPlace);
+            if (newPlace) {
+                clearOtherSelections(groupName);
+                props.map.flyTo(newPlace.latLng);
+                newPlace.marker.fire("click", { latlng: newPlace.latLng });
+            }
+        },
+    );
 });
 
 watch(checkedPlaceLayerGroups, (newGroups) => {
     // Emit event to parent instead of directly accessing it
-    console.log("update watch checkedPlaceLayerGroups", newGroups);
     emit("update-layer-groups", newGroups);
 });
 </script>

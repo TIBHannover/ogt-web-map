@@ -34,10 +34,9 @@ const vuetify = createVuetify({
     components,
     directives,
     theme: {
-        themes: {
-            light: {
-                anchor: "black",
-            },
+        defaultTheme: "light",
+        light: {
+            anchor: "black",
         },
     },
 });

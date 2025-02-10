@@ -75,6 +75,7 @@ export default {
             zoomLevel: 0,
         });
         const derivedPlacesData = ref({});
+        const getDerivedPlacesData = () => derivedPlacesData.value;
         const groupedPlaces = ref({
             events: {
                 color: "#8c1f21",
@@ -538,66 +539,21 @@ export default {
          */
         const getGroupedPlaces = async () => {
             try {
-                const response = await axios.get("/api/wikidata/places");
-                const data = response.data;
+                let groupedPlaces = {};
 
-                // Update the groupedPlaces with the fetched data
-                Object.entries(data).forEach(([key, value]) => {
-                    if (groupedPlaces.value[key]) {
-                        groupedPlaces.value[key].places = value || {};
-                    }
-                });
+                await axios
+                    .get("/api/wikidata/places")
+                    .then((response) => {
+                        groupedPlaces = response.data;
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    });
 
-                await nextTick();
-
-                if (
-                    Object.keys(groupedPlaces.value).some(
-                        (key) =>
-                            groupedPlaces.value[key]?.places &&
-                            Object.keys(groupedPlaces.value[key].places)
-                                .length > 0,
-                    )
-                ) {
-                    await visualizePlaces(data);
-                    derivePlaceData();
-                    updateInfoSidebarData();
-                    checkUrlForLocation();
-                } else {
-                    console.warn("No valid place data available");
-                }
-
-                const searchParams = new URLSearchParams(
-                    document.location.search,
-                );
-                const searchPID = searchParams.get("pid");
-                const searchID = searchParams.get("id");
-                const searchGroup = searchParams.get("group");
-                const searchLat = searchParams.get("lat");
-                const searchLng = searchParams.get("lng");
-
-                if (searchPID && searchGroup) {
-                    setTimeout(() => {
-                        this.showPerson({
-                            id: searchPID,
-                            group: searchGroup,
-                        });
-                    }, 750);
-                } else if (searchID && searchGroup && searchLat && searchLng) {
-                    const place = ((groupedPlaces[searchGroup] || {}).places ||
-                        {})[searchID];
-                    place &&
-                        setTimeout(() => {
-                            setSelectedPlace(
-                                place,
-                                {
-                                    lat: parseFloat(searchLat),
-                                    lng: parseFloat(searchLng),
-                                },
-                                searchGroup,
-                            );
-                            toggleShowPlaceInfoSidebar(true);
-                        }, 750);
-                }
+                await visualizePlaces(groupedPlaces);
+                derivePlaceData();
+                updateInfoSidebarData();
+                checkUrlForLocation();
             } catch (error) {
                 console.error("Error fetching grouped places:", error);
             }
@@ -660,32 +616,15 @@ export default {
                 const groupName = entry[1].groupName;
                 const startDate = new Date(entry[1].startDate);
                 const endDate = new Date(entry[1].endDate);
-                console.log(
-                    "enddate",
-                    endDate.getFullYear() > minDate.year ||
-                        (endDate.getFullYear() === minDate.year &&
-                            endDate.getMonth() >= minDate.month),
-                );
-                console.log(
-                    "startdate",
-                    startDate.getFullYear() < maxDate.year ||
-                        (startDate.getFullYear() === maxDate.year &&
-                            startDate.getMonth() <= maxDate.month),
-                );
-                console.log(
-                    "groupnames",
-                    !groupNames || groupNames.includes(groupName),
-                );
                 const applies =
-                    (endDate.getFullYear() > minDate.year ||
-                        (endDate.getFullYear() === minDate.year &&
-                            endDate.getMonth() >= minDate.month)) &&
-                    (startDate.getFullYear() < maxDate.year ||
-                        (startDate.getFullYear() === maxDate.year &&
-                            startDate.getMonth() <= maxDate.month)) &&
+                    (endDate.getFullYear() > minDate.value.year ||
+                        (endDate.getFullYear() === minDate.value.year &&
+                            endDate.getMonth() >= minDate.value.month)) &&
+                    (startDate.getFullYear() < maxDate.value.year ||
+                        (startDate.getFullYear() === maxDate.value.year &&
+                            startDate.getMonth() <= maxDate.value.month)) &&
                     (!groupNames || groupNames.includes(groupName));
-                console.log("applies", applies);
-                applies ? entry[0].addTo(map) : entry[0].remove();
+                applies ? entry[0].addTo(map.value) : entry[0].remove();
             });
         };
         const visualizePlaces = async (groupedPlaces) => {
@@ -693,7 +632,6 @@ export default {
                 groupedPlaces[group]["places"] = places;
 
                 let placeMarkers = createPlaceMarkers(group, places);
-
                 createPlacesLayerGroups(group, placeMarkers);
             }
         };
@@ -754,7 +692,12 @@ export default {
                     });
 
                     marker.on("click", (event) => {
-                        setSelectedPlace(place, event.latlng, placeGroupName);
+                        setSelectedPlace(
+                            place,
+                            event.latlng,
+                            placeGroupName,
+                            getDerivedPlacesData(),
+                        );
                         toggleShowPlaceInfoSidebar(true);
                     });
 
@@ -810,7 +753,7 @@ export default {
          * @param object latLng Leaflet LatLng geographical point object
          * @param string placeGroupName Name of place group
          */
-        const setSelectedPlace = (place, latLng, placeGroupName) => {
+        const setSelectedPlace = (place, latLng, placeGroupName, placeData) => {
             try {
                 selectedPlace.value.description = place.description;
                 selectedPlace.value.label = place.label;
@@ -1567,8 +1510,7 @@ export default {
                 selectedPlace.value.employees = [];
                 selectedPlace.value.prisoners = [];
 
-                let derivedPlacesData =
-                    derivedPlacesData.value[selectedPlace.value.id];
+                let derivedPlacesData = placeData[selectedPlace.value.id];
 
                 if (!derivedPlacesData) {
                     return;
@@ -2624,6 +2566,9 @@ export default {
             restoreCachedMapView,
             setMapView,
             handleLayerGroupsUpdate,
+            setSelectedPlace,
+            derivedPlacesData,
+            getDerivedPlacesData,
         };
     },
 };

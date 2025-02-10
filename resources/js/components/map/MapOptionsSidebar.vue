@@ -25,7 +25,7 @@
             max-width="375"
         >
             <!-- map options header -->
-            <v-list-item>
+            <v-list-item class="position-relative py-3">
                 <v-list-item-title
                     class="font-family-special-elite font-weight-bold text-h6 text-sm-h5"
                 >
@@ -34,8 +34,9 @@
                 <v-list-item-subtitle
                     >passe die Ansicht individuell an</v-list-item-subtitle
                 >
-
-                <v-list-item-action>
+                <v-list-item-action
+                    class="position-absolute right-0 top-0 mt-3 mr-5"
+                >
                     <v-btn @click.stop="toggleMapOptions" icon>
                         <v-icon>mdi-close</v-icon>
                     </v-btn>
@@ -53,7 +54,10 @@
                 v-model="activeTab"
             >
                 <v-tab
-                    class="font-weight-bold"
+                    class="font-weight-bold mx-0 w-full"
+                    style="max-width: 375px"
+                    max-width="375"
+                    width="375"
                     :key="index"
                     v-for="(tab, index) in tabs"
                 >
@@ -64,29 +68,25 @@
 
             <v-divider></v-divider>
 
-            <v-tab class="bg-transparent" v-model="activeTab">
-                <!-- layers options -->
-                <!-- <v-tab-item v-if="this.$ogtGlobals.isTestingEnv">
+            <!-- layers options -->
+            <!-- <v-tab-item v-if="this.$ogtGlobals.isTestingEnv">
                     <layer-options
                         :groupedPlaces="groupedPlaces"
                     ></layer-options>
                 </v-tab-item> -->
 
-                <!-- time period options -->
-                <!-- <v-tab-item v-if="this.$ogtGlobals.isTestingEnv">
+            <!-- time period options -->
+            <!-- <v-tab-item v-if="this.$ogtGlobals.isTestingEnv">
                     <date-range></date-range>
                 </v-tab-item> -->
 
-                <!-- place select options -->
-                <v-tab>
-                    <places-selection
-                        :groupedPlaces="groupedPlaces"
-                        :map="map"
-                        :mapMarkerIconsPath="mapMarkerIconsPath"
-                        @update-layer-groups="updateLayerGroups"
-                    ></places-selection>
-                </v-tab>
-            </v-tab>
+            <!-- place select options -->
+            <places-selection
+                :groupedPlaces="groupedPlaces"
+                :map="map"
+                :mapMarkerIconsPath="mapMarkerIconsPath"
+                @update-layer-groups="updateLayerGroups"
+            ></places-selection>
         </v-navigation-drawer>
     </div>
 </template>
@@ -115,7 +115,7 @@ const props = defineProps({
 const emit = defineEmits(["update-layer-groups"]);
 
 const activeTab = ref(0);
-const isMapOptionsDisplayed = ref(true);
+const isMapOptionsDisplayed = ref(false);
 const tabs = ref([
     {
         name: "Auswahl",
