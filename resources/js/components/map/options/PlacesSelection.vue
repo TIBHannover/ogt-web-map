@@ -68,9 +68,12 @@
             density="compact"
             hide-details
             item-title="placeLabelWithIndex"
+            placeholder="groupedPlaces[groupName].layerName"
             :items="groupedPlaces[groupName].placesByCoordinates"
             :key="groupName"
             :label="groupedPlaces[groupName].layerName"
+            :data-label="groupedPlaces[groupName].layerName"
+            :data-groupName="groupName"
             variant="outlined"
             return-object
             rounded
@@ -100,7 +103,6 @@ const props = defineProps({
 const router = useRouter();
 const ogtGlobals = inject("ogtGlobals");
 
-const selectedPlace = ref(null);
 const checkedPlaceLayerGroups = ref(Object.keys(props.groupedPlaces));
 const emit = defineEmits(["update-layer-groups"]);
 
@@ -123,7 +125,7 @@ groupedPlacesOrder.forEach((groupName) => {
 const clearOtherSelections = (currentGroupName) => {
     Object.keys(selectedPlaces.value).forEach((groupName) => {
         if (groupName !== currentGroupName) {
-            selectedPlaces.value[groupName] = null;
+            selectedPlaces.value[groupName] = "";
         }
     });
 };
@@ -144,7 +146,7 @@ groupedPlacesOrder.forEach((groupName) => {
         (newPlace) => {
             console.log("newplace watcher", newPlace);
             if (newPlace) {
-                clearOtherSelections(groupName);
+                //clearOtherSelections(groupName);
                 props.map.flyTo(newPlace.latLng);
                 newPlace.marker.fire("click", { latlng: newPlace.latLng });
             }

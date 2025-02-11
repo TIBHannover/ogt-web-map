@@ -1,11 +1,18 @@
 <template>
     <v-container id="container" class="mb-110">
-
-        <v-row :style="{
-            'padding-left': (freeClientWidth < 75 && ! isMenuDisplayed) ? ((75 - freeClientWidth) + 'px') : 0
-        }">
+        <v-row
+            :style="{
+                'padding-left':
+                    freeClientWidth < 75 && !isMenuDisplayed
+                        ? 75 - freeClientWidth + 'px'
+                        : 0,
+            }"
+        >
             <v-col>
-                <h1 class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-h4 text-md-h3" lang="de">
+                <h1
+                    class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-h4 text-md-h3"
+                    lang="de"
+                >
                     Glossar
                 </h1>
             </v-col>
@@ -13,12 +20,18 @@
 
         <v-row>
             <v-col>
-                <v-btn-toggle v-model="selectedGlossaryIndex" class="flex-wrap" group mandatory>
+                <v-btn-toggle
+                    v-model="selectedGlossaryIndex"
+                    class="flex-wrap"
+                    group
+                    mandatory
+                >
                     <v-btn
                         v-for="indexLetter in this.glossaryIndex"
                         :key="indexLetter"
                         class="button-toggle-border mb-3 mr-3"
                         rounded="circle"
+                        variant="outlined"
                         size="40"
                         fab
                         :value="indexLetter"
@@ -46,31 +59,56 @@
             <v-col>
                 <v-expansion-panels v-model="openedGlossaryPanel" focusable>
                     <v-expansion-panel
-                        v-for="(glossaryItem, glossaryItemLabel) in this.glossaryData"
+                        v-for="(glossaryItem, glossaryItemLabel) in this
+                            .glossaryData"
                         :key="glossaryItem.id"
-                        v-show="filterGlossaryItems(glossaryItemLabel, glossaryItem.descriptions)"
+                        v-show="
+                            filterGlossaryItems(
+                                glossaryItemLabel,
+                                glossaryItem.descriptions,
+                            )
+                        "
                         class="hyphens-auto"
                         lang="de"
                     >
-                        <v-expansion-panel-title :id="glossaryItem.id" class="font-weight-bold">
+                        <v-expansion-panel-title
+                            :id="glossaryItem.id"
+                            class="font-weight-bold"
+                        >
                             {{ glossaryItemLabel }}
                         </v-expansion-panel-title>
 
                         <v-expansion-panel-text>
-                            <template v-for="description in glossaryItem.descriptions">
-                                <ul v-if="Array.isArray(description)" class="noBullets mb-4">
+                            <template
+                                v-for="description in glossaryItem.descriptions"
+                            >
+                                <ul
+                                    v-if="Array.isArray(description)"
+                                    class="noBullets mb-4"
+                                >
                                     <li v-for="enumerationText in description">
                                         {{ enumerationText }}
                                     </li>
                                 </ul>
-                                <p v-else @click="showLinkedGlossaryItem" v-html="description"></p>
+                                <p
+                                    v-else
+                                    @click="showLinkedGlossaryItem"
+                                    v-html="description"
+                                ></p>
                             </template>
 
-                            <h5 v-if="glossaryItem.sources.length > 0" class="font-weight-bold">
+                            <h5
+                                v-if="glossaryItem.sources.length > 0"
+                                class="font-weight-bold"
+                            >
                                 Quellen:
                             </h5>
 
-                            <p v-for="source in glossaryItem.sources" class="text-body-2" v-html="source"></p>
+                            <p
+                                v-for="source in glossaryItem.sources"
+                                class="text-body-2"
+                                v-html="source"
+                            ></p>
                         </v-expansion-panel-text>
                     </v-expansion-panel>
                 </v-expansion-panels>
@@ -80,13 +118,13 @@
 </template>
 
 <script>
-import glossaryData from '../data/glossaryData';
+import glossaryData from "../data/glossaryData";
 
-const GLOSSARY_INDEX_ALL = 'A-Z';
+const GLOSSARY_INDEX_ALL = "A-Z";
 
 export default {
-    name: 'Glossary',
-    props: ['isMenuDisplayed'],
+    name: "Glossary",
+    props: ["isMenuDisplayed"],
     data() {
         return {
             freeClientWidth: document.documentElement.clientWidth,
@@ -98,10 +136,10 @@ export default {
         };
     },
     created() {
-        window.addEventListener('resize', this.setFreeClientWidth);
+        window.addEventListener("resize", this.setFreeClientWidth);
     },
     unmounted() {
-        window.removeEventListener('resize', this.setFreeClientWidth);
+        window.removeEventListener("resize", this.setFreeClientWidth);
     },
     mounted() {
         this.setFreeClientWidth();
@@ -116,18 +154,22 @@ export default {
          * @param event
          */
         setFreeClientWidth(event) {
-            const container = document.getElementById('container');
+            const container = document.getElementById("container");
 
-            this.freeClientWidth = (document.documentElement.clientWidth - container.clientWidth) / 2;
+            this.freeClientWidth =
+                (document.documentElement.clientWidth - container.clientWidth) /
+                2;
         },
         /**
          *  Set first letter of glossary entries as index for the glossary.
          */
         setGlossaryIndex() {
-            for (const [glossaryItemLabel, glossaryItemData] of Object.entries(this.glossaryData)) {
+            for (const [glossaryItemLabel, glossaryItemData] of Object.entries(
+                this.glossaryData,
+            )) {
                 let firstChar = glossaryItemLabel.charAt(0);
 
-                if (! this.glossaryIndex.includes(firstChar)) {
+                if (!this.glossaryIndex.includes(firstChar)) {
                     this.glossaryIndex.push(firstChar);
                 }
             }
@@ -142,13 +184,13 @@ export default {
         filterGlossaryItems(glossaryItemLabel, glossaryItemDescriptions) {
             let glossaryItemDescription = glossaryItemDescriptions.join();
 
-            if ([GLOSSARY_INDEX_ALL, glossaryItemLabel.charAt(0)].includes(this.selectedGlossaryIndex)
-                &&
-                (
-                    this.searchTerm === null ||
-                    glossaryItemLabel.match(RegExp(this.searchTerm, 'i')) ||
-                    glossaryItemDescription.match(RegExp(this.searchTerm, 'i'))
-                )
+            if (
+                [GLOSSARY_INDEX_ALL, glossaryItemLabel.charAt(0)].includes(
+                    this.selectedGlossaryIndex,
+                ) &&
+                (this.searchTerm === null ||
+                    glossaryItemLabel.match(RegExp(this.searchTerm, "i")) ||
+                    glossaryItemDescription.match(RegExp(this.searchTerm, "i")))
             ) {
                 return true;
             }
@@ -162,41 +204,56 @@ export default {
             let searchTerms = [];
 
             // create regex search terms for glossary item labels
-            for (const [glossaryItemLabel, glossaryItemData] of Object.entries(this.glossaryData)) {
-
-                let termRegex = glossaryItemLabel.replace('s ', '[ens]{0,3} ') + '[ens]{0,3}';
+            for (const [glossaryItemLabel, glossaryItemData] of Object.entries(
+                this.glossaryData,
+            )) {
+                let termRegex =
+                    glossaryItemLabel.replace("s ", "[ens]{0,3} ") +
+                    "[ens]{0,3}";
 
                 searchTerms.push({
-                    'label': glossaryItemLabel,
-                    'regex': termRegex,
+                    label: glossaryItemLabel,
+                    regex: termRegex,
                 });
             }
 
-            for (let [glossaryItemLabel, glossaryItemData] of Object.entries(this.glossaryData)) {
-                glossaryItemData.descriptions.forEach((description, descriptionIndex) => {
-
-                    // skip case enumeration description
-                    if (Array.isArray(description)) {
-                        return;
-                    }
-
-                    searchTerms.forEach((term, termIndex) => {
-
-                        if (term.label == glossaryItemLabel) {
+            for (let [glossaryItemLabel, glossaryItemData] of Object.entries(
+                this.glossaryData,
+            )) {
+                glossaryItemData.descriptions.forEach(
+                    (description, descriptionIndex) => {
+                        // skip case enumeration description
+                        if (Array.isArray(description)) {
                             return;
                         }
 
-                        let regex = new RegExp(`(^| |\\.|\\()(${term.regex})( |,|\\.|$|\\))`, 'gi');
-                        let replacement = `$1<a href='javascript:' data-glossary-index='${termIndex}' data-search-term='${term.label}'>$2</a>$3`;
+                        searchTerms.forEach((term, termIndex) => {
+                            if (term.label == glossaryItemLabel) {
+                                return;
+                            }
 
-                        description = description.replace(regex, replacement);
-                    });
+                            let regex = new RegExp(
+                                `(^| |\\.|\\()(${term.regex})( |,|\\.|$|\\))`,
+                                "gi",
+                            );
+                            let replacement = `$1<a href='javascript:' data-glossary-index='${termIndex}' data-search-term='${term.label}'>$2</a>$3`;
 
-                    glossaryItemData.descriptions[descriptionIndex] = description;
-                });
+                            description = description.replace(
+                                regex,
+                                replacement,
+                            );
+                        });
+
+                        glossaryItemData.descriptions[descriptionIndex] =
+                            description;
+                    },
+                );
 
                 glossaryItemData.sources.forEach((source, sourceIndex) => {
-                    glossaryItemData.sources[sourceIndex] = source.replace(/(^https:.[^ ]*)/i, '<a href=\'$1\' target=\'_blank\'>$1</a>');
+                    glossaryItemData.sources[sourceIndex] = source.replace(
+                        /(^https:.[^ ]*)/i,
+                        "<a href='$1' target='_blank'>$1</a>",
+                    );
                 });
             }
         },
@@ -206,11 +263,13 @@ export default {
         showGlossaryItemByUrlHash() {
             const urlHash = this.$route.hash;
 
-            if (urlHash == '') {
+            if (urlHash == "") {
                 return;
             }
 
-            const expansionPanelHeader = document.getElementById(urlHash.substring(1));
+            const expansionPanelHeader = document.getElementById(
+                urlHash.substring(1),
+            );
 
             if (expansionPanelHeader) {
                 expansionPanelHeader.click();
@@ -222,10 +281,12 @@ export default {
          * @param event
          */
         showLinkedGlossaryItem(event) {
-            if (event.target.hasAttribute('data-glossary-index')) {
+            if (event.target.hasAttribute("data-glossary-index")) {
                 this.selectedGlossaryIndex = GLOSSARY_INDEX_ALL;
-                this.searchTerm = event.target.getAttribute('data-search-term');
-                this.openedGlossaryPanel = parseInt(event.target.getAttribute('data-glossary-index'));
+                this.searchTerm = event.target.getAttribute("data-search-term");
+                this.openedGlossaryPanel = parseInt(
+                    event.target.getAttribute("data-glossary-index"),
+                );
             }
         },
     },
@@ -234,9 +295,14 @@ export default {
 
 <style scoped>
 .button-toggle-border {
-    border-color: rgba(0, 0, 0, 0.87) !important;
+    border-color: #000 !important;
     border-radius: 50% !important;
-    border-width: thin !important;
+    border-width: 1px !important;
+    border-start-end-radius: 1px;
+    border-start-start-radius: 1px;
+    border-radius: 100% !important;
+    border-width: 1px !important;
+    border-style: solid !important;
 }
 
 .font-family-special-elite {

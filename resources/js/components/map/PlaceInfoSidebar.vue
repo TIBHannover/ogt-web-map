@@ -5,7 +5,7 @@
             :model-value="showPlaceInfoSidebar"
             @update:model-value="$emit('hidePlaceInfoSidebar')"
             absolute
-            class="z-index-5"
+            class="z-index-5 placeInfoSidebar"
             :scrim="false"
             mobile-breakpoint="sm"
             max-width="375"
@@ -243,6 +243,37 @@ watch(
     },
 );
 </script>
+
+<style>
+.placeInfoSidebar a {
+    color: black !important;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1rem;
+}
+.placeInfoSidebar .v-list-item__title {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1rem;
+}
+.placeInfoSidebar .v-list-item-subtitle {
+    opacity: 1;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1rem;
+}
+.placeInfoSidebar .v-list-item__subtitle {
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1rem;
+}
+.placeInfoSidebar ul {
+    padding-left: 24px;
+    list-style: circle;
+}
+</style>
 
 <style scoped>
 .font-family-special-elite {
