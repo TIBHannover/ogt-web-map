@@ -1,28 +1,31 @@
 <template>
     <v-list rounded>
-        <v-subheader class="text-uppercase">Hauptmenü</v-subheader>
+        <v-list-subheader class="text-uppercase">Hauptmenü</v-list-subheader>
         <v-list-item
             link
-            v-for="menuItem in menuItems"
-            v-if="menuItem.show"
+            v-for="menuItem in filteredMenuItems"
             :key="menuItem.title"
             :to="menuItem.path"
             @click.stop="$emit('setActiveMenu', menuItem.toMenu)"
+            rounded="pill"
+            class="d-flex py-4 my-2 mx-2"
         >
-            <v-list-item-icon>
+            <v-list-item-title>
                 <v-icon>{{ menuItem.icon }}</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-                <v-list-item-title>{{ menuItem.title }}</v-list-item-title>
-            </v-list-item-content>
+                <span class="ml-5">{{ menuItem.title }}</span>
+            </v-list-item-title>
         </v-list-item>
     </v-list>
 </template>
 
 <script>
+import { inject } from 'vue';
+
 export default {
     name: 'MainMenu',
     data() {
+        const ogtGlobals = inject('ogtGlobals');
+        console.log(ogtGlobals.isTestingEnv);
         return {
             menuItems: [
                 {
@@ -84,7 +87,7 @@ export default {
                 {
                     title: 'Sprache',
                     icon: 'mdi-translate',
-                    show: this.$ogtGlobals.isTestingEnv,
+                    show: ogtGlobals.isTestingEnv,
                     toMenu: 'languageConfig',
                 },
                 {
@@ -96,6 +99,11 @@ export default {
             ],
         };
     },
+    computed: {
+        filteredMenuItems() {
+            return this.menuItems.filter(menuItem => menuItem.show);
+        }
+    }
 };
 </script>
 

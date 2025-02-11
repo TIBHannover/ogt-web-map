@@ -12,9 +12,6 @@
 <div id="app"></div>
 
 <script src="{{ asset('js/app.js') }}"></script>
-<script>
-    const configLeaflet = @json(config('leaflet'));
-</script>
 </body>
 
 </html>

@@ -2,8 +2,8 @@
     <div>
         <!-- place of detention (+ start/end date) - https://www.wikidata.org/wiki/Property:P2632 -->
         <template v-if="selectedPerson.detentions.length > 0">
-            <v-list-item dense>
-                <v-list-item-content>
+            <v-list-item density="compact">
+                
                     <v-list-item-title>Haftort(e)</v-list-item-title>
                     <v-list-item-subtitle>
                         <ul>
@@ -30,7 +30,7 @@
                             </li>
                         </ul>
                     </v-list-item-subtitle>
-                </v-list-item-content>
+                
             </v-list-item>
         </template>
     </div>

@@ -47,7 +47,7 @@
                     <label for="location">Koordinaten (DMS)</label>
                     <input v-model="formsLocation" name="location" type="text" placeholder="z.B. 52°8'41.14&quot;N, 9°56'55.61&quot;E">
                     <button class="button" type="button" @click="submit">Anlegen</button>
-                    <span class="error">{{ error }}</span>
+                    <span class="bg-error">{{ error }}</span>
                 </form>
                 <br><br><br><br><!-- Dev banner offset (temp) -->
             </v-col>
@@ -74,7 +74,7 @@ export default {
     created() {
         window.addEventListener('resize', this.setFreeClientWidth);
     },
-    destroyed() {
+    unmounted() {
         window.removeEventListener('resize', this.setFreeClientWidth);
     },
     mounted() {

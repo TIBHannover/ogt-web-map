@@ -18,8 +18,9 @@
                         v-for="indexLetter in this.glossaryIndex"
                         :key="indexLetter"
                         class="button-toggle-border mb-3 mr-3"
+                        rounded="circle"
+                        size="40"
                         fab
-                        small
                         :value="indexLetter"
                     >
                         {{ indexLetter }}
@@ -51,11 +52,11 @@
                         class="hyphens-auto"
                         lang="de"
                     >
-                        <v-expansion-panel-header :id="glossaryItem.id" class="font-weight-bold">
+                        <v-expansion-panel-title :id="glossaryItem.id" class="font-weight-bold">
                             {{ glossaryItemLabel }}
-                        </v-expansion-panel-header>
+                        </v-expansion-panel-title>
 
-                        <v-expansion-panel-content>
+                        <v-expansion-panel-text>
                             <template v-for="description in glossaryItem.descriptions">
                                 <ul v-if="Array.isArray(description)" class="noBullets mb-4">
                                     <li v-for="enumerationText in description">
@@ -70,7 +71,7 @@
                             </h5>
 
                             <p v-for="source in glossaryItem.sources" class="text-body-2" v-html="source"></p>
-                        </v-expansion-panel-content>
+                        </v-expansion-panel-text>
                     </v-expansion-panel>
                 </v-expansion-panels>
             </v-col>
@@ -99,7 +100,7 @@ export default {
     created() {
         window.addEventListener('resize', this.setFreeClientWidth);
     },
-    destroyed() {
+    unmounted() {
         window.removeEventListener('resize', this.setFreeClientWidth);
     },
     mounted() {

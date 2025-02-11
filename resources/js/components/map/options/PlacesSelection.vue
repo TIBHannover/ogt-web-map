@@ -17,8 +17,8 @@
         >
             <v-col class="py-0" style="max-width: 60px">
                 <v-img
-                    max-width="34px"
-                    :src="$ogtGlobals.proxyPath + mapMarkerIconsPath + groupedPlaces[groupName].iconName"
+                    :max-width="34"
+                    :src="`${ogtGlobals?.proxyPath}${mapMarkerIconsPath}${groupedPlaces[groupName].iconName}`"
                 ></v-img>
             </v-col>
 
@@ -26,7 +26,7 @@
                 <v-checkbox
                     v-model="checkedPlaceLayerGroups"
                     :color="groupedPlaces[groupName].color"
-                    dense
+                    density="compact"
                     hide-details
                     :label="groupedPlaces[groupName].layerName"
                     :value="groupName"
@@ -34,10 +34,20 @@
             </v-col>
 
             <v-col class="py-0" style="max-width: 55px">
-                <v-tooltip :color="groupedPlaces[groupName].color" left>
-                    <template v-slot:activator="{ on, attrs }">
-                        <v-btn icon :to="{ name: 'glossary', hash: '#' + groupName }" v-bind="attrs" v-on="on">
-                            <v-icon class="mt-1" :color="groupedPlaces[groupName].color">
+                <v-tooltip
+                    :color="groupedPlaces[groupName].color"
+                    location="left"
+                >
+                    <template v-slot:activator="{ props }">
+                        <v-btn
+                            icon
+                            rounded="circle"
+                            size="26px"
+                            class="mt-1"
+                            :to="{ name: 'glossary', hash: '#' + groupName }"
+                            v-bind="props"
+                        >
+                            <v-icon :color="groupedPlaces[groupName].color">
                                 mdi-information-outline
                             </v-icon>
                         </v-btn>
@@ -48,84 +58,104 @@
         </v-row>
 
         <v-divider class="mt-4"></v-divider>
-        <v-subheader>Erfasste Gestapo Terror Orte</v-subheader>
+        <v-list-subheader>Erfasste Gestapo Terror Orte</v-list-subheader>
         <v-autocomplete
             v-for="groupName in groupedPlacesOrder"
-            v-model="selectedPlace"
+            v-model="selectedPlaces[groupName]"
             v-show="checkedPlaceLayerGroups.includes(groupName)"
             class="mx-4 my-2"
-            color="grey darken-4"
-            dense
+            color="grey-darken-4"
+            density="compact"
             hide-details
-            item-text="placeLabelWithIndex"
+            item-title="placeLabelWithIndex"
             :items="groupedPlaces[groupName].placesByCoordinates"
             :key="groupName"
             :label="groupedPlaces[groupName].layerName"
-            outlined
+            variant="outlined"
             return-object
             rounded
         ></v-autocomplete>
     </v-container>
 </template>
 
-<script>
-export default {
-    name: 'PlacesSelection',
-    props: ['groupedPlaces', 'map', 'mapMarkerIconsPath'],
-    methods: {
-        selectAll() {
-            this.checkedPlaceLayerGroups = (this.checkedPlaceLayerGroups.length !== Object.keys(this.groupedPlaces).length)
-            ? Object.keys(this.groupedPlaces)
-            : [];
-        }
-    },
-    data() {
-        return {
-            checkedPlaceLayerGroups: Object.keys(this.groupedPlaces),
-            groupedPlacesOrder: [
-                'statePoliceHeadquarters',
-                'statePoliceOffices',
-                'fieldOffices',
-                'prisons',
-                'extPolicePrisons',
-                'laborEducationCamps',
-                'events',
-                'memorials',
-            ],
-            selectedPlace: null
-        };
-    },
-    watch: {
-        /**
-         * Start fly & zoom-in animation to selected place.
-         *
-         * @param newSelectedPlace
-         * @param oldSelectedPlace
-         */
-        selectedPlace(newSelectedPlace, oldSelectedPlace) {
-            this.map.flyTo(newSelectedPlace.latLng);
-            newSelectedPlace.marker.fire('click', {latlng: newSelectedPlace.latLng});
-        },
+<script setup>
+import { ref, watch, defineProps, computed, inject } from "vue";
+import { useRouter } from "vue-router";
 
-        /**
-         * Show/Hide enabled/disabled place layer groups on map.
-         *
-         * @param newCheckedPlaceLayerGroups
-         * @param oldCheckedPlaceLayerGroups
-         */
-        checkedPlaceLayerGroups(newCheckedPlaceLayerGroups, oldCheckedPlaceLayerGroups) {
-            /* for (const [group, places] of Object.entries(this.groupedPlaces)) {
-                if (newCheckedPlaceLayerGroups.includes(group)) {
-                    places.layerGroup.addTo(this.map);
-                }
-                else {
-                    places.layerGroup.remove();
-                }
-            } */
-            this.$parent.$parent.$parent.$parent.$parent.applyFilters(null, null, newCheckedPlaceLayerGroups);
-        },
+const props = defineProps({
+    groupedPlaces: {
+        type: Object,
+        required: true,
     },
+    map: {
+        type: Object,
+        required: true,
+    },
+    mapMarkerIconsPath: {
+        type: String,
+        required: true,
+    },
+});
+
+const router = useRouter();
+const ogtGlobals = inject("ogtGlobals");
+
+const selectedPlace = ref(null);
+const checkedPlaceLayerGroups = ref(Object.keys(props.groupedPlaces));
+const emit = defineEmits(["update-layer-groups"]);
+
+const groupedPlacesOrder = [
+    "statePoliceHeadquarters",
+    "statePoliceOffices",
+    "fieldOffices",
+    "prisons",
+    "extPolicePrisons",
+    "laborEducationCamps",
+    "events",
+    "memorials",
+];
+
+const selectedPlaces = ref({});
+groupedPlacesOrder.forEach((groupName) => {
+    selectedPlaces.value[groupName] = null;
+});
+
+const clearOtherSelections = (currentGroupName) => {
+    Object.keys(selectedPlaces.value).forEach((groupName) => {
+        if (groupName !== currentGroupName) {
+            selectedPlaces.value[groupName] = null;
+        }
+    });
 };
+
+const selectAll = () => {
+    checkedPlaceLayerGroups.value =
+        checkedPlaceLayerGroups.value.length !==
+        Object.keys(props.groupedPlaces).length
+            ? Object.keys(props.groupedPlaces)
+            : [];
+};
+
+// Watchers
+//
+groupedPlacesOrder.forEach((groupName) => {
+    watch(
+        () => selectedPlaces.value[groupName],
+        (newPlace) => {
+            console.log("newplace watcher", newPlace);
+            if (newPlace) {
+                clearOtherSelections(groupName);
+                props.map.flyTo(newPlace.latLng);
+                newPlace.marker.fire("click", { latlng: newPlace.latLng });
+            }
+        },
+    );
+});
+
+watch(checkedPlaceLayerGroups, (newGroups) => {
+    // Emit event to parent instead of directly accessing it
+    emit("update-layer-groups", newGroups);
+});
 </script>
 
 <style>
@@ -152,7 +182,7 @@ export default {
     margin-right: 14px;
     width: 15px;
     height: 15px;
-    background-color: #D0D0D0;
+    background-color: #d0d0d0;
     border-radius: 2px;
 }
 .select-all > div::after {
@@ -164,7 +194,7 @@ export default {
     margin-left: -17.5px;
     width: 35px;
     height: 35px;
-    background-color: #F0F0F0;
+    background-color: #f0f0f0;
     border-radius: 100%;
     opacity: 0;
     z-index: -1;

@@ -78,10 +78,10 @@
                     </h1>
                     <v-expansion-panels focusable>
                         <v-expansion-panel>
-                            <v-expansion-panel-header class="font-weight-bold">
+                            <v-expansion-panel-title class="font-weight-bold">
                                 Schulische und außerschulische Jugendgruppen
-                            </v-expansion-panel-header>
-                            <v-expansion-panel-content>
+                            </v-expansion-panel-title>
+                            <v-expansion-panel-text>
                                 <p>
                                     Zur Karte beitragen können Klassen der Stufen Sek I und Sek II im Rahmen des
                                     Politiks-, Ethiks-, Geschichts- oder Informatikunterrichts. Es bieten sich darüber
@@ -117,7 +117,7 @@
                                            target="_blank"
                                         >
                                             Über das Projekt - Remember Me
-                                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+                                            <v-icon size="small" class="vertical-align-top">mdi-open-in-new</v-icon>
                                         </a>
                                     </span>
                                 </p>
@@ -128,14 +128,14 @@
                                         <a class="hyphens-auto" href="#projectIdeas" lang="de">Projektideen</a>
                                     </span>
                                 </p>
-                            </v-expansion-panel-content>
+                            </v-expansion-panel-text>
                         </v-expansion-panel>
 
                         <v-expansion-panel>
-                            <v-expansion-panel-header class="font-weight-bold">
+                            <v-expansion-panel-title class="font-weight-bold">
                                 Gedenkstätten
-                            </v-expansion-panel-header>
-                            <v-expansion-panel-content>
+                            </v-expansion-panel-title>
+                            <v-expansion-panel-text>
                                 <p>
                                     Niedersächsische Gedenkstätten nehmen eine entscheidende Rolle in der Erforschung
                                     und Vermittlung des Themas Gestapoterror in Niedersachsen ein. Das Projekt
@@ -158,14 +158,14 @@
                                 <p>
                                     Des Weiteren können von Gedenkstätten erhobene Forschungsdaten eingelesen werden.
                                 </p>
-                            </v-expansion-panel-content>
+                            </v-expansion-panel-text>
                         </v-expansion-panel>
 
                         <v-expansion-panel>
-                            <v-expansion-panel-header class="font-weight-bold">
+                            <v-expansion-panel-title class="font-weight-bold">
                                 Geschichtswissenschaftler*innen
-                            </v-expansion-panel-header>
-                            <v-expansion-panel-content>
+                            </v-expansion-panel-title>
+                            <v-expansion-panel-text>
                                 <p>
                                     Forschungsdaten können auf "Gestapo.Terror.Orte" veröffentlicht und mit weiteren
                                     Daten in Verbindung gesetzt werden. Die Projektkoordination steht über die
@@ -173,14 +173,14 @@
                                     <email encryptedEmail="phu/qspkfdu" :showEmail=true :showIcon=true></email>
                                     für Absprachen zur Verfügung.
                                 </p>
-                            </v-expansion-panel-content>
+                            </v-expansion-panel-text>
                         </v-expansion-panel>
 
                         <v-expansion-panel>
-                            <v-expansion-panel-header class="font-weight-bold">
+                            <v-expansion-panel-title class="font-weight-bold">
                                 Geschichtsvereine, Initiativen, Einzelpersonen
-                            </v-expansion-panel-header>
-                            <v-expansion-panel-content>
+                            </v-expansion-panel-title>
+                            <v-expansion-panel-text>
                                 <p>
                                     Geschichtsvereine, Initiativen, Einzelpersonen können Daten zur Geschichte der
                                     Gestapo erheben und diese auf der interaktiven Karte anzeigen lassen.
@@ -197,7 +197,7 @@
                                         <a class="hyphens-auto" href="#projectIdeas" lang="de">Projektideen</a>
                                     </span>
                                 </p>
-                            </v-expansion-panel-content>
+                            </v-expansion-panel-text>
                         </v-expansion-panel>
                     </v-expansion-panels>
                 </section>
@@ -206,7 +206,7 @@
 
                 <section id="projectIdeas">
                     <h1 class="font-weight-medium text-h5 text-md-h4 mb-5"
-                        :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
+                        :class="{ 'font-size-29': display.mdAndUp }"
                     >
                         Projektideen
                     </h1>
@@ -224,7 +224,7 @@
                         Fotografien angefertigt, die anschließend auf
                         <a class="text-no-wrap" href="https://commons.wikimedia.org" target="_blank">
                             Wikimedia Commons
-                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+                            <v-icon size="small" class="vertical-align-top">mdi-open-in-new</v-icon>
                         </a>
                         hochgeladen und schließlich auf „Gestapo.Terror.Orte“ angezeigt werden.
                     </p>
@@ -237,7 +237,7 @@
                         Daten werden mit Hilfe von
                         <a class="text-no-wrap" href="https://www.wikidata.org" target="_blank">
                             Wikidata
-                            <v-icon small class="vertical-align-top">mdi-open-in-new</v-icon>
+                            <v-icon size="small" class="vertical-align-top">mdi-open-in-new</v-icon>
                         </a>
                         der Allgemeinheit zur Verfügung gestellt. Diese Daten werden anschließend auf
                         „Gestapo.Terror.Orte“ veröffentlicht.
@@ -345,7 +345,7 @@ export default {
     created() {
         window.addEventListener('resize', this.setFreeClientWidth);
     },
-    destroyed() {
+    unmounted() {
         window.removeEventListener('resize', this.setFreeClientWidth);
     },
     mounted() {

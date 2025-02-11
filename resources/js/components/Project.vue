@@ -185,7 +185,7 @@
                             target="_blank"
                         >
                             https://vivo.tib.eu/fis/individual/n0000-0003-0232-7085
-                            <v-icon small class="vertical-align-top"
+                            <v-icon size="small" class="vertical-align-top"
                                 >mdi-open-in-new</v-icon
                             >
                         </a>
@@ -201,7 +201,7 @@
                             target="_blank"
                         >
                             https://vivo.tib.eu/fis/individual/n0000-0002-3075-7640
-                            <v-icon small class="vertical-align-top"
+                            <v-icon size="small" class="vertical-align-top"
                                 >mdi-open-in-new</v-icon
                             >
                         </a>
@@ -231,7 +231,7 @@
                         <br />
                         <a href="https://nadinekloever.com" target="_blank">
                             https://nadinekloever.com
-                            <v-icon small class="vertical-align-top"
+                            <v-icon size="small" class="vertical-align-top"
                                 >mdi-open-in-new</v-icon
                             >
                         </a>
@@ -278,7 +278,7 @@
                                 max-height="150px"
                                 max-width="200px"
                                 :src="
-                                    this.$ogtGlobals.proxyPath +
+                                    ogtGlobals.proxyPath +
                                     '/images/logo-sng.svg'
                                 "
                             ></v-img>
@@ -383,7 +383,7 @@
                         >
                             Überwachung und Terror – die Gestapo als Instrument
                             des NS-Regimes
-                            <v-icon small class="vertical-align-top"
+                            <v-icon size="small" class="vertical-align-top"
                                 >mdi-open-in-new</v-icon
                             >
                         </a>
@@ -398,7 +398,7 @@
                             Projektpräsentation zur Tagung „Digital Memory –
                             Digital History – Digital Mapping. Transformationen
                             von Erinnerungskulturen und Holocaust-Education“
-                            <v-icon small class="vertical-align-top"
+                            <v-icon size="small" class="vertical-align-top"
                                 >mdi-open-in-new</v-icon
                             >
                         </a>
@@ -414,7 +414,7 @@
                         >
                             Stiftung niedersächsische Gedenkstätten –
                             Jahresbericht 2020
-                            <v-icon small class="vertical-align-top"
+                            <v-icon size="small" class="vertical-align-top"
                                 >mdi-open-in-new</v-icon
                             >
                         </a>
@@ -424,7 +424,7 @@
                             target="_blank"
                         >
                             OGT Projektwebsite der TIB
-                            <v-icon small class="vertical-align-top"
+                            <v-icon size="small" class="vertical-align-top"
                                 >mdi-open-in-new</v-icon
                             >
                         </a>
@@ -434,7 +434,7 @@
                             target="_blank"
                         >
                             Projektprofil
-                            <v-icon small class="vertical-align-top"
+                            <v-icon size="small" class="vertical-align-top"
                                 >mdi-open-in-new</v-icon
                             >
                         </a>
@@ -444,7 +444,7 @@
                             target="_blank"
                         >
                             Auszug aus dem Projektantrag
-                            <v-icon small class="vertical-align-top"
+                            <v-icon size="small" class="vertical-align-top"
                                 >mdi-open-in-new</v-icon
                             >
                         </a>
@@ -462,7 +462,7 @@
                             target="_blank"
                         >
                             Verbrechen der Gestapo digital sichtbar machen
-                            <v-icon small class="vertical-align-top"
+                            <v-icon size="small" class="vertical-align-top"
                                 >mdi-open-in-new</v-icon
                             >
                         </a>
@@ -477,7 +477,7 @@
                         >
                             Spuren der Vergangenheit: Verbrechen der Gestapo
                             digital sichtbar machen
-                            <v-icon small class="vertical-align-top"
+                            <v-icon size="small" class="vertical-align-top"
                                 >mdi-open-in-new</v-icon
                             >
                         </a>
@@ -487,7 +487,10 @@
         </v-row>
     </v-container>
 </template>
-
+<script setup>
+import { ref, inject } from "vue";
+const ogtGlobals = inject("ogtGlobals");
+</script>
 <script>
 import Email from "./helpers/Email";
 import TableOfContentsSidebar from "./navigation/TableOfContentsSidebar";
@@ -518,7 +521,7 @@ export default {
     created() {
         window.addEventListener("resize", this.setFreeClientWidth);
     },
-    destroyed() {
+    unmounted() {
         window.removeEventListener("resize", this.setFreeClientWidth);
     },
     mounted() {

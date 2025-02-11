@@ -1,6 +1,6 @@
 <template>
     <v-container
-        class="background grey lighten-3 justify-center"
+        class="background bg-grey-lighten-3 justify-center"
         :class="{ 'xs-bg-x-shifted': $vuetify.breakpoint.xs }"
         fill-height
         fluid
@@ -9,7 +9,7 @@
         }"
     >
         <div>
-            <div class="white--text">
+            <div class="text-white">
                 <div class="font-family-special-elite mb-2 text-h4 text-sm-h3 text-md-h2 text-lg-h1">
                     Gestapo.Terror.Orte
                 </div>
@@ -24,11 +24,11 @@
                         color="white"
                         elevation="24"
                         min-width="200px"
-                        outlined
+                        variant="outlined"
                         rounded
-                        x-large
+                        size="x-large"
                     >
-                        <v-icon left>
+                        <v-icon start>
                             mdi-arrow-right-thick
                         </v-icon>
                         {{ menuButton.label }}

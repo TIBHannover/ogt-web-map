@@ -9,7 +9,7 @@
             v-model="dateRangeText"
         ></v-text-field>
         <v-radio-group
-            dense
+            density="compact"
             label="Wähle einen alternativen Zeitraum aus:"
             mandatory
             prepend-icon="mdi-form-select"
@@ -20,12 +20,12 @@
                 :key="index"
                 :label="timePeriodOption"
                 @click="applyFiltersBySelectedTimePeriod"
-                color="grey darken-4"
+                color="grey-darken-4"
                 :value="index"
             ></v-radio>
         </v-radio-group>
         <v-date-picker
-            color="grey darken-4"
+            color="grey-darken-4"
             :full-width="true"
             locale="de-de"
             max="1945-12-31"

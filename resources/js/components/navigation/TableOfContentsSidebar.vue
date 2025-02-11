@@ -2,7 +2,7 @@
     <section class="sticky-top pt-3">
         <div class="toc-border-left">
             <v-list-item v-for="(heading, index) in headings" :key=heading.href>
-                <v-list-item-content>
+                
                     <v-list-item-title v-if="index == 0" class="font-weight-bold mb-4">
                         Inhaltsübersicht
                     </v-list-item-title>
@@ -16,12 +16,12 @@
                             </v-col>
                         </v-row>
                     </v-list-item-subtitle>
-                </v-list-item-content>
+                
             </v-list-item>
             <v-divider></v-divider>
 
-            <v-list-item three-line>
-                <v-list-item-content>
+            <v-list-item lines="three">
+                
                     <v-list-item-title class="font-weight-bold mb-4">
                         Kooperationsprojekt
                     </v-list-item-title>
@@ -46,12 +46,12 @@
                             ></v-img>
                         </a>
                     </v-list-item-subtitle>
-                </v-list-item-content>
+                
             </v-list-item>
             <v-divider></v-divider>
 
-            <v-list-item three-line>
-                <v-list-item-content>
+            <v-list-item lines="three">
+                
                     <v-list-item-title class="font-weight-bold mb-4">
                         Förderung
                     </v-list-item-title>
@@ -74,23 +74,23 @@
                         >
                             Förderprogramm
                             <span class="text-no-wrap">
-                                PRO*Niedersachsen<v-icon small>mdi-open-in-new</v-icon>
+                                PRO*Niedersachsen<v-icon size="small">mdi-open-in-new</v-icon>
                             </span>
                         </a>
                     </v-list-item-subtitle>
-                </v-list-item-content>
+                
             </v-list-item>
             <v-divider></v-divider>
 
-            <v-list-item two-line>
-                <v-list-item-content>
+            <v-list-item lines="two">
+                
                     <v-list-item-title class="font-weight-bold mb-4">
                         Laufzeit
                     </v-list-item-title>
                     <v-list-item-subtitle>
                         11/2020 – 12/2025
                     </v-list-item-subtitle>
-                </v-list-item-content>
+                
             </v-list-item>
             <v-divider></v-divider>
         </div>

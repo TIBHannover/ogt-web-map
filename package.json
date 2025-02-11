@@ -10,21 +10,29 @@
         "production": "mix --production"
     },
     "devDependencies": {
+        "@eslint/js": "^9.19.0",
+        "@vue/compiler-sfc": "^3.5.13",
         "axios": "^1.1.2",
+        "eslint": "^9.19.0",
+        "eslint-plugin-vue": "^9.32.0",
+        "eslint-plugin-vuetify": "^2.5.1",
+        "globals": "^15.14.0",
         "lodash": "^4.17.19",
-        "postcss": "^8.1.14"
+        "postcss": "^8.1.14",
+        "vue-loader": "^17.3.1"
     },
     "dependencies": {
         "@fontsource/roboto": "^4.5.8",
         "@fontsource/special-elite": "^4.5.8",
         "@mdi/font": "^7.1.96",
+        "@vue-leaflet/vue-leaflet": "^0.10.1",
+        "dotenv-webpack": "^8.1.0",
         "laravel-mix": "^6.0.6",
-        "leaflet": "^1.7.1",
-        "vue": "^2.6.14",
+        "leaflet": "^1.9.4",
+        "vue": "^3.5.13",
         "vue-axios": "^3.2.5",
-        "vue-loader": "^15.9.8",
-        "vue-router": "^3.5.2",
-        "vue-template-compiler": "^2.6.14",
-        "vuetify": "^2.5.8"
+        "vue-router": "^4.0.13",
+        "vuetify": "^3.7.8",
+        "webpack-plugin-vuetify": "^3.0.3"
     }
 }

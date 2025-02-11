@@ -108,11 +108,11 @@ export default {
     created() {
         window.addEventListener('resize', this.setFreeClientWidth);
     },
-    destroyed() {
+    unmounted() {
         window.removeEventListener('resize', this.setFreeClientWidth);
     },
     mounted() {
-        
+
     },
     methods: {
         /**
