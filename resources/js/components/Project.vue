@@ -312,15 +312,15 @@
                         Leitung Gedenkstättenförderung Niedersachsen
                     </p>
                     <p>
-                        <span class="font-weight-bold">Marc Ellinghaus</span
-                        >(M.A.)
+                        <span class="font-weight-bold">Marc Ellinghaus</span>
+                        (M.A.)
                         <br />
                         Mitarbeiter Bildung und Begegnung der Gedenkstätte
                         Bergen-Belsen
                     </p>
                     <p>
-                        <span class="font-weight-bold">Stephanie Billib</span
-                        >(M.A.)
+                        <span class="font-weight-bold">Stephanie Billib</span>
+                        (M.A.)
                         <br />
                         Leitung Presse- und Öffentlichkeitsarbeit
                     </p>
