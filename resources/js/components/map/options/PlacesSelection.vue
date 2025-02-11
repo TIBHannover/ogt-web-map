@@ -68,7 +68,6 @@
             density="compact"
             hide-details
             item-title="placeLabelWithIndex"
-            placeholder="groupedPlaces[groupName].layerName"
             :items="groupedPlaces[groupName].placesByCoordinates"
             :key="groupName"
             :label="groupedPlaces[groupName].layerName"
