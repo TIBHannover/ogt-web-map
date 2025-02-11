@@ -226,6 +226,19 @@
                         ></email>
                     </p>
                     <p>
+                        <span class="font-weight-bold"
+                            >Gabriele Fahrenkrog</span
+                        >
+                        (MA LIS) / Wissenschaftliche Mitarbeiterin,
+                        Projektkoordination & Partizipation
+                        <br />
+                        <email
+                            encryptedEmail="hbcsjfmf/gbisfolsph"
+                            :showEmail="true"
+                            :showIcon="true"
+                        ></email>
+                    </p>
+                    <p>
                         <span class="font-weight-bold">Nadine Klöver</span>
                         / Grafik-Design
                         <br />
@@ -299,13 +312,15 @@
                         Leitung Gedenkstättenförderung Niedersachsen
                     </p>
                     <p>
-                        <span class="font-weight-bold">Marc Ellinghaus</span>
+                        <span class="font-weight-bold">Marc Ellinghaus</span
+                        >(M.A.)
                         <br />
                         Mitarbeiter Bildung und Begegnung der Gedenkstätte
                         Bergen-Belsen
                     </p>
                     <p>
-                        <span class="font-weight-bold">Stephanie Billib</span>
+                        <span class="font-weight-bold">Stephanie Billib</span
+                        >(M.A.)
                         <br />
                         Leitung Presse- und Öffentlichkeitsarbeit
                     </p>
