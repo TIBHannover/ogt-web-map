@@ -23,18 +23,27 @@
             max-width="375"
             :location="display.mobile ? 'bottom' : undefined"
             :disable-route-watcher="display.smAndDown"
-            :class="{isOpen: isMenuDisplayed}"
+            :class="{ isOpen: isMenuDisplayed }"
             class="mainMenu"
-            :app
         >
             <!-- navigation header -->
             <v-list-item class="w-100 position-relative py-5">
-                <v-list-item-title class="font-family-special-elite font-weight-bold text-h6 text-sm-h5">
+                <v-list-item-title
+                    class="font-family-special-elite font-weight-bold text-h6 text-sm-h5"
+                >
                     Gestapo.Terror.Orte
                 </v-list-item-title>
-                <v-list-item-subtitle>in Niedersachsen 1933–1945</v-list-item-subtitle>
-                <v-list-item-action class="position-absolute right-0 top-0 mr-5 mt-5">
-                    <v-btn id="closeNavigationSidebar" @click.stop="closeMenu" icon>
+                <v-list-item-subtitle
+                    >in Niedersachsen 1933–1945</v-list-item-subtitle
+                >
+                <v-list-item-action
+                    class="position-absolute right-0 top-0 mr-5 mt-5"
+                >
+                    <v-btn
+                        id="closeNavigationSidebar"
+                        @click.stop="closeMenu"
+                        icon
+                    >
                         <v-icon>mdi-close</v-icon>
                     </v-btn>
                 </v-list-item-action>
@@ -60,22 +69,22 @@
     </div>
 </template>
 <script setup>
-    import { ref, watch } from 'vue';
-    import { useDisplay} from 'vuetify';
-    import LanguageConfig from './LanguageConfig';
-    import LegalTexts from './LegalTexts';
-    import MainMenu from './MainMenu';
-    const display = ref(useDisplay());
+import { ref, watch } from "vue";
+import { useDisplay } from "vuetify";
+import LanguageConfig from "./LanguageConfig";
+import LegalTexts from "./LegalTexts";
+import MainMenu from "./MainMenu";
+const display = ref(useDisplay());
 
-    const activeMenu = ref('mainMenu');
-    const isMenuDisplayed = ref(false);
+const activeMenu = ref("mainMenu");
+const isMenuDisplayed = ref(false);
 
-    function toggleMenu() {
-        isMenuDisplayed.value = !isMenuDisplayed.value;
-    }
-    function closeMenu() {
-        isMenuDisplayed.value = false;
-    }
+function toggleMenu() {
+    isMenuDisplayed.value = !isMenuDisplayed.value;
+}
+function closeMenu() {
+    isMenuDisplayed.value = false;
+}
 </script>
 <style scoped>
 .font-family-special-elite {

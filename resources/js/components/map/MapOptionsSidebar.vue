@@ -49,7 +49,6 @@
             <v-tabs
                 bg-color="transparent"
                 color="grey-darken-4"
-                show-arrows="false"
                 stacked
                 hide-slider
                 v-model="activeTab"

@@ -604,6 +604,7 @@ export default {
                     location,
                     selectedPlace.value.latLng,
                     selectedPlace.value.groupName,
+                    getDerivedPlacesData(),
                 );
             }
         };
@@ -1510,7 +1511,12 @@ export default {
                 selectedPlace.value.employees = [];
                 selectedPlace.value.prisoners = [];
 
+                console.log("placefata", placeData);
+                console.log("selectedPlace.value.id", selectedPlace.value.id);
+
                 let derivedPlacesData = placeData[selectedPlace.value.id];
+
+                console.log("derivedPlacesData", derivedPlacesData);
 
                 if (!derivedPlacesData) {
                     return;
@@ -2003,7 +2009,7 @@ export default {
                 const searchParams = new URLSearchParams(
                     window.location.search,
                 );
-                const qId = searchParams.get("qId");
+                const qId = searchParams.get("pid");
 
                 if (qId) {
                     let personGroup = "";
