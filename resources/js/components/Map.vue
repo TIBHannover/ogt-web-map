@@ -1979,18 +1979,17 @@ export default {
          */
         const checkUrlForLocation = () => {
             try {
-                // Verwenden Sie URLSearchParams statt route.query
                 const searchParams = new URLSearchParams(
                     window.location.search,
                 );
-                const qId = searchParams.get("qId");
+                const qId = searchParams.get("id");
 
                 if (qId && locationMarkers.value[qId]) {
                     switchLocation({
                         locationId: qId,
                         zoom: 14,
                     });
-                    router.push({ path: "/map" });
+                    //router.push({ path: "/map" });
                 }
             } catch (error) {
                 console.error("Error checking URL for location:", error);
@@ -2021,7 +2020,7 @@ export default {
                             group: personGroup,
                         });
 
-                        router.push({ path: "/map" });
+                        //router.push({ path: "/map" });
                     }
                 }
             } catch (error) {
