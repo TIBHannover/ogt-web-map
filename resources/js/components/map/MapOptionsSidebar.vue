@@ -49,15 +49,13 @@
             <v-tabs
                 bg-color="transparent"
                 color="grey-darken-4"
-                fixed-tabs
+                show-arrows="false"
                 stacked
+                hide-slider
                 v-model="activeTab"
             >
                 <v-tab
-                    class="font-weight-bold mx-0 w-full"
-                    style="max-width: 375px"
-                    max-width="375"
-                    width="375"
+                    class="font-weight-bold mx-0 w-100"
                     :key="index"
                     v-for="(tab, index) in tabs"
                 >

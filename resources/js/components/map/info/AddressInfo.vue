@@ -1,75 +1,95 @@
 <template>
-    <div class="d-flex flex-wrap">
+    <div>
         <!-- addresses with associated coordinates and time periods, as well as option to zoom in/out of location. -->
         <v-list-item density="compact">
-            <v-list-item-title>Standort</v-list-item-title>
-            <v-list-item-subtitle>
-                <div class="hyphens-auto white-space-normal" lang="de">
-                    {{
-                        selectedPlace.addresses.selected.label
-                            ? selectedPlace.addresses.selected.label
-                            : UNKNOWN_ADDRESS
-                    }}
-                </div>
-                <ul>
-                    <li
-                        v-if="
-                            selectedPlace.addresses.selected.startDate ||
-                            selectedPlace.addresses.selected.endDate
-                        "
-                    >
-                        <template
-                            v-if="selectedPlace.addresses.selected.startDate"
-                        >
-                            von
+            <v-row no-gutters>
+                <v-col cols="8">
+                    <v-list-item-title>Standort</v-list-item-title>
+                    <v-list-item-subtitle>
+                        <div class="hyphens-auto white-space-normal" lang="de">
                             {{
-                                selectedPlace.addresses.selected.startDate
-                                    .locale
+                                selectedPlace.addresses.selected.label
+                                    ? selectedPlace.addresses.selected.label
+                                    : UNKNOWN_ADDRESS
                             }}
-                        </template>
-                        <template
-                            v-if="selectedPlace.addresses.selected.endDate"
+                        </div>
+                        <ul>
+                            <li
+                                v-if="
+                                    selectedPlace.addresses.selected
+                                        .startDate ||
+                                    selectedPlace.addresses.selected.endDate
+                                "
+                            >
+                                <template
+                                    v-if="
+                                        selectedPlace.addresses.selected
+                                            .startDate
+                                    "
+                                >
+                                    von
+                                    {{
+                                        selectedPlace.addresses.selected
+                                            .startDate.locale
+                                    }}
+                                </template>
+                                <template
+                                    v-if="
+                                        selectedPlace.addresses.selected.endDate
+                                    "
+                                >
+                                    bis
+                                    {{
+                                        selectedPlace.addresses.selected.endDate
+                                            .locale
+                                    }}
+                                </template>
+                            </li>
+                            <li
+                                v-if="
+                                    selectedPlace.addresses.selected.latLng &&
+                                    !selectedPlace.addresses.selected
+                                        .isUncertain
+                                "
+                            >
+                                {{
+                                    selectedPlace.addresses.selected.latLng.lat
+                                }},
+                                {{
+                                    selectedPlace.addresses.selected.latLng.lng
+                                }}
+                            </li>
+                            <li v-else>
+                                {{ UNKNOWN_COORDINATES }}
+                            </li>
+                        </ul>
+                    </v-list-item-subtitle>
+                </v-col>
+                <v-col cols="4">
+                    <v-list-item class="align-right">
+                        <v-list-item-action
+                            class="flex-direction-row ml-0 my-0 ga-2"
                         >
-                            bis
-                            {{
-                                selectedPlace.addresses.selected.endDate.locale
-                            }}
-                        </template>
-                    </li>
-                    <li
-                        v-if="
-                            selectedPlace.addresses.selected.latLng &&
-                            !selectedPlace.addresses.selected.isUncertain
-                        "
-                    >
-                        {{ selectedPlace.addresses.selected.latLng.lat }},
-                        {{ selectedPlace.addresses.selected.latLng.lng }}
-                    </li>
-                    <li v-else>
-                        {{ UNKNOWN_COORDINATES }}
-                    </li>
-                </ul>
-            </v-list-item-subtitle>
-        </v-list-item>
-        <v-list-item>
-            <v-list-item-action class="flex-direction-row ml-0 my-0 ga-2">
-                <v-btn
-                    @click.stop="$emit('zoomIntoPlace')"
-                    size="small"
-                    variant="outlined"
-                    icon
-                >
-                    <v-icon>mdi-magnify-plus</v-icon>
-                </v-btn>
-                <v-btn
-                    @click.stop="$emit('undoZoomIntoPlace')"
-                    variant="outlined"
-                    size="small"
-                    icon
-                >
-                    <v-icon>mdi-undo-variant</v-icon>
-                </v-btn>
-            </v-list-item-action>
+                            <v-btn
+                                @click.stop="$emit('zoomIntoPlace')"
+                                size="x-small"
+                                variant="outlined"
+                                icon
+                            >
+                                <v-icon>mdi-magnify-plus</v-icon>
+                            </v-btn>
+                            <v-btn
+                                @click.stop="$emit('undoZoomIntoPlace')"
+                                variant="outlined"
+                                size="x-small"
+                                icon
+                            >
+                                <v-icon>mdi-undo-variant</v-icon>
+                            </v-btn>
+                        </v-list-item-action>
+                    </v-list-item>
+                </v-col>
+            </v-row>
         </v-list-item>
         <v-list-item
             v-if="selectedPlace.addresses.additional.length > 0"

@@ -1,12 +1,19 @@
 <template>
     <v-container id="container" class="mb-110">
-
         <!-- header -->
-        <v-row :style="{
-            'padding-left': (freeClientWidth < 75 && ! isMenuDisplayed) ? ((75 - freeClientWidth) + 'px') : 0
-        }">
+        <v-row
+            :style="{
+                'padding-left':
+                    freeClientWidth < 75 && !isMenuDisplayed
+                        ? 75 - freeClientWidth + 'px'
+                        : 0,
+            }"
+        >
             <v-col>
-                <h1 class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-h4 text-md-h3" lang="de">
+                <h1
+                    class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-h4 text-md-h3"
+                    lang="de"
+                >
                     Datenvisualisierung
                 </h1>
             </v-col>
@@ -15,19 +22,23 @@
         <!-- charts overview -->
         <section v-if="showOverview">
             <v-row>
-                <v-col class="hyphens-auto" cols=12 lang="de">
+                <v-col class="hyphens-auto" cols="12" lang="de">
                     <h2 class="mb-3 text-h6 text-md-h5">
-                        Visualisierung von Daten zu Organisationen, Ereignissen, Erinnerungsorten, Tätern und
-                        Geschädigten
+                        Visualisierung von Daten zu Organisationen, Ereignissen,
+                        Erinnerungsorten, Tätern und Geschädigten
                     </h2>
                     <p>
-                        Die Daten auf dieser Seite werden direkt auf Wikidata abgefragt und so ständig aktualisiert. Je
-                        mehr Daten vorhanden sind, desto vollständiger werden die Übersichten. Dieses Ziel kann nur
-                        durch die Hilfe vieler erreicht werden. Informationen, wie mitgeforscht werden kann, finde sich
-                        hier:
+                        Die Daten auf dieser Seite werden direkt auf Wikidata
+                        abgefragt und so ständig aktualisiert. Je mehr Daten
+                        vorhanden sind, desto vollständiger werden die
+                        Übersichten. Dieses Ziel kann nur durch die Hilfe vieler
+                        erreicht werden. Informationen, wie mitgeforscht werden
+                        kann, finde sich hier:
                         <span class="text-no-wrap">
                             &#10132;
-                            <router-link to="/collaboration">Mitforschen</router-link>
+                            <router-link to="/collaboration"
+                                >Mitforschen</router-link
+                            >
                         </span>
                     </p>
                 </v-col>
@@ -35,9 +46,16 @@
 
             <!-- charts -->
             <v-row>
-                <v-col class="col-12 col-sm-6" v-for="(chart, chartName) in this.charts" :key="chartName">
+                <v-col
+                    cols="12"
+                    md="6"
+                    v-for="(chart, chartName) in this.charts"
+                    :key="chartName"
+                >
                     <v-card>
-                        <v-img :src="`${ogtGlobals.proxyPath}` + chart.imageUrl"></v-img>
+                        <v-img
+                            :src="`${ogtGlobals.proxyPath}` + chart.imageUrl"
+                        ></v-img>
                         <v-card-title>
                             {{ chart.title }}
                         </v-card-title>
@@ -45,7 +63,11 @@
                             {{ chart.subtitle }}
                         </v-card-subtitle>
                         <v-card-actions>
-                            <v-btn @click.stop="showChart(chart)" variant="outlined" rounded>
+                            <v-btn
+                                @click.stop="showChart(chart)"
+                                variant="outlined"
+                                rounded
+                            >
                                 Anzeigen
                             </v-btn>
                         </v-card-actions>
@@ -57,20 +79,26 @@
         <!-- chart visualization -->
         <section v-if="!showOverview">
             <v-row justify="space-between">
-                <v-col sm="5">
-                    <v-btn @click.stop="showOverview = !showOverview" variant="outlined" rounded>
-                        <v-icon start>
-                            mdi-arrow-left
-                        </v-icon>
+                <v-col cols="12" md="6">
+                    <v-btn
+                        @click.stop="showOverview = !showOverview"
+                        variant="outlined"
+                        rounded
+                    >
+                        <v-icon start> mdi-arrow-left </v-icon>
                         Zurück zur Übersicht
                     </v-btn>
                 </v-col>
-                <v-col class="maxWidth100" sm="5">
-                    <v-btn class="float-sm-right" :href="selectedChart.queryUrl" variant="outlined" rounded target="_blank">
+                <v-col class="maxWidth100" cols="12" md="6">
+                    <v-btn
+                        class="float-sm-right"
+                        :href="selectedChart.queryUrl"
+                        variant="outlined"
+                        rounded
+                        target="_blank"
+                    >
                         Im Wikidata Query Service anzeigen
-                        <v-icon end>
-                            mdi-open-in-new
-                        </v-icon>
+                        <v-icon end> mdi-open-in-new </v-icon>
                     </v-btn>
                 </v-col>
             </v-row>
@@ -82,20 +110,26 @@
                 {{ selectedChart.subtitle }}
             </p>
 
-            <iframe referrerpolicy="origin"
-                    sandbox="allow-scripts allow-same-origin allow-popups"
-                    :src="selectedChart.queryUrl"
+            <iframe
+                referrerpolicy="origin"
+                sandbox="allow-scripts allow-same-origin allow-popups"
+                :src="selectedChart.queryUrl"
             ></iframe>
         </section>
     </v-container>
 </template>
 
+<script setup>
+import { ref, inject } from "vue";
+const ogtGlobals = inject("ogtGlobals");
+</script>
+
 <script>
-import chartsData from '../data/chartsData';
+import chartsData from "../data/chartsData";
 
 export default {
-    name: 'Charts',
-    props: ['isMenuDisplayed'],
+    name: "Charts",
+    props: ["isMenuDisplayed"],
     data() {
         return {
             charts: chartsData,
@@ -105,10 +139,10 @@ export default {
         };
     },
     created() {
-        window.addEventListener('resize', this.setFreeClientWidth);
+        window.addEventListener("resize", this.setFreeClientWidth);
     },
     unmounted() {
-        window.removeEventListener('resize', this.setFreeClientWidth);
+        window.removeEventListener("resize", this.setFreeClientWidth);
     },
     mounted() {
         this.setFreeClientWidth();
@@ -120,9 +154,11 @@ export default {
          * @param event
          */
         setFreeClientWidth(event) {
-            const container = document.getElementById('container');
+            const container = document.getElementById("container");
 
-            this.freeClientWidth = (document.documentElement.clientWidth - container.clientWidth) / 2;
+            this.freeClientWidth =
+                (document.documentElement.clientWidth - container.clientWidth) /
+                2;
         },
         /**
          * Show selected chart and hide charts overview.

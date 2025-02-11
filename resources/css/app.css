@@ -29,3 +29,15 @@ html {
 a {
     color: black;
 }
+
+#container {
+    padding-inline: 2rem;
+}
+
+.v-list-item-subtitle {
+    opacity: 1 !important;
+}
+
+p {
+    margin-bottom: 1rem;
+}

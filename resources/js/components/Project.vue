@@ -34,7 +34,7 @@
                 <section id="researchObjectives">
                     <h1
                         class="font-weight-medium text-h5 text-md-h4 mb-5"
-                        :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
+                        :class="{ 'font-size-29': $vuetify.display.mdAndUp }"
                     >
                         Forschungsfragen & Projektziele
                     </h1>
@@ -150,7 +150,7 @@
                 <section id="teamAndPartners">
                     <h1
                         class="font-weight-medium text-h5 text-md-h4 mb-5"
-                        :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
+                        :class="{ 'font-size-29': $vuetify.display.mdAndUp }"
                     >
                         Team & Partner*innen
                     </h1>
@@ -169,8 +169,7 @@
                     <h3
                         class="text-h6 mb-1"
                         :class="{
-                            'font-weight-regular':
-                                $vuetify.breakpoint.mdAndDown,
+                            'font-weight-regular': $vuetify.display.mdAndDown,
                         }"
                     >
                         Technische Informationsbibliothek (TIB) – Open Science
@@ -226,6 +225,19 @@
                         ></email>
                     </p>
                     <p>
+                        <span class="font-weight-bold"
+                            >Gabriele Fahrenkrog</span
+                        >
+                        (MA LIS) / Wissenschaftliche Mitarbeiterin,
+                        Projektkoordination & Partizipation
+                        <br />
+                        <email
+                            encryptedEmail="hbcsjfmf/gbisfolsph"
+                            :showEmail="true"
+                            :showIcon="true"
+                        ></email>
+                    </p>
+                    <p>
                         <span class="font-weight-bold">Nadine Klöver</span>
                         / Grafik-Design
                         <br />
@@ -264,8 +276,7 @@
                     <h3
                         class="text-h6 mb-1"
                         :class="{
-                            'font-weight-regular':
-                                $vuetify.breakpoint.mdAndDown,
+                            'font-weight-regular': $vuetify.display.mdAndDown,
                         }"
                     >
                         Stiftung niedersächsische Gedenkstätten (SnG)
@@ -300,14 +311,28 @@
                     </p>
                     <p>
                         <span class="font-weight-bold">Marc Ellinghaus</span>
+                        (M.A.)
                         <br />
-                        Mitarbeiter Bildung und Begegnung der Gedenkstätte
+                        Leitung Bildung und Begegnung der Gedenkstätte
                         Bergen-Belsen
                     </p>
                     <p>
                         <span class="font-weight-bold">Stephanie Billib</span>
+                        (M.A.)
                         <br />
-                        Leitung Presse- und Öffentlichkeitsarbeit
+                        Presse- und Öffentlichkeitsarbeit
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Dr. Janine Doerry</span>
+                        <br />
+                        Wissenschaftliche Mitarbeiterin
+                    </p>
+                    <p>
+                        <span class="font-weight-bold"
+                            >Juliane Hummel M.A.</span
+                        >
+                        <br />
+                        Wissenschaftliche Mitarbeiterin
                     </p>
                     <p>
                         <span class="font-weight-bold">Silke Petry M.A.</span>
@@ -318,8 +343,7 @@
                     <h3
                         class="text-h6 mb-1"
                         :class="{
-                            'font-weight-regular':
-                                $vuetify.breakpoint.mdAndDown,
+                            'font-weight-regular': $vuetify.display.mdAndDown,
                         }"
                     >
                         Gedenkstätten Gestapokeller und Augustaschacht
@@ -336,7 +360,7 @@
                                         contain
                                         max-height="64px"
                                         :src="
-                                            this.$ogtGlobals.proxyPath +
+                                            ogtGlobals.proxyPath +
                                             '/images/logo-augustaschacht.svg'
                                         "
                                     ></v-img>
@@ -352,7 +376,7 @@
                                         contain
                                         max-height="64px"
                                         :src="
-                                            this.$ogtGlobals.proxyPath +
+                                            ogtGlobals.proxyPath +
                                             '/images/logo-gestapokeller.svg'
                                         "
                                     ></v-img>
@@ -367,7 +391,7 @@
                 <section id="presentationsAndPublications">
                     <h1
                         class="font-weight-medium text-h5 text-md-h4 mb-5"
-                        :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
+                        :class="{ 'font-size-29': $vuetify.display.mdAndUp }"
                     >
                         Projektpräsentationen & Publikationen
                     </h1>
@@ -488,7 +512,9 @@
     </v-container>
 </template>
 <script setup>
+import { useDisplay } from "vuetify";
 import { ref, inject } from "vue";
+const { mdAndUp } = useDisplay();
 const ogtGlobals = inject("ogtGlobals");
 </script>
 <script>
@@ -501,7 +527,7 @@ export default {
     components: { Email, TableOfContentsSidebar },
     data() {
         return {
-            freeClientWidth: document.documentElement.clientWidth,
+            freeClientWidth: document.clientWidth,
             headings: [
                 {
                     href: "#researchObjectives",
@@ -537,8 +563,7 @@ export default {
             const container = document.getElementById("container");
 
             this.freeClientWidth =
-                (document.documentElement.clientWidth - container.clientWidth) /
-                2;
+                (document.clientWidth - container.clientWidth) / 2;
         },
     },
 };
