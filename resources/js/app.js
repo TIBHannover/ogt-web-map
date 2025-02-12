@@ -47,8 +47,7 @@ app.provide("ogtGlobals", {
     texts: {
         itemDescriptions: itemDescriptions,
     },
-    //proxyPath: process.env.MIX_PROXY_PATH ?? "",
-    proxyPath: "",
+    proxyPath: process.env.MIX_PROXY_PATH ?? "",
 });
 app.provide("configLeaflet", window.configLeaflet);
 
