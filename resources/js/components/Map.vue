@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted, nextTick, inject } from "vue";
+import { ref, onMounted, onUnmounted, nextTick, inject, toRaw } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import axios from "axios";
 import Leaflet from "leaflet/dist/leaflet";
@@ -1511,12 +1511,20 @@ export default {
                 selectedPlace.value.employees = [];
                 selectedPlace.value.prisoners = [];
 
-                console.log("placefata", placeData);
+                console.log("Original placeData:", placeData);
                 console.log("selectedPlace.value.id", selectedPlace.value.id);
 
-                let derivedPlacesData = placeData[selectedPlace.value.id];
+                //let derivedPlacesData = placeData[selectedPlace.value.id];
+                const rawPlaceData = toRaw(placeData);
 
-                console.log("derivedPlacesData", derivedPlacesData);
+                let derivedPlacesData = rawPlaceData[selectedPlace.value.id];
+                console.log("Direct access:", derivedPlacesData);
+
+                console.log("rawPlaceData", rawPlaceData);
+                const selectedPlaceId = selectedPlace.value.id;
+                console.log("Method 2:", derivedPlacesData);
+                console.log("All entries:", Object.entries(placeData));
+                //console.log("Available keys:", Object.keys(rawPlaceData));
 
                 if (!derivedPlacesData) {
                     return;

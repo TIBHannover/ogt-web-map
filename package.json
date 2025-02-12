@@ -19,7 +19,7 @@
         "globals": "^15.14.0",
         "lodash": "^4.17.19",
         "postcss": "^8.1.14",
-        "vue-loader": "^17.3.1"
+        "vue-loader": "^16.8.3"
     },
     "dependencies": {
         "@fontsource/roboto": "^4.5.8",
