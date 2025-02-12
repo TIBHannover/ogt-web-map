@@ -1,0 +1,14 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    volumes:
+      - ./storage:/var/www/html/storage
+      #- ./.env:/var/www/html/.env:ro
+      - ./logs:/var/log/nginx
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=true  # Temporarily enable debug
