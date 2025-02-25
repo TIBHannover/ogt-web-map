@@ -201,9 +201,7 @@ const props = defineProps({
 });
 
 const itemDescriptionPanel = ref([]);
-const itemDescriptions = ref(
-    window?.$ogtGlobals?.texts?.itemDescriptions || {},
-);
+const itemDescriptions = ref(ogtGlobals?.texts?.itemDescriptions || {});
 
 const gestapoPlaceGroups = [
     "extPolicePrisons",
