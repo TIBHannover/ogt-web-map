@@ -719,6 +719,7 @@ export default {
         };
 
         const updatePlacesInfoData = (groupedPlaces) => {
+            console.log(groupedPlaces);
             Object.entries(groupedPlaces).forEach(([groupName, groupData]) => {
                 if (groupData) {
                     const groupKey = groupName;
