@@ -178,8 +178,8 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
-                    "2025-02-26": "19",
-                    "2025-02-24": "15",
+                    "2025-02-26": "17",
+                    "2025-02-24": "14",
                 },
             },
             extPolicePrisons: {
@@ -191,8 +191,8 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
-                    "2025-02-26": "5",
-                    "2025-02-24": "5",
+                    "2025-02-26": "4",
+                    "2025-02-24": "4",
                 },
             },
             fieldOffices: {
@@ -204,8 +204,8 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
-                    "2025-02-26": "40",
-                    "2025-02-24": "40",
+                    "2025-02-26": "39",
+                    "2025-02-24": "39",
                 },
             },
             laborEducationCamps: {
@@ -217,8 +217,8 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
-                    "2025-02-26": "25",
-                    "2025-02-24": "25",
+                    "2025-02-26": "24",
+                    "2025-02-24": "24",
                 },
             },
             memorials: {
@@ -230,8 +230,8 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
-                    "2025-02-26": "26",
-                    "2025-02-24": "25",
+                    "2025-02-26": "25",
+                    "2025-02-24": "24",
                 },
             },
             prisons: {
@@ -243,8 +243,8 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
-                    "2025-02-26": "9",
-                    "2025-02-24": "9",
+                    "2025-02-26": "8",
+                    "2025-02-24": "8",
                 },
             },
             statePoliceHeadquarters: {
@@ -256,8 +256,8 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
-                    "2025-02-26": "7",
-                    "2025-02-24": "7",
+                    "2025-02-26": "6",
+                    "2025-02-24": "6",
                 },
             },
             statePoliceOffices: {
@@ -269,8 +269,8 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
-                    "2025-02-26": "21",
-                    "2025-02-24": "21",
+                    "2025-02-26": "20",
+                    "2025-02-24": "20",
                 },
             },
             perpetrators: {
@@ -295,8 +295,8 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
-                    "2025-02-26": "749",
-                    "2025-02-24": "745",
+                    "2025-02-26": "748",
+                    "2025-02-24": "744",
                 },
             },
         });
@@ -727,7 +727,7 @@ export default {
                     const LayerCountSpan = document.querySelector(
                         '[data-groupuid="' + groupName + '"]',
                     );
-                    const groupLength = Object.keys(groupData).length;
+                    const groupLength = Object.keys(groupData).length - 1;
                     if (LayerCountSpan) {
                         LayerCountSpan.innerHTML = groupLength;
                     }
@@ -775,7 +775,7 @@ export default {
             const perpetratorsCount = Object.keys(
                 persons.value.perpetrators,
             ).length;
-            const victimsCount = Object.keys(persons.value.victims).length;
+            const victimsCount = Object.keys(persons.value.victims).length - 1;
 
             // Update the DOM elements with the counts
             const perpetratorsSpan = document.querySelector(
