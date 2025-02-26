@@ -53,6 +53,7 @@
                         <th>Ort oder Person</th>
                         <th>Aktuell:</th>
 
+                        <th>26.02.2025</th>
                         <th>24.02.2025</th>
                     </tr>
                 </thead>
@@ -175,6 +176,7 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
+                    "2025-02-26": "19",
                     "2025-02-24": "15",
                 },
             },
@@ -187,6 +189,7 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
+                    "2025-02-26": "5",
                     "2025-02-24": "5",
                 },
             },
@@ -199,6 +202,7 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
+                    "2025-02-26": "40",
                     "2025-02-24": "40",
                 },
             },
@@ -211,6 +215,7 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
+                    "2025-02-26": "25",
                     "2025-02-24": "25",
                 },
             },
@@ -223,6 +228,7 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
+                    "2025-02-26": "26",
                     "2025-02-24": "25",
                 },
             },
@@ -235,6 +241,7 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
+                    "2025-02-26": "9",
                     "2025-02-24": "9",
                 },
             },
@@ -247,6 +254,7 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
+                    "2025-02-26": "7",
                     "2025-02-24": "7",
                 },
             },
@@ -259,6 +267,7 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
+                    "2025-02-26": "21",
                     "2025-02-24": "21",
                 },
             },
@@ -271,6 +280,7 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
+                    "2025-02-26": "50",
                     "2025-02-24": "50",
                 },
             },
@@ -283,6 +293,7 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
+                    "2025-02-26": "745",
                     "2025-02-24": "745",
                 },
             },
