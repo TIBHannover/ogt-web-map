@@ -754,8 +754,16 @@ export default {
          * @param object latLng Leaflet LatLng geographical point object
          * @param string placeGroupName Name of place group
          */
-        const setSelectedPlace = (place, latLng, placeGroupName, placeData) => {
+        const setSelectedPlace = async (
+            place,
+            latLng,
+            placeGroupName,
+            placeData,
+        ) => {
             try {
+                await nextTick();
+                await new Promise((resolve) => setTimeout(resolve, 100));
+
                 selectedPlace.value.description = place.description;
                 selectedPlace.value.label = place.label;
                 selectedPlace.value.groupName = placeGroupName;
@@ -1511,20 +1519,8 @@ export default {
                 selectedPlace.value.employees = [];
                 selectedPlace.value.prisoners = [];
 
-                console.log("Original placeData:", placeData);
-                console.log("selectedPlace.value.id", selectedPlace.value.id);
-
-                //let derivedPlacesData = placeData[selectedPlace.value.id];
                 const rawPlaceData = toRaw(placeData);
-
                 let derivedPlacesData = rawPlaceData[selectedPlace.value.id];
-                console.log("Direct access:", derivedPlacesData);
-
-                console.log("rawPlaceData", rawPlaceData);
-                const selectedPlaceId = selectedPlace.value.id;
-                console.log("Method 2:", derivedPlacesData);
-                console.log("All entries:", Object.entries(placeData));
-                //console.log("Available keys:", Object.keys(rawPlaceData));
 
                 if (!derivedPlacesData) {
                     return;
@@ -2546,7 +2542,12 @@ export default {
                 if (cacheCurrentMapView) {
                     setCachedMapView();
                 }
-                map.value.flyTo(latLng, zoomLevel);
+                map.value.flyTo(latLng, zoomLevel, {
+                    animate: true,
+                    duration: 1, // Shorter duration
+                    easeLinearity: 0.25,
+                    noMoveStart: true,
+                });
             }
         };
 
