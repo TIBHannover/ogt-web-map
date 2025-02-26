@@ -67,7 +67,7 @@
                         <td>
                             <v-grid>
                                 <v-row>
-                                    <v-col cols="3" align-self="left">
+                                    <v-col cols="3">
                                         <span>
                                             <v-img
                                                 :width="34"
@@ -75,11 +75,7 @@
                                             ></v-img>
                                         </span>
                                     </v-col>
-                                    <v-col
-                                        align-self="left"
-                                        cols="9"
-                                        class="align-center"
-                                    >
+                                    <v-col cols="9" class="align-center">
                                         <span>
                                             {{ groupName.layerName }}
                                         </span>
@@ -87,7 +83,11 @@
                                 </v-row>
                             </v-grid>
                         </td>
-                        <td class="text-center">
+                        <td
+                            class="text-center"
+                            data-count="current"
+                            :data-groupName="groupName.layerKey"
+                        >
                             <span
                                 :data-groupUid="groupName.layerKey"
                                 class="font-weight-bold"
@@ -101,6 +101,8 @@
                             )"
                             :key="date"
                             class="text-center"
+                            :data-count="value"
+                            :data-groupName="groupName.layerKey"
                         >
                             {{ value }}
                         </td>
@@ -719,16 +721,35 @@ export default {
         };
 
         const updatePlacesInfoData = (groupedPlaces) => {
-            console.log(groupedPlaces);
             Object.entries(groupedPlaces).forEach(([groupName, groupData]) => {
                 if (groupData) {
-                    const groupKey = groupName;
+                    // Updating Count number for current state
                     const LayerCountSpan = document.querySelector(
-                        '[data-groupuid="' + groupKey + '"]',
+                        '[data-groupuid="' + groupName + '"]',
                     );
                     const groupLength = Object.keys(groupData).length;
                     if (LayerCountSpan) {
                         LayerCountSpan.innerHTML = groupLength;
+                    }
+
+                    // Adding latest added items
+                    console.log("groupData " + groupName, groupData);
+
+                    let groupTableDatas = document.querySelectorAll(
+                        '[data-groupname="' + groupName + '"]',
+                    );
+                    if (groupTableDatas) {
+                        let index = 0;
+                        let currentNumber = 0;
+                        let lastNumber = 0;
+                        console.log("groupTableDatas", groupTableDatas);
+                        groupTableDatas.forEach((groupTableData) => {
+                            if (index == 0) {
+                                return;
+                            }
+                            index++;
+                            console.log("groupTableData", groupTableData);
+                        });
                     }
                 }
             });

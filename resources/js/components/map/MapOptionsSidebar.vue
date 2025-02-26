@@ -126,7 +126,6 @@ const toggleMapOptions = () => {
 };
 
 const updateLayerGroups = (value) => {
-    console.log("Mapoptionssudebar", value);
     emit("update-layer-groups", value);
 };
 </script>
