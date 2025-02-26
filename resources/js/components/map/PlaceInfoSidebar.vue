@@ -269,7 +269,7 @@ watch(
 }
 .placeInfoSidebar ul {
     padding-left: 24px;
-    list-style: circle;
+    list-style: square;
 }
 </style>
 

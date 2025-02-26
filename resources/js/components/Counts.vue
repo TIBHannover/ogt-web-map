@@ -293,7 +293,7 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
-                    "2025-02-26": "745",
+                    "2025-02-26": "749",
                     "2025-02-24": "745",
                 },
             },
@@ -708,6 +708,10 @@ export default {
 
                 await visualizePlaces(groupedPlaces);
                 derivePlaceData();
+
+                await nextTick();
+                await new Promise((resolve) => setTimeout(resolve, 100));
+
                 updatePlacesInfoData(groupedPlaces);
             } catch (error) {
                 console.error("Error fetching grouped places:", error);
@@ -737,6 +741,8 @@ export default {
                 persons.value = response.data;
                 processPersonsData();
                 checkUrlForPerson();
+                await nextTick();
+                await new Promise((resolve) => setTimeout(resolve, 100));
                 updatePersonInfoData();
             } catch (error) {
                 console.error("Error fetching persons:", error);
