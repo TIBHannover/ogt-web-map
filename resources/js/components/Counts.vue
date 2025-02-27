@@ -179,7 +179,7 @@ export default {
                 placesByCoordinates: [],
                 countHistory: {
                     "2025-02-26": "17",
-                    "2025-02-24": "14",
+                    "2025-02-24": "13",
                 },
             },
             extPolicePrisons: {
@@ -738,6 +738,7 @@ export default {
                     let groupTableDatas = document.querySelectorAll(
                         '[data-groupname="' + groupName + '"]',
                     );
+                    /*
                     if (groupTableDatas) {
                         let index = 0;
                         let currentNumber = 0;
@@ -745,12 +746,32 @@ export default {
                         console.log("groupTableDatas", groupTableDatas);
                         groupTableDatas.forEach((groupTableData) => {
                             if (index == 0) {
+                                currentNumber = groupLength;
+                                index++;
                                 return;
                             }
+                            lastNumber = currentNumber;
+                            currentNumber = groupTableData.dataset.count;
+                            let diff = lastNumber - currentNumber;
+
+                            console.log("lastNumber", lastNumber);
+                            console.log("currentNumber", currentNumber);
+                            console.log("diff", diff);
+                            if (diff > 0) {
+                                let groupDataArray = Object.entries(groupData);
+                                groupDataArray.slice(
+                                    Math.max(groupDataArray.length - diff, 0),
+                                );
+                                console.log(
+                                    "groupDataArray stripped down",
+                                    groupDataArray,
+                                );
+                            }
+
                             index++;
-                            console.log("groupTableData", groupTableData);
                         });
-                    }
+
+                    }*/
                 }
             });
         };
@@ -776,6 +797,24 @@ export default {
                 persons.value.perpetrators,
             ).length;
             const victimsCount = Object.keys(persons.value.victims).length - 1;
+
+            const victimsEntries = Object.entries(persons.value.victims);
+            console.log(victimsEntries);
+            console.log(
+                "Last 10 victimsEntries",
+                victimsEntries.slice(Math.max(victimsEntries.length - 10, 0)),
+            );
+
+            const perpetratorsEntries = Object.entries(
+                persons.value.perpetrators,
+            );
+            console.log(perpetratorsEntries);
+            console.log(
+                "Last 10 perpetratorsEntries",
+                perpetratorsEntries.slice(
+                    Math.max(perpetratorsEntries.length - 10, 0),
+                ),
+            );
 
             // Update the DOM elements with the counts
             const perpetratorsSpan = document.querySelector(
