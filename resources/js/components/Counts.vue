@@ -49,11 +49,31 @@
         <v-row>
             <v-table>
                 <thead>
-                    <tr>
+                    <tr class="">
                         <th>Ort oder Person</th>
                         <th>Aktuell:</th>
 
-                        <th>26.02.2025</th>
+                        <th>
+                            28.02.2025
+                            <v-icon
+                                color="blue"
+                                width="25px"
+                                v-tooltip:top="'Nach dem zweiten Workshop'"
+                            >
+                                mdi-information-outline
+                            </v-icon>
+                        </th>
+
+                        <th>
+                            26.02.2025
+                            <v-icon
+                                color="blue"
+                                width="25px"
+                                v-tooltip:top="'Nach dem ersten Workshop'"
+                            >
+                                mdi-information-outline
+                            </v-icon>
+                        </th>
                         <th>24.02.2025</th>
                     </tr>
                 </thead>
@@ -178,8 +198,9 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
+                    "2025-02-28": "25",
                     "2025-02-26": "17",
-                    "2025-02-24": "13",
+                    "2025-02-24": "14",
                 },
             },
             extPolicePrisons: {
@@ -191,6 +212,7 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
+                    "2025-02-28": "4",
                     "2025-02-26": "4",
                     "2025-02-24": "4",
                 },
@@ -204,6 +226,7 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
+                    "2025-02-28": "39",
                     "2025-02-26": "39",
                     "2025-02-24": "39",
                 },
@@ -217,6 +240,7 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
+                    "2025-02-28": "24",
                     "2025-02-26": "24",
                     "2025-02-24": "24",
                 },
@@ -230,6 +254,7 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
+                    "2025-02-28": "25",
                     "2025-02-26": "25",
                     "2025-02-24": "24",
                 },
@@ -243,6 +268,7 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
+                    "2025-02-28": "8",
                     "2025-02-26": "8",
                     "2025-02-24": "8",
                 },
@@ -256,6 +282,7 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
+                    "2025-02-28": "6",
                     "2025-02-26": "6",
                     "2025-02-24": "6",
                 },
@@ -269,6 +296,7 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
+                    "2025-02-28": "20",
                     "2025-02-26": "20",
                     "2025-02-24": "20",
                 },
@@ -282,6 +310,7 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
+                    "2025-02-28": "50",
                     "2025-02-26": "50",
                     "2025-02-24": "50",
                 },
@@ -295,6 +324,7 @@ export default {
                 places: {},
                 placesByCoordinates: [],
                 countHistory: {
+                    "2025-02-28": "757",
                     "2025-02-26": "748",
                     "2025-02-24": "744",
                 },
@@ -780,7 +810,7 @@ export default {
          */
         const getPersons = async () => {
             try {
-                const response = await axios.get("/api/wikidata/persons/cache");
+                const response = await axios.get("/api/wikidata/persons");
                 persons.value = response.data;
                 processPersonsData();
                 checkUrlForPerson();
