@@ -18,26 +18,41 @@ export const routes = [
         name: "project",
         path: "/project",
         component: Project,
+        meta: {
+            title: "Projektübersicht: Gestapo. Terror. Orte",
+        },
     },
     {
         name: "glossary",
         path: "/glossary",
         component: Glossary,
+        meta: {
+            title: "Glossar: Gestapo. Terror. Orte",
+        },
     },
     {
         name: "map",
         path: "/map",
         component: Map,
+        meta: {
+            title: "Kartenansicht: Gestapo. Terror. Orte",
+        },
     },
     {
         name: "charts",
         path: "/charts",
         component: Charts,
+        meta: {
+            title: "Charts: Gestapo. Terror. Orte",
+        },
     },
     {
         name: "counts",
         path: "/counts",
         component: Counts,
+        meta: {
+            title: "Zahlen: Gestapo. Terror. Orte",
+        },
     },
     /* {
         name: 'entry',
@@ -48,11 +63,17 @@ export const routes = [
         name: "bibliography",
         path: "/bibliography",
         component: Bibliography,
+        meta: {
+            title: "Literatur: Gestapo. Terror. Orte",
+        },
     },
     {
         name: "collaboration",
         path: "/collaboration",
         component: Collaboration,
+        meta: {
+            title: "Mitforschen: Gestapo. Terror. Orte",
+        },
     },
     { path: "/:catchAll(.*)", redirect: "/welcome" },
 ];

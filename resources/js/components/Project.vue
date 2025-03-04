@@ -447,7 +447,7 @@
                             href="https://projects.tib.eu/ogt-orte-des-gestapoterrors/projekt/"
                             target="_blank"
                         >
-                            OGT Projektwebsite der TIB
+                            G.T.O Projektwebsite der TIB
                             <v-icon size="small" class="vertical-align-top"
                                 >mdi-open-in-new</v-icon
                             >

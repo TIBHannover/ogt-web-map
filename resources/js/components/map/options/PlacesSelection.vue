@@ -1,5 +1,5 @@
 <template>
-    <v-container fluid>
+    <v-container fluid class="placeselection-div">
         <!-- selection for location groups -->
         <v-row>
             <v-col class="py-0" style="max-width: 60px"></v-col>
@@ -73,9 +73,15 @@
             :label="groupedPlaces[groupName].layerName"
             :data-label="groupedPlaces[groupName].layerName"
             :data-groupName="groupName"
+            :ref="
+                (el) => {
+                    if (el) autoCompleteRefs[groupName] = el;
+                }
+            "
             variant="outlined"
             return-object
             rounded
+            clearable
         ></v-autocomplete>
     </v-container>
 </template>
@@ -117,6 +123,7 @@ const groupedPlacesOrder = [
 ];
 
 const selectedPlaces = ref({});
+const autoCompleteRefs = ref({});
 groupedPlacesOrder.forEach((groupName) => {
     selectedPlaces.value[groupName] = null;
 });
@@ -124,9 +131,23 @@ groupedPlacesOrder.forEach((groupName) => {
 const clearOtherSelections = (currentGroupName) => {
     Object.keys(selectedPlaces.value).forEach((groupName) => {
         if (groupName !== currentGroupName) {
-            selectedPlaces.value[groupName] = "";
+            selectedPlaces.value[groupName] = null;
         }
     });
+    setTimeout(() => {
+        clearFocus();
+    }, 1000);
+};
+
+const clearFocus = () => {
+    let placeselectionInputs = document.querySelectorAll(
+        '.placeselection-div input[type="text"]',
+    );
+    if (placeselectionInputs) {
+        placeselectionInputs.forEach((placeselectionInput) => {
+            placeselectionInput.blur();
+        });
+    }
 };
 
 const selectAll = () => {
@@ -143,9 +164,8 @@ groupedPlacesOrder.forEach((groupName) => {
     watch(
         () => selectedPlaces.value[groupName],
         (newPlace) => {
-            console.log("newplace watcher", newPlace);
             if (newPlace) {
-                //clearOtherSelections(groupName);
+                clearOtherSelections(groupName);
                 props.map.flyTo(newPlace.latLng);
                 newPlace.marker.fire("click", { latlng: newPlace.latLng });
             }

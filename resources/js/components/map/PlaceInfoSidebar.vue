@@ -26,6 +26,7 @@
                     selectedPlace.layerName
                         .replace(/^Ereignisse$/, "Ereignis")
                         .replace(/^Täter\*innen$/, "Täter*in")
+                        .replace(/^Geschädigte$/, "Geschädigte*r")
                 }}</v-list-item-subtitle>
 
                 <v-list-item-action

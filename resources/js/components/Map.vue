@@ -565,12 +565,26 @@ export default {
             try {
                 const response = await axios.get("/api/wikidata/persons/cache");
                 persons.value = response.data;
+                updatePersonsCache();
                 processPersonsData();
                 checkUrlForPerson();
             } catch (error) {
                 console.error("Error fetching persons:", error);
             }
         };
+
+        const updatePersonsCache = async () => {
+            try {
+                const response = await axios.get("/api/wikidata/persons");
+                if (response.data) {
+                    persons.value = response.data;
+                    processPersonsData(); // Optional: Daten neu verarbeiten wenn Update erfolgt
+                }
+            } catch (error) {
+                console.warn("Could not update persons cache:", error);
+            }
+        };
+
         /**
          * Process retrieved persons data to derive data for locations and to show/update person data in map info sidebar.
          */
@@ -1726,17 +1740,18 @@ export default {
                     console.error("Map is not initialized");
                     return;
                 }
-
+                const rawMap = toRaw(map.value);
                 const layerGroup = L.layerGroup(placeMarkers);
 
                 if (layerGroup && typeof layerGroup.addTo === "function") {
-                    layerGroup.addTo(map.value);
+                    layerGroup.addTo(rawMap);
 
                     if (
                         layers.value &&
                         typeof layers.value.addOverlay === "function"
                     ) {
-                        layers.value.addOverlay(
+                        const rawLayers = toRaw(layers.value);
+                        rawLayers.addOverlay(
                             layerGroup,
                             groupedPlaces.value[placeGroupName]?.layerName ||
                                 "",
@@ -2051,6 +2066,7 @@ export default {
         }) => {
             try {
                 let markers = locationMarkers.value[locationId];
+                const rawMap = toRaw(map.value);
 
                 if (!markers) {
                     console.warn("No markers found for location:", locationId);
@@ -2077,9 +2093,9 @@ export default {
 
                 // workaround to bring a marker icon to foreground when multiple markers overlap on same coordinates
                 locationMarker.remove();
-                locationMarker.addTo(map.value);
+                locationMarker.addTo(rawMap);
 
-                map.value.flyTo(latLng, zoom);
+                rawMap.flyTo(latLng, zoom);
 
                 locationMarker.fire("click", {
                     latlng: latLng,
@@ -2542,9 +2558,10 @@ export default {
                 if (cacheCurrentMapView) {
                     setCachedMapView();
                 }
-                map.value.flyTo(latLng, zoomLevel, {
+                const rawMap = toRaw(map.value);
+                rawMap.setView(latLng, zoomLevel, {
                     animate: true,
-                    duration: 1, // Shorter duration
+                    duration: 0.5,
                     easeLinearity: 0.25,
                     noMoveStart: true,
                 });

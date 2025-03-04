@@ -30,6 +30,19 @@ const router = createRouter({
     },
 });
 
+// Replace page title with title from routes array
+router.beforeEach((to, from, next) => {
+    const nearestWithTitle = to.matched
+        .slice()
+        .reverse()
+        .find((r) => r.meta && r.meta.title);
+
+    if (nearestWithTitle) {
+        document.title = nearestWithTitle.meta.title;
+    }
+    next();
+});
+
 const vuetify = createVuetify({
     components,
     directives,
