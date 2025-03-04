@@ -2334,7 +2334,7 @@ export default {
                 for (const [statementId, detention] of Object.entries(
                     person.detentionPlaces,
                 )) {
-                    let hasLocationMarker = locationMarkers[detention.id]
+                    let hasLocationMarker = locationMarkers.value[detention.id]
                         ? true
                         : false;
 

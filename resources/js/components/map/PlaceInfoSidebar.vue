@@ -17,7 +17,7 @@
                 min-height="100px"
             >
                 <v-list-item-title
-                    class="font-family-special-elite font-weight-bold hyphens-auto text-h6 text-sm-h5 white-space-normal"
+                    class="font-family-special-elite font-weight-bold hyphens-auto text-h6 text-sm-h5 white-space-normal selectedplace-title"
                     lang="de"
                 >
                     {{ selectedPlace.label }}
@@ -250,10 +250,14 @@ watch(
     font-weight: 500;
     line-height: 1rem;
 }
-.placeInfoSidebar .v-list-item__title {
+.placeInfoSidebar .v-list-item__title,
+.placeInfoSidebar .v-list-item-title {
     font-size: 0.8125rem;
     font-weight: 500;
-    line-height: 1rem;
+    line-height: 1.2rem;
+}
+.placeInfoSidebar .selectedplace-title {
+    line-height: 2rem;
 }
 .placeInfoSidebar .v-list-item-subtitle {
     opacity: 1;
