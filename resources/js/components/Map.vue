@@ -426,6 +426,12 @@ export default {
                     pages: "",
                 },
             ],
+            urlSources: [
+                {
+                    label: "",
+                    url: "",
+                },
+            ],
             startDate: {
                 locale: "",
                 value: null,
@@ -1264,6 +1270,16 @@ export default {
                             pages: describedBySource.pages
                                 ? describedBySource.pages.value
                                 : "",
+                        });
+                    }
+                }
+                selectedPlace.value.urlSources = [];
+                if (place.describedByUrlSources) {
+                    for (const [_, urlSource] of Object.entries(
+                        place.describedByUrlSources,
+                    )) {
+                        selectedPlace.value.urlSources.push({
+                            url: urlSource.value || "",
                         });
                     }
                 }
@@ -2487,6 +2503,17 @@ export default {
                         selectedPlace.value.sources.push({
                             label: source.value,
                             pages: source.pages?.value || "",
+                        });
+                    }
+                }
+
+                selectedPlace.value.urlSources = [];
+                if (person.describedByUrlSources) {
+                    for (const [_, urlSource] of Object.entries(
+                        person.describedByUrlSources,
+                    )) {
+                        selectedPlace.value.urlSources.push({
+                            url: urlSource.value || "",
                         });
                     }
                 }

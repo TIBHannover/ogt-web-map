@@ -108,7 +108,10 @@
         ></victim>
 
         <sources
-            v-if="selectedPerson.sources.length > 0"
+            v-if="
+                selectedPerson.sources.length > 0 ||
+                selectedPerson.urlSources.length > 0
+            "
             :selectedPlace="selectedPerson"
         ></sources>
     </div>
