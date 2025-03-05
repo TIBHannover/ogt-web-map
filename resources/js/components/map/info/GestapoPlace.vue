@@ -391,8 +391,8 @@
 
         <sources
             v-if="
-                selectedPerson.sources.length > 0 ||
-                selectedPerson.urlSources.length > 0
+                selectedPlace.sources.length > 0 ||
+                selectedPlace.urlSources.length > 0
             "
             :selectedPlace="selectedPlace"
         >
