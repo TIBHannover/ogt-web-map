@@ -39,6 +39,7 @@ import MapOptionsSidebar from "./map/MapOptionsSidebar";
 import PlaceInfoSidebar from "./map/PlaceInfoSidebar";
 import MapTimeline from "./map/MapTimeline";
 import leafletConfig from "../config/leafletConfig";
+import { VSelectionControlGroup } from "vuetify/lib/components/index.mjs";
 const showPlaceInfoSidebar = ref(false);
 const sourceCircumstances = ref({
     Q5727902: "ca.",
@@ -83,8 +84,8 @@ export default {
             zoomLevel: 0,
         });
         var currentMinDate = ref({
-            year: Infinity,
-            month: Infinity,
+            year: -Infinity,
+            month: -Infinity,
         });
         var currentMaxDate = ref({
             year: Infinity,
@@ -158,7 +159,7 @@ export default {
                 placesByCoordinates: [],
             },
         });
-        var currentGroupedPlaces = groupedPlaces;
+        var currentGroupedPlaces = ref([]);
         const layers = ref(null);
         const locationMarkers = ref([]);
         const markersDate = ref(new Map());
@@ -574,9 +575,11 @@ export default {
                     });
 
                 await visualizePlaces(groupedPlaces);
+                setCurrentValues();
                 derivePlaceData();
                 updateInfoSidebarData();
                 checkUrlForLocation();
+                currentGroupedPlaces.value = Object.keys(groupedPlaces);
             } catch (error) {
                 console.error("Error fetching grouped places:", error);
             }
@@ -646,41 +649,33 @@ export default {
             }
         };
 
-        const setCurrentValues = (newMinDate, newMaxDate, newGroupNames) => {
+        const setCurrentValues = (newMinDate, newMaxDate, newGroups) => {
             if (newMinDate) {
                 currentMinDate.value = newMinDate;
             }
             if (newMaxDate) {
                 currentMaxDate.value = newMaxDate;
             }
-            if (newGroupNames) {
-                currentGroupedPlaces.value = newGroupNames;
+            if (newGroups) {
+                currentGroupedPlaces.value = newGroups;
             }
         };
 
         const applyFilters = (minDate, maxDate, groupNames) => {
-            console.log("applyFilters");
-            console.log("groupNames", groupNames);
-            console.log("minDate", minDate);
-            console.log("maxDate", maxDate);
-            console.log("currentGroupedPlaces", currentGroupedPlaces);
-
-            minDate = minDate ?? currentMinDate.value;
-            maxDate = maxDate ?? currentMaxDate.value;
-            if (groupNames == false) {
-                //    groupNames = toRaw(currentGroupedPlaces.value);
+            if (minDate == null) {
+                minDate = currentMinDate.value;
             }
-
-            console.log("groupNames", groupNames);
-            console.log("minDate", minDate);
-            console.log("maxDate", maxDate);
+            if (maxDate == null) {
+                maxDate = currentMaxDate.value;
+            }
+            if (groupNames == null) {
+                groupNames = currentGroupedPlaces.value;
+            }
 
             Array.from(markersDate.value.entries()).forEach((entry) => {
                 const groupName = entry[1].groupName;
                 const startDate = new Date(entry[1].startDate);
                 const endDate = new Date(entry[1].endDate);
-                console.log("groupName", groupName);
-                console.log("groupNames", groupNames);
                 const applies =
                     (endDate.getFullYear() > minDate.year ||
                         (endDate.getFullYear() === minDate.year &&
@@ -689,6 +684,18 @@ export default {
                         (startDate.getFullYear() === maxDate.year &&
                             startDate.getMonth() <= maxDate.month)) &&
                     (!groupNames || groupNames.includes(groupName));
+                if (applies) {
+                    console.log(
+                        endDate.getFullYear() > minDate.year ||
+                            (endDate.getFullYear() === minDate.year &&
+                                endDate.getMonth() >= minDate.month),
+                    );
+                    console.log(entry[1]);
+                    console.log("endDate.getFullYear()", endDate.getFullYear());
+                    console.log("minDate.year", minDate.year);
+                    console.log("endDate.getMonth()", endDate.getMonth());
+                    console.log("minDate.month", minDate.month);
+                }
                 applies ? entry[0].addTo(map.value) : entry[0].remove();
             });
             setCurrentValues(minDate, maxDate, groupNames);
@@ -789,7 +796,10 @@ export default {
                             getDateProp("inceptionDates") ??
                             getDateProp("startTime") ??
                             (placeGroupName === "memorials"
-                                ? new Date("1945-05-08").toDateString()
+                                ? (getDateProp("inceptionDates") ??
+                                  getDateProp("startTime") ??
+                                  getDateProp("openingDate") ??
+                                  new Date("1945-05-08").toDateString())
                                 : new Date("1933-01-30").toDateString()),
                         endDate:
                             getDateProp("dissolvedDates") ??
@@ -2642,7 +2652,7 @@ export default {
 
         const handleTimelineUpdate = (minDate, maxDate) => {
             console.log("handleTimelineUpdate");
-            applyFilters(minDate, maxDate, groupNames);
+            applyFilters(minDate, maxDate, null);
         };
 
         const handleLayerGroupsUpdate = (newGroups) => {
