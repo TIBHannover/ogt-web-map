@@ -73,9 +73,11 @@
                 </v-tab-item> -->
 
             <!-- time period options -->
-            <!-- <v-tab-item v-if="this.$ogtGlobals.isTestingEnv">
-                    <date-range></date-range>
-                </v-tab-item> -->
+            <!--
+            <v-tab>
+                <date-range></date-range>
+            </v-tab>
+            -->
 
             <!-- place select options -->
             <places-selection
