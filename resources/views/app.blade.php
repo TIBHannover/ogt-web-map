@@ -4,8 +4,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Gestapo. Terror. Orte : </title>
-    <meta name="description" content="Wo befanden sich Orte des Gestapoterrors in Niedersachsen? Welche Gebäude nutzte die politische Polizei während des Nationalsozialismus? Wo waren die Dienstsitze, wo die Haftstätten der Geheimen Staatspolizei?">
+    <title>Gestapo. Terror. Orte</title>
+    <meta name="description" content="Die interaktive Karte zeigt Orte des Gestapo-Terrors in Niedersachsen zur NS-Zeit und spätere Erinnerungsorte. Recherchiere Infos oder trage neue Daten ein! ">
     <meta name="keywords" content="Gestapo, Terror, Orte, Geschichtliches Erbe, Open Access, Erinnerungskultur">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
