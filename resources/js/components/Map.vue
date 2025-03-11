@@ -788,9 +788,9 @@ export default {
                     const getStartDate = () => {
                         if (placeGroupName === "memorials") {
                             return (
+                                getDateProp("openingDate") ??
                                 getDateProp("inceptionDates") ??
                                 getDateProp("startTime") ??
-                                getDateProp("openingDate") ??
                                 new Date("1945-05-08").toDateString()
                             );
                         } else if (placeGroupName === "events") {
@@ -803,6 +803,7 @@ export default {
                             return (
                                 getDateProp("inceptionDates") ??
                                 getDateProp("startTime") ??
+                                getDateProp("openingDate") ??
                                 new Date("1933-01-30").toDateString()
                             );
                         }
@@ -810,7 +811,10 @@ export default {
 
                     const getEndDate = () => {
                         if (placeGroupName === "memorials") {
-                            return new Date().toDateString();
+                            return (
+                                getDateProp("endTime") ??
+                                new Date().toDateString()
+                            );
                         } else if (placeGroupName === "events") {
                             return (
                                 getDateProp("pointInTime") ??
@@ -831,6 +835,15 @@ export default {
                         endDate: getEndDate(),
                         groupName: placeGroupName,
                     });
+
+                    /*
+                    if (place.label == "U-Boot-Bunker Valentin") {
+                        console.log("place", place);
+                        console.log("getStartDate", getStartDate());
+                        console.log("getEndDate", getEndDate());
+                        console.log(getDateProp("openingDate"));
+                    }
+                    */
 
                     groupedPlaces.value[
                         placeGroupName
