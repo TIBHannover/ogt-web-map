@@ -541,7 +541,8 @@ export default {
 
                 // Erstelle Layer Control
                 layers.value = L.control.layers(baseLayers);
-                layers.value.addTo(map.value);
+                const rawMap = toRaw(map.value);
+                layers.value.addTo(rawMap);
 
                 // Setze Position der Zoom-Kontrollen
                 map.value.zoomControl.setPosition("bottomright");
@@ -551,9 +552,9 @@ export default {
                     .scale({
                         imperial: false,
                     })
-                    .addTo(map.value);
+                    .addTo(rawMap);
 
-                setCachedMapView();
+                setCachedMapView(rawMap);
             } catch (error) {
                 console.error("Error setting up Leaflet map:", error);
             }
@@ -672,6 +673,7 @@ export default {
                 groupNames = currentGroupedPlaces.value;
             }
 
+            const rawMap = toRaw(map.value);
             Array.from(markersDate.value.entries()).forEach((entry) => {
                 const groupName = entry[1].groupName;
                 const startDate = new Date(entry[1].startDate);
@@ -684,20 +686,12 @@ export default {
                         (startDate.getFullYear() === maxDate.year &&
                             startDate.getMonth() <= maxDate.month)) &&
                     (!groupNames || groupNames.includes(groupName));
-                /*
                 if (applies) {
-                    console.log(
-                        endDate.getFullYear() > minDate.year ||
-                            (endDate.getFullYear() === minDate.year &&
-                                endDate.getMonth() >= minDate.month),
-                    );
-                    console.log(entry[1]);
-                    console.log("endDate.getFullYear()", endDate.getFullYear());
-                    console.log("minDate.year", minDate.year);
-                    console.log("endDate.getMonth()", endDate.getMonth());
-                    console.log("minDate.month", minDate.month);
-                }*/
-                applies ? entry[0].addTo(map.value) : entry[0].remove();
+                    entry[0].addTo(rawMap);
+                } else {
+                    rawMap.closePopup();
+                    entry[0].remove();
+                }
             });
             setCurrentValues(minDate, maxDate, groupNames);
         };
@@ -790,22 +784,50 @@ export default {
                             Object.values(place[key] ?? {})[0]?.value
                         );
                     };
+
+                    const getStartDate = () => {
+                        if (placeGroupName === "memorials") {
+                            return (
+                                getDateProp("inceptionDates") ??
+                                getDateProp("startTime") ??
+                                getDateProp("openingDate") ??
+                                new Date("1945-05-08").toDateString()
+                            );
+                        } else if (placeGroupName === "events") {
+                            return (
+                                getDateProp("pointInTime") ??
+                                getDateProp("startTime") ??
+                                new Date("1933-01-30").toDateString()
+                            );
+                        } else {
+                            return (
+                                getDateProp("inceptionDates") ??
+                                getDateProp("startTime") ??
+                                new Date("1933-01-30").toDateString()
+                            );
+                        }
+                    };
+
+                    const getEndDate = () => {
+                        if (placeGroupName === "memorials") {
+                            return new Date().toDateString();
+                        } else if (placeGroupName === "events") {
+                            return (
+                                getDateProp("pointInTime") ??
+                                getDateProp("endTime") ??
+                                new Date("1945-05-08").toDateString()
+                            );
+                        } else {
+                            return (
+                                getDateProp("dissolvedDates") ??
+                                getDateProp("endTime")
+                            );
+                        }
+                    };
+
                     markersDate.value.set(marker, {
-                        startDate:
-                            getDateProp("inceptionDates") ??
-                            getDateProp("startTime") ??
-                            (placeGroupName === "memorials"
-                                ? (getDateProp("inceptionDates") ??
-                                  getDateProp("startTime") ??
-                                  getDateProp("openingDate") ??
-                                  new Date("1945-05-08").toDateString())
-                                : new Date("1933-01-30").toDateString()),
-                        endDate:
-                            getDateProp("dissolvedDates") ??
-                            getDateProp("endTime") ??
-                            (placeGroupName === "memorials"
-                                ? new Date().toDateString()
-                                : new Date("1945-05-08").toDateString()),
+                        startDate: getStartDate(),
+                        endDate: getEndDate(),
                         groupName: placeGroupName,
                     });
 
@@ -2635,17 +2657,27 @@ export default {
          * @param bool cacheCurrentMapView
          */
         const setMapView = (latLng, zoomLevel, cacheCurrentMapView = false) => {
-            if (map.value) {
+            if (map.value && map.value._loaded) {
                 if (cacheCurrentMapView) {
                     setCachedMapView();
                 }
                 const rawMap = toRaw(map.value);
-                rawMap.setView(latLng, zoomLevel, {
-                    animate: true,
-                    duration: 0.5,
-                    easeLinearity: 0.25,
-                    noMoveStart: true,
-                });
+                if (latLng) {
+                    console.log("latLng", latLng);
+                    rawMap.setView(latLng, zoomLevel, {
+                        animate: true,
+                        duration: 0.5,
+                        easeLinearity: 0.25,
+                        noMoveStart: true,
+                    });
+                } else {
+                    rawMap.setView(rawMap.getCenter(), zoomLevel, {
+                        animate: false,
+                        duration: 0.5,
+                        easeLinearity: 0.25,
+                        noMoveStart: true,
+                    });
+                }
             }
         };
 

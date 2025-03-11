@@ -29,7 +29,7 @@ const STATE = {
 };
 
 const updateTimeLine = (value) => {
-    emit("update-time-line", value);
+    emit("updateTimeLine", value);
 };
 
 function beforeMove(e) {
