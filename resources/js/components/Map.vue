@@ -576,7 +576,7 @@ export default {
 
                 await visualizePlaces(groupedPlaces);
                 setCurrentValues();
-                derivePlaceData();
+                derivePlaceData(groupedPlaces);
                 updateInfoSidebarData();
                 checkUrlForLocation();
                 currentGroupedPlaces.value = Object.keys(groupedPlaces);
@@ -703,8 +703,6 @@ export default {
         };
         const visualizePlaces = async (groupedPlaces) => {
             for (const [group, places] of Object.entries(groupedPlaces)) {
-                groupedPlaces[group]["places"] = places;
-
                 let placeMarkers = createPlaceMarkers(group, places);
                 createPlacesLayerGroups(group, placeMarkers);
             }
@@ -1844,15 +1842,15 @@ export default {
          * Derive location data to make it easily accessible to other locations,
          * e.g. to know if a location is commemorated by a memorial.
          */
-        const derivePlaceData = () => {
+        const derivePlaceData = (groupedPlaces) => {
             try {
                 // Sicherheitsprüfung für groupedPlaces
-                if (!groupedPlaces.value || !groupedPlaces.value.memorials) {
+                if (!groupedPlaces || !groupedPlaces.memorials) {
                     console.warn("Memorials data not available");
                     return;
                 }
 
-                const memorials = groupedPlaces.value.memorials.places;
+                const memorials = groupedPlaces.memorials;
                 if (!memorials) {
                     console.warn("No memorial places found");
                     return;
