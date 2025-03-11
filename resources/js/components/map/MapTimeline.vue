@@ -109,13 +109,15 @@ const moveLeftHandle = (e) => {
         );
     };
     document.addEventListener("mousemove", move);
-    document.addEventListener("mouseup", () => {
-        document.removeEventListener("mousemove", move);
-        // Assuming parent component exposes this method
-        console.log("mouse up");
-        emit("updateTimeLine", STATE.left, STATE.right);
-        afterMove();
-    });
+    document.addEventListener(
+        "mouseup",
+        () => {
+            document.removeEventListener("mousemove", move);
+            updateTimeLine(STATE.left, STATE.right);
+            afterMove();
+        },
+        { once: true },
+    );
 };
 
 const moveRightHandle = (e) => {
@@ -129,11 +131,15 @@ const moveRightHandle = (e) => {
         );
     };
     document.addEventListener("mousemove", move);
-    document.addEventListener("mouseup", () => {
-        document.removeEventListener("mousemove", move);
-        emit("updateTimeLine", STATE.left, STATE.right);
-        afterMove();
-    });
+    document.addEventListener(
+        "mouseup",
+        () => {
+            document.removeEventListener("mousemove", move);
+            emit("updateTimeLine", STATE.left, STATE.right);
+            afterMove();
+        },
+        { once: true },
+    );
 };
 
 onMounted(() => {

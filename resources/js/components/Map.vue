@@ -684,6 +684,7 @@ export default {
                         (startDate.getFullYear() === maxDate.year &&
                             startDate.getMonth() <= maxDate.month)) &&
                     (!groupNames || groupNames.includes(groupName));
+                /*
                 if (applies) {
                     console.log(
                         endDate.getFullYear() > minDate.year ||
@@ -695,7 +696,7 @@ export default {
                     console.log("minDate.year", minDate.year);
                     console.log("endDate.getMonth()", endDate.getMonth());
                     console.log("minDate.month", minDate.month);
-                }
+                }*/
                 applies ? entry[0].addTo(map.value) : entry[0].remove();
             });
             setCurrentValues(minDate, maxDate, groupNames);
@@ -2651,7 +2652,6 @@ export default {
         };
 
         const handleTimelineUpdate = (minDate, maxDate) => {
-            console.log("handleTimelineUpdate");
             applyFilters(minDate, maxDate, null);
         };
 
