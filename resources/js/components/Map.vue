@@ -820,7 +820,8 @@ export default {
                         } else {
                             return (
                                 getDateProp("dissolvedDates") ??
-                                getDateProp("endTime")
+                                getDateProp("endTime") ??
+                                new Date().toDateString()
                             );
                         }
                     };
