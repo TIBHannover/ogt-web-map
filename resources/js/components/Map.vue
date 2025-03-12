@@ -592,24 +592,51 @@ export default {
             try {
                 const response = await axios.get("/api/wikidata/persons/cache");
                 persons.value = response.data;
-                updatePersonsCache();
                 processPersonsData();
                 checkUrlForPerson();
+                setTimeout(() => {
+                    updatePersonsCache();
+                }, 5000);
             } catch (error) {
                 console.error("Error fetching persons:", error);
             }
         };
 
-        const updatePersonsCache = async () => {
-            try {
-                const response = await axios.get("/api/wikidata/persons");
-                if (response.data) {
-                    persons.value = response.data;
-                    processPersonsData(); // Optional: Daten neu verarbeiten wenn Update erfolgt
+        const updatePersonsCache = () => {
+            const worker = createWorker();
+
+            worker.onmessage = (e) => {
+                if (e.data.error) {
+                    console.warn(
+                        "Could not update persons cache:",
+                        e.data.error,
+                    );
+                } else {
+                    persons.value = e.data;
                 }
-            } catch (error) {
-                console.warn("Could not update persons cache:", error);
-            }
+                worker.terminate();
+            };
+            worker.postMessage("start");
+        };
+
+        const createWorker = () => {
+            const workerCode = `
+                self.onmessage = async function(e) {
+                            try {
+                                const url = self.location.origin + '/api/wikidata/persons';
+                                const response = await fetch(url);
+                                const data = await response.json();
+                                self.postMessage(data);
+                            } catch (error) {
+                                self.postMessage({ error: error.message });
+                            }
+                        };
+                    `;
+
+            const blob = new Blob([workerCode], {
+                type: "application/javascript",
+            });
+            return new Worker(URL.createObjectURL(blob));
         };
 
         /**
@@ -825,7 +852,7 @@ export default {
                             return (
                                 getDateProp("dissolvedDates") ??
                                 getDateProp("endTime") ??
-                                new Date().toDateString()
+                                new Date("1945-05-08").toDateString()
                             );
                         }
                     };
@@ -835,16 +862,14 @@ export default {
                         endDate: getEndDate(),
                         groupName: placeGroupName,
                     });
-
                     /*
-                    if (place.label == "U-Boot-Bunker Valentin") {
+                    if (place.label == "Gedenkstein Synagoge Lüneburg") {
                         console.log("place", place);
                         console.log("getStartDate", getStartDate());
                         console.log("getEndDate", getEndDate());
                         console.log(getDateProp("openingDate"));
                     }
-                    */
-
+*/
                     groupedPlaces.value[
                         placeGroupName
                     ].placesByCoordinates.push({
@@ -2663,6 +2688,19 @@ export default {
                 );
             }
         };
+
+        const debounce = (func, wait) => {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        };
+
         /**
          * Fly to new map view and optionally cache the current map view.
          *
@@ -2695,12 +2733,14 @@ export default {
             }
         };
 
+        const debouncedApplyFilters = debounce(applyFilters, 250);
+
         const handleTimelineUpdate = (minDate, maxDate) => {
-            applyFilters(minDate, maxDate, null);
+            debouncedApplyFilters(minDate, maxDate, null);
         };
 
         const handleLayerGroupsUpdate = (newGroups) => {
-            applyFilters(null, null, newGroups);
+            debouncedApplyFilters(null, null, newGroups);
         };
 
         /**

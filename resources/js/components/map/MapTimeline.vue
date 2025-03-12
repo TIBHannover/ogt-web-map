@@ -27,6 +27,8 @@ const STATE = {
     left: null,
     right: null,
 };
+// old handle gap - 0.155,
+const MIN_HANDLE_GAP = 0.02;
 
 const updateTimeLine = (value) => {
     emit("updateTimeLine", value);
@@ -105,7 +107,7 @@ const moveLeftHandle = (e) => {
             document.querySelector(".map-timeline-handle.left"),
             calcPosition(e.clientX),
             0,
-            STATE.right.position - 0.155,
+            STATE.right.position - MIN_HANDLE_GAP,
         );
     };
     document.addEventListener("mousemove", move);
@@ -126,7 +128,7 @@ const moveRightHandle = (e) => {
         STATE.right = setHandle(
             document.querySelector(".map-timeline-handle.right"),
             calcPosition(e.clientX),
-            STATE.left.position + 0.155,
+            STATE.left.position + MIN_HANDLE_GAP,
             1,
         );
     };
