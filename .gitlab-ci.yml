@@ -1,41 +1,12 @@
-stages:
-  - install
-  - build
-  - deploy
-  - local
-
-variables:
-  PROJECT_PATH: "$CI_PROJECT_DIR"
-  APP_OUTPUT_PATH: "$PROJECT_PATH/app"
-  REGISTRY_PATH: "$REGISTRY_PATH"
-
-
-deploy:
-  stage: deploy
-  image: docker:latest
-  services:
-    - docker:dind
+build:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    entrypoint: [""]
   script:
-
-    - >
-
-      docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY;
-    
-      if [ $CI_COMMIT_BRANCH == "master" ]; then
-        echo "push a $CI_COMMIT_BRANCH image"
-        LATEST_IMAGE=$CI_REGISTRY_IMAGE/$CI_COMMIT_BRANCH;
-        docker build -t $LATEST_IMAGE .;
-        docker push $LATEST_IMAGE;
-
-      elif [ $CI_COMMIT_BRANCH == "develop" ]; then
-        echo "push a $CI_COMMIT_BRANCH image"
-        LATEST_IMAGE=$CI_REGISTRY_IMAGE/$CI_COMMIT_BRANCH;
-        docker build -t $LATEST_IMAGE .;
-        docker push $LATEST_IMAGE;
-      
-      else
-        echo "do nothing";
-      
-      fi
-
-  interruptible: true
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
+  rules:
+    - if: $CI_COMMIT_TAG
