@@ -1,7 +1,7 @@
 <template>
     <v-list rounded>
-        <v-subheader class="text-uppercase">Sprache</v-subheader>
-        <v-list-item-group
+        <v-list-subheader class="text-uppercase">Sprache</v-list-subheader>
+        <v-list-item
             active-class="selectedItemBorder"
             mandatory
             v-model="selectedLanguage"
@@ -11,27 +11,27 @@
                 :key="i"
                 @click.stop="$emit('setActiveMenu', 'mainMenu')"
             >
-                <v-list-item-content class="ml-10">
+                <v-list-item class="ml-10">
                     <v-list-item-title>{{ language.title }}</v-list-item-title>
-                </v-list-item-content>
+                </v-list-item>
             </v-list-item>
-        </v-list-item-group>
+        </v-list-item>
         <v-divider></v-divider>
     </v-list>
 </template>
 
 <script>
 export default {
-    name: 'LanguageConfig',
+    name: "LanguageConfig",
     data() {
         return {
             selectedLanguage: /^de/.test(navigator.language) ? 0 : 1,
             languages: [
                 {
-                    title: 'Deutsch',
+                    title: "Deutsch",
                 },
                 {
-                    title: 'Englisch',
+                    title: "Englisch",
                 },
             ],
         };
@@ -45,4 +45,3 @@ export default {
     border: 2px dashed #212121;
 }
 </style>
-

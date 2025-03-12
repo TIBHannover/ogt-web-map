@@ -1,16 +1,25 @@
 <template>
     <v-container
-        class="background grey lighten-3 justify-center"
-        :class="{ 'xs-bg-x-shifted': $vuetify.breakpoint.xs }"
+        class="background bg-grey-lighten-3 justify-center"
+        :class="{ 'xs-bg-x-shifted': $vuetify.display.xs }"
         fill-height
         fluid
         :style="{
-            backgroundImage: 'url(' + backgroundImageUrl + '), url(' + backgroundImageUrlFallback1 + '), url(' + backgroundImageUrlFallback2 + ')'
+            backgroundImage:
+                'url(' +
+                backgroundImageUrl +
+                '), url(' +
+                backgroundImageUrlFallback1 +
+                '), url(' +
+                backgroundImageUrlFallback2 +
+                ')',
         }"
     >
         <div>
-            <div class="white--text">
-                <div class="font-family-special-elite mb-2 text-h4 text-sm-h3 text-md-h2 text-lg-h1">
+            <div class="text-white">
+                <div
+                    class="font-family-special-elite mb-2 text-h4 text-sm-h3 text-md-h2 text-lg-h1"
+                >
                     Gestapo.Terror.Orte
                 </div>
                 <div class="mb-7 ml-1 text-h5 text-md-h4 text-lg-h3">
@@ -18,19 +27,20 @@
                 </div>
             </div>
             <template v-for="menuButton in menuButtons">
-                <router-link :to="menuButton.routeTo" class="text-decoration-none">
+                <router-link
+                    :to="menuButton.routeTo"
+                    class="text-decoration-none"
+                >
                     <v-btn
                         class="background-color-grey border-none justify-start ml-1 mr-5 my-3 text-h6 text-transform-none"
                         color="white"
                         elevation="24"
                         min-width="200px"
-                        outlined
+                        variant="outlined"
                         rounded
-                        x-large
+                        size="x-large"
                     >
-                        <v-icon left>
-                            mdi-arrow-right-thick
-                        </v-icon>
+                        <v-icon start> mdi-arrow-right-thick </v-icon>
                         {{ menuButton.label }}
                     </v-btn>
                 </router-link>
@@ -39,27 +49,41 @@
     </v-container>
 </template>
 
+<script setup>
+import { useDisplay } from "vuetify";
+const { mdAndUp } = useDisplay();
+</script>
+
 <script>
+import { ref, onMounted, onUnmounted, nextTick, inject } from "vue";
+import { useRouter, useRoute } from "vue-router";
 
 export default {
-    name: 'Welcome',
+    name: "Welcome",
     data() {
+        const router = useRouter();
+        const route = useRoute();
+        const ogtGlobals = inject("ogtGlobals");
+
         return {
-            backgroundImageUrl: this.$ogtGlobals.proxyPath + '/images/static/startPageBackground.jpg',
-            backgroundImageUrlFallback1: 'https://service.tib.eu/ogt/images/static/startPageBackground.jpg',
-            backgroundImageUrlFallback2: this.$ogtGlobals.proxyPath + '/images/solid-grey.svg',
+            backgroundImageUrl:
+                ogtGlobals.proxyPath + "/images/static/startPageBackground.jpg",
+            backgroundImageUrlFallback1:
+                "https://service.tib.eu/ogt/images/static/startPageBackground.jpg",
+            backgroundImageUrlFallback2:
+                ogtGlobals.proxyPath + "/images/solid-grey.svg",
             menuButtons: [
                 {
-                    label: 'Projekt',
-                    routeTo: '/project',
+                    label: "Projekt",
+                    routeTo: "/project",
                 },
                 {
-                    label: 'Kartenansicht',
-                    routeTo: '/map',
+                    label: "Kartenansicht",
+                    routeTo: "/map",
                 },
                 {
-                    label: 'Mitforschen',
-                    routeTo: '/collaboration',
+                    label: "Mitforschen",
+                    routeTo: "/collaboration",
                 },
             ],
         };
@@ -69,6 +93,9 @@ export default {
 
 <style scoped>
 .background {
+    height: 100vh;
+    display: flex;
+    align-items: center;
     background-position: center center;
     background-repeat: no-repeat;
     background-size: cover;

@@ -34,7 +34,7 @@
                 <section id="researchObjectives">
                     <h1
                         class="font-weight-medium text-h5 text-md-h4 mb-5"
-                        :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
+                        :class="{ 'font-size-29': $vuetify.display.mdAndUp }"
                     >
                         Forschungsfragen & Projektziele
                     </h1>
@@ -150,7 +150,7 @@
                 <section id="teamAndPartners">
                     <h1
                         class="font-weight-medium text-h5 text-md-h4 mb-5"
-                        :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
+                        :class="{ 'font-size-29': $vuetify.display.mdAndUp }"
                     >
                         Team & Partner*innen
                     </h1>
@@ -169,8 +169,7 @@
                     <h3
                         class="text-h6 mb-1"
                         :class="{
-                            'font-weight-regular':
-                                $vuetify.breakpoint.mdAndDown,
+                            'font-weight-regular': $vuetify.display.mdAndDown,
                         }"
                     >
                         Technische Informationsbibliothek (TIB) – Open Science
@@ -185,7 +184,7 @@
                             target="_blank"
                         >
                             https://vivo.tib.eu/fis/individual/n0000-0003-0232-7085
-                            <v-icon small class="vertical-align-top"
+                            <v-icon size="small" class="vertical-align-top"
                                 >mdi-open-in-new</v-icon
                             >
                         </a>
@@ -201,7 +200,7 @@
                             target="_blank"
                         >
                             https://vivo.tib.eu/fis/individual/n0000-0002-3075-7640
-                            <v-icon small class="vertical-align-top"
+                            <v-icon size="small" class="vertical-align-top"
                                 >mdi-open-in-new</v-icon
                             >
                         </a>
@@ -244,7 +243,7 @@
                         <br />
                         <a href="https://nadinekloever.com" target="_blank">
                             https://nadinekloever.com
-                            <v-icon small class="vertical-align-top"
+                            <v-icon size="small" class="vertical-align-top"
                                 >mdi-open-in-new</v-icon
                             >
                         </a>
@@ -277,8 +276,7 @@
                     <h3
                         class="text-h6 mb-1"
                         :class="{
-                            'font-weight-regular':
-                                $vuetify.breakpoint.mdAndDown,
+                            'font-weight-regular': $vuetify.display.mdAndDown,
                         }"
                     >
                         Stiftung niedersächsische Gedenkstätten (SnG)
@@ -291,7 +289,7 @@
                                 max-height="150px"
                                 max-width="200px"
                                 :src="
-                                    this.$ogtGlobals.proxyPath +
+                                    ogtGlobals.proxyPath +
                                     '/images/logo-sng.svg'
                                 "
                             ></v-img>
@@ -315,14 +313,26 @@
                         <span class="font-weight-bold">Marc Ellinghaus</span>
                         (M.A.)
                         <br />
-                        Mitarbeiter Bildung und Begegnung der Gedenkstätte
+                        Leitung Bildung und Begegnung der Gedenkstätte
                         Bergen-Belsen
                     </p>
                     <p>
                         <span class="font-weight-bold">Stephanie Billib</span>
                         (M.A.)
                         <br />
-                        Leitung Presse- und Öffentlichkeitsarbeit
+                        Presse- und Öffentlichkeitsarbeit
+                    </p>
+                    <p>
+                        <span class="font-weight-bold">Dr. Janine Doerry</span>
+                        <br />
+                        Wissenschaftliche Mitarbeiterin
+                    </p>
+                    <p>
+                        <span class="font-weight-bold"
+                            >Juliane Hummel M.A.</span
+                        >
+                        <br />
+                        Wissenschaftliche Mitarbeiterin
                     </p>
                     <p>
                         <span class="font-weight-bold">Silke Petry M.A.</span>
@@ -333,8 +343,7 @@
                     <h3
                         class="text-h6 mb-1"
                         :class="{
-                            'font-weight-regular':
-                                $vuetify.breakpoint.mdAndDown,
+                            'font-weight-regular': $vuetify.display.mdAndDown,
                         }"
                     >
                         Gedenkstätten Gestapokeller und Augustaschacht
@@ -351,7 +360,7 @@
                                         contain
                                         max-height="64px"
                                         :src="
-                                            this.$ogtGlobals.proxyPath +
+                                            ogtGlobals.proxyPath +
                                             '/images/logo-augustaschacht.svg'
                                         "
                                     ></v-img>
@@ -367,7 +376,7 @@
                                         contain
                                         max-height="64px"
                                         :src="
-                                            this.$ogtGlobals.proxyPath +
+                                            ogtGlobals.proxyPath +
                                             '/images/logo-gestapokeller.svg'
                                         "
                                     ></v-img>
@@ -382,7 +391,7 @@
                 <section id="presentationsAndPublications">
                     <h1
                         class="font-weight-medium text-h5 text-md-h4 mb-5"
-                        :class="{ 'font-size-29': $vuetify.breakpoint.mdAndUp }"
+                        :class="{ 'font-size-29': $vuetify.display.mdAndUp }"
                     >
                         Projektpräsentationen & Publikationen
                     </h1>
@@ -398,7 +407,7 @@
                         >
                             Überwachung und Terror – die Gestapo als Instrument
                             des NS-Regimes
-                            <v-icon small class="vertical-align-top"
+                            <v-icon size="small" class="vertical-align-top"
                                 >mdi-open-in-new</v-icon
                             >
                         </a>
@@ -413,7 +422,7 @@
                             Projektpräsentation zur Tagung „Digital Memory –
                             Digital History – Digital Mapping. Transformationen
                             von Erinnerungskulturen und Holocaust-Education“
-                            <v-icon small class="vertical-align-top"
+                            <v-icon size="small" class="vertical-align-top"
                                 >mdi-open-in-new</v-icon
                             >
                         </a>
@@ -429,7 +438,7 @@
                         >
                             Stiftung niedersächsische Gedenkstätten –
                             Jahresbericht 2020
-                            <v-icon small class="vertical-align-top"
+                            <v-icon size="small" class="vertical-align-top"
                                 >mdi-open-in-new</v-icon
                             >
                         </a>
@@ -438,8 +447,8 @@
                             href="https://projects.tib.eu/ogt-orte-des-gestapoterrors/projekt/"
                             target="_blank"
                         >
-                            OGT Projektwebsite der TIB
-                            <v-icon small class="vertical-align-top"
+                            G.T.O Projektwebsite der TIB
+                            <v-icon size="small" class="vertical-align-top"
                                 >mdi-open-in-new</v-icon
                             >
                         </a>
@@ -449,7 +458,7 @@
                             target="_blank"
                         >
                             Projektprofil
-                            <v-icon small class="vertical-align-top"
+                            <v-icon size="small" class="vertical-align-top"
                                 >mdi-open-in-new</v-icon
                             >
                         </a>
@@ -459,7 +468,7 @@
                             target="_blank"
                         >
                             Auszug aus dem Projektantrag
-                            <v-icon small class="vertical-align-top"
+                            <v-icon size="small" class="vertical-align-top"
                                 >mdi-open-in-new</v-icon
                             >
                         </a>
@@ -477,7 +486,7 @@
                             target="_blank"
                         >
                             Verbrechen der Gestapo digital sichtbar machen
-                            <v-icon small class="vertical-align-top"
+                            <v-icon size="small" class="vertical-align-top"
                                 >mdi-open-in-new</v-icon
                             >
                         </a>
@@ -492,7 +501,7 @@
                         >
                             Spuren der Vergangenheit: Verbrechen der Gestapo
                             digital sichtbar machen
-                            <v-icon small class="vertical-align-top"
+                            <v-icon size="small" class="vertical-align-top"
                                 >mdi-open-in-new</v-icon
                             >
                         </a>
@@ -502,7 +511,12 @@
         </v-row>
     </v-container>
 </template>
-
+<script setup>
+import { useDisplay } from "vuetify";
+import { ref, inject } from "vue";
+const { mdAndUp } = useDisplay();
+const ogtGlobals = inject("ogtGlobals");
+</script>
 <script>
 import Email from "./helpers/Email";
 import TableOfContentsSidebar from "./navigation/TableOfContentsSidebar";
@@ -513,7 +527,7 @@ export default {
     components: { Email, TableOfContentsSidebar },
     data() {
         return {
-            freeClientWidth: document.documentElement.clientWidth,
+            freeClientWidth: document.clientWidth,
             headings: [
                 {
                     href: "#researchObjectives",
@@ -533,7 +547,7 @@ export default {
     created() {
         window.addEventListener("resize", this.setFreeClientWidth);
     },
-    destroyed() {
+    unmounted() {
         window.removeEventListener("resize", this.setFreeClientWidth);
     },
     mounted() {
@@ -549,8 +563,7 @@ export default {
             const container = document.getElementById("container");
 
             this.freeClientWidth =
-                (document.documentElement.clientWidth - container.clientWidth) /
-                2;
+                (document.clientWidth - container.clientWidth) / 2;
         },
     },
 };
