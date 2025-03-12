@@ -28,7 +28,7 @@ const STATE = {
     right: null,
 };
 // old handle gap - 0.155,
-const MIN_HANDLE_GAP = 0.02;
+const MIN_HANDLE_GAP = 0.155;
 
 const updateTimeLine = (value) => {
     emit("updateTimeLine", value);
