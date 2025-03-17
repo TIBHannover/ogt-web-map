@@ -18,7 +18,7 @@ import { itemDescriptions } from "../lang/de/itemDescriptions";
 import App from "./components/App.vue";
 
 const router = createRouter({
-    history: createWebHistory("/ogt/"), // createWebHistory für den "history" mode verwenden
+    history: createWebHistory("/"), // createWebHistory für den "history" mode verwenden
     routes,
     scrollBehavior(to, from, savedPosition) {
         if (to.hash) {
