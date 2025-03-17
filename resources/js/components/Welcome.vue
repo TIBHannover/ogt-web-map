@@ -118,9 +118,9 @@
                                     <span v-if="workshop.date">
                                         <strong>
                                             <a
-                                                :href="nextWorkshop.link"
+                                                :href="workshop.link"
                                                 target="_blank"
-                                                v-if="nextWorkshop.link"
+                                                v-if="workshop.link"
                                                 >{{ workshop.label }}</a
                                             ></strong
                                         >
@@ -137,6 +137,7 @@
                 </v-banner-text>
 
                 <v-banner-actions class="flex-column">
+                    <!--
                     <v-btn
                         class="background-color-grey border-none justify-start ml-1 mr-5 my-3 text-h6 text-transform-none"
                         color="white"
@@ -152,6 +153,7 @@
                         </v-icon>
                         Weitere Infos
                     </v-btn>
+                    -->
                     <v-btn
                         class="background-color-grey border-none justify-start ml-1 mr-5 my-3 text-h6 text-transform-none"
                         color="white"
