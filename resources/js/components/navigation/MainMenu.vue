@@ -84,6 +84,13 @@ export default {
                     toMenu: "mainMenu",
                 },
                 {
+                    title: "Werstätte",
+                    icon: "mdi-pencil-outline",
+                    path: "/workshops",
+                    show: true,
+                    toMenu: "mainMenu",
+                },
+                {
                     title: "Sprache",
                     icon: "mdi-translate",
                     show: ogtGlobals.isTestingEnv,

@@ -46,8 +46,9 @@
                 </router-link>
             </template>
             <v-divider :thickness="5" class="my-12"></v-divider>
+
             <v-banner
-                class="py-6"
+                class="py-6 mb-6"
                 icon="mdi-map"
                 color="black"
                 border="1"
@@ -55,18 +56,87 @@
             >
                 <v-banner-text>
                     <div
-                        class="font-family-special-elite mb-2 text-h4 text-sm-h3 text-md-h4 text-lg-h3"
+                        class="font-family-special-elite mb-2 text-h5 text-sm-h5 text-md-h5 text-lg-h4"
                     >
                         Werkstatt historische Daten
                     </div>
                     <div class="">
-                        Die nächste "Werkstatt historische Daten" ist am 25.
-                        März 2025 um 10:00 Uhr.
+                        Mach mit: Trage mit uns historische Daten zu
+                        Gestapo-Orten in Wikidata ein <br />
+                        – online, offen für alle, ohne Vorkenntnisse!
+                        <br />
+                        Jetzt anmelden und mitgestalten!
                     </div>
-                    <p>Jetzt anmelden und mitforschen!</p>
+                    <h1
+                        class="font-family-special-elite mt-3 mb-2 text-h6 text-sm-h6 text-md-h6 text-lg-h5"
+                        :class="{
+                            'font-size-29': $vuetify.display.mdAndUp,
+                        }"
+                    >
+                        Die nächste Werkstatt
+                    </h1>
+
+                    <div v-if="nextWorkshop">
+                        <p>
+                            <strong>{{ nextWorkshop.label }}</strong>
+                            <br />
+                            Am {{ formatDate(nextWorkshop.date) }} Uhr
+                            <br />
+                            <span v-if="nextWorkshop.place === 'digital'">
+                                Findet digital statt
+                            </span>
+                            <span v-else> Ort: {{ workshop.place }} </span>
+                            <a
+                                :href="nextWorkshop.link"
+                                target="_blank"
+                                v-if="nextWorkshop.link"
+                                class="ml-3"
+                            >
+                                <v-icon start size="sm" class="mb-1"
+                                    >mdi-open-in-new</v-icon
+                                >
+                                Mehr Informationen zum Termin
+                            </a>
+                        </p>
+                    </div>
+                    <p v-else>Aktuell ist kein Workshop geplant.</p>
+
+                    <v-expansion-panels focusable>
+                        <v-expansion-panel>
+                            <v-expansion-panel-title
+                                class="font-weight-bold"
+                                color="rgba(255, 255, 255, 0.5)"
+                                flat
+                            >
+                                Weitere Werkstatt-Termine
+                            </v-expansion-panel-title>
+                            <v-expansion-panel-text>
+                                <p
+                                    v-for="workshop in upcomingWorkshops"
+                                    :key="workshop.date"
+                                >
+                                    <span v-if="workshop.date">
+                                        <strong>
+                                            <a
+                                                :href="nextWorkshop.link"
+                                                target="_blank"
+                                                v-if="nextWorkshop.link"
+                                                >{{ workshop.label }}</a
+                                            ></strong
+                                        >
+                                        <br />
+                                        <span>
+                                            {{ formatDate(workshop.date) }}
+                                            Uhr
+                                        </span>
+                                    </span>
+                                </p>
+                            </v-expansion-panel-text>
+                        </v-expansion-panel>
+                    </v-expansion-panels>
                 </v-banner-text>
 
-                <v-banner-actions>
+                <v-banner-actions class="flex-column">
                     <v-btn
                         class="background-color-grey border-none justify-start ml-1 mr-5 my-3 text-h6 text-transform-none"
                         color="white"
@@ -75,10 +145,27 @@
                         variant="outlined"
                         rounded
                         size="x-large"
-                        href="https://projects.tib.eu/ogt-orte-des-gestapoterrors/veranstaltungen/"
+                        to="/workshops"
+                    >
+                        <v-icon start class="ml-3">
+                            mdi-arrow-right-thick
+                        </v-icon>
+                        Weitere Infos
+                    </v-btn>
+                    <v-btn
+                        class="background-color-grey border-none justify-start ml-1 mr-5 my-3 text-h6 text-transform-none"
+                        color="white"
+                        elevation="24"
+                        min-width="200px"
+                        variant="outlined"
+                        rounded
+                        size="x-large"
+                        href="https://projects.tib.eu/ogt-orte-des-gestapoterrors/veranstaltungen/zur-werkstatt-historische-daten-anmelden/"
                         target="_blank"
                     >
-                        <v-icon start> mdi-arrow-right-thick </v-icon>
+                        <v-icon start class="ml-3">
+                            mdi-arrow-right-thick
+                        </v-icon>
                         Zur Werkstattanmeldung
                     </v-btn>
                 </v-banner-actions>
@@ -88,45 +175,68 @@
 </template>
 
 <script setup>
+import { ref, inject, computed } from "vue";
 import { useDisplay } from "vuetify";
-const { mdAndUp } = useDisplay();
-</script>
-
-<script>
-import { ref, onMounted, onUnmounted, nextTick, inject } from "vue";
 import { useRouter, useRoute } from "vue-router";
+import { workshops } from "../data/workshops";
 
-export default {
-    name: "Welcome",
-    data() {
-        const router = useRouter();
-        const route = useRoute();
-        const ogtGlobals = inject("ogtGlobals");
+const { mdAndUp } = useDisplay();
+const router = useRouter();
+const route = useRoute();
+const ogtGlobals = inject("ogtGlobals");
 
-        return {
-            backgroundImageUrl:
-                ogtGlobals.proxyPath + "/images/static/startPageBackground.jpg",
-            backgroundImageUrlFallback1:
-                "https://service.tib.eu/ogt/images/static/startPageBackground.jpg",
-            backgroundImageUrlFallback2:
-                ogtGlobals.proxyPath + "/images/solid-grey.svg",
-            menuButtons: [
-                {
-                    label: "Projekt",
-                    routeTo: "/project",
-                },
-                {
-                    label: "Kartenansicht",
-                    routeTo: "/map",
-                },
-                {
-                    label: "Mitforschen",
-                    routeTo: "/collaboration",
-                },
-            ],
-        };
-    },
+const backgroundImageUrl = ref(
+    ogtGlobals.proxyPath + "/images/static/startPageBackground.jpg",
+);
+const backgroundImageUrlFallback1 = ref(
+    "https://service.tib.eu/ogt/images/static/startPageBackground.jpg",
+);
+const backgroundImageUrlFallback2 = ref(
+    ogtGlobals.proxyPath + "/images/solid-grey.svg",
+);
+
+const nextWorkshop = computed(() => {
+    const now = new Date();
+    return (
+        workshops
+            .filter((workshop) => new Date(workshop.date) > now)
+            .sort((a, b) => new Date(a.date) - new Date(b.date))[0] || null
+    );
+});
+
+const upcomingWorkshops = computed(() => {
+    const now = new Date();
+    return workshops
+        .filter((workshop) => new Date(workshop.date) > now)
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .slice(1);
+});
+
+const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("de-DE", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    }).format(date);
 };
+
+const menuButtons = ref([
+    {
+        label: "Projekt",
+        routeTo: "/project",
+    },
+    {
+        label: "Kartenansicht",
+        routeTo: "/map",
+    },
+    {
+        label: "Mitforschen",
+        routeTo: "/collaboration",
+    },
+]);
 </script>
 
 <style scoped>

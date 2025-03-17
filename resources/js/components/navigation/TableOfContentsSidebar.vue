@@ -103,14 +103,106 @@
                 <v-list-item-subtitle> 11/2020 – 12/2025 </v-list-item-subtitle>
             </v-list-item>
             <v-divider></v-divider>
+
+            <v-list-item v-if="route.path != '/workshops'">
+                <v-list-item-title class="font-weight-bold mb-4 mt-2">
+                    Nächste Werkstatt für historische Daten:
+                </v-list-item-title>
+                <div v-if="nextWorkshop">
+                    <p>
+                        <strong>{{ nextWorkshop.label }}</strong>
+                        <br />
+                        Am {{ formatDate(nextWorkshop.date) }} Uhr ({{
+                            nextWorkshop.place
+                        }})
+                        <br />
+                        <a
+                            :href="nextWorkshop.link"
+                            target="_blank"
+                            v-if="nextWorkshop.link"
+                        >
+                            <v-icon start size="sm" class="mb-1"
+                                >mdi-open-in-new</v-icon
+                            >
+                            Mehr Informationen zum Termin
+                        </a>
+                    </p>
+                </div>
+                <p v-else>Aktuell ist kein Workshop geplant.</p>
+
+                <v-expansion-panels focusable>
+                    <v-expansion-panel>
+                        <v-expansion-panel-title
+                            class="font-weight-bold"
+                            color="rgba(255, 255, 255, 0.5)"
+                            flat
+                        >
+                            Weitere Werkstatt-Termine
+                        </v-expansion-panel-title>
+                        <v-expansion-panel-text>
+                            <p
+                                v-for="workshop in upcomingWorkshops"
+                                :key="workshop.date"
+                            >
+                                <span v-if="workshop.date">
+                                    <strong>
+                                        <a
+                                            :href="nextWorkshop.link"
+                                            target="_blank"
+                                            v-if="nextWorkshop.link"
+                                            >{{ workshop.label }}</a
+                                        ></strong
+                                    >
+                                    <br />
+                                    <span>
+                                        {{ formatDate(workshop.date) }}
+                                        Uhr
+                                    </span>
+                                </span>
+                            </p>
+                        </v-expansion-panel-text>
+                    </v-expansion-panel>
+                </v-expansion-panels>
+            </v-list-item>
         </div>
         <v-divider></v-divider>
     </section>
 </template>
 
 <script setup>
-import { ref, inject } from "vue";
+import { ref, inject, computed } from "vue";
+import { workshops } from "../../data/workshops";
+import { useRoute } from "vue-router";
+const route = useRoute();
 const ogtGlobals = inject("ogtGlobals");
+
+const nextWorkshop = computed(() => {
+    const now = new Date();
+    return (
+        workshops
+            .filter((workshop) => new Date(workshop.date) > now)
+            .sort((a, b) => new Date(a.date) - new Date(b.date))[0] || null
+    );
+});
+
+const upcomingWorkshops = computed(() => {
+    const now = new Date();
+    return workshops
+        .filter((workshop) => new Date(workshop.date) > now)
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .slice(1);
+});
+
+const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("de-DE", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    }).format(date);
+};
 </script>
 
 <script>

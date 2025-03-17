@@ -7,6 +7,7 @@ const Counts = () => import("./components/Counts.vue");
 // const Entry = () => import('./components/Entry.vue');
 const Bibliography = () => import("./components/Bibliography.vue");
 const Collaboration = () => import("./components/Collaboration.vue");
+const Workshops = () => import("./components/Workshops.vue");
 
 export const routes = [
     {
@@ -73,6 +74,14 @@ export const routes = [
         component: Collaboration,
         meta: {
             title: "Mitforschen: Gestapo. Terror. Orte",
+        },
+    },
+    {
+        name: "workshops",
+        path: "/workshops",
+        component: Workshops,
+        meta: {
+            title: "Werkstätte für historische Daten: Gestapo. Terror. Orte",
         },
     },
     { path: "/:catchAll(.*)", redirect: "/welcome" },
