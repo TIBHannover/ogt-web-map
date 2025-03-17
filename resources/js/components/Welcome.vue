@@ -45,6 +45,44 @@
                     </v-btn>
                 </router-link>
             </template>
+            <v-divider :thickness="5" class="my-12"></v-divider>
+            <v-banner
+                class="py-6"
+                icon="mdi-map"
+                color="black"
+                border="1"
+                bg-color="rgba(255, 255, 255, 0.5)"
+            >
+                <v-banner-text>
+                    <div
+                        class="font-family-special-elite mb-2 text-h4 text-sm-h3 text-md-h4 text-lg-h3"
+                    >
+                        Werkstatt historische Daten
+                    </div>
+                    <div class="">
+                        Die nächste "Werkstatt historische Daten" ist am 25.
+                        März 2025 um 10:00 Uhr.
+                    </div>
+                    <p>Jetzt anmelden und mitforschen!</p>
+                </v-banner-text>
+
+                <v-banner-actions>
+                    <v-btn
+                        class="background-color-grey border-none justify-start ml-1 mr-5 my-3 text-h6 text-transform-none"
+                        color="white"
+                        elevation="24"
+                        min-width="200px"
+                        variant="outlined"
+                        rounded
+                        size="x-large"
+                        href="https://projects.tib.eu/ogt-orte-des-gestapoterrors/veranstaltungen/"
+                        target="_blank"
+                    >
+                        <v-icon start> mdi-arrow-right-thick </v-icon>
+                        Zur Werkstattanmeldung
+                    </v-btn>
+                </v-banner-actions>
+            </v-banner>
         </div>
     </v-container>
 </template>
