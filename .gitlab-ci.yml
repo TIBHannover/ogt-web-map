@@ -7,11 +7,22 @@ build:
     - if: $CI_COMMIT_BRANCH == "master"
       variables:
         IMAGE_TAG: "stable"
+        WEBHOOK_URL: "http://ogt21.service.tib.eu:9000/hooks/pull-latest-image"  # Production webhook
     - if: $CI_COMMIT_BRANCH == "develop"
       variables:
         IMAGE_TAG: "develop"
+        WEBHOOK_URL: "http://ogt11.test.service.tib.eu:9000/hooks/pull-latest-image"  # Development webhook
   script:
     - /kaniko/executor
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
       --destination "${CI_REGISTRY_IMAGE}:${IMAGE_TAG}"
+
+deploy:
+  stage: deploy
+  image: curlimages/curl
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+    - if: $CI_COMMIT_BRANCH == "develop"
+  script:
+    - curl -X POST ${WEBHOOK_URL}
