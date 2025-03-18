@@ -33,6 +33,6 @@ deploy:
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
     - if: $CI_COMMIT_BRANCH == "develop"
-  script:
-    - echo "Using webhook URL: ${WEBHOOK_URL}"
-    - curl -X POST ${WEBHOOK_URL}
+  script: |
+    echo "Using webhook URL: ${WEBHOOK_URL}"
+    curl -X POST ${WEBHOOK_URL}
