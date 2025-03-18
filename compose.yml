@@ -1,8 +1,6 @@
 services:
     app:
-        build:
-            context: .
-            dockerfile: Dockerfile
+        image: hub.docker.tib.eu/nfdi4culture/ogt/ogt-api:${DOCKER_VERSION}
         ports:
             - "80:80"
         volumes:
