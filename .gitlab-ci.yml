@@ -1,0 +1,22 @@
+build:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    entrypoint: [""]
+  script:
+    - >
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:${TAG_NAME}"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      changes:
+        - Dockerfile
+      variables:
+        TAG_NAME: "stable"
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+      changes:
+        - Dockerfile
+      variables:
+        TAG_NAME: "develop"
