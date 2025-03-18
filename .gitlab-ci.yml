@@ -1,3 +1,6 @@
+variables:
+  WEBHOOK_URL: "" # Default empty value
+
 build:
   stage: build
   image:
@@ -17,12 +20,19 @@ build:
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
       --destination "${CI_REGISTRY_IMAGE}:${IMAGE_TAG}"
+    - echo "WEBHOOK_URL=${WEBHOOK_URL}" >> build.env
+  artifacts:
+    reports:
+      dotenv: build.env
 
 deploy:
   stage: deploy
   image: curlimages/curl
+  needs:
+    - build
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
     - if: $CI_COMMIT_BRANCH == "develop"
   script:
+    - echo "Using webhook URL: ${WEBHOOK_URL}"
     - curl -X POST ${WEBHOOK_URL}
