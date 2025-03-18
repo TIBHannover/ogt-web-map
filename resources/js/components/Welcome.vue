@@ -191,7 +191,7 @@ const backgroundImageUrl = ref(
     ogtGlobals.proxyPath + "/images/static/startPageBackground.jpg",
 );
 const backgroundImageUrlFallback1 = ref(
-    "https://service.tib.eu/ogt/images/static/startPageBackground.jpg",
+    "https://www.gestapo-terror-orte.de/images/static/startPageBackground.jpg",
 );
 const backgroundImageUrlFallback2 = ref(
     ogtGlobals.proxyPath + "/images/solid-grey.svg",

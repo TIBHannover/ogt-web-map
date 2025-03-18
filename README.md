@@ -1,4 +1,4 @@
-[![Gestapo.Terror.Places in Lower Saxony 1933–1945 Banner](https://service.tib.eu/ogt/images/static/bannerEn.jpg "Visit places of Gestapo terror in present-day Lower Saxony")](http://tib.eu/gestapo-terror-orte)
+[![Gestapo.Terror.Places in Lower Saxony 1933–1945 Banner](https://www.gestapo-terror-orte.de/images/static/bannerEn.jpg "Visit places of Gestapo terror in present-day Lower Saxony")](http://tib.eu/gestapo-terror-orte)
 
 # Table of contents
 - [OGT web app](#ogt-web-map)
