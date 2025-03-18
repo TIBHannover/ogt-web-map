@@ -128,37 +128,49 @@
                             >
                         </span>
                     </p>
-                    <v-table width="500px">
+                    <v-table width="500px" id="table-counts">
                         <thead>
-                            <tr class="">
+                            <tr>
                                 <th width="300">Ort oder Person</th>
-                                <th width="100">Aktuell:</th>
-                                <th width="100">
-                                    28.02.2025
-                                    <v-icon
-                                        color="blue"
-                                        width="25px"
-                                        v-tooltip:top="
-                                            'Nach dem zweiten Workshop'
-                                        "
+                                <th width="100" class="text-center">
+                                    Aktuell:
+                                </th>
+                                <th width="100" class="text-center">
+                                    <span
+                                        class="w-full justify-center d-flex ga-2"
                                     >
-                                        mdi-information-outline
-                                    </v-icon>
+                                        <span> 28.02.2025 </span>
+                                        <v-icon
+                                            color="blue"
+                                            width="25px"
+                                            v-tooltip:top="
+                                                'Nach dem zweiten Workshop'
+                                            "
+                                        >
+                                            mdi-information-outline
+                                        </v-icon>
+                                    </span>
                                 </th>
 
-                                <th width="100">
-                                    26.02.2025
-                                    <v-icon
-                                        color="blue"
-                                        width="25px"
-                                        v-tooltip:top="
-                                            'Nach dem ersten Workshop'
-                                        "
+                                <th width="100" class="text-center">
+                                    <span
+                                        class="w-full justify-center d-flex ga-2"
                                     >
-                                        mdi-information-outline
-                                    </v-icon>
+                                        <span>26.02.2025</span>
+                                        <v-icon
+                                            color="blue"
+                                            width="25px"
+                                            v-tooltip:top="
+                                                'Nach dem ersten Workshop'
+                                            "
+                                        >
+                                            mdi-information-outline
+                                        </v-icon>
+                                    </span>
                                 </th>
-                                <th width="100">24.02.2025</th>
+                                <th width="100" class="text-center">
+                                    <span>24.02.2025</span>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -170,7 +182,7 @@
                             >
                                 <td>
                                     <v-grid>
-                                        <v-row>
+                                        <v-row justify="center">
                                             <v-col cols="3">
                                                 <span>
                                                     <v-img
@@ -181,7 +193,7 @@
                                             </v-col>
                                             <v-col
                                                 cols="9"
-                                                class="align-center"
+                                                class="align-center align-content-center"
                                             >
                                                 <span>
                                                     {{ groupName.layerName }}
@@ -232,10 +244,13 @@ import {
     onUnmounted,
     computed,
     defineExpose,
+    nextTick,
 } from "vue";
 import Email from "./helpers/Email";
+import axios from "axios";
 import TableOfContentsSidebar from "./navigation/TableOfContentsSidebar";
 import { workshops } from "../data/workshops";
+import { groupedPlaces } from "../data/counts";
 
 const { mdAndUp } = useDisplay();
 const ogtGlobals = inject("ogtGlobals");
@@ -298,154 +313,110 @@ const headings = ref([
     },
 ]);
 
-const groupedPlaces = ref({
-    events: {
-        color: "#8c1f21",
-        iconName: "events.svg",
-        layerKey: "events",
-        layerGroup: null,
-        layerName: "Ereignisse",
-        places: {},
-        placesByCoordinates: [],
-        countHistory: {
-            "2025-02-28": "25",
-            "2025-02-26": "17",
-            "2025-02-24": "14",
-        },
-    },
-    extPolicePrisons: {
-        color: "#3d3b3d",
-        iconName: "extPolicePrisons.svg",
-        layerKey: "extPolicePrisons",
-        layerGroup: null,
-        layerName: "Erweiterte Polizeigefängnisse",
-        places: {},
-        placesByCoordinates: [],
-        countHistory: {
-            "2025-02-28": "4",
-            "2025-02-26": "4",
-            "2025-02-24": "4",
-        },
-    },
-    fieldOffices: {
-        color: "#456879",
-        iconName: "fieldOffices.svg",
-        layerKey: "fieldOffices",
-        layerGroup: null,
-        layerName: "Außendienststellen",
-        places: {},
-        placesByCoordinates: [],
-        countHistory: {
-            "2025-02-28": "39",
-            "2025-02-26": "39",
-            "2025-02-24": "39",
-        },
-    },
-    laborEducationCamps: {
-        color: "#3d3b3d",
-        iconName: "laborEducationCamps.svg",
-        layerKey: "laborEducationCamps",
-        layerGroup: null,
-        layerName: "Arbeitserziehungslager",
-        places: {},
-        placesByCoordinates: [],
-        countHistory: {
-            "2025-02-28": "24",
-            "2025-02-26": "24",
-            "2025-02-24": "24",
-        },
-    },
-    memorials: {
-        color: "#f3a923",
-        iconName: "memorials.svg",
-        layerKey: "memorials",
-        layerGroup: null,
-        layerName: "Erinnerungsorte",
-        places: {},
-        placesByCoordinates: [],
-        countHistory: {
-            "2025-02-28": "25",
-            "2025-02-26": "25",
-            "2025-02-24": "24",
-        },
-    },
-    prisons: {
-        color: "#3d3b3d",
-        iconName: "prisons.svg",
-        layerKey: "prisons",
-        layerGroup: null,
-        layerName: "Gefängnisse",
-        places: {},
-        placesByCoordinates: [],
-        countHistory: {
-            "2025-02-28": "8",
-            "2025-02-26": "8",
-            "2025-02-24": "8",
-        },
-    },
-    statePoliceHeadquarters: {
-        color: "#456879",
-        iconName: "statePoliceHeadquarters.svg",
-        layerKey: "statePoliceHeadquarters",
-        layerGroup: null,
-        layerName: "Staatspolizeileitstellen",
-        places: {},
-        placesByCoordinates: [],
-        countHistory: {
-            "2025-02-28": "6",
-            "2025-02-26": "6",
-            "2025-02-24": "6",
-        },
-    },
-    statePoliceOffices: {
-        color: "#456879",
-        iconName: "statePoliceOffices.svg",
-        layerKey: "statePoliceOffices",
-        layerGroup: null,
-        layerName: "Staatspolizeistellen",
-        places: {},
-        placesByCoordinates: [],
-        countHistory: {
-            "2025-02-28": "20",
-            "2025-02-26": "20",
-            "2025-02-24": "20",
-        },
-    },
-    perpetrators: {
-        color: "#456879",
-        iconName: "",
-        layerKey: "perpetrators",
-        layerGroup: null,
-        layerName: "Täter*innen",
-        places: {},
-        placesByCoordinates: [],
-        countHistory: {
-            "2025-02-28": "50",
-            "2025-02-26": "50",
-            "2025-02-24": "50",
-        },
-    },
-    victims: {
-        color: "#456879",
-        iconName: "",
-        layerKey: "victims",
-        layerGroup: null,
-        layerName: "Geschädigte",
-        places: {},
-        placesByCoordinates: [],
-        countHistory: {
-            "2025-02-28": "757",
-            "2025-02-26": "748",
-            "2025-02-24": "744",
-        },
-    },
+const persons = ref({
+    perpetrators: {},
+    victims: {},
 });
 
 const mapMarkerIconsPath = ref(
     "/images/leaflet/markerIcons/coloredFilledWhite/",
 );
 
-defineExpose({ workshops });
+onMounted(async () => {
+    try {
+        // Warten auf DOM-Update
+        await nextTick();
+
+        const CountTable = document.getElementById("table-counts");
+        if (CountTable) {
+            try {
+                await nextTick();
+                // Daten laden
+                await getGroupedPlaces();
+                await getPersons();
+            } catch (error) {
+                console.error("Error updating map:", error);
+            }
+        }
+    } catch (error) {
+        console.error("Error during component mount:", error);
+    }
+});
+
+const getGroupedPlaces = async () => {
+    try {
+        let groupedPlaces = {};
+
+        await axios
+            .get("/api/wikidata/places")
+            .then((response) => {
+                groupedPlaces = response.data;
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+
+        await nextTick();
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        updatePlacesInfoData(groupedPlaces);
+    } catch (error) {
+        console.error("Error fetching grouped places:", error);
+    }
+};
+
+const updatePlacesInfoData = (groupedPlaces) => {
+    Object.entries(groupedPlaces).forEach(([groupName, groupData]) => {
+        if (groupData) {
+            // Updating Count number for current state
+            const LayerCountSpan = document.querySelector(
+                '[data-groupuid="' + groupName + '"]',
+            );
+            const groupLength = Object.keys(groupData).length - 1;
+            if (LayerCountSpan) {
+                LayerCountSpan.innerHTML = groupLength;
+            }
+
+            let groupTableDatas = document.querySelectorAll(
+                '[data-groupname="' + groupName + '"]',
+            );
+        }
+    });
+};
+
+const getPersons = async () => {
+    try {
+        const response = await axios.get("/api/wikidata/persons/cache");
+        persons.value = response.data;
+        await nextTick();
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        updatePersonInfoData();
+    } catch (error) {
+        console.error("Error fetching persons:", error);
+    }
+};
+
+const updatePersonInfoData = () => {
+    const perpetratorsCount = Object.keys(persons.value.perpetrators).length;
+    const victimsCount = Object.keys(persons.value.victims).length - 1;
+
+    const victimsEntries = Object.entries(persons.value.victims);
+    const perpetratorsEntries = Object.entries(persons.value.perpetrators);
+
+    // Update the DOM elements with the counts
+    const perpetratorsSpan = document.querySelector(
+        '[data-groupuid="perpetrators"]',
+    );
+    const victimsSpan = document.querySelector('[data-groupuid="victims"]');
+
+    if (perpetratorsSpan) {
+        perpetratorsSpan.innerHTML = perpetratorsCount;
+    }
+
+    if (victimsSpan) {
+        victimsSpan.innerHTML = victimsCount;
+    }
+};
 </script>
 
 <style scoped>
