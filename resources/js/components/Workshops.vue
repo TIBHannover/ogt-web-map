@@ -14,7 +14,7 @@
                     class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-h4 text-md-h3"
                     lang="de"
                 >
-                    Werkstätte für historische Daten
+                    Mitforschen: Werkstätte
                 </h1>
             </v-col>
         </v-row>
@@ -22,7 +22,7 @@
         <v-row>
             <v-col
                 class="col-12 col-sm-2 order-sm-last"
-                style="min-width: 310px"
+                style="max-width: 310px; min-width: 310px"
             >
                 <table-of-contents-sidebar
                     :headings="headings"
@@ -66,6 +66,107 @@
 
                 <v-divider class="my-6"></v-divider>
 
+                <section id="workshopInfo">
+                    <h1
+                        class="font-weight-medium text-h5 text-md-h4 mb-5"
+                        :class="{ 'font-size-29': $vuetify.display.mdAndUp }"
+                    >
+                        Werkstatt historische Daten
+                    </h1>
+                    <p>
+                        <strong
+                            >Mach mit: Werkstatt historische Daten zum
+                            Gestapoterror in Wikidata</strong
+                        >
+                    </p>
+
+                    <p>
+                        Nimm an unseren Online Werkstatt historische Daten teil
+                        und helfe dabei, Daten zum Gestapoterror in Wikidata
+                        einzutragen und so die interaktive Karte weiter zu
+                        füllen! So machen wir gemeinsam Wissen über die
+                        Geschichte der Gestapo besser zugänglich.
+                    </p>
+
+                    <p>
+                        <strong>Jede*r kann mitmachen!</strong><br />
+                        Egal, ob du schon Daten oder Vorkenntnisse hast – alle
+                        sind willkommen. Wenn du Informationen zur Geschichte
+                        der Gestapo hast, bring sie gerne mit. Wir stellen aber
+                        auch Material zur Verfügung, damit jede*r aktiv
+                        beitragen kann.
+                    </p>
+
+                    <p>
+                        <strong>Was du mitnimmst</strong> <br />
+
+                        Du trägst nicht nur dazu bei, die Geschichte der Gestapo
+                        zugänglicher zu machen, sondern du entwickelst auch
+                        eigene Fähigkeiten weiter:
+                    </p>
+                    <ul class="mb-6 ml-6">
+                        <li>
+                            <strong>Digitale Kompetenzen:</strong> <br />Du
+                            lernst, wie man mit Wikidata arbeitet, Daten
+                            strukturiert und für die Forschung nutzbar macht.
+                        </li>
+                        <li>
+                            <strong>Einblick in Forschungsarbeit:</strong><br />
+                            Du erhältst eine Einführung in die Arbeit mit
+                            historischen Forschungsdaten und verstehst, wie
+                            wissenschaftliches Wissen entsteht und genutzt wird.
+                        </li>
+                        <li>
+                            <strong>Austausch und Vernetzung:</strong><br />
+                            Unsere Werkstatt bringt Menschen mit
+                            unterschiedlichen Hintergründen zusammen. Tausche
+                            dich mit Historiker*innen und anderen Teilnehmenden
+                            aus der digitalen Welt aus, lerne voneinander und
+                            profitiere von interdisziplinären Perspektiven.
+                        </li>
+                    </ul>
+                    <p class="mb-0"><strong>So läuft es ab:</strong></p>
+                    <ul class="mb-6 ml-6">
+                        <li>
+                            Die Workshops finden zu verschiedenen Terminen
+                            online statt.
+                        </li>
+                        <li>
+                            Du kannst jederzeit einsteigen. Für alle, die es
+                            brauchen, gibt es eine kurze Einführung.
+                        </li>
+
+                        <li>
+                            Eine Anmeldung über unser Formular ist nötig. Nach
+                            der Anmeldung erhältst du den Zugangslink zum
+                            Meeting per E-Mail.
+                        </li>
+                    </ul>
+                    <v-btn
+                        class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 text-transform-none"
+                        color="black"
+                        background="grey"
+                        elevation="24"
+                        min-width="200px"
+                        variant="outlined"
+                        rounded
+                        size="x-large"
+                        href="https://projects.tib.eu/ogt-orte-des-gestapoterrors/veranstaltungen/zur-werkstatt-historische-daten-anmelden/"
+                        target="_blank"
+                    >
+                        <v-icon start class="ml-3">
+                            mdi-arrow-right-thick
+                        </v-icon>
+                        Hier geht es zum Anmeldeformular!
+                    </v-btn>
+
+                    <p>
+                        Wir freuen uns auf deine Teilnahme und dein Engagement!
+                    </p>
+                </section>
+
+                <v-divider class="my-6"></v-divider>
+
                 <section id="nextWorkshops">
                     <h2
                         class="font-weight-medium text-h5 text-md-h4 mb-5"
@@ -100,17 +201,12 @@
                         </span>
                     </p>
                 </section>
-            </v-col>
-        </v-row>
-        <v-row>
-            <v-col>
                 <section id="results">
                     <h2
                         class="font-weight-medium text-h5 text-md-h4 mb-5"
                         :class="{ 'font-size-29': $vuetify.display.mdAndUp }"
                     >
-                        Visualisierung der Anzahl der angezeigten Datensätze auf
-                        der Karte
+                        Ergebnisse der "Werkstatt historische Daten"
                     </h2>
 
                     <p style="max-width: 800px">
@@ -144,7 +240,7 @@
                                             color="blue"
                                             width="25px"
                                             v-tooltip:top="
-                                                'Nach dem zweiten Workshop'
+                                                'Nach der zweiten Werkstatt'
                                             "
                                         >
                                             mdi-information-outline
@@ -161,7 +257,7 @@
                                             color="blue"
                                             width="25px"
                                             v-tooltip:top="
-                                                'Nach dem ersten Workshop'
+                                                'Nach der ersten Werkstatt'
                                             "
                                         >
                                             mdi-information-outline
@@ -302,6 +398,10 @@ const headings = ref([
     {
         href: "#citizenScience",
         label: '"Gestapo.Terror.Orte" - Ein Citizen Science Projekt',
+    },
+    {
+        href: "#workshopInfo",
+        label: "Werkstatt historische Daten",
     },
     {
         href: "#nextWorkshops",

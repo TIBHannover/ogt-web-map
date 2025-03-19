@@ -6,18 +6,17 @@ const Charts = () => import("./components/Charts.vue");
 const Counts = () => import("./components/Counts.vue");
 // const Entry = () => import('./components/Entry.vue');
 const Bibliography = () => import("./components/Bibliography.vue");
-const Collaboration = () => import("./components/Collaboration.vue");
 const Workshops = () => import("./components/Workshops.vue");
 
 export const routes = [
     {
         name: "welcome",
-        path: "/welcome",
+        path: "/starteite",
         component: Welcome,
     },
     {
         name: "project",
-        path: "/project",
+        path: "/projekt",
         component: Project,
         meta: {
             title: "Projektübersicht: Gestapo. Terror. Orte",
@@ -25,7 +24,7 @@ export const routes = [
     },
     {
         name: "glossary",
-        path: "/glossary",
+        path: "/glossar",
         component: Glossary,
         meta: {
             title: "Glossar: Gestapo. Terror. Orte",
@@ -44,7 +43,7 @@ export const routes = [
         path: "/charts",
         component: Charts,
         meta: {
-            title: "Charts: Gestapo. Terror. Orte",
+            title: "Datenvisualisierung: Gestapo. Terror. Orte",
         },
     },
     {
@@ -69,16 +68,8 @@ export const routes = [
         },
     },
     {
-        name: "collaboration",
-        path: "/collaboration",
-        component: Collaboration,
-        meta: {
-            title: "Mitforschen: Gestapo. Terror. Orte",
-        },
-    },
-    {
         name: "workshops",
-        path: "/workshops",
+        path: "/werkstaette",
         component: Workshops,
         meta: {
             title: "Werkstätte für historische Daten: Gestapo. Terror. Orte",
