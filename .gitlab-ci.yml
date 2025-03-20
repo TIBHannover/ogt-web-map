@@ -11,12 +11,15 @@ build:
       variables:
         IMAGE_TAG: "stable"
         WEBHOOK_URL: "http://ogt21.service.tib.eu:9000/hooks/pull-latest-image" # Production webhook
+        URL: "https://www.gestapo-terror-orte.de"
     - if: $CI_COMMIT_BRANCH == "develop"
       variables:
         IMAGE_TAG: "develop"
         WEBHOOK_URL: "http://ogt11.test.service.tib.eu:9000/hooks/pull-latest-image" # Development webhook
+        URL: "https://test.gestapo-terror-orte.de"
   script:
     - /kaniko/executor
+      --build-arg "APP_URL=${URL}"
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
       --destination "${CI_REGISTRY_IMAGE}:${IMAGE_TAG}"
