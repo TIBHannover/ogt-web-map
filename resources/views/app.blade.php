@@ -7,13 +7,13 @@
     <title>Gestapo. Terror. Orte</title>
     <meta name="description" content="Die interaktive Karte zeigt Orte des Gestapo-Terrors in Niedersachsen zur NS-Zeit und spätere Erinnerungsorte. Recherchiere Infos oder trage neue Daten ein! ">
     <meta name="keywords" content="Gestapo, Terror, Orte, Geschichtliches Erbe, Open Access, Erinnerungskultur">
-    <link rel="stylesheet" href="/css/app.css">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
 
 <body>
 <div id="app"></div>
 
-<script src="/js/app.js"></script>
+<script src="{{ asset('js/app.js') }}"></script>
 </body>
 
 </html>

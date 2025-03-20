@@ -75,5 +75,5 @@ export const routes = [
             title: "Werkstätte für historische Daten: Gestapo. Terror. Orte",
         },
     },
-    { path: "/:catchAll(.*)", redirect: "/welcome" },
+    { path: "/:catchAll(.*)", redirect: "/starteite" },
 ];
