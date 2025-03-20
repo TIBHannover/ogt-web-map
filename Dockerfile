@@ -1,7 +1,7 @@
 FROM php:8.3-fpm-alpine
 
-ARG ASSET_URL
-ENV ASSET_URL=$ASSET_URL
+ARG MIX_ASSET_URL
+ENV MIX_ASSET_URL=$MIX_ASSET_URL
 
 # Install system dependencies
 RUN apk add --no-cache \
