@@ -1,11 +1,16 @@
 services:
   app:
-    image: hub.docker.tib.eu/nfdi4culture/ogt/ogt-api:${DOCKER_VERSION}
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - "80:80"
+      - "8000:80"
     volumes:
-      - ./storage:/var/www/html/storage
+      - storage:/var/www/html/storage
       - ./.env:/var/www/html/.env:ro
       - ./logs:/var/log/nginx
     env_file:
       - ./.env
+
+volumes:
+  storage:

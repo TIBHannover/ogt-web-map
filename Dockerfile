@@ -3,6 +3,8 @@ FROM php:8.3-fpm-alpine
 ARG ASSET_URL
 ENV ASSET_URL=$ASSET_URL
 
+
+
 # Install system dependencies
 RUN apk add --no-cache \
     nginx \
@@ -47,11 +49,12 @@ WORKDIR /var/www/html
 # Copy application
 COPY . .
 
+
 # Install dependencies and build
 RUN composer install --optimize-autoloader --no-dev && \
     npm install && \
     npm run prod && \
-    chmod -R 775 storage bootstrap/cache
+    chmod -R 777 storage bootstrap/cache
 
 # Startup script
 COPY docker/start.sh /start.sh

@@ -12,31 +12,6 @@ const webpack = require("webpack");
  |
  */
 
-/* required for Leaflet layer control icon */
-mix.setResourceRoot(process.env.MIX_ASSET_URL || "");
-
-/* set reverse proxy sub-path required for generated links to resources */
-if (["production", "testing"].includes(process.env.APP_ENV)) {
-    mix.webpackConfig({
-        output: {
-            publicPath: process.env.MIX_PROXY_PATH + "/",
-        },
-    });
-}
-
-mix.webpackConfig({
-    plugins: [
-        new webpack.DefinePlugin({
-            "process.env.MIX_ASSET_URL": JSON.stringify(
-                process.env.MIX_ASSET_URL,
-            ),
-            __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: JSON.stringify(false),
-            __VUE_OPTIONS_API__: JSON.stringify(true),
-            __VUE_PROD_DEVTOOLS__: JSON.stringify(false),
-        }),
-    ],
-});
-
 mix.js("resources/js/app.js", "public/js")
     .vue({
         options: {
