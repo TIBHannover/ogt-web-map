@@ -23,7 +23,8 @@
         <section v-if="showOverview">
             <v-row>
                 <v-col class="hyphens-auto" cols="12" lang="de">
-                    <h2 class="mb-3 text-h6 text-md-h5">
+                    <!--
+                <h2 class="mb-3 text-h6 text-md-h5">
                         Visualisierung von Daten zu Organisationen, Ereignissen,
                         Erinnerungsorten, Tätern und Geschädigten
                     </h2>
@@ -41,11 +42,134 @@
                             >
                         </span>
                     </p>
+                    -->
                 </v-col>
             </v-row>
 
             <!-- charts -->
             <v-row>
+                <v-col cols="12">
+                    <section id="results">
+                        <h2
+                            class="font-weight-medium text-h5 text-md-h4 mb-5"
+                            :class="{
+                                'font-size-29': $vuetify.display.mdAndUp,
+                            }"
+                        >
+                            Ergebnisse der "Werkstatt historische Daten"
+                        </h2>
+
+                        <p style="max-width: 800px">
+                            Die folgende Datenvisualisierung macht die
+                            Fortschritte der partizipativen Arbeit in der
+                            Werkstatt historische Daten nachvollziehbar und
+                            zeigt Entwicklungen im Projektverlauf auf.
+                        </p>
+                        <v-table width="500px" id="table-counts">
+                            <thead>
+                                <tr>
+                                    <th width="300">Ort oder Person</th>
+                                    <th width="100" class="text-center">
+                                        Aktuell:
+                                    </th>
+                                    <th width="100" class="text-center">
+                                        <span
+                                            class="w-full justify-center d-flex ga-2"
+                                        >
+                                            <span> 28.02.2025 </span>
+                                            <v-icon
+                                                color="blue"
+                                                width="25px"
+                                                v-tooltip:top="
+                                                    'Nach der zweiten Werkstatt'
+                                                "
+                                            >
+                                                mdi-information-outline
+                                            </v-icon>
+                                        </span>
+                                    </th>
+
+                                    <th width="100" class="text-center">
+                                        <span
+                                            class="w-full justify-center d-flex ga-2"
+                                        >
+                                            <span>26.02.2025</span>
+                                            <v-icon
+                                                color="blue"
+                                                width="25px"
+                                                v-tooltip:top="
+                                                    'Nach der ersten Werkstatt'
+                                                "
+                                            >
+                                                mdi-information-outline
+                                            </v-icon>
+                                        </span>
+                                    </th>
+                                    <th width="100" class="text-center">
+                                        <span>24.02.2025</span>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr
+                                    v-for="groupName in groupedPlaces"
+                                    :key="groupName + '-row'"
+                                    density="compact"
+                                    hide-details
+                                >
+                                    <td>
+                                        <v-grid>
+                                            <v-row justify="center">
+                                                <v-col cols="3">
+                                                    <span>
+                                                        <v-img
+                                                            :width="34"
+                                                            :src="`${mapMarkerIconsPath}${groupName.iconName}`"
+                                                        ></v-img>
+                                                    </span>
+                                                </v-col>
+                                                <v-col
+                                                    cols="9"
+                                                    class="align-center align-content-center"
+                                                >
+                                                    <span>
+                                                        {{
+                                                            groupName.layerName
+                                                        }}
+                                                    </span>
+                                                </v-col>
+                                            </v-row>
+                                        </v-grid>
+                                    </td>
+                                    <td
+                                        class="text-center"
+                                        data-count="current"
+                                        :data-groupName="groupName.layerKey"
+                                    >
+                                        <span
+                                            :data-groupUid="groupName.layerKey"
+                                            class="font-weight-bold"
+                                        >
+                                            0
+                                        </span>
+                                    </td>
+                                    <td
+                                        v-for="[date, value] in Object.entries(
+                                            groupName.countHistory,
+                                        )"
+                                        :key="date"
+                                        class="text-center"
+                                        :data-count="value"
+                                        :data-groupName="groupName.layerKey"
+                                    >
+                                        {{ value }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </v-table>
+                    </section>
+                </v-col>
+                <!--
                 <v-col
                     cols="12"
                     md="6"
@@ -73,6 +197,7 @@
                         </v-card-actions>
                     </v-card>
                 </v-col>
+                -->
             </v-row>
         </section>
 
@@ -120,8 +245,124 @@
 </template>
 
 <script setup>
-import { ref, inject } from "vue";
+import { useDisplay } from "vuetify";
+import {
+    ref,
+    inject,
+    defineProps,
+    onMounted,
+    onUnmounted,
+    computed,
+    defineExpose,
+    nextTick,
+} from "vue";
 const ogtGlobals = inject("ogtGlobals");
+import { groupedPlaces } from "../data/counts";
+
+const persons = ref({
+    perpetrators: {},
+    victims: {},
+});
+
+const mapMarkerIconsPath = ref(
+    "/images/leaflet/markerIcons/coloredFilledWhite/",
+);
+
+onMounted(async () => {
+    try {
+        // Warten auf DOM-Update
+        await nextTick();
+
+        const CountTable = document.getElementById("table-counts");
+        if (CountTable) {
+            try {
+                await nextTick();
+                // Daten laden
+                await getGroupedPlaces();
+                await getPersons();
+            } catch (error) {
+                console.error("Error updating map:", error);
+            }
+        }
+    } catch (error) {
+        console.error("Error during component mount:", error);
+    }
+});
+
+const getGroupedPlaces = async () => {
+    try {
+        let groupedPlaces = {};
+
+        await axios
+            .get("/api/wikidata/places")
+            .then((response) => {
+                groupedPlaces = response.data;
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+
+        await nextTick();
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        updatePlacesInfoData(groupedPlaces);
+    } catch (error) {
+        console.error("Error fetching grouped places:", error);
+    }
+};
+
+const updatePlacesInfoData = (groupedPlaces) => {
+    Object.entries(groupedPlaces).forEach(([groupName, groupData]) => {
+        if (groupData) {
+            // Updating Count number for current state
+            const LayerCountSpan = document.querySelector(
+                '[data-groupuid="' + groupName + '"]',
+            );
+            const groupLength = Object.keys(groupData).length - 1;
+            if (LayerCountSpan) {
+                LayerCountSpan.innerHTML = groupLength;
+            }
+
+            let groupTableDatas = document.querySelectorAll(
+                '[data-groupname="' + groupName + '"]',
+            );
+        }
+    });
+};
+
+const getPersons = async () => {
+    try {
+        const response = await axios.get("/api/wikidata/persons/cache");
+        persons.value = response.data;
+        await nextTick();
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        updatePersonInfoData();
+    } catch (error) {
+        console.error("Error fetching persons:", error);
+    }
+};
+
+const updatePersonInfoData = () => {
+    const perpetratorsCount = Object.keys(persons.value.perpetrators).length;
+    const victimsCount = Object.keys(persons.value.victims).length - 1;
+
+    const victimsEntries = Object.entries(persons.value.victims);
+    const perpetratorsEntries = Object.entries(persons.value.perpetrators);
+
+    // Update the DOM elements with the counts
+    const perpetratorsSpan = document.querySelector(
+        '[data-groupuid="perpetrators"]',
+    );
+    const victimsSpan = document.querySelector('[data-groupuid="victims"]');
+
+    if (perpetratorsSpan) {
+        perpetratorsSpan.innerHTML = perpetratorsCount;
+    }
+
+    if (victimsSpan) {
+        victimsSpan.innerHTML = victimsCount;
+    }
+};
 </script>
 
 <script>

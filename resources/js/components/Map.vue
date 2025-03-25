@@ -574,7 +574,8 @@ export default {
                     .catch((error) => {
                         console.log(error);
                     });
-
+                await nextTick();
+                console.log("groupedPlaces", groupedPlaces);
                 await visualizePlaces(groupedPlaces);
                 setCurrentValues();
                 derivePlaceData(groupedPlaces);
@@ -723,9 +724,14 @@ export default {
             setCurrentValues(minDate, maxDate, groupNames);
         };
         const visualizePlaces = async (groupedPlaces) => {
-            for (const [group, places] of Object.entries(groupedPlaces)) {
-                let placeMarkers = createPlaceMarkers(group, places);
-                createPlacesLayerGroups(group, placeMarkers);
+            try {
+                await nextTick();
+                for (const [group, places] of Object.entries(groupedPlaces)) {
+                    let placeMarkers = createPlaceMarkers(group, places);
+                    createPlacesLayerGroups(group, placeMarkers);
+                }
+            } catch (error) {
+                console.error("Error in visualizePlaces:", error);
             }
         };
         const createPlaceMarkers = (placeGroupName, places) => {

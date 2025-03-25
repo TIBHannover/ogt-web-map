@@ -30,21 +30,21 @@ export default {
                 {
                     title: "Startseite",
                     icon: "mdi-home",
-                    path: "/welcome",
+                    path: "/starteite",
                     show: true,
                     toMenu: "mainMenu",
                 },
                 {
                     title: "Projekt",
                     icon: "mdi-image-text",
-                    path: "/project",
+                    path: "/projekt",
                     show: true,
                     toMenu: "mainMenu",
                 },
                 {
                     title: "Glossar",
                     icon: "mdi-order-alphabetical-ascending",
-                    path: "/glossary",
+                    path: "/glossar",
                     show: true,
                     toMenu: "mainMenu",
                 },
@@ -76,10 +76,19 @@ export default {
                     show: true,
                     toMenu: "mainMenu",
                 },
+                /*
                 {
                     title: "Mitforschen",
                     icon: "mdi-at",
                     path: "/collaboration",
+                    show: true,
+                    toMenu: "mainMenu",
+                },
+                */
+                {
+                    title: "Mitforschen: Werstätte",
+                    icon: "mdi-pencil-outline",
+                    path: "/werkstaette",
                     show: true,
                     toMenu: "mainMenu",
                 },
