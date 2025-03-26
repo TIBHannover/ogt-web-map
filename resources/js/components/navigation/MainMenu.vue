@@ -86,7 +86,7 @@ export default {
                 },
                 */
                 {
-                    title: "Mitforschen: Werstätte",
+                    title: "Mitforschen: Werkstätte",
                     icon: "mdi-pencil-outline",
                     path: "/werkstaette",
                     show: true,

@@ -145,7 +145,7 @@
                         variant="outlined"
                         rounded
                         size="x-large"
-                        to="/workshops"
+                        to="/werkstaette"
                     >
                         <v-icon start class="ml-3">
                             mdi-arrow-right-thick
@@ -226,7 +226,7 @@ const formatDate = (dateString) => {
 const menuButtons = ref([
     {
         label: "Projekt",
-        routeTo: "/project",
+        routeTo: "/projekt",
     },
     {
         label: "Kartenansicht",
@@ -234,7 +234,7 @@ const menuButtons = ref([
     },
     {
         label: "Mitforschen",
-        routeTo: "/collaboration",
+        routeTo: "/werkstaette",
     },
 ]);
 </script>

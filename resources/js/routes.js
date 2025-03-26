@@ -61,7 +61,7 @@ export const routes = [
     }, */
     {
         name: "bibliography",
-        path: "/bibliography",
+        path: "/literatur",
         component: Bibliography,
         meta: {
             title: "Literatur: Gestapo. Terror. Orte",
