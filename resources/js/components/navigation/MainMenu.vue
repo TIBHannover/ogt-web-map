@@ -72,7 +72,7 @@ export default {
                 {
                     title: "Literatur",
                     icon: "mdi-book-multiple",
-                    path: "/bibliography",
+                    path: "/literatur",
                     show: true,
                     toMenu: "mainMenu",
                 },

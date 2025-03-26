@@ -75,5 +75,12 @@ export const routes = [
             title: "Werkstätte für historische Daten: Gestapo. Terror. Orte",
         },
     },
+    {
+        path: "/images/:pathMatch(.*)*",
+        name: "static-assets",
+        beforeEnter: (to, from, next) => {
+            next(false); // Verhindert das Routing für diese Pfade
+        },
+    },
     { path: "/:catchAll(.*)", redirect: "/starteite" },
 ];
