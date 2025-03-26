@@ -21,7 +21,6 @@
             mobile-breakpoint="sm"
             width="375"
             max-width="375"
-            :location="display.mobile ? 'bottom' : undefined"
             :disable-route-watcher="display.smAndDown"
             :class="{ isOpen: isMenuDisplayed }"
             class="mainMenu"
