@@ -1,6 +1,6 @@
 <template>
     <v-container
-        class="background bg-grey-lighten-3 justify-center"
+        class="background bg-grey-lighten-3 justify-center h-100"
         :class="{ 'xs-bg-x-shifted': $vuetify.display.xs }"
         fill-height
         fluid
