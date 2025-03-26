@@ -58,16 +58,17 @@ RUN composer install --optimize-autoloader --no-dev && \
 # Make sure storage and cache directories are writable
 RUN chmod -R 775 storage bootstrap/cache && \
     chown -R nginx:nginx storage bootstrap/cache
-RUN chown -R www-data:www-data /var/www/html/storage \
-    && chmod -R 775 /var/www/html/storage
 
 # Startup script
 COPY docker/start.sh /start.sh
 RUN chmod +x /start.sh
+
+COPY docker/init.sh /init.sh
+RUN chmod +x /init.sh
 
 EXPOSE 80
 
 # Switch to non-root user for running the container
 USER nginx
 
-CMD ["/start.sh"]
+CMD ["/bin/sh", "-c", "/init.sh && /start.sh"]
