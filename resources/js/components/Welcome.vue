@@ -186,10 +186,10 @@ const route = useRoute();
 const ogtGlobals = inject("ogtGlobals");
 
 const backgroundImageUrl = ref(
-    ogtGlobals.proxyPath + "/images/static/startPageBackground.jpg",
+    ogtGlobals.proxyPath + "/images/startPageBackground.jpg",
 );
 const backgroundImageUrlFallback1 = ref(
-    "https://www.gestapo-terror-orte.de/images/static/startPageBackground.jpg",
+    "https://www.gestapo-terror-orte.de/images/startPageBackground.jpg",
 );
 const backgroundImageUrlFallback2 = ref(
     ogtGlobals.proxyPath + "/images/solid-grey.svg",
