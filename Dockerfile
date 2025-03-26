@@ -58,6 +58,8 @@ RUN composer install --optimize-autoloader --no-dev && \
 # Make sure storage and cache directories are writable
 RUN chmod -R 775 storage bootstrap/cache && \
     chown -R nginx:nginx storage bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html/storage \
+    && chmod -R 775 /var/www/html/storage
 
 # Startup script
 COPY docker/start.sh /start.sh
