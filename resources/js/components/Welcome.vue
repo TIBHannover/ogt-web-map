@@ -1,6 +1,7 @@
 <template>
     <v-container
         class="background bg-grey-lighten-3 justify-center h-100"
+        id="container"
         :class="{ 'xs-bg-x-shifted': $vuetify.display.xs }"
         fill-height
         fluid
@@ -16,7 +17,15 @@
         }"
     >
         <div>
-            <div class="text-white">
+            <div
+                class="text-white"
+                :style="{
+                    'padding-left':
+                        freeClientWidth < 700 && !isMenuDisplayed
+                            ? 75 + 'px'
+                            : 0,
+                }"
+            >
                 <div
                     class="font-family-special-elite mb-2 text-h4 text-sm-h3 text-md-h2 text-lg-h1"
                 >
@@ -175,7 +184,7 @@
 </template>
 
 <script setup>
-import { ref, inject, computed } from "vue";
+import { ref, inject, computed, onMounted, onUnmounted } from "vue";
 import { useDisplay } from "vuetify";
 import { useRouter, useRoute } from "vue-router";
 import { workshops } from "../data/workshops";
@@ -184,6 +193,7 @@ const { mdAndUp } = useDisplay();
 const router = useRouter();
 const route = useRoute();
 const ogtGlobals = inject("ogtGlobals");
+const freeClientWidth = ref(document.documentElement.clientWidth);
 
 const backgroundImageUrl = ref(
     ogtGlobals.proxyPath + "/images/startPageBackground.jpg",
@@ -237,6 +247,22 @@ const menuButtons = ref([
         routeTo: "/werkstaette",
     },
 ]);
+
+onMounted(() => {
+    setFreeClientWidth();
+});
+
+const setFreeClientWidth = () => {
+    freeClientWidth.value = document.documentElement.clientWidth;
+    console.log("isMenuDisplayed", isMenuDisplayed);
+};
+
+onUnmounted(() => {
+    window.removeEventListener("resize", setFreeClientWidth);
+});
+
+// Event listeners
+window.addEventListener("resize", setFreeClientWidth);
 </script>
 
 <style scoped>
@@ -269,5 +295,26 @@ const menuButtons = ref([
 /* shift center of background image for extra small window sizes (< 600px) */
 .xs-bg-x-shifted {
     background-position-x: 75%;
+}
+</style>
+<style>
+@media (max-width: 768px) {
+    .v-banner__content {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+
+    .v-banner__text {
+        width: 100% !important;
+        margin-bottom: 1rem;
+    }
+
+    .v-banner__actions {
+        width: 100% !important;
+        padding: 0 !important;
+    }
+    .v-banner-actions {
+        align-self: flex-start !important;
+    }
 }
 </style>

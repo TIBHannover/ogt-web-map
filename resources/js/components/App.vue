@@ -1,6 +1,8 @@
 <template>
     <v-app>
-        <navigation-sidebar @isMenuDisplayed="setIsMenuDisplayed($event)"></navigation-sidebar>
+        <navigation-sidebar
+            @isMenuDisplayed="setIsMenuDisplayed($event)"
+        ></navigation-sidebar>
         <v-main class="bg-grey-lighten-3">
             <router-view :isMenuDisplayed="isMenuDisplayed"></router-view>
         </v-main>
@@ -8,11 +10,11 @@
 </template>
 
 <script>
-import NavigationSidebar from './navigation/NavigationSidebar';
+import NavigationSidebar from "./navigation/NavigationSidebar";
 
 export default {
-    name: 'App',
-    components: {NavigationSidebar},
+    name: "App",
+    components: { NavigationSidebar },
     data() {
         return {
             isMenuDisplayed: false,
@@ -26,5 +28,4 @@ export default {
 };
 </script>
 
-<style>
-</style>
+<style></style>

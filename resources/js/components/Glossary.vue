@@ -27,7 +27,7 @@
                     mandatory
                 >
                     <v-btn
-                        v-for="indexLetter in this.glossaryIndex"
+                        v-for="indexLetter in glossaryIndex"
                         :key="indexLetter"
                         class="button-toggle-border mb-3 mr-3"
                         rounded="circle"
@@ -59,8 +59,9 @@
             <v-col>
                 <v-expansion-panels v-model="openedGlossaryPanel" focusable>
                     <v-expansion-panel
-                        v-for="(glossaryItem, glossaryItemLabel) in this
-                            .glossaryData"
+                        v-for="(
+                            glossaryItem, glossaryItemLabel
+                        ) in glossaryData"
                         :key="glossaryItem.id"
                         v-show="
                             filterGlossaryItems(
@@ -117,180 +118,136 @@
     </v-container>
 </template>
 
-<script>
+<script setup>
+import { ref, onMounted, onUnmounted, inject } from "vue";
+import { useRoute } from "vue-router";
 import glossaryData from "../data/glossaryData";
+const isMenuDisplayed = inject("isMenuDisplayed");
 
+// Constants
 const GLOSSARY_INDEX_ALL = "A-Z";
 
-export default {
-    name: "Glossary",
-    props: ["isMenuDisplayed"],
-    data() {
-        return {
-            freeClientWidth: document.documentElement.clientWidth,
-            glossaryData: structuredClone(glossaryData),
-            glossaryIndex: [GLOSSARY_INDEX_ALL],
-            openedGlossaryPanel: null,
-            searchTerm: null,
-            selectedGlossaryIndex: GLOSSARY_INDEX_ALL,
-        };
-    },
-    created() {
-        window.addEventListener("resize", this.setFreeClientWidth);
-    },
-    unmounted() {
-        window.removeEventListener("resize", this.setFreeClientWidth);
-    },
-    mounted() {
-        this.setFreeClientWidth();
-        this.setGlossaryIndex();
-        this.linkGlossaryItems();
-        this.showGlossaryItemByUrlHash();
-    },
-    methods: {
-        /**
-         * Determine width of free space between content and client border.
-         *
-         * @param event
-         */
-        setFreeClientWidth(event) {
-            const container = document.getElementById("container");
+// Reactive references
+const freeClientWidth = ref(document.documentElement.clientWidth);
+const glossaryDataRef = ref(structuredClone(glossaryData));
+const glossaryIndex = ref([GLOSSARY_INDEX_ALL]);
+const openedGlossaryPanel = ref(null);
+const searchTerm = ref(null);
+const selectedGlossaryIndex = ref(GLOSSARY_INDEX_ALL);
 
-            this.freeClientWidth =
-                (document.documentElement.clientWidth - container.clientWidth) /
-                2;
-        },
-        /**
-         *  Set first letter of glossary entries as index for the glossary.
-         */
-        setGlossaryIndex() {
-            for (const [glossaryItemLabel, glossaryItemData] of Object.entries(
-                this.glossaryData,
-            )) {
-                let firstChar = glossaryItemLabel.charAt(0);
+const route = useRoute();
 
-                if (!this.glossaryIndex.includes(firstChar)) {
-                    this.glossaryIndex.push(firstChar);
-                }
-            }
-        },
-        /**
-         * Filter glossary items by selected glossary index and search term.
-         *
-         * @param {string} glossaryItemLabel
-         * @param {array} glossaryItemDescriptions
-         * @returns {boolean}
-         */
-        filterGlossaryItems(glossaryItemLabel, glossaryItemDescriptions) {
-            let glossaryItemDescription = glossaryItemDescriptions.join();
+const setFreeClientWidth = () => {
+    const container = document.getElementById("container");
+    freeClientWidth.value =
+        (document.documentElement.clientWidth - container.clientWidth) / 2;
 
-            if (
-                [GLOSSARY_INDEX_ALL, glossaryItemLabel.charAt(0)].includes(
-                    this.selectedGlossaryIndex,
-                ) &&
-                (this.searchTerm === null ||
-                    glossaryItemLabel.match(RegExp(this.searchTerm, "i")) ||
-                    glossaryItemDescription.match(RegExp(this.searchTerm, "i")))
-            ) {
-                return true;
-            }
-
-            return false;
-        },
-        /**
-         * Link glossary items within glossary texts.
-         */
-        linkGlossaryItems() {
-            let searchTerms = [];
-
-            // create regex search terms for glossary item labels
-            for (const [glossaryItemLabel, glossaryItemData] of Object.entries(
-                this.glossaryData,
-            )) {
-                let termRegex =
-                    glossaryItemLabel.replace("s ", "[ens]{0,3} ") +
-                    "[ens]{0,3}";
-
-                searchTerms.push({
-                    label: glossaryItemLabel,
-                    regex: termRegex,
-                });
-            }
-
-            for (let [glossaryItemLabel, glossaryItemData] of Object.entries(
-                this.glossaryData,
-            )) {
-                glossaryItemData.descriptions.forEach(
-                    (description, descriptionIndex) => {
-                        // skip case enumeration description
-                        if (Array.isArray(description)) {
-                            return;
-                        }
-
-                        searchTerms.forEach((term, termIndex) => {
-                            if (term.label == glossaryItemLabel) {
-                                return;
-                            }
-
-                            let regex = new RegExp(
-                                `(^| |\\.|\\()(${term.regex})( |,|\\.|$|\\))`,
-                                "gi",
-                            );
-                            let replacement = `$1<a href='javascript:' data-glossary-index='${termIndex}' data-search-term='${term.label}'>$2</a>$3`;
-
-                            description = description.replace(
-                                regex,
-                                replacement,
-                            );
-                        });
-
-                        glossaryItemData.descriptions[descriptionIndex] =
-                            description;
-                    },
-                );
-
-                glossaryItemData.sources.forEach((source, sourceIndex) => {
-                    glossaryItemData.sources[sourceIndex] = source.replace(
-                        /(^https:.[^ ]*)/i,
-                        "<a href='$1' target='_blank'>$1</a>",
-                    );
-                });
-            }
-        },
-        /**
-         * Show glossary entry linked in URL hash.
-         */
-        showGlossaryItemByUrlHash() {
-            const urlHash = this.$route.hash;
-
-            if (urlHash == "") {
-                return;
-            }
-
-            const expansionPanelHeader = document.getElementById(
-                urlHash.substring(1),
-            );
-
-            if (expansionPanelHeader) {
-                expansionPanelHeader.click();
-            }
-        },
-        /**
-         * Show glossary entry linked in a glossary text.
-         *
-         * @param event
-         */
-        showLinkedGlossaryItem(event) {
-            if (event.target.hasAttribute("data-glossary-index")) {
-                this.selectedGlossaryIndex = GLOSSARY_INDEX_ALL;
-                this.searchTerm = event.target.getAttribute("data-search-term");
-                this.openedGlossaryPanel = parseInt(
-                    event.target.getAttribute("data-glossary-index"),
-                );
-            }
-        },
-    },
+    console.log("isMenuDisplayed", isMenuDisplayed);
 };
+
+const setGlossaryIndex = () => {
+    for (const [glossaryItemLabel] of Object.entries(glossaryDataRef.value)) {
+        let firstChar = glossaryItemLabel.charAt(0);
+        if (!glossaryIndex.value.includes(firstChar)) {
+            glossaryIndex.value.push(firstChar);
+        }
+    }
+};
+
+const filterGlossaryItems = (glossaryItemLabel, glossaryItemDescriptions) => {
+    let glossaryItemDescription = glossaryItemDescriptions.join();
+
+    return (
+        [GLOSSARY_INDEX_ALL, glossaryItemLabel.charAt(0)].includes(
+            selectedGlossaryIndex.value,
+        ) &&
+        (searchTerm.value === null ||
+            glossaryItemLabel.match(RegExp(searchTerm.value, "i")) ||
+            glossaryItemDescription.match(RegExp(searchTerm.value, "i")))
+    );
+};
+
+const linkGlossaryItems = () => {
+    let searchTerms = [];
+
+    // create regex search terms for glossary item labels
+    for (const [glossaryItemLabel, glossaryItemData] of Object.entries(
+        glossaryDataRef.value,
+    )) {
+        let termRegex =
+            glossaryItemLabel.replace("s ", "[ens]{0,3} ") + "[ens]{0,3}";
+        searchTerms.push({
+            label: glossaryItemLabel,
+            regex: termRegex,
+        });
+    }
+
+    for (let [glossaryItemLabel, glossaryItemData] of Object.entries(
+        glossaryDataRef.value,
+    )) {
+        glossaryItemData.descriptions.forEach(
+            (description, descriptionIndex) => {
+                if (Array.isArray(description)) return;
+
+                searchTerms.forEach((term, termIndex) => {
+                    if (term.label == glossaryItemLabel) return;
+
+                    let regex = new RegExp(
+                        `(^| |\\.|\\()(${term.regex})( |,|\\.|$|\\))`,
+                        "gi",
+                    );
+                    let replacement = `$1<a href='javascript:' data-glossary-index='${termIndex}' data-search-term='${term.label}'>$2</a>$3`;
+
+                    description = description.replace(regex, replacement);
+                });
+
+                glossaryItemData.descriptions[descriptionIndex] = description;
+            },
+        );
+
+        glossaryItemData.sources.forEach((source, sourceIndex) => {
+            glossaryItemData.sources[sourceIndex] = source.replace(
+                /(^https:.[^ ]*)/i,
+                "<a href='$1' target='_blank'>$1</a>",
+            );
+        });
+    }
+};
+
+const showGlossaryItemByUrlHash = () => {
+    const urlHash = route.hash;
+    if (urlHash == "") return;
+
+    const expansionPanelHeader = document.getElementById(urlHash.substring(1));
+    if (expansionPanelHeader) {
+        expansionPanelHeader.click();
+    }
+};
+
+const showLinkedGlossaryItem = (event) => {
+    if (event.target.hasAttribute("data-glossary-index")) {
+        selectedGlossaryIndex.value = GLOSSARY_INDEX_ALL;
+        searchTerm.value = event.target.getAttribute("data-search-term");
+        openedGlossaryPanel.value = parseInt(
+            event.target.getAttribute("data-glossary-index"),
+        );
+    }
+};
+
+// Lifecycle hooks
+onMounted(() => {
+    setFreeClientWidth();
+    setGlossaryIndex();
+    linkGlossaryItems();
+    showGlossaryItemByUrlHash();
+});
+
+onUnmounted(() => {
+    window.removeEventListener("resize", setFreeClientWidth);
+});
+
+// Event listeners
+window.addEventListener("resize", setFreeClientWidth);
 </script>
 
 <style scoped>
