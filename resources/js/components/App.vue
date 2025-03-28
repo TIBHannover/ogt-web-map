@@ -1,7 +1,7 @@
 <template>
     <v-app>
         <navigation-sidebar
-            @isMenuDisplayed="setIsMenuDisplayed($event)"
+            @isMenuDisplayed="setIsMenuDisplayed"
         ></navigation-sidebar>
         <v-main class="bg-grey-lighten-3">
             <router-view :isMenuDisplayed="isMenuDisplayed"></router-view>
@@ -9,22 +9,19 @@
     </v-app>
 </template>
 
-<script>
+<script setup>
+import { ref, provide } from "vue";
 import NavigationSidebar from "./navigation/NavigationSidebar";
 
-export default {
-    name: "App",
-    components: { NavigationSidebar },
-    data() {
-        return {
-            isMenuDisplayed: false,
-        };
-    },
-    methods: {
-        setIsMenuDisplayed: function (isMenuDisplayed) {
-            this.isMenuDisplayed = isMenuDisplayed;
-        },
-    },
+// Reactive state
+const isMenuDisplayed = ref(false);
+
+// Provide menu state globally
+provide("isMenuDisplayed", isMenuDisplayed);
+
+// Methods
+const setIsMenuDisplayed = (value) => {
+    isMenuDisplayed.value = value;
 };
 </script>
 

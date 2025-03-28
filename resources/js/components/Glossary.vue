@@ -142,7 +142,7 @@ const setFreeClientWidth = () => {
     freeClientWidth.value =
         (document.documentElement.clientWidth - container.clientWidth) / 2;
 
-    console.log("isMenuDisplayed", isMenuDisplayed);
+    console.log("isMenuDisplayed", isMenuDisplayed.value);
 };
 
 const setGlossaryIndex = () => {
