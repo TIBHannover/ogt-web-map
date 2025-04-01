@@ -53,6 +53,18 @@
                         <th>Ort oder Person</th>
                         <th>Aktuell:</th>
 
+                        <th width="100" class="text-center">
+                            <span class="w-full justify-center d-flex ga-2">
+                                <span> 27.03.2025 </span>
+                                <v-icon
+                                    color="blue"
+                                    width="25px"
+                                    v-tooltip:top="'Nach der zweiten Werkstatt'"
+                                >
+                                    mdi-information-outline
+                                </v-icon>
+                            </span>
+                        </th>
                         <th>
                             28.02.2025
                             <v-icon
@@ -64,16 +76,6 @@
                             </v-icon>
                         </th>
 
-                        <th>
-                            26.02.2025
-                            <v-icon
-                                color="blue"
-                                width="25px"
-                                v-tooltip:top="'Nach dem ersten Workshop'"
-                            >
-                                mdi-information-outline
-                            </v-icon>
-                        </th>
                         <th>24.02.2025</th>
                     </tr>
                 </thead>

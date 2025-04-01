@@ -69,7 +69,7 @@
                                         <span
                                             class="w-full justify-center d-flex ga-2"
                                         >
-                                            <span> 28.02.2025 </span>
+                                            <span> 27.03.2025 </span>
                                             <v-icon
                                                 color="blue"
                                                 width="25px"
@@ -81,12 +81,11 @@
                                             </v-icon>
                                         </span>
                                     </th>
-
                                     <th width="100" class="text-center">
                                         <span
                                             class="w-full justify-center d-flex ga-2"
                                         >
-                                            <span>26.02.2025</span>
+                                            <span> 28.02.2025 </span>
                                             <v-icon
                                                 color="blue"
                                                 width="25px"
@@ -98,6 +97,7 @@
                                             </v-icon>
                                         </span>
                                     </th>
+
                                     <th width="100" class="text-center">
                                         <span>24.02.2025</span>
                                     </th>

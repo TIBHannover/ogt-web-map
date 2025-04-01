@@ -104,7 +104,7 @@
             </v-list-item>
             <v-divider></v-divider>
 
-            <v-list-item v-if="route.path != '/workshops'">
+            <v-list-item v-if="route.path != '/werkstaette'">
                 <v-list-item-title class="font-weight-bold mb-4 mt-2">
                     Nächste Werkstatt für historische Daten:
                 </v-list-item-title>
