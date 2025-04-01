@@ -1,14 +1,7 @@
 <template>
     <v-container id="container" class="mb-110">
         <!-- header -->
-        <v-row
-            :style="{
-                'padding-left':
-                    freeClientWidth < 75 && !isMenuDisplayed
-                        ? 75 - freeClientWidth + 'px'
-                        : 0,
-            }"
-        >
+        <v-row :style="{ 'padding-left': computedPadding }">
             <v-col>
                 <h1
                     class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-h4 text-md-h3"
@@ -512,61 +505,64 @@
     </v-container>
 </template>
 <script setup>
+import { ref, inject, onMounted, onUnmounted, computed } from "vue";
 import { useDisplay } from "vuetify";
-import { ref, inject } from "vue";
-const { mdAndUp } = useDisplay();
-const ogtGlobals = inject("ogtGlobals");
-</script>
-<script>
 import Email from "./helpers/Email";
 import TableOfContentsSidebar from "./navigation/TableOfContentsSidebar";
 
-export default {
-    name: "Project",
-    props: ["isMenuDisplayed"],
-    components: { Email, TableOfContentsSidebar },
-    data() {
-        return {
-            freeClientWidth: document.clientWidth,
-            headings: [
-                {
-                    href: "#researchObjectives",
-                    label: "Forschungsfragen & Projektziele",
-                },
-                {
-                    href: "#teamAndPartners",
-                    label: "Team & Partner*innen",
-                },
-                {
-                    href: "#presentationsAndPublications",
-                    label: "Projektpräsentationen & Publikationen",
-                },
-            ],
-        };
-    },
-    created() {
-        window.addEventListener("resize", this.setFreeClientWidth);
-    },
-    unmounted() {
-        window.removeEventListener("resize", this.setFreeClientWidth);
-    },
-    mounted() {
-        this.setFreeClientWidth();
-    },
-    methods: {
-        /**
-         * Determine width of free space between content and client border.
-         *
-         * @param event
-         */
-        setFreeClientWidth(event) {
-            const container = document.getElementById("container");
+// Props
+const props = defineProps({
+    isMenuDisplayed: Boolean,
+});
 
-            this.freeClientWidth =
-                (document.clientWidth - container.clientWidth) / 2;
-        },
+// Inject globals
+const ogtGlobals = inject("ogtGlobals");
+
+// Reactive references
+const freeClientWidth = ref(document.clientWidth);
+const headings = ref([
+    {
+        href: "#researchObjectives",
+        label: "Forschungsfragen & Projektziele",
     },
+    {
+        href: "#teamAndPartners",
+        label: "Team & Partner*innen",
+    },
+    {
+        href: "#presentationsAndPublications",
+        label: "Projektpräsentationen & Publikationen",
+    },
+]);
+
+// Composables
+const { mdAndUp } = useDisplay();
+
+// Methods
+const setFreeClientWidth = () => {
+    const container = document.getElementById("container");
+    if (container) {
+        freeClientWidth.value =
+            (document.documentElement.clientWidth - container.clientWidth) / 2;
+    }
 };
+
+// Lifecycle hooks
+onMounted(() => {
+    setFreeClientWidth();
+    window.addEventListener("resize", setFreeClientWidth);
+});
+
+onUnmounted(() => {
+    window.removeEventListener("resize", setFreeClientWidth);
+});
+
+// Computed property für das Padding
+const computedPadding = computed(() => {
+    return freeClientWidth.value < 75 && !props.isMenuDisplayed
+        ? `${75 - freeClientWidth.value}px`
+        : "0";
+});
 </script>
 
 <style scoped>

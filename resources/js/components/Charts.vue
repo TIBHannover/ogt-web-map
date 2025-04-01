@@ -1,14 +1,7 @@
 <template>
     <v-container id="container" class="mb-110">
         <!-- header -->
-        <v-row
-            :style="{
-                'padding-left':
-                    freeClientWidth < 75 && !isMenuDisplayed
-                        ? 75 - freeClientWidth + 'px'
-                        : 0,
-            }"
-        >
+        <v-row :style="{ 'padding-left': computedPadding }">
             <v-col>
                 <h1
                     class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-h4 text-md-h3"
@@ -245,62 +238,54 @@
 </template>
 
 <script setup>
+import { ref, inject, onMounted, onUnmounted, computed, nextTick } from "vue";
 import { useDisplay } from "vuetify";
-import {
-    ref,
-    inject,
-    defineProps,
-    onMounted,
-    onUnmounted,
-    computed,
-    defineExpose,
-    nextTick,
-} from "vue";
-const ogtGlobals = inject("ogtGlobals");
+import chartsData from "../data/chartsData";
 import { groupedPlaces } from "../data/counts";
 
+// Injected values
+const ogtGlobals = inject("ogtGlobals");
+const isMenuDisplayed = inject("isMenuDisplayed");
+
+// Reactive references
+const freeClientWidth = ref(document.documentElement.clientWidth);
+const charts = ref(chartsData);
+const selectedChart = ref(null);
+const showOverview = ref(true);
 const persons = ref({
     perpetrators: {},
     victims: {},
 });
-
 const mapMarkerIconsPath = ref(
     "/images/leaflet/markerIcons/coloredFilledWhite/",
 );
 
-onMounted(async () => {
-    try {
-        // Warten auf DOM-Update
-        await nextTick();
-
-        const CountTable = document.getElementById("table-counts");
-        if (CountTable) {
-            try {
-                await nextTick();
-                // Daten laden
-                await getGroupedPlaces();
-                await getPersons();
-            } catch (error) {
-                console.error("Error updating map:", error);
-            }
-        }
-    } catch (error) {
-        console.error("Error during component mount:", error);
-    }
+// Computed
+const computedPadding = computed(() => {
+    return freeClientWidth.value < 75 && !isMenuDisplayed.value
+        ? `${75 - freeClientWidth.value}px`
+        : "0";
 });
+
+// Methods
+const setFreeClientWidth = () => {
+    const container = document.getElementById("container");
+    if (container) {
+        freeClientWidth.value =
+            (document.documentElement.clientWidth - container.clientWidth) / 2;
+    }
+};
+
+const showChart = (chart) => {
+    selectedChart.value = chart;
+    showOverview.value = false;
+};
 
 const getGroupedPlaces = async () => {
     try {
         let groupedPlaces = {};
-
-        await axios
-            .get("/api/wikidata/places")
-            .then((response) => {
-                groupedPlaces = response.data;
-            })
-            .catch((error) => {
-                console.log(error);
-            });
+        const response = await axios.get("/api/wikidata/places");
+        groupedPlaces = response.data;
 
         await nextTick();
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -314,7 +299,6 @@ const getGroupedPlaces = async () => {
 const updatePlacesInfoData = (groupedPlaces) => {
     Object.entries(groupedPlaces).forEach(([groupName, groupData]) => {
         if (groupData) {
-            // Updating Count number for current state
             const LayerCountSpan = document.querySelector(
                 '[data-groupuid="' + groupName + '"]',
             );
@@ -322,10 +306,6 @@ const updatePlacesInfoData = (groupedPlaces) => {
             if (LayerCountSpan) {
                 LayerCountSpan.innerHTML = groupLength;
             }
-
-            let groupTableDatas = document.querySelectorAll(
-                '[data-groupname="' + groupName + '"]',
-            );
         }
     });
 };
@@ -346,72 +326,42 @@ const updatePersonInfoData = () => {
     const perpetratorsCount = Object.keys(persons.value.perpetrators).length;
     const victimsCount = Object.keys(persons.value.victims).length - 1;
 
-    const victimsEntries = Object.entries(persons.value.victims);
-    const perpetratorsEntries = Object.entries(persons.value.perpetrators);
-
-    // Update the DOM elements with the counts
     const perpetratorsSpan = document.querySelector(
         '[data-groupuid="perpetrators"]',
     );
     const victimsSpan = document.querySelector('[data-groupuid="victims"]');
 
-    if (perpetratorsSpan) {
-        perpetratorsSpan.innerHTML = perpetratorsCount;
-    }
-
-    if (victimsSpan) {
-        victimsSpan.innerHTML = victimsCount;
-    }
+    if (perpetratorsSpan) perpetratorsSpan.innerHTML = perpetratorsCount;
+    if (victimsSpan) victimsSpan.innerHTML = victimsCount;
 };
-</script>
 
-<script>
-import chartsData from "../data/chartsData";
+// Lifecycle hooks
+onMounted(async () => {
+    try {
+        await nextTick();
+        const CountTable = document.getElementById("table-counts");
+        if (CountTable) {
+            await nextTick();
+            await getGroupedPlaces();
+            await getPersons();
+        }
+        setFreeClientWidth();
+        window.addEventListener("resize", setFreeClientWidth);
+    } catch (error) {
+        console.error("Error during component mount:", error);
+    }
+});
 
-export default {
-    name: "Charts",
-    props: ["isMenuDisplayed"],
-    data() {
-        return {
-            charts: chartsData,
-            freeClientWidth: document.documentElement.clientWidth,
-            selectedChart: null,
-            showOverview: true,
-        };
-    },
-    created() {
-        window.addEventListener("resize", this.setFreeClientWidth);
-    },
-    unmounted() {
-        window.removeEventListener("resize", this.setFreeClientWidth);
-    },
-    mounted() {
-        this.setFreeClientWidth();
-    },
-    methods: {
-        /**
-         * Determine width of free space between content and client border.
-         *
-         * @param event
-         */
-        setFreeClientWidth(event) {
-            const container = document.getElementById("container");
+onUnmounted(() => {
+    window.removeEventListener("resize", setFreeClientWidth);
+});
 
-            this.freeClientWidth =
-                (document.documentElement.clientWidth - container.clientWidth) /
-                2;
-        },
-        /**
-         * Show selected chart and hide charts overview.
-         *
-         * @param {Object} chart
-         */
-        showChart(chart) {
-            this.selectedChart = chart;
-            this.showOverview = false;
-        },
-    },
-};
+// Expose components methods/properties if needed
+defineExpose({
+    showChart,
+    showOverview,
+    selectedChart,
+});
 </script>
 
 <style scoped>

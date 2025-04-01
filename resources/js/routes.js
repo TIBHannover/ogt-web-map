@@ -61,7 +61,7 @@ export const routes = [
     }, */
     {
         name: "bibliography",
-        path: "/bibliography",
+        path: "/literatur",
         component: Bibliography,
         meta: {
             title: "Literatur: Gestapo. Terror. Orte",
@@ -73,6 +73,13 @@ export const routes = [
         component: Workshops,
         meta: {
             title: "Werkstätte für historische Daten: Gestapo. Terror. Orte",
+        },
+    },
+    {
+        path: "/images/:pathMatch(.*)*",
+        name: "static-assets",
+        beforeEnter: (to, from, next) => {
+            next(false); // Verhindert das Routing für diese Pfade
         },
     },
     { path: "/:catchAll(.*)", redirect: "/starteite" },

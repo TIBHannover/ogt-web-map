@@ -70,4 +70,18 @@ export const itemDescriptions = {
             "Bis heute erinnern mehrere Gedenkorte an dieses Verbrechen: Auf dem Seelhorster Friedhof markieren ein Gedenkstein und eine Informationstafel den Ort der Erschießungen. Auf dem Ehrenfriedhof am Maschsee erinnert ein weiteres Mahnmal an die Opfer.",
         ],
     },
+    Q133567335: {
+        textParts: [
+            "Adam Jaschke, geboren am 27. Oktober 1890 in Bogumilow (Polen), lebte in Tellmer, Kreis Lüneburg. Er arbeitete als Straßenarbeiter und war mit Wilhelmine Jaschke, geb. Bockelmann, verheiratet. Gemeinsam hatten sie sieben Kinder. Am 6. März 1945 wurde er von der Gestapo Lüneburg verhaftet, die Hintergründe seiner Inhaftierung bleiben bis heute ungeklärt." +
+                " Am 21. März 1945 überstellte die Gestapo ihn in das KZ Neuengamme, wo er die Häftlingsnummer 77.867 erhielt.",
+            "Später wurde er in das KZ Bergen-Belsen verschleppt. Weder die genauen Umstände dieser Verschleppung noch die seines Todes dort sind bekannt. Erst im Jahr 1954 wurde Adam Jaschke offiziell für tot erklärt.",
+        ],
+    },
+    Q133567355: {
+        textParts: [
+            "Adam Jaschke, geboren am 27. Oktober 1890 in Bogumilow (Polen), lebte in Tellmer, Kreis Lüneburg. Er arbeitete als Straßenarbeiter und war mit Wilhelmine Jaschke, geb. Bockelmann, verheiratet. Gemeinsam hatten sie sieben Kinder. Am 6. März 1945 wurde er von der Gestapo Lüneburg verhaftet, die Hintergründe seiner Inhaftierung bleiben bis heute ungeklärt." +
+                " Am 21. März 1945 überstellte die Gestapo ihn in das KZ Neuengamme, wo er die Häftlingsnummer 77.867 erhielt.",
+            "Später wurde er in das KZ Bergen-Belsen verschleppt. Weder die genauen Umstände dieser Verschleppung noch die seines Todes dort sind bekannt. Erst im Jahr 1954 wurde Adam Jaschke offiziell für tot erklärt.",
+        ],
+    },
 };

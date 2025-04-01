@@ -227,11 +227,19 @@ import { groupedPlaces } from "../data/counts";
 const { mdAndUp } = useDisplay();
 const ogtGlobals = inject("ogtGlobals");
 
-defineProps({
-    isMenuDisplayed: {
-        type: Boolean,
-        default: false,
-    },
+// Props
+const props = defineProps({
+    isMenuDisplayed: Boolean,
+});
+
+// Reactive references
+const freeClientWidth = ref(document.documentElement.clientWidth);
+
+// Computed property für das Padding
+const computedPadding = computed(() => {
+    return freeClientWidth.value < 75 && !props.isMenuDisplayed
+        ? `${75 - freeClientWidth.value}px`
+        : "0";
 });
 
 const upcomingWorkshops = computed(() => {
@@ -251,8 +259,6 @@ const formatDate = (dateString) => {
         minute: "2-digit",
     }).format(date);
 };
-
-const freeClientWidth = ref(0);
 
 const setFreeClientWidth = (event) => {
     const container = document.getElementById("container");

@@ -1,6 +1,7 @@
 <template>
     <v-container
-        class="background bg-grey-lighten-3 justify-center"
+        class="background bg-grey-lighten-3 justify-center h-100"
+        id="container"
         :class="{ 'xs-bg-x-shifted': $vuetify.display.xs }"
         fill-height
         fluid
@@ -15,10 +16,10 @@
                 ')',
         }"
     >
-        <div>
+        <div class="pt-20">
             <div class="text-white">
                 <div
-                    class="font-family-special-elite mb-2 text-h4 text-sm-h3 text-md-h2 text-lg-h1"
+                    class="font-family-special-elite mb-2 text-h4 text-sm-h3 text-md-h2 text-lg-h1 mt-16 mt-sm-0"
                 >
                     Gestapo.Terror.Orte
                 </div>
@@ -85,7 +86,7 @@
                             <span v-if="nextWorkshop.place === 'digital'">
                                 Findet digital statt
                             </span>
-                            <span v-else> Ort: {{ workshop.place }} </span>
+                            <span v-else> Ort {{ nextWorkshop.place }} </span>
                             <a
                                 :href="nextWorkshop.link"
                                 target="_blank"
@@ -145,7 +146,7 @@
                         variant="outlined"
                         rounded
                         size="x-large"
-                        to="/workshops"
+                        to="/werkstaette"
                     >
                         <v-icon start class="ml-3">
                             mdi-arrow-right-thick
@@ -175,7 +176,7 @@
 </template>
 
 <script setup>
-import { ref, inject, computed } from "vue";
+import { ref, inject, computed, onMounted, onUnmounted } from "vue";
 import { useDisplay } from "vuetify";
 import { useRouter, useRoute } from "vue-router";
 import { workshops } from "../data/workshops";
@@ -184,12 +185,14 @@ const { mdAndUp } = useDisplay();
 const router = useRouter();
 const route = useRoute();
 const ogtGlobals = inject("ogtGlobals");
+const isMenuDisplayed = inject("isMenuDisplayed");
+const freeClientWidth = ref(document.documentElement.clientWidth);
 
 const backgroundImageUrl = ref(
-    ogtGlobals.proxyPath + "/images/static/startPageBackground.jpg",
+    ogtGlobals.proxyPath + "/images/startPageBackground.jpg",
 );
 const backgroundImageUrlFallback1 = ref(
-    "https://www.gestapo-terror-orte.de/images/static/startPageBackground.jpg",
+    "https://www.gestapo-terror-orte.de/images/startPageBackground.jpg",
 );
 const backgroundImageUrlFallback2 = ref(
     ogtGlobals.proxyPath + "/images/solid-grey.svg",
@@ -226,7 +229,7 @@ const formatDate = (dateString) => {
 const menuButtons = ref([
     {
         label: "Projekt",
-        routeTo: "/project",
+        routeTo: "/projekt",
     },
     {
         label: "Kartenansicht",
@@ -234,9 +237,24 @@ const menuButtons = ref([
     },
     {
         label: "Mitforschen",
-        routeTo: "/collaboration",
+        routeTo: "/werkstaette",
     },
 ]);
+
+onMounted(() => {
+    setFreeClientWidth();
+});
+
+const setFreeClientWidth = () => {
+    freeClientWidth.value = document.documentElement.clientWidth;
+};
+
+onUnmounted(() => {
+    window.removeEventListener("resize", setFreeClientWidth);
+});
+
+// Event listeners
+window.addEventListener("resize", setFreeClientWidth);
 </script>
 
 <style scoped>
@@ -269,5 +287,29 @@ const menuButtons = ref([
 /* shift center of background image for extra small window sizes (< 600px) */
 .xs-bg-x-shifted {
     background-position-x: 75%;
+}
+</style>
+<style>
+@media (max-width: 768px) {
+    .v-banner__content {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+
+    .v-banner__text {
+        width: 100% !important;
+        margin-bottom: 1rem;
+    }
+
+    .v-banner__actions {
+        width: 100% !important;
+        padding: 0 !important;
+    }
+    .v-banner-actions {
+        align-self: flex-start !important;
+    }
+}
+.pt-20 {
+    padding-top: 80px !important;
 }
 </style>

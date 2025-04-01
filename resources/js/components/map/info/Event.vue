@@ -68,24 +68,47 @@
 
         <!-- coordinate location - https://www.wikidata.org/wiki/Property:P625 -->
         <v-list-item density="compact">
-            <v-list-item-title>Koordinaten Ausgangsort</v-list-item-title>
-            <v-list-item-subtitle>
-                <ul>
-                    <li>
-                        {{ selectedPlace.addresses.selected.latLng.lat }},
-                        {{ selectedPlace.addresses.selected.latLng.lng }}
-                    </li>
-                </ul>
-            </v-list-item-subtitle>
-
-            <v-list-item-action class="flex-direction-row ml-0 my-0">
-                <v-btn @click.stop="$emit('zoomIntoPlace')" icon>
-                    <v-icon>mdi-magnify-plus</v-icon>
-                </v-btn>
-                <v-btn @click.stop="$emit('undoZoomIntoPlace')" icon>
-                    <v-icon>mdi-undo-variant</v-icon>
-                </v-btn>
-            </v-list-item-action>
+            <v-row no-gutters>
+                <v-col cols="8">
+                    <v-list-item-title
+                        >Koordinaten Ausgangsort</v-list-item-title
+                    >
+                    <v-list-item-subtitle>
+                        <ul>
+                            <li>
+                                {{
+                                    selectedPlace.addresses.selected.latLng.lat
+                                }},
+                                {{
+                                    selectedPlace.addresses.selected.latLng.lng
+                                }}
+                            </li>
+                        </ul>
+                    </v-list-item-subtitle>
+                </v-col>
+                <v-col cols="4" class="align-right">
+                    <v-list-item-action
+                        class="flex-direction-row ml-0 my-0 ga-2"
+                    >
+                        <v-btn
+                            @click.stop="$emit('zoomIntoPlace')"
+                            variant="outlined"
+                            size="x-small"
+                            icon
+                        >
+                            <v-icon>mdi-magnify-plus</v-icon>
+                        </v-btn>
+                        <v-btn
+                            @click.stop="$emit('undoZoomIntoPlace')"
+                            variant="outlined"
+                            size="x-small"
+                            icon
+                        >
+                            <v-icon>mdi-undo-variant</v-icon>
+                        </v-btn>
+                    </v-list-item-action>
+                </v-col>
+            </v-row>
         </v-list-item>
         <v-divider></v-divider>
 
