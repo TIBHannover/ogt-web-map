@@ -1,11 +1,32 @@
 <template>
-    <div class="map-timeline" id="timeline">
-        <div>
-            <div class="map-timeline-handle left" @mousedown="moveLeftHandle">
-                <span></span>
-            </div>
-            <div class="map-timeline-handle right" @mousedown="moveRightHandle">
-                <span></span>
+    <div>
+        <v-btn
+            position="fixed"
+            location="bottom right"
+            rounded="circle"
+            size="56px"
+            class="mb-5 mr-5 z-index-4"
+            color="white"
+            v-show="!isTimelineDisplayed"
+            @click.stop="toggleTimeline"
+        >
+            <v-icon>mdi-timeline</v-icon>
+        </v-btn>
+
+        <div class="map-timeline" id="timeline">
+            <div>
+                <div
+                    class="map-timeline-handle left"
+                    @mousedown="moveLeftHandle"
+                >
+                    <span></span>
+                </div>
+                <div
+                    class="map-timeline-handle right"
+                    @mousedown="moveRightHandle"
+                >
+                    <span></span>
+                </div>
             </div>
         </div>
     </div>
