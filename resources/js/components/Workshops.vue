@@ -66,6 +66,71 @@
 
                 <v-divider class="my-6"></v-divider>
 
+                <section id="downloads">
+                    <h2
+                        class="font-weight-medium text-h5 text-md-h4 mb-5"
+                        :class="{ 'font-size-29': $vuetify.display.mdAndUp }"
+                    >
+                        Anleitungen zur Werkstatt historische Daten
+                    </h2>
+
+                    <v-btn
+                        class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 text-transform-none"
+                        color="black"
+                        background="grey"
+                        elevation="24"
+                        min-width="200px"
+                        variant="outlined"
+                        rounded
+                        size="x-large"
+                        href="./resources/Wikidata_Basics_compressed.pdf"
+                        target="_blank"
+                    >
+                        <v-icon start class="ml-3"> mdi-download </v-icon>
+                        <span class="whitespace-normal"
+                            >Anleitung Wikidata Basics</span
+                        >
+                    </v-btn>
+                    <br />
+                    <v-btn
+                        class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 text-transform-none"
+                        color="black"
+                        background="grey"
+                        elevation="24"
+                        min-width="200px"
+                        variant="outlined"
+                        rounded
+                        size="x-large"
+                        href="./resources/Anleitung_seite_compressed.pdf"
+                        target="_blank"
+                    >
+                        <v-icon start class="ml-3"> mdi-download </v-icon>
+                        <span class="whitespace-normal"
+                            >Wikidata Anleitung
+                        </span>
+                    </v-btn>
+                    <br />
+                    <v-btn
+                        class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 text-transform-none"
+                        color="black"
+                        background="grey"
+                        elevation="24"
+                        min-width="200px"
+                        variant="outlined"
+                        rounded
+                        size="x-large"
+                        href="./resources/Datenmodelle_final_compressed.pdf"
+                        target="_blank"
+                    >
+                        <v-icon start class="ml-3"> mdi-download </v-icon>
+                        <span class="whitespace-normal"
+                            >Beschreibung der Datenmodelle
+                        </span>
+                    </v-btn>
+                </section>
+
+                <v-divider class="my-6"></v-divider>
+
                 <section id="workshopInfo">
                     <h1
                         class="font-weight-medium text-h5 text-md-h4 mb-5"
@@ -157,7 +222,9 @@
                         <v-icon start class="ml-3">
                             mdi-arrow-right-thick
                         </v-icon>
-                        Hier geht es zum Anmeldeformular!
+                        <span class="whitespace-normal">
+                            Hier geht es zum Anmeldeformular!
+                        </span>
                     </v-btn>
 
                     <p>
@@ -422,5 +489,8 @@ const updatePersonInfoData = () => {
 /* for external link icon */
 .vertical-align-top {
     vertical-align: top;
+}
+.whitespace-normal {
+    white-space: normal !important;
 }
 </style>
