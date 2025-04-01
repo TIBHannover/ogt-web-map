@@ -27,15 +27,14 @@ build:
   artifacts:
     reports:
       dotenv: build.env
-
-deploy:
-  stage: deploy
-  image: curlimages/curl
-  needs:
-    - build
-  rules:
-    - if: $CI_COMMIT_BRANCH == "master"
-    - if: $CI_COMMIT_BRANCH == "develop"
-  script: |
-    echo "Using webhook URL: ${WEBHOOK_URL}"
-    curl -X POST ${WEBHOOK_URL}
+#deploy:
+#  stage: deploy
+#  image: curlimages/curl
+#  needs:
+#    - build
+#  rules:
+#    - if: $CI_COMMIT_BRANCH == "master"
+#    - if: $CI_COMMIT_BRANCH == "develop"
+#  script: |
+#    echo "Using webhook URL: ${WEBHOOK_URL}"
+#    curl -X POST ${WEBHOOK_URL}

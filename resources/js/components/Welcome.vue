@@ -16,18 +16,10 @@
                 ')',
         }"
     >
-        <div>
-            <div
-                class="text-white"
-                :style="{
-                    'padding-left':
-                        freeClientWidth < 700 && !isMenuDisplayed
-                            ? 75 + 'px'
-                            : 0,
-                }"
-            >
+        <div class="pt-20">
+            <div class="text-white">
                 <div
-                    class="font-family-special-elite mb-2 text-h4 text-sm-h3 text-md-h2 text-lg-h1"
+                    class="font-family-special-elite mb-2 text-h4 text-sm-h3 text-md-h2 text-lg-h1 mt-16 mt-sm-0"
                 >
                     Gestapo.Terror.Orte
                 </div>
@@ -193,6 +185,7 @@ const { mdAndUp } = useDisplay();
 const router = useRouter();
 const route = useRoute();
 const ogtGlobals = inject("ogtGlobals");
+const isMenuDisplayed = inject("isMenuDisplayed");
 const freeClientWidth = ref(document.documentElement.clientWidth);
 
 const backgroundImageUrl = ref(
@@ -254,7 +247,6 @@ onMounted(() => {
 
 const setFreeClientWidth = () => {
     freeClientWidth.value = document.documentElement.clientWidth;
-    console.log("isMenuDisplayed", isMenuDisplayed);
 };
 
 onUnmounted(() => {
@@ -316,5 +308,8 @@ window.addEventListener("resize", setFreeClientWidth);
     .v-banner-actions {
         align-self: flex-start !important;
     }
+}
+.pt-20 {
+    padding-top: 80px !important;
 }
 </style>

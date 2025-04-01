@@ -22,8 +22,6 @@
 import { ref, computed, inject, provide } from "vue";
 const emit = defineEmits(["setActiveMenu"]);
 const ogtGlobals = inject("ogtGlobals");
-const isMenuDisplayed = ref(false);
-provide("isMenuDisplayed", isMenuDisplayed);
 
 const menuItems = ref([
     {
@@ -108,10 +106,6 @@ const menuItems = ref([
 const filteredMenuItems = computed(() => {
     return menuItems.value.filter((menuItem) => menuItem.show);
 });
-
-const toggleMenu = () => {
-    isMenuDisplayed.value = !isMenuDisplayed.value;
-};
 </script>
 
 <style scoped></style>

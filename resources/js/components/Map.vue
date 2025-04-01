@@ -556,7 +556,6 @@ export default {
                         console.log(error);
                     });
                 await nextTick();
-                console.log("groupedPlaces", groupedPlaces);
                 await visualizePlaces(groupedPlaces);
                 derivePlaceData(groupedPlaces);
                 updateInfoSidebarData();

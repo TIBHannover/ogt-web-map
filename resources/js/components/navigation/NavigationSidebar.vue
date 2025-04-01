@@ -17,11 +17,10 @@
         <!-- navigation sidebar -->
         <v-navigation-drawer
             v-model="isMenuDisplayed"
+            :temporary="false"
             :scrim="false"
-            mobile-breakpoint="sm"
             width="375"
             max-width="375"
-            :disable-route-watcher="display.smAndDown"
             :class="{ isOpen: isMenuDisplayed }"
             class="mainMenu"
         >
@@ -68,7 +67,7 @@
     </div>
 </template>
 <script setup>
-import { ref, watch } from "vue";
+import { ref, inject } from "vue";
 import { useDisplay } from "vuetify";
 import LanguageConfig from "./LanguageConfig";
 import LegalTexts from "./LegalTexts";
@@ -76,7 +75,7 @@ import MainMenu from "./MainMenu";
 const display = ref(useDisplay());
 
 const activeMenu = ref("mainMenu");
-const isMenuDisplayed = ref(false);
+const isMenuDisplayed = inject("isMenuDisplayed");
 
 function toggleMenu() {
     isMenuDisplayed.value = !isMenuDisplayed.value;

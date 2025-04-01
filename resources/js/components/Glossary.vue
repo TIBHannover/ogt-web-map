@@ -1,13 +1,6 @@
 <template>
     <v-container id="container" class="mb-110">
-        <v-row
-            :style="{
-                'padding-left':
-                    freeClientWidth < 75 && !isMenuDisplayed
-                        ? 75 - freeClientWidth + 'px'
-                        : 0,
-            }"
-        >
+        <v-row :style="{ 'padding-left': computedPadding }">
             <v-col>
                 <h1
                     class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-h4 text-md-h3"
@@ -119,7 +112,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, inject } from "vue";
+import { ref, onMounted, onUnmounted, inject, computed } from "vue";
 import { useRoute } from "vue-router";
 import glossaryData from "../data/glossaryData";
 const isMenuDisplayed = inject("isMenuDisplayed");
@@ -137,12 +130,16 @@ const selectedGlossaryIndex = ref(GLOSSARY_INDEX_ALL);
 
 const route = useRoute();
 
+const computedPadding = computed(() => {
+    return freeClientWidth.value < 75 && !isMenuDisplayed.value
+        ? `${75 - freeClientWidth.value}px`
+        : "0";
+});
+
 const setFreeClientWidth = () => {
     const container = document.getElementById("container");
     freeClientWidth.value =
         (document.documentElement.clientWidth - container.clientWidth) / 2;
-
-    console.log("isMenuDisplayed", isMenuDisplayed.value);
 };
 
 const setGlossaryIndex = () => {
