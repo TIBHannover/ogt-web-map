@@ -94,7 +94,7 @@
                             <span v-if="nextWorkshop.place === 'digital'">
                                 Findet digital statt
                             </span>
-                            <span v-else> Ort: {{ workshop.place }} </span>
+                            <span v-else> Ort {{ nextWorkshop.place }} </span>
                             <a
                                 :href="nextWorkshop.link"
                                 target="_blank"
