@@ -127,6 +127,24 @@
                             >Beschreibung der Datenmodelle
                         </span>
                     </v-btn>
+                    <br />
+                    <v-btn
+                        class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 text-transform-none"
+                        color="black"
+                        background="grey"
+                        elevation="24"
+                        min-width="200px"
+                        variant="outlined"
+                        rounded
+                        size="x-large"
+                        href="./resources/Beispiel_Quellenanalyse_compressed.pdf"
+                        target="_blank"
+                    >
+                        <v-icon start class="ml-3"> mdi-download </v-icon>
+                        <span class="whitespace-normal"
+                            >Beispiel einer Quellenanalyse
+                        </span>
+                    </v-btn>
                 </section>
 
                 <v-divider class="my-6"></v-divider>
