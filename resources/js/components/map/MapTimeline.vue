@@ -7,25 +7,62 @@
             size="56px"
             class="mb-5 mr-5 z-index-4"
             color="white"
-            v-show="!isTimelineDisplayed"
+            v-show="!isTimelineOpen"
             @click.stop="toggleTimeline"
         >
             <v-icon>mdi-timeline</v-icon>
         </v-btn>
 
-        <div class="map-timeline" id="timeline">
-            <div>
-                <div
-                    class="map-timeline-handle left"
-                    @mousedown="moveLeftHandle"
+        <div
+            class="timeline-toolbar position-fixed z-index-4 bottom-0 w-100 d-flex flex-column align-center border-t-thin"
+            v-show="isTimelineOpen"
+            :class="{ isOpen: isTimelineOpen }"
+        >
+            <div class="timeline-toolbar__content d-flex">
+                <v-btn
+                    @click.stop="toggleTimeline"
+                    icon
+                    class="close-button position-absolute right-0 top-0 mr-5 mt-5"
                 >
-                    <span></span>
+                    <v-icon>mdi-close</v-icon>
+                </v-btn>
+                <div
+                    class="timeline-header d-flex w-100 justify-space-between flex-row align-center"
+                >
+                    <span class="timeline-title">Zeitstrahl</span>
+                    <v-switch
+                        v-model="timelineModeSinglePin"
+                        @click.stop="handleModeChange"
+                        append-icon="mdi-filter"
+                        prepend-icon="mdi-filter-multiple"
+                        hint="Einzel- oder Zeitraumfilter"
+                        persistent-hint
+                        label="Modus"
+                    ></v-switch>
                 </div>
                 <div
-                    class="map-timeline-handle right"
-                    @mousedown="moveRightHandle"
+                    class="map-timeline"
+                    id="timeline"
+                    :class="{ singleMode: timelineModeSinglePin }"
                 >
-                    <span></span>
+                    <div>
+                        <div
+                            class="map-timeline-handle left"
+                            @mousedown="moveLeftHandle"
+                            v-show="!timelineModeSinglePin"
+                        >
+                            <span></span>
+                        </div>
+
+                        <!-- Right handle (used as single point in single mode) -->
+                        <div
+                            class="map-timeline-handle right"
+                            @mousedown="handleRightMousedown"
+                            :class="{ 'single-handle': timelineModeSinglePin }"
+                        >
+                            <span></span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -33,9 +70,10 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 
 const emit = defineEmits(["updateTimeLine"]);
+import NavigationHelpers from "../helpers/NavigationHelpers";
 
 const props = defineProps({
     groupedPlaces: Object,
@@ -51,8 +89,38 @@ const STATE = {
 // old handle gap - 0.155,
 const MIN_HANDLE_GAP = 0.155;
 
-const updateTimeLine = (value) => {
-    emit("updateTimeLine", value);
+const { isTimelineOpen, toggleTimeline } = NavigationHelpers();
+const timelineModeSinglePin = ref(false);
+
+// Watch for mode changes to update the UI and handlers
+watch(timelineModeSinglePin, (newValue) => {
+    // Apply UI changes for the mode transition
+    if (newValue) {
+        // Single mode: Set both handles to the same position
+        // Use the right handle position for both
+        if (STATE.left && STATE.right) {
+            STATE.left = { ...STATE.right };
+            updateHandlePositions();
+        }
+    }
+});
+
+const handleModeChange = () => {
+    // Emit the correct values based on the current mode after a small delay
+    // to ensure the UI has updated
+    setTimeout(() => {
+        updateTimeLine(STATE.left, STATE.right);
+    }, 50);
+};
+
+const updateTimeLine = (left, right) => {
+    if (timelineModeSinglePin.value) {
+        // In single mode, we emit the same value for start and end
+        emit("updateTimeLine", right, right);
+    } else {
+        // In range mode, we emit different values
+        emit("updateTimeLine", left, right);
+    }
 };
 
 function beforeMove(e) {
@@ -121,7 +189,25 @@ function setHandle(element, position, leftLimit = 0, rightLimit = 1) {
     };
 }
 
+// Update UI to reflect current state
+function updateHandlePositions() {
+    if (!STATE.left || !STATE.right) return;
+
+    const leftHandle = document.querySelector(".map-timeline-handle.left");
+    const rightHandle = document.querySelector(".map-timeline-handle.right");
+
+    if (leftHandle) {
+        setHandle(leftHandle, STATE.left.position);
+    }
+
+    if (rightHandle) {
+        setHandle(rightHandle, STATE.right.position);
+    }
+}
+
 const moveLeftHandle = (e) => {
+    if (timelineModeSinglePin.value) return; // Shouldn't happen, but just in case
+
     beforeMove(e);
     const move = (e) => {
         STATE.left = setHandle(
@@ -131,6 +217,7 @@ const moveLeftHandle = (e) => {
             STATE.right.position - MIN_HANDLE_GAP,
         );
     };
+    console.log("movehandle left");
     document.addEventListener("mousemove", move);
     document.addEventListener(
         "mouseup",
@@ -143,7 +230,17 @@ const moveLeftHandle = (e) => {
     );
 };
 
+const handleRightMousedown = (e) => {
+    if (timelineModeSinglePin.value) {
+        moveSingleHandle(e);
+    } else {
+        moveRightHandle(e);
+    }
+};
+
 const moveRightHandle = (e) => {
+    //if (timelineModeSinglePin.value) return; // Shouldn't happen, but just in case
+
     beforeMove(e);
     const move = (e) => {
         STATE.right = setHandle(
@@ -153,12 +250,41 @@ const moveRightHandle = (e) => {
             1,
         );
     };
+    console.log("movehandle right");
     document.addEventListener("mousemove", move);
     document.addEventListener(
         "mouseup",
         () => {
             document.removeEventListener("mousemove", move);
-            emit("updateTimeLine", STATE.left, STATE.right);
+            updateTimeLine(STATE.left, STATE.right);
+            afterMove();
+        },
+        { once: true },
+    );
+};
+
+// New function for single handle mode
+const moveSingleHandle = (e) => {
+    beforeMove(e);
+    const move = (e) => {
+        // In single mode, both left and right handles have the same position
+        const position = calcPosition(e.clientX);
+        STATE.right = setHandle(
+            document.querySelector(".map-timeline-handle.right"),
+            position,
+            0, // No minimum limit in single mode
+            1,
+        );
+
+        // Update the left handle position (hidden but we keep it in sync)
+        STATE.left = { ...STATE.right };
+    };
+    document.addEventListener("mousemove", move);
+    document.addEventListener(
+        "mouseup",
+        () => {
+            document.removeEventListener("mousemove", move);
+            updateTimeLine(STATE.left, STATE.right);
             afterMove();
         },
         { once: true },
@@ -201,6 +327,32 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.timeline-title {
+    font-weight: bold;
+    font-family: "Special Elite";
+}
+
+.z-index-4 {
+    z-index: 4;
+}
+
+.timeline-toolbar {
+    height: 200px;
+    background-color: rgba(255, 255, 255, 0.9);
+    transform: translateY(230px);
+    transition: all 0.3s ease;
+    -webkit-box-shadow: 0px -5px 15px 5px rgba(0, 0, 0, 0.15);
+    box-shadow: 0px -5px 15px 5px rgba(0, 0, 0, 0.15);
+
+    &.isOpen {
+        transform: translateY(0);
+    }
+}
+
+.timeline-toolbar__content {
+    width: 800px;
+}
+
 .map-timeline {
     --s: 750px;
     --w: 4.5em;
@@ -226,6 +378,7 @@ onMounted(() => {
     width: 100%;
     height: 100%;
 }
+
 .map-timeline-handle {
     position: absolute;
     cursor: grab;
@@ -253,6 +406,15 @@ onMounted(() => {
 .map-timeline-handle.right::before {
     left: 0;
 }
+
+.map-timeline.singleMode .map-timeline-handle.right::before {
+    display: none;
+}
+
+.map-timeline-handle.single-handle {
+    border-radius: calc(0.5 * var(--h));
+    transition: all 0.3s ease;
+}
 .map-timeline-handle span {
     display: block;
     width: 100%;
@@ -274,6 +436,9 @@ onMounted(() => {
 .map-timeline-handle.right span {
     border-top-right-radius: calc(0.5 * var(--h));
     border-bottom-right-radius: calc(0.5 * var(--h));
+}
+.map-timeline.singleMode .map-timeline-handle.right span {
+    border-radius: calc(0.5 * var(--h));
 }
 </style>
 <style>

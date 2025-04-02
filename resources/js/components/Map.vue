@@ -6,12 +6,14 @@
             :map="map"
             :mapMarkerIconsPath="mapMarkerIconsPath"
             @update-layer-groups="handleLayerGroupsUpdate"
+            ref="optionsSidebar"
         ></map-options-sidebar>
 
         <map-timeline
             :groupedPlaces="groupedPlaces"
             :map="map"
             @update-time-line="handleTimelineUpdate"
+            @closeMapOptions="closeMapOptions"
         ></map-timeline>
 
         <place-info-sidebar
@@ -38,6 +40,7 @@ import L from "leaflet/dist/leaflet";
 import MapOptionsSidebar from "./map/MapOptionsSidebar";
 import PlaceInfoSidebar from "./map/PlaceInfoSidebar";
 import MapTimeline from "./map/MapTimeline";
+import NavigationHelpers from "./helpers/NavigationHelpers";
 import leafletConfig from "../config/leafletConfig";
 import { VSelectionControlGroup } from "vuetify/lib/components/index.mjs";
 const showPlaceInfoSidebar = ref(false);
@@ -67,6 +70,14 @@ export default {
         const map = ref(null);
         const rawGroupedPlaces = ref({});
         const markers = ref([]);
+        const {
+            isTimelineOpen,
+            isMapOptionsOpen,
+            isPlaceInfoOpen,
+            closeMapOptions,
+            openPlaceInfo,
+            closePlaceInfo,
+        } = NavigationHelpers();
         const minDate = ref({
             year: -Infinity,
             month: -Infinity,
@@ -476,6 +487,8 @@ export default {
             ],
             website: "",
         });
+
+        const optionsSidebar = ref(null);
 
         onMounted(async () => {
             try {
@@ -2679,7 +2692,10 @@ export default {
             showPlaceInfoSidebar.value = status;
 
             if (status) {
-                document.getElementById("closeNavigationSidebar").click();
+                openPlaceInfo();
+                document.getElementById("closeNavigationSidebar")?.click();
+            } else {
+                closePlaceInfo();
             }
         };
         /**
@@ -2767,6 +2783,7 @@ export default {
             showPlaceInfoSidebar,
             selectedPlace,
             showPerson,
+            closeMapOptions,
             switchLocation,
             toggleShowPlaceInfoSidebar,
             restoreCachedMapView,

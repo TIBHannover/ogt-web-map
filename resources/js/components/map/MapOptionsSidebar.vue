@@ -8,7 +8,7 @@
             size="56px"
             class="mt-5 mr-5 z-index-4"
             color="white"
-            v-show="!isMapOptionsDisplayed"
+            v-show="!isMapOptionsOpen"
             @click.stop="toggleMapOptions"
         >
             <v-icon>mdi-tune</v-icon>
@@ -16,7 +16,7 @@
 
         <!-- map options sidebar -->
         <v-navigation-drawer
-            v-model="isMapOptionsDisplayed"
+            v-model="isMapOptionsOpen"
             class="z-index-4"
             :scrim="false"
             mobile-breakpoint="sm"
@@ -95,6 +95,7 @@ import { ref } from "vue";
 import DateRange from "./options/DateRange";
 import LayerOptions from "./options/LayerOptions";
 import PlacesSelection from "./options/PlacesSelection";
+import NavigationHelpers from "../helpers/NavigationHelpers";
 
 const props = defineProps({
     groupedPlaces: {
@@ -112,9 +113,10 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update-layer-groups"]);
+const { isMapOptionsOpen, toggleMapOptions, closeMapOptions } =
+    NavigationHelpers();
 
 const activeTab = ref(0);
-const isMapOptionsDisplayed = ref(false);
 const tabs = ref([
     {
         name: "Auswahl",
@@ -122,10 +124,6 @@ const tabs = ref([
         show: true,
     },
 ]);
-
-const toggleMapOptions = () => {
-    isMapOptionsDisplayed.value = !isMapOptionsDisplayed.value;
-};
 
 const updateLayerGroups = (value) => {
     emit("update-layer-groups", value);

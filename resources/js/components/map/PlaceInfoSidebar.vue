@@ -2,7 +2,7 @@
     <div>
         <!-- place info sidebar -->
         <v-navigation-drawer
-            :model-value="showPlaceInfoSidebar"
+            :model-value="drawerModel"
             @update:model-value="$emit('hidePlaceInfoSidebar')"
             absolute
             class="z-index-5 placeInfoSidebar"
@@ -175,11 +175,14 @@
 </template>
 <script setup>
 import { ref, computed, watch, inject } from "vue";
+import NavigationHelpers from "../helpers/NavigationHelpers";
 import Event from "./info/Event";
 import GestapoPlace from "./info/GestapoPlace";
 import MemorialPlace from "./info/MemorialPlace";
 import Person from "./info/Person";
 const ogtGlobals = inject("ogtGlobals");
+
+const { isPlaceInfoOpen, openPlaceInfo, closePlaceInfo } = NavigationHelpers();
 
 const emits = defineEmits([
     "hidePlaceInfoSidebar",
@@ -215,7 +218,12 @@ const gestapoPlaceGroups = [
 
 const drawerModel = computed({
     get: () => props.showPlaceInfoSidebar,
-    set: (value) => emit("hidePlaceInfoSidebar", value),
+    set: (value) => {
+        if (!value) {
+            emits("hidePlaceInfoSidebar");
+            closePlaceInfo();
+        }
+    },
 });
 
 const getComponent = computed(() => {
@@ -234,13 +242,22 @@ const closePanels = () => {
 };
 
 watch(
-    () => props.selectedPlace?.id,
-    (newId, oldId) => {
-        if (newId !== oldId) {
-            closePanels();
+    () => props.showPlaceInfoSidebar,
+    (newValue) => {
+        if (newValue) {
+            openPlaceInfo();
+        } else {
+            closePlaceInfo();
         }
     },
+    { immediate: true },
 );
+
+watch(isPlaceInfoOpen, (newValue) => {
+    if (!newValue && props.showPlaceInfoSidebar) {
+        emits("hidePlaceInfoSidebar");
+    }
+});
 </script>
 
 <style>
