@@ -6,10 +6,17 @@
             @update:model-value="$emit('hidePlaceInfoSidebar')"
             absolute
             class="z-index-5 placeInfoSidebar"
+            :location="isMobile ? 'bottom' : 'left'"
+            :height="isMobile ? 'auto' : ''"
+            :width="isMobile ? '100%' : '375'"
+            :max-width="isMobile ? '100%' : '375'"
+            :class="{
+                'mobile-drawer': isMobile,
+                'timeline-active': adjustPlaceInfoPosition,
+            }"
+            :style="sidebarStyles"
             :scrim="false"
             mobile-breakpoint="sm"
-            max-width="375"
-            width="375"
         >
             <!-- place info header, link to wikidata item, close sidebar button -->
             <v-list-item
@@ -174,7 +181,7 @@
     </div>
 </template>
 <script setup>
-import { ref, computed, watch, inject } from "vue";
+import { ref, computed, watch, inject, onMounted, onUnmounted } from "vue";
 import NavigationHelpers from "../helpers/NavigationHelpers";
 import Event from "./info/Event";
 import GestapoPlace from "./info/GestapoPlace";
@@ -182,7 +189,13 @@ import MemorialPlace from "./info/MemorialPlace";
 import Person from "./info/Person";
 const ogtGlobals = inject("ogtGlobals");
 
-const { isPlaceInfoOpen, openPlaceInfo, closePlaceInfo } = NavigationHelpers();
+const {
+    isPlaceInfoOpen,
+    openPlaceInfo,
+    closePlaceInfo,
+    isTimelineOpen,
+    adjustPlaceInfoPosition, // Neue computed property importieren
+} = NavigationHelpers();
 
 const emits = defineEmits([
     "hidePlaceInfoSidebar",
@@ -191,6 +204,17 @@ const emits = defineEmits([
     "undoZoomIntoPlace",
     "zoomIntoPlace",
 ]);
+
+const sidebarStyles = computed(() => {
+    if (isMobile.value && adjustPlaceInfoPosition.value) {
+        return {
+            // Wenn auf Mobile und Timeline offen: nach oben verschieben
+            bottom: "170px", // Höhe der Timeline
+            "max-height": "calc(50vh - 170px)", // Maximale Höhe anpassen
+        };
+    }
+    return {};
+});
 
 const props = defineProps({
     selectedPlace: {
@@ -258,6 +282,27 @@ watch(isPlaceInfoOpen, (newValue) => {
         emits("hidePlaceInfoSidebar");
     }
 });
+
+const windowWidth = ref(window.innerWidth);
+const MOBILE_BREAKPOINT = 600; // Standard mobile breakpoint
+
+// Computed property to determine if the device is mobile
+const isMobile = computed(() => {
+    return windowWidth.value < MOBILE_BREAKPOINT;
+});
+
+// Update window width on resize
+const handleResize = () => {
+    windowWidth.value = window.innerWidth;
+};
+
+onMounted(() => {
+    window.addEventListener("resize", handleResize);
+});
+
+onUnmounted(() => {
+    window.removeEventListener("resize", handleResize);
+});
 </script>
 
 <style>
@@ -317,5 +362,18 @@ watch(isPlaceInfoOpen, (newValue) => {
 .v-navigation-drawer__content .v-list-item {
     padding-top: 0.5rem;
     padding-bottom: 0.5rem;
+}
+.timeline-active.mobile-drawer {
+    transition: bottom 0.3s ease;
+}
+
+@media (max-width: 600px) {
+    .placeInfoSidebar {
+        max-height: 50vh !important;
+    }
+
+    .placeInfoSidebar.timeline-active {
+        max-height: calc(50vh - 170px) !important;
+    }
 }
 </style>

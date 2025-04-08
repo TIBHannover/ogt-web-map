@@ -474,7 +474,7 @@ function closeMapPopups() {
     --s: 750px;
     --w: 4.5em;
     --h: 40px;
-    position: absolute;
+    position: fixed;
     bottom: 0;
     padding: 0 calc(0.5 * var(--w));
     margin: 78px 0 52px 0;
@@ -527,7 +527,6 @@ function closeMapPopups() {
 
 .map-timeline-handle.single-handle {
     border-radius: calc(0.5 * var(--h));
-    transition: all 0.3s ease;
 }
 .map-timeline-handle span {
     display: block;

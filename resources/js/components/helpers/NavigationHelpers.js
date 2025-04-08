@@ -1,8 +1,12 @@
-import { ref, watch, inject } from "vue";
+import { ref, watch, inject, computed } from "vue";
 
 const isTimelineOpen = ref(false);
 const isMapOptionsOpen = ref(false);
 const isPlaceInfoOpen = ref(false);
+
+const adjustPlaceInfoPosition = computed(() => {
+    return isTimelineOpen.value && isPlaceInfoOpen.value;
+});
 
 watch(isTimelineOpen, (newValue) => {
     if (newValue === true) {
@@ -84,6 +88,7 @@ export default function NavigationHelpers() {
         isMapOptionsOpen,
         isPlaceInfoOpen,
         isMenuDisplayed,
+        adjustPlaceInfoPosition,
         openTimeline,
         closeTimeline,
         toggleTimeline,
