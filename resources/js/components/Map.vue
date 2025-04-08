@@ -6,7 +6,15 @@
             :map="map"
             :mapMarkerIconsPath="mapMarkerIconsPath"
             @update-layer-groups="handleLayerGroupsUpdate"
+            ref="optionsSidebar"
         ></map-options-sidebar>
+
+        <map-timeline
+            :groupedPlaces="groupedPlaces"
+            :map="map"
+            @update-time-line="handleTimelineUpdate"
+            @closeMapOptions="closeMapOptions"
+        ></map-timeline>
 
         <place-info-sidebar
             :selectedPlace="selectedPlace"
@@ -31,7 +39,10 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet/dist/leaflet";
 import MapOptionsSidebar from "./map/MapOptionsSidebar";
 import PlaceInfoSidebar from "./map/PlaceInfoSidebar";
+import MapTimeline from "./map/MapTimeline";
+import NavigationHelpers from "./helpers/NavigationHelpers";
 import leafletConfig from "../config/leafletConfig";
+import { VSelectionControlGroup } from "vuetify/lib/components/index.mjs";
 const showPlaceInfoSidebar = ref(false);
 const sourceCircumstances = ref({
     Q5727902: "ca.",
@@ -49,6 +60,7 @@ export default {
     components: {
         MapOptionsSidebar,
         PlaceInfoSidebar,
+        MapTimeline,
     },
     setup() {
         const router = useRouter();
@@ -56,8 +68,17 @@ export default {
         const configLeaflet = leafletConfig;
         const ogtGlobals = inject("ogtGlobals");
         const map = ref(null);
+        const rawMap = ref(null);
         const rawGroupedPlaces = ref({});
         const markers = ref([]);
+        const {
+            isTimelineOpen,
+            isMapOptionsOpen,
+            isPlaceInfoOpen,
+            closeMapOptions,
+            openPlaceInfo,
+            closePlaceInfo,
+        } = NavigationHelpers();
         const minDate = ref({
             year: -Infinity,
             month: -Infinity,
@@ -73,6 +94,14 @@ export default {
                 lng: 0,
             },
             zoomLevel: 0,
+        });
+        var currentMinDate = ref({
+            year: -Infinity,
+            month: -Infinity,
+        });
+        var currentMaxDate = ref({
+            year: Infinity,
+            month: Infinity,
         });
         const derivedPlacesData = ref({});
         const getDerivedPlacesData = () => derivedPlacesData.value;
@@ -142,6 +171,7 @@ export default {
                 placesByCoordinates: [],
             },
         });
+        var currentGroupedPlaces = ref([]);
         const layers = ref(null);
         const locationMarkers = ref([]);
         const markersDate = ref(new Map());
@@ -459,10 +489,14 @@ export default {
             website: "",
         });
 
+        const optionsSidebar = ref(null);
+
         onMounted(async () => {
             try {
                 // Warten auf DOM-Update
                 await nextTick();
+
+                patchLeafletForNullChecks();
 
                 const leafletMap = document.getElementById("leafletMapId");
                 if (leafletMap) {
@@ -518,24 +552,25 @@ export default {
                     zoom: leafletConfig.zoom,
                     layers: [baseLayers[leafletConfig.initialLayerName]],
                 });
+                const rawMap = toRaw(map.value);
 
                 await nextTick();
 
                 // Erstelle Layer Control
                 layers.value = L.control.layers(baseLayers);
-                layers.value.addTo(map.value);
+                layers.value.addTo(rawMap);
 
                 // Setze Position der Zoom-Kontrollen
-                map.value.zoomControl.setPosition("bottomright");
+                rawMap.zoomControl.setPosition("bottomright");
 
                 // Füge Maßstab hinzu
                 L.control
                     .scale({
                         imperial: false,
                     })
-                    .addTo(map.value);
+                    .addTo(rawMap);
 
-                setCachedMapView();
+                setCachedMapView(rawMap);
             } catch (error) {
                 console.error("Error setting up Leaflet map:", error);
             }
@@ -557,9 +592,11 @@ export default {
                     });
                 await nextTick();
                 await visualizePlaces(groupedPlaces);
+                setCurrentValues();
                 derivePlaceData(groupedPlaces);
                 updateInfoSidebarData();
                 checkUrlForLocation();
+                currentGroupedPlaces.value = Object.keys(groupedPlaces);
             } catch (error) {
                 console.error("Error fetching grouped places:", error);
             }
@@ -571,24 +608,51 @@ export default {
             try {
                 const response = await axios.get("/api/wikidata/persons/cache");
                 persons.value = response.data;
-                updatePersonsCache();
                 processPersonsData();
                 checkUrlForPerson();
+                setTimeout(() => {
+                    updatePersonsCache();
+                }, 5000);
             } catch (error) {
                 console.error("Error fetching persons:", error);
             }
         };
 
-        const updatePersonsCache = async () => {
-            try {
-                const response = await axios.get("/api/wikidata/persons");
-                if (response.data) {
-                    persons.value = response.data;
-                    processPersonsData(); // Optional: Daten neu verarbeiten wenn Update erfolgt
+        const updatePersonsCache = () => {
+            const worker = createWorker();
+
+            worker.onmessage = (e) => {
+                if (e.data.error) {
+                    console.warn(
+                        "Could not update persons cache:",
+                        e.data.error,
+                    );
+                } else {
+                    persons.value = e.data;
                 }
-            } catch (error) {
-                console.warn("Could not update persons cache:", error);
-            }
+                worker.terminate();
+            };
+            worker.postMessage("start");
+        };
+
+        const createWorker = () => {
+            const workerCode = `
+                self.onmessage = async function(e) {
+                            try {
+                                const url = self.location.origin + '/api/wikidata/persons';
+                                const response = await fetch(url);
+                                const data = await response.json();
+                                self.postMessage(data);
+                            } catch (error) {
+                                self.postMessage({ error: error.message });
+                            }
+                        };
+                    `;
+
+            const blob = new Blob([workerCode], {
+                type: "application/javascript",
+            });
+            return new Worker(URL.createObjectURL(blob));
         };
 
         /**
@@ -628,25 +692,51 @@ export default {
                 );
             }
         };
-        const applyFilters = (minDate, maxDate, groupNames) => {
-            minDate = minDate ?? minDate;
-            maxDate = maxDate ?? maxDate;
-            groupNames = groupNames ?? groupNames;
 
+        const setCurrentValues = (newMinDate, newMaxDate, newGroups) => {
+            if (newMinDate) {
+                currentMinDate.value = newMinDate;
+            }
+            if (newMaxDate) {
+                currentMaxDate.value = newMaxDate;
+            }
+            if (newGroups) {
+                currentGroupedPlaces.value = newGroups;
+            }
+        };
+
+        const applyFilters = (minDate, maxDate, groupNames) => {
+            if (minDate == null) {
+                minDate = currentMinDate.value;
+            }
+            if (maxDate == null) {
+                maxDate = currentMaxDate.value;
+            }
+            if (groupNames == null) {
+                groupNames = currentGroupedPlaces.value;
+            }
+
+            const rawMap = toRaw(map.value);
+            rawMap.closePopup();
             Array.from(markersDate.value.entries()).forEach((entry) => {
                 const groupName = entry[1].groupName;
                 const startDate = new Date(entry[1].startDate);
                 const endDate = new Date(entry[1].endDate);
                 const applies =
-                    (endDate.getFullYear() > minDate.value.year ||
-                        (endDate.getFullYear() === minDate.value.year &&
-                            endDate.getMonth() >= minDate.value.month)) &&
-                    (startDate.getFullYear() < maxDate.value.year ||
-                        (startDate.getFullYear() === maxDate.value.year &&
-                            startDate.getMonth() <= maxDate.value.month)) &&
+                    (endDate.getFullYear() > minDate.year ||
+                        (endDate.getFullYear() === minDate.year &&
+                            endDate.getMonth() >= minDate.month)) &&
+                    (startDate.getFullYear() < maxDate.year ||
+                        (startDate.getFullYear() === maxDate.year &&
+                            startDate.getMonth() <= maxDate.month)) &&
                     (!groupNames || groupNames.includes(groupName));
-                applies ? entry[0].addTo(map.value) : entry[0].remove();
+                if (applies) {
+                    entry[0].addTo(rawMap);
+                } else {
+                    entry[0].remove();
+                }
             });
+            setCurrentValues(minDate, maxDate, groupNames);
         };
         const visualizePlaces = async (groupedPlaces) => {
             try {
@@ -742,22 +832,65 @@ export default {
                             Object.values(place[key] ?? {})[0]?.value
                         );
                     };
+
+                    const getStartDate = () => {
+                        if (placeGroupName === "memorials") {
+                            return (
+                                getDateProp("openingDate") ??
+                                getDateProp("inceptionDates") ??
+                                getDateProp("startTime") ??
+                                new Date("1945-05-08").toDateString()
+                            );
+                        } else if (placeGroupName === "events") {
+                            return (
+                                getDateProp("pointInTime") ??
+                                getDateProp("startTime") ??
+                                new Date("1933-01-30").toDateString()
+                            );
+                        } else {
+                            return (
+                                getDateProp("inceptionDates") ??
+                                getDateProp("startTime") ??
+                                getDateProp("openingDate") ??
+                                new Date("1933-01-30").toDateString()
+                            );
+                        }
+                    };
+
+                    const getEndDate = () => {
+                        if (placeGroupName === "memorials") {
+                            return (
+                                getDateProp("endTime") ??
+                                new Date().toDateString()
+                            );
+                        } else if (placeGroupName === "events") {
+                            return (
+                                getDateProp("pointInTime") ??
+                                getDateProp("endTime") ??
+                                new Date("1945-05-08").toDateString()
+                            );
+                        } else {
+                            return (
+                                getDateProp("dissolvedDates") ??
+                                getDateProp("endTime") ??
+                                new Date("1945-05-08").toDateString()
+                            );
+                        }
+                    };
+
                     markersDate.value.set(marker, {
-                        startDate:
-                            getDateProp("inceptionDates") ??
-                            getDateProp("startTime") ??
-                            (placeGroupName === "memorials"
-                                ? new Date("1945-05-08").toDateString()
-                                : new Date("1933-01-30").toDateString()),
-                        endDate:
-                            getDateProp("dissolvedDates") ??
-                            getDateProp("endTime") ??
-                            (placeGroupName === "memorials"
-                                ? new Date().toDateString()
-                                : new Date("1945-05-08").toDateString()),
+                        startDate: getStartDate(),
+                        endDate: getEndDate(),
                         groupName: placeGroupName,
                     });
-
+                    /*
+                    if (place.label == "Gedenkstein Synagoge Lüneburg") {
+                        console.log("place", place);
+                        console.log("getStartDate", getStartDate());
+                        console.log("getEndDate", getEndDate());
+                        console.log(getDateProp("openingDate"));
+                    }
+*/
                     groupedPlaces.value[
                         placeGroupName
                     ].placesByCoordinates.push({
@@ -2562,7 +2695,10 @@ export default {
             showPlaceInfoSidebar.value = status;
 
             if (status) {
-                document.getElementById("closeNavigationSidebar").click();
+                openPlaceInfo();
+                document.getElementById("closeNavigationSidebar")?.click();
+            } else {
+                closePlaceInfo();
             }
         };
         /**
@@ -2576,6 +2712,19 @@ export default {
                 );
             }
         };
+
+        const debounce = (func, wait) => {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        };
+
         /**
          * Fly to new map view and optionally cache the current map view.
          *
@@ -2584,23 +2733,76 @@ export default {
          * @param bool cacheCurrentMapView
          */
         const setMapView = (latLng, zoomLevel, cacheCurrentMapView = false) => {
-            if (map.value) {
+            if (map.value && map.value._loaded) {
                 if (cacheCurrentMapView) {
                     setCachedMapView();
                 }
                 const rawMap = toRaw(map.value);
-                rawMap.setView(latLng, zoomLevel, {
-                    animate: true,
-                    duration: 0.5,
-                    easeLinearity: 0.25,
-                    noMoveStart: true,
-                });
+                if (latLng) {
+                    rawMap.setView(latLng, zoomLevel, {
+                        animate: true,
+                        duration: 0.5,
+                        easeLinearity: 0.25,
+                        noMoveStart: true,
+                    });
+                } else {
+                    rawMap.setView(rawMap.getCenter(), zoomLevel, {
+                        animate: false,
+                        duration: 0.5,
+                        easeLinearity: 0.25,
+                        noMoveStart: true,
+                    });
+                }
             }
         };
 
+        function patchLeafletForNullChecks() {
+            if (!L.Popup.prototype._originalAnimateZoom) {
+                // Speichere die Original-Funktion
+                L.Popup.prototype._originalAnimateZoom =
+                    L.Popup.prototype._animateZoom;
+
+                // Überschreibe mit einer sichereren Version
+                L.Popup.prototype._animateZoom = function (e) {
+                    try {
+                        if (!this._map || !this._latlng) {
+                            this.close(); // Schließe das Popup, wenn grundlegende Daten fehlen
+                            return;
+                        }
+
+                        // Sicherstellen, dass _latLngToNewLayerPoint existiert
+                        if (
+                            typeof this._map._latLngToNewLayerPoint !==
+                            "function"
+                        ) {
+                            console.warn(
+                                "Missing _latLngToNewLayerPoint method, closing popup",
+                            );
+                            this.close();
+                            return;
+                        }
+
+                        // Original-Funktion mit try-catch aufrufen
+                        this._originalAnimateZoom.call(this, e);
+                    } catch (error) {
+                        console.warn(
+                            "Error during popup animation, closing popup",
+                            error,
+                        );
+                        this.close();
+                    }
+                };
+            }
+        }
+
+        const debouncedApplyFilters = debounce(applyFilters, 250);
+
+        const handleTimelineUpdate = (minDate, maxDate) => {
+            debouncedApplyFilters(minDate, maxDate, null);
+        };
+
         const handleLayerGroupsUpdate = (newGroups) => {
-            console.log("Handling layer groups update:", newGroups);
-            applyFilters(minDate, maxDate, newGroups);
+            debouncedApplyFilters(null, null, newGroups);
         };
 
         /**
@@ -2608,9 +2810,10 @@ export default {
          */
         const setCachedMapView = () => {
             if (map.value) {
+                const rawMap = toRaw(map.value);
                 cachedMapView.value = {
-                    latLng: map.value.getCenter(),
-                    zoomLevel: map.value.getZoom(),
+                    latLng: rawMap.getCenter(),
+                    zoomLevel: rawMap.getZoom(),
                 };
             }
         };
@@ -2622,11 +2825,14 @@ export default {
             showPlaceInfoSidebar,
             selectedPlace,
             showPerson,
+            closeMapOptions,
             switchLocation,
             toggleShowPlaceInfoSidebar,
             restoreCachedMapView,
             setMapView,
             handleLayerGroupsUpdate,
+            handleTimelineUpdate,
+            MapTimeline,
             setSelectedPlace,
             derivedPlacesData,
             getDerivedPlacesData,

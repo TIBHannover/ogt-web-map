@@ -8,7 +8,7 @@
             size="56px"
             class="mt-5 mr-5 z-index-4"
             color="white"
-            v-show="!isMapOptionsDisplayed"
+            v-show="!isMapOptionsOpen"
             @click.stop="toggleMapOptions"
         >
             <v-icon>mdi-tune</v-icon>
@@ -16,13 +16,14 @@
 
         <!-- map options sidebar -->
         <v-navigation-drawer
-            v-model="isMapOptionsDisplayed"
-            class="z-index-4"
+            v-model="isMapOptionsOpen"
+            class="z-index-4 menuOptionsidebar"
             :scrim="false"
-            mobile-breakpoint="sm"
-            location="right"
-            width="375"
-            max-width="375"
+            :location="isMobile ? 'bottom' : 'right'"
+            :height="isMobile ? 'auto' : ''"
+            :width="isMobile ? '100%' : '375'"
+            :max-width="isMobile ? '100%' : '375'"
+            :class="{ 'mobile-drawer': isMobile }"
         >
             <!-- map options header -->
             <v-list-item class="position-relative py-3">
@@ -65,19 +66,7 @@
 
             <v-divider></v-divider>
 
-            <!-- layers options -->
-            <!-- <v-tab-item v-if="this.$ogtGlobals.isTestingEnv">
-                    <layer-options
-                        :groupedPlaces="groupedPlaces"
-                    ></layer-options>
-                </v-tab-item> -->
-
-            <!-- time period options -->
-            <!-- <v-tab-item v-if="this.$ogtGlobals.isTestingEnv">
-                    <date-range></date-range>
-                </v-tab-item> -->
-
-            <!-- place select options -->
+            <!-- places selection options -->
             <places-selection
                 :groupedPlaces="groupedPlaces"
                 :map="map"
@@ -89,10 +78,11 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted, onUnmounted, computed } from "vue";
 import DateRange from "./options/DateRange";
 import LayerOptions from "./options/LayerOptions";
 import PlacesSelection from "./options/PlacesSelection";
+import NavigationHelpers from "../helpers/NavigationHelpers";
 
 const props = defineProps({
     groupedPlaces: {
@@ -110,9 +100,10 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update-layer-groups"]);
+const { isMapOptionsOpen, toggleMapOptions, closeMapOptions } =
+    NavigationHelpers();
 
 const activeTab = ref(0);
-const isMapOptionsDisplayed = ref(false);
 const tabs = ref([
     {
         name: "Auswahl",
@@ -121,9 +112,26 @@ const tabs = ref([
     },
 ]);
 
-const toggleMapOptions = () => {
-    isMapOptionsDisplayed.value = !isMapOptionsDisplayed.value;
+const windowWidth = ref(window.innerWidth);
+const MOBILE_BREAKPOINT = 600; // Standard mobile breakpoint
+
+// Computed property to determine if the device is mobile
+const isMobile = computed(() => {
+    return windowWidth.value < MOBILE_BREAKPOINT;
+});
+
+// Update window width on resize
+const handleResize = () => {
+    windowWidth.value = window.innerWidth;
 };
+
+onMounted(() => {
+    window.addEventListener("resize", handleResize);
+});
+
+onUnmounted(() => {
+    window.removeEventListener("resize", handleResize);
+});
 
 const updateLayerGroups = (value) => {
     emit("update-layer-groups", value);
@@ -143,5 +151,16 @@ const updateLayerGroups = (value) => {
 /* to move the map options sidebar to the foreground to cover the under construction footer (z-index 3) */
 .z-index-4 {
     z-index: 4;
+}
+.mobile-drawer {
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    overflow-y: auto;
+    box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.1);
+}
+@media (max-width: 600px) {
+    .menuOptionsidebar {
+        max-height: 40vh !important;
+    }
 }
 </style>
