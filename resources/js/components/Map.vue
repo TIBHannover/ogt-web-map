@@ -68,6 +68,7 @@ export default {
         const configLeaflet = leafletConfig;
         const ogtGlobals = inject("ogtGlobals");
         const map = ref(null);
+        const rawMap = ref(null);
         const rawGroupedPlaces = ref({});
         const markers = ref([]);
         const {
@@ -495,6 +496,8 @@ export default {
                 // Warten auf DOM-Update
                 await nextTick();
 
+                patchLeafletForNullChecks();
+
                 const leafletMap = document.getElementById("leafletMapId");
                 if (leafletMap) {
                     leafletMap.style.width =
@@ -549,16 +552,16 @@ export default {
                     zoom: leafletConfig.zoom,
                     layers: [baseLayers[leafletConfig.initialLayerName]],
                 });
+                const rawMap = toRaw(map.value);
 
                 await nextTick();
 
                 // Erstelle Layer Control
                 layers.value = L.control.layers(baseLayers);
-                const rawMap = toRaw(map.value);
                 layers.value.addTo(rawMap);
 
                 // Setze Position der Zoom-Kontrollen
-                map.value.zoomControl.setPosition("bottomright");
+                rawMap.zoomControl.setPosition("bottomright");
 
                 // Füge Maßstab hinzu
                 L.control
@@ -714,6 +717,7 @@ export default {
             }
 
             const rawMap = toRaw(map.value);
+            rawMap.closePopup();
             Array.from(markersDate.value.entries()).forEach((entry) => {
                 const groupName = entry[1].groupName;
                 const startDate = new Date(entry[1].startDate);
@@ -729,7 +733,6 @@ export default {
                 if (applies) {
                     entry[0].addTo(rawMap);
                 } else {
-                    rawMap.closePopup();
                     entry[0].remove();
                 }
             });
@@ -2736,7 +2739,6 @@ export default {
                 }
                 const rawMap = toRaw(map.value);
                 if (latLng) {
-                    console.log("latLng", latLng);
                     rawMap.setView(latLng, zoomLevel, {
                         animate: true,
                         duration: 0.5,
@@ -2754,6 +2756,45 @@ export default {
             }
         };
 
+        function patchLeafletForNullChecks() {
+            if (!L.Popup.prototype._originalAnimateZoom) {
+                // Speichere die Original-Funktion
+                L.Popup.prototype._originalAnimateZoom =
+                    L.Popup.prototype._animateZoom;
+
+                // Überschreibe mit einer sichereren Version
+                L.Popup.prototype._animateZoom = function (e) {
+                    try {
+                        if (!this._map || !this._latlng) {
+                            this.close(); // Schließe das Popup, wenn grundlegende Daten fehlen
+                            return;
+                        }
+
+                        // Sicherstellen, dass _latLngToNewLayerPoint existiert
+                        if (
+                            typeof this._map._latLngToNewLayerPoint !==
+                            "function"
+                        ) {
+                            console.warn(
+                                "Missing _latLngToNewLayerPoint method, closing popup",
+                            );
+                            this.close();
+                            return;
+                        }
+
+                        // Original-Funktion mit try-catch aufrufen
+                        this._originalAnimateZoom.call(this, e);
+                    } catch (error) {
+                        console.warn(
+                            "Error during popup animation, closing popup",
+                            error,
+                        );
+                        this.close();
+                    }
+                };
+            }
+        }
+
         const debouncedApplyFilters = debounce(applyFilters, 250);
 
         const handleTimelineUpdate = (minDate, maxDate) => {
@@ -2769,9 +2810,10 @@ export default {
          */
         const setCachedMapView = () => {
             if (map.value) {
+                const rawMap = toRaw(map.value);
                 cachedMapView.value = {
-                    latLng: map.value.getCenter(),
-                    zoomLevel: map.value.getZoom(),
+                    latLng: rawMap.getCenter(),
+                    zoomLevel: rawMap.getZoom(),
                 };
             }
         };

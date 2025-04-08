@@ -132,6 +132,135 @@
                 </tbody>
             </v-table>
         </v-row>
+        <v-row class="mt-8">
+            <v-col cols="12">
+                <h2 class="text-h6 text-md-h5 mb-4">Neueste Einträge</h2>
+            </v-col>
+        </v-row>
+
+        <!-- Tabs für die verschiedenen Kategorien -->
+        <v-row>
+            <v-col cols="12">
+                <v-tabs v-model="activeTab" bg-color="transparent" grow>
+                    <v-tab value="places">Orte</v-tab>
+                    <v-tab value="victims">Geschädigte</v-tab>
+                    <v-tab value="perpetrators">Täter*innen</v-tab>
+                </v-tabs>
+
+                <v-window v-model="activeTab" class="mt-4">
+                    <!-- Orte Tab -->
+                    <v-window-item value="places">
+                        <v-table>
+                            <thead>
+                                <tr>
+                                    <th>Kategorie</th>
+                                    <th>Name</th>
+                                    <th>ID</th>
+                                    <th>Beschreibung</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in latestPlaces" :key="item.id">
+                                    <td>
+                                        <v-img
+                                            :width="24"
+                                            :src="`${mapMarkerIconsPath}${getCategoryIcon(item.category)}`"
+                                            class="mr-2"
+                                        ></v-img>
+                                        {{ getCategoryName(item.category) }}
+                                    </td>
+                                    <td>{{ item.label }}</td>
+                                    <td>
+                                        <a
+                                            :href="`https://www.wikidata.org/wiki/${item.id}`"
+                                            target="_blank"
+                                        >
+                                            {{ item.id }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {{
+                                            item.description ||
+                                            "Keine Beschreibung"
+                                        }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </v-table>
+                    </v-window-item>
+
+                    <!-- Geschädigte Tab -->
+                    <v-window-item value="victims">
+                        <v-table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>ID</th>
+                                    <th>Beschreibung</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr
+                                    v-for="item in latestVictims"
+                                    :key="item.id"
+                                >
+                                    <td>{{ item.label }}</td>
+                                    <td>
+                                        <a
+                                            :href="`https://www.wikidata.org/wiki/${item.id}`"
+                                            target="_blank"
+                                        >
+                                            {{ item.id }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {{
+                                            item.description ||
+                                            "Keine Beschreibung"
+                                        }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </v-table>
+                    </v-window-item>
+
+                    <!-- Täter*innen Tab -->
+                    <v-window-item value="perpetrators">
+                        <v-table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>ID</th>
+                                    <th>Beschreibung</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr
+                                    v-for="item in latestPerpetrators"
+                                    :key="item.id"
+                                >
+                                    <td>{{ item.label }}</td>
+                                    <td>
+                                        <a
+                                            :href="`https://www.wikidata.org/wiki/${item.id}`"
+                                            target="_blank"
+                                        >
+                                            {{ item.id }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {{
+                                            item.description ||
+                                            "Keine Beschreibung"
+                                        }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </v-table>
+                    </v-window-item>
+                </v-window>
+            </v-col>
+        </v-row>
     </v-container>
     <div id="leafletMapId" style="display: none"></div>
 </template>
@@ -197,6 +326,10 @@ export default {
         const mapMarkerIconsPath = ref(
             "/images/leaflet/markerIcons/coloredFilledWhite/",
         );
+        const activeTab = ref("places");
+        const latestPlaces = ref([]);
+        const latestVictims = ref([]);
+        const latestPerpetrators = ref([]);
         const persons = ref({
             perpetrators: {},
             victims: {},
@@ -549,23 +682,48 @@ export default {
         };
 
         const updatePlacesInfoData = (groupedPlaces) => {
+            // Array für alle Orte erstellen
+            let allPlaces = [];
+
             Object.entries(groupedPlaces).forEach(([groupName, groupData]) => {
                 if (groupData) {
                     // Updating Count number for current state
                     const LayerCountSpan = document.querySelector(
                         '[data-groupuid="' + groupName + '"]',
                     );
-                    const groupLength = Object.keys(groupData).length - 1;
+                    // Stelle sicher, dass wir 'places' berücksichtigen falls vorhanden
+                    const places = groupData.places || groupData;
+                    const groupLength = Object.keys(places).length;
                     if (LayerCountSpan) {
                         LayerCountSpan.innerHTML = groupLength;
                     }
 
-                    // Adding latest added items
+                    // Behalte die ursprünglichen console.log bei
                     console.log("groupData " + groupName, groupData);
 
+                    // Konvertiere alle Orte in ein Array mit Kategorie-Info
+                    const placesArray = Object.entries(places)
+                        .filter(([id]) => id !== "layerGroup") // Filtere layerGroup-Eigenschaft aus
+                        .map(([id, data]) => ({
+                            id,
+                            label: data.label || "Unbenannt",
+                            description: data.description || "",
+                            category: groupName,
+                            // Speichere die ursprünglichen Daten für die Anzeige
+                            originalData: data,
+                            // Speichere die Q-Nummer als Zahl für die Sortierung
+                            qNumber: parseInt(id.replace("Q", ""), 10),
+                        }));
+
+                    // Zu allen Orten hinzufügen
+                    allPlaces = [...allPlaces, ...placesArray];
+
+                    // Hole Tabellenzellen für diese Kategorie
                     let groupTableDatas = document.querySelectorAll(
                         '[data-groupname="' + groupName + '"]',
                     );
+
+                    // Behalte die ursprüngliche Logik bei (kommentiert)
                     /*
                     if (groupTableDatas) {
                         let index = 0;
@@ -598,11 +756,37 @@ export default {
 
                             index++;
                         });
-
                     }*/
                 }
             });
+
+            // Nach Q-Nummer absteigend sortieren (höchste/neueste zuerst)
+            allPlaces.sort((a, b) => b.qNumber - a.qNumber);
+
+            // Log der sortierten Daten (ähnlich wie deine ursprünglichen Logs)
+            console.log(
+                "Alle sortierten Orte nach Q-Nummer (neueste zuerst):",
+                allPlaces,
+            );
+
+            // Log der neuesten 10 Einträge für jede Kategorie
+            const categories = [
+                ...new Set(allPlaces.map((place) => place.category)),
+            ];
+            categories.forEach((category) => {
+                const placesInCategory = allPlaces.filter(
+                    (place) => place.category === category,
+                );
+                console.log(
+                    `Neueste 10 Einträge für Kategorie ${category}:`,
+                    placesInCategory.slice(0, 10),
+                );
+            });
+
+            // Die neuesten 20 Einträge insgesamt für die Tabelle
+            latestPlaces.value = allPlaces.slice(0, 20);
         };
+
         /**
          * Request persons data from cached file and Wikidata for perpetrators and victims.
          */
@@ -617,32 +801,53 @@ export default {
                 console.error("Error fetching persons:", error);
             }
         };
+        /*
+        const updatePlacesInfoData = (groupedPlaces) => {
+            Object.entries(groupedPlaces).forEach(([groupName, groupData]) => {
+                if (groupData) {
+                    // Updating Count number for current state
+                    const LayerCountSpan = document.querySelector(
+                        '[data-groupuid="' + groupName + '"]',
+                    );
+                    const groupLength = Object.keys(
+                        groupData.places || {},
+                    ).length;
+                    if (LayerCountSpan) {
+                        LayerCountSpan.innerHTML = groupLength;
+                    }
 
+                    // Die letzten 5 Einträge für jede Kategorie sammeln
+                    if (groupData.places) {
+                        const entries = Object.entries(groupData.places)
+                            .map(([id, data]) => ({
+                                id,
+                                label: data.label || "Unbenannt",
+                                description: data.description || "",
+                                category: groupName,
+                            }))
+                            .slice(-5); // Die letzten 5 Einträge
+
+                        // Zu den gesammelten Orten hinzufügen
+                        latestPlaces.value = [
+                            ...latestPlaces.value,
+                            ...entries,
+                        ];
+                    }
+                }
+            });
+
+            // Sortiere und beschränke auf die letzten 20 Einträge
+            latestPlaces.value = latestPlaces.value.slice(-20);
+        };
+*/
+        // Diese Funktion aktualisieren
         const updatePersonInfoData = () => {
             const perpetratorsCount = Object.keys(
                 persons.value.perpetrators,
             ).length;
             const victimsCount = Object.keys(persons.value.victims).length - 1;
 
-            const victimsEntries = Object.entries(persons.value.victims);
-            console.log(victimsEntries);
-            console.log(
-                "Last 10 victimsEntries",
-                victimsEntries.slice(Math.max(victimsEntries.length - 10, 0)),
-            );
-
-            const perpetratorsEntries = Object.entries(
-                persons.value.perpetrators,
-            );
-            console.log(perpetratorsEntries);
-            console.log(
-                "Last 10 perpetratorsEntries",
-                perpetratorsEntries.slice(
-                    Math.max(perpetratorsEntries.length - 10, 0),
-                ),
-            );
-
-            // Update the DOM elements with the counts
+            // DOM-Elemente aktualisieren
             const perpetratorsSpan = document.querySelector(
                 '[data-groupuid="perpetrators"]',
             );
@@ -657,6 +862,75 @@ export default {
             if (victimsSpan) {
                 victimsSpan.innerHTML = victimsCount;
             }
+
+            // Opfer in sortiertes Array umwandeln
+            const victimsArray = Object.entries(persons.value.victims).map(
+                ([id, data]) => ({
+                    id,
+                    label: data.label || "Unbenannt",
+                    description: data.description || "",
+                    qNumber: parseInt(id.replace("Q", ""), 10),
+                }),
+            );
+
+            // Täter in sortiertes Array umwandeln
+            const perpetratorsArray = Object.entries(
+                persons.value.perpetrators,
+            ).map(([id, data]) => ({
+                id,
+                label: data.label || "Unbenannt",
+                description: data.description || "",
+                qNumber: parseInt(id.replace("Q", ""), 10),
+            }));
+
+            // Nach Q-Nummer absteigend sortieren (höchste/neueste zuerst)
+            victimsArray.sort((a, b) => b.qNumber - a.qNumber);
+            perpetratorsArray.sort((a, b) => b.qNumber - a.qNumber);
+
+            // Die neuesten 20 Einträge nehmen
+            latestVictims.value = victimsArray.slice(0, 20);
+            latestPerpetrators.value = perpetratorsArray.slice(0, 20);
+        };
+
+        const sortByQNumber = (a, b) => {
+            // Q-Nummern extrahieren (z.B. "Q12345" -> 12345)
+            const aNum = parseInt(a.id.replace("Q", ""), 10);
+            const bNum = parseInt(b.id.replace("Q", ""), 10);
+
+            // Absteigend sortieren (neueste zuerst = höchste Q-Nummern)
+            return bNum - aNum;
+        };
+
+        // Hilfsfunktion zum Abrufen des richtigen Icons für die Kategorie
+        const getCategoryIcon = (category) => {
+            const categoryMap = {
+                events: "events.svg",
+                extPolicePrisons: "extPolicePrisons.svg",
+                fieldOffices: "fieldOffices.svg",
+                laborEducationCamps: "laborEducationCamps.svg",
+                memorials: "memorials.svg",
+                prisons: "prisons.svg",
+                statePoliceHeadquarters: "statePoliceHeadquarters.svg",
+                statePoliceOffices: "statePoliceOffices.svg",
+            };
+
+            return categoryMap[category] || "default.svg";
+        };
+
+        // Hilfsfunktion zum Abrufen des Anzeigenamens für die Kategorie
+        const getCategoryName = (category) => {
+            const categoryMap = {
+                events: "Ereignisse",
+                extPolicePrisons: "Erweiterte Polizeigefängnisse",
+                fieldOffices: "Außendienststellen",
+                laborEducationCamps: "Arbeitserziehungslager",
+                memorials: "Erinnerungsorte",
+                prisons: "Gefängnisse",
+                statePoliceHeadquarters: "Staatspolizeileitstellen",
+                statePoliceOffices: "Staatspolizeistellen",
+            };
+
+            return categoryMap[category] || category;
         };
 
         return {
@@ -667,6 +941,12 @@ export default {
             selectedPlace,
             derivedPlacesData,
             getDerivedPlacesData,
+            activeTab,
+            latestPlaces,
+            latestVictims,
+            latestPerpetrators,
+            getCategoryIcon,
+            getCategoryName,
         };
     },
 };

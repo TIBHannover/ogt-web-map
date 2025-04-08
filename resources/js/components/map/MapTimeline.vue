@@ -14,51 +14,70 @@
         </v-btn>
 
         <div
-            class="timeline-toolbar position-fixed z-index-4 bottom-0 w-100 d-flex flex-column align-center border-t-thin"
+            class="timeline-toolbar position-fixed z-index-10 bottom-0 left-0 w-100 d-flex flex-column align-center border-t-thin"
             v-show="isTimelineOpen"
             :class="{ isOpen: isTimelineOpen }"
         >
+            <v-btn
+                @click.stop="toggleTimeline"
+                icon
+                class="close-button position-absolute right-0 top-0 mr-5 mt-5"
+            >
+                <v-icon>mdi-close</v-icon>
+            </v-btn>
             <div class="timeline-toolbar__content d-flex">
-                <v-btn
-                    @click.stop="toggleTimeline"
-                    icon
-                    class="close-button position-absolute right-0 top-0 mr-5 mt-5"
-                >
-                    <v-icon>mdi-close</v-icon>
-                </v-btn>
                 <div
-                    class="timeline-header d-flex w-100 justify-space-between flex-row align-center"
+                    class="timeline-header d-flex w-100 justify-space-between flex-column flex-sm-row align-start align-sm-center px-6 pt-3"
                 >
                     <span class="timeline-title">Zeitstrahl</span>
-                    <v-switch
-                        v-model="timelineModeSinglePin"
-                        @click.stop="handleModeChange"
-                        append-icon="mdi-filter"
-                        prepend-icon="mdi-filter-multiple"
-                        hint="Einzel- oder Zeitraumfilter"
-                        persistent-hint
-                        label="Modus"
-                    ></v-switch>
+                    <div class="d-flex align-center">
+                        <label class="pr-3">
+                            <span v-if="timelineModeSingleHandle">
+                                Zeitpunktfilter:
+                            </span>
+                            <span v-if="!timelineModeSingleHandle">
+                                Zeitraumfilter:
+                            </span>
+                        </label>
+                        <v-switch
+                            v-model="timelineModeSingleHandle"
+                            @click.stop="handleModeChange"
+                            style="height: 56px"
+                            append-icon="mdi-filter"
+                            prepend-icon="mdi-filter-multiple"
+                        ></v-switch>
+                        <v-icon
+                            color="blue"
+                            width="25px"
+                            style="top: -10px"
+                            v-tooltip:top="
+                                'Modus umschalten zwischen Zeitraumfilter und Zeitpunktfilter.'
+                            "
+                        >
+                            mdi-information-outline
+                        </v-icon>
+                    </div>
                 </div>
                 <div
                     class="map-timeline"
                     id="timeline"
-                    :class="{ singleMode: timelineModeSinglePin }"
+                    :class="{ singleMode: timelineModeSingleHandle }"
                 >
                     <div>
                         <div
                             class="map-timeline-handle left"
                             @mousedown="moveLeftHandle"
-                            v-show="!timelineModeSinglePin"
+                            v-show="!timelineModeSingleHandle"
                         >
                             <span></span>
                         </div>
 
-                        <!-- Right handle (used as single point in single mode) -->
                         <div
                             class="map-timeline-handle right"
                             @mousedown="handleRightMousedown"
-                            :class="{ 'single-handle': timelineModeSinglePin }"
+                            :class="{
+                                'single-handle': timelineModeSingleHandle,
+                            }"
                         >
                             <span></span>
                         </div>
@@ -70,7 +89,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, toRaw } from "vue";
 
 const emit = defineEmits(["updateTimeLine"]);
 import NavigationHelpers from "../helpers/NavigationHelpers";
@@ -90,35 +109,25 @@ const STATE = {
 const MIN_HANDLE_GAP = 0.155;
 
 const { isTimelineOpen, toggleTimeline } = NavigationHelpers();
-const timelineModeSinglePin = ref(false);
+const timelineModeSingleHandle = ref(false);
 
-// Watch for mode changes to update the UI and handlers
-watch(timelineModeSinglePin, (newValue) => {
-    // Apply UI changes for the mode transition
-    if (newValue) {
-        // Single mode: Set both handles to the same position
-        // Use the right handle position for both
-        if (STATE.left && STATE.right) {
-            STATE.left = { ...STATE.right };
-            updateHandlePositions();
-        }
-    }
+watch(timelineModeSingleHandle, (newValue) => {
+    resetHandlePositions();
 });
 
 const handleModeChange = () => {
-    // Emit the correct values based on the current mode after a small delay
-    // to ensure the UI has updated
+    closeMapPopups();
     setTimeout(() => {
         updateTimeLine(STATE.left, STATE.right);
     }, 50);
 };
 
 const updateTimeLine = (left, right) => {
-    if (timelineModeSinglePin.value) {
-        // In single mode, we emit the same value for start and end
+    if (timelineModeSingleHandle.value) {
+        // single mode
         emit("updateTimeLine", right, right);
     } else {
-        // In range mode, we emit different values
+        // range mode
         emit("updateTimeLine", left, right);
     }
 };
@@ -189,107 +198,157 @@ function setHandle(element, position, leftLimit = 0, rightLimit = 1) {
     };
 }
 
-// Update UI to reflect current state
-function updateHandlePositions() {
+function resetHandlePositions() {
     if (!STATE.left || !STATE.right) return;
 
+    closeMapPopups();
     const leftHandle = document.querySelector(".map-timeline-handle.left");
     const rightHandle = document.querySelector(".map-timeline-handle.right");
 
-    if (leftHandle) {
-        setHandle(leftHandle, STATE.left.position);
+    if (timelineModeSingleHandle.value) {
+        // Für Single-Handle-Modus: setze beide Handles auf 0.6 (Mitte)
+        const position = 0.6;
+
+        if (leftHandle) {
+            STATE.left = setHandle(leftHandle, position);
+        }
+
+        if (rightHandle) {
+            STATE.right = setHandle(rightHandle, position);
+        }
+    } else {
+        // Für Dual-Handle-Modus: setze Handles auf 0 und 1
+        if (leftHandle) {
+            STATE.left = setHandle(leftHandle, 0);
+        }
+
+        if (rightHandle) {
+            STATE.right = setHandle(rightHandle, 1);
+        }
     }
 
-    if (rightHandle) {
-        setHandle(rightHandle, STATE.right.position);
-    }
+    updateTimeLine(STATE.left, STATE.right);
 }
 
 const moveLeftHandle = (e) => {
-    if (timelineModeSinglePin.value) return; // Shouldn't happen, but just in case
-
+    if (timelineModeSingleHandle.value) return; // Shouldn't happen, but just in case
+    closeMapPopups();
     beforeMove(e);
+
     const move = (e) => {
         STATE.left = setHandle(
             document.querySelector(".map-timeline-handle.left"),
-            calcPosition(e.clientX),
+            calcPosition(getClientX(e)),
             0,
             STATE.right.position - MIN_HANDLE_GAP,
         );
     };
-    console.log("movehandle left");
+
+    const end = () => {
+        document.removeEventListener("mousemove", move);
+        document.removeEventListener("touchmove", move);
+        document.removeEventListener("mouseup", end);
+        document.removeEventListener("touchend", end);
+        updateTimeLine(STATE.left, STATE.right);
+        afterMove();
+    };
+
     document.addEventListener("mousemove", move);
-    document.addEventListener(
-        "mouseup",
-        () => {
-            document.removeEventListener("mousemove", move);
-            updateTimeLine(STATE.left, STATE.right);
-            afterMove();
-        },
-        { once: true },
-    );
+    document.addEventListener("touchmove", move, { passive: false });
+    document.addEventListener("mouseup", end);
+    document.addEventListener("touchend", end);
+
+    // Prevent default for touch events to avoid scrolling
+    if (e.touches) {
+        e.preventDefault();
+    }
 };
 
 const handleRightMousedown = (e) => {
-    if (timelineModeSinglePin.value) {
+    if (timelineModeSingleHandle.value) {
         moveSingleHandle(e);
     } else {
         moveRightHandle(e);
     }
+
+    // Prevent default for touch events to avoid scrolling
+    if (e.touches) {
+        e.preventDefault();
+    }
 };
 
 const moveRightHandle = (e) => {
-    //if (timelineModeSinglePin.value) return; // Shouldn't happen, but just in case
-
+    closeMapPopups();
     beforeMove(e);
+
     const move = (e) => {
         STATE.right = setHandle(
             document.querySelector(".map-timeline-handle.right"),
-            calcPosition(e.clientX),
+            calcPosition(getClientX(e)),
             STATE.left.position + MIN_HANDLE_GAP,
             1,
         );
     };
-    console.log("movehandle right");
+
+    const end = () => {
+        document.removeEventListener("mousemove", move);
+        document.removeEventListener("touchmove", move);
+        document.removeEventListener("mouseup", end);
+        document.removeEventListener("touchend", end);
+        updateTimeLine(STATE.left, STATE.right);
+        afterMove();
+    };
+
     document.addEventListener("mousemove", move);
-    document.addEventListener(
-        "mouseup",
-        () => {
-            document.removeEventListener("mousemove", move);
-            updateTimeLine(STATE.left, STATE.right);
-            afterMove();
-        },
-        { once: true },
-    );
+    document.addEventListener("touchmove", move, { passive: false });
+    document.addEventListener("mouseup", end);
+    document.addEventListener("touchend", end);
+
+    // Prevent default for touch events to avoid scrolling
+    if (e.touches) {
+        e.preventDefault();
+    }
 };
 
-// New function for single handle mode
 const moveSingleHandle = (e) => {
+    closeMapPopups();
     beforeMove(e);
+
     const move = (e) => {
         // In single mode, both left and right handles have the same position
-        const position = calcPosition(e.clientX);
+        const position = calcPosition(getClientX(e));
         STATE.right = setHandle(
             document.querySelector(".map-timeline-handle.right"),
             position,
             0, // No minimum limit in single mode
             1,
         );
-
-        // Update the left handle position (hidden but we keep it in sync)
-        STATE.left = { ...STATE.right };
     };
+
+    const end = () => {
+        document.removeEventListener("mousemove", move);
+        document.removeEventListener("touchmove", move);
+        document.removeEventListener("mouseup", end);
+        document.removeEventListener("touchend", end);
+        STATE.left = { ...STATE.right };
+        updateTimeLine(STATE.left, STATE.right);
+        afterMove();
+    };
+
     document.addEventListener("mousemove", move);
-    document.addEventListener(
-        "mouseup",
-        () => {
-            document.removeEventListener("mousemove", move);
-            updateTimeLine(STATE.left, STATE.right);
-            afterMove();
-        },
-        { once: true },
-    );
+    document.addEventListener("touchmove", move, { passive: false });
+    document.addEventListener("mouseup", end);
+    document.addEventListener("touchend", end);
+
+    // Prevent default for touch events to avoid scrolling
+    if (e.touches) {
+        e.preventDefault();
+    }
 };
+
+function getClientX(e) {
+    return e.touches ? e.touches[0].clientX : e.clientX;
+}
 
 onMounted(() => {
     const monthSteps = (MONTH_STEP_END_YEAR - YEAR_RANGE[0]) * 12;
@@ -323,7 +382,56 @@ onMounted(() => {
             1,
         );
     }, 0);
+
+    setTimeout(() => {
+        STATE.left = setHandle(
+            document.querySelector(".map-timeline-handle.left"),
+            0,
+        );
+        STATE.right = setHandle(
+            document.querySelector(".map-timeline-handle.right"),
+            1,
+        );
+
+        // Add touch event listeners to handles
+        const leftHandle = document.querySelector(".map-timeline-handle.left");
+        const rightHandle = document.querySelector(
+            ".map-timeline-handle.right",
+        );
+
+        leftHandle.addEventListener("touchstart", moveLeftHandle, {
+            passive: false,
+        });
+        rightHandle.addEventListener("touchstart", handleRightMousedown, {
+            passive: false,
+        });
+    }, 0);
 });
+
+function closeMapPopups() {
+    if (!props.map) return;
+
+    try {
+        const rawMap = toRaw(props.map);
+
+        if (rawMap._popup) {
+            try {
+                if (rawMap._popup._container) {
+                    rawMap._popup._container.remove();
+                }
+                rawMap._popup = null;
+            } catch (e) {
+                console.warn("Error manually removing popup:", e);
+            }
+        }
+
+        if (typeof rawMap.closePopup === "function") {
+            rawMap.closePopup();
+        }
+    } catch (error) {
+        console.warn("Error closing map popups:", error);
+    }
+}
 </script>
 
 <style scoped>
@@ -336,8 +444,12 @@ onMounted(() => {
     z-index: 4;
 }
 
+.z-index-10 {
+    z-index: 1005;
+}
+
 .timeline-toolbar {
-    height: 200px;
+    height: 170px;
     background-color: rgba(255, 255, 255, 0.9);
     transform: translateY(230px);
     transition: all 0.3s ease;
@@ -350,20 +462,22 @@ onMounted(() => {
 }
 
 .timeline-toolbar__content {
+    position: relative;
     width: 800px;
+    height: 188px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .map-timeline {
     --s: 750px;
     --w: 4.5em;
     --h: 40px;
-
-    position: fixed;
-    left: 50%;
+    position: absolute;
     bottom: 0;
     padding: 0 calc(0.5 * var(--w));
-    margin: 80px;
-    margin-left: calc(-0.5 * var(--s));
+    margin: 78px 0 52px 0;
     width: 95%;
     max-width: var(--s);
     height: var(--h);
@@ -440,6 +554,31 @@ onMounted(() => {
 .map-timeline.singleMode .map-timeline-handle.right span {
     border-radius: calc(0.5 * var(--h));
 }
+.map-timeline .map-timeline-stripe:nth-child(2) {
+    display: none;
+}
+
+@media (max-width: 1000px) {
+    .timeline-toolbar.isOpen .close-button {
+        margin-top: -63px !important;
+    }
+}
+
+@media (max-width: 850px) {
+    .timeline-toolbar__content {
+        width: 100%;
+    }
+}
+
+@media (max-width: 600px) {
+    .timeline-toolbar.isOpen .close-button {
+        margin-top: 15px !important;
+        z-index: 1000;
+    }
+    .map-timeline {
+        margin: 90px 0 33px 0;
+    }
+}
 </style>
 <style>
 .map-timeline-months {
@@ -459,5 +598,10 @@ onMounted(() => {
     height: 100%;
     background-color: #bababa;
     z-index: -1;
+}
+@media (max-width: 600px) {
+    .map-timeline-stripe:nth-child(even) {
+        display: none;
+    }
 }
 </style>
