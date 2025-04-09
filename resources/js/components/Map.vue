@@ -514,6 +514,9 @@ export default {
                         console.error("Error updating map:", error);
                     }
                 }
+                map.value.on("moveend", () => {
+                    debouncedApplyFilters(null, null, null);
+                });
             } catch (error) {
                 console.error("Error during component mount:", error);
             }
@@ -718,26 +721,38 @@ export default {
 
             const rawMap = toRaw(map.value);
             rawMap.closePopup();
+
+            const bounds = rawMap.getBounds();
+
             Array.from(markersDate.value.entries()).forEach((entry) => {
-                const groupName = entry[1].groupName;
-                const startDate = new Date(entry[1].startDate);
-                const endDate = new Date(entry[1].endDate);
-                const applies =
+                const marker = entry[0];
+                const data = entry[1];
+                const groupName = data.groupName;
+                const startDate = new Date(data.startDate);
+                const endDate = new Date(data.endDate);
+
+                const dateFilterApplies =
                     (endDate.getFullYear() > minDate.year ||
                         (endDate.getFullYear() === minDate.year &&
                             endDate.getMonth() >= minDate.month)) &&
                     (startDate.getFullYear() < maxDate.year ||
                         (startDate.getFullYear() === maxDate.year &&
-                            startDate.getMonth() <= maxDate.month)) &&
-                    (!groupNames || groupNames.includes(groupName));
-                if (applies) {
-                    entry[0].addTo(rawMap);
+                            startDate.getMonth() <= maxDate.month));
+
+                const groupFilterApplies =
+                    !groupNames || groupNames.includes(groupName);
+
+                const isInBounds = bounds.contains(marker.getLatLng());
+
+                if (dateFilterApplies && groupFilterApplies && isInBounds) {
+                    marker.addTo(rawMap);
                 } else {
-                    entry[0].remove();
+                    marker.remove();
                 }
             });
             setCurrentValues(minDate, maxDate, groupNames);
         };
+
         const visualizePlaces = async (groupedPlaces) => {
             try {
                 await nextTick();
@@ -756,24 +771,29 @@ export default {
             }
 
             const placeMarkers = [];
+            const groupConfig = groupedPlaces.value[placeGroupName];
             const iconUrl =
                 ogtGlobals.proxyPath +
                 mapMarkerIconsPath.value +
                 groupedPlaces.value[placeGroupName].iconName;
 
-            const defaultIcon = L.icon({
+            const groupIcon = L.icon({
                 className: "",
-                iconUrl: iconUrl,
-                // Workaround to use same marker icons for Retina and non-Retina displays.
-                // - default file '/images/leaflet/marker-icon-2x.png'
-                iconRetinaUrl: iconUrl,
+                iconUrl:
+                    ogtGlobals.proxyPath +
+                    mapMarkerIconsPath.value +
+                    groupConfig.iconName,
+                iconRetinaUrl:
+                    ogtGlobals.proxyPath +
+                    mapMarkerIconsPath.value +
+                    groupConfig.iconName,
                 shadowUrl:
                     ogtGlobals.proxyPath + "/images/leaflet/marker-shadow.png",
-                iconSize: [48, 53], // default [25, 41]
-                iconAnchor: [24, 52], // default [12, 41]
+                iconSize: [48, 53],
+                iconAnchor: [24, 52],
                 popupAnchor: [1, -34],
                 tooltipAnchor: [16, -28],
-                shadowSize: [76, 52], // default [41, 41]
+                shadowSize: [76, 52],
             });
 
             for (const [placeId, place] of Object.entries(places)) {
@@ -796,16 +816,19 @@ export default {
                         continue;
                     }
                     const marker = L.marker(placeCoordinate.value, {
-                        icon: defaultIcon,
+                        icon: groupIcon,
                         riseOnHover: true,
                         title: place.label,
                     });
 
-                    marker.bindPopup(place.label, {
+                    const popup = L.popup({
                         className: "font-weight-bold",
                     });
 
+                    marker.bindPopup(popup);
+
                     marker.on("click", (event) => {
+                        popup.setContent(place.label);
                         setSelectedPlace(
                             place,
                             event.latlng,
