@@ -570,7 +570,7 @@ export default {
                     const LayerCountSpan = document.querySelector(
                         '[data-groupuid="' + groupName + '"]',
                     );
-                    const groupLength = Object.keys(groupData).length - 1;
+                    const groupLength = Object.keys(groupData).length;
                     if (LayerCountSpan) {
                         LayerCountSpan.innerHTML = groupLength;
                     }
