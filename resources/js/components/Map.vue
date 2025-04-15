@@ -530,9 +530,14 @@ export default {
 
                     try {
                         await nextTick();
-                        // Daten laden
-                        await getGroupedPlaces();
-                        await getPersons();
+                        const [placesPromise, personsPromise] =
+                            await Promise.all([
+                                getGroupedPlaces(),
+                                getPersons(),
+                            ]);
+
+                        await ensureDataProcessed();
+
                         setTimeout(() => {
                             isLoading.value = false;
                         }, 500);
@@ -625,8 +630,16 @@ export default {
                 await visualizePlaces(groupedPlaces);
                 setCurrentValues();
                 derivePlaceData(groupedPlaces);
+                if (
+                    Object.keys(persons.value.victims).length > 0 ||
+                    Object.keys(persons.value.perpetrators).length > 0
+                ) {
+                    deriveDataFromVictims();
+                    deriveLocationEmployees();
+                }
                 updateInfoSidebarData();
-                checkUrlForLocation();
+                await checkUrlForLocation();
+                await checkUrlForPerson();
                 currentGroupedPlaces.value = Object.keys(groupedPlaces);
             } catch (error) {
                 console.error("Error fetching grouped places:", error);
@@ -639,9 +652,17 @@ export default {
             try {
                 const response = await axios.get("/api/wikidata/persons/cache");
                 persons.value = response.data;
+
                 processPersonsData();
-                checkUrlForPerson();
-                setTimeout(updatePersonsCache, 10000);
+
+                if (Object.keys(derivedPlacesData.value).length > 0) {
+                    await checkUrlForLocation();
+                    await checkUrlForPerson();
+                }
+
+                setTimeout(() => {
+                    updatePersonsCache();
+                }, 10000);
             } catch (error) {
                 console.error("Error fetching persons:", error);
             }
@@ -649,7 +670,6 @@ export default {
 
         const updatePersonsCache = () => {
             setTimeout(() => {
-                console.log("createworker");
                 const worker = createAdvancedWorker();
 
                 worker.onmessage = (e) => {
@@ -2230,7 +2250,7 @@ export default {
         /**
          * Check for URL query parameters to display a specific location on map.
          */
-        const checkUrlForLocation = () => {
+        const checkUrlForLocation = async () => {
             try {
                 const searchParams = new URLSearchParams(
                     window.location.search,
@@ -2238,11 +2258,14 @@ export default {
                 const qId = searchParams.get("id");
 
                 if (qId && locationMarkers.value[qId]) {
+                    // Stelle sicher, dass alle Daten verarbeitet wurden, bevor das Popup geöffnet wird
+                    await ensureDataProcessed();
+
+                    // Dann zum Standort wechseln
                     switchLocation({
                         locationId: qId,
                         zoom: 14,
                     });
-                    //router.push({ path: "/map" });
                 }
             } catch (error) {
                 console.error("Error checking URL for location:", error);
@@ -2251,7 +2274,7 @@ export default {
         /**
          * Check for URL query parameters to display a specific person in map info sidebar.
          */
-        const checkUrlForPerson = () => {
+        const checkUrlForPerson = async () => {
             try {
                 const searchParams = new URLSearchParams(
                     window.location.search,
@@ -2259,8 +2282,10 @@ export default {
                 const qId = searchParams.get("pid");
 
                 if (qId) {
-                    let personGroup = "";
+                    // Stelle sicher, dass alle Daten verarbeitet wurden
+                    await ensureDataProcessed();
 
+                    let personGroup = "";
                     if (persons.value.victims[qId]) {
                         personGroup = "victims";
                     } else if (persons.value.perpetrators[qId]) {
@@ -2272,14 +2297,34 @@ export default {
                             id: qId,
                             group: personGroup,
                         });
-
-                        //router.push({ path: "/map" });
                     }
                 }
             } catch (error) {
                 console.error("Error checking URL for person:", error);
             }
         };
+
+        const ensureDataProcessed = () => {
+            return new Promise((resolve) => {
+                // Prüfen, ob derivedPlacesData bereits initialisiert ist
+                if (Object.keys(derivedPlacesData.value).length > 0) {
+                    // Daten sind bereits verarbeitet
+                    resolve();
+                    return;
+                }
+
+                // Ansonsten ausdrücklich die Ableitung der Daten durchführen
+                derivePlaceData(groupedPlaces.value);
+                deriveLocationEmployees();
+                deriveDataFromVictims();
+
+                // Nach einer kurzen Verzögerung fortfahren
+                setTimeout(() => {
+                    resolve();
+                }, 500);
+            });
+        };
+
         /**
          * Switch location on map and location info.
          *
@@ -2287,12 +2332,13 @@ export default {
          * @param {object|null}         latLng      default null
          * @param {number|undefined}    zoom        zoom level, default undefined
          */
-        const switchLocation = ({
+        const switchLocation = async ({
             locationId,
             latLng = null,
             zoom = undefined,
         }) => {
             try {
+                await ensureDataProcessed();
                 let markers = locationMarkers.value[locationId];
                 const rawMap = toRaw(map.value);
 
@@ -2338,8 +2384,9 @@ export default {
          * @param {string} id    Wikidata item id.
          * @param {string} group Group of person.
          */
-        const showPerson = ({ id, group = "" }) => {
+        const showPerson = async ({ id, group = "" }) => {
             try {
+                await ensureDataProcessed();
                 toggleShowPlaceInfoSidebar(true);
                 selectedPlace.value.groupName = group;
 
