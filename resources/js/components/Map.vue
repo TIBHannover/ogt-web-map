@@ -641,44 +641,65 @@ export default {
                 persons.value = response.data;
                 processPersonsData();
                 checkUrlForPerson();
-                setTimeout(() => {
-                    updatePersonsCache();
-                }, 5000);
+                setTimeout(updatePersonsCache, 10000);
             } catch (error) {
                 console.error("Error fetching persons:", error);
             }
         };
 
         const updatePersonsCache = () => {
-            const worker = createWorker();
+            setTimeout(() => {
+                console.log("createworker");
+                const worker = createAdvancedWorker();
 
-            worker.onmessage = (e) => {
-                if (e.data.error) {
-                    console.warn(
-                        "Could not update persons cache:",
-                        e.data.error,
-                    );
-                } else {
-                    persons.value = e.data;
-                }
-                worker.terminate();
-            };
-            worker.postMessage("start");
+                worker.onmessage = (e) => {
+                    const message = e.data;
+
+                    if (message.type === "error") {
+                        console.warn("Worker error:", message.error);
+                    } else if (message.type === "success") {
+                        persons.value = message.data;
+                    }
+
+                    worker.terminate();
+                };
+
+                worker.postMessage("start");
+            }, 10000);
         };
 
-        const createWorker = () => {
+        const createAdvancedWorker = () => {
             const workerCode = `
+                // Hilfsfunktionen für die Datenverarbeitung im Worker
+                function processData(data) {
+                    // Hier könntest du optional Daten optimieren oder filtern, falls nötig
+                    return data;
+                }
+
                 self.onmessage = async function(e) {
-                            try {
-                                const url = self.location.origin + '/api/wikidata/persons';
-                                const response = await fetch(url);
-                                const data = await response.json();
-                                self.postMessage(data);
-                            } catch (error) {
-                                self.postMessage({ error: error.message });
-                            }
-                        };
-                    `;
+                    try {
+                        // Lade die Daten
+                        const url = self.location.origin + '/api/wikidata/persons';
+                        const response = await fetch(url);
+                        const rawData = await response.json();
+
+                        // Verarbeite die Daten - optional
+                        const processedData = processData(rawData);
+
+                        // Sende die verarbeiteten Daten zurück
+                        self.postMessage({
+                            type: 'success',
+                            data: processedData
+                        });
+
+                    } catch (error) {
+                        self.postMessage({
+                            type: 'error',
+                            error: error.message
+                        });
+                    }
+                };
+            `;
 
             const blob = new Blob([workerCode], {
                 type: "application/javascript",
