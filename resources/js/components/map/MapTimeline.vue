@@ -3,14 +3,17 @@
         <v-btn
             position="fixed"
             location="bottom right"
-            rounded="circle"
-            size="56px"
+            :rounded="$vuetify.display.smAndUp ? 'pill' : 'circle'"
+            :size="$vuetify.display.smAndUp ? 'default' : '56px'"
             class="mb-5 mr-5 z-index-4"
             color="white"
             v-show="!isTimelineOpen"
             @click.stop="toggleTimeline"
         >
             <v-icon>mdi-timeline</v-icon>
+            <span v-if="$vuetify.display.smAndUp" class="ml-2 text-none"
+                >Zeitstrahl Filter</span
+            >
         </v-btn>
 
         <div
@@ -27,41 +30,85 @@
             </v-btn>
             <div class="timeline-toolbar__content d-flex">
                 <div
-                    class="timeline-header d-flex w-100 justify-space-between flex-column flex-sm-row align-start align-sm-center px-6 pt-3"
+                    class="timeline-header d-flex w-100 justify-start justify-sm-space-between flex-row align-start align-sm-center px-6 pt-5 pt-sm-6 ga-6 ga-sm-0"
                 >
-                    <span class="timeline-title">Zeitstrahl</span>
                     <div class="d-flex align-center">
-                        <label class="pr-3">
-                            <span v-if="timelineModeSingleHandle">
-                                Zeitpunktfilter:
-                            </span>
-                            <span v-if="!timelineModeSingleHandle">
-                                Zeitraumfilter:
-                            </span>
-                        </label>
-                        <v-switch
-                            v-model="timelineModeSingleHandle"
-                            @click.stop="handleModeChange"
-                            style="height: 56px"
-                            append-icon="mdi-filter"
-                            prepend-icon="mdi-filter-multiple"
-                        ></v-switch>
-                        <v-icon
-                            color="blue"
-                            width="25px"
-                            style="top: -10px"
-                            v-tooltip:top="
-                                'Modus umschalten zwischen Zeitraumfilter und Zeitpunktfilter.'
+                        <v-btn
+                            :color="
+                                isTimelineFilterEnabled ? 'primary' : 'default'
                             "
+                            :variant="
+                                isTimelineFilterEnabled
+                                    ? 'elevated'
+                                    : 'outlined'
+                            "
+                            rounded="pill"
+                            @click="toggleTimelineFilter"
+                            class="timeline-toggle-btn"
                         >
-                            mdi-information-outline
-                        </v-icon>
+                            <v-icon
+                                :icon="
+                                    isTimelineFilterEnabled
+                                        ? 'mdi-toggle-switch'
+                                        : 'mdi-toggle-switch-off'
+                                "
+                                class="mr-2"
+                            ></v-icon>
+                            <span
+                                v-if="$vuetify.display.smAndUp"
+                                class="text-none"
+                            >
+                                {{
+                                    isTimelineFilterEnabled
+                                        ? "Zeitstrahl deaktivieren"
+                                        : "Zeitstrahl aktivieren"
+                                }}
+                            </span>
+                        </v-btn>
+                    </div>
+                    <div class="d-flex align-center">
+                        <span v-if="$vuetify.display.mdAndUp" class="mr-2"
+                            >Filtermodus:</span
+                        >
+                        <v-btn-toggle
+                            v-model="timelineModeToggle"
+                            mandatory
+                            :disabled="!isTimelineFilterEnabled"
+                            density="comfortable"
+                            color="primary"
+                            rounded="pill"
+                            class="border"
+                        >
+                            <v-btn
+                                value="range"
+                                @click="setRangeMode"
+                                :disabled="!isTimelineFilterEnabled"
+                            >
+                                <v-icon>mdi-filter-multiple</v-icon>
+                                <span class="d-none d-sm-inline ml-1 text-none"
+                                    >Zeitraum</span
+                                >
+                            </v-btn>
+                            <v-btn
+                                value="single"
+                                @click="setSingleMode"
+                                :disabled="!isTimelineFilterEnabled"
+                            >
+                                <v-icon>mdi-filter</v-icon>
+                                <span class="d-none d-sm-inline ml-1 text-none"
+                                    >Zeitpunkt</span
+                                >
+                            </v-btn>
+                        </v-btn-toggle>
                     </div>
                 </div>
                 <div
                     class="map-timeline"
                     id="timeline"
-                    :class="{ singleMode: timelineModeSingleHandle }"
+                    :class="{
+                        singleMode: timelineModeSingleHandle,
+                        disabled: !isTimelineFilterEnabled,
+                    }"
                 >
                     <div>
                         <div
@@ -91,7 +138,7 @@
 <script setup>
 import { ref, onMounted, watch, toRaw } from "vue";
 
-const emit = defineEmits(["updateTimeLine"]);
+const emit = defineEmits(["updateTimeLine", "timelineFilterEnabledChange"]);
 import NavigationHelpers from "../helpers/NavigationHelpers";
 
 const props = defineProps({
@@ -108,12 +155,52 @@ const STATE = {
 // old handle gap - 0.155,
 const MIN_HANDLE_GAP = 0.155;
 
-const { isTimelineOpen, toggleTimeline } = NavigationHelpers();
+const { isTimelineOpen } = NavigationHelpers();
 const timelineModeSingleHandle = ref(false);
+const isTimelineFilterEnabled = ref(false);
+
+const timelineModeToggle = ref("range");
+let timelineOpenedInt = 0;
 
 watch(timelineModeSingleHandle, (newValue) => {
+    timelineModeToggle.value = newValue ? "single" : "range";
     resetHandlePositions();
 });
+
+watch(isTimelineFilterEnabled, (newValue) => {
+    emit("timelineFilterEnabledChange", newValue);
+
+    if (newValue) {
+        // Wenn aktiviert, aktualisiere mit aktuellen Handle-Positionen
+        if (STATE.left && STATE.right) {
+            updateTimeLine(STATE.left, STATE.right);
+        }
+    } else {
+        // Wenn deaktiviert, setze auf Unendlich (deaktiviere Filter)
+        emit(
+            "updateTimeLine",
+            { year: -Infinity, month: -Infinity },
+            { year: Infinity, month: Infinity },
+        );
+    }
+});
+
+const toggleTimeline = () => {
+    if (!isTimelineOpen.value) {
+        if (timelineOpenedInt === 0) {
+            isTimelineFilterEnabled.value = true;
+            timelineOpenedInt++;
+        }
+
+        if (STATE.left && STATE.right) {
+            setTimeout(() => {
+                updateTimeLine(STATE.left, STATE.right);
+            }, 50);
+        }
+    }
+
+    isTimelineOpen.value = !isTimelineOpen.value;
+};
 
 const handleModeChange = () => {
     closeMapPopups();
@@ -122,12 +209,48 @@ const handleModeChange = () => {
     }, 50);
 };
 
+const handleTimelineEnableChange = () => {
+    closeMapPopups();
+};
+
+watch(timelineModeToggle, (newValue) => {
+    timelineModeSingleHandle.value = newValue === "single";
+});
+
+const setRangeMode = () => {
+    timelineModeSingleHandle.value = false;
+    handleModeChange();
+};
+
+const setSingleMode = () => {
+    timelineModeSingleHandle.value = true;
+    handleModeChange();
+};
+
+const toggleTimelineFilter = () => {
+    isTimelineFilterEnabled.value = !isTimelineFilterEnabled.value;
+    handleTimelineEnableChange();
+};
+
 const updateTimeLine = (left, right) => {
+    if (!isTimelineFilterEnabled.value) {
+        emit(
+            "updateTimeLine",
+            {
+                year: -Infinity,
+                month: -Infinity,
+            },
+            {
+                year: Infinity,
+                month: Infinity,
+            },
+        );
+        return;
+    }
+
     if (timelineModeSingleHandle.value) {
-        // single mode
         emit("updateTimeLine", right, right);
     } else {
-        // range mode
         emit("updateTimeLine", left, right);
     }
 };
@@ -435,11 +558,6 @@ function closeMapPopups() {
 </script>
 
 <style scoped>
-.timeline-title {
-    font-weight: bold;
-    font-family: "Special Elite";
-}
-
 .z-index-4 {
     z-index: 4;
 }
@@ -477,7 +595,7 @@ function closeMapPopups() {
     position: fixed;
     bottom: 0;
     padding: 0 calc(0.5 * var(--w));
-    margin: 78px 0 52px 0;
+    margin: 94px 0 36px 0;
     width: 95%;
     max-width: var(--s);
     height: var(--h);
@@ -557,6 +675,24 @@ function closeMapPopups() {
     display: none;
 }
 
+.v-btn--active,
+.timeline-toggle-btn.v-btn--elevated {
+    background-color: #af1414 !important;
+}
+
+.map-timeline.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.v-btn-toggle {
+    margin-bottom: 0;
+}
+
+.v-btn-toggle .v-btn {
+    min-width: 36px;
+}
+
 @media (max-width: 1000px) {
     .timeline-toolbar.isOpen .close-button {
         margin-top: -63px !important;
@@ -576,6 +712,14 @@ function closeMapPopups() {
     }
     .map-timeline {
         margin: 90px 0 33px 0;
+    }
+    .timeline-header {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .timeline-header > div:first-child {
+        margin-bottom: 8px;
     }
 }
 </style>

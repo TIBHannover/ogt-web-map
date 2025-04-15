@@ -1,5 +1,19 @@
 <template>
     <div class="wrapper">
+        <transition name="fade">
+            <div class="map-loading-overlay" v-if="isLoading">
+                <div class="loading-container">
+                    <v-progress-circular
+                        indeterminate
+                        size="70"
+                        width="7"
+                        color="primary"
+                    ></v-progress-circular>
+                    <div class="loading-text mt-4">Karte wird geladen...</div>
+                </div>
+            </div>
+        </transition>
+
         <map-options-sidebar
             v-if="map"
             :groupedPlaces="groupedPlaces"
@@ -13,6 +27,7 @@
             :groupedPlaces="groupedPlaces"
             :map="map"
             @update-time-line="handleTimelineUpdate"
+            @timeline-filter-enabled-change="handleTimelineFilterChange"
             @closeMapOptions="closeMapOptions"
         ></map-timeline>
 
@@ -63,6 +78,7 @@ export default {
         MapTimeline,
     },
     setup() {
+        const isLoading = ref(true);
         const router = useRouter();
         const route = useRoute();
         const configLeaflet = leafletConfig;
@@ -104,6 +120,7 @@ export default {
             month: Infinity,
         });
         const derivedPlacesData = ref({});
+        const isTimelineFilterEnabled = ref(false);
         const getDerivedPlacesData = () => derivedPlacesData.value;
         const groupedPlaces = ref({
             events: {
@@ -491,9 +508,15 @@ export default {
 
         const optionsSidebar = ref(null);
 
+        const handleTimelineFilterChange = (enabled) => {
+            isTimelineFilterEnabled.value = enabled;
+            // Du kannst hier auch sofort die Filter anwenden, wenn nötig
+            debouncedApplyFilters(null, null, null);
+        };
+
         onMounted(async () => {
             try {
-                // Warten auf DOM-Update
+                isLoading.value = true;
                 await nextTick();
 
                 patchLeafletForNullChecks();
@@ -510,8 +533,12 @@ export default {
                         // Daten laden
                         await getGroupedPlaces();
                         await getPersons();
+                        setTimeout(() => {
+                            isLoading.value = false;
+                        }, 500);
                     } catch (error) {
                         console.error("Error updating map:", error);
+                        isLoading.value = false;
                     }
                 }
                 map.value.on("moveend", () => {
@@ -519,6 +546,7 @@ export default {
                 });
             } catch (error) {
                 console.error("Error during component mount:", error);
+                isLoading.value = false;
             }
         });
 
@@ -720,37 +748,48 @@ export default {
             }
 
             const rawMap = toRaw(map.value);
-            rawMap.closePopup();
-
-            const bounds = rawMap.getBounds();
 
             Array.from(markersDate.value.entries()).forEach((entry) => {
                 const marker = entry[0];
                 const data = entry[1];
                 const groupName = data.groupName;
-                const startDate = new Date(data.startDate);
-                const endDate = new Date(data.endDate);
 
                 const dateFilterApplies =
-                    (endDate.getFullYear() > minDate.year ||
-                        (endDate.getFullYear() === minDate.year &&
-                            endDate.getMonth() >= minDate.month)) &&
-                    (startDate.getFullYear() < maxDate.year ||
-                        (startDate.getFullYear() === maxDate.year &&
-                            startDate.getMonth() <= maxDate.month));
+                    !isTimelineFilterEnabled.value ||
+                    dateFilter(data, minDate, maxDate);
 
                 const groupFilterApplies =
                     !groupNames || groupNames.includes(groupName);
 
-                const isInBounds = bounds.contains(marker.getLatLng());
-
-                if (dateFilterApplies && groupFilterApplies && isInBounds) {
+                if (dateFilterApplies && groupFilterApplies) {
                     marker.addTo(rawMap);
                 } else {
                     marker.remove();
                 }
             });
             setCurrentValues(minDate, maxDate, groupNames);
+        };
+
+        const dateFilter = (data, minDate, maxDate) => {
+            if (!data.startDate || !data.endDate) {
+                return false;
+            }
+
+            const startDate = new Date(data.startDate);
+            const endDate = new Date(data.endDate);
+
+            if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                return false;
+            }
+
+            return (
+                (endDate.getFullYear() > minDate.year ||
+                    (endDate.getFullYear() === minDate.year &&
+                        endDate.getMonth() >= minDate.month)) &&
+                (startDate.getFullYear() < maxDate.year ||
+                    (startDate.getFullYear() === maxDate.year &&
+                        startDate.getMonth() <= maxDate.month))
+            );
         };
 
         const visualizePlaces = async (groupedPlaces) => {
@@ -875,7 +914,7 @@ export default {
                                 getDateProp("inceptionDates") ??
                                 getDateProp("startTime") ??
                                 getDateProp("openingDate") ??
-                                new Date("1933-01-30").toDateString()
+                                null
                             );
                         }
                     };
@@ -906,14 +945,7 @@ export default {
                         endDate: getEndDate(),
                         groupName: placeGroupName,
                     });
-                    /*
-                    if (place.label == "Gedenkstein Synagoge Lüneburg") {
-                        console.log("place", place);
-                        console.log("getStartDate", getStartDate());
-                        console.log("getEndDate", getEndDate());
-                        console.log(getDateProp("openingDate"));
-                    }
-*/
+
                     groupedPlaces.value[
                         placeGroupName
                     ].placesByCoordinates.push({
@@ -2859,14 +2891,59 @@ export default {
             setSelectedPlace,
             derivedPlacesData,
             getDerivedPlacesData,
+            isTimelineFilterEnabled,
+            handleTimelineFilterChange,
+            isLoading,
         };
     },
 };
 </script>
 
 <style scoped>
-.wrapper {
+.map-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
     height: 100%;
+    background-color: rgba(255, 255, 255, 0.85);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.5s ease-out;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.5s;
+}
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.loading-text {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #333;
+    font-family: "Special Elite", serif;
+}
+
+/* Bestehende Styles */
+#leafletMapId {
+    height: 100%;
+    position: absolute;
+    width: 100%;
+    left: 0;
+    top: 0;
+    z-index: 0;
 }
 </style>
 <style>

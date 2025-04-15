@@ -4,14 +4,17 @@
         <v-btn
             position="fixed"
             location="top right"
-            rounded="circle"
-            size="56px"
+            :rounded="$vuetify.display.smAndUp ? 'pill' : 'circle'"
+            :size="$vuetify.display.smAndUp ? 'default' : '56px'"
             class="mt-5 mr-5 z-index-4"
             color="white"
             v-show="!isMapOptionsOpen"
             @click.stop="toggleMapOptions"
         >
             <v-icon>mdi-tune</v-icon>
+            <span v-if="$vuetify.display.smAndUp" class="ml-2 text-none"
+                >Kartenoptionen</span
+            >
         </v-btn>
 
         <!-- map options sidebar -->
