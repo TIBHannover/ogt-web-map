@@ -40,8 +40,16 @@
             @undoZoomIntoPlace="restoreCachedMapView"
             @zoomIntoPlace="setMapView(selectedPlace.latLng, 18, true)"
         ></place-info-sidebar>
-
         <div id="leafletMapId"></div>
+        <tutorial-overlay
+            :active="showTutorial"
+            :steps="tutorialSteps"
+            :tutorial-completed="tutorialCompleted"
+            :toggle-timeline="toggleTimelineForTutorial"
+            @complete="completeTutorial"
+            @skip="skipTutorial"
+            @start="startTutorial"
+        />
     </div>
 </template>
 
@@ -57,6 +65,7 @@ import PlaceInfoSidebar from "./map/PlaceInfoSidebar";
 import MapTimeline from "./map/MapTimeline";
 import NavigationHelpers from "./helpers/NavigationHelpers";
 import leafletConfig from "../config/leafletConfig";
+import TutorialOverlay from "./navigation/TutorialOverlay";
 import { VSelectionControlGroup } from "vuetify/lib/components/index.mjs";
 const showPlaceInfoSidebar = ref(false);
 const sourceCircumstances = ref({
@@ -76,6 +85,7 @@ export default {
         MapOptionsSidebar,
         PlaceInfoSidebar,
         MapTimeline,
+        TutorialOverlay,
     },
     setup() {
         const isLoading = ref(true);
@@ -506,7 +516,101 @@ export default {
             website: "",
         });
 
-        const optionsSidebar = ref(null);
+        const showTutorial = ref(false);
+        const tutorialCompleted = ref(false);
+        const tutorialSteps = ref([]);
+
+        const mapTutorialSteps = [
+            /* Schritte für das Map-Tutorial */
+        ];
+        const sidebarTutorialSteps = [
+            /* Schritte für die Sidebar */
+        ];
+
+        const timelineTutorialSteps = [
+            {
+                title: "Zeitstrahl Filter",
+                description:
+                    "Mit dem Zeitstrahl-Filter kannst du Orte basierend auf ihrem Zeitraum filtern. Klicke auf diesen Button, um den Zeitstrahl zu öffnen.",
+                highlightSelector: ".z-index-4", // Selektor für den Zeitstrahl-Button
+                highlightBorderRadius: "50%",
+                position: {
+                    bottom: "100px",
+                    right: "100px",
+                },
+            },
+            {
+                title: "Zeitstrahl öffnen",
+                description:
+                    "Der Zeitstrahl öffnet sich am unteren Bildschirmrand und ermöglicht dir, Orte nach Zeiträumen zu filtern.",
+                highlightSelector: ".timeline-toolbar",
+                position: {
+                    bottom: "200px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                },
+                // Diese Funktion würde den Zeitstrahl automatisch öffnen
+                onShowAction: "toggleTimelineForTutorial",
+                onShow: () => {
+                    console.log("here");
+                    if (!isTimelineOpen.value) {
+                        toggleTimelineForTutorial();
+                    }
+                },
+            },
+            {
+                title: "Zeitstrahl aktivieren/deaktivieren",
+                description:
+                    "Mit diesem Schalter kannst du den Zeitstrahl-Filter ein- oder ausschalten. Im aktivierten Zustand werden nur Orte angezeigt, die im ausgewählten Zeitraum liegen.",
+                highlightSelector: ".timeline-toggle-btn",
+                position: {
+                    bottom: "250px",
+                    left: "130px",
+                },
+            },
+            {
+                title: "Filtermodus auswählen",
+                description:
+                    "Wähle zwischen zwei Modi: <br><b>Zeitraum</b>: Filtere Orte innerhalb eines Zeitraums mit zwei Grenzmarkierungen.<br><b>Zeitpunkt</b>: Filtere Orte zu einem bestimmten Zeitpunkt mit einer einzelnen Markierung.",
+                highlightSelector: ".v-btn-toggle",
+                position: {
+                    bottom: "250px",
+                    right: "130px",
+                },
+            },
+            {
+                title: "Zeitraum einstellen",
+                description:
+                    "Ziehe diese Marker, um den Zeitraum einzugrenzen. Die linke Markierung bestimmt den Anfang, die rechte das Ende des Zeitraums.",
+                highlightSelector: ".map-timeline",
+                position: {
+                    bottom: "200px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                },
+            },
+            {
+                title: "Ergänzende Informationen",
+                description:
+                    "Der grau hinterlegte Bereich zeigt die Monate zwischen 1933 und 1945 an, während der weiße Bereich die Jahre bis heute darstellt.",
+                highlightSelector: ".map-timeline",
+                position: {
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                },
+            },
+            {
+                title: "Fertig!",
+                description:
+                    "Du kannst den Zeitstrahl jederzeit über den Button unten rechts öffnen und schließen. Viel Spaß beim Erkunden der historischen Daten!",
+                position: {
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                },
+            },
+        ];
 
         const handleTimelineFilterChange = (enabled) => {
             isTimelineFilterEnabled.value = enabled;
@@ -554,6 +658,52 @@ export default {
                 isLoading.value = false;
             }
         });
+
+        onMounted(() => {
+            // Prüfen, ob der Benutzer das Tutorial bereits gesehen hat
+            tutorialCompleted.value =
+                localStorage.getItem("tutorialCompleted") === "true";
+
+            // Tutorial-Schritte festlegen (hier z.B. für Timeline)
+            tutorialSteps.value = timelineTutorialSteps;
+
+            // Optional: Tutorial automatisch starten, wenn es noch nicht abgeschlossen wurde
+            if (!tutorialCompleted.value) {
+                // Verzögerung, damit die Karte vollständig geladen ist
+                setTimeout(() => {
+                    showTutorial.value = true;
+                }, 2000);
+            }
+        });
+
+        const startTutorial = () => {
+            showTutorial.value = true;
+        };
+
+        const completeTutorial = () => {
+            showTutorial.value = false;
+            tutorialCompleted.value = true;
+        };
+
+        const skipTutorial = () => {
+            showTutorial.value = false;
+            tutorialCompleted.value = true;
+        };
+
+        // Funktion, um den aktuellen Tutorial-Schritt zu verarbeiten (für spezielle Aktionen)
+        const handleTutorialStep = (step) => {
+            if (step.onShow && typeof step.onShow === "function") {
+                step.onShow();
+            }
+        };
+
+        const timelineComponentRef = ref(null);
+        const toggleTimelineForTutorial = () => {
+            // Hier auf die MapTimeline-Komponente zugreifen
+            if (timelineComponentRef.value) {
+                timelineComponentRef.value.toggleTimeline();
+            }
+        };
 
         onUnmounted(() => {
             if (map.value) {
@@ -2961,6 +3111,14 @@ export default {
             getDerivedPlacesData,
             isTimelineFilterEnabled,
             handleTimelineFilterChange,
+            showTutorial,
+            tutorialCompleted,
+            tutorialSteps,
+            startTutorial,
+            completeTutorial,
+            skipTutorial,
+            toggleTimelineForTutorial,
+            timelineComponentRef,
             isLoading,
         };
     },
@@ -3012,6 +3170,12 @@ export default {
     left: 0;
     top: 0;
     z-index: 0;
+}
+.tutorial-button {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
 }
 </style>
 <style>

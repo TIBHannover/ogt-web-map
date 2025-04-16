@@ -146,6 +146,10 @@ const props = defineProps({
     map: Object,
 });
 
+defineExpose({
+    toggleTimeline,
+});
+
 const YEAR_RANGE = [1933, new Date().getFullYear()];
 const MONTH_STEP_END_YEAR = 1945;
 const STATE = {
