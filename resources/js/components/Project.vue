@@ -13,17 +13,14 @@
         </v-row>
 
         <v-row>
-            <v-col
-                class="col-12 col-sm-2 order-sm-last"
-                style="min-width: 310px"
-            >
+            <v-col cols="12" md="4" class="order-md-last">
                 <table-of-contents-sidebar
                     :headings="headings"
                 ></table-of-contents-sidebar>
             </v-col>
 
             <!-- scrollable content -->
-            <v-col class="hyphens-auto" lang="de">
+            <v-col cols="12" md="8" class="hyphens-auto" lang="de">
                 <section id="researchObjectives">
                     <h1
                         class="font-weight-medium text-h5 text-md-h4 mb-5"

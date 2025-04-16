@@ -20,17 +20,14 @@
         </v-row>
 
         <v-row>
-            <v-col
-                class="col-12 col-sm-2 order-sm-last"
-                style="max-width: 310px; min-width: 310px"
-            >
+            <v-col cols="12" md="4" class="order-md-last">
                 <table-of-contents-sidebar
                     :headings="headings"
                 ></table-of-contents-sidebar>
             </v-col>
 
             <!-- scrollable content -->
-            <v-col class="hyphens-auto" lang="de">
+            <v-col cols="12" md="8" class="hyphens-auto" lang="de">
                 <section id="citizenScience">
                     <h1
                         class="font-weight-medium text-h5 text-md-h4 mb-5"
@@ -73,78 +70,163 @@
                     >
                         Anleitungen zur Werkstatt historische Daten
                     </h2>
+                    <p>
+                        Du möchtest Daten zur Geschichte der Gestapo erfassen
+                        und sie auf der digitalen Karte Gestapo.Terror.Orte
+                        sichtbar machen?<br />
+                        Hier findest du Materialien, die dich dabei
+                        unterstützen.
+                    </p>
 
-                    <v-btn
-                        class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 text-transform-none"
-                        color="black"
-                        background="grey"
-                        elevation="24"
-                        min-width="200px"
-                        variant="outlined"
-                        rounded
-                        size="x-large"
-                        href="./resources/Wikidata_Basics_compressed.pdf"
-                        target="_blank"
-                    >
-                        <v-icon start class="ml-3"> mdi-download </v-icon>
-                        <span class="whitespace-normal"
-                            >Anleitung Wikidata Basics</span
-                        >
-                    </v-btn>
+                    <v-grid>
+                        <v-row class="align-center">
+                            <v-col cols="12" md="7" class="pb-0 pb-md-2">
+                                <h3>Wikidata Basics</h3>
+                                <p class="mb-0">
+                                    Diese PDF erklärt zentrale Grundbegriffe
+                                    rund um Wikidata. <br />Sie beantwortet
+                                    Fragen wie:<br />
+                                    Was ist Wikidata und was sind strukturierte
+                                    Daten?<br />
+                                    Warum nutzt Gestapo.Terror.Orte Wikidata als
+                                    Datenbank?<br />
+                                    Wie ist Wikidata aufgebaut?
+                                </p>
+                            </v-col>
+                            <v-col cols="12" md="5" class="pt-0 pt-md-2">
+                                <v-btn
+                                    class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 py-3 text-transform-none"
+                                    color="black"
+                                    background="grey"
+                                    elevation="24"
+                                    min-width="200px"
+                                    style="height: auto"
+                                    variant="outlined"
+                                    rounded
+                                    href="./resources/Wikidata_Basics_compressed.pdf"
+                                    target="_blank"
+                                >
+                                    <v-icon start class="ml-3">
+                                        mdi-download
+                                    </v-icon>
+                                    <span class="whitespace-normal"
+                                        >Anleitung Wikidata Basics</span
+                                    >
+                                </v-btn>
+                            </v-col>
+                        </v-row>
+                        <v-row class="align-center">
+                            <v-col cols="12" md="7" class="pb-0 pb-md-2">
+                                <h3>Wikidata-Anleitung</h3>
+                                <p class="mb-0">
+                                    Diese Schritt-für-Schritt-Anleitung zeigt,
+                                    wie du neue Datenobjekte in Wikidata anlegst
+                                    oder bestehende ergänzt.
+                                </p>
+                            </v-col>
+                            <v-col cols="12" md="5" class="pt-0 pt-md-2">
+                                <v-btn
+                                    class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 py-3 text-transform-none"
+                                    color="black"
+                                    background="grey"
+                                    elevation="24"
+                                    min-width="200px"
+                                    style="height: auto"
+                                    variant="outlined"
+                                    rounded
+                                    href="./resources/Anleitung_seite_compressed.pdf"
+                                    target="_blank"
+                                >
+                                    <v-icon start class="ml-3">
+                                        mdi-download
+                                    </v-icon>
+                                    <span class="whitespace-normal"
+                                        >Wikidata Anleitung
+                                    </span>
+                                </v-btn>
+                            </v-col>
+                        </v-row>
+                        <v-row class="align-center">
+                            <v-col cols="12" md="7" class="pb-0 pb-md-2">
+                                <h3>Datenmodelle</h3>
+                                <p class="mb-0">
+                                    In Wikidata können Informationen auf
+                                    unterschiedliche Weise erfasst werden. Diese
+                                    Übersicht zeigt, wie Daten zu Gestapoorten,
+                                    Erinnerungsorten, Geschädigten, Täter*innen
+                                    und Ereignissen erfasst werden müssen, damit
+                                    sie auf Gestapo.Terror.Orte angezeigt
+                                    werden. Wichtig: Nur wenn du dich an die
+                                    Datenmodelle hältst, erscheinen deine
+                                    Einträge auf der Karte. Nicht alle Daten
+                                    müssen ausgefüllt werden – verpflichtend
+                                    sind nur die farbig markierten Angaben.
+                                    Zusätzliche Informationen können ebenfalls
+                                    ergänzt werden, auch wenn sie nicht explizit
+                                    im Modell vorgesehen sind.
+                                </p>
+                            </v-col>
+                            <v-col cols="12" md="5" class="pt-0 pt-md-2">
+                                <v-btn
+                                    class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 py-3 text-transform-none"
+                                    color="black"
+                                    background="grey"
+                                    elevation="24"
+                                    min-width="200px"
+                                    variant="outlined"
+                                    style="height: auto"
+                                    rounded
+                                    href="./resources/Datenmodelle_final_compressed.pdf"
+                                    target="_blank"
+                                >
+                                    <v-icon start class="ml-3">
+                                        mdi-download
+                                    </v-icon>
+                                    <span class="whitespace-normal"
+                                        >Beschreibung der Datenmodelle
+                                    </span>
+                                </v-btn>
+                            </v-col>
+                        </v-row>
+                        <v-row class="align-center">
+                            <v-col cols="12" md="7" class="pb-0 pb-md-2">
+                                <h3>Beispiel Quellenanalyse</h3>
+                                <p class="mb-0">
+                                    Anhand eines konkreten Beispiels wird
+                                    gezeigt, wie der Weg von einer Archivalie zu
+                                    einem Eintrag auf Gestapo.Terror.Orte
+                                    aussieht: Welche Informationen lassen sich
+                                    aus historischen Quellen gewinnen? Wie sehen
+                                    die entsprechenden Einträge in Wikidata und
+                                    auf der Karte aus?
+                                </p>
+                            </v-col>
+                            <v-col cols="12" md="5" class="pt-0 pt-md-2">
+                                <v-btn
+                                    class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 py-3 text-transform-none"
+                                    color="black"
+                                    background="grey"
+                                    elevation="24"
+                                    min-width="200px"
+                                    variant="outlined"
+                                    style="height: auto"
+                                    rounded
+                                    size="x-large"
+                                    href="./resources/Beispiel_Quellenanalyse_compressed.pdf"
+                                    target="_blank"
+                                >
+                                    <v-icon start class="ml-3">
+                                        mdi-download
+                                    </v-icon>
+                                    <span class="whitespace-normal"
+                                        >Beispiel einer Quellenanalyse
+                                    </span>
+                                </v-btn>
+                            </v-col>
+                        </v-row>
+                    </v-grid>
+
                     <br />
-                    <v-btn
-                        class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 text-transform-none"
-                        color="black"
-                        background="grey"
-                        elevation="24"
-                        min-width="200px"
-                        variant="outlined"
-                        rounded
-                        size="x-large"
-                        href="./resources/Anleitung_seite_compressed.pdf"
-                        target="_blank"
-                    >
-                        <v-icon start class="ml-3"> mdi-download </v-icon>
-                        <span class="whitespace-normal"
-                            >Wikidata Anleitung
-                        </span>
-                    </v-btn>
-                    <br />
-                    <v-btn
-                        class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 text-transform-none"
-                        color="black"
-                        background="grey"
-                        elevation="24"
-                        min-width="200px"
-                        variant="outlined"
-                        rounded
-                        size="x-large"
-                        href="./resources/Datenmodelle_final_compressed.pdf"
-                        target="_blank"
-                    >
-                        <v-icon start class="ml-3"> mdi-download </v-icon>
-                        <span class="whitespace-normal"
-                            >Beschreibung der Datenmodelle
-                        </span>
-                    </v-btn>
-                    <br />
-                    <v-btn
-                        class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 text-transform-none"
-                        color="black"
-                        background="grey"
-                        elevation="24"
-                        min-width="200px"
-                        variant="outlined"
-                        rounded
-                        size="x-large"
-                        href="./resources/Beispiel_Quellenanalyse_compressed.pdf"
-                        target="_blank"
-                    >
-                        <v-icon start class="ml-3"> mdi-download </v-icon>
-                        <span class="whitespace-normal"
-                            >Beispiel einer Quellenanalyse
-                        </span>
-                    </v-btn>
                 </section>
 
                 <v-divider class="my-6"></v-divider>
