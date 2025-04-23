@@ -471,6 +471,7 @@ export default {
                 {
                     label: "",
                     pages: "",
+                    inventoryNumber: "",
                 },
             ],
             urlSources: [
@@ -1502,6 +1503,9 @@ export default {
                             pages: describedBySource.pages
                                 ? describedBySource.pages.value
                                 : "",
+                            inventoryNumber: describedBySource.inventoryNumber
+                                ? describedBySource.inventoryNumber.value
+                                : "",
                         });
                     }
                 }
@@ -1830,6 +1834,7 @@ export default {
                         selectedPlace.value.victims.push(victim);
                     }
                 }
+                console.log("selectedPlace", selectedPlace);
             } catch (error) {
                 console.error("Error in setSelectedPlace:", error);
             }
@@ -2762,6 +2767,8 @@ export default {
                         selectedPlace.value.sources.push({
                             label: source.value,
                             pages: source.pages?.value || "",
+                            inventoryNumber:
+                                source.inventoryNumber?.value || "",
                         });
                     }
                 }

@@ -137,6 +137,7 @@ class WikidataClient
         "P6375" => "streetAddress", // https://www.wikidata.org/wiki/Property:P6375
         "P8554" => "earliestEndDate", // https://www.wikidata.org/wiki/Property:P8554
         "P8555" => "latestStartDate", // https://www.wikidata.org/wiki/Property:P8555
+        "P217" => "inventoryNumber", // https://www.wikidata.org/wiki/Property:P217
     ];
 
     /**
@@ -201,7 +202,7 @@ class WikidataClient
                 OPTIONAL {
                     {
                         ?qualifier wikibase:propertyType ?qualifierType.
-                        FILTER(?qualifier IN(wd:P304, wd:P625, wd:P1480, wd:P2096, wd:P6375))
+                        FILTER(?qualifier IN(wd:P304, wd:P217, wd:P625, wd:P1480, wd:P2096, wd:P6375))
                         FILTER(?qualifierType != wikibase:Time)
                         ?qualifier wikibase:qualifier ?pq.
                         ?statement ?pq ?qualifierValue.
@@ -294,7 +295,7 @@ class WikidataClient
                 {
                     {
                         ?qualifier wikibase:propertyType ?qualifierType.
-                        FILTER(?qualifier IN(wd:P304, wd:P2096))
+                        FILTER(?qualifier IN(wd:P304, wd:P217, wd:P2096))
                         FILTER(?qualifierType != wikibase:Time)
                         ?qualifier wikibase:qualifier ?pq.
                         ?statement ?pq ?qualifierValue.
