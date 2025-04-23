@@ -106,6 +106,8 @@ class WikidataClient
         "P973" => "describedByUrlSources", // https://www.wikidata.org/wiki/Property:P973
         "P1365" => "replaces", // https://www.wikidata.org/wiki/Property:P1365
         "P1366" => "replacedBys", // https://www.wikidata.org/wiki/Property:P1366
+        "P155" => "follows", // https://www.wikidata.org/wiki/Property:P155
+        "P156" => "followedBys", // https://www.wikidata.org/wiki/Property:P156
         "P1427" => "startPoints", // https://www.wikidata.org/wiki/Property:P1427
         "P1444" => "destinationPoints", // https://www.wikidata.org/wiki/Property:P1444
         "P1561" => "numberOfSurvivors", // https://www.wikidata.org/wiki/Property:P1561
@@ -184,7 +186,7 @@ class WikidataClient
                     ?property wikibase:propertyType ?propertyType.
                     FILTER(?property IN(
                         wd:P18, wd:P31, wd:P137, wd:P276, wd:P355, wd:P366, wd:P533, wd:P547, wd:P625, wd:P749, wd:P793,
-                        wd:P856, wd:P1037, wd:P1120, wd:P1128, wd:P1343, wd:P973, wd:P1365, wd:P1366, wd:P1427, wd:P1444, wd:P1561,
+                        wd:P856, wd:P1037, wd:P1120, wd:P1128, wd:P1343, wd:P973, wd:P1365, wd:P1366, wd:P155, wd:P155, wd:P1427, wd:P1444, wd:P1561,
                         wd:P1590, wd:P5582, wd:P5630, wd:P6375, wd:P7153, wd:P8031, wd:P8032
                     ))
                     FILTER(?propertyType != wikibase:Time)
