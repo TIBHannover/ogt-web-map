@@ -1,0 +1,109 @@
+FROM php:8.3-apache
+
+# Systemabhängigkeiten installieren
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libonig-dev \
+    libxml2-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    sqlite3 \
+    libsqlite3-dev \
+    nodejs \
+    npm
+
+# PHP-Erweiterungen installieren
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
+    pdo \
+    pdo_mysql \
+    pdo_sqlite \
+    mbstring \
+    exif \
+    pcntl \
+    bcmath \
+    gd \
+    zip
+
+# Apache-Konfiguration
+RUN a2enmod rewrite headers
+RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
+RUN sed -i 's/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+
+# Arbeitsverzeichnis setzen
+WORKDIR /var/www/html
+
+# Debug-modus für PHP
+RUN cp "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
+RUN echo "error_reporting = E_ALL" >> "$PHP_INI_DIR/php.ini" \
+    && echo "display_errors = On" >> "$PHP_INI_DIR/php.ini" \
+    && echo "display_startup_errors = On" >> "$PHP_INI_DIR/php.ini" \
+    && echo "log_errors = On" >> "$PHP_INI_DIR/php.ini" \
+    && echo "error_log = /dev/stderr" >> "$PHP_INI_DIR/php.ini" \
+    && echo "upload_max_filesize = 50M" >> "$PHP_INI_DIR/php.ini" \
+    && echo "post_max_size = 50M" >> "$PHP_INI_DIR/php.ini" \
+    && echo "memory_limit = 512M" >> "$PHP_INI_DIR/php.ini"
+
+# Composer installieren
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Temporäre SQLite-Datei erstellen, um Berechtigungsprobleme zu vermeiden
+RUN mkdir -p /var/www/html/database \
+    && touch /var/www/html/database/database.sqlite \
+    && chmod 777 /var/www/html/database/database.sqlite \
+    && chmod 777 /var/www/html/database
+
+# Xdebug installieren (optional, für detailliertes Debugging)
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug \
+    && echo "xdebug.mode=develop,debug" >> "$PHP_INI_DIR/php.ini" \
+    && echo "xdebug.client_host=host.docker.internal" >> "$PHP_INI_DIR/php.ini" \
+    && echo "xdebug.start_with_request=yes" >> "$PHP_INI_DIR/php.ini"
+
+# Benutzer und Gruppe anpassen, um Berechtigungsprobleme zu vermeiden
+RUN usermod -u 1000 www-data && groupmod -g 1000 www-data
+
+# Startup-Skript für Entwicklung
+RUN echo '#!/bin/bash\n\
+if [ ! -f .env ]; then\n\
+    cp .env.example .env\n\
+fi\n\
+\n\
+if [ ! -f vendor/autoload.php ]; then\n\
+    composer install\n\
+fi\n\
+\n\
+if [ ! -d node_modules ]; then\n\
+    npm install\n\
+fi\n\
+\n\
+# Berechtigungen für Storage und Cache Verzeichnisse setzen\n\
+mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache\n\
+chmod -R 777 storage bootstrap/cache\n\
+chown -R www-data:www-data storage bootstrap/cache\n\
+\n\
+php artisan key:generate --no-interaction --quiet\n\
+php artisan optimize:clear\n\
+php artisan migrate --no-interaction\n\
+\n\
+exec apache2-foreground\n\
+' > /usr/local/bin/docker-entrypoint.sh \
+    && chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Berechtigungen für Laravel setzen
+RUN chown -R www-data:www-data /var/www/html
+
+RUN mkdir -p /var/www/html/storage/logs /var/www/html/storage/framework/cache \
+    /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views \
+    /var/www/html/bootstrap/cache \
+    && chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Entrypoint und CMD
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["apache2-foreground"]
