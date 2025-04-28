@@ -13,6 +13,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('{any}', function () {
-    return view('app');
-})->where('any', '.*');
+Route::get("{any}", function () {
+    return view("app");
+})->where("any", ".*");
+
+// Admin-Routen mit Auth-Middleware
+Route::get("/admin/wikidata-requests", function () {
+    return view("admin.wikidata-requests");
+})->name("admin.wikidata-requests");

@@ -21,7 +21,7 @@
         <v-row>
             <v-col>
                 <form class="forms">
-                    <fieldset v-model="formsType">
+                    <fieldset>
                         <legend for="type">Eintrag-Typ</legend>
                         <div>
                             <input
@@ -95,6 +95,7 @@
                         maxlength="750"
                         placeholder="z.B. vom NS-Regime gelenkte Gewaltmaßnahmen gegen Juden in Osnabrück."
                     ></textarea>
+                    <!--
                     <label for="location">Koordinaten (DMS)</label>
                     <input
                         v-model="formsLocation"
@@ -102,6 +103,7 @@
                         type="text"
                         placeholder="z.B. 52°8'41.14&quot;N, 9°56'55.61&quot;E"
                     />
+                    -->
                     <button class="button" type="button" @click="submit">
                         Anlegen
                     </button>
@@ -116,6 +118,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
 import glossaryData from "../data/glossaryData";
+import axios from "axios";
 
 // Props
 const props = defineProps({
@@ -129,6 +132,7 @@ const formsType = ref("Q6983405");
 const formsTitle = ref(null);
 const formsDescription = ref(null);
 const formsLocation = ref(null);
+const isSubmitting = ref(false);
 
 // Methods
 const setFreeClientWidth = () => {
@@ -137,56 +141,104 @@ const setFreeClientWidth = () => {
         (document.documentElement.clientWidth - container.clientWidth) / 2;
 };
 
-const submit = () => {
+// Hilfsfunktion zum Parsen der Koordinaten bleibt im Frontend
+const parseCoordinates = (dmsString) => {
+    try {
+        const regex = /(\d+)°(\d+)'(\d+\.\d+)"N,\s*(\d+)°(\d+)'(\d+\.\d+)"E/;
+        const match = dmsString.match(regex);
+
+        if (!match) return null;
+
+        const latDeg = parseInt(match[1]);
+        const latMin = parseInt(match[2]);
+        const latSec = parseFloat(match[3]);
+        const longDeg = parseInt(match[4]);
+        const longMin = parseInt(match[5]);
+        const longSec = parseFloat(match[6]);
+
+        // Umrechnung in Dezimalgrad
+        const latitude = latDeg + latMin / 60 + latSec / 3600;
+        const longitude = longDeg + longMin / 60 + longSec / 3600;
+
+        return {
+            latitude,
+            longitude,
+            precision: 0.00001,
+        };
+    } catch (e) {
+        console.error("Fehler beim Parsen der Koordinaten:", e);
+        return null;
+    }
+};
+
+// Formular zurücksetzen
+const resetForm = () => {
+    formsTitle.value = null;
+    formsDescription.value = null;
+    formsLocation.value = null;
+};
+
+// Submit-Funktion zum Laravel-Backend
+const submit = async () => {
     error.value = null;
+    isSubmitting.value = true;
 
-    const writeObj = {
-        // default properties
-        P17: "Q7318", // country: Nazi Germany
-        P31: "Q106996250", // instance of: Place of Gestapo Terror
-    };
-    const missingFields = [];
+    try {
+        // Validierung im Frontend beibehalten
+        const missingFields = [];
 
-    if (!formsType.value) {
-        missingFields.push("Typ");
-    } else {
-        writeObj.P31 = formsType.value;
-    }
-
-    if (!(formsTitle.value || "").trim()) {
-        missingFields.push("Titel");
-    } else {
-        writeObj.label = formsTitle.value.trim();
-    }
-
-    if (!(formsDescription.value || "").trim()) {
-        missingFields.push("Kurzbeschreibung");
-    } else {
-        writeObj.description = formsDescription.value.trim();
-    }
-
-    if (!(formsLocation.value || "").trim()) {
-        missingFields.push("Koordinaten");
-    } else {
-        if (
-            !/\d+°\d+'\d+.\d+"N, *\d+°\d+'\d+.\d+"E/.test(
-                formsLocation.value.trim(),
-            )
-        ) {
-            error.value =
-                "Inkorrektes Korrdinatenformat. <lat-degrees>°<lat-minutes>'<lat-seconds>.<lat-seconds-fraction>\"N, *<long-degrees>°<lat-minutes>'<long-seconds>.<long-seconds-fraction>\"E";
+        if (!formsType.value) {
+            missingFields.push("Typ");
         }
 
-        writeObj.P625 = formsLocation.value.trim().replace(/, */, ", ");
-    }
+        if (!(formsTitle.value || "").trim()) {
+            missingFields.push("Titel");
+        }
 
-    if (missingFields.length) {
-        error.value = `Fehlende Felder: ${missingFields.join(", ")}`;
-        return;
-    }
+        if (!(formsDescription.value || "").trim()) {
+            missingFields.push("Kurzbeschreibung");
+        }
 
-    console.log("TODO: Submit", writeObj);
-    // (Re-)investigate poorly supported Wikidata REST API
+        if (missingFields.length) {
+            error.value = `Fehlende Felder: ${missingFields.join(", ")}`;
+            isSubmitting.value = false;
+            return;
+        }
+
+        // CSRF-Token für Laravel aus dem Meta-Tag holen
+        const csrfToken = document
+            .querySelector('meta[name="csrf-token"]')
+            .getAttribute("content");
+
+        // Daten an Laravel-Backend senden
+        const response = await axios.post(
+            "/api/wikidata/entities",
+            {
+                title: formsTitle.value.trim(),
+                description: formsDescription.value.trim(),
+                type: formsType.value,
+            },
+            {
+                headers: {
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+            },
+        );
+
+        if (response.data.success) {
+            alert(`Eintrag erfolgreich erstellt: ${response.data.entityId}`);
+            resetForm();
+        } else {
+            error.value =
+                response.data.message ||
+                "Fehler bei der Erstellung des Eintrags";
+        }
+    } catch (err) {
+        console.error("Fehler bei der API-Anfrage:", err);
+        error.value = `Fehler: ${err.response?.data?.message || err.message}`;
+    } finally {
+        isSubmitting.value = false;
+    }
 };
 
 // Lifecycle hooks

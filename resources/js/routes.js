@@ -4,7 +4,8 @@ const Project = () => import("./components/Project.vue");
 const Glossary = () => import("./components/Glossary.vue");
 const Charts = () => import("./components/Charts.vue");
 const Counts = () => import("./components/Counts.vue");
-// const Entry = () => import('./components/Entry.vue');
+const Entry = () => import("./components/Entry.vue");
+const Admin = () => import("./components/admin/WikidataRequestsAdmin.vue");
 const Bibliography = () => import("./components/Bibliography.vue");
 const Workshops = () => import("./components/Workshops.vue");
 
@@ -54,11 +55,16 @@ export const routes = [
             title: "Zahlen: Gestapo. Terror. Orte",
         },
     },
-    /* {
-        name: 'entry',
-        path: '/entry',
+    {
+        name: "admin",
+        path: "/admin",
+        component: Admin,
+    },
+    {
+        name: "entry",
+        path: "/entry",
         component: Entry,
-    }, */
+    },
     {
         name: "bibliography",
         path: "/literatur",
