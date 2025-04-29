@@ -326,10 +326,9 @@ class WikidataClient
     {
         $query = preg_replace("/\s\s+/", " ", trim($query));
 
-        $response = Http::accept("application/sparql-results+json")->get(
-            config("wikidata.url"),
-            ["query" => $query]
-        );
+        $response = Http::timeout(60)
+            ->accept("application/sparql-results+json")
+            ->get(config("wikidata.url"), ["query" => $query]);
 
         if ($response->ok()) {
             return $response->json();

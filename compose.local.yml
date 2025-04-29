@@ -7,12 +7,9 @@ services:
       - "8000:80"
     volumes:
       - .:/var/www/html
-      - storage:/var/www/html/storage
-      - /var/www/html/vendor #
       - ./.env:/var/www/html/.env:ro
-      - /var/www/html/node_modules
-      - /var/www/html/storage
-      - /var/www/html/bootstrap/cache
+      - /var/www/html/vendor # Bewahrt die Container-Vendor-Dateien
+      - /var/www/html/node_modules # Bewahrt die Container-Node-Modules
     environment:
       - APP_ENV=local
       - APP_DEBUG=true

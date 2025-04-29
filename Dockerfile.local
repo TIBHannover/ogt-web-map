@@ -58,6 +58,18 @@ RUN mkdir -p /var/www/html/database \
     && chmod 777 /var/www/html/database/database.sqlite \
     && chmod 777 /var/www/html/database
 
+RUN mkdir -p /var/www/html/storage/app/public \
+    && mkdir -p /var/www/html/storage/framework/cache \
+    && mkdir -p /var/www/html/storage/framework/sessions \
+    && mkdir -p /var/www/html/storage/framework/testing \
+    && mkdir -p /var/www/html/storage/framework/views \
+    && mkdir -p /var/www/html/storage/logs \
+    && mkdir -p /var/www/html/bootstrap/cache
+
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html/storage \
+    && chmod -R 755 /var/www/html/bootstrap/cache
+
 # Xdebug installieren (optional, für detailliertes Debugging)
 RUN pecl install xdebug \
     && docker-php-ext-enable xdebug \
