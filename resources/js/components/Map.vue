@@ -64,6 +64,8 @@ const sourceCircumstances = ref({
     Q47035128: ">",
     Q52834024: "<",
 });
+import mockPlacesData from "../data/mock-places.json";
+import mockPersonsData from "../data/mock-persons.json";
 
 // Constants
 const WIKIDATA_ID_CLASSES = {
@@ -619,14 +621,19 @@ export default {
             try {
                 let groupedPlaces = {};
 
-                await axios
-                    .get("/api/wikidata/places")
-                    .then((response) => {
-                        groupedPlaces = response.data;
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                    });
+                try {
+                    // Versuche zuerst die API-Anfrage
+                    const response = await axios.get("/api/wikidata/places");
+                    groupedPlaces = response.data;
+                } catch (error) {
+                    // Bei Fehler zu Mock-Daten greifen
+                    console.warn(
+                        "Fehler beim Laden der Wikidata Places-Daten, verwende Mock-Daten:",
+                        error,
+                    );
+                    groupedPlaces = mockPlacesData;
+                }
+
                 await nextTick();
                 await visualizePlaces(groupedPlaces);
                 setCurrentValues();
@@ -651,8 +658,20 @@ export default {
          */
         const getPersons = async () => {
             try {
-                const response = await axios.get("/api/wikidata/persons/cache");
-                persons.value = response.data;
+                try {
+                    // Versuche zuerst die API-Anfrage
+                    const response = await axios.get(
+                        "/api/wikidata/persons/cache",
+                    );
+                    persons.value = response.data;
+                } catch (error) {
+                    // Bei Fehler zu Mock-Daten greifen
+                    console.warn(
+                        "Fehler beim Laden der Wikidata Persons-Daten, verwende Mock-Daten:",
+                        error,
+                    );
+                    persons.value = mockPersonsData;
+                }
 
                 processPersonsData();
 
@@ -670,6 +689,15 @@ export default {
         };
 
         const updatePersonsCache = () => {
+            if (
+                Object.keys(persons.value.victims).length === 0 &&
+                Object.keys(persons.value.perpetrators).length === 0
+            ) {
+                console.log(
+                    "Kein Cache-Update durchgeführt, da keine Personendaten vorliegen",
+                );
+                return;
+            }
             setTimeout(() => {
                 const worker = createAdvancedWorker();
 
@@ -701,18 +729,32 @@ export default {
                     try {
                         // Lade die Daten
                         const url = self.location.origin + '/api/wikidata/persons';
-                        const response = await fetch(url);
-                        const rawData = await response.json();
 
-                        // Verarbeite die Daten - optional
-                        const processedData = processData(rawData);
+                        try {
+                            const response = await fetch(url);
 
-                        // Sende die verarbeiteten Daten zurück
-                        self.postMessage({
-                            type: 'success',
-                            data: processedData
-                        });
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok: ' + response.status);
+                            }
 
+                            const rawData = await response.json();
+
+                            // Verarbeite die Daten - optional
+                            const processedData = processData(rawData);
+
+                            // Sende die verarbeiteten Daten zurück
+                            self.postMessage({
+                                type: 'success',
+                                data: processedData
+                            });
+                        } catch (fetchError) {
+                            // Wenn der API-Aufruf fehlschlägt, geben wir den Fehler weiter
+                            // Die Komponente wird dann weiterhin die Mock-Daten verwenden
+                            self.postMessage({
+                                type: 'error',
+                                error: 'API request failed: ' + fetchError.message
+                            });
+                        }
                     } catch (error) {
                         self.postMessage({
                             type: 'error',
@@ -1834,7 +1876,6 @@ export default {
                         selectedPlace.value.victims.push(victim);
                     }
                 }
-                console.log("selectedPlace", selectedPlace);
             } catch (error) {
                 console.error("Error in setSelectedPlace:", error);
             }
