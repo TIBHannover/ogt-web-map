@@ -194,7 +194,10 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="item in latestPlaces" :key="item.id">
+                                <tr
+                                    v-for="item in paginatedItems(latestPlaces)"
+                                    :key="item.id"
+                                >
                                     <td>
                                         <v-img
                                             :width="24"
@@ -221,6 +224,14 @@
                                 </tr>
                             </tbody>
                         </v-table>
+
+                        <!-- Paginierung für Orte -->
+                        <v-pagination
+                            v-model="placesPage"
+                            :length="getPageCount(latestPlaces)"
+                            :total-visible="5"
+                            class="mt-4"
+                        ></v-pagination>
                     </v-window-item>
 
                     <!-- Geschädigte Tab -->
@@ -235,7 +246,9 @@
                             </thead>
                             <tbody>
                                 <tr
-                                    v-for="item in latestVictims"
+                                    v-for="item in paginatedItems(
+                                        latestVictims,
+                                    )"
                                     :key="item.id"
                                 >
                                     <td>{{ item.label }}</td>
@@ -256,6 +269,14 @@
                                 </tr>
                             </tbody>
                         </v-table>
+
+                        <!-- Paginierung für Geschädigte -->
+                        <v-pagination
+                            v-model="victimsPage"
+                            :length="getPageCount(latestVictims)"
+                            :total-visible="5"
+                            class="mt-4"
+                        ></v-pagination>
                     </v-window-item>
 
                     <!-- Täter*innen Tab -->
@@ -270,7 +291,9 @@
                             </thead>
                             <tbody>
                                 <tr
-                                    v-for="item in latestPerpetrators"
+                                    v-for="item in paginatedItems(
+                                        latestPerpetrators,
+                                    )"
                                     :key="item.id"
                                 >
                                     <td>{{ item.label }}</td>
@@ -291,6 +314,14 @@
                                 </tr>
                             </tbody>
                         </v-table>
+
+                        <!-- Paginierung für Täter*innen -->
+                        <v-pagination
+                            v-model="perpetratorsPage"
+                            :length="getPageCount(latestPerpetrators)"
+                            :total-visible="5"
+                            class="mt-4"
+                        ></v-pagination>
                     </v-window-item>
                 </v-window>
             </v-col>
@@ -364,6 +395,10 @@ export default {
         const latestPlaces = ref([]);
         const latestVictims = ref([]);
         const latestPerpetrators = ref([]);
+        const itemsPerPage = 20;
+        const placesPage = ref(1);
+        const victimsPage = ref(1);
+        const perpetratorsPage = ref(1);
         const persons = ref({
             perpetrators: {},
             victims: {},
@@ -707,7 +742,7 @@ export default {
                     });
 
                 await nextTick();
-                await new Promise((resolve) => setTimeout(resolve, 100));
+                await new Promise((resolve) => setTimeout(resolve, 200));
 
                 updatePlacesInfoData(groupedPlaces);
             } catch (error) {
@@ -797,11 +832,8 @@ export default {
             // Nach Q-Nummer absteigend sortieren (höchste/neueste zuerst)
             allPlaces.sort((a, b) => b.qNumber - a.qNumber);
 
-            // Log der sortierten Daten (ähnlich wie deine ursprünglichen Logs)
-            console.log(
-                "Alle sortierten Orte nach Q-Nummer (neueste zuerst):",
-                allPlaces,
-            );
+            // Die neuesten 100 Einträge insgesamt für die Tabelle
+            latestPlaces.value = allPlaces.slice(0, 100);
 
             // Log der neuesten 10 Einträge für jede Kategorie
             const categories = [
@@ -876,26 +908,7 @@ export default {
 */
         // Diese Funktion aktualisieren
         const updatePersonInfoData = () => {
-            const perpetratorsCount = Object.keys(
-                persons.value.perpetrators,
-            ).length;
-            const victimsCount = Object.keys(persons.value.victims).length - 1;
-
-            // DOM-Elemente aktualisieren
-            const perpetratorsSpan = document.querySelector(
-                '[data-groupuid="perpetrators"]',
-            );
-            const victimsSpan = document.querySelector(
-                '[data-groupuid="victims"]',
-            );
-
-            if (perpetratorsSpan) {
-                perpetratorsSpan.innerHTML = perpetratorsCount;
-            }
-
-            if (victimsSpan) {
-                victimsSpan.innerHTML = victimsCount;
-            }
+            // ...bestehender Code...
 
             // Opfer in sortiertes Array umwandeln
             const victimsArray = Object.entries(persons.value.victims).map(
@@ -921,9 +934,9 @@ export default {
             victimsArray.sort((a, b) => b.qNumber - a.qNumber);
             perpetratorsArray.sort((a, b) => b.qNumber - a.qNumber);
 
-            // Die neuesten 20 Einträge nehmen
-            latestVictims.value = victimsArray.slice(0, 20);
-            latestPerpetrators.value = perpetratorsArray.slice(0, 20);
+            // Die neuesten 100 Einträge nehmen
+            latestVictims.value = victimsArray.slice(0, 100);
+            latestPerpetrators.value = perpetratorsArray.slice(0, 100);
         };
 
         const sortByQNumber = (a, b) => {
@@ -933,6 +946,28 @@ export default {
 
             // Absteigend sortieren (neueste zuerst = höchste Q-Nummern)
             return bNum - aNum;
+        };
+
+        const getPageCount = (items) => {
+            return Math.ceil(items.length / itemsPerPage);
+        };
+
+        const paginatedItems = (items) => {
+            let page;
+
+            // Bestimmen, welche Seite verwendet werden soll, basierend auf dem aktiven Tab
+            if (activeTab.value === "places") {
+                page = placesPage.value;
+            } else if (activeTab.value === "victims") {
+                page = victimsPage.value;
+            } else {
+                page = perpetratorsPage.value;
+            }
+
+            const start = (page - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+
+            return items.slice(start, end);
         };
 
         // Hilfsfunktion zum Abrufen des richtigen Icons für die Kategorie
@@ -981,6 +1016,11 @@ export default {
             latestPerpetrators,
             getCategoryIcon,
             getCategoryName,
+            placesPage,
+            victimsPage,
+            perpetratorsPage,
+            paginatedItems,
+            getPageCount,
         };
     },
 };
