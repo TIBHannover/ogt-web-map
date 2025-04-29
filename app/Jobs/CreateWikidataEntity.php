@@ -33,8 +33,16 @@ class CreateWikidataEntity implements ShouldQueue
     public function handle(): void
     {
         try {
+            // Debug-Ausgabe
+            Log::info("Starting Wikidata entity creation", [
+                "request_id" => $this->entryRequest->id,
+                "title" => $this->entryRequest->title,
+                "type" => $this->entryRequest->type,
+            ]);
+
             // Bot-Token abrufen
             $token = $this->getBotToken();
+            Log::info("Bot token acquired successfully");
 
             // Wikidata-Entität erstellen
             $entityData = $this->prepareEntityData(
@@ -42,8 +50,10 @@ class CreateWikidataEntity implements ShouldQueue
                 $this->entryRequest->description,
                 $this->entryRequest->type
             );
+            Log::info("Entity data prepared", ["data" => $entityData]);
 
             $response = $this->createEntity($entityData, $token);
+            Log::info("API response received", ["response" => $response]);
 
             // Erfolg protokollieren
             $this->entryRequest->wikidata_id = $response["entity"]["id"];
@@ -57,6 +67,7 @@ class CreateWikidataEntity implements ShouldQueue
             // Fehler protokollieren
             Log::error("Failed to create Wikidata entity", [
                 "error" => $e->getMessage(),
+                "trace" => $e->getTraceAsString(),
                 "request_id" => $this->entryRequest->id,
             ]);
 
@@ -92,9 +103,20 @@ class CreateWikidataEntity implements ShouldQueue
             "format" => "json",
         ]);
 
-        $loginToken = $loginTokenResponse->json()["query"]["tokens"][
-            "logintoken"
-        ];
+        $loginTokenJson = $loginTokenResponse->json();
+
+        // Überprüfung auf gültige Antwort
+        if (
+            !isset($loginTokenJson["query"]) ||
+            !isset($loginTokenJson["query"]["tokens"]) ||
+            !isset($loginTokenJson["query"]["tokens"]["logintoken"])
+        ) {
+            throw new \Exception(
+                "Failed to get login token: " . json_encode($loginTokenJson)
+            );
+        }
+
+        $loginToken = $loginTokenJson["query"]["tokens"]["logintoken"];
 
         // Mit dem Login-Token anmelden
         $cookieJar = new \GuzzleHttp\Cookie\CookieJar();
@@ -109,11 +131,18 @@ class CreateWikidataEntity implements ShouldQueue
             "format" => "json",
         ]);
 
-        if ($loginResponse->json()["login"]["result"] !== "Success") {
+        $loginJson = $loginResponse->json();
+
+        // Überprüfung auf erfolgreiche Anmeldung
+        if (
+            !isset($loginJson["login"]) ||
+            $loginJson["login"]["result"] !== "Success"
+        ) {
             throw new \Exception(
                 "Bot login failed: " .
-                    ($loginResponse->json()["login"]["reason"] ??
-                        "unknown error")
+                    (isset($loginJson["login"]["reason"])
+                        ? $loginJson["login"]["reason"]
+                        : json_encode($loginJson))
             );
         }
 
@@ -126,22 +155,30 @@ class CreateWikidataEntity implements ShouldQueue
             "format" => "json",
         ]);
 
-        $csrfToken = $csrfResponse->json()["query"]["tokens"]["csrftoken"];
+        $csrfJson = $csrfResponse->json();
+
+        // Überprüfung auf gültigen CSRF-Token
+        if (
+            !isset($csrfJson["query"]) ||
+            !isset($csrfJson["query"]["tokens"]) ||
+            !isset($csrfJson["query"]["tokens"]["csrftoken"])
+        ) {
+            throw new \Exception(
+                "Failed to get CSRF token: " . json_encode($csrfJson)
+            );
+        }
+
+        $csrfToken = $csrfJson["query"]["tokens"]["csrftoken"];
 
         // Token im Cache speichern (1 Stunde gültig)
-        Cache::put(
-            "wikidata_bot_token",
-            [
-                "token" => $csrfToken,
-                "cookieJar" => $cookieJar,
-            ],
-            3600
-        );
-
-        return [
+        $tokenData = [
             "token" => $csrfToken,
             "cookieJar" => $cookieJar,
         ];
+
+        Cache::put("wikidata_bot_token", $tokenData, 3600);
+
+        return $tokenData;
     }
 
     /**
@@ -220,12 +257,25 @@ class CreateWikidataEntity implements ShouldQueue
                 "format" => "json",
             ]);
 
-        if (isset($response["error"])) {
+        $jsonResponse = $response->json();
+
+        // Überprüfen auf API-Fehler
+        if (isset($jsonResponse["error"])) {
             throw new \Exception(
-                $response["error"]["info"] ?? "Unknown API error"
+                $jsonResponse["error"]["info"] ?? "Unknown API error"
             );
         }
 
-        return $response->json();
+        // Überprüfen, ob die erwartete Struktur vorhanden ist
+        if (
+            !isset($jsonResponse["entity"]) ||
+            !isset($jsonResponse["entity"]["id"])
+        ) {
+            throw new \Exception(
+                "Unexpected response format: Entity ID not found in response."
+            );
+        }
+
+        return $jsonResponse;
     }
 }
