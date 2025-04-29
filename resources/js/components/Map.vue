@@ -1876,7 +1876,6 @@ export default {
                         selectedPlace.value.victims.push(victim);
                     }
                 }
-                console.log("selectedPlace", selectedPlace);
             } catch (error) {
                 console.error("Error in setSelectedPlace:", error);
             }
