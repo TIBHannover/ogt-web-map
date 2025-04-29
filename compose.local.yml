@@ -10,10 +10,13 @@ services:
       - ./.env:/var/www/html/.env:ro
       - /var/www/html/vendor # Bewahrt die Container-Vendor-Dateien
       - /var/www/html/node_modules # Bewahrt die Container-Node-Modules
+      - ./docker/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
     environment:
       - APP_ENV=local
       - APP_DEBUG=true
-      - XDEBUG_CONFIG="client_host=host.docker.internal"
+      - XDEBUG_CONFIG=client_host=host.docker.internal client_port=9003 discover_client_host=0 log=/tmp/xdebug.log
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     env_file:
       - ./.env
 volumes:

@@ -275,70 +275,149 @@ class WikidataEntityController extends Controller
     {
         // Prüfen, ob Token im Cache ist
         if (Cache::has("wikidata_bot_token")) {
+            Log::info("Verwende gecachtes Bot-Token");
             return Cache::get("wikidata_bot_token");
         }
 
         $botUsername = config("wikidata.bot_username");
         $botPassword = config("wikidata.bot_password");
 
+        // Debug-Ausgabe für Anmeldedaten (ABER NIEMALS IN PRODUKTION!)
+        Log::debug("Versuche Login mit Benutzer: " . $botUsername);
+        Log::debug("API-URL: " . $this->apiUrl);
+
         // Login-Token anfordern
-        $loginTokenResponse = Http::get($this->apiUrl, [
-            "action" => "query",
-            "meta" => "tokens",
-            "type" => "login",
-            "format" => "json",
-        ]);
+        try {
+            $loginTokenResponse = Http::get($this->apiUrl, [
+                "action" => "query",
+                "meta" => "tokens",
+                "type" => "login",
+                "format" => "json",
+            ]);
 
-        $loginToken = $loginTokenResponse->json()["query"]["tokens"][
-            "logintoken"
-        ];
-
-        // Mit dem Login-Token anmelden
-        $cookieJar = new \GuzzleHttp\Cookie\CookieJar();
-
-        $loginResponse = Http::withOptions([
-            "cookies" => $cookieJar,
-        ])->post($this->apiUrl, [
-            "action" => "login",
-            "lgname" => $botUsername,
-            "lgpassword" => $botPassword,
-            "lgtoken" => $loginToken,
-            "format" => "json",
-        ]);
-
-        if ($loginResponse->json()["login"]["result"] !== "Success") {
-            throw new \Exception(
-                "Bot login failed: " .
-                    ($loginResponse->json()["login"]["reason"] ??
-                        "unknown error")
+            Log::debug(
+                "Login Token Response: " .
+                    json_encode($loginTokenResponse->json())
             );
-        }
 
-        // CSRF-Token für Bearbeitungen holen
-        $csrfResponse = Http::withOptions([
-            "cookies" => $cookieJar,
-        ])->get($this->apiUrl, [
-            "action" => "query",
-            "meta" => "tokens",
-            "format" => "json",
-        ]);
+            if (!$loginTokenResponse->ok()) {
+                throw new \Exception(
+                    "Login Token Request fehlgeschlagen: " .
+                        $loginTokenResponse->status()
+                );
+            }
 
-        $csrfToken = $csrfResponse->json()["query"]["tokens"]["csrftoken"];
+            $loginTokenJson = $loginTokenResponse->json();
 
-        // Token im Cache speichern (1 Stunde gültig)
-        Cache::put(
-            "wikidata_bot_token",
-            [
+            if (
+                !isset($loginTokenJson["query"]) ||
+                !isset($loginTokenJson["query"]["tokens"]) ||
+                !isset($loginTokenJson["query"]["tokens"]["logintoken"])
+            ) {
+                throw new \Exception(
+                    "Login Token nicht gefunden in Antwort: " .
+                        json_encode($loginTokenJson)
+                );
+            }
+
+            $loginToken = $loginTokenJson["query"]["tokens"]["logintoken"];
+            Log::debug(
+                "Login Token erhalten: " . substr($loginToken, 0, 5) . "..."
+            );
+
+            // Mit dem Login-Token anmelden
+            $cookieJar = new \GuzzleHttp\Cookie\CookieJar();
+
+            $loginResponse = Http::withOptions([
+                "cookies" => $cookieJar,
+            ])->post($this->apiUrl, [
+                "action" => "login",
+                "lgname" => $botUsername,
+                "lgpassword" => $botPassword,
+                "lgtoken" => $loginToken,
+                "format" => "json",
+            ]);
+
+            Log::debug(
+                "Login Response: " . json_encode($loginResponse->json())
+            );
+
+            if (!$loginResponse->ok()) {
+                throw new \Exception(
+                    "Login Request fehlgeschlagen: " . $loginResponse->status()
+                );
+            }
+
+            $loginJson = $loginResponse->json();
+
+            if (!isset($loginJson["login"])) {
+                throw new \Exception(
+                    "Login-Antwort enthält keinen 'login'-Schlüssel: " .
+                        json_encode($loginJson)
+                );
+            }
+
+            if ($loginJson["login"]["result"] !== "Success") {
+                throw new \Exception(
+                    "Bot login failed: " .
+                        (isset($loginJson["login"]["reason"])
+                            ? $loginJson["login"]["reason"]
+                            : json_encode($loginJson["login"]))
+                );
+            }
+
+            // CSRF-Token für Bearbeitungen holen
+            $csrfResponse = Http::withOptions([
+                "cookies" => $cookieJar,
+            ])->get($this->apiUrl, [
+                "action" => "query",
+                "meta" => "tokens",
+                "format" => "json",
+            ]);
+
+            Log::debug(
+                "CSRF Token Response: " . json_encode($csrfResponse->json())
+            );
+
+            if (!$csrfResponse->ok()) {
+                throw new \Exception(
+                    "CSRF Token Request fehlgeschlagen: " .
+                        $csrfResponse->status()
+                );
+            }
+
+            $csrfJson = $csrfResponse->json();
+
+            if (
+                !isset($csrfJson["query"]) ||
+                !isset($csrfJson["query"]["tokens"]) ||
+                !isset($csrfJson["query"]["tokens"]["csrftoken"])
+            ) {
+                throw new \Exception(
+                    "CSRF Token nicht gefunden in Antwort: " .
+                        json_encode($csrfJson)
+                );
+            }
+
+            $csrfToken = $csrfJson["query"]["tokens"]["csrftoken"];
+            Log::debug(
+                "CSRF Token erhalten: " . substr($csrfToken, 0, 5) . "..."
+            );
+
+            // Token im Cache speichern (1 Stunde gültig)
+            $tokenData = [
                 "token" => $csrfToken,
                 "cookieJar" => $cookieJar,
-            ],
-            3600
-        );
+            ];
 
-        return [
-            "token" => $csrfToken,
-            "cookieJar" => $cookieJar,
-        ];
+            Cache::put("wikidata_bot_token", $tokenData, 3600);
+
+            return $tokenData;
+        } catch (\Exception $e) {
+            Log::error("Fehler beim Bot-Login: " . $e->getMessage());
+            Log::error("Trace: " . $e->getTraceAsString());
+            throw $e; // Weitergabe des Fehlers
+        }
     }
 
     /**
