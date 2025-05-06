@@ -26,7 +26,7 @@
             :height="isMobile ? 'auto' : ''"
             :width="isMobile ? '100%' : '375'"
             :max-width="isMobile ? '100%' : '375'"
-            :class="{ 'mobile-drawer': isMobile }"
+            :class="{ 'mobile-drawer': isMobile, 'v-navigation-drawer--closed': !isMapOptionsOpen && isMobile }"
         >
             <!-- map options header -->
             <v-list-item class="position-relative py-3">
@@ -130,6 +130,10 @@ const handleResize = () => {
 
 onMounted(() => {
     window.addEventListener("resize", handleResize);
+    // Zustand beim Start explizit zurücksetzen
+    if (!isMapOptionsOpen.value) {
+        closeMapOptions();
+    }
 });
 
 onUnmounted(() => {
@@ -160,6 +164,10 @@ const updateLayerGroups = (value) => {
     border-top-right-radius: 16px;
     overflow-y: auto;
     box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.1);
+}
+.v-navigation-drawer--closed {
+    transform: translateY(100%) !important;
+    visibility: hidden !important;
 }
 @media (max-width: 600px) {
     .menuOptionsidebar {

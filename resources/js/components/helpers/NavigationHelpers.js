@@ -17,13 +17,14 @@ watch(isTimelineOpen, (newValue) => {
 watch(isMapOptionsOpen, (newValue) => {
     if (newValue === true) {
         isTimelineOpen.value = false;
+        isPlaceInfoOpen.value = false;
     }
 });
 
 watch(isPlaceInfoOpen, (newValue) => {
     if (newValue === true) {
         //isTimelineOpen.value = false;
-        isMapOptionsOpen.value = false; // Schließe MapOptions wenn PlaceInfo geöffnet wird
+        isMapOptionsOpen.value = false;
     }
 });
 
@@ -59,7 +60,6 @@ export default function NavigationHelpers() {
 
     const openMapOptions = () => {
         isMapOptionsOpen.value = true;
-        // Close other navigations
         isTimelineOpen.value = false;
         isPlaceInfoOpen.value = false;
     };
@@ -78,6 +78,7 @@ export default function NavigationHelpers() {
 
     const openPlaceInfo = () => {
         isPlaceInfoOpen.value = true;
+        isMapOptionsOpen.value = false;
     };
 
     const closePlaceInfo = () => {

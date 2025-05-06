@@ -46,7 +46,15 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted, nextTick, inject, toRaw } from "vue";
+import {
+    ref,
+    onMounted,
+    onUnmounted,
+    nextTick,
+    inject,
+    toRaw,
+    watch,
+} from "vue";
 import { useRouter, useRoute } from "vue-router";
 import axios from "axios";
 import Leaflet from "leaflet/dist/leaflet";
@@ -516,10 +524,29 @@ export default {
             debouncedApplyFilters(null, null, null);
         };
 
+        const forceConsistentUIState = () => {
+            closeMapOptions();
+            closePlaceInfo();
+            showPlaceInfoSidebar.value = false;
+
+            const searchParams = new URLSearchParams(window.location.search);
+            if (searchParams.get("id") || searchParams.get("pid")) {
+                closeMapOptions();
+            }
+
+            return true;
+        };
+
+        watch(isPlaceInfoOpen, (newValue) => {
+            if (showPlaceInfoSidebar.value !== newValue) {
+                showPlaceInfoSidebar.value = newValue;
+            }
+        });
+
         onMounted(async () => {
             try {
                 isLoading.value = true;
-                closeMapOptions();
+                forceConsistentUIState();
                 await nextTick();
 
                 patchLeafletForNullChecks();
@@ -2306,7 +2333,7 @@ export default {
                 if (qId && locationMarkers.value[qId]) {
                     await ensureDataProcessed();
 
-                    closeMapOptions();
+                    forceConsistentUIState();
 
                     switchLocation({
                         locationId: qId,
@@ -2330,7 +2357,7 @@ export default {
                 if (qId) {
                     await ensureDataProcessed();
 
-                    closeMapOptions();
+                    forceConsistentUIState();
 
                     let personGroup = "";
                     if (persons.value.victims[qId]) {
@@ -2415,6 +2442,8 @@ export default {
                 // workaround to bring a marker icon to foreground when multiple markers overlap on same coordinates
                 locationMarker.remove();
                 locationMarker.addTo(rawMap);
+
+                forceConsistentUIState();
 
                 rawMap.flyTo(latLng, zoom);
 
