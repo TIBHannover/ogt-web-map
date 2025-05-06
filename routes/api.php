@@ -3,6 +3,7 @@
 use App\Http\Controllers\PingController;
 use App\Http\Controllers\WikidataController;
 use App\Http\Controllers\WikidataEntityController;
+use App\Http\Controllers\WikidataSearchController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -28,7 +29,10 @@ Route::get("/wikidata/persons/cache", [
 ]);
 Route::get("/wikidata/places", [WikidataController::class, "getPlaces"]);
 
-Route::post("/wikidata/entities", [WikidataEntityController::class, "create"]);
+Route::get("/wikidata/entities", [
+    WikidataSearchController::class,
+    "searchByTitle",
+]);
 Route::post("/wikidata/entities", [WikidataEntityController::class, "create"]);
 Route::get("/wikidata/requests", [
     WikidataEntityController::class,
@@ -48,3 +52,6 @@ Route::post("/wikidata/requests/{id}/retry", [
 ]);
 
 Route::get("/ping", [PingController::class, "ping"]);
+
+// Route for searching people in Wikidata
+Route::get('/wikidata/search/people', [WikidataSearchController::class, 'searchPeople']);

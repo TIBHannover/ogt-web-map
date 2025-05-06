@@ -20,7 +20,7 @@ RUN apk add --no-cache \
 RUN apk add --no-cache nodejs npm
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo_mysql bcmath mbstring xml
+RUN docker-php-ext-install pdo_mysql pdo_sqlite bcmath mbstring xml
 
 # Configure PHP
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" && \

@@ -13,35 +13,18 @@ class WikidataEntryRequest extends Model
         "title",
         "description",
         "type",
+        "coordinates",
         "status",
         "wikidata_id",
         "submitted_by",
         "approved_by",
         "rejected_by",
         "rejection_reason",
+        "victims",
     ];
 
-    /**
-     * Get the user who submitted the request
-     */
-    public function submitter()
-    {
-        return $this->belongsTo(User::class, "submitted_by");
-    }
+    protected $casts = [
+        'victims' => 'array',
+    ];
 
-    /**
-     * Get the admin who approved the request
-     */
-    public function approver()
-    {
-        return $this->belongsTo(User::class, "approved_by");
-    }
-
-    /**
-     * Get the admin who rejected the request
-     */
-    public function rejecter()
-    {
-        return $this->belongsTo(User::class, "rejected_by");
-    }
 }

@@ -530,4 +530,110 @@ class WikidataClient
 
         return $groupedItems;
     }
+
+    /**
+     * Searches for entities in Wikidata by title
+     *
+     * @param string $searchTerm The term to search for
+     * @param int $limit Maximum number of results to return
+     * @return array Search results from Wikidata
+     */
+    public function searchTitles(string $searchTerm, int $limit = 10): array
+    {
+        try {
+            // Prüfe, ob es sich um eine direkte Q-Nummer handelt (z.B. "Q1234567")
+            if (preg_match('/^Q\d+$/', $searchTerm)) {
+                // Direkte Anfrage des Entities mit der Q-ID
+                $response = Http::get('https://www.wikidata.org/w/api.php', [
+                    'action' => 'wbgetentities',
+                    'ids' => $searchTerm,
+                    'languages' => 'de|en', // Deutsch und Englisch anfordern
+                    'format' => 'json'
+                ]);
+
+                if ($response->successful() && !empty($response->json()['entities'][$searchTerm])) {
+                    $entity = $response->json()['entities'][$searchTerm];
+                    
+                    // Beschreibung priorisieren: Deutsch > Englisch > leer
+                    $description = '';
+                    if (!empty($entity['descriptions']['de']['value'])) {
+                        $description = $entity['descriptions']['de']['value'];
+                    } elseif (!empty($entity['descriptions']['en']['value'])) {
+                        $description = $entity['descriptions']['en']['value'];
+                    }
+                    
+                    // Auch Labels bevorzugt aus Deutsch, dann Englisch
+                    $label = $searchTerm;
+                    if (!empty($entity['labels']['de']['value'])) {
+                        $label = $entity['labels']['de']['value'];
+                    } elseif (!empty($entity['labels']['en']['value'])) {
+                        $label = $entity['labels']['en']['value'];
+                    }
+                    
+                    // Erstelle ein dem Suchergebnis ähnliches Format
+                    return [[
+                        'id' => $searchTerm,
+                        'label' => $label,
+                        'description' => $description,
+                        'match' => ['type' => 'exactMatch', 'text' => $searchTerm]
+                    ]];
+                }
+            }
+
+            // Standardsuche nach Titeln
+            $response = Http::get('https://www.wikidata.org/w/api.php', [
+                'action' => 'wbsearchentities',
+                'search' => $searchTerm,
+                'language' => 'de',
+                'format' => 'json',
+                'limit' => $limit,
+                'type' => 'item'
+            ]);
+
+            if ($response->successful()) {
+                $results = $response->json()['search'] ?? [];
+                
+                // Wenn nötig, zusätzliche Informationen für jedes Ergebnis abrufen
+                if (!empty($results)) {
+                    foreach ($results as &$result) {
+                        // Falls keine deutsche Beschreibung vorhanden ist, versuche englische zu finden
+                        if (empty($result['description'])) {
+                            // Details für dieses Element abrufen
+                            $entityResponse = Http::get('https://www.wikidata.org/w/api.php', [
+                                'action' => 'wbgetentities',
+                                'ids' => $result['id'],
+                                'languages' => 'de|en',
+                                'format' => 'json'
+                            ]);
+                            
+                            if ($entityResponse->successful() && !empty($entityResponse->json()['entities'][$result['id']])) {
+                                $entity = $entityResponse->json()['entities'][$result['id']];
+                                
+                                // Englische Beschreibung verwenden, wenn keine deutsche existiert
+                                if (!empty($entity['descriptions']['en']['value'])) {
+                                    $result['description'] = $entity['descriptions']['en']['value'];
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                return $results;
+            }
+
+            Log::error('Wikidata title search failed', [
+                'statusCode' => $response->status(),
+                'response' => $response->body()
+            ]);
+
+            return [];
+        } catch (\Exception $e) {
+            Log::error('Exception during Wikidata title search', [
+                'message' => $e->getMessage(),
+                'searchTerm' => $searchTerm
+            ]);
+
+            return [];
+        }
+    }
 }

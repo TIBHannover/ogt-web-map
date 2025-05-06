@@ -17,6 +17,8 @@ RUN apt-get update && apt-get install -y \
     nodejs \
     npm
 
+RUN docker-php-ext-install pdo_mysql pdo_sqlite bcmath mbstring xml
+
 # PHP-Erweiterungen installieren
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \

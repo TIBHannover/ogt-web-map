@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Cache;
 use App\Jobs\CreateWikidataEntity;
 use App\Models\WikidataEntryRequest;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Clients\WikidataClient;
 
 class WikidataEntityController extends Controller
 {
@@ -31,6 +32,8 @@ class WikidataEntityController extends Controller
             "title" => "required|string|max:250",
             "description" => "required|string|max:750",
             "type" => 'required|string|regex:/^Q\d+$/',
+            "coordinates" => 'nullable|string',
+            "victims" => 'nullable|array',
         ]);
 
         try {
@@ -38,6 +41,8 @@ class WikidataEntityController extends Controller
             $entryRequest->title = $validated["title"];
             $entryRequest->description = $validated["description"];
             $entryRequest->type = $validated["type"];
+            $entryRequest->coordinates = $validated["coordinates"] ?? null;
+            $entryRequest->victims = $validated["victims"] ?? null;
             $entryRequest->status = "pending";
             $entryRequest->submitted_by = "anonymous";
             $entryRequest->save();
@@ -504,4 +509,5 @@ class WikidataEntityController extends Controller
 
         return $response->json();
     }
+
 }

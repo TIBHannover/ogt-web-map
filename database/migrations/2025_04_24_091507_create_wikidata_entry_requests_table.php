@@ -15,6 +15,8 @@ return new class extends Migration {
             $table->string("title");
             $table->text("description");
             $table->string("type");
+            $table->string("coordinates")->nullable();
+            $table->json("victims")->nullable();
             $table->enum("status", [
                 "pending",
                 "approved",
