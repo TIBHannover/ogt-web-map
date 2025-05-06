@@ -46,7 +46,15 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted, nextTick, inject, toRaw } from "vue";
+import {
+    ref,
+    onMounted,
+    onUnmounted,
+    nextTick,
+    inject,
+    toRaw,
+    watch,
+} from "vue";
 import { useRouter, useRoute } from "vue-router";
 import axios from "axios";
 import Leaflet from "leaflet/dist/leaflet";
@@ -513,13 +521,32 @@ export default {
 
         const handleTimelineFilterChange = (enabled) => {
             isTimelineFilterEnabled.value = enabled;
-            // Du kannst hier auch sofort die Filter anwenden, wenn nötig
             debouncedApplyFilters(null, null, null);
         };
+
+        const forceConsistentUIState = () => {
+            closeMapOptions();
+            closePlaceInfo();
+            showPlaceInfoSidebar.value = false;
+
+            const searchParams = new URLSearchParams(window.location.search);
+            if (searchParams.get("id") || searchParams.get("pid")) {
+                closeMapOptions();
+            }
+
+            return true;
+        };
+
+        watch(isPlaceInfoOpen, (newValue) => {
+            if (showPlaceInfoSidebar.value !== newValue) {
+                showPlaceInfoSidebar.value = newValue;
+            }
+        });
 
         onMounted(async () => {
             try {
                 isLoading.value = true;
+                forceConsistentUIState();
                 await nextTick();
 
                 patchLeafletForNullChecks();
@@ -2304,10 +2331,10 @@ export default {
                 const qId = searchParams.get("id");
 
                 if (qId && locationMarkers.value[qId]) {
-                    // Stelle sicher, dass alle Daten verarbeitet wurden, bevor das Popup geöffnet wird
                     await ensureDataProcessed();
 
-                    // Dann zum Standort wechseln
+                    forceConsistentUIState();
+
                     switchLocation({
                         locationId: qId,
                         zoom: 14,
@@ -2328,8 +2355,9 @@ export default {
                 const qId = searchParams.get("pid");
 
                 if (qId) {
-                    // Stelle sicher, dass alle Daten verarbeitet wurden
                     await ensureDataProcessed();
+
+                    forceConsistentUIState();
 
                     let personGroup = "";
                     if (persons.value.victims[qId]) {
@@ -2414,6 +2442,8 @@ export default {
                 // workaround to bring a marker icon to foreground when multiple markers overlap on same coordinates
                 locationMarker.remove();
                 locationMarker.addTo(rawMap);
+
+                forceConsistentUIState();
 
                 rawMap.flyTo(latLng, zoom);
 
@@ -2867,6 +2897,7 @@ export default {
 
             if (status) {
                 openPlaceInfo();
+                closeMapOptions();
                 document.getElementById("closeNavigationSidebar")?.click();
             } else {
                 closePlaceInfo();
