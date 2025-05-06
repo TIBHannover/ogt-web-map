@@ -84,4 +84,11 @@ export const itemDescriptions = {
             "Später wurde er in das KZ Bergen-Belsen verschleppt. Weder die genauen Umstände dieser Verschleppung noch die seines Todes dort sind bekannt. Erst im Jahr 1954 wurde Adam Jaschke offiziell für tot erklärt.",
         ],
     },
+    Q133303308: {
+        textParts: [
+            "Die Sozialistische Front war eine der größten und bedeutendsten Widerstandsgruppen gegen den Nationalsozialismus in der Vorkriegszeit. Zwischen 1934 und 1936 war sie im Raum Hannover aktiv und zählte zwischen 560 und 780 Engagierte, überwiegend aus dem sozialdemokratischen Milieu.",
+            "Alle vier bis sechs Wochen veröffentlichte die Gruppe die zehnseitige Flugschrift „Sozialistische Blätter“, die zeitweise bis zu 1.000 Leserinnen und Leser erreichte. Insgesamt erschienen mindestens 40 Ausgaben. Die Flugschrift diente der politischen Aufklärung, der moralischen Stärkung der Leserschaft und der Mobilisierung zum Widerstand gegen das NS-Regime.",
+            "Im Sommer 1936 gelang es der Gestapo, einen Spitzel in die Organisation einzuschleusen. In der Folge wurde nahezu das gesamte Lese- und Verteilernetz enttarnt. Mindestens 420 Personen wurden verhaftet und verhört. Insgesamt verhängten die NS-Justizbehörden 105 Zuchthaus- und 134 Gefängnisstrafen. Mehrere Engagierte verloren im Zusammenhang mit ihrem Widerstand ihr Leben.",
+        ],
+    },
 };
