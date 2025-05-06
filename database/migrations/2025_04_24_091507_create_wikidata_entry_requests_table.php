@@ -17,6 +17,15 @@ return new class extends Migration {
             $table->string("type");
             $table->string("coordinates")->nullable();
             $table->json("victims")->nullable();
+            $table->json("perpetrators")->nullable(); // Täter
+            $table->string("time_point")->nullable(); // Zeitpunkt, falls das Ereignis zu einem bestimmten Zeitpunkt stattfand
+            $table->string("time_period_start")->nullable(); // Beginn des Zeitraums
+            $table->string("time_period_end")->nullable(); // Ende des Zeitraums
+            $table->integer("victim_count")->nullable(); // Anzahl der Opfer
+            $table->integer("survivor_count")->nullable(); // Anzahl der Überlebenden
+            $table->integer("death_count")->nullable(); // Anzahl der Todesfälle
+            $table->integer("arrest_count")->nullable(); // Anzahl der Festnahmen
+            $table->text("cause")->nullable(); // Ursache der Verfolgung
             $table->enum("status", [
                 "pending",
                 "approved",

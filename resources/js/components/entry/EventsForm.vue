@@ -39,6 +39,68 @@
                 placeholder="z.B. vom NS-Regime gelenkte Gewaltmaßnahmen gegen Juden in Osnabrück."
             ></textarea>
 
+            <!-- Zeitpunkt/Zeitraum -->
+            <div class="time-section">
+                <label>Zeitpunkt / Zeitraum</label>
+                <div class="time-type-selection">
+                    <div class="form-group">
+                        <input
+                            type="radio"
+                            id="time-point"
+                            name="event-time-type"
+                            value="point"
+                            v-model="eventTimeTypeValue"
+                        />
+                        <label for="time-point">Zeitpunkt</label>
+                    </div>
+                    <div class="form-group">
+                        <input
+                            type="radio"
+                            id="time-range"
+                            name="event-time-type"
+                            value="range"
+                            v-model="eventTimeTypeValue"
+                        />
+                        <label for="time-range">Zeitraum</label>
+                    </div>
+                </div>
+
+                <!-- Zeitpunkt-Eingabe -->
+                <div v-if="eventTimeTypeValue === 'point'" class="form-group">
+                    <label for="event-date">Datum des Ereignisses</label>
+                    <input
+                        type="date"
+                        id="event-date"
+                        v-model="eventDateValue"
+                    />
+                </div>
+
+                <!-- Zeitraum-Eingabe -->
+                <div
+                    v-if="eventTimeTypeValue === 'range'"
+                    class="time-range-inputs"
+                >
+                    <div class="form-group">
+                        <label for="event-start-date"
+                            >Beginn des Ereignisses</label
+                        >
+                        <input
+                            type="date"
+                            id="event-start-date"
+                            v-model="eventStartDateValue"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="event-end-date">Ende des Ereignisses</label>
+                        <input
+                            type="date"
+                            id="event-end-date"
+                            v-model="eventEndDateValue"
+                        />
+                    </div>
+                </div>
+            </div>
+
             <!-- Opfer-Eingabefeld -->
             <div class="victims-section">
                 <label for="victims">Opfer</label>
@@ -218,6 +280,311 @@
                 </div>
             </div>
 
+            <!-- Täter-Eingabefeld -->
+            <div class="perpetrators-section">
+                <label for="perpetrators">Täter</label>
+                <div
+                    v-if="!showNewPerpetratorFormValue"
+                    class="perpetrators-search"
+                >
+                    <input
+                        type="text"
+                        placeholder="Namen der Täter suchen..."
+                        @input="
+                            (event) => onSearchPerpetrators(event.target.value)
+                        "
+                    />
+                </div>
+
+                <!-- Suchergebnisse für Täter -->
+                <div
+                    v-if="
+                        perpetratorsSearchResultsValue.length > 0 &&
+                        !showNewPerpetratorFormValue
+                    "
+                    class="search-results"
+                >
+                    <div
+                        v-for="person in perpetratorsSearchResultsValue"
+                        :key="person.id"
+                        class="search-result-item"
+                        @click="onSelectPerpetrator(person)"
+                    >
+                        <div class="result-title">{{ person.label }}</div>
+                        <div
+                            class="result-description"
+                            v-if="person.description"
+                        >
+                            {{ person.description }}
+                        </div>
+                        <div
+                            class="result-metadata"
+                            v-if="person.birth || person.death"
+                        >
+                            <span v-if="person.birth"
+                                >* {{ person.birth }}</span
+                            >
+                            <span v-if="person.death"
+                                >† {{ person.death }}</span
+                            >
+                        </div>
+                        <div class="result-id">{{ person.id }}</div>
+                    </div>
+
+                    <!-- Button für neue Person -->
+                    <div class="new-person-option">
+                        <button
+                            type="button"
+                            class="button bg-secondary"
+                            @click="onStartNewPerpetratorForm"
+                        >
+                            Person nicht gefunden? Neue Person anlegen
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Formular für neue Person (Täter) -->
+                <div
+                    v-if="showNewPerpetratorFormValue"
+                    class="new-perpetrator-form"
+                >
+                    <h4>Neue Person anlegen</h4>
+                    <div class="form-group">
+                        <label for="perpetratorFirstName">Vorname *</label>
+                        <input
+                            v-model="newPerpetratorLocal.firstName"
+                            type="text"
+                            id="perpetratorFirstName"
+                            required
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="perpetratorLastName">Nachname *</label>
+                        <input
+                            v-model="newPerpetratorLocal.lastName"
+                            type="text"
+                            id="perpetratorLastName"
+                            required
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="perpetratorBirthDate">Geburtsdatum</label>
+                        <input
+                            v-model="newPerpetratorLocal.birthDate"
+                            type="date"
+                            id="perpetratorBirthDate"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="perpetratorDeathDate">Sterbedatum</label>
+                        <input
+                            v-model="newPerpetratorLocal.deathDate"
+                            type="date"
+                            id="perpetratorDeathDate"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="perpetratorDescription"
+                            >Kurze Beschreibung</label
+                        >
+                        <textarea
+                            v-model="newPerpetratorLocal.description"
+                            id="perpetratorDescription"
+                            rows="3"
+                        ></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button
+                            type="button"
+                            class="button bg-secondary"
+                            @click="onCancelNewPerpetratorForm"
+                        >
+                            Abbrechen
+                        </button>
+                        <button
+                            type="button"
+                            class="button"
+                            @click="onAddNewPerpetrator"
+                            :disabled="!canAddNewPerpetrator"
+                        >
+                            Person hinzufügen
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Ausgewählte Täter -->
+                <div
+                    v-if="selectedPerpetratorsValue.length > 0"
+                    class="selected-perpetrators"
+                >
+                    <h4>Ausgewählte Täter:</h4>
+                    <div
+                        v-for="perpetrator in selectedPerpetratorsValue"
+                        :key="perpetrator.id || perpetrator.tempId"
+                        class="selected-perpetrator"
+                    >
+                        <span class="perpetrator-name">
+                            <a
+                                :href="`https://www.wikidata.org/wiki/${perpetrator.id}`"
+                                target="_blank"
+                            >
+                                {{
+                                    perpetrator.label ||
+                                    `${perpetrator.firstName} ${perpetrator.lastName}`
+                                }}
+                            </a>
+                        </span>
+                        <span
+                            class="perpetrator-description"
+                            v-if="perpetrator.description"
+                        >
+                            - {{ perpetrator.description }}
+                        </span>
+                        <button
+                            type="button"
+                            class="remove-perpetrator"
+                            @click="
+                                onRemovePerpetrator(
+                                    perpetrator.id || perpetrator.tempId,
+                                )
+                            "
+                        >
+                            ✕
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Button für weiteren Täter -->
+                <div
+                    v-if="
+                        !showNewPerpetratorFormValue &&
+                        (!perpetratorsSearchResultsValue.length ||
+                            selectedPerpetratorsValue.length > 0)
+                    "
+                    class="add-another-perpetrator"
+                >
+                    <button
+                        type="button"
+                        class="button bg-secondary"
+                        @click="onStartAddingAnotherPerpetrator"
+                    >
+                        Weiteren Täter hinzufügen
+                    </button>
+                </div>
+            </div>
+
+            <!-- Opferzahlen -->
+            <div class="counts-section">
+                <label>Opferzahlen</label>
+                <div class="form-group">
+                    <label for="victim-count">Anzahl der Opfer</label>
+                    <input
+                        type="number"
+                        id="victim-count"
+                        v-model="victimCountValue"
+                        min="0"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="survivor-count">Anzahl der Überlebenden</label>
+                    <input
+                        type="number"
+                        id="survivor-count"
+                        v-model="survivorCountValue"
+                        min="0"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="death-count">Anzahl der Todesfälle</label>
+                    <input
+                        type="number"
+                        id="death-count"
+                        v-model="deathCountValue"
+                        min="0"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="arrest-count">Anzahl der Festnahmen</label>
+                    <input
+                        type="number"
+                        id="arrest-count"
+                        v-model="arrestCountValue"
+                        min="0"
+                    />
+                </div>
+            </div>
+
+            <!-- Ursache der Verfolgung -->
+            <div class="cause-section">
+                <label for="cause">Ursache der Verfolgung</label>
+                <!-- Sucheingabefeld ist immer sichtbar -->
+                <div class="cause-search">
+                    <input
+                        type="text"
+                        id="cause-search"
+                        placeholder="Nach Ursache der Verfolgung suchen..."
+                        @input="(event) => onSearchCause(event.target.value)"
+                    />
+                </div>
+
+                <!-- Suchergebnisse für Ursachen -->
+                <div
+                    v-if="causeSearchResultsValue.length > 0"
+                    class="search-results"
+                >
+                    <div
+                        v-for="cause in causeSearchResultsValue"
+                        :key="cause.id"
+                        class="search-result-item"
+                        @click="onSelectCause(cause)"
+                    >
+                        <div class="result-title">{{ cause.label }}</div>
+                        <div
+                            class="result-description"
+                            v-if="cause.description"
+                        >
+                            {{ cause.description }}
+                        </div>
+                        <div class="result-id">{{ cause.id }}</div>
+                    </div>
+                </div>
+
+                <!-- Anzeige der ausgewählten Ursachen -->
+                <div
+                    v-if="selectedCausesValue.length > 0"
+                    class="selected-causes"
+                >
+                    <div
+                        v-for="cause in selectedCausesValue"
+                        :key="cause.id"
+                        class="cause-display"
+                    >
+                        <span class="cause-name">
+                            <a
+                                :href="`https://www.wikidata.org/wiki/${cause.id}`"
+                                target="_blank"
+                            >
+                                {{ cause.label }}
+                            </a>
+                        </span>
+                        <span
+                            class="cause-description"
+                            v-if="cause.description"
+                        >
+                            - {{ cause.description }}
+                        </span>
+                        <button
+                            type="button"
+                            class="remove-cause"
+                            @click="onRemoveCause(cause.id)"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Standort -->
             <label for="location">Standort auswählen *</label>
             <div class="map-search">
                 <input
@@ -315,6 +682,72 @@ const props = defineProps({
             description: "",
         }),
     },
+    perpetratorsSearchResults: {
+        type: Array,
+        default: () => [],
+    },
+    selectedPerpetrators: {
+        type: Array,
+        default: () => [],
+    },
+    showNewPerpetratorForm: {
+        type: Boolean,
+        default: false,
+    },
+    newPerpetrator: {
+        type: Object,
+        default: () => ({
+            firstName: "",
+            lastName: "",
+            birthDate: null,
+            deathDate: null,
+            description: "",
+        }),
+    },
+    eventTimeType: {
+        type: String,
+        default: "point", // 'point' oder 'range'
+    },
+    eventDate: {
+        type: String,
+        default: null,
+    },
+    eventStartDate: {
+        type: String,
+        default: null,
+    },
+    eventEndDate: {
+        type: String,
+        default: null,
+    },
+    victimCount: {
+        type: Number,
+        default: 0,
+    },
+    survivorCount: {
+        type: Number,
+        default: 0,
+    },
+    deathCount: {
+        type: Number,
+        default: 0,
+    },
+    arrestCount: {
+        type: Number,
+        default: 0,
+    },
+    cause: {
+        type: String,
+        default: "",
+    },
+    causeSearchResults: {
+        type: Array,
+        default: () => [],
+    },
+    selectedCauses: {
+        type: Array,
+        default: () => [],
+    },
     mapZoom: {
         type: Number,
         default: 8,
@@ -346,6 +779,21 @@ const emit = defineEmits([
     "update:selectedVictims",
     "update:showNewVictimForm",
     "update:newVictim",
+    "update:perpetratorsSearchResults",
+    "update:selectedPerpetrators",
+    "update:showNewPerpetratorForm",
+    "update:newPerpetrator",
+    "update:eventTimeType",
+    "update:eventDate",
+    "update:eventStartDate",
+    "update:eventEndDate",
+    "update:victimCount",
+    "update:survivorCount",
+    "update:deathCount",
+    "update:arrestCount",
+    "update:cause",
+    "update:causeSearchResults",
+    "update:selectedCause",
     "update:mapZoom",
     "update:mapCenter",
     "update:selectedLocation",
@@ -360,6 +808,16 @@ const emit = defineEmits([
     "addNewVictim",
     "removeVictim",
     "startAddingAnotherVictim",
+    "searchPerpetrators",
+    "selectPerpetrator",
+    "startNewPerpetratorForm",
+    "cancelNewPerpetratorForm",
+    "addNewPerpetrator",
+    "removePerpetrator",
+    "startAddingAnotherPerpetrator",
+    "searchCause",
+    "selectCause",
+    "removeCause",
     "searchLocation",
     "handleMapClick",
     "goToStep",
@@ -382,6 +840,71 @@ const wikidataResultsValue = computed(() => props.wikidataResults);
 const peopleSearchResultsValue = computed(() => props.peopleSearchResults);
 const selectedVictimsValue = computed(() => props.selectedVictims);
 const showNewVictimFormValue = computed(() => props.showNewVictimForm);
+
+// Täter computed properties
+const perpetratorsSearchResultsValue = computed(
+    () => props.perpetratorsSearchResults,
+);
+const selectedPerpetratorsValue = computed(() => props.selectedPerpetrators);
+const showNewPerpetratorFormValue = computed(
+    () => props.showNewPerpetratorForm,
+);
+
+// Zeitpunkt/Zeitraum computed properties
+const eventTimeTypeValue = computed({
+    get: () => props.eventTimeType,
+    set: (value) => emit("update:eventTimeType", value),
+});
+
+const eventDateValue = computed({
+    get: () => props.eventDate,
+    set: (value) => emit("update:eventDate", value),
+});
+
+const eventStartDateValue = computed({
+    get: () => props.eventStartDate,
+    set: (value) => emit("update:eventStartDate", value),
+});
+
+const eventEndDateValue = computed({
+    get: () => props.eventEndDate,
+    set: (value) => emit("update:eventEndDate", value),
+});
+
+// Opferzahlen computed properties
+const victimCountValue = computed({
+    get: () => props.victimCount,
+    set: (value) => emit("update:victimCount", value),
+});
+
+const survivorCountValue = computed({
+    get: () => props.survivorCount,
+    set: (value) => emit("update:survivorCount", value),
+});
+
+const deathCountValue = computed({
+    get: () => props.deathCount,
+    set: (value) => emit("update:deathCount", value),
+});
+
+const arrestCountValue = computed({
+    get: () => props.arrestCount,
+    set: (value) => emit("update:arrestCount", value),
+});
+
+// Ursache computed properties
+const causeValue = computed({
+    get: () => props.cause,
+    set: (value) => emit("update:cause", value),
+});
+
+const causeSearchResultsValue = computed(() => props.causeSearchResults);
+
+const selectedCausesValue = computed({
+    get: () => props.selectedCauses,
+    set: (value) => emit("update:selectedCauses", value),
+});
+
 const mapZoomValue = computed(() => props.mapZoom);
 const mapCenterValue = computed(() => props.mapCenter);
 const selectedLocationValue = computed(() => props.selectedLocation);
@@ -400,11 +923,29 @@ const newVictimLocal = ref({
     description: "",
 });
 
+// Lokale Kopie des newPerpetrator Objekts
+const newPerpetratorLocal = ref({
+    firstName: "",
+    lastName: "",
+    birthDate: null,
+    deathDate: null,
+    description: "",
+});
+
 // Beobachte Änderungen im Props und aktualisiere die lokale Kopie
 watch(
     () => props.newVictim,
     (newValue) => {
         newVictimLocal.value = { ...newValue };
+    },
+    { immediate: true, deep: true },
+);
+
+// Beobachte Änderungen im Props für newPerpetrator
+watch(
+    () => props.newPerpetrator,
+    (newValue) => {
+        newPerpetratorLocal.value = { ...newValue };
     },
     { immediate: true, deep: true },
 );
@@ -458,6 +999,14 @@ const canAddNewVictim = computed(() => {
     return newVictimLocal.value.firstName && newVictimLocal.value.lastName;
 });
 
+// Computed für die Prüfung, ob ein neuer Täter hinzugefügt werden kann
+const canAddNewPerpetrator = computed(() => {
+    return (
+        newPerpetratorLocal.value.firstName &&
+        newPerpetratorLocal.value.lastName
+    );
+});
+
 // Ereignishandler, die Emits an die Elternkomponente senden
 const onTitleInput = () => emit("searchWikidataEntities");
 const onSelectExistingEntity = (entity) => emit("selectExistingEntity", entity);
@@ -473,6 +1022,27 @@ const onAddNewVictim = () => {
 
 const onRemoveVictim = (id) => emit("removeVictim", id);
 const onStartAddingAnotherVictim = () => emit("startAddingAnotherVictim");
+
+// Tu00e4ter (Perpetrator) Handler-Funktionen
+const onSearchPerpetrators = (query) => emit("searchPerpetrators", query);
+const onSelectPerpetrator = (person) => emit("selectPerpetrator", person);
+const onStartNewPerpetratorForm = () => emit("startNewPerpetratorForm");
+const onCancelNewPerpetratorForm = () => emit("cancelNewPerpetratorForm");
+
+const onAddNewPerpetrator = () => {
+    emit("update:newPerpetrator", newPerpetratorLocal.value);
+    emit("addNewPerpetrator");
+};
+
+const onRemovePerpetrator = (id) => emit("removePerpetrator", id);
+const onStartAddingAnotherPerpetrator = () =>
+    emit("startAddingAnotherPerpetrator");
+
+// Ursachen-Handler
+const onSearchCause = (query) => emit("searchCause", query);
+const onSelectCause = (cause) => emit("selectCause", cause);
+const onRemoveCause = (causeId) => emit("removeCause", causeId);
+
 const onSearchLocation = () => emit("searchLocation");
 const onHandleMapClick = (e) => {
     // Lokaler Map-Click-Handler, der die Emit-Funktion aufruft
@@ -831,9 +1401,170 @@ const onSubmit = () => emit("submit");
 }
 
 .new-person-option,
-.add-another-victim {
+.add-another-victim,
+.add-another-perpetrator {
     padding: 0.75rem;
     border-top: 1px solid #eee;
     text-align: center;
+}
+
+/* Zeitpunkt/Zeitraum Styling */
+.time-section {
+    width: 100%;
+    margin-bottom: 1.5rem;
+    background-color: #f5f5f5;
+    padding: 1rem;
+    border-radius: 4px;
+}
+
+.time-type-selection {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1rem;
+}
+
+.time-type-selection .form-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0;
+}
+
+.time-type-selection .form-group input {
+    width: auto;
+    margin-right: 0.5rem;
+}
+
+.time-range-inputs {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+}
+
+.time-range-inputs .form-group {
+    flex: 1;
+}
+
+/* Tu00e4ter Styling */
+.perpetrators-section {
+    width: 100%;
+    margin-bottom: 1.5rem;
+}
+
+.perpetrators-search {
+    margin-bottom: 0.5rem;
+}
+
+.new-perpetrator-form {
+    background-color: #f5f5f5;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.new-perpetrator-form h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.selected-perpetrators {
+    margin-top: 1rem;
+    padding: 0.5rem;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+}
+
+.selected-perpetrator {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.perpetrator-name {
+    font-weight: 500;
+    margin-right: 0.5rem;
+}
+
+.perpetrator-description {
+    color: #666;
+    font-size: 0.9rem;
+    flex-grow: 1;
+}
+
+.remove-perpetrator {
+    background: none;
+    border: none;
+    color: #d32f2f;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Opferzahlen und Ursache Styling */
+.counts-section,
+.cause-section {
+    width: 100%;
+    margin-bottom: 1.5rem;
+    background-color: #f5f5f5;
+    padding: 1rem;
+    border-radius: 4px;
+}
+
+.counts-section .form-group {
+    margin-bottom: 0.75rem;
+}
+
+.cause-search {
+    margin-bottom: 0.5rem;
+}
+
+.cause-search input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.selected-causes {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.cause-display {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    margin-bottom: 0.5rem;
+    position: relative;
+}
+
+.cause-name {
+    font-weight: 500;
+    margin-right: 0.5rem;
+}
+
+.cause-description {
+    color: #666;
+    font-size: 0.9rem;
+    flex-grow: 1;
+}
+
+.remove-cause {
+    background: none;
+    border: none;
+    color: #d32f2f;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    padding: 0.25rem 0.5rem;
 }
 </style>

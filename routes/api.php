@@ -55,3 +55,6 @@ Route::get("/ping", [PingController::class, "ping"]);
 
 // Route for searching people in Wikidata
 Route::get('/wikidata/search/people', [WikidataSearchController::class, 'searchPeople']);
+
+// Route for searching concepts in Wikidata (subclasses of specific entity)
+Route::get('/wikidata/search/concepts', [WikidataSearchController::class, 'searchConcepts']);

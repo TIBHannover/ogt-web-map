@@ -121,6 +121,21 @@
                         v-model:selectedVictims="selectedVictims"
                         v-model:showNewVictimForm="showNewVictimForm"
                         v-model:newVictim="newVictim"
+                        v-model:perpetratorsSearchResults="perpetratorsSearchResults"
+                        v-model:selectedPerpetrators="selectedPerpetrators"
+                        v-model:showNewPerpetratorForm="showNewPerpetratorForm"
+                        v-model:newPerpetrator="newPerpetrator"
+                        v-model:eventTimeType="eventTimeType"
+                        v-model:eventDate="eventDate"
+                        v-model:eventStartDate="eventStartDate"
+                        v-model:eventEndDate="eventEndDate"
+                        v-model:victimCount="victimCount"
+                        v-model:survivorCount="survivorCount"
+                        v-model:deathCount="deathCount"
+                        v-model:arrestCount="arrestCount"
+                        v-model:cause="cause"
+                        v-model:causeSearchResults="causeSearchResults"
+                        v-model:selectedCauses="selectedCauses"
                         v-model:mapZoom="mapZoom"
                         v-model:mapCenter="mapCenter"
                         v-model:selectedLocation="selectedLocation"
@@ -135,6 +150,16 @@
                         @addNewVictim="addNewVictim"
                         @removeVictim="removeVictim"
                         @startAddingAnotherVictim="startAddingAnotherVictim"
+                        @searchPerpetrators="searchPerpetrators"
+                        @selectPerpetrator="selectPerpetrator"
+                        @startNewPerpetratorForm="startNewPerpetratorForm"
+                        @cancelNewPerpetratorForm="cancelNewPerpetratorForm"
+                        @addNewPerpetrator="addNewPerpetrator"
+                        @removePerpetrator="removePerpetrator"
+                        @startAddingAnotherPerpetrator="startAddingAnotherPerpetrator"
+                        @searchCause="searchCause"
+                        @selectCause="selectCause"
+                        @removeCause="removeCause"
                         @searchLocation="searchLocation"
                         @handleMapClick="handleMapClick"
                         @goToStep="goToStep"
@@ -333,6 +358,35 @@ const newVictim = ref({
     description: "",
 });
 const lastSearchQuery = ref("");
+
+// Täter (Perpetrator) Zustandsvariablen
+const perpetratorsSearchResults = ref([]);
+const selectedPerpetrators = ref([]);
+const showNewPerpetratorForm = ref(false);
+const newPerpetrator = ref({
+    firstName: "",
+    lastName: "",
+    birthDate: null,
+    deathDate: null,
+    description: "",
+});
+const lastPerpetratorSearchQuery = ref("");
+
+// Zeitpunkt/Zeitraum Zustandsvariablen
+const eventTimeType = ref("point"); // 'point' oder 'range'
+const eventDate = ref(null);
+const eventStartDate = ref(null);
+const eventEndDate = ref(null);
+
+// Opferzahlen und Ursache
+const victimCount = ref(0);
+const survivorCount = ref(0);
+const deathCount = ref(0);
+const arrestCount = ref(0);
+const cause = ref("");
+const causeSearchResults = ref([]);
+const selectedCauses = ref([]);
+const lastCauseSearchQuery = ref("");
 
 // Karten-spezifische Daten
 const mapRef = ref(null);
@@ -669,6 +723,143 @@ const removeVictim = (victimId) => {
     );
 };
 
+// Tu00e4ter Funktionen
+const searchPerpetrators = debounce(async (query) => {
+    if (!query || query.length < 2) {
+        perpetratorsSearchResults.value = [];
+        return;
+    }
+
+    lastPerpetratorSearchQuery.value = query;
+
+    try {
+        const response = await axios.get("/api/wikidata/search/people", {
+            params: { query, type: "perpetrators" },
+        });
+        perpetratorsSearchResults.value = response.data;
+    } catch (error) {
+        console.error("Fehler bei der Tu00e4tersuche:", error);
+        perpetratorsSearchResults.value = [];
+    }
+}, 300);
+
+const startNewPerpetratorForm = () => {
+    showNewPerpetratorForm.value = true;
+    // Vorname/Nachname aus der Suche vorausfu00fcllen, wenn mu00f6glich
+    if (lastPerpetratorSearchQuery.value) {
+        const parts = lastPerpetratorSearchQuery.value.trim().split(" ");
+        if (parts.length > 1) {
+            newPerpetrator.value.firstName = parts[0];
+            newPerpetrator.value.lastName = parts.slice(1).join(" ");
+        } else {
+            newPerpetrator.value.lastName = parts[0];
+        }
+    }
+};
+
+const cancelNewPerpetratorForm = () => {
+    showNewPerpetratorForm.value = false;
+    resetNewPerpetratorForm();
+};
+
+const resetNewPerpetratorForm = () => {
+    newPerpetrator.value = {
+        firstName: "",
+        lastName: "",
+        birthDate: null,
+        deathDate: null,
+        description: "",
+    };
+    lastPerpetratorSearchQuery.value = "";
+};
+
+const addNewPerpetrator = () => {
+    const tempId = "new_" + Date.now();
+    selectedPerpetrators.value.push({
+        tempId: tempId,
+        firstName: newPerpetrator.value.firstName,
+        lastName: newPerpetrator.value.lastName,
+        birthDate: newPerpetrator.value.birthDate,
+        deathDate: newPerpetrator.value.deathDate,
+        description: newPerpetrator.value.description,
+    });
+
+    showNewPerpetratorForm.value = false;
+    resetNewPerpetratorForm();
+};
+
+const startAddingAnotherPerpetrator = () => {
+    showNewPerpetratorForm.value = false;
+    resetNewPerpetratorForm();
+    perpetratorsSearchResults.value = [];
+};
+
+// Computed property fu00fcr die Validierung des neuen Tu00e4ter-Formulars
+const canAddNewPerpetrator = computed(() => {
+    return newPerpetrator.value.firstName.trim() && newPerpetrator.value.lastName.trim();
+});
+
+const selectPerpetrator = (person) => {
+    // Check if person is not already selected
+    if (!selectedPerpetrators.value.some((v) => v.id === person.id)) {
+        selectedPerpetrators.value.push({
+            id: person.id,
+            label: person.label,
+            description: person.description,
+            birth: person.birth,
+            death: person.death,
+        });
+    }
+    perpetratorsSearchResults.value = []; // Clear search results
+    lastPerpetratorSearchQuery.value = "";
+};
+
+const removePerpetrator = (perpetratorId) => {
+    selectedPerpetrators.value = selectedPerpetrators.value.filter(
+        (v) => (v.id || v.tempId) !== perpetratorId,
+    );
+};
+
+// Ursachen-Funktionen
+const searchCause = debounce(async (query) => {
+    if (!query || query.length < 2) {
+        causeSearchResults.value = [];
+        return;
+    }
+
+    lastCauseSearchQuery.value = query;
+
+    try {
+        // Suche nach Wikidata-Einträgen
+        const response = await axios.get("/api/wikidata/search/concepts", {
+            params: { 
+                query
+            },
+        });
+        causeSearchResults.value = response.data;
+    } catch (error) {
+        console.error("Fehler bei der Ursachensuche:", error);
+        causeSearchResults.value = [];
+    }
+}, 300);
+
+const selectCause = (cause) => {
+    // Prüfe, ob die Ursache bereits in der Liste ist, um Duplikate zu vermeiden
+    if (!selectedCauses.value.some(item => item.id === cause.id)) {
+        selectedCauses.value.push({
+            id: cause.id,
+            label: cause.label,
+            description: cause.description
+        });
+    }
+    causeSearchResults.value = [];
+    lastCauseSearchQuery.value = "";
+};
+
+const removeCause = (causeId) => {
+    selectedCauses.value = selectedCauses.value.filter(cause => cause.id !== causeId);
+};
+
 const resetForm = async () => {
     error.value = null;
     isSubmitting.value = true;
@@ -719,6 +910,17 @@ const resetForm = async () => {
                 type: formsType.value,
                 coordinates: coordinates,
                 victims: selectedVictims.value,
+                perpetrators: selectedPerpetrators.value,
+                eventTimeType: eventTimeType.value,
+                eventDate: eventDate.value,
+                eventStartDate: eventStartDate.value,
+                eventEndDate: eventEndDate.value,
+                victimCount: victimCount.value,
+                survivorCount: survivorCount.value,
+                deathCount: deathCount.value,
+                arrestCount: arrestCount.value,
+                cause: cause.value,
+                causes: selectedCauses.value,
             },
             {
                 headers: {
@@ -760,6 +962,34 @@ const clearForm = () => {
         description: "",
     };
     showNewVictimForm.value = false;
+    
+    // Neue Felder zuru00fccksetzen
+    selectedPerpetrators.value = [];
+    newPerpetrator.value = {
+        firstName: "",
+        lastName: "",
+        birthDate: null,
+        deathDate: null,
+        description: "",
+    };
+    showNewPerpetratorForm.value = false;
+    
+    // Zeitpunkt/Zeitraum zuru00fccksetzen
+    eventTimeType.value = "point";
+    eventDate.value = null;
+    eventStartDate.value = null;
+    eventEndDate.value = null;
+    
+    // Opferzahlen und Ursache zuru00fccksetzen
+    victimCount.value = 0;
+    survivorCount.value = 0;
+    deathCount.value = 0;
+    arrestCount.value = 0;
+    cause.value = "";
+    causeSearchResults.value = [];
+    selectedCauses.value = [];
+    lastCauseSearchQuery.value = "";
+    
     // Karte zuru00fccksetzen
     mapZoom.value = 8;
     mapCenter.value = [52.8, 9.0];

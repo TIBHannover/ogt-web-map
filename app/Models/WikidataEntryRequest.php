@@ -21,10 +21,20 @@ class WikidataEntryRequest extends Model
         "rejected_by",
         "rejection_reason",
         "victims",
+        "perpetrators",
+        "time_point",
+        "time_period_start",
+        "time_period_end",
+        "victim_count",
+        "survivor_count",
+        "death_count",
+        "arrest_count",
+        "cause",
     ];
 
     protected $casts = [
         'victims' => 'array',
+        'perpetrators' => 'array',
     ];
 
 }
