@@ -23,6 +23,7 @@ watch(isMapOptionsOpen, (newValue) => {
 watch(isPlaceInfoOpen, (newValue) => {
     if (newValue === true) {
         //isTimelineOpen.value = false;
+        isMapOptionsOpen.value = false; // Schließe MapOptions wenn PlaceInfo geöffnet wird
     }
 });
 

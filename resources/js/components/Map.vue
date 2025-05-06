@@ -513,13 +513,13 @@ export default {
 
         const handleTimelineFilterChange = (enabled) => {
             isTimelineFilterEnabled.value = enabled;
-            // Du kannst hier auch sofort die Filter anwenden, wenn nötig
             debouncedApplyFilters(null, null, null);
         };
 
         onMounted(async () => {
             try {
                 isLoading.value = true;
+                closeMapOptions();
                 await nextTick();
 
                 patchLeafletForNullChecks();
@@ -2304,10 +2304,10 @@ export default {
                 const qId = searchParams.get("id");
 
                 if (qId && locationMarkers.value[qId]) {
-                    // Stelle sicher, dass alle Daten verarbeitet wurden, bevor das Popup geöffnet wird
                     await ensureDataProcessed();
 
-                    // Dann zum Standort wechseln
+                    closeMapOptions();
+
                     switchLocation({
                         locationId: qId,
                         zoom: 14,
@@ -2328,8 +2328,9 @@ export default {
                 const qId = searchParams.get("pid");
 
                 if (qId) {
-                    // Stelle sicher, dass alle Daten verarbeitet wurden
                     await ensureDataProcessed();
+
+                    closeMapOptions();
 
                     let personGroup = "";
                     if (persons.value.victims[qId]) {
@@ -2867,6 +2868,7 @@ export default {
 
             if (status) {
                 openPlaceInfo();
+                closeMapOptions();
                 document.getElementById("closeNavigationSidebar")?.click();
             } else {
                 closePlaceInfo();
