@@ -1139,6 +1139,16 @@ export default {
                         }
                     });
                 }
+                if (
+                    selectedPlace.value.mainImageUrl &&
+                    selectedPlace.value.mainImageUrl.startsWith("http:")
+                ) {
+                    selectedPlace.value.mainImageUrl =
+                        selectedPlace.value.mainImageUrl.replace(
+                            "http:",
+                            "https:",
+                        );
+                }
 
                 selectedPlace.value.inceptionDate = {
                     locale: "",
@@ -2753,6 +2763,16 @@ export default {
                         Object.entries(person.images)[0] || [];
                     if (firstImage) {
                         selectedPlace.value.mainImageUrl = firstImage.value;
+                        if (
+                            selectedPlace.value.mainImageUrl &&
+                            selectedPlace.value.mainImageUrl.startsWith("http:")
+                        ) {
+                            selectedPlace.value.mainImageUrl =
+                                selectedPlace.value.mainImageUrl.replace(
+                                    "http:",
+                                    "https:",
+                                );
+                        }
                         selectedPlace.value.mainImageLegend =
                             firstImage.mediaLegend?.value || "";
                     }
