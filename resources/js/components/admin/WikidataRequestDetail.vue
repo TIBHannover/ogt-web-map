@@ -87,6 +87,9 @@
                     </div>
 
                     <div class="text-body-1 mb-4">
+                        <div class="text-subtitle-1 font-weight-bold">
+                            Beschreibung:
+                        </div>
                         {{ entry.description }}
                     </div>
 
@@ -120,39 +123,28 @@
                         <div class="text-subtitle-1 font-weight-bold mb-1">
                             Koordinaten:
                         </div>
-                        <div class="mb-2">{{ entry.coordinates }}</div>
-
-                        <!-- Karte -->
                         <v-card variant="outlined" class="mb-3">
-                            <div
-                                class="map-container"
-                                style="
-                                    height: 300px;
-                                    width: 300px;
-                                    margin: 0 auto;
-                                "
-                            >
+                            <div class="map-container" style="margin: 0 auto">
                                 <l-map
                                     ref="mapRef"
                                     :zoom="mapZoom"
                                     :center="mapCenter"
-                                    style="height: 100%; width: 100%"
                                 >
                                     <l-tile-layer
                                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                         :attribution="'&copy; <a href=\'https://www.openstreetmap.org/copyright\'>OpenStreetMap</a> contributors'"
                                     ></l-tile-layer>
-                                    <l-marker :lat-lng="mapCenter">
-                                        <l-icon
-                                            icon-url="/images/leaflet/marker-icon.png"
-                                            :icon-size="[25, 41]"
-                                            :icon-anchor="[12, 41]"
-                                            shadow-url="/images/leaflet/marker-shadow.png"
-                                            :shadow-size="[41, 41]"
-                                            :shadow-anchor="[12, 41]"
-                                        ></l-icon>
+                                    <l-marker
+                                        :lat-lng="mapCenter"
+                                        :icon="markerIcon"
+                                    >
                                     </l-marker>
                                 </l-map>
+                            </div>
+                            <div class="selected-coordinates mt-2 text-center">
+                                <strong>Koordinaten:</strong>
+                                {{ mapCenter[0].toFixed(6) }},
+                                {{ mapCenter[1].toFixed(6) }}
                             </div>
                         </v-card>
                     </div>
@@ -370,80 +362,7 @@
                         <div class="text-subtitle-1 font-weight-bold mb-1">
                             Opfer:
                         </div>
-
-                        <v-card variant="outlined" class="mb-3">
-                            <v-list lines="false">
-                                <v-list-item
-                                    v-for="(victim, index) in entry.victims"
-                                    :key="'victim-' + index"
-                                >
-                                    <template v-if="!victim.id">
-                                        <v-list-item-title>
-                                            {{ victim.firstName }}
-                                            {{ victim.lastName }}
-                                        </v-list-item-title>
-                                        <v-list-item-subtitle>
-                                            <div v-if="victim.birthDate">
-                                                <strong>Geburtsdatum:</strong>
-                                                {{
-                                                    formatDateDay(
-                                                        victim.birthDate,
-                                                    )
-                                                }}
-                                            </div>
-                                            <div v-if="victim.deathDate">
-                                                <strong>Todesdatum:</strong>
-                                                {{
-                                                    formatDateDay(
-                                                        victim.deathDate,
-                                                    )
-                                                }}
-                                            </div>
-                                            <div v-if="victim.birthPlace">
-                                                <strong>Geburtsort:</strong>
-                                                {{ victim.birthPlace }}
-                                            </div>
-                                        </v-list-item-subtitle>
-                                    </template>
-                                    <template v-else>
-                                        <v-list-item-title>
-                                            {{ victim.label }}
-                                        </v-list-item-title>
-                                        <v-list-item-subtitle>
-                                            <div v-if="victim.birth">
-                                                <strong>Geburtsdatum:</strong>
-                                                {{
-                                                    formatDateDay(victim.birth)
-                                                }}
-                                            </div>
-                                            <div v-if="victim.death">
-                                                <strong>Todesdatum:</strong>
-                                                {{
-                                                    formatDateDay(victim.death)
-                                                }}
-                                            </div>
-                                            <div v-if="victim.description">
-                                                <strong>Description:</strong>
-                                                {{ victim.description }}
-                                            </div>
-                                            <div v-if="victim.id">
-                                                <strong>Wikidata ID:</strong>
-                                                <a
-                                                    :href="
-                                                        getWikidataUrl(
-                                                            victim.id,
-                                                        )
-                                                    "
-                                                    target="_blank"
-                                                >
-                                                    {{ victim.id }}
-                                                </a>
-                                            </div>
-                                        </v-list-item-subtitle>
-                                    </template>
-                                </v-list-item>
-                            </v-list>
-                        </v-card>
+                        <Persons :persons="entry.victims" />
                     </div>
 
                     <div
@@ -455,61 +374,7 @@
                         <div class="text-subtitle-1 font-weight-bold mb-1">
                             Täter:
                         </div>
-                        <v-card variant="outlined" class="mb-3">
-                            <v-list>
-                                <v-list-item
-                                    v-for="(
-                                        perpetrator, index
-                                    ) in entry.perpetrators"
-                                    :key="'perpetrator-' + index"
-                                >
-                                    <template
-                                        v-if="typeof perpetrator === 'object'"
-                                    >
-                                        <v-list-item-title>
-                                            {{
-                                                perpetrator.name ||
-                                                "Unbekannter Name"
-                                            }}
-                                        </v-list-item-title>
-                                        <v-list-item-subtitle>
-                                            <div v-if="perpetrator.birthDate">
-                                                <strong>Geburtsdatum:</strong>
-                                                {{ perpetrator.birthDate }}
-                                            </div>
-                                            <div v-if="perpetrator.deathDate">
-                                                <strong>Todesdatum:</strong>
-                                                {{ perpetrator.deathDate }}
-                                            </div>
-                                            <div v-if="perpetrator.birthPlace">
-                                                <strong>Geburtsort:</strong>
-                                                {{ perpetrator.birthPlace }}
-                                            </div>
-                                            <div v-if="perpetrator.rank">
-                                                <strong>Rang/Position:</strong>
-                                                {{ perpetrator.rank }}
-                                            </div>
-                                            <div v-if="perpetrator.wikidataId">
-                                                <strong>Wikidata ID:</strong>
-                                                <a
-                                                    :href="
-                                                        getWikidataUrl(
-                                                            perpetrator.wikidataId,
-                                                        )
-                                                    "
-                                                    target="_blank"
-                                                >
-                                                    {{ perpetrator.wikidataId }}
-                                                </a>
-                                            </div>
-                                        </v-list-item-subtitle>
-                                    </template>
-                                    <template v-else>
-                                        {{ perpetrator }}
-                                    </template>
-                                </v-list-item>
-                            </v-list>
-                        </v-card>
+                        <Persons :persons="entry.perpetrators" />
                     </div>
                 </v-card-text>
             </v-card>
@@ -616,6 +481,8 @@ import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 import { LMap, LTileLayer, LMarker, LIcon } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
+import * as L from "leaflet";
+import Persons from "./fields/Persons.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -635,6 +502,32 @@ const mapCenter = computed(() => {
         return [lat, lng];
     }
     return [0, 0];
+});
+
+// Benutzerdefiniertes Marker-Icon erstellen
+const createCustomIcon = (type) => {
+    return L.icon({
+        iconUrl: `/images/leaflet/markerIcons/coloredFilledWhite/${type}.svg`,
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowUrl: "/images/leaflet/marker-shadow.png",
+        shadowSize: [41, 41],
+    });
+};
+
+// Icon für den Marker
+const markerIcon = computed(() => {
+    if (entry.value?.type === "Q6983405") return createCustomIcon("events");
+    if (entry.value?.type === "Q5003624") return createCustomIcon("memorials");
+    if (entry.value?.type === "Q108047567")
+        return createCustomIcon("statePoliceOffices");
+    if (entry.value?.type === "Q108047541")
+        return createCustomIcon("fieldOffices");
+    if (entry.value?.type === "Q277565")
+        return createCustomIcon("laborEducationCamps");
+    if (entry.value?.type === "Q40357") return createCustomIcon("prisons");
+    return createCustomIcon("events"); // Standard-Icon
 });
 
 // Zustandsvariablen
@@ -675,6 +568,95 @@ const hasPersons = computed(() => {
     );
 });
 
+const applyLeafletCSS = () => {
+    const styleId = "leaflet-tile-fix";
+
+    const existingStyle = document.getElementById(styleId);
+    if (existingStyle) {
+        existingStyle.remove();
+    }
+
+    const style = document.createElement("style");
+    style.id = styleId;
+    style.textContent = `
+        /* Grundlegende Map-Fixes */
+        .leaflet-container {
+            height: 400px !important;
+            width: 100% !important;
+            z-index: 0 !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+        }
+
+        /* Container-Fixes */
+        .leaflet-tile-container {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            transform-origin: 0 0 !important;
+        }
+
+        /* Tile-Fixes */
+        .leaflet-tile {
+            position: absolute !important;
+            box-shadow: none !important;
+            border: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        /* Korrektur fu00fcr Tile-Bilder */
+        .leaflet-tile-container img {
+            display: block !important;
+            width: 256px !important;
+            height: 256px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Marker-Fixes */
+        .leaflet-marker-pane {
+            position: absolute;
+            z-index: 100 !important;
+        }
+
+        .leaflet-marker-icon {
+            position: absolute;
+            z-index: 1000 !important;
+        }
+    `;
+    document.head.appendChild(style);
+};
+
+// Reinitialisiert die Karte und sorgt fu00fcr korrekte Darstellung
+const reinitializeMap = () => {
+    // CSS-Fixes anwenden
+    applyLeafletCSS();
+
+    // Map neu initialisieren
+    if (mapRef.value && mapRef.value.leafletObject) {
+        setTimeout(() => {
+            mapRef.value.leafletObject.invalidateSize(true);
+
+            // Neu zentrieren
+            const [lat, lng] = mapCenter.value;
+            mapRef.value.leafletObject.setView([lat, lng], mapZoom.value);
+
+            // Erzwinge ein Update der Tile-Layer
+            mapRef.value.leafletObject.eachLayer(function (layer) {
+                if (layer instanceof L.TileLayer) {
+                    layer.redraw();
+                }
+            });
+        }, 300);
+    }
+};
+
 // Eintrag laden
 const loadEntry = async () => {
     loading.value = true;
@@ -691,20 +673,8 @@ const loadEntry = async () => {
             // Karte aktualisieren wenn Koordinaten vorhanden sind
             if (entry.value?.coordinates) {
                 await nextTick();
-                if (mapRef.value) {
-                    // Warten kurz bevor die Karte aktualisiert wird
-                    setTimeout(() => {
-                        if (mapRef.value?.leafletObject) {
-                            mapRef.value.leafletObject.invalidateSize();
-                            // Neu zentrieren
-                            const [lat, lng] = mapCenter.value;
-                            mapRef.value.leafletObject.setView(
-                                [lat, lng],
-                                mapZoom.value,
-                            );
-                        }
-                    }, 300);
-                }
+                // CSS-Fixes anwenden und Karte reinitialisieren
+                reinitializeMap();
             }
             console.log(entry.value);
         } else {
@@ -884,7 +854,24 @@ const getStatusType = (status) => {
 
 // Komponente initialisieren
 onMounted(() => {
+    // Apply Leaflet CSS fixes
+    applyLeafletCSS();
+
+    // Fix fu00fcr Leaflet-Icons in Vue
+    // Dies ist notwendig, da Leaflet Standard-Icon-Pfade erwartet
+    delete L.Icon.Default.prototype._getIconUrl;
+    L.Icon.Default.mergeOptions({
+        iconRetinaUrl: "/images/leaflet/marker-icon-2x.png",
+        iconUrl: "/images/leaflet/marker-icon.png",
+        shadowUrl: "/images/leaflet/marker-shadow.png",
+    });
+
     loadEntry();
+
+    // Stelle sicher, dass die Karte korrekt gezeichnet wird
+    setTimeout(() => {
+        reinitializeMap();
+    }, 500);
 });
 </script>
 
@@ -893,16 +880,31 @@ onMounted(() => {
     font-family: "Special Elite" !important;
 }
 
-/* Leaflet-Karte Styles */
+.selected-coordinates {
+    padding: 8px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+    font-size: 14px;
+    margin-top: 8px;
+    text-align: center;
+}
+
 .map-container {
     position: relative;
     overflow: hidden;
+    margin: 0 auto;
+    height: 400px; /* Angepasste Höhe */
+    width: 100%; /* Volle Breite */
 }
 
+/* Leaflet-Karte Styles */
 :deep(.leaflet-container) {
     width: 100% !important;
     height: 100% !important;
-    z-index: 1;
+    z-index: 1 !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
 }
 
 :deep(.leaflet-control-container .leaflet-top) {
