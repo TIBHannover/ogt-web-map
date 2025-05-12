@@ -115,28 +115,41 @@ class WikidataEntityController extends Controller
      *
      * @return JsonResponse
      */
-    public function getPendingRequests(): JsonResponse
+    public function getPendingRequests(Request $request): JsonResponse
     {
         try {
-            $pendingRequests = WikidataEntryRequest::where("status", "pending")
-                ->orderBy("created_at", "desc")
-                ->get();
+            $status = $request->input('status', 'pending');
+            $perPage = $request->input('perPage', 10);
+            $page = $request->input('page', 1);
+            
+            // Filtere nach Status
+            $query = WikidataEntryRequest::where("status", $status);
+            
+            // Sortiere nach Erstellungsdatum (neueste zuerst)
+            $query->orderBy("created_at", "desc");
+            
+            // Paginierung anwenden
+            if ($perPage > 0) {
+                $requests = $query->paginate($perPage, ['*'], 'page', $page);
+            } else {
+                $requests = $query->get();
+            }
 
             return response()->json(
                 [
                     "success" => true,
-                    "requests" => $pendingRequests,
+                    "requests" => $requests,
                 ],
                 Response::HTTP_OK
             );
         } catch (\Exception $e) {
-            Log::error("Error getting pending requests: " . $e->getMessage());
+            Log::error("Error getting requests: " . $e->getMessage());
 
             return response()->json(
                 [
                     "success" => false,
                     "message" =>
-                        "Fehler beim Abrufen der ausstehenden Anfragen: " .
+                        "Fehler beim Abrufen der Anfragen: " .
                         $e->getMessage(),
                 ],
                 Response::HTTP_INTERNAL_SERVER_ERROR
@@ -374,7 +387,7 @@ class WikidataEntityController extends Controller
             return response()->json(
                 [
                     "success" => false,
-                    "message" => "Ungu00fcltige Bilddaten",
+                    "message" => "Ungültige Bilddaten",
                     "errors" => $validator->errors(),
                 ],
                 Response::HTTP_BAD_REQUEST
