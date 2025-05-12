@@ -2,7 +2,7 @@
     <div class="step-container">
         <h2 class="step-title">Schritt 2: Ereignis-Details eingeben</h2>
         <form class="forms">
-            <label for="title">Titel *</label>
+            <label for="title" class="section-label">Titel *</label>
             <input
                 v-model="title"
                 name="title"
@@ -40,8 +40,8 @@
             ></textarea>
 
             <!-- Zeitpunkt/Zeitraum -->
-            <div class="time-section">
-                <label>Zeitpunkt / Zeitraum</label>
+            <div class="time-section container-section">
+                <label class="section-label">Zeitpunkt / Zeitraum</label>
                 <div class="time-type-selection">
                     <div class="form-group">
                         <input
@@ -102,14 +102,46 @@
             </div>
 
             <!-- Opfer-Eingabefeld -->
-            <div class="victims-section">
-                <label for="victims">Opfer</label>
+            <div class="victims-section container-section">
+                <label for="victims" class="section-label">Opfer</label>
                 <div v-if="!showNewVictimFormValue" class="victims-search">
                     <input
                         type="text"
                         placeholder="Namen der Opfer suchen..."
                         @input="(event) => onSearchPeople(event.target.value)"
+                        @focus="(event) => onSearchPeople(event.target.value)"
                     />
+
+                    <!-- Ladeindikator -->
+                    <div
+                        v-if="
+                            isVictimSearchLoading &&
+                            !(
+                                victimSearchPerformed &&
+                                peopleSearchResultsValue.length === 0
+                            )
+                        "
+                        class="search-loading"
+                    >
+                        <v-progress-circular
+                            size="24"
+                            indeterminate
+                            color="primary"
+                        ></v-progress-circular>
+                        <span>Suche lu00e4uft...</span>
+                    </div>
+
+                    <!-- Keine Ergebnisse Meldung -->
+                    <div
+                        v-else-if="
+                            victimSearchPerformed &&
+                            !isVictimSearchLoading &&
+                            peopleSearchResultsValue.length === 0
+                        "
+                        class="search-no-results"
+                    >
+                        Keine Ergebnisse gefunden
+                    </div>
                 </div>
 
                 <!-- Suchergebnisse für Opfer -->
@@ -145,17 +177,6 @@
                             >
                         </div>
                         <div class="result-id">{{ person.id }}</div>
-                    </div>
-
-                    <!-- Button für neue Person -->
-                    <div class="new-person-option">
-                        <button
-                            type="button"
-                            class="button bg-secondary"
-                            @click="onStartNewVictimForm"
-                        >
-                            Person nicht gefunden? Neue Person anlegen
-                        </button>
                     </div>
                 </div>
 
@@ -262,27 +283,22 @@
                 </div>
 
                 <!-- Button für weiteres Opfer -->
-                <div
-                    v-if="
-                        !showNewVictimFormValue &&
-                        (!peopleSearchResultsValue.length ||
-                            selectedVictimsValue.length > 0)
-                    "
-                    class="add-another-victim"
-                >
-                    <button
-                        type="button"
-                        class="button bg-secondary"
-                        @click="onStartAddingAnotherVictim"
-                    >
-                        Weiteres Opfer hinzufügen
-                    </button>
+                <div v-if="!showNewVictimFormValue" class="add-another-victim">
+                    <div class="new-person-option">
+                        <button
+                            type="button"
+                            class="button bg-secondary"
+                            @click="onStartNewVictimForm"
+                        >
+                            Person nicht gefunden? Neue Person anlegen
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <!-- Täter-Eingabefeld -->
-            <div class="perpetrators-section">
-                <label for="perpetrators">Täter</label>
+            <div class="perpetrators-section container-section">
+                <label for="perpetrators" class="section-label">Täter</label>
                 <div
                     v-if="!showNewPerpetratorFormValue"
                     class="perpetrators-search"
@@ -293,7 +309,41 @@
                         @input="
                             (event) => onSearchPerpetrators(event.target.value)
                         "
+                        @focus="
+                            (event) => onSearchPerpetrators(event.target.value)
+                        "
                     />
+
+                    <!-- Ladeindikator -->
+                    <div
+                        v-if="
+                            isPerpetratorsSearchLoading &&
+                            !(
+                                perpetratorSearchPerformed &&
+                                perpetratorsSearchResultsValue.length === 0
+                            )
+                        "
+                        class="search-loading"
+                    >
+                        <v-progress-circular
+                            size="24"
+                            indeterminate
+                            color="primary"
+                        ></v-progress-circular>
+                        <span>Suche läuft...</span>
+                    </div>
+
+                    <!-- Keine Ergebnisse Meldung -->
+                    <div
+                        v-else-if="
+                            perpetratorSearchPerformed &&
+                            !isPerpetratorsSearchLoading &&
+                            perpetratorsSearchResultsValue.length === 0
+                        "
+                        class="search-no-results"
+                    >
+                        Keine Ergebnisse gefunden
+                    </div>
                 </div>
 
                 <!-- Suchergebnisse für Täter -->
@@ -329,17 +379,6 @@
                             >
                         </div>
                         <div class="result-id">{{ person.id }}</div>
-                    </div>
-
-                    <!-- Button für neue Person -->
-                    <div class="new-person-option">
-                        <button
-                            type="button"
-                            class="button bg-secondary"
-                            @click="onStartNewPerpetratorForm"
-                        >
-                            Person nicht gefunden? Neue Person anlegen
-                        </button>
                     </div>
                 </div>
 
@@ -456,67 +495,84 @@
 
                 <!-- Button für weiteren Täter -->
                 <div
-                    v-if="
-                        !showNewPerpetratorFormValue &&
-                        (!perpetratorsSearchResultsValue.length ||
-                            selectedPerpetratorsValue.length > 0)
-                    "
+                    v-if="!showNewPerpetratorFormValue"
                     class="add-another-perpetrator"
                 >
-                    <button
-                        type="button"
-                        class="button bg-secondary"
-                        @click="onStartAddingAnotherPerpetrator"
-                    >
-                        Weiteren Täter hinzufügen
-                    </button>
+                    <!-- Button für neue Person -->
+                    <div class="new-person-option">
+                        <button
+                            type="button"
+                            class="button bg-secondary"
+                            @click="onStartNewPerpetratorForm"
+                        >
+                            Person nicht gefunden? Neue Person anlegen
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <!-- Opferzahlen -->
-            <div class="counts-section">
-                <label>Opferzahlen</label>
-                <div class="form-group">
-                    <label for="victim-count">Anzahl der Opfer</label>
-                    <input
-                        type="number"
-                        id="victim-count"
-                        v-model="victimCountValue"
-                        min="0"
-                    />
-                </div>
-                <div class="form-group">
-                    <label for="survivor-count">Anzahl der Überlebenden</label>
-                    <input
-                        type="number"
-                        id="survivor-count"
-                        v-model="survivorCountValue"
-                        min="0"
-                    />
-                </div>
-                <div class="form-group">
-                    <label for="death-count">Anzahl der Todesfälle</label>
-                    <input
-                        type="number"
-                        id="death-count"
-                        v-model="deathCountValue"
-                        min="0"
-                    />
-                </div>
-                <div class="form-group">
-                    <label for="arrest-count">Anzahl der Festnahmen</label>
-                    <input
-                        type="number"
-                        id="arrest-count"
-                        v-model="arrestCountValue"
-                        min="0"
-                    />
-                </div>
+            <div class="counts-section container-section">
+                <label class="section-label">Opferzahlen:</label>
+                <v-row class="align-end">
+                    <v-col cols="12" md="3">
+                        <div class="form-group">
+                            <label for="victim-count">Anzahl der Opfer</label>
+                            <input
+                                type="number"
+                                id="victim-count"
+                                v-model="victimCountValue"
+                                min="0"
+                            />
+                        </div>
+                    </v-col>
+                    <v-col cols="12" md="3">
+                        <div class="form-group">
+                            <label for="survivor-count"
+                                >Anzahl der Überlebenden</label
+                            >
+                            <input
+                                type="number"
+                                id="survivor-count"
+                                v-model="survivorCountValue"
+                                min="0"
+                            />
+                        </div>
+                    </v-col>
+                    <v-col cols="12" md="3">
+                        <div class="form-group">
+                            <label for="death-count"
+                                >Anzahl der Todesfälle</label
+                            >
+                            <input
+                                type="number"
+                                id="death-count"
+                                v-model="deathCountValue"
+                                min="0"
+                            />
+                        </div>
+                    </v-col>
+                    <v-col cols="12" md="3">
+                        <div class="form-group">
+                            <label for="arrest-count"
+                                >Anzahl der Festnahmen</label
+                            >
+                            <input
+                                type="number"
+                                id="arrest-count"
+                                v-model="arrestCountValue"
+                                min="0"
+                            />
+                        </div>
+                    </v-col>
+                </v-row>
             </div>
 
             <!-- Ursache der Verfolgung -->
-            <div class="cause-section">
-                <label for="cause">Ursache der Verfolgung</label>
+            <div class="cause-section container-section">
+                <label for="cause" class="section-label"
+                    >Ursache der Verfolgung</label
+                >
                 <!-- Sucheingabefeld ist immer sichtbar -->
                 <div class="cause-search">
                     <input
@@ -585,41 +641,100 @@
             </div>
 
             <!-- Standort -->
-            <label for="location">Standort auswählen *</label>
-            <div class="map-search">
-                <input
-                    v-model="locationSearchValue"
-                    type="text"
-                    placeholder="Adresse oder Ort suchen..."
-                    @keydown.enter.prevent="onSearchLocation"
-                />
-                <button type="button" @click="onSearchLocation">Suchen</button>
-            </div>
-            <div class="map-container">
-                <l-map
-                    ref="mapRef"
-                    :zoom="mapZoomValue"
-                    :center="mapCenterValue"
-                    @click="onHandleMapClick"
-                    @ready="onMapReady"
-                    style="height: 100%; width: 100%"
+            <div class="container-section location-section">
+                <label for="location" class="section-label"
+                    >Standort auswählen *</label
                 >
-                    <l-tile-layer
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        layer-type="base"
-                        name="OpenStreetMap"
-                    ></l-tile-layer>
-                    <l-marker
+                <div class="map-search">
+                    <input
+                        v-model="locationSearchValue"
+                        type="text"
+                        placeholder="Adresse oder Ort suchen..."
+                        @keydown.enter.prevent="onSearchLocation"
+                    />
+                    <button type="button" @click="onSearchLocation">
+                        Suchen
+                    </button>
+                </div>
+                <div class="map-container">
+                    <l-map
+                        ref="mapRef"
+                        :zoom="mapZoomValue"
+                        :center="mapCenterValue"
+                        @click="onHandleMapClick"
+                        @ready="onMapReady"
+                        style="height: 100%; width: 100%"
+                    >
+                        <l-tile-layer
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            layer-type="base"
+                            name="OpenStreetMap"
+                        ></l-tile-layer>
+                        <l-marker
+                            v-if="selectedLocationValue"
+                            :lat-lng="selectedLocationValue"
+                            :icon="markerIcon"
+                            :z-index-offset="1000"
+                        ></l-marker>
+                    </l-map>
+                    <div
+                        class="selected-coordinates"
                         v-if="selectedLocationValue"
-                        :lat-lng="selectedLocationValue"
-                        :icon="markerIcon"
-                        :z-index-offset="1000"
-                    ></l-marker>
-                </l-map>
-                <div class="selected-coordinates" v-if="selectedLocationValue">
-                    <strong>Ausgewählte Koordinaten:</strong>
-                    {{ selectedLocationValue.lat.toFixed(6) }},
-                    {{ selectedLocationValue.lng.toFixed(6) }}
+                    >
+                        <strong>Ausgewählte Koordinaten:</strong>
+                        {{ selectedLocationValue.lat.toFixed(6) }},
+                        {{ selectedLocationValue.lng.toFixed(6) }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bild aus Wikimedia Commons -->
+            <div class="container-section image-section">
+                <label class="section-label">Bild</label>
+                <div class="image-selection">
+                    <button
+                        type="button"
+                        class="button bg-secondary"
+                        @click="openImageSelector"
+                    >
+                        {{
+                            imageUrlValue &&
+                            typeof imageUrlValue === "string" &&
+                            imageUrlValue.trim() !== ""
+                                ? "Bild ändern"
+                                : "Bild aus Wikimedia Commons auswählen"
+                        }}
+                    </button>
+
+                    <div
+                        v-if="
+                            imageUrlValue &&
+                            typeof imageUrlValue === 'string' &&
+                            imageUrlValue.trim() !== ''
+                        "
+                        class="selected-image"
+                    >
+                        <img
+                            :src="imageUrlValue"
+                            :alt="imageFilenameValue || ''"
+                            class="preview-image"
+                            @click="openLightbox"
+                            style="cursor: pointer"
+                        />
+                        <div class="click-hint">Klicken zum Vergrößern</div>
+                        <div class="image-details">
+                            <span class="image-filename">{{
+                                imageFilenameValue
+                            }}</span>
+                            <button
+                                type="button"
+                                class="remove-image"
+                                @click="removeImage"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -637,6 +752,23 @@
             </div>
             <div v-if="errorValue" class="bg-error">{{ errorValue }}</div>
         </form>
+
+        <!-- Dialog fu00fcr Bildauswahl -->
+        <v-dialog v-model="imageDialogVisible" max-width="900px">
+            <wikimedia-image-selector
+                @select="selectImage"
+                @close="closeImageDialog"
+            />
+        </v-dialog>
+
+        <!-- Lightbox für Bildanzeige -->
+        <lightbox
+            :is-open="lightboxOpen"
+            :image-url="imageUrlValue || ''"
+            :image-alt="imageFilenameValue || ''"
+            :image-caption="imageFilenameValue || ''"
+            @close="lightboxOpen = false"
+        />
     </div>
 </template>
 
@@ -645,6 +777,8 @@ import { ref, computed, watch, onMounted, nextTick } from "vue";
 import * as L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { LMap, LTileLayer, LMarker } from "@vue-leaflet/vue-leaflet";
+import WikimediaImageSelector from "./fields/WikimediaImageSelector.vue";
+import Lightbox from "../helpers/Lightbox.vue";
 
 // Props von der übergeordneten Komponente
 const props = defineProps({
@@ -768,6 +902,14 @@ const props = defineProps({
         type: String,
         default: null,
     },
+    imageUrl: {
+        type: String,
+        default: null,
+    },
+    imageFilename: {
+        type: String,
+        default: null,
+    },
 });
 
 // Emit-Ereignisse, die an die Elternkomponente gesendet werden
@@ -799,6 +941,8 @@ const emit = defineEmits([
     "update:selectedLocation",
     "update:locationSearch",
     "update:error",
+    "update:imageUrl",
+    "update:imageFilename",
     "searchWikidataEntities",
     "selectExistingEntity",
     "searchPeople",
@@ -914,6 +1058,27 @@ const locationSearchValue = computed({
 });
 const errorValue = computed(() => props.error);
 
+// Bild-Variablen
+const imageUrlValue = computed({
+    get: () => props.imageUrl,
+    set: (value) => emit("update:imageUrl", value),
+});
+
+const imageFilenameValue = computed({
+    get: () => props.imageFilename,
+    set: (value) => emit("update:imageFilename", value),
+});
+
+// Bild-Dialog
+const imageDialogVisible = ref(false);
+const lightboxOpen = ref(false);
+
+// Ladezustände und leere Ergebnisse
+const isVictimSearchLoading = ref(false);
+const isPerpetratorsSearchLoading = ref(false);
+const victimSearchPerformed = ref(false);
+const perpetratorSearchPerformed = ref(false);
+
 // Lokale Kopie des newVictim Objekts
 const newVictimLocal = ref({
     firstName: "",
@@ -1010,7 +1175,21 @@ const canAddNewPerpetrator = computed(() => {
 // Ereignishandler, die Emits an die Elternkomponente senden
 const onTitleInput = () => emit("searchWikidataEntities");
 const onSelectExistingEntity = (entity) => emit("selectExistingEntity", entity);
-const onSearchPeople = (query) => emit("searchPeople", query);
+const onSearchPeople = (query) => {
+    if (query && query.length >= 2) {
+        // Kurze Verzu00f6gerung, damit das Ladeicon nicht bei jeder Eingabe kurz aufflackert
+        setTimeout(() => {
+            if (!peopleSearchResultsValue.value.length) {
+                isVictimSearchLoading.value = true;
+            }
+        }, 300);
+        victimSearchPerformed.value = true;
+    } else {
+        isVictimSearchLoading.value = false;
+        victimSearchPerformed.value = false;
+    }
+    emit("searchPeople", query);
+};
 const onSelectVictim = (person) => emit("selectVictim", person);
 const onStartNewVictimForm = () => emit("startNewVictimForm");
 const onCancelNewVictimForm = () => emit("cancelNewVictimForm");
@@ -1024,7 +1203,21 @@ const onRemoveVictim = (id) => emit("removeVictim", id);
 const onStartAddingAnotherVictim = () => emit("startAddingAnotherVictim");
 
 // Tu00e4ter (Perpetrator) Handler-Funktionen
-const onSearchPerpetrators = (query) => emit("searchPerpetrators", query);
+const onSearchPerpetrators = (query) => {
+    if (query && query.length >= 2) {
+        // Kurze Verzu00f6gerung, damit das Ladeicon nicht bei jeder Eingabe kurz aufflackert
+        setTimeout(() => {
+            if (!perpetratorsSearchResultsValue.value.length) {
+                isPerpetratorsSearchLoading.value = true;
+            }
+        }, 300);
+        perpetratorSearchPerformed.value = true;
+    } else {
+        isPerpetratorsSearchLoading.value = false;
+        perpetratorSearchPerformed.value = false;
+    }
+    emit("searchPerpetrators", query);
+};
 const onSelectPerpetrator = (person) => emit("selectPerpetrator", person);
 const onStartNewPerpetratorForm = () => emit("startNewPerpetratorForm");
 const onCancelNewPerpetratorForm = () => emit("cancelNewPerpetratorForm");
@@ -1057,6 +1250,53 @@ const onHandleMapClick = (e) => {
 };
 const onGoToStep = (step) => emit("goToStep", step);
 const onSubmit = () => emit("submit");
+
+// Ladet den Ladezustand zuru00fccksetzen, wenn Ergebnisse da sind oder wenn nichts gefunden wurde
+watch(
+    () => peopleSearchResultsValue.value,
+    () => {
+        isVictimSearchLoading.value = false;
+    },
+);
+
+watch(
+    () => perpetratorsSearchResultsValue.value,
+    () => {
+        isPerpetratorsSearchLoading.value = false;
+    },
+);
+
+// Bild-Auswahllogik
+const openImageSelector = () => {
+    imageDialogVisible.value = true;
+};
+
+const closeImageDialog = () => {
+    imageDialogVisible.value = false;
+};
+
+const selectImage = (image) => {
+    imageUrlValue.value = image.url;
+    console.log("Selected image URL:", image.url);
+    imageFilenameValue.value = image.filename;
+    console.log("Selected image filename:", image.filename);
+    imageDialogVisible.value = false;
+};
+
+const removeImage = () => {
+    imageUrlValue.value = null;
+    imageFilenameValue.value = null;
+};
+
+const openLightbox = () => {
+    if (
+        imageUrlValue.value &&
+        typeof imageUrlValue.value === "string" &&
+        imageUrlValue.value.trim() !== ""
+    ) {
+        lightboxOpen.value = true;
+    }
+};
 </script>
 
 <style scoped>
@@ -1137,7 +1377,7 @@ const onSubmit = () => emit("submit");
     display: flex;
     justify-content: space-between;
     width: 100%;
-    margin-top: 1.5rem;
+    margin-top: 2.5rem;
 }
 
 .button {
@@ -1207,8 +1447,7 @@ const onSubmit = () => emit("submit");
 }
 
 .map-container {
-    width: 600px;
-    height: 400px;
+    width: 800px;
     margin-bottom: 1rem;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -1239,7 +1478,7 @@ const onSubmit = () => emit("submit");
 }
 
 .map-search {
-    margin-top: 0.5rem;
+    margin: 0.5rem 0;
     display: flex;
     width: 100%;
     position: relative;
@@ -1324,6 +1563,26 @@ const onSubmit = () => emit("submit");
     margin-bottom: 0.5rem;
 }
 
+.search-loading {
+    display: flex;
+    align-items: center;
+    margin-top: 0.5rem;
+    color: #666;
+}
+
+.search-loading span {
+    margin-left: 0.5rem;
+}
+
+.search-no-results {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: #f8f8f8;
+    border-radius: 4px;
+    color: #666;
+    font-style: italic;
+}
+
 .form-group {
     margin-bottom: 1rem;
     width: 100%;
@@ -1332,7 +1591,6 @@ const onSubmit = () => emit("submit");
 .form-group label {
     display: block;
     margin-bottom: 0.25rem;
-    font-weight: 500;
 }
 
 .new-victim-form {
@@ -1409,12 +1667,18 @@ const onSubmit = () => emit("submit");
 }
 
 /* Zeitpunkt/Zeitraum Styling */
-.time-section {
+.container-section {
     width: 100%;
     margin-bottom: 1.5rem;
     background-color: #f5f5f5;
     padding: 1rem;
     border-radius: 4px;
+}
+
+label.section-label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
 }
 
 .time-type-selection {
@@ -1452,6 +1716,11 @@ const onSubmit = () => emit("submit");
 
 .perpetrators-search {
     margin-bottom: 0.5rem;
+}
+
+.perpetrators-search .search-loading,
+.perpetrators-search .search-no-results {
+    /* Stile werden von den generischen Klassen geerbt */
 }
 
 .new-perpetrator-form {
@@ -1502,16 +1771,6 @@ const onSubmit = () => emit("submit");
     font-size: 1rem;
     font-weight: bold;
     padding: 0.25rem 0.5rem;
-}
-
-/* Opferzahlen und Ursache Styling */
-.counts-section,
-.cause-section {
-    width: 100%;
-    margin-bottom: 1.5rem;
-    background-color: #f5f5f5;
-    padding: 1rem;
-    border-radius: 4px;
 }
 
 .counts-section .form-group {
@@ -1566,5 +1825,78 @@ const onSubmit = () => emit("submit");
     font-size: 1rem;
     font-weight: bold;
     padding: 0.25rem 0.5rem;
+}
+
+/* Bildauswahl-Stile */
+.image-section {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+.image-selection {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.selected-image {
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: white;
+}
+
+.preview-image {
+    width: 100%;
+    height: auto;
+    max-height: 200px;
+    object-fit: contain;
+    transition:
+        transform 0.2s,
+        filter 0.2s;
+}
+
+.preview-image:hover {
+    transform: scale(1.03);
+    filter: brightness(1.1);
+}
+
+.image-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    background-color: #f5f5f5;
+    border-top: 1px solid #ddd;
+}
+
+.click-hint {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #555;
+    padding: 0.2rem 0;
+    background-color: #f9f9f9;
+    border-top: 1px dashed #eee;
+}
+
+.image-filename {
+    font-size: 0.9rem;
+    color: #666;
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.remove-image {
+    background: none;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0 0.5rem;
 }
 </style>

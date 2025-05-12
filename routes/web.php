@@ -18,6 +18,6 @@ Route::get("{any}", function () {
 })->where("any", ".*");
 
 // Admin-Routen mit Auth-Middleware
-Route::get("/admin/wikidata-requests", function () {
+Route::get("/admin/wikidata-requests/{id?}", function () {
     return view("admin.wikidata-requests");
 })->name("admin.wikidata-requests");

@@ -32,6 +32,8 @@ return new class extends Migration {
                 "rejected",
                 "error",
             ]);
+            $table->string("image_url")->nullable()->after("description");
+            $table->string("image_filename")->nullable()->after("image_url");
             $table->string("wikidata_id")->nullable();
             $table->string("submitted_by")->nullable(); // String statt User-ID
             $table->string("approved_by")->nullable(); // String statt User-ID

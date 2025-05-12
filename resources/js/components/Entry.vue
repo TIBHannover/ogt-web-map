@@ -141,6 +141,8 @@
                         v-model:selectedLocation="selectedLocation"
                         v-model:locationSearch="locationSearch"
                         v-model:error="error"
+                        v-model:imageUrl="imageUrl"
+                        v-model:imageFilename="imageFilename"
                         @searchWikidataEntities="searchWikidataEntities"
                         @selectExistingEntity="selectExistingEntity"
                         @searchPeople="searchPeople"
@@ -394,6 +396,10 @@ const mapZoom = ref(8); // Angepasster Zoom für Niedersachsen
 const mapCenter = ref([52.8, 9.0]); // Zentrum von Niedersachsen
 const selectedLocation = ref(null); // Ausgewählte Koordinaten
 const locationSearch = ref(""); // Suchtext für Standorte
+
+// Bild-spezifische Daten
+const imageUrl = ref(null);
+const imageFilename = ref(null);
 
 // Benutzerdefiniertes Marker-Icon erstellen
 const createCustomIcon = (type) => {
@@ -921,6 +927,8 @@ const resetForm = async () => {
                 arrestCount: arrestCount.value,
                 cause: cause.value,
                 causes: selectedCauses.value,
+                imageUrl: imageUrl.value,
+                imageFilename: imageFilename.value,
             },
             {
                 headers: {
@@ -994,6 +1002,10 @@ const clearForm = () => {
     mapZoom.value = 8;
     mapCenter.value = [52.8, 9.0];
     locationSearch.value = "";
+    
+    // Bild zuru00fccksetzen
+    imageUrl.value = null;
+    imageFilename.value = null;
 };
 
 // Watcher fu00fcr currentStep - invalidiert die Kartengru00f6u00dfe, wenn wir zu Schritt 2 gehen

@@ -10,7 +10,6 @@
             </v-col>
         </v-row>
 
-        <!-- Tabs für unterschiedliche Status -->
         <v-tabs v-model="activeTab" bg-color="transparent">
             <v-tab value="pending">Ausstehend</v-tab>
             <v-tab value="approved">Genehmigt</v-tab>
@@ -19,7 +18,6 @@
         </v-tabs>
 
         <v-card-text>
-            <!-- Alert für Benachrichtigungen -->
             <v-alert
                 v-if="notification.message"
                 :type="notification.type"
@@ -35,12 +33,10 @@
                 <v-progress-circular indeterminate color="primary" size="64" />
             </div>
 
-            <!-- Keine Einträge vorhanden -->
             <v-alert v-else-if="!hasEntries" type="info" class="my-4">
                 Keine {{ tabLabel }} Einträge gefunden.
             </v-alert>
 
-            <!-- Tabelle mit Einträgen -->
             <v-table v-else class="mt-4">
                 <thead>
                     <tr>
@@ -60,7 +56,11 @@
                         <td>{{ entry.id }}</td>
                         <td>
                             <div class="font-weight-bold">
-                                {{ entry.title }}
+                                <router-link
+                                    :to="`/admin/wikidata-requests/${entry.id}`"
+                                >
+                                    {{ entry.title }}
+                                </router-link>
                             </div>
                             <div class="text-caption text-grey">
                                 {{ entry.description }}
@@ -241,9 +241,9 @@ const entityTypes = {
     Q6983405: "Ereignis",
     Q5003624: "Erinnerungsort",
     Q108047567: "Staatspolizeistelle",
-    Q108047541: "Staatspolizeiaußenstelle",
+    Q108047541: "Staatspolizeiauu00dfenstelle",
     Q277565: "Arbeitserziehungslager",
-    Q40357: "Gefängnis",
+    Q40357: "Gefu00e4ngnis",
 };
 
 // Computed Properties
@@ -263,15 +263,18 @@ const tabLabel = computed(() => {
     }
 });
 
-// Beim Tab-Wechsel Einträge neu laden
+// Beim Tab-Wechsel Eintru00e4ge neu laden
 watch(activeTab, () => {
     pagination.value.currentPage = 1;
     loadEntries();
 });
 
-// Einträge laden
+// Eintru00e4ge laden
 const loadEntries = async () => {
     loading.value = true;
+    // Setze entries auf leeres Array, um Fehler zu vermeiden
+    entries.value = [];
+
     try {
         const status = activeTab.value;
         const page = pagination.value.currentPage;
@@ -284,15 +287,32 @@ const loadEntries = async () => {
             },
         });
 
-        entries.value = response.data.requests.data;
-        pagination.value.total = response.data.requests.total;
+        // Pru00fcfe, ob die Antwort die erwartete Struktur hat
+        if (
+            response.data &&
+            response.data.requests &&
+            Array.isArray(response.data.requests.data)
+        ) {
+            entries.value = response.data.requests.data;
+            pagination.value.total = response.data.requests.total || 0;
+        } else if (response.data && Array.isArray(response.data.requests)) {
+            // Alternative Antwortstruktur ohne Pagination
+            entries.value = response.data.requests;
+            pagination.value.total = response.data.requests.length;
+        } else {
+            console.warn("Unerwartetes Antwortformat:", response.data);
+            entries.value = [];
+            pagination.value.total = 0;
+        }
     } catch (error) {
-        console.error("Fehler beim Laden der Einträge:", error);
+        console.error("Fehler beim Laden der Eintru00e4ge:", error);
         notification.value = {
             type: "error",
             message:
-                "Fehler beim Laden der Einträge. Bitte versuchen Sie es später erneut.",
+                "Fehler beim Laden der Eintru00e4ge. Bitte versuchen Sie es spu00e4ter erneut.",
         };
+        entries.value = [];
+        pagination.value.total = 0;
     } finally {
         loading.value = false;
     }
@@ -312,7 +332,7 @@ const approveEntry = async () => {
                 "Der Eintrag wurde erfolgreich genehmigt und wird in Wikidata erstellt.",
         };
 
-        // Dialog schließen und Liste aktualisieren
+        // Dialog schlieu00dfen und Liste aktualisieren
         approveDialog.value.visible = false;
         loadEntries();
     } catch (error) {
@@ -350,7 +370,7 @@ const rejectEntry = async () => {
             message: "Der Eintrag wurde erfolgreich abgelehnt.",
         };
 
-        // Dialog schließen und Liste aktualisieren
+        // Dialog schlieu00dfen und Liste aktualisieren
         rejectDialog.value.visible = false;
         rejectDialog.value.reason = "";
         loadEntries();
@@ -385,13 +405,13 @@ const retryEntry = async (id) => {
     }
 };
 
-// Dialog für Genehmigung öffnen
+// Dialog fu00fcr Genehmigung u00f6ffnen
 const openApproveDialog = (entry) => {
     approveDialog.value.entry = entry;
     approveDialog.value.visible = true;
 };
 
-// Dialog für Ablehnung öffnen
+// Dialog fu00fcr Ablehnung u00f6ffnen
 const openRejectDialog = (entry) => {
     rejectDialog.value.entry = entry;
     rejectDialog.value.visible = true;

@@ -12,6 +12,8 @@ class WikidataEntryRequest extends Model
     protected $fillable = [
         "title",
         "description",
+        "image_url",
+        "image_filename",
         "type",
         "coordinates",
         "status",

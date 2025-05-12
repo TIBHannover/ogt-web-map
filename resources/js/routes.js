@@ -6,6 +6,8 @@ const Charts = () => import("./components/Charts.vue");
 const Counts = () => import("./components/Counts.vue");
 const Entry = () => import("./components/Entry.vue");
 const Admin = () => import("./components/admin/WikidataRequestsAdmin.vue");
+const WikidataRequestDetail = () =>
+    import("./components/admin/WikidataRequestDetail.vue");
 const Bibliography = () => import("./components/Bibliography.vue");
 const Workshops = () => import("./components/Workshops.vue");
 
@@ -57,8 +59,19 @@ export const routes = [
     },
     {
         name: "admin",
-        path: "/admin",
+        path: "/admin/wikidata-requests",
         component: Admin,
+        meta: {
+            title: "Wikidata-Einträge verwalten: Gestapo. Terror. Orte",
+        },
+    },
+    {
+        name: "wikidata-request-detail",
+        path: "/admin/wikidata-requests/:id",
+        component: WikidataRequestDetail,
+        meta: {
+            title: "Wikidata-Eintrag Details: Gestapo. Terror. Orte",
+        },
     },
     {
         name: "entry",

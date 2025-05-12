@@ -4,6 +4,7 @@ use App\Http\Controllers\PingController;
 use App\Http\Controllers\WikidataController;
 use App\Http\Controllers\WikidataEntityController;
 use App\Http\Controllers\WikidataSearchController;
+use App\Http\Controllers\WikimediaCommonsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -38,6 +39,14 @@ Route::get("/wikidata/requests", [
     WikidataEntityController::class,
     "getPendingRequests",
 ]);
+Route::get("/wikidata/requests/{id}", [
+    WikidataEntityController::class,
+    "getRequest",
+]);
+Route::post("/wikidata/requests/{id}/update-image", [
+    WikidataEntityController::class,
+    "updateImage",
+]);
 Route::post("/wikidata/requests/{id}/approve", [
     WikidataEntityController::class,
     "approveRequest",
@@ -49,6 +58,12 @@ Route::post("/wikidata/requests/{id}/reject", [
 Route::post("/wikidata/requests/{id}/retry", [
     WikidataEntityController::class,
     "retryRequest",
+]);
+
+// Route fu00fcr die Suche nach Bildern in Wikimedia Commons
+Route::get("/wikimedia/images", [
+    WikimediaCommonsController::class,
+    "searchImages",
 ]);
 
 Route::get("/ping", [PingController::class, "ping"]);
