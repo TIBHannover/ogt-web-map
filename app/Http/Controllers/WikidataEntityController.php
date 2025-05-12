@@ -30,21 +30,21 @@ class WikidataEntityController extends Controller
             "title" => "required|string|max:250",
             "description" => "required|string|max:750",
             "type" => 'required|string|regex:/^Q\d+$/',
-            "coordinates" => 'nullable|string',
-            "victims" => 'nullable|array',
-            "perpetrators" => 'nullable|array',
-            "eventTimeType" => 'nullable|string|in:point,range',
-            "eventDate" => 'nullable|string',
-            "eventStartDate" => 'nullable|string',
-            "eventEndDate" => 'nullable|string',
-            "victimCount" => 'nullable|integer',
-            "survivorCount" => 'nullable|integer',
-            "deathCount" => 'nullable|integer',
-            "arrestCount" => 'nullable|integer',
-            "cause" => 'nullable|string',
-            "causes" => 'nullable|array',
-            "imageUrl" => 'nullable|string',
-            "imageFilename" => 'nullable|string',
+            "coordinates" => "nullable|string",
+            "victims" => "nullable|array",
+            "perpetrators" => "nullable|array",
+            "eventTimeType" => "nullable|string|in:point,range",
+            "eventDate" => "nullable|string",
+            "eventStartDate" => "nullable|string",
+            "eventEndDate" => "nullable|string",
+            "victimCount" => "nullable|integer",
+            "survivorCount" => "nullable|integer",
+            "deathCount" => "nullable|integer",
+            "arrestCount" => "nullable|integer",
+            "cause" => "nullable|string",
+            "causes" => "nullable|array",
+            "imageUrl" => "nullable|string",
+            "imageFilename" => "nullable|string",
         ]);
 
         try {
@@ -55,30 +55,32 @@ class WikidataEntityController extends Controller
             $entryRequest->coordinates = $validated["coordinates"] ?? null;
             $entryRequest->victims = $validated["victims"] ?? null;
             $entryRequest->perpetrators = $validated["perpetrators"] ?? null;
-            
+
             // Zeitpunkt oder Zeitraum je nach Typ
             if (isset($validated["eventTimeType"])) {
                 if ($validated["eventTimeType"] === "point") {
                     $entryRequest->time_point = $validated["eventDate"] ?? null;
-                } else if ($validated["eventTimeType"] === "range") {
-                    $entryRequest->time_period_start = $validated["eventStartDate"] ?? null;
-                    $entryRequest->time_period_end = $validated["eventEndDate"] ?? null;
+                } elseif ($validated["eventTimeType"] === "range") {
+                    $entryRequest->time_period_start =
+                        $validated["eventStartDate"] ?? null;
+                    $entryRequest->time_period_end =
+                        $validated["eventEndDate"] ?? null;
                 }
             }
-            
+
             // Statistiken
             $entryRequest->victim_count = $validated["victimCount"] ?? null;
             $entryRequest->survivor_count = $validated["survivorCount"] ?? null;
             $entryRequest->death_count = $validated["deathCount"] ?? null;
             $entryRequest->arrest_count = $validated["arrestCount"] ?? null;
-            
+
             // Ursache
             $entryRequest->cause = $validated["cause"] ?? null;
-            
+
             // Bildinformationen
             $entryRequest->image_url = $validated["imageUrl"] ?? null;
             $entryRequest->image_filename = $validated["imageFilename"] ?? null;
-            
+
             $entryRequest->status = "pending";
             $entryRequest->submitted_by = "anonymous";
             $entryRequest->save();
@@ -89,7 +91,7 @@ class WikidataEntityController extends Controller
                     "success" => true,
                     "requestId" => $entryRequest->id,
                     "message" =>
-                        "Eintrag wurde zur Pru00fcfung eingereicht und wird nach Freigabe erstellt.",
+                        "Eintrag wurde zur Prüsfung eingereicht und wird nach Freigabe erstellt.",
                 ],
                 Response::HTTP_CREATED
             );
@@ -181,7 +183,8 @@ class WikidataEntityController extends Controller
             return response()->json(
                 [
                     "success" => true,
-                    "message" => "Anfrage genehmigt und Wikidata-Eintrag erstellt.",
+                    "message" =>
+                        "Anfrage genehmigt und Wikidata-Eintrag erstellt.",
                     "wikidataId" => $wikidataId,
                 ],
                 Response::HTTP_OK
@@ -220,7 +223,7 @@ class WikidataEntityController extends Controller
             return response()->json(
                 [
                     "success" => false,
-                    "message" => "Ungu00fcltige Eingabe",
+                    "message" => "Ungültige Eingabe",
                     "errors" => $validator->errors(),
                 ],
                 Response::HTTP_BAD_REQUEST
@@ -458,7 +461,8 @@ class WikidataEntityController extends Controller
             if ($loginResult["login"]["result"] !== "Success") {
                 throw new \Exception(
                     "Login fehlgeschlagen: " .
-                        ($loginResult["login"]["reason"] ?? "Unbekannter Fehler")
+                        ($loginResult["login"]["reason"] ??
+                            "Unbekannter Fehler")
                 );
             }
 
@@ -484,7 +488,9 @@ class WikidataEntityController extends Controller
                 "api_url" => $loginApiUrl,
             ];
         } catch (\Exception $e) {
-            Log::error("Wikidata API Authentifizierungsfehler: " . $e->getMessage());
+            Log::error(
+                "Wikidata API Authentifizierungsfehler: " . $e->getMessage()
+            );
             return null;
         }
     }
@@ -495,8 +501,9 @@ class WikidataEntityController extends Controller
      * @param WikidataEntryRequest $entryRequest
      * @return array
      */
-    private function prepareEntityData(WikidataEntryRequest $entryRequest): array
-    {
+    private function prepareEntityData(
+        WikidataEntryRequest $entryRequest
+    ): array {
         // Wir erstellen ein Label und eine Beschreibung in Deutsch
         $label = [
             "de" => $entryRequest->title,
@@ -542,7 +549,8 @@ class WikidataEntityController extends Controller
             $statements["P585"] = [
                 [
                     "value" => [
-                        "time" => "+" . $entryRequest->time_point . "T00:00:00Z",
+                        "time" =>
+                            "+" . $entryRequest->time_point . "T00:00:00Z",
                         "precision" => 11, // Tag
                         "before" => 0,
                         "after" => 0,
@@ -559,7 +567,9 @@ class WikidataEntityController extends Controller
                 [
                     "value" => [
                         "time" =>
-                            "+" . $entryRequest->time_period_start . "T00:00:00Z",
+                            "+" .
+                            $entryRequest->time_period_start .
+                            "T00:00:00Z",
                         "precision" => 11,
                         "before" => 0,
                         "after" => 0,

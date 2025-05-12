@@ -102,414 +102,42 @@
             </div>
 
             <!-- Opfer-Eingabefeld -->
-            <div class="victims-section container-section">
-                <label for="victims" class="section-label">Opfer</label>
-                <div v-if="!showNewVictimFormValue" class="victims-search">
-                    <input
-                        type="text"
-                        placeholder="Namen der Opfer suchen..."
-                        @input="(event) => onSearchPeople(event.target.value)"
-                        @focus="(event) => onSearchPeople(event.target.value)"
-                    />
-
-                    <!-- Ladeindikator -->
-                    <div
-                        v-if="
-                            isVictimSearchLoading &&
-                            !(
-                                victimSearchPerformed &&
-                                peopleSearchResultsValue.length === 0
-                            )
-                        "
-                        class="search-loading"
-                    >
-                        <v-progress-circular
-                            size="24"
-                            indeterminate
-                            color="primary"
-                        ></v-progress-circular>
-                        <span>Suche lu00e4uft...</span>
-                    </div>
-
-                    <!-- Keine Ergebnisse Meldung -->
-                    <div
-                        v-else-if="
-                            victimSearchPerformed &&
-                            !isVictimSearchLoading &&
-                            peopleSearchResultsValue.length === 0
-                        "
-                        class="search-no-results"
-                    >
-                        Keine Ergebnisse gefunden
-                    </div>
-                </div>
-
-                <!-- Suchergebnisse für Opfer -->
-                <div
-                    v-if="
-                        peopleSearchResultsValue.length > 0 &&
-                        !showNewVictimFormValue
-                    "
-                    class="search-results"
-                >
-                    <div
-                        v-for="person in peopleSearchResultsValue"
-                        :key="person.id"
-                        class="search-result-item"
-                        @click="onSelectVictim(person)"
-                    >
-                        <div class="result-title">{{ person.label }}</div>
-                        <div
-                            class="result-description"
-                            v-if="person.description"
-                        >
-                            {{ person.description }}
-                        </div>
-                        <div
-                            class="result-metadata"
-                            v-if="person.birth || person.death"
-                        >
-                            <span v-if="person.birth"
-                                >* {{ person.birth }}</span
-                            >
-                            <span v-if="person.death"
-                                >† {{ person.death }}</span
-                            >
-                        </div>
-                        <div class="result-id">{{ person.id }}</div>
-                    </div>
-                </div>
-
-                <!-- Formular für neue Person -->
-                <div v-if="showNewVictimFormValue" class="new-victim-form">
-                    <h4>Neue Person anlegen</h4>
-                    <div class="form-group">
-                        <label for="firstName">Vorname *</label>
-                        <input
-                            v-model="newVictimLocal.firstName"
-                            type="text"
-                            id="firstName"
-                            required
-                        />
-                    </div>
-                    <div class="form-group">
-                        <label for="lastName">Nachname *</label>
-                        <input
-                            v-model="newVictimLocal.lastName"
-                            type="text"
-                            id="lastName"
-                            required
-                        />
-                    </div>
-                    <div class="form-group">
-                        <label for="birthDate">Geburtsdatum</label>
-                        <input
-                            v-model="newVictimLocal.birthDate"
-                            type="date"
-                            id="birthDate"
-                        />
-                    </div>
-                    <div class="form-group">
-                        <label for="deathDate">Sterbedatum</label>
-                        <input
-                            v-model="newVictimLocal.deathDate"
-                            type="date"
-                            id="deathDate"
-                        />
-                    </div>
-                    <div class="form-group">
-                        <label for="description">Kurze Beschreibung</label>
-                        <textarea
-                            v-model="newVictimLocal.description"
-                            id="description"
-                            rows="3"
-                        ></textarea>
-                    </div>
-                    <div class="button-group">
-                        <button
-                            type="button"
-                            class="button bg-secondary"
-                            @click="onCancelNewVictimForm"
-                        >
-                            Abbrechen
-                        </button>
-                        <button
-                            type="button"
-                            class="button"
-                            @click="onAddNewVictim"
-                            :disabled="!canAddNewVictim"
-                        >
-                            Person hinzufügen
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Ausgewählte Opfer -->
-                <div
-                    v-if="selectedVictimsValue.length > 0"
-                    class="selected-victims"
-                >
-                    <h4>Ausgewählte Opfer:</h4>
-                    <div
-                        v-for="victim in selectedVictimsValue"
-                        :key="victim.id || victim.tempId"
-                        class="selected-victim"
-                    >
-                        <span class="victim-name">
-                            <a
-                                :href="`https://www.wikidata.org/wiki/${victim.id}`"
-                                target="_blank"
-                            >
-                                {{
-                                    victim.label ||
-                                    `${victim.firstName} ${victim.lastName}`
-                                }}
-                            </a>
-                        </span>
-                        <span
-                            class="victim-description"
-                            v-if="victim.description"
-                        >
-                            - {{ victim.description }}
-                        </span>
-                        <button
-                            type="button"
-                            class="remove-victim"
-                            @click="onRemoveVictim(victim.id || victim.tempId)"
-                        >
-                            ✕
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Button für weiteres Opfer -->
-                <div v-if="!showNewVictimFormValue" class="add-another-victim">
-                    <div class="new-person-option">
-                        <button
-                            type="button"
-                            class="button bg-secondary"
-                            @click="onStartNewVictimForm"
-                        >
-                            Person nicht gefunden? Neue Person anlegen
-                        </button>
-                    </div>
-                </div>
-            </div>
+            <PersonsField
+                label="Opfer"
+                fieldId="victims"
+                :peopleSearchResults="peopleSearchResultsValue"
+                :selectedPersons="selectedVictimsValue"
+                :showNewPersonForm="showNewVictimFormValue"
+                :newPerson="newVictimLocal"
+                :isSearchLoading="isVictimSearchLoading"
+                :searchPerformed="victimSearchPerformed"
+                @searchPeople="onSearchPeople"
+                @selectPerson="onSelectVictim"
+                @startNewPersonForm="onStartNewVictimForm"
+                @cancelNewPersonForm="onCancelNewVictimForm"
+                @update:newPerson="newVictimLocal = $event"
+                @addNewPerson="onAddNewVictim"
+                @removePerson="onRemoveVictim"
+            />
 
             <!-- Täter-Eingabefeld -->
-            <div class="perpetrators-section container-section">
-                <label for="perpetrators" class="section-label">Täter</label>
-                <div
-                    v-if="!showNewPerpetratorFormValue"
-                    class="perpetrators-search"
-                >
-                    <input
-                        type="text"
-                        placeholder="Namen der Täter suchen..."
-                        @input="
-                            (event) => onSearchPerpetrators(event.target.value)
-                        "
-                        @focus="
-                            (event) => onSearchPerpetrators(event.target.value)
-                        "
-                    />
-
-                    <!-- Ladeindikator -->
-                    <div
-                        v-if="
-                            isPerpetratorsSearchLoading &&
-                            !(
-                                perpetratorSearchPerformed &&
-                                perpetratorsSearchResultsValue.length === 0
-                            )
-                        "
-                        class="search-loading"
-                    >
-                        <v-progress-circular
-                            size="24"
-                            indeterminate
-                            color="primary"
-                        ></v-progress-circular>
-                        <span>Suche läuft...</span>
-                    </div>
-
-                    <!-- Keine Ergebnisse Meldung -->
-                    <div
-                        v-else-if="
-                            perpetratorSearchPerformed &&
-                            !isPerpetratorsSearchLoading &&
-                            perpetratorsSearchResultsValue.length === 0
-                        "
-                        class="search-no-results"
-                    >
-                        Keine Ergebnisse gefunden
-                    </div>
-                </div>
-
-                <!-- Suchergebnisse für Täter -->
-                <div
-                    v-if="
-                        perpetratorsSearchResultsValue.length > 0 &&
-                        !showNewPerpetratorFormValue
-                    "
-                    class="search-results"
-                >
-                    <div
-                        v-for="person in perpetratorsSearchResultsValue"
-                        :key="person.id"
-                        class="search-result-item"
-                        @click="onSelectPerpetrator(person)"
-                    >
-                        <div class="result-title">{{ person.label }}</div>
-                        <div
-                            class="result-description"
-                            v-if="person.description"
-                        >
-                            {{ person.description }}
-                        </div>
-                        <div
-                            class="result-metadata"
-                            v-if="person.birth || person.death"
-                        >
-                            <span v-if="person.birth"
-                                >* {{ person.birth }}</span
-                            >
-                            <span v-if="person.death"
-                                >† {{ person.death }}</span
-                            >
-                        </div>
-                        <div class="result-id">{{ person.id }}</div>
-                    </div>
-                </div>
-
-                <!-- Formular für neue Person (Täter) -->
-                <div
-                    v-if="showNewPerpetratorFormValue"
-                    class="new-perpetrator-form"
-                >
-                    <h4>Neue Person anlegen</h4>
-                    <div class="form-group">
-                        <label for="perpetratorFirstName">Vorname *</label>
-                        <input
-                            v-model="newPerpetratorLocal.firstName"
-                            type="text"
-                            id="perpetratorFirstName"
-                            required
-                        />
-                    </div>
-                    <div class="form-group">
-                        <label for="perpetratorLastName">Nachname *</label>
-                        <input
-                            v-model="newPerpetratorLocal.lastName"
-                            type="text"
-                            id="perpetratorLastName"
-                            required
-                        />
-                    </div>
-                    <div class="form-group">
-                        <label for="perpetratorBirthDate">Geburtsdatum</label>
-                        <input
-                            v-model="newPerpetratorLocal.birthDate"
-                            type="date"
-                            id="perpetratorBirthDate"
-                        />
-                    </div>
-                    <div class="form-group">
-                        <label for="perpetratorDeathDate">Sterbedatum</label>
-                        <input
-                            v-model="newPerpetratorLocal.deathDate"
-                            type="date"
-                            id="perpetratorDeathDate"
-                        />
-                    </div>
-                    <div class="form-group">
-                        <label for="perpetratorDescription"
-                            >Kurze Beschreibung</label
-                        >
-                        <textarea
-                            v-model="newPerpetratorLocal.description"
-                            id="perpetratorDescription"
-                            rows="3"
-                        ></textarea>
-                    </div>
-                    <div class="button-group">
-                        <button
-                            type="button"
-                            class="button bg-secondary"
-                            @click="onCancelNewPerpetratorForm"
-                        >
-                            Abbrechen
-                        </button>
-                        <button
-                            type="button"
-                            class="button"
-                            @click="onAddNewPerpetrator"
-                            :disabled="!canAddNewPerpetrator"
-                        >
-                            Person hinzufügen
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Ausgewählte Täter -->
-                <div
-                    v-if="selectedPerpetratorsValue.length > 0"
-                    class="selected-perpetrators"
-                >
-                    <h4>Ausgewählte Täter:</h4>
-                    <div
-                        v-for="perpetrator in selectedPerpetratorsValue"
-                        :key="perpetrator.id || perpetrator.tempId"
-                        class="selected-perpetrator"
-                    >
-                        <span class="perpetrator-name">
-                            <a
-                                :href="`https://www.wikidata.org/wiki/${perpetrator.id}`"
-                                target="_blank"
-                            >
-                                {{
-                                    perpetrator.label ||
-                                    `${perpetrator.firstName} ${perpetrator.lastName}`
-                                }}
-                            </a>
-                        </span>
-                        <span
-                            class="perpetrator-description"
-                            v-if="perpetrator.description"
-                        >
-                            - {{ perpetrator.description }}
-                        </span>
-                        <button
-                            type="button"
-                            class="remove-perpetrator"
-                            @click="
-                                onRemovePerpetrator(
-                                    perpetrator.id || perpetrator.tempId,
-                                )
-                            "
-                        >
-                            ✕
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Button für weiteren Täter -->
-                <div
-                    v-if="!showNewPerpetratorFormValue"
-                    class="add-another-perpetrator"
-                >
-                    <!-- Button für neue Person -->
-                    <div class="new-person-option">
-                        <button
-                            type="button"
-                            class="button bg-secondary"
-                            @click="onStartNewPerpetratorForm"
-                        >
-                            Person nicht gefunden? Neue Person anlegen
-                        </button>
-                    </div>
-                </div>
-            </div>
+            <PersonsField
+                label="Täter"
+                fieldId="perpetrators"
+                :peopleSearchResults="perpetratorsSearchResultsValue"
+                :selectedPersons="selectedPerpetratorsValue"
+                :showNewPersonForm="showNewPerpetratorFormValue"
+                :newPerson="newPerpetratorLocal"
+                :isSearchLoading="isPerpetratorsSearchLoading"
+                :searchPerformed="perpetratorSearchPerformed"
+                @searchPeople="onSearchPerpetrators"
+                @selectPerson="onSelectPerpetrator"
+                @startNewPersonForm="onStartNewPerpetratorForm"
+                @cancelNewPersonForm="onCancelNewPerpetratorForm"
+                @update:newPerson="newPerpetratorLocal = $event"
+                @addNewPerson="onAddNewPerpetrator"
+                @removePerson="onRemovePerpetrator"
+            />
 
             <!-- Opferzahlen -->
             <div class="counts-section container-section">
@@ -775,6 +403,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, nextTick } from "vue";
 import * as L from "leaflet";
+import PersonsField from "./fields/Persons.vue";
 import "leaflet/dist/leaflet.css";
 import { LMap, LTileLayer, LMarker } from "@vue-leaflet/vue-leaflet";
 import WikimediaImageSelector from "./fields/WikimediaImageSelector.vue";
