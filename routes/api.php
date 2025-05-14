@@ -3,6 +3,7 @@
 use App\Http\Controllers\PingController;
 use App\Http\Controllers\WikidataController;
 use App\Http\Controllers\WikidataEntityController;
+use App\Http\Controllers\WikidataOAuthController;
 use App\Http\Controllers\WikidataSearchController;
 use App\Http\Controllers\WikimediaCommonsController;
 use Illuminate\Http\Request;
@@ -60,7 +61,21 @@ Route::post("/wikidata/requests/{id}/retry", [
     "retryRequest",
 ]);
 
-// Route fu00fcr die Suche nach Bildern in Wikimedia Commons
+// OAuth-Routen für Wikidata
+Route::get("/wikidata/oauth", [
+    WikidataOAuthController::class,
+    "redirectToWikidata",
+]);
+Route::get("/wikidata/oauth/callback", [
+    WikidataOAuthController::class,
+    "handleCallback",
+]);
+Route::get("/wikidata/oauth/status", [
+    WikidataOAuthController::class,
+    "status",
+]);
+
+// Route für die Suche nach Bildern in Wikimedia Commons
 Route::get("/wikimedia/images", [
     WikimediaCommonsController::class,
     "searchImages",
@@ -69,7 +84,13 @@ Route::get("/wikimedia/images", [
 Route::get("/ping", [PingController::class, "ping"]);
 
 // Route for searching people in Wikidata
-Route::get('/wikidata/search/people', [WikidataSearchController::class, 'searchPeople']);
+Route::get("/wikidata/search/people", [
+    WikidataSearchController::class,
+    "searchPeople",
+]);
 
 // Route for searching concepts in Wikidata (subclasses of specific entity)
-Route::get('/wikidata/search/concepts', [WikidataSearchController::class, 'searchConcepts']);
+Route::get("/wikidata/search/concepts", [
+    WikidataSearchController::class,
+    "searchConcepts",
+]);

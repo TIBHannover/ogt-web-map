@@ -39,6 +39,7 @@
         "illuminate/contracts": "^11",
         "laravel/framework": "^11.6",
         "laravel/tinker": "^2.5",
+        "league/oauth1-client": "^1.11",
         "spatie/laravel-ignition": "^2.9"
     },
     "require-dev": {

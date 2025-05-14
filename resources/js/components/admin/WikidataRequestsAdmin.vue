@@ -1,4 +1,9 @@
 <template>
+    <!--
+    DEPRECATED: Diese Komponente wird nicht mehr verwendet.
+    Die Admin-Funktionalitu00e4t wurde durch PHP/Blade-Templates ersetzt.
+    Siehe: resources/views/admin/requests.blade.php und request-detail.blade.php
+    -->
     <v-container>
         <v-row>
             <v-col>
@@ -287,7 +292,6 @@ const loadEntries = async () => {
             },
         });
 
-        // Pru00fcfe, ob die Antwort die erwartete Struktur hat
         if (
             response.data &&
             response.data.requests &&
@@ -405,13 +409,11 @@ const retryEntry = async (id) => {
     }
 };
 
-// Dialog fu00fcr Genehmigung u00f6ffnen
 const openApproveDialog = (entry) => {
     approveDialog.value.entry = entry;
     approveDialog.value.visible = true;
 };
 
-// Dialog fu00fcr Ablehnung u00f6ffnen
 const openRejectDialog = (entry) => {
     rejectDialog.value.entry = entry;
     rejectDialog.value.visible = true;

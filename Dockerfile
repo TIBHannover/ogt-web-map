@@ -22,6 +22,9 @@ RUN apk add --no-cache nodejs npm
 # Install PHP extensions
 RUN docker-php-ext-install pdo_mysql pdo_sqlite bcmath mbstring xml
 
+# Verify that the SQLite extension is installed
+RUN php -m | grep pdo_sqlite || (echo "SQLite extension not installed correctly" && exit 1)
+
 # Configure PHP
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" && \
     sed -i 's/display_errors = Off/display_errors = On/' "$PHP_INI_DIR/php.ini" && \

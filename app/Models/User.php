@@ -20,6 +20,11 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'is_admin',
+        'wikidata_id',
+        'wikidata_username',
+        'wikidata_token',
+        'wikidata_token_secret',
     ];
 
     /**
@@ -30,6 +35,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'wikidata_token',
+        'wikidata_token_secret',
     ];
 
     /**
@@ -39,5 +46,26 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'is_admin' => 'boolean',
     ];
+
+    /**
+     * Pru00fcft, ob der Benutzer ein Administrator ist.
+     *
+     * @return bool
+     */
+    public function isAdmin()
+    {
+        return $this->is_admin === true;
+    }
+
+    /**
+     * Pru00fcft, ob der Benutzer mit Wikidata verbunden ist.
+     *
+     * @return bool
+     */
+    public function hasWikidataAccount()
+    {
+        return !empty($this->wikidata_id) && !empty($this->wikidata_username);
+    }
 }

@@ -118,19 +118,19 @@ class WikidataEntityController extends Controller
     public function getPendingRequests(Request $request): JsonResponse
     {
         try {
-            $status = $request->input('status', 'pending');
-            $perPage = $request->input('perPage', 10);
-            $page = $request->input('page', 1);
-            
+            $status = $request->input("status", "pending");
+            $perPage = $request->input("perPage", 10);
+            $page = $request->input("page", 1);
+
             // Filtere nach Status
             $query = WikidataEntryRequest::where("status", $status);
-            
+
             // Sortiere nach Erstellungsdatum (neueste zuerst)
             $query->orderBy("created_at", "desc");
-            
+
             // Paginierung anwenden
             if ($perPage > 0) {
-                $requests = $query->paginate($perPage, ['*'], 'page', $page);
+                $requests = $query->paginate($perPage, ["*"], "page", $page);
             } else {
                 $requests = $query->get();
             }
@@ -149,8 +149,7 @@ class WikidataEntityController extends Controller
                 [
                     "success" => false,
                     "message" =>
-                        "Fehler beim Abrufen der Anfragen: " .
-                        $e->getMessage(),
+                        "Fehler beim Abrufen der Anfragen: " . $e->getMessage(),
                 ],
                 Response::HTTP_INTERNAL_SERVER_ERROR
             );
@@ -186,19 +185,14 @@ class WikidataEntityController extends Controller
             $entryRequest->approved_by = "admin"; // Spu00e4ter durch authentifizierten Benutzer ersetzen
             $entryRequest->save();
 
-            // Wikidata-Eintrag erstellen (in einem realen Szenario wu00fcrde dies asynchron erfolgen)
-            $wikidataId = $this->createEntity($entryRequest);
-
-            // Speichern der Wikidata-ID
-            $entryRequest->wikidata_id = $wikidataId;
-            $entryRequest->save();
+            // Job in die Queue stellen, um Wikidata-Eintrag asynchron zu erstellen
+            \App\Jobs\CreateWikidataEntity::dispatch($entryRequest);
 
             return response()->json(
                 [
                     "success" => true,
                     "message" =>
-                        "Anfrage genehmigt und Wikidata-Eintrag erstellt.",
-                    "wikidataId" => $wikidataId,
+                        "Anfrage genehmigt und Wikidata-Eintrag zur Queue hinzugefügt.",
                 ],
                 Response::HTTP_OK
             );
@@ -438,7 +432,7 @@ class WikidataEntityController extends Controller
         $csrfToken = null;
         $client = new \GuzzleHttp\Client([
             "cookies" => true,
-            "verify" => false, // Nur fu00fcr Tests, in der Produktion nicht verwenden!
+            "verify" => true, // Nur fu00fcr Tests, in der Produktion nicht verwenden!
         ]);
 
         try {

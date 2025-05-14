@@ -381,7 +381,7 @@
             <div v-if="errorValue" class="bg-error">{{ errorValue }}</div>
         </form>
 
-        <!-- Dialog fu00fcr Bildauswahl -->
+        <!-- Dialog für Bildauswahl -->
         <v-dialog v-model="imageDialogVisible" max-width="900px">
             <wikimedia-image-selector
                 @select="selectImage"
@@ -806,7 +806,7 @@ const onTitleInput = () => emit("searchWikidataEntities");
 const onSelectExistingEntity = (entity) => emit("selectExistingEntity", entity);
 const onSearchPeople = (query) => {
     if (query && query.length >= 2) {
-        // Kurze Verzu00f6gerung, damit das Ladeicon nicht bei jeder Eingabe kurz aufflackert
+        // Kurze Verzögerung, damit das Ladeicon nicht bei jeder Eingabe kurz aufflackert
         setTimeout(() => {
             if (!peopleSearchResultsValue.value.length) {
                 isVictimSearchLoading.value = true;
@@ -834,7 +834,7 @@ const onStartAddingAnotherVictim = () => emit("startAddingAnotherVictim");
 // Tu00e4ter (Perpetrator) Handler-Funktionen
 const onSearchPerpetrators = (query) => {
     if (query && query.length >= 2) {
-        // Kurze Verzu00f6gerung, damit das Ladeicon nicht bei jeder Eingabe kurz aufflackert
+        // Kurze Verzögerung, damit das Ladeicon nicht bei jeder Eingabe kurz aufflackert
         setTimeout(() => {
             if (!perpetratorsSearchResultsValue.value.length) {
                 isPerpetratorsSearchLoading.value = true;
@@ -880,7 +880,7 @@ const onHandleMapClick = (e) => {
 const onGoToStep = (step) => emit("goToStep", step);
 const onSubmit = () => emit("submit");
 
-// Ladet den Ladezustand zuru00fccksetzen, wenn Ergebnisse da sind oder wenn nichts gefunden wurde
+// Ladet den Ladezustand zurücksetzen, wenn Ergebnisse da sind oder wenn nichts gefunden wurde
 watch(
     () => peopleSearchResultsValue.value,
     () => {

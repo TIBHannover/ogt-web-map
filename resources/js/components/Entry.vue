@@ -121,7 +121,9 @@
                         v-model:selectedVictims="selectedVictims"
                         v-model:showNewVictimForm="showNewVictimForm"
                         v-model:newVictim="newVictim"
-                        v-model:perpetratorsSearchResults="perpetratorsSearchResults"
+                        v-model:perpetratorsSearchResults="
+                            perpetratorsSearchResults
+                        "
                         v-model:selectedPerpetrators="selectedPerpetrators"
                         v-model:showNewPerpetratorForm="showNewPerpetratorForm"
                         v-model:newPerpetrator="newPerpetrator"
@@ -158,7 +160,9 @@
                         @cancelNewPerpetratorForm="cancelNewPerpetratorForm"
                         @addNewPerpetrator="addNewPerpetrator"
                         @removePerpetrator="removePerpetrator"
-                        @startAddingAnotherPerpetrator="startAddingAnotherPerpetrator"
+                        @startAddingAnotherPerpetrator="
+                            startAddingAnotherPerpetrator
+                        "
                         @searchCause="searchCause"
                         @selectCause="selectCause"
                         @removeCause="removeCause"
@@ -751,7 +755,7 @@ const searchPerpetrators = debounce(async (query) => {
 
 const startNewPerpetratorForm = () => {
     showNewPerpetratorForm.value = true;
-    // Vorname/Nachname aus der Suche vorausfu00fcllen, wenn mu00f6glich
+    // Vorname/Nachname aus der Suche vorausfu00fcllen, wenn möglich
     if (lastPerpetratorSearchQuery.value) {
         const parts = lastPerpetratorSearchQuery.value.trim().split(" ");
         if (parts.length > 1) {
@@ -802,7 +806,10 @@ const startAddingAnotherPerpetrator = () => {
 
 // Computed property fu00fcr die Validierung des neuen Tu00e4ter-Formulars
 const canAddNewPerpetrator = computed(() => {
-    return newPerpetrator.value.firstName.trim() && newPerpetrator.value.lastName.trim();
+    return (
+        newPerpetrator.value.firstName.trim() &&
+        newPerpetrator.value.lastName.trim()
+    );
 });
 
 const selectPerpetrator = (person) => {
@@ -838,8 +845,8 @@ const searchCause = debounce(async (query) => {
     try {
         // Suche nach Wikidata-Einträgen
         const response = await axios.get("/api/wikidata/search/concepts", {
-            params: { 
-                query
+            params: {
+                query,
             },
         });
         causeSearchResults.value = response.data;
@@ -851,11 +858,11 @@ const searchCause = debounce(async (query) => {
 
 const selectCause = (cause) => {
     // Prüfe, ob die Ursache bereits in der Liste ist, um Duplikate zu vermeiden
-    if (!selectedCauses.value.some(item => item.id === cause.id)) {
+    if (!selectedCauses.value.some((item) => item.id === cause.id)) {
         selectedCauses.value.push({
             id: cause.id,
             label: cause.label,
-            description: cause.description
+            description: cause.description,
         });
     }
     causeSearchResults.value = [];
@@ -863,7 +870,9 @@ const selectCause = (cause) => {
 };
 
 const removeCause = (causeId) => {
-    selectedCauses.value = selectedCauses.value.filter(cause => cause.id !== causeId);
+    selectedCauses.value = selectedCauses.value.filter(
+        (cause) => cause.id !== causeId,
+    );
 };
 
 const resetForm = async () => {
@@ -939,9 +948,8 @@ const resetForm = async () => {
 
         if (response.data.success) {
             alert(`Eintrag erfolgreich erstellt: ${response.data.requestId}`);
-            // Form zuru00fccksetzen nach erfolgreicher Erstellung
             clearForm();
-            currentStep.value = 1; // Zuru00fcck zu Schritt 1
+            currentStep.value = 1;
         } else {
             error.value =
                 response.data.message ||
@@ -970,7 +978,7 @@ const clearForm = () => {
         description: "",
     };
     showNewVictimForm.value = false;
-    
+
     // Neue Felder zuru00fccksetzen
     selectedPerpetrators.value = [];
     newPerpetrator.value = {
@@ -981,13 +989,13 @@ const clearForm = () => {
         description: "",
     };
     showNewPerpetratorForm.value = false;
-    
+
     // Zeitpunkt/Zeitraum zuru00fccksetzen
     eventTimeType.value = "point";
     eventDate.value = null;
     eventStartDate.value = null;
     eventEndDate.value = null;
-    
+
     // Opferzahlen und Ursache zuru00fccksetzen
     victimCount.value = 0;
     survivorCount.value = 0;
@@ -997,21 +1005,21 @@ const clearForm = () => {
     causeSearchResults.value = [];
     selectedCauses.value = [];
     lastCauseSearchQuery.value = "";
-    
+
     // Karte zuru00fccksetzen
     mapZoom.value = 8;
     mapCenter.value = [52.8, 9.0];
     locationSearch.value = "";
-    
-    // Bild zuru00fccksetzen
+
+    // Bild zurücksetzen
     imageUrl.value = null;
     imageFilename.value = null;
 };
 
-// Watcher fu00fcr currentStep - invalidiert die Kartengru00f6u00dfe, wenn wir zu Schritt 2 gehen
+// Watcher für currentStep - invalidiert die Kartengröu00dfe, wenn wir zu Schritt 2 gehen
 watch(currentStep, (newStep) => {
     if (newStep === 2) {
-        // Warte kurz, bis das DOM aktualisiert wurde, dann Kartengru00f6u00dfe aktualisieren
+        // Warte kurz, bis das DOM aktualisiert wurde, dann Kartengröu00dfe aktualisieren
         setTimeout(() => {
             // Verwende unsere neue Reinitialisierungsfunktion
             reinitializeMap();

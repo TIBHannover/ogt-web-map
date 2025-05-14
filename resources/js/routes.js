@@ -5,9 +5,9 @@ const Glossary = () => import("./components/Glossary.vue");
 const Charts = () => import("./components/Charts.vue");
 const Counts = () => import("./components/Counts.vue");
 const Entry = () => import("./components/Entry.vue");
-const Admin = () => import("./components/admin/WikidataRequestsAdmin.vue");
-const WikidataRequestDetail = () =>
-    import("./components/admin/WikidataRequestDetail.vue");
+// Admin-Komponenten werden nicht mehr verwendet - jetzt über PHP implementiert
+// const Admin = () => import("./components/admin/WikidataRequestsAdmin.vue");
+// const WikidataRequestDetail = () => import("./components/admin/WikidataRequestDetail.vue");
 const Bibliography = () => import("./components/Bibliography.vue");
 const Workshops = () => import("./components/Workshops.vue");
 
@@ -57,22 +57,7 @@ export const routes = [
             title: "Zahlen: Gestapo. Terror. Orte",
         },
     },
-    {
-        name: "admin",
-        path: "/admin/wikidata-requests",
-        component: Admin,
-        meta: {
-            title: "Wikidata-Einträge verwalten: Gestapo. Terror. Orte",
-        },
-    },
-    {
-        name: "wikidata-request-detail",
-        path: "/admin/wikidata-requests/:id",
-        component: WikidataRequestDetail,
-        meta: {
-            title: "Wikidata-Eintrag Details: Gestapo. Terror. Orte",
-        },
-    },
+    // Admin-Routen wurden entfernt, da sie jetzt über PHP implementiert sind
     {
         name: "entry",
         path: "/entry",

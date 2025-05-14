@@ -19,6 +19,9 @@ RUN apt-get update && apt-get install -y \
 
 RUN docker-php-ext-install pdo_mysql pdo_sqlite bcmath mbstring xml
 
+# Verify that the SQLite extension is installed
+RUN php -m | grep pdo_sqlite || (echo "SQLite extension not installed correctly" && exit 1)
+
 # PHP-Erweiterungen installieren
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
