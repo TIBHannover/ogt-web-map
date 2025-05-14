@@ -1,0 +1,533 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Anfrage-Details</h1>
+        <a href="{{ route('admin.requests') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Zurück zur Übersicht
+        </a>
+    </div>
+
+    @if(session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
+        </div>
+    @endif
+
+    <!-- Status-Banner -->
+    <div class="alert alert-{{ 
+        $request->status == 'approved' ? 'success' : 
+        ($request->status == 'rejected' ? 'danger' : 
+        ($request->status == 'error' ? 'warning' : 'primary')) 
+    }} mb-4">
+        <h5 class="alert-heading">Status: 
+            @if($request->status == 'pending')
+                In Bearbeitung
+            @elseif($request->status == 'approved')
+                Genehmigt
+            @elseif($request->status == 'rejected')
+                Abgelehnt
+            @elseif($request->status == 'error')
+                Fehler
+            @endif
+        </h5>
+        
+        @if($request->status == 'approved' && $request->wikidata_id)
+            <div class="mt-2">
+                <a href="https://www.wikidata.org/wiki/{{ $request->wikidata_id }}" 
+                   target="_blank" class="btn btn-sm btn-light">
+                    Wikidata-Eintrag öffnen <i class="bi bi-box-arrow-up-right ms-1"></i>
+                </a>
+            </div>
+        @endif
+
+        @if($request->status == 'rejected' && $request->rejection_reason)
+            <div class="mt-2">
+                <strong>Ablehnungsgrund:</strong> {{ $request->rejection_reason }}
+            </div>
+        @endif
+
+        @if($request->status == 'error' && $request->error_message)
+            <div class="mt-2">
+                <strong>Fehlermeldung:</strong> {{ $request->error_message }}
+                <form action="/api/wikidata/requests/{{ $request->id }}/retry" method="POST" class="d-inline ml-2">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-warning">
+                        <i class="bi bi-arrow-repeat me-1"></i> Wiederholen
+                    </button>
+                </form>
+            </div>
+        @endif
+    </div>
+
+    <div class="row">
+        <!-- Hauptinformationen -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{{ $request->title }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <!-- Typ des Eintrags -->
+                        <span class="badge bg-primary me-2">
+                            @if($request->type == 'Q5')
+                                Person
+                            @elseif($request->type == 'Q6983405')
+                                Ereignis
+                            @elseif($request->type == 'Q43229')
+                                Organisation
+                            @elseif($request->type == 'Q811979')
+                                Architektonisches Struktur
+                            @else
+                                {{ $request->type }}
+                            @endif
+                        </span>
+                        
+                        <!-- Erstellungsdatum -->
+                        @if($request->created_at)
+                            <span class="badge bg-secondary me-2">
+                                Erstellt am: {{ $request->created_at->format('d.m.Y H:i') }}
+                            </span>
+                        @endif
+                        
+                        <!-- Ersteller -->
+                        <span class="badge bg-secondary">
+                            Erstellt von: {{ $request->submitted_by ?? 'Unbekannt' }}
+                        </span>
+                    </div>
+
+                    <!-- Beschreibung -->
+                    <div class="mb-4">
+                        <h6>Beschreibung:</h6>
+                        <p>{{ $request->description }}</p>
+                    </div>
+
+                    <hr>
+
+                    <!-- Koordinaten -->
+                    @if($request->coordinates)
+                        <div class="mb-4">
+                            <h6>Koordinaten:</h6>
+                            @php
+                                $coords = $request->coordinates;
+                                // Mögliche Formate: JSON-Objekt, Array oder Komma-getrennte Strings
+                                if (is_string($coords)) {
+                                    if (strpos($coords, '{') === 0) {
+                                        // JSON-Objekt Format
+                                        $coordinates = json_decode($coords);
+                                        $lat = $coordinates->lat ?? null;
+                                        $lng = $coordinates->lng ?? null;
+                                    } elseif (strpos($coords, '[') === 0) {
+                                        // JSON-Array Format
+                                        $coordinates = json_decode($coords);
+                                        $lat = $coordinates[0] ?? null;
+                                        $lng = $coordinates[1] ?? null;
+                                    } else {
+                                        // Komma-getrennte Strings
+                                        $parts = explode(',', $coords);
+                                        if (count($parts) >= 2) {
+                                            $lat = trim($parts[0]);
+                                            $lng = trim($parts[1]);
+                                        } else {
+                                            $lat = null;
+                                            $lng = null;
+                                        }
+                                    }
+                                } else {
+                                    $lat = null;
+                                    $lng = null;
+                                }
+                            @endphp
+                            @if($lat && $lng)
+                                <div class="mb-2">{{ number_format((float)$lat, 6, '.', '') }}, {{ number_format((float)$lng, 6, '.', '') }}</div>
+                                <div style="height: 300px; width: 100%" id="map-container">
+                                    <!-- Die Karte wird per JavaScript gerendert -->
+                                </div>
+                            @else
+                                <p>Ungültiges Koordinatenformat: {{ $request->coordinates }}</p>
+                            @endif
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Typspezifische Informationen -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Spezifische Informationen</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Ereignis (Q6983405) -->
+                    @if($request->type == 'Q6983405')
+                        @if($request->time_point || $request->time_period_start)
+                            <div class="mb-3">
+                                <h6>
+                                    @if($request->time_point) Zeitpunkt: @else Zeitraum: @endif
+                                </h6>
+                                @if($request->time_point)
+                                    <p>{{ \Carbon\Carbon::parse($request->time_point)->format('d.m.Y') }}</p>
+                                @else
+                                    <p>
+                                        Von: {{ \Carbon\Carbon::parse($request->time_period_start)->format('d.m.Y') }}
+                                        @if($request->time_period_end)
+                                            bis: {{ \Carbon\Carbon::parse($request->time_period_end)->format('d.m.Y') }}
+                                        @endif
+                                    </p>
+                                @endif
+                            </div>
+                        @endif
+
+                        @if($request->cause)
+                            <div class="mb-3">
+                                <h6>Ursache:</h6>
+                                <p>{{ $request->cause }}</p>
+                            </div>
+                        @endif
+
+                        @if($request->cause_search)
+                            <div class="mb-3">
+                                <h6>Ursache der Verfolgung:</h6>
+                                <p>{{ $request->cause_search }}</p>
+                            </div>
+                        @endif
+
+                        @if($request->victim_count || $request->survivor_count || $request->death_count || $request->arrest_count)
+                            <div class="mb-3">
+                                <h6>Statistiken:</h6>
+                                <ul>
+                                    @if($request->victim_count)
+                                        <li>Opfer: {{ $request->victim_count }}</li>
+                                    @endif
+                                    @if($request->survivor_count)
+                                        <li>Überlebende: {{ $request->survivor_count }}</li>
+                                    @endif
+                                    @if($request->death_count)
+                                        <li>Todesfälle: {{ $request->death_count }}</li>
+                                    @endif
+                                    @if($request->arrest_count)
+                                        <li>Verhaftungen: {{ $request->arrest_count }}</li>
+                                    @endif
+                                </ul>
+                            </div>
+                        @endif
+                    @endif
+
+                    <!-- Person (Q5) -->
+                    @if($request->type == 'Q5')
+                        @if($request->cause_search)
+                            <div class="mb-3">
+                                <h6>Ursache der Verfolgung:</h6>
+                                <p>{{ $request->cause_search }}</p>
+                            </div>
+                        @endif
+
+                        @if($request->date_of_birth || $request->date_of_death)
+                            <div class="mb-3">
+                                <h6>Lebensdaten:</h6>
+                                <p>
+                                    @if($request->date_of_birth)
+                                        Geboren: {{ \Carbon\Carbon::parse($request->date_of_birth)->format('d.m.Y') }}
+                                    @endif
+                                    @if($request->date_of_death)
+                                        {{ $request->date_of_birth ? ' | ' : '' }}Gestorben: {{ \Carbon\Carbon::parse($request->date_of_death)->format('d.m.Y') }}
+                                    @endif
+                                </p>
+                            </div>
+                        @endif
+
+                        @if($request->occupation)
+                            <div class="mb-3">
+                                <h6>Beruf:</h6>
+                                <p>{{ $request->occupation }}</p>
+                            </div>
+                        @endif
+
+                        @if($request->nationality)
+                            <div class="mb-3">
+                                <h6>Nationalität:</h6>
+                                <p>{{ $request->nationality }}</p>
+                            </div>
+                        @endif
+                    @endif
+
+                    <!-- Organisation (Q43229) -->
+                    @if($request->type == 'Q43229')
+                        @if($request->cause_search)
+                            <div class="mb-3">
+                                <h6>Ursache der Verfolgung:</h6>
+                                <p>{{ $request->cause_search }}</p>
+                            </div>
+                        @endif
+
+                        @if($request->inception || $request->dissolved_date)
+                            <div class="mb-3">
+                                <h6>Zeitraum:</h6>
+                                <p>
+                                    @if($request->inception)
+                                        Gründung: {{ \Carbon\Carbon::parse($request->inception)->format('d.m.Y') }}
+                                    @endif
+                                    @if($request->dissolved_date)
+                                        {{ $request->inception ? ' | ' : '' }}Auflösung: {{ \Carbon\Carbon::parse($request->dissolved_date)->format('d.m.Y') }}
+                                    @endif
+                                </p>
+                            </div>
+                        @endif
+
+                        @if($request->headquarters_location)
+                            <div class="mb-3">
+                                <h6>Hauptsitz:</h6>
+                                <p>{{ $request->headquarters_location }}</p>
+                            </div>
+                        @endif
+                    @endif
+
+                    <!-- Architektonische Struktur (Q811979) -->
+                    @if($request->type == 'Q811979')
+                        @if($request->cause_search)
+                            <div class="mb-3">
+                                <h6>Ursache der Verfolgung:</h6>
+                                <p>{{ $request->cause_search }}</p>
+                            </div>
+                        @endif
+
+                        @if($request->inception || $request->demolished_date)
+                            <div class="mb-3">
+                                <h6>Zeitraum:</h6>
+                                <p>
+                                    @if($request->inception)
+                                        Errichtet: {{ \Carbon\Carbon::parse($request->inception)->format('d.m.Y') }}
+                                    @endif
+                                    @if($request->demolished_date)
+                                        {{ $request->inception ? ' | ' : '' }}Abgerissen: {{ \Carbon\Carbon::parse($request->demolished_date)->format('d.m.Y') }}
+                                    @endif
+                                </p>
+                            </div>
+                        @endif
+
+                        @if($request->architect)
+                            <div class="mb-3">
+                                <h6>Architekt:</h6>
+                                <p>{{ $request->architect }}</p>
+                            </div>
+                        @endif
+
+                        @if($request->height)
+                            <div class="mb-3">
+                                <h6>Höhe:</h6>
+                                <p>{{ $request->height }} m</p>
+                            </div>
+                        @endif
+                    @endif
+                </div>
+            </div>
+
+            <!-- Debug: JSON-Darstellung des Requests -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Debug: JSON-Daten</h5>
+                    <button class="btn btn-sm btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDebug" aria-expanded="false" aria-controls="collapseDebug">Anzeigen/Verbergen</button>
+                </div>
+                <div class="collapse" id="collapseDebug">
+                    <div class="card-body">
+                        <pre class="bg-light p-3" style="max-height: 400px; overflow-y: auto;">{{ json_encode($request, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seitenleiste -->
+        <div class="col-md-4">
+            <!-- Bild -->
+            @if($request->image_url)
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Bild</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <img src="{{ $request->image_url }}" 
+                             alt="{{ $request->title }}" 
+                             class="img-fluid mb-2" 
+                             style="max-height: 250px;">
+                        @if($request->image_filename)
+                            <div class="text-muted small">{{ $request->image_filename }}</div>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
+            <!-- Aktionen -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Aktionen</h5>
+                </div>
+                <div class="card-body">
+                    @if($request->status == 'pending')
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-success w-100 mb-2" data-bs-toggle="modal" data-bs-target="#approveModal">
+                                <i class="bi bi-check-circle me-1"></i> Genehmigen
+                            </button>
+                            
+                            <button type="button" class="btn btn-danger w-100 mb-2" 
+                                    data-bs-toggle="modal" data-bs-target="#rejectModal">
+                                <i class="bi bi-x-circle me-1"></i> Ablehnen
+                            </button>
+                        </div>
+                    @endif
+
+                    @if($request->status == 'error')
+                        <form action="/api/wikidata/requests/{{ $request->id }}/retry" method="POST">
+                            @csrf
+                            <button type="submit" class="btn btn-warning w-100 mb-2">
+                                <i class="bi bi-arrow-repeat me-1"></i> Erneut versuchen
+                            </button>
+                        </form>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Metadaten -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Metadaten</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">ID:</dt>
+                        <dd class="col-sm-7">{{ $request->id }}</dd>
+
+                        <dt class="col-sm-5">Erstellt am:</dt>
+                        <dd class="col-sm-7">{{ $request->created_at->format('d.m.Y H:i') }}</dd>
+
+                        @if($request->updated_at)
+                            <dt class="col-sm-5">Aktualisiert:</dt>
+                            <dd class="col-sm-7">{{ $request->updated_at->format('d.m.Y H:i') }}</dd>
+                        @endif
+
+                        @if($request->wikidata_id)
+                            <dt class="col-sm-5">Wikidata ID:</dt>
+                            <dd class="col-sm-7">
+                                <a href="https://www.wikidata.org/wiki/{{ $request->wikidata_id }}" target="_blank">
+                                    {{ $request->wikidata_id }}
+                                </a>
+                            </dd>
+                        @endif
+
+                        @if($request->wikidata_url)
+                            <dt class="col-sm-5">URL:</dt>
+                            <dd class="col-sm-7">
+                                <a href="{{ $request->wikidata_url }}" target="_blank">
+                                    Wikidata Link <i class="bi bi-box-arrow-up-right ms-1"></i>
+                                </a>
+                            </dd>
+                        @endif
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ablehnungs-Modal -->
+@if($request->status == 'pending')
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="/api/wikidata/requests/{{ $request->id }}/reject" method="POST">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rejectModalLabel">Anfrage ablehnen</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="rejection_reason" class="form-label">Ablehnungsgrund</label>
+                        <textarea class="form-control" id="rejection_reason" name="rejection_reason" 
+                                  rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-x-circle me-1"></i> Anfrage ablehnen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Genehmigungs-Modal -->
+<div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="/api/wikidata/requests/{{ $request->id }}/approve" method="POST">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title" id="approveModalLabel">Anfrage genehmigen</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Möchten Sie die folgende Anfrage wirklich genehmigen?</p>
+                    <div class="alert alert-info">
+                        <strong>{{ $request->title }}</strong><br>
+                        <small>Diese Aktion erstellt einen neuen Eintrag in Wikidata und kann nicht rückgängig gemacht werden.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle me-1"></i> Anfrage genehmigen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+@endsection
+
+@if($request->coordinates)
+@push('scripts')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Koordinaten aus PHP-Variablen
+        var lat = {{ $lat ?? 0 }};
+        var lng = {{ $lng ?? 0 }};
+        
+        if (lat && lng) {
+            // Container-Element 
+            var mapContainer = document.getElementById('map-container');
+            
+            // Karte initialisieren
+            var map = L.map(mapContainer).setView([lat, lng], 15);
+            
+            // OpenStreetMap-Tile-Layer hinzufügen
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            // Marker hinzufügen
+            L.marker([lat, lng]).addTo(map)
+                .bindPopup("{{ addslashes($request->title) }}");
+        }
+    });
+</script>
+<style>
+    #map-container {
+        height: 300px;
+        width: 100%;
+        border-radius: 4px;
+    }
+</style>
+@endpush
+@endif
