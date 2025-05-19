@@ -2,7 +2,7 @@
     <div class="sources-selector">
         <v-card>
             <v-card-title>Quellenangabe hinzufügen</v-card-title>
-            <v-card-text>
+            <v-card-text class="overlay-content">
                 <!-- Quellentyp auswählen -->
                 <div class="source-type-selector">
                     <label>Quellentyp auswählen:</label>
@@ -112,25 +112,17 @@
                             </v-list-item>
                         </v-list>
 
-                        <!-- Option zum manuellen Hinzufügen, wenn nichts gefunden wurde -->
-                        <div
-                            v-if="
-                                bookSearch.performed &&
-                                bookSearch.results.length === 0
-                            "
-                            class="mt-4"
-                        >
+                        <!-- Button zum Hinzufügen eines neuen Buchs -->
+                        <div class="mt-4" v-if="bookSearch.performed">
                             <v-divider></v-divider>
                             <div
-                                class="d-flex align-center justify-space-between mt-3"
+                                class="d-flex align-center justify-center mt-3"
                             >
-                                <div>Buch nicht gefunden?</div>
                                 <v-btn
                                     color="primary"
-                                    @click="bookSearch.showManualForm = true"
-                                    variant="text"
+                                    @click="showManualBookForm"
                                 >
-                                    Manuell hinzufügen
+                                    Neues Buch anlegen
                                 </v-btn>
                             </div>
                         </div>
@@ -491,6 +483,12 @@ const bookForm = ref({
     },
 });
 
+const showManualBookForm = () => {
+    bookSearch.value.showManualForm = true;
+    bookSearch.value.results = [];
+    bookSearch.value.query = "";
+};
+
 const searchBooks = async () => {
     if (!bookSearch.value.query || bookSearch.value.query.trim() === "") {
         bookSearch.value.error = "Bitte geben Sie einen Suchbegriff ein.";
@@ -718,6 +716,11 @@ const closeDialog = () => {
 <style scoped>
 .sources-selector {
     min-width: 500px;
+}
+
+.overlay-content {
+    max-height: 80vh;
+    overflow-y: auto;
 }
 
 .source-type-selector {
