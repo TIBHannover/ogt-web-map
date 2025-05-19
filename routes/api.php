@@ -94,3 +94,15 @@ Route::get("/wikidata/search/concepts", [
     WikidataSearchController::class,
     "searchConcepts",
 ]);
+
+// Route for searching books in Wikidata
+Route::get("/wikidata/search/books", [
+    WikidataSearchController::class,
+    "searchBooks",
+]);
+
+// Route for searching archives in Wikidata
+Route::get("/wikidata/search/archives", [
+    WikidataSearchController::class,
+    "searchArchives",
+]);

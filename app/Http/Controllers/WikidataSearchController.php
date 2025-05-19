@@ -535,4 +535,322 @@ class WikidataSearchController extends Controller
             );
         }
     }
+    /**
+     * Search for books in Wikidata
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function searchBooks(Request $request): JsonResponse
+    {
+        $request->validate([
+            "query" => "required|string|min:2",
+        ]);
+
+        $query = $request->input("query");
+
+        try {
+            // Check if it's a direct Q-ID query
+            if (preg_match('/^Q\d+$/', $query)) {
+                // Direct query for the entity with that Q-ID
+                $response = Http::accept("application/json")->get(
+                    "https://www.wikidata.org/w/api.php",
+                    [
+                        "action" => "wbgetentities",
+                        "ids" => $query,
+                        "languages" => "de|en", // Request German and English
+                        "format" => "json",
+                    ]
+                );
+
+                if (
+                    $response->successful() &&
+                    !empty($response->json()["entities"][$query])
+                ) {
+                    $entity = $response->json()["entities"][$query];
+
+                    // Check if this is a book (instance of book Q571)
+                    $isBook = false;
+                    if (isset($entity["claims"]["P31"])) {
+                        foreach ($entity["claims"]["P31"] as $claim) {
+                            if (
+                                isset(
+                                    $claim["mainsnak"]["datavalue"]["value"][
+                                        "id"
+                                    ]
+                                )
+                            ) {
+                                $instanceOf =
+                                    $claim["mainsnak"]["datavalue"]["value"][
+                                        "id"
+                                    ];
+                                // Check for book (Q571) or any subclass of book
+                                if (
+                                    $instanceOf === "Q571" ||
+                                    $instanceOf === "Q7725634" ||
+                                    $instanceOf === "Q1667921"
+                                ) {
+                                    $isBook = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (!$isBook) {
+                        return response()->json([
+                            "success" => false,
+                            "message" =>
+                                "Das ausgewählte Element ist kein Buch",
+                            "results" => [],
+                        ]);
+                    }
+
+                    // Extract author information if available (P50)
+                    $authors = [];
+                    if (isset($entity["claims"]["P50"])) {
+                        foreach ($entity["claims"]["P50"] as $claim) {
+                            if (
+                                isset(
+                                    $claim["mainsnak"]["datavalue"]["value"][
+                                        "id"
+                                    ]
+                                )
+                            ) {
+                                $authorId =
+                                    $claim["mainsnak"]["datavalue"]["value"][
+                                        "id"
+                                    ];
+                                $authors[] = $authorId;
+                            }
+                        }
+                    }
+
+                    // Prioritize description: German > English > empty
+                    $description = null;
+                    if (!empty($entity["descriptions"]["de"]["value"])) {
+                        $description = $entity["descriptions"]["de"]["value"];
+                    } elseif (!empty($entity["descriptions"]["en"]["value"])) {
+                        $description = $entity["descriptions"]["en"]["value"];
+                    }
+
+                    // Prioritize label: German > English > Q-ID
+                    $label = $query;
+                    if (!empty($entity["labels"]["de"]["value"])) {
+                        $label = $entity["labels"]["de"]["value"];
+                    } elseif (!empty($entity["labels"]["en"]["value"])) {
+                        $label = $entity["labels"]["en"]["value"];
+                    }
+
+                    return response()->json([
+                        "success" => true,
+                        "results" => [
+                            [
+                                "id" => $query,
+                                "label" => $label,
+                                "description" => $description,
+                                "authors" => $authors,
+                            ],
+                        ],
+                    ]);
+                }
+            }
+
+            // Search for books in Wikidata
+            $response = Http::accept("application/json")->get(
+                "https://www.wikidata.org/w/api.php",
+                [
+                    "action" => "wbsearchentities",
+                    "search" => $query,
+                    "language" => "de",
+                    "format" => "json",
+                    "type" => "item",
+                    "limit" => 10,
+                ]
+            );
+
+            if (!$response->successful()) {
+                return response()->json(
+                    ["error" => "Wikidata API request failed"],
+                    500
+                );
+            }
+
+            $results = $response->json()["search"] ?? [];
+
+            if (empty($results)) {
+                return response()->json([
+                    "success" => true,
+                    "results" => [],
+                ]);
+            }
+
+            // We'll need to filter these results to only include books
+            // This would be best done by checking if each entity is an instance of book (Q571)
+            // But that would require additional API calls for each result
+            // For now, we'll return all results and let the frontend handle filtering
+
+            return response()->json([
+                "success" => true,
+                "results" => $results,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error("Wikidata book search error: " . $e->getMessage());
+            return response()->json(
+                [
+                    "error" =>
+                        "Failed to search Wikidata books: " . $e->getMessage(),
+                ],
+                500
+            );
+        }
+    }
+
+    /**
+     * Search for archives in Wikidata
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function searchArchives(Request $request): JsonResponse
+    {
+        $request->validate([
+            "query" => "required|string|min:2",
+        ]);
+
+        $query = $request->input("query");
+
+        try {
+            // Check if it's a direct Q-ID query
+            if (preg_match('/^Q\d+$/', $query)) {
+                // Direct query for the entity with that Q-ID
+                $response = Http::accept("application/json")->get(
+                    "https://www.wikidata.org/w/api.php",
+                    [
+                        "action" => "wbgetentities",
+                        "ids" => $query,
+                        "languages" => "de|en", // Request German and English
+                        "format" => "json",
+                    ]
+                );
+
+                if (
+                    $response->successful() &&
+                    !empty($response->json()["entities"][$query])
+                ) {
+                    $entity = $response->json()["entities"][$query];
+
+                    // Check if this is an archive (instance of archive Q166118)
+                    $isArchive = false;
+                    if (isset($entity["claims"]["P31"])) {
+                        foreach ($entity["claims"]["P31"] as $claim) {
+                            if (
+                                isset(
+                                    $claim["mainsnak"]["datavalue"]["value"][
+                                        "id"
+                                    ]
+                                )
+                            ) {
+                                $instanceOf =
+                                    $claim["mainsnak"]["datavalue"]["value"][
+                                        "id"
+                                    ];
+                                // Check for archive (Q166118) or archives (Q211650)
+                                if (
+                                    $instanceOf === "Q166118" ||
+                                    $instanceOf === "Q211650"
+                                ) {
+                                    $isArchive = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (!$isArchive) {
+                        return response()->json([
+                            "success" => false,
+                            "message" =>
+                                "Das ausgewählte Element ist kein Archiv",
+                            "results" => [],
+                        ]);
+                    }
+
+                    // Prioritize description: German > English > empty
+                    $description = null;
+                    if (!empty($entity["descriptions"]["de"]["value"])) {
+                        $description = $entity["descriptions"]["de"]["value"];
+                    } elseif (!empty($entity["descriptions"]["en"]["value"])) {
+                        $description = $entity["descriptions"]["en"]["value"];
+                    }
+
+                    // Prioritize label: German > English > Q-ID
+                    $label = $query;
+                    if (!empty($entity["labels"]["de"]["value"])) {
+                        $label = $entity["labels"]["de"]["value"];
+                    } elseif (!empty($entity["labels"]["en"]["value"])) {
+                        $label = $entity["labels"]["en"]["value"];
+                    }
+
+                    return response()->json([
+                        "success" => true,
+                        "results" => [
+                            [
+                                "id" => $query,
+                                "label" => $label,
+                                "description" => $description,
+                            ],
+                        ],
+                    ]);
+                }
+            }
+
+            // Search for archives in Wikidata
+            $response = Http::accept("application/json")->get(
+                "https://www.wikidata.org/w/api.php",
+                [
+                    "action" => "wbsearchentities",
+                    "search" => $query,
+                    "language" => "de",
+                    "format" => "json",
+                    "type" => "item",
+                    "limit" => 10,
+                ]
+            );
+
+            if (!$response->successful()) {
+                return response()->json(
+                    ["error" => "Wikidata API request failed"],
+                    500
+                );
+            }
+
+            $results = $response->json()["search"] ?? [];
+
+            if (empty($results)) {
+                return response()->json([
+                    "success" => true,
+                    "results" => [],
+                ]);
+            }
+
+            // Like with books, filtering to ensure we only return archives would need more API calls
+            // For now, we'll return all results and filter on the frontend or refine the search term
+
+            return response()->json([
+                "success" => true,
+                "results" => $results,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error("Wikidata archive search error: " . $e->getMessage());
+            return response()->json(
+                [
+                    "error" =>
+                        "Failed to search Wikidata archives: " .
+                        $e->getMessage(),
+                ],
+                500
+            );
+        }
+    }
 }

@@ -465,6 +465,95 @@
                     </div>
                 </div>
 
+                <!-- Quellenangaben -->
+                <div class="container-section sources-section">
+                    <div class="section-header">
+                        <label class="section-label">Quellenangaben</label>
+                        <button
+                            type="button"
+                            class="info-icon"
+                            @click="openSectionInfo('sources')"
+                        >
+                            <v-icon>mdi-information-variant</v-icon>
+                        </button>
+                    </div>
+                    <div class="sources-selection">
+                        <button
+                            type="button"
+                            class="button bg-secondary"
+                            @click="openSourcesSelector"
+                            @focus="setActiveField('sources')"
+                        >
+                            <v-icon class="me-1">mdi-plus</v-icon>
+                            Quellenangabe hinzufügen
+                        </button>
+
+                        <div v-if="selectedSourcesValue.length > 0" class="selected-sources mt-4">
+                            <div 
+                                v-for="(source, index) in selectedSourcesValue" 
+                                :key="index"
+                                class="source-item"
+                            >
+                                <div class="source-type-icon">
+                                    <v-icon v-if="source.type === 'book'">mdi-book</v-icon>
+                                    <v-icon v-else-if="source.type === 'url'">mdi-link</v-icon>
+                                    <v-icon v-else-if="source.type === 'archive'">mdi-archive</v-icon>
+                                </div>
+                                <div class="source-content">
+                                    <div class="source-title">{{ source.title }}</div>
+                                    <div v-if="source.description" class="source-description">{{ source.description }}</div>
+                                    <div class="source-details">
+                                        <template v-if="source.type === 'book'">
+                                            <span v-if="source.pages">S. {{ source.pages }}</span>
+                                            <a 
+                                                v-if="source.id && source.id !== 'manual'"
+                                                :href="`https://www.wikidata.org/wiki/${source.id}`"
+                                                target="_blank"
+                                                class="source-link"
+                                            >
+                                                <v-icon size="x-small">mdi-open-in-new</v-icon>
+                                                Wikidata
+                                            </a>
+                                        </template>
+                                        <template v-else-if="source.type === 'url'">
+                                            <span v-if="source.accessDate">
+                                                Zugriff am {{ formatDate(source.accessDate) }}
+                                            </span>
+                                            <a 
+                                                :href="source.url"
+                                                target="_blank"
+                                                class="source-link"
+                                            >
+                                                <v-icon size="x-small">mdi-open-in-new</v-icon>
+                                                Link
+                                            </a>
+                                        </template>
+                                        <template v-else-if="source.type === 'archive'">
+                                            <span>Inv. Nr. {{ source.inventoryNumber }}</span>
+                                            <a 
+                                                v-if="source.id && source.id !== 'manual'"
+                                                :href="`https://www.wikidata.org/wiki/${source.id}`"
+                                                target="_blank"
+                                                class="source-link"
+                                            >
+                                                <v-icon size="x-small">mdi-open-in-new</v-icon>
+                                                Wikidata
+                                            </a>
+                                        </template>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    class="remove-source"
+                                    @click="removeSource(index)"
+                                >
+                                    <v-icon>mdi-close</v-icon>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="button-container">
                     <button
                         class="button bg-secondary"
@@ -519,6 +608,14 @@
         />
     </v-dialog>
 
+    <!-- Dialog für Quellenauswahl -->
+    <v-dialog v-model="sourcesDialogVisible" max-width="900px">
+        <sources-selector
+            @select="selectSource"
+            @close="closeSourcesDialog"
+        />
+    </v-dialog>
+
     <!-- Lightbox für Bildanzeige -->
     <lightbox
         :is-open="lightboxOpen"
@@ -536,6 +633,7 @@ import PersonsField from "./fields/Persons.vue";
 import "leaflet/dist/leaflet.css";
 import { LMap, LTileLayer, LMarker } from "@vue-leaflet/vue-leaflet";
 import WikimediaImageSelector from "./fields/WikimediaImageSelector.vue";
+import SourcesSelector from "./fields/SourcesSelector.vue";
 import Lightbox from "../helpers/Lightbox.vue";
 
 // Props von der übergeordneten Komponente
@@ -827,9 +925,14 @@ const imageFilenameValue = computed({
     set: (value) => emit("update:imageFilename", value),
 });
 
+const selectedSourcesValue = ref([]);
+
 // Bild-Dialog
 const imageDialogVisible = ref(false);
 const lightboxOpen = ref(false);
+
+// Sources-Dialog
+const sourcesDialogVisible = ref(false);
 
 // Ladezustände und leere Ergebnisse
 const isVictimSearchLoading = ref(false);
@@ -1008,6 +1111,17 @@ const getSectionInfoContent = (sectionName) => {
                  <li>Denkmäler oder Gedenktafeln</li>
                </ul>
                <p>Verwenden Sie nur Bilder, die Sie rechtlich nutzen dürfen, und achten Sie auf korrekte Quellenangaben.</p>`,
+
+        sources: `<p>Hier können Sie Quellenangaben zum Ereignis hinzufügen.</p>
+                <p>Sie können verschiedene Arten von Quellen angeben:</p>
+                <ul>
+                  <li><strong>Bücher:</strong> Wissenschaftliche Werke, Monographien, Sammelbände etc.</li>
+                  <li><strong>URLs:</strong> Vertrauenswürdige Webseiten, Online-Archive, Datenbanken</li>
+                  <li><strong>Archive:</strong> Archivmaterial mit Inventarnummer</li>
+                </ul>
+                <p>Bei Buchquellen können Sie nach bereits in Wikidata erfassten Werken suchen oder neue Werke manuell hinzufügen. Geben Sie möglichst genaue Seitenangaben an.</p>
+                <p>Bei URLs ist das Zugriffsdatum wichtig, um die zeitliche Verfügbarkeit der Information zu dokumentieren.</p>
+                <p>Bei Archivquellen geben Sie das entsprechende Archiv und die Inventarnummer an.</p>`,
 
         victims: `<p>Hier fügen Sie die Geschädigten oder Opfer des Ereignisses hinzu.</p>
                 <p>Sie können nach bereits bekannten Personen suchen oder neue Personen manuell hinzufügen.</p>
@@ -1196,6 +1310,31 @@ const selectImage = (image) => {
 const removeImage = () => {
     imageUrlValue.value = null;
     imageFilenameValue.value = null;
+};
+
+// Sources-Auswahllogik
+const openSourcesSelector = () => {
+    sourcesDialogVisible.value = true;
+};
+
+const closeSourcesDialog = () => {
+    sourcesDialogVisible.value = false;
+};
+
+const selectSource = (data) => {
+    selectedSourcesValue.value.push(data.source);
+    sourcesDialogVisible.value = false;
+};
+
+const removeSource = (index) => {
+    selectedSourcesValue.value.splice(index, 1);
+};
+
+// Formatiert ein Datum im deutschen Format
+const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('de-DE');
 };
 
 const openLightbox = () => {
@@ -2006,5 +2145,73 @@ label.section-label {
     cursor: pointer;
     font-size: 1.2rem;
     padding: 0 0.5rem;
+}
+
+/* Quellenangaben Stile */
+.sources-section {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+.selected-sources {
+    margin-top: 1rem;
+}
+
+.source-item {
+    display: flex;
+    align-items: flex-start;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 1rem;
+    margin-bottom: 0.8rem;
+    position: relative;
+}
+
+.source-type-icon {
+    margin-right: 1rem;
+    color: #555;
+}
+
+.source-content {
+    flex: 1;
+}
+
+.source-title {
+    font-weight: bold;
+    margin-bottom: 0.3rem;
+}
+
+.source-description {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.source-details {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #777;
+}
+
+.source-link {
+    color: #005691;
+    text-decoration: none;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+}
+
+.remove-source {
+    background: none;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0;
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
 }
 </style>
