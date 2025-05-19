@@ -1,6 +1,16 @@
 <template>
     <div class="persons-section container-section">
-        <label :for="fieldId" class="section-label">{{ label }}</label>
+        <div class="section-header">
+            <label :for="fieldId" class="section-label">{{ label }}</label>
+            <button
+                v-if="showInfoButton"
+                type="button"
+                class="info-icon"
+                @click="onInfoButtonClick"
+            >
+                <v-icon>mdi-information-variant</v-icon>
+            </button>
+        </div>
         <div v-if="!showNewPersonForm" class="persons-search">
             <input
                 type="text"
@@ -223,6 +233,10 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
+    showInfoButton: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 // Emits für Ereignisse
@@ -234,6 +248,7 @@ const emit = defineEmits([
     "update:newPerson",
     "addNewPerson",
     "removePerson",
+    "infoButtonClick",
 ]);
 
 // Local state
@@ -269,12 +284,42 @@ const onAddNewPerson = () => {
 const onRemovePerson = (id) => {
     emit("removePerson", id);
 };
+
+const onInfoButtonClick = () => {
+    emit("infoButtonClick", props.fieldId);
+};
 </script>
 
 <style scoped>
 .persons-section {
     width: 100%;
     margin-bottom: 1.5rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.info-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.info-icon:hover {
+    background-color: #1565c0;
 }
 
 .persons-search {
@@ -562,5 +607,11 @@ const onRemovePerson = (id) => {
 .result-id {
     font-size: 0.8rem;
     color: #888;
+}
+
+@media (min-width: 1200px) {
+    .info-icon {
+        display: none !important;
+    }
 }
 </style>

@@ -7,7 +7,18 @@
                     class="main-section container-section"
                     @focusin="setActiveSection('title')"
                 >
-                    <label class="section-label">Basis Informationen:</label>
+                    <div class="section-header">
+                        <label class="section-label"
+                            >Basis Informationen:</label
+                        >
+                        <button
+                            type="button"
+                            class="info-icon"
+                            @click="openSectionInfo('title')"
+                        >
+                            <v-icon>mdi-information-variant</v-icon>
+                        </button>
+                    </div>
                     <label for="title" class="">Titel *</label>
                     <input
                         v-model="title"
@@ -52,12 +63,23 @@
                         name="description"
                         maxlength="750"
                         placeholder="z.B. vom NS-Regime gelenkte Gewaltmaßnahmen gegen Juden in Osnabrück."
-                        @focus="setActiveField('description')"
+                        @focus="setActiveField('title')"
                     ></textarea>
                 </div>
                 <!-- Zeitpunkt/Zeitraum -->
                 <div class="time-section container-section">
-                    <label class="section-label">Zeitpunkt / Zeitraum:</label>
+                    <div class="section-header">
+                        <label class="section-label"
+                            >Zeitpunkt / Zeitraum:</label
+                        >
+                        <button
+                            type="button"
+                            class="info-icon"
+                            @click="openSectionInfo('time')"
+                        >
+                            <v-icon>mdi-information-variant</v-icon>
+                        </button>
+                    </div>
                     <div class="time-type-selection">
                         <div class="form-group">
                             <input
@@ -91,7 +113,7 @@
                             type="date"
                             id="event-date"
                             v-model="eventDateValue"
-                            @focus="setActiveField('event-date')"
+                            @focus="setActiveField('time')"
                         />
                     </div>
 
@@ -108,7 +130,7 @@
                                 type="date"
                                 id="event-start-date"
                                 v-model="eventStartDateValue"
-                                @focus="setActiveField('event-start-date')"
+                                @focus="setActiveField('time')"
                             />
                         </div>
                         <div class="form-group">
@@ -119,7 +141,7 @@
                                 type="date"
                                 id="event-end-date"
                                 v-model="eventEndDateValue"
-                                @focus="setActiveField('event-end-date')"
+                                @focus="setActiveField('time')"
                             />
                         </div>
                     </div>
@@ -135,6 +157,7 @@
                     :newPerson="newVictimLocal"
                     :isSearchLoading="isVictimSearchLoading"
                     :searchPerformed="victimSearchPerformed"
+                    :showInfoButton="true"
                     @searchPeople="onSearchPeople"
                     @selectPerson="onSelectVictim"
                     @startNewPersonForm="onStartNewVictimForm"
@@ -143,6 +166,7 @@
                     @addNewPerson="onAddNewVictim"
                     @removePerson="onRemoveVictim"
                     @focusin="setActiveField('victims')"
+                    @infoButtonClick="openSectionInfo('victims')"
                 />
 
                 <!-- Täter-Eingabefeld -->
@@ -155,6 +179,7 @@
                     :newPerson="newPerpetratorLocal"
                     :isSearchLoading="isPerpetratorsSearchLoading"
                     :searchPerformed="perpetratorSearchPerformed"
+                    :showInfoButton="true"
                     @searchPeople="onSearchPerpetrators"
                     @selectPerson="onSelectPerpetrator"
                     @startNewPersonForm="onStartNewPerpetratorForm"
@@ -163,11 +188,21 @@
                     @addNewPerson="onAddNewPerpetrator"
                     @removePerson="onRemovePerpetrator"
                     @focusin="setActiveField('perpetrators')"
+                    @infoButtonClick="openSectionInfo('perpetrators')"
                 />
 
                 <!-- Opferzahlen -->
                 <div class="counts-section container-section">
-                    <label class="section-label">Opferzahlen:</label>
+                    <div class="section-header">
+                        <label class="section-label">Opferzahlen:</label>
+                        <button
+                            type="button"
+                            class="info-icon"
+                            @click="openSectionInfo('counts')"
+                        >
+                            <v-icon>mdi-information-variant</v-icon>
+                        </button>
+                    </div>
                     <v-row class="align-end">
                         <v-col cols="12" md="3">
                             <div class="form-group">
@@ -193,7 +228,7 @@
                                     id="survivor-count"
                                     v-model="survivorCountValue"
                                     min="0"
-                                    @focus="setActiveField('survivor-count')"
+                                    @focus="setActiveField('victim-count')"
                                 />
                             </div>
                         </v-col>
@@ -207,7 +242,7 @@
                                     id="death-count"
                                     v-model="deathCountValue"
                                     min="0"
-                                    @focus="setActiveField('death-count')"
+                                    @focus="setActiveField('victim-count')"
                                 />
                             </div>
                         </v-col>
@@ -221,7 +256,7 @@
                                     id="arrest-count"
                                     v-model="arrestCountValue"
                                     min="0"
-                                    @focus="setActiveField('arrest-count')"
+                                    @focus="setActiveField('victim-count')"
                                 />
                             </div>
                         </v-col>
@@ -230,9 +265,18 @@
 
                 <!-- Ursache der Verfolgung -->
                 <div class="cause-section container-section">
-                    <label for="cause" class="section-label"
-                        >Ursache der Verfolgung</label
-                    >
+                    <div class="section-header">
+                        <label class="section-label"
+                            >Ursache der Verfolgung:</label
+                        >
+                        <button
+                            type="button"
+                            class="info-icon"
+                            @click="openSectionInfo('cause')"
+                        >
+                            <v-icon>mdi-information-variant</v-icon>
+                        </button>
+                    </div>
                     <!-- Sucheingabefeld ist immer sichtbar -->
                     <div class="cause-search">
                         <input
@@ -305,9 +349,18 @@
 
                 <!-- Standort -->
                 <div class="container-section location-section">
-                    <label for="location" class="section-label"
-                        >Standort auswählen *</label
-                    >
+                    <div class="section-header">
+                        <label class="section-label"
+                            >Standort auswählen *</label
+                        >
+                        <button
+                            type="button"
+                            class="info-icon"
+                            @click="openSectionInfo('location')"
+                        >
+                            <v-icon>mdi-information-variant</v-icon>
+                        </button>
+                    </div>
                     <div class="map-search">
                         <input
                             v-model="locationSearchValue"
@@ -354,7 +407,16 @@
 
                 <!-- Bild aus Wikimedia Commons -->
                 <div class="container-section image-section">
-                    <label class="section-label">Bild</label>
+                    <div class="section-header">
+                        <label class="section-label">Bild</label>
+                        <button
+                            type="button"
+                            class="info-icon"
+                            @click="openSectionInfo('image')"
+                        >
+                            <v-icon>mdi-information-variant</v-icon>
+                        </button>
+                    </div>
                     <div class="image-selection">
                         <button
                             type="button"
@@ -419,13 +481,32 @@
             </form>
         </div>
 
-        <!-- Info-Box -->
-        <div class="info-box" v-if="activeField">
+        <!-- Info-Box (Desktop) -->
+        <div class="info-box desktop-info" v-if="activeField && !isMobileView">
             <div class="info-box-header">
                 <h3>{{ getInfoTitle(activeField) }}</h3>
             </div>
             <div class="info-box-content">
                 <div v-html="getInfoContent(activeField)"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Info-Overlay -->
+    <div
+        class="mobile-info-overlay"
+        v-if="showMobileInfoOverlay && isMobileView"
+        @click="closeMobileInfoOverlay"
+    >
+        <div class="overlay-content" @click.stop>
+            <div class="overlay-header">
+                <h3>{{ getInfoTitle(lastActiveField) }}</h3>
+                <button class="close-overlay" @click="closeMobileInfoOverlay">
+                    &times;
+                </button>
+            </div>
+            <div class="overlay-body">
+                <div v-html="getInfoContent(lastActiveField)"></div>
             </div>
         </div>
     </div>
@@ -795,122 +876,152 @@ watch(
 // Info-Box Funktionalität
 const activeField = ref(null);
 const activeSection = ref(null);
+const showMobileInfoOverlay = ref(false);
+const isMobileView = ref(false);
+const lastActiveField = ref(null);
 
 // Funktion zum Setzen des aktiven Feldes
 const setActiveField = (fieldName) => {
     activeField.value = fieldName;
+    lastActiveField.value = fieldName; // Speichern des Feldnamens fu00fcr mobile Anzeige
 };
+
+// Funktion zum U00dcberpru00fcfen der Bildschirmgro00dfe
+const checkScreenSize = () => {
+    isMobileView.value = window.innerWidth < 1200;
+};
+
+// Funktion zum O00dffnen des mobilen Info-Overlays fu00fcr eine Sektion
+const openSectionInfo = (sectionName) => {
+    lastActiveField.value = sectionName;
+    showMobileInfoOverlay.value = true;
+};
+
+// Funktion zum Schlieu00dfen des mobilen Info-Overlays
+const closeMobileInfoOverlay = () => {
+    showMobileInfoOverlay.value = false;
+};
+
+// Bildschirmgru00f6u00dfe beim Laden und bei Gro00dfena00e4nderung u00fcberpru00fcfen
+onMounted(() => {
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+});
 
 // Funktion zum Setzen der aktiven Sektion
 const setActiveSection = (sectionName) => {
     activeSection.value = sectionName;
 };
 
-// Info-Box-Titel basierend auf dem aktiven Feld
+// Info-Box-Titel basierend auf dem aktiven Bereich
 const getInfoTitle = (fieldName) => {
-    const titles = {
-        title: "Titel des Ereignisses",
-        description: "Beschreibung",
-        "event-date": "Datum des Ereignisses",
-        "event-start-date": "Beginn des Ereignisses",
-        "event-end-date": "Ende des Ereignisses",
-        "victim-count": "Anzahl der Opfer",
-        "survivor-count": "Anzahl der Überlebenden",
-        "death-count": "Anzahl der Todesfälle",
-        "arrest-count": "Anzahl der Festnahmen",
+    const sectionTitles = {
+        title: "Basis-Informationen",
+        time: "Zeitliche Informationen",
+        "victim-count": "Opferzahlen",
         cause: "Ursache der Verfolgung",
         location: "Standort",
         image: "Bild",
         victims: "Geschädigte Personen",
         perpetrators: "Verantwortliche Personen",
     };
-    return titles[fieldName] || "Information";
+
+    if (sectionTitles[fieldName]) {
+        return sectionTitles[fieldName];
+    } else {
+        return "Information";
+    }
 };
 
-// Info-Box-Inhalt basierend auf dem aktiven Feld
+// Info-Box-Inhalt basierend auf dem aktiven Feld oder Sektion
 const getInfoContent = (fieldName) => {
-    const contents = {
-        title: `<p>Geben Sie hier einen präzisen und aussagekräftigen Titel für das Ereignis ein.</p>
-                 <p>Ein guter Titel enthält:</p>
-                 <ul>
-                    <li>Die Art des Ereignisses (z.B. Deportation, Pogrom)</li>
-                    <li>Zeit und/oder Ort</li>
-                    <li>Ggf. beteiligte Gruppen</li>
-                 </ul>
-                 <p>Beispiele:</p>
-                 <ul>
-                    <li>Novemberpogrom 1938 in Osnabrück</li>
-                    <li>Deportation der jüdischen Bevölkerung aus Hamburg (1941)</li>
-                 </ul>`,
-        description: `<p>Beschreiben Sie das Ereignis kurz und informativ.</p>
-                      <p>Eine gute Beschreibung:</p>
-                      <ul>
-                        <li>Fasst die wichtigsten Fakten zusammen</li>
-                        <li>Nennt beteiligte Personen oder Gruppen</li>
-                        <li>Erwähnt historischen Kontext</li>
-                        <li>Ist sachlich und neutral formuliert</li>
-                      </ul>`,
-        "event-date": `<p>Wählen Sie das exakte Datum, an dem das Ereignis stattfand.</p>
-                      <p>Falls das genaue Datum nicht bekannt ist, wählen Sie einen bestmöglichen Schätzwert und erwähnen Sie die Unsicherheit in der Beschreibung.</p>`,
-        "event-start-date": `<p>Wählen Sie das Datum, an dem der Ereigniszeitraum begann.</p>`,
-        "event-end-date": `<p>Wählen Sie das Datum, an dem der Ereigniszeitraum endete.</p>
-                         <p>Falls das Ereignis noch andauert, lassen Sie dieses Feld leer.</p>`,
-        "victim-count": `<p>Tragen Sie hier die Gesamtzahl der Opfer ein, sofern bekannt.</p>
-                       <p>Verwenden Sie nur gesicherte Zahlen aus verlässlichen Quellen. Bei Unsicherheit ist ein Bereich (z.B. in der Beschreibung: "etwa 100-150 Opfer") besser als eine exakte Zahl.</p>`,
-        "survivor-count": `<p>Tragen Sie hier die Anzahl der Überlebenden ein, sofern bekannt.</p>`,
-        "death-count": `<p>Tragen Sie hier die Anzahl der Todesopfer ein, sofern bekannt.</p>`,
-        "arrest-count": `<p>Tragen Sie hier die Anzahl der Festnahmen ein, sofern bekannt.</p>`,
-        cause: `<p>Wählen Sie die Hauptursache(n) der Verfolgung aus oder fügen Sie neue hinzu.</p>
-                <p>Typische Kategorien sind:</p>
+    // Zuordnung von Feldern zu Sektionen
+    const fieldToSection = {
+        title: "title",
+        description: "title",
+        "event-date": "time",
+        "event-start-date": "time",
+        "event-end-date": "time",
+        "victim-count": "counts",
+        "survivor-count": "counts",
+        "death-count": "counts",
+        "arrest-count": "counts",
+    };
+
+    // Wenn das Feld einer Sektion zugeordnet ist, diese verwenden
+    const sectionName = fieldToSection[fieldName] || fieldName;
+
+    return getSectionInfoContent(sectionName);
+};
+
+// Konsolidierte Hilfetexte pro Sektion
+const getSectionInfoContent = (sectionName) => {
+    const sectionContents = {
+        title: `<p>In diesem Bereich geben Sie die grundlegenden Informationen zum Ereignis ein.</p>
+               <p><strong>Titel:</strong> Geben Sie einen präzisen und aussagekräftigen Titel ein, der Art des Ereignisses, Zeit/Ort und ggf. beteiligte Gruppen enthält.</p>
+               <p><strong>Beschreibung:</strong> Beschreiben Sie das Ereignis kurz und informativ mit den wichtigsten Fakten, beteiligten Personen und historischem Kontext.</p>
+               <p>Beispiele für gute Titel: "Novemberpogrom 1938 in Osnabrück", "Deportation der jüdischen Bevölkerung aus Hamburg (1941)"</p>`,
+
+        time: `<p>Hier erfassen Sie die zeitlichen Informationen zum Ereignis.</p>
+               <p>Sie können zwischen einem einzelnen Zeitpunkt oder einem Zeitraum wählen:</p>
+               <ul>
+                 <li><strong>Zeitpunkt:</strong> Für Ereignisse, die an einem bestimmten Datum stattfanden</li>
+                 <li><strong>Zeitraum:</strong> Für länger andauernde Ereignisse mit Start- und Enddatum</li>
+               </ul>
+               <p>Falls das genaue Datum nicht bekannt ist, wählen Sie einen bestmöglichen Schätzwert und vermerken Sie die Unsicherheit in der Beschreibung.</p>`,
+
+        counts: `<p>In diesem Bereich können Sie die Opferzahlen des Ereignisses dokumentieren.</p>
+                <p>Sie können folgende Informationen erführen (sofern bekannt):</p>
                 <ul>
-                  <li>Religiöse Verfolgung</li>
-                  <li>Rassistische Verfolgung</li>
-                  <li>Politische Verfolgung</li>
-                  <li>Soziale Verfolgung</li>
-                </ul>`,
-        location: `<p>Markieren Sie den genauen Ort des Ereignisses auf der Karte.</p>
-                   <p>Sie können:</p>
-                   <ul>
-                     <li>Direkt auf die Karte klicken</li>
-                     <li>Nach einem Ort suchen</li>
-                     <li>Die Karte zoomen und verschieben</li>
-                   </ul>
-                   <p>Präzise Ortsangaben sind wichtig für die historische Dokumentation.</p>`,
-        image: `<p>Fügen Sie ein passendes Bild zum Ereignis hinzu.</p>
-                <p>Geeignete Bilder sind:</p>
-                <ul>
-                  <li>Historische Fotos vom Ereignis</li>
-                  <li>Bilder des Ortes</li>
-                  <li>Dokumente zum Ereignis</li>
-                  <li>Denkmäler oder Gedenktafeln</li>
+                  <li><strong>Gesamtzahl der Opfer:</strong> Alle betroffenen Personen</li>
+                  <li><strong>Anzahl der Überlebenden:</strong> Personen, die das Ereignis überlebt haben</li>
+                  <li><strong>Anzahl der Todesopfer:</strong> Personen, die durch das Ereignis ums Leben kamen</li>
+                  <li><strong>Anzahl der Festnahmen:</strong> Personen, die im Zuge des Ereignisses festgenommen wurden</li>
                 </ul>
-                <p>Verwenden Sie nur Bilder, die Sie rechtlich nutzen dürfen.</p>`,
-        victims: `<p>Fügen Sie hier die Geschädigten oder Opfer des Ereignisses hinzu.</p>
-                <p>Sie können:</p>
-                <ul>
-                  <li>Nach bereits bekannten Personen suchen</li>
-                  <li>Neue Personen manuell hinzufügen</li>
-                </ul>
-                <p>Bei der Eingabe neuer Personen:</p>
-                <ul>
-                  <li>Verwenden Sie korrekte Schreibweisen von Namen</li>
-                  <li>Fügen Sie Lebensdaten hinzu, falls bekannt</li>
-                  <li>Geben Sie eine kurze Beschreibung zur Person an</li>
-                </ul>
-                <p>Dies hilft bei der Verknüpfung mit anderen Ereignissen und bei der Nachverfolgung von Schicksalen.</p>`,
-        perpetrators: `<p>Dokumentieren Sie hier die für das Ereignis verantwortlichen Personen oder Gruppen.</p>
-                     <p>Wichtige Hinweise:</p>
-                     <ul>
-                       <li>Beachten Sie die juristische und historische Genauigkeit</li>
-                       <li>Unterscheiden Sie zwischen direkten Tätern und Befehlsgebern</li>
-                       <li>Dokumentieren Sie auch institutionelle Verantwortlichkeiten</li>
-                       <li>Stützen Sie sich auf nachweisbare Fakten und Quellen</li>
-                     </ul>
+                <p>Verwenden Sie nur gesicherte Zahlen aus verlässlichen Quellen. Bei Unsicherheit ist ein Bereich (z.B. "etwa 100-150 Opfer") in der Beschreibung besser als eine exakte Zahl.</p>`,
+
+        cause: `<p>Hier dokumentieren Sie die Ursache(n) der Verfolgung.</p>
+               <p>Wählen Sie die Hauptursache(n) aus oder fügen Sie neue hinzu. Typische Kategorien sind:</p>
+               <ul>
+                 <li>Religiöse Verfolgung</li>
+                 <li>Rassistische Verfolgung</li>
+                 <li>Politische Verfolgung</li>
+                 <li>Soziale Verfolgung</li>
+               </ul>
+               <p>Eine präzise Dokumentation der Verfolgungsursachen ist wichtig für das Verständnis historischer Zusammenhänge.</p>`,
+
+        location: `<p>Hier markieren Sie den genauen Ort des Ereignisses auf der Karte.</p>
+                  <p>Sie können:</p>
+                  <ul>
+                    <li>Direkt auf die Karte klicken, um einen Standort zu markieren</li>
+                    <li>Nach einem Ort suchen, um ihn schneller zu finden</li>
+                    <li>Die Karte zoomen und verschieben, um den genauen Standort zu lokalisieren</li>
+                  </ul>
+                  <p>Präzise Ortsangaben sind wichtig für die historische Dokumentation und ermöglichen eine genaue geografische Einordnung.</p>`,
+
+        image: `<p>Hier können Sie ein passendes Bild zum Ereignis hinzufügen.</p>
+               <p>Geeignete Bilder sind:</p>
+               <ul>
+                 <li>Historische Fotos vom Ereignis</li>
+                 <li>Bilder des Ortes</li>
+                 <li>Dokumente zum Ereignis</li>
+                 <li>Denkmäler oder Gedenktafeln</li>
+               </ul>
+               <p>Verwenden Sie nur Bilder, die Sie rechtlich nutzen dürfen, und achten Sie auf korrekte Quellenangaben.</p>`,
+
+        victims: `<p>Hier fügen Sie die Geschädigten oder Opfer des Ereignisses hinzu.</p>
+                <p>Sie können nach bereits bekannten Personen suchen oder neue Personen manuell hinzufügen.</p>
+                <p>Bei neuen Personen achten Sie bitte auf korrekte Namensschreibweisen, Lebensdaten und eine kurze Beschreibung.</p>
+                <p>Dies hilft bei der Verknüpfung mit anderen Ereignissen und der Nachverfolgung von Schicksalen.</p>`,
+
+        perpetrators: `<p>Hier dokumentieren Sie die für das Ereignis verantwortlichen Personen oder Gruppen.</p>
+                     <p>Beachten Sie dabei die juristische und historische Genauigkeit, unterscheiden Sie zwischen direkten Tätern und Befehlsgebern und dokumentieren Sie auch institutionelle Verantwortlichkeiten.</p>
                      <p>Eine präzise Dokumentation der Täter ist ein wichtiger Teil der historischen Aufarbeitung.</p>`,
     };
+
     return (
-        contents[fieldName] ||
-        "<p>Wählen Sie ein Feld aus, um Hilfe zu erhalten.</p>"
+        sectionContents[sectionName] ||
+        "<p>Wählen Sie einen Bereich aus, um Hilfe zu erhalten.</p>"
     );
 };
 
@@ -1181,19 +1292,116 @@ const openLightbox = () => {
     margin-bottom: 0.5rem;
 }
 
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.info-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.info-icon:hover {
+    background-color: #1565c0;
+}
+
+/* Mobile Info Overlay */
+.mobile-info-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.overlay-content {
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.overlay-header {
+    padding: 1rem;
+    background-color: #1976d2;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.overlay-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.overlay-body {
+    padding: 1rem;
+    overflow-y: auto;
+    max-height: 60vh;
+}
+
+.close-overlay {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+.close-overlay:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
 @media (max-width: 1200px) {
     .event-form-wrapper {
         flex-direction: column;
     }
 
-    .step-container,
-    .info-box {
+    .step-container {
         width: 100%;
     }
 
     .info-box {
-        margin-top: 0;
-        position: static;
+        display: none; /* Desktop-Infobox auf mobilen Geräten ausblenden */
+    }
+}
+
+@media (min-width: 1200px) {
+    .info-icon {
+        display: none !important;
     }
 }
 
