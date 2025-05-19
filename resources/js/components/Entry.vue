@@ -1095,10 +1095,21 @@ onUnmounted(() => {
 
 .forms input,
 .forms textarea {
-    padding: 0.5rem 0.75rem;
+    padding: 0.75rem 1rem;
     width: 100%;
     background-color: white;
     border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.forms input:focus,
+.forms textarea:focus {
+    outline: none;
+    border-color: #1976d2;
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
 }
 
 .forms textarea {
@@ -1126,6 +1137,7 @@ onUnmounted(() => {
     margin-right: 0.75rem;
     width: 1rem;
     height: 1rem;
+    box-shadow: none;
 }
 
 .forms fieldset div label {
@@ -1140,13 +1152,14 @@ onUnmounted(() => {
 }
 
 .button {
-    padding: 10px 20px;
+    padding: 12px 24px;
     background-color: #1976d2;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-weight: bold;
+    transition: background-color 0.2s;
 }
 
 .button:hover {
@@ -1154,7 +1167,7 @@ onUnmounted(() => {
 }
 
 .button:disabled {
-    background-color: #bdbdbd;
+    background-color: #bbdefb;
     cursor: not-allowed;
 }
 
@@ -1245,9 +1258,17 @@ onUnmounted(() => {
 .map-search input {
     flex-grow: 1;
     margin-right: 0.5rem;
-    padding: 0.5rem;
+    padding: 0.75rem 1rem;
     border: 1px solid #ccc;
     border-radius: 4px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.map-search input:focus {
+    outline: none;
+    border-color: #1976d2;
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
 }
 
 .map-search button {
@@ -1257,6 +1278,12 @@ onUnmounted(() => {
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    min-width: 100px;
+    transition: background-color 0.2s;
+}
+
+.map-search button:hover {
+    background-color: #1565c0;
 }
 
 /* Wikidata search results */

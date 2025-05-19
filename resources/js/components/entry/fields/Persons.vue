@@ -13,10 +13,7 @@
             <div
                 v-if="
                     isSearchLoading &&
-                    !(
-                        searchPerformed &&
-                        peopleSearchResults.length === 0
-                    )
+                    !(searchPerformed && peopleSearchResults.length === 0)
                 "
                 class="search-loading"
             >
@@ -105,7 +102,9 @@
                 />
             </div>
             <div class="form-group">
-                <label :for="`${fieldId}-description`">Kurze Beschreibung</label>
+                <label :for="`${fieldId}-description`"
+                    >Kurze Beschreibung</label
+                >
                 <textarea
                     v-model="newPersonLocal.description"
                     :id="`${fieldId}-description`"
@@ -280,6 +279,26 @@ const onRemovePerson = (id) => {
 
 .persons-search {
     margin-bottom: 0.5rem;
+    width: 100%;
+}
+
+.persons-search input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
+}
+
+.persons-search input:focus {
+    outline: none;
+    border-color: #1976d2;
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
 }
 
 .search-loading {
@@ -309,46 +328,127 @@ const onRemovePerson = (id) => {
 
 .form-group label {
     display: block;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #1976d2;
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
+}
+
+.form-group textarea {
+    min-height: 6rem;
+    resize: vertical;
 }
 
 .new-person-form {
     background-color: #f5f5f5;
-    padding: 1rem;
+    padding: 1.5rem;
     border-radius: 4px;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .new-person-form h4 {
     margin-top: 0;
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
+    font-size: 1.2rem;
+    color: #333;
 }
 
 .button-group {
     display: flex;
     justify-content: space-between;
+    margin-top: 1.5rem;
+}
+
+.button-group .button {
+    padding: 12px 24px;
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.button-group .button:hover {
+    background-color: #1565c0;
+}
+
+.button-group .button:disabled {
+    background-color: #bbdefb;
+    cursor: not-allowed;
+}
+
+.button-group .button.bg-secondary {
+    background-color: #757575;
+}
+
+.button-group .button.bg-secondary:hover {
+    background-color: #616161;
 }
 
 .selected-persons {
-    margin-top: 1rem;
-    padding: 0.5rem;
+    margin-top: 1.5rem;
+    padding: 1rem;
     background-color: #f5f5f5;
     border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.selected-persons h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    color: #333;
 }
 
 .selected-person {
     display: flex;
     align-items: center;
-    padding: 0.5rem;
-    margin-bottom: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.75rem;
     background-color: white;
     border-radius: 4px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s;
+}
+
+.selected-person:hover {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
 }
 
 .person-name {
     font-weight: 500;
     margin-right: 0.5rem;
+}
+
+.person-name a {
+    color: #1976d2;
+    text-decoration: none;
+}
+
+.person-name a:hover {
+    text-decoration: underline;
 }
 
 .person-description {
@@ -365,6 +465,17 @@ const onRemovePerson = (id) => {
     font-size: 1rem;
     font-weight: bold;
     padding: 0.25rem 0.5rem;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+}
+
+.remove-person:hover {
+    background-color: rgba(211, 47, 47, 0.1);
 }
 
 .result-metadata {
@@ -379,26 +490,42 @@ const onRemovePerson = (id) => {
 
 .new-person-option,
 .add-another-person {
-    padding: 0.75rem;
+    padding: 1rem;
+    margin-top: 1rem;
     border-top: 1px solid #eee;
     text-align: center;
 }
 
-/* Diese Stile gelten für Suchresultate, wurden aus dem originalen CSS übernommen */
+.add-another-person button {
+    padding: 12px 24px;
+    background-color: #757575;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.add-another-person button:hover {
+    background-color: #616161;
+}
+
+/* Diese Stile gelten für Suchresultate */
 .search-results {
     background-color: white;
     border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     max-height: 300px;
     overflow-y: auto;
-    margin-bottom: 1rem;
-    z-index: 10;
+    margin-bottom: 1.5rem;
+    z-index: 20;
     position: relative;
     border: 1px solid #eee;
 }
 
 .search-info {
-    padding: 0.75rem;
+    padding: 10px 15px;
     color: #666;
     font-style: italic;
     text-align: center;
@@ -406,7 +533,7 @@ const onRemovePerson = (id) => {
 }
 
 .search-result-item {
-    padding: 0.75rem;
+    padding: 0.75rem 1rem;
     cursor: pointer;
     border-bottom: 1px solid #eee;
     transition: background-color 0.2s;
@@ -423,6 +550,7 @@ const onRemovePerson = (id) => {
 .result-title {
     font-weight: 500;
     margin-bottom: 0.25rem;
+    color: #333;
 }
 
 .result-description {

@@ -2,46 +2,56 @@
     <div class="step-container">
         <h2 class="step-title">Schritt 2: Ereignis-Details eingeben</h2>
         <form class="forms">
-            <label for="title" class="section-label">Titel *</label>
-            <input
-                v-model="title"
-                name="title"
-                type="text"
-                maxlength="250"
-                placeholder="z.B. Novemberpogrom 1938 in Osnabrück"
-                @input="onTitleInput"
-            />
+            <div class="main-section container-section">
+                <label class="section-label">Basis Informationen:</label>
+                <label for="title" class="">Titel *</label>
+                <input
+                    v-model="title"
+                    name="title"
+                    type="text"
+                    maxlength="250"
+                    placeholder="z.B. Novemberpogrom 1938 in Osnabrück"
+                    @input="onTitleInput"
+                />
 
-            <!-- Anzeige der Suchergebnisse -->
-            <div v-if="wikidataResultsValue.length > 0" class="search-results">
-                <p class="search-info">
-                    Möglicherweise existiert dieser Eintrag bereits:
-                </p>
+                <!-- Anzeige der Suchergebnisse -->
                 <div
-                    v-for="result in wikidataResultsValue"
-                    :key="result.id"
-                    class="search-result-item"
-                    @click="onSelectExistingEntity(result)"
+                    v-if="wikidataResultsValue.length > 0"
+                    class="search-results"
                 >
-                    <div class="result-title">{{ result.label }}</div>
-                    <div class="result-description" v-if="result.description">
-                        {{ result.description }}
+                    <p class="search-info">
+                        Möglicherweise existiert dieser Eintrag bereits:
+                    </p>
+                    <div
+                        v-for="result in wikidataResultsValue"
+                        :key="result.id"
+                        class="search-result-item"
+                        @click="onSelectExistingEntity(result)"
+                    >
+                        <div class="result-title">{{ result.label }}</div>
+                        <div
+                            class="result-description"
+                            v-if="result.description"
+                        >
+                            {{ result.description }}
+                        </div>
+                        <div class="result-id">{{ result.id }}</div>
                     </div>
-                    <div class="result-id">{{ result.id }}</div>
                 </div>
+
+                <label for="description" class="mt-3 d-block"
+                    >Kurzbeschreibung *</label
+                >
+                <textarea
+                    v-model="description"
+                    name="description"
+                    maxlength="750"
+                    placeholder="z.B. vom NS-Regime gelenkte Gewaltmaßnahmen gegen Juden in Osnabrück."
+                ></textarea>
             </div>
-
-            <label for="description">Kurzbeschreibung *</label>
-            <textarea
-                v-model="description"
-                name="description"
-                maxlength="750"
-                placeholder="z.B. vom NS-Regime gelenkte Gewaltmaßnahmen gegen Juden in Osnabrück."
-            ></textarea>
-
             <!-- Zeitpunkt/Zeitraum -->
             <div class="time-section container-section">
-                <label class="section-label">Zeitpunkt / Zeitraum</label>
+                <label class="section-label">Zeitpunkt / Zeitraum:</label>
                 <div class="time-type-selection">
                     <div class="form-group">
                         <input
@@ -103,7 +113,7 @@
 
             <!-- Opfer-Eingabefeld -->
             <PersonsField
-                label="Opfer"
+                label="Geschädigte"
                 fieldId="victims"
                 :peopleSearchResults="peopleSearchResultsValue"
                 :selectedPersons="selectedVictimsValue"
@@ -122,7 +132,7 @@
 
             <!-- Täter-Eingabefeld -->
             <PersonsField
-                label="Täter"
+                label="Täter*In"
                 fieldId="perpetrators"
                 :peopleSearchResults="perpetratorsSearchResultsValue"
                 :selectedPersons="selectedPerpetratorsValue"
@@ -145,7 +155,9 @@
                 <v-row class="align-end">
                     <v-col cols="12" md="3">
                         <div class="form-group">
-                            <label for="victim-count">Anzahl der Opfer</label>
+                            <label for="victim-count"
+                                >Anzahl der Geschädigten</label
+                            >
                             <input
                                 type="number"
                                 id="victim-count"
@@ -965,10 +977,23 @@ const openLightbox = () => {
 
 .forms input,
 .forms textarea {
-    padding: 0.5rem 0.75rem;
+    padding: 0.75rem 1rem;
     width: 100%;
     background-color: white;
     border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
+}
+
+.forms input:focus,
+.forms textarea:focus {
+    outline: none;
+    border-color: #1976d2;
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
 }
 
 .forms textarea {
@@ -996,6 +1021,7 @@ const openLightbox = () => {
     margin-right: 0.75rem;
     width: 1rem;
     height: 1rem;
+    box-shadow: none;
 }
 
 .forms fieldset div label {
@@ -1010,13 +1036,14 @@ const openLightbox = () => {
 }
 
 .button {
-    padding: 10px 20px;
+    padding: 12px 24px;
     background-color: #1976d2;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-weight: bold;
+    transition: background-color 0.2s;
 }
 
 .button:hover {
@@ -1024,7 +1051,7 @@ const openLightbox = () => {
 }
 
 .button:disabled {
-    background-color: #bdbdbd;
+    background-color: #bbdefb;
     cursor: not-allowed;
 }
 
@@ -1117,9 +1144,19 @@ const openLightbox = () => {
 .map-search input {
     flex-grow: 1;
     margin-right: 0.5rem;
-    padding: 0.5rem;
+    padding: 0.75rem 1rem;
     border: 1px solid #ccc;
     border-radius: 4px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
+}
+
+.map-search input:focus {
+    outline: none;
+    border-color: #1976d2;
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
 }
 
 .map-search button {
@@ -1129,6 +1166,12 @@ const openLightbox = () => {
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    min-width: 100px;
+    transition: background-color 0.2s;
+}
+
+.map-search button:hover {
+    background-color: #1565c0;
 }
 
 /* Wikidata search results */
@@ -1140,11 +1183,13 @@ const openLightbox = () => {
     border-radius: 4px;
     margin-top: -0.5rem;
     background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 20;
+    position: relative;
 }
 
 .search-info {
-    padding: 8px 12px;
+    padding: 10px 15px;
     font-size: 0.9rem;
     color: #666;
     border-bottom: 1px solid #eee;
