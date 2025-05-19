@@ -1,7 +1,7 @@
 <template>
     <div class="persons-section container-section">
         <div class="section-header">
-            <label :for="fieldId" class="section-label">{{ label }}</label>
+            <label :for="fieldId" class="section-label">{{ label }}:</label>
             <button
                 v-if="showInfoButton"
                 type="button"
@@ -301,6 +301,12 @@ const onInfoButtonClick = () => {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
+}
+
+label.section-label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
 }
 
 .info-icon {
