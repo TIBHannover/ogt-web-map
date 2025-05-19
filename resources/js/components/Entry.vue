@@ -1063,10 +1063,6 @@ onUnmounted(() => {
     font-family: "Special Elite" !important;
 }
 
-.forms-container {
-    max-width: 800px;
-}
-
 .step-container {
     background-color: rgba(255, 255, 255, 0.9);
     border-radius: 8px;
@@ -1102,7 +1098,9 @@ onUnmounted(() => {
     border-radius: 4px;
     font-size: 1rem;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
 }
 
 .forms input:focus,
@@ -1262,7 +1260,9 @@ onUnmounted(() => {
     border: 1px solid #ccc;
     border-radius: 4px;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
 }
 
 .map-search input:focus {

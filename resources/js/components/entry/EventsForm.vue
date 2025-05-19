@@ -1,415 +1,451 @@
 <template>
-    <div class="step-container">
-        <h2 class="step-title">Schritt 2: Ereignis-Details eingeben</h2>
-        <form class="forms">
-            <div class="main-section container-section">
-                <label class="section-label">Basis Informationen:</label>
-                <label for="title" class="">Titel *</label>
-                <input
-                    v-model="title"
-                    name="title"
-                    type="text"
-                    maxlength="250"
-                    placeholder="z.B. Novemberpogrom 1938 in Osnabrück"
-                    @input="onTitleInput"
+    <div class="event-form-wrapper">
+        <div class="step-container">
+            <h2 class="step-title">Schritt 2: Ereignis-Details eingeben</h2>
+            <form class="forms">
+                <div
+                    class="main-section container-section"
+                    @focusin="setActiveSection('title')"
+                >
+                    <label class="section-label">Basis Informationen:</label>
+                    <label for="title" class="">Titel *</label>
+                    <input
+                        v-model="title"
+                        name="title"
+                        type="text"
+                        maxlength="250"
+                        placeholder="z.B. Novemberpogrom 1938 in Osnabrück"
+                        @input="onTitleInput"
+                        @focus="setActiveField('title')"
+                    />
+
+                    <!-- Anzeige der Suchergebnisse -->
+                    <div
+                        v-if="wikidataResultsValue.length > 0"
+                        class="search-results"
+                    >
+                        <p class="search-info">
+                            Möglicherweise existiert dieser Eintrag bereits:
+                        </p>
+                        <div
+                            v-for="result in wikidataResultsValue"
+                            :key="result.id"
+                            class="search-result-item"
+                            @click="onSelectExistingEntity(result)"
+                        >
+                            <div class="result-title">{{ result.label }}</div>
+                            <div
+                                class="result-description"
+                                v-if="result.description"
+                            >
+                                {{ result.description }}
+                            </div>
+                            <div class="result-id">{{ result.id }}</div>
+                        </div>
+                    </div>
+
+                    <label for="description" class="mt-3 d-block"
+                        >Kurzbeschreibung *</label
+                    >
+                    <textarea
+                        v-model="description"
+                        name="description"
+                        maxlength="750"
+                        placeholder="z.B. vom NS-Regime gelenkte Gewaltmaßnahmen gegen Juden in Osnabrück."
+                        @focus="setActiveField('description')"
+                    ></textarea>
+                </div>
+                <!-- Zeitpunkt/Zeitraum -->
+                <div class="time-section container-section">
+                    <label class="section-label">Zeitpunkt / Zeitraum:</label>
+                    <div class="time-type-selection">
+                        <div class="form-group">
+                            <input
+                                type="radio"
+                                id="time-point"
+                                name="event-time-type"
+                                value="point"
+                                v-model="eventTimeTypeValue"
+                            />
+                            <label for="time-point">Zeitpunkt</label>
+                        </div>
+                        <div class="form-group">
+                            <input
+                                type="radio"
+                                id="time-range"
+                                name="event-time-type"
+                                value="range"
+                                v-model="eventTimeTypeValue"
+                            />
+                            <label for="time-range">Zeitraum</label>
+                        </div>
+                    </div>
+
+                    <!-- Zeitpunkt-Eingabe -->
+                    <div
+                        v-if="eventTimeTypeValue === 'point'"
+                        class="form-group"
+                    >
+                        <label for="event-date">Datum des Ereignisses</label>
+                        <input
+                            type="date"
+                            id="event-date"
+                            v-model="eventDateValue"
+                            @focus="setActiveField('event-date')"
+                        />
+                    </div>
+
+                    <!-- Zeitraum-Eingabe -->
+                    <div
+                        v-if="eventTimeTypeValue === 'range'"
+                        class="time-range-inputs"
+                    >
+                        <div class="form-group">
+                            <label for="event-start-date"
+                                >Beginn des Ereignisses</label
+                            >
+                            <input
+                                type="date"
+                                id="event-start-date"
+                                v-model="eventStartDateValue"
+                                @focus="setActiveField('event-start-date')"
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label for="event-end-date"
+                                >Ende des Ereignisses</label
+                            >
+                            <input
+                                type="date"
+                                id="event-end-date"
+                                v-model="eventEndDateValue"
+                                @focus="setActiveField('event-end-date')"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Opfer-Eingabefeld -->
+                <PersonsField
+                    label="Geschädigte"
+                    fieldId="victims"
+                    :peopleSearchResults="peopleSearchResultsValue"
+                    :selectedPersons="selectedVictimsValue"
+                    :showNewPersonForm="showNewVictimFormValue"
+                    :newPerson="newVictimLocal"
+                    :isSearchLoading="isVictimSearchLoading"
+                    :searchPerformed="victimSearchPerformed"
+                    @searchPeople="onSearchPeople"
+                    @selectPerson="onSelectVictim"
+                    @startNewPersonForm="onStartNewVictimForm"
+                    @cancelNewPersonForm="onCancelNewVictimForm"
+                    @update:newPerson="newVictimLocal = $event"
+                    @addNewPerson="onAddNewVictim"
+                    @removePerson="onRemoveVictim"
+                    @focusin="setActiveField('victims')"
                 />
 
-                <!-- Anzeige der Suchergebnisse -->
-                <div
-                    v-if="wikidataResultsValue.length > 0"
-                    class="search-results"
-                >
-                    <p class="search-info">
-                        Möglicherweise existiert dieser Eintrag bereits:
-                    </p>
-                    <div
-                        v-for="result in wikidataResultsValue"
-                        :key="result.id"
-                        class="search-result-item"
-                        @click="onSelectExistingEntity(result)"
+                <!-- Täter-Eingabefeld -->
+                <PersonsField
+                    label="Täter*In"
+                    fieldId="perpetrators"
+                    :peopleSearchResults="perpetratorsSearchResultsValue"
+                    :selectedPersons="selectedPerpetratorsValue"
+                    :showNewPersonForm="showNewPerpetratorFormValue"
+                    :newPerson="newPerpetratorLocal"
+                    :isSearchLoading="isPerpetratorsSearchLoading"
+                    :searchPerformed="perpetratorSearchPerformed"
+                    @searchPeople="onSearchPerpetrators"
+                    @selectPerson="onSelectPerpetrator"
+                    @startNewPersonForm="onStartNewPerpetratorForm"
+                    @cancelNewPersonForm="onCancelNewPerpetratorForm"
+                    @update:newPerson="newPerpetratorLocal = $event"
+                    @addNewPerson="onAddNewPerpetrator"
+                    @removePerson="onRemovePerpetrator"
+                    @focusin="setActiveField('perpetrators')"
+                />
+
+                <!-- Opferzahlen -->
+                <div class="counts-section container-section">
+                    <label class="section-label">Opferzahlen:</label>
+                    <v-row class="align-end">
+                        <v-col cols="12" md="3">
+                            <div class="form-group">
+                                <label for="victim-count"
+                                    >Anzahl der Geschädigten</label
+                                >
+                                <input
+                                    type="number"
+                                    id="victim-count"
+                                    v-model="victimCountValue"
+                                    min="0"
+                                    @focus="setActiveField('victim-count')"
+                                />
+                            </div>
+                        </v-col>
+                        <v-col cols="12" md="3">
+                            <div class="form-group">
+                                <label for="survivor-count"
+                                    >Anzahl der Überlebenden</label
+                                >
+                                <input
+                                    type="number"
+                                    id="survivor-count"
+                                    v-model="survivorCountValue"
+                                    min="0"
+                                    @focus="setActiveField('survivor-count')"
+                                />
+                            </div>
+                        </v-col>
+                        <v-col cols="12" md="3">
+                            <div class="form-group">
+                                <label for="death-count"
+                                    >Anzahl der Todesfälle</label
+                                >
+                                <input
+                                    type="number"
+                                    id="death-count"
+                                    v-model="deathCountValue"
+                                    min="0"
+                                    @focus="setActiveField('death-count')"
+                                />
+                            </div>
+                        </v-col>
+                        <v-col cols="12" md="3">
+                            <div class="form-group">
+                                <label for="arrest-count"
+                                    >Anzahl der Festnahmen</label
+                                >
+                                <input
+                                    type="number"
+                                    id="arrest-count"
+                                    v-model="arrestCountValue"
+                                    min="0"
+                                    @focus="setActiveField('arrest-count')"
+                                />
+                            </div>
+                        </v-col>
+                    </v-row>
+                </div>
+
+                <!-- Ursache der Verfolgung -->
+                <div class="cause-section container-section">
+                    <label for="cause" class="section-label"
+                        >Ursache der Verfolgung</label
                     >
-                        <div class="result-title">{{ result.label }}</div>
+                    <!-- Sucheingabefeld ist immer sichtbar -->
+                    <div class="cause-search">
+                        <input
+                            type="text"
+                            id="cause-search"
+                            placeholder="Nach Ursache der Verfolgung suchen..."
+                            @input="
+                                (event) => onSearchCause(event.target.value)
+                            "
+                            @focus="setActiveField('cause')"
+                        />
+                    </div>
+
+                    <!-- Suchergebnisse für Ursachen -->
+                    <div
+                        v-if="causeSearchResultsValue.length > 0"
+                        class="search-results"
+                    >
                         <div
-                            class="result-description"
-                            v-if="result.description"
+                            v-for="cause in causeSearchResultsValue"
+                            :key="cause.id"
+                            class="search-result-item"
+                            @click="onSelectCause(cause)"
                         >
-                            {{ result.description }}
-                        </div>
-                        <div class="result-id">{{ result.id }}</div>
-                    </div>
-                </div>
-
-                <label for="description" class="mt-3 d-block"
-                    >Kurzbeschreibung *</label
-                >
-                <textarea
-                    v-model="description"
-                    name="description"
-                    maxlength="750"
-                    placeholder="z.B. vom NS-Regime gelenkte Gewaltmaßnahmen gegen Juden in Osnabrück."
-                ></textarea>
-            </div>
-            <!-- Zeitpunkt/Zeitraum -->
-            <div class="time-section container-section">
-                <label class="section-label">Zeitpunkt / Zeitraum:</label>
-                <div class="time-type-selection">
-                    <div class="form-group">
-                        <input
-                            type="radio"
-                            id="time-point"
-                            name="event-time-type"
-                            value="point"
-                            v-model="eventTimeTypeValue"
-                        />
-                        <label for="time-point">Zeitpunkt</label>
-                    </div>
-                    <div class="form-group">
-                        <input
-                            type="radio"
-                            id="time-range"
-                            name="event-time-type"
-                            value="range"
-                            v-model="eventTimeTypeValue"
-                        />
-                        <label for="time-range">Zeitraum</label>
-                    </div>
-                </div>
-
-                <!-- Zeitpunkt-Eingabe -->
-                <div v-if="eventTimeTypeValue === 'point'" class="form-group">
-                    <label for="event-date">Datum des Ereignisses</label>
-                    <input
-                        type="date"
-                        id="event-date"
-                        v-model="eventDateValue"
-                    />
-                </div>
-
-                <!-- Zeitraum-Eingabe -->
-                <div
-                    v-if="eventTimeTypeValue === 'range'"
-                    class="time-range-inputs"
-                >
-                    <div class="form-group">
-                        <label for="event-start-date"
-                            >Beginn des Ereignisses</label
-                        >
-                        <input
-                            type="date"
-                            id="event-start-date"
-                            v-model="eventStartDateValue"
-                        />
-                    </div>
-                    <div class="form-group">
-                        <label for="event-end-date">Ende des Ereignisses</label>
-                        <input
-                            type="date"
-                            id="event-end-date"
-                            v-model="eventEndDateValue"
-                        />
-                    </div>
-                </div>
-            </div>
-
-            <!-- Opfer-Eingabefeld -->
-            <PersonsField
-                label="Geschädigte"
-                fieldId="victims"
-                :peopleSearchResults="peopleSearchResultsValue"
-                :selectedPersons="selectedVictimsValue"
-                :showNewPersonForm="showNewVictimFormValue"
-                :newPerson="newVictimLocal"
-                :isSearchLoading="isVictimSearchLoading"
-                :searchPerformed="victimSearchPerformed"
-                @searchPeople="onSearchPeople"
-                @selectPerson="onSelectVictim"
-                @startNewPersonForm="onStartNewVictimForm"
-                @cancelNewPersonForm="onCancelNewVictimForm"
-                @update:newPerson="newVictimLocal = $event"
-                @addNewPerson="onAddNewVictim"
-                @removePerson="onRemoveVictim"
-            />
-
-            <!-- Täter-Eingabefeld -->
-            <PersonsField
-                label="Täter*In"
-                fieldId="perpetrators"
-                :peopleSearchResults="perpetratorsSearchResultsValue"
-                :selectedPersons="selectedPerpetratorsValue"
-                :showNewPersonForm="showNewPerpetratorFormValue"
-                :newPerson="newPerpetratorLocal"
-                :isSearchLoading="isPerpetratorsSearchLoading"
-                :searchPerformed="perpetratorSearchPerformed"
-                @searchPeople="onSearchPerpetrators"
-                @selectPerson="onSelectPerpetrator"
-                @startNewPersonForm="onStartNewPerpetratorForm"
-                @cancelNewPersonForm="onCancelNewPerpetratorForm"
-                @update:newPerson="newPerpetratorLocal = $event"
-                @addNewPerson="onAddNewPerpetrator"
-                @removePerson="onRemovePerpetrator"
-            />
-
-            <!-- Opferzahlen -->
-            <div class="counts-section container-section">
-                <label class="section-label">Opferzahlen:</label>
-                <v-row class="align-end">
-                    <v-col cols="12" md="3">
-                        <div class="form-group">
-                            <label for="victim-count"
-                                >Anzahl der Geschädigten</label
+                            <div class="result-title">{{ cause.label }}</div>
+                            <div
+                                class="result-description"
+                                v-if="cause.description"
                             >
-                            <input
-                                type="number"
-                                id="victim-count"
-                                v-model="victimCountValue"
-                                min="0"
-                            />
+                                {{ cause.description }}
+                            </div>
+                            <div class="result-id">{{ cause.id }}</div>
                         </div>
-                    </v-col>
-                    <v-col cols="12" md="3">
-                        <div class="form-group">
-                            <label for="survivor-count"
-                                >Anzahl der Überlebenden</label
-                            >
-                            <input
-                                type="number"
-                                id="survivor-count"
-                                v-model="survivorCountValue"
-                                min="0"
-                            />
-                        </div>
-                    </v-col>
-                    <v-col cols="12" md="3">
-                        <div class="form-group">
-                            <label for="death-count"
-                                >Anzahl der Todesfälle</label
-                            >
-                            <input
-                                type="number"
-                                id="death-count"
-                                v-model="deathCountValue"
-                                min="0"
-                            />
-                        </div>
-                    </v-col>
-                    <v-col cols="12" md="3">
-                        <div class="form-group">
-                            <label for="arrest-count"
-                                >Anzahl der Festnahmen</label
-                            >
-                            <input
-                                type="number"
-                                id="arrest-count"
-                                v-model="arrestCountValue"
-                                min="0"
-                            />
-                        </div>
-                    </v-col>
-                </v-row>
-            </div>
+                    </div>
 
-            <!-- Ursache der Verfolgung -->
-            <div class="cause-section container-section">
-                <label for="cause" class="section-label"
-                    >Ursache der Verfolgung</label
-                >
-                <!-- Sucheingabefeld ist immer sichtbar -->
-                <div class="cause-search">
-                    <input
-                        type="text"
-                        id="cause-search"
-                        placeholder="Nach Ursache der Verfolgung suchen..."
-                        @input="(event) => onSearchCause(event.target.value)"
-                    />
-                </div>
-
-                <!-- Suchergebnisse für Ursachen -->
-                <div
-                    v-if="causeSearchResultsValue.length > 0"
-                    class="search-results"
-                >
+                    <!-- Anzeige der ausgewählten Ursachen -->
                     <div
-                        v-for="cause in causeSearchResultsValue"
-                        :key="cause.id"
-                        class="search-result-item"
-                        @click="onSelectCause(cause)"
+                        v-if="selectedCausesValue.length > 0"
+                        class="selected-causes"
                     >
-                        <div class="result-title">{{ cause.label }}</div>
                         <div
-                            class="result-description"
-                            v-if="cause.description"
+                            v-for="cause in selectedCausesValue"
+                            :key="cause.id"
+                            class="cause-display"
                         >
-                            {{ cause.description }}
-                        </div>
-                        <div class="result-id">{{ cause.id }}</div>
-                    </div>
-                </div>
-
-                <!-- Anzeige der ausgewählten Ursachen -->
-                <div
-                    v-if="selectedCausesValue.length > 0"
-                    class="selected-causes"
-                >
-                    <div
-                        v-for="cause in selectedCausesValue"
-                        :key="cause.id"
-                        class="cause-display"
-                    >
-                        <span class="cause-name">
-                            <a
-                                :href="`https://www.wikidata.org/wiki/${cause.id}`"
-                                target="_blank"
+                            <span class="cause-name">
+                                <a
+                                    :href="`https://www.wikidata.org/wiki/${cause.id}`"
+                                    target="_blank"
+                                >
+                                    {{ cause.label }}
+                                </a>
+                            </span>
+                            <span
+                                class="cause-description"
+                                v-if="cause.description"
                             >
-                                {{ cause.label }}
-                            </a>
-                        </span>
-                        <span
-                            class="cause-description"
-                            v-if="cause.description"
-                        >
-                            - {{ cause.description }}
-                        </span>
-                        <button
-                            type="button"
-                            class="remove-cause"
-                            @click="onRemoveCause(cause.id)"
-                        >
-                            ✕
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Standort -->
-            <div class="container-section location-section">
-                <label for="location" class="section-label"
-                    >Standort auswählen *</label
-                >
-                <div class="map-search">
-                    <input
-                        v-model="locationSearchValue"
-                        type="text"
-                        placeholder="Adresse oder Ort suchen..."
-                        @keydown.enter.prevent="onSearchLocation"
-                    />
-                    <button type="button" @click="onSearchLocation">
-                        Suchen
-                    </button>
-                </div>
-                <div class="map-container">
-                    <l-map
-                        ref="mapRef"
-                        :zoom="mapZoomValue"
-                        :center="mapCenterValue"
-                        @click="onHandleMapClick"
-                        @ready="onMapReady"
-                        style="height: 100%; width: 100%"
-                    >
-                        <l-tile-layer
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            layer-type="base"
-                            name="OpenStreetMap"
-                        ></l-tile-layer>
-                        <l-marker
-                            v-if="selectedLocationValue"
-                            :lat-lng="selectedLocationValue"
-                            :icon="markerIcon"
-                            :z-index-offset="1000"
-                        ></l-marker>
-                    </l-map>
-                    <div
-                        class="selected-coordinates"
-                        v-if="selectedLocationValue"
-                    >
-                        <strong>Ausgewählte Koordinaten:</strong>
-                        {{ selectedLocationValue.lat.toFixed(6) }},
-                        {{ selectedLocationValue.lng.toFixed(6) }}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bild aus Wikimedia Commons -->
-            <div class="container-section image-section">
-                <label class="section-label">Bild</label>
-                <div class="image-selection">
-                    <button
-                        type="button"
-                        class="button bg-secondary"
-                        @click="openImageSelector"
-                    >
-                        {{
-                            imageUrlValue &&
-                            typeof imageUrlValue === "string" &&
-                            imageUrlValue.trim() !== ""
-                                ? "Bild ändern"
-                                : "Bild aus Wikimedia Commons auswählen"
-                        }}
-                    </button>
-
-                    <div
-                        v-if="
-                            imageUrlValue &&
-                            typeof imageUrlValue === 'string' &&
-                            imageUrlValue.trim() !== ''
-                        "
-                        class="selected-image"
-                    >
-                        <img
-                            :src="imageUrlValue"
-                            :alt="imageFilenameValue || ''"
-                            class="preview-image"
-                            @click="openLightbox"
-                            style="cursor: pointer"
-                        />
-                        <div class="click-hint">Klicken zum Vergrößern</div>
-                        <div class="image-details">
-                            <span class="image-filename">{{
-                                imageFilenameValue
-                            }}</span>
+                                - {{ cause.description }}
+                            </span>
                             <button
                                 type="button"
-                                class="remove-image"
-                                @click="removeImage"
+                                class="remove-cause"
+                                @click="onRemoveCause(cause.id)"
                             >
                                 ✕
                             </button>
                         </div>
                     </div>
                 </div>
+
+                <!-- Standort -->
+                <div class="container-section location-section">
+                    <label for="location" class="section-label"
+                        >Standort auswählen *</label
+                    >
+                    <div class="map-search">
+                        <input
+                            v-model="locationSearchValue"
+                            type="text"
+                            placeholder="Adresse oder Ort suchen..."
+                            @keydown.enter.prevent="onSearchLocation"
+                            @focus="setActiveField('location')"
+                        />
+                        <button type="button" @click="onSearchLocation">
+                            Suchen
+                        </button>
+                    </div>
+                    <div class="map-container">
+                        <l-map
+                            ref="mapRef"
+                            :zoom="mapZoomValue"
+                            :center="mapCenterValue"
+                            @click="onHandleMapClick"
+                            @ready="onMapReady"
+                            style="height: 100%; width: 100%"
+                        >
+                            <l-tile-layer
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                layer-type="base"
+                                name="OpenStreetMap"
+                            ></l-tile-layer>
+                            <l-marker
+                                v-if="selectedLocationValue"
+                                :lat-lng="selectedLocationValue"
+                                :icon="markerIcon"
+                                :z-index-offset="1000"
+                            ></l-marker>
+                        </l-map>
+                        <div
+                            class="selected-coordinates"
+                            v-if="selectedLocationValue"
+                        >
+                            <strong>Ausgewählte Koordinaten:</strong>
+                            {{ selectedLocationValue.lat.toFixed(6) }},
+                            {{ selectedLocationValue.lng.toFixed(6) }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bild aus Wikimedia Commons -->
+                <div class="container-section image-section">
+                    <label class="section-label">Bild</label>
+                    <div class="image-selection">
+                        <button
+                            type="button"
+                            class="button bg-secondary"
+                            @click="openImageSelector"
+                            @focus="setActiveField('image')"
+                        >
+                            {{
+                                imageUrlValue &&
+                                typeof imageUrlValue === "string" &&
+                                imageUrlValue.trim() !== ""
+                                    ? "Bild ändern"
+                                    : "Bild aus Wikimedia Commons auswählen"
+                            }}
+                        </button>
+
+                        <div
+                            v-if="
+                                imageUrlValue &&
+                                typeof imageUrlValue === 'string' &&
+                                imageUrlValue.trim() !== ''
+                            "
+                            class="selected-image"
+                        >
+                            <img
+                                :src="imageUrlValue"
+                                :alt="imageFilenameValue || ''"
+                                class="preview-image"
+                                @click="openLightbox"
+                                style="cursor: pointer"
+                            />
+                            <div class="click-hint">Klicken zum Vergrößern</div>
+                            <div class="image-details">
+                                <span class="image-filename">{{
+                                    imageFilenameValue
+                                }}</span>
+                                <button
+                                    type="button"
+                                    class="remove-image"
+                                    @click="removeImage"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-container">
+                    <button
+                        class="button bg-secondary"
+                        type="button"
+                        @click="onGoToStep(1)"
+                    >
+                        Zurück
+                    </button>
+                    <button class="button" type="button" @click="onSubmit">
+                        Eintrag anlegen
+                    </button>
+                </div>
+                <div v-if="errorValue" class="bg-error">{{ errorValue }}</div>
+            </form>
+        </div>
+
+        <!-- Info-Box -->
+        <div class="info-box" v-if="activeField">
+            <div class="info-box-header">
+                <h3>{{ getInfoTitle(activeField) }}</h3>
             </div>
-
-            <div class="button-container">
-                <button
-                    class="button bg-secondary"
-                    type="button"
-                    @click="onGoToStep(1)"
-                >
-                    Zurück
-                </button>
-                <button class="button" type="button" @click="onSubmit">
-                    Eintrag anlegen
-                </button>
+            <div class="info-box-content">
+                <div v-html="getInfoContent(activeField)"></div>
             </div>
-            <div v-if="errorValue" class="bg-error">{{ errorValue }}</div>
-        </form>
-
-        <!-- Dialog für Bildauswahl -->
-        <v-dialog v-model="imageDialogVisible" max-width="900px">
-            <wikimedia-image-selector
-                @select="selectImage"
-                @close="closeImageDialog"
-            />
-        </v-dialog>
-
-        <!-- Lightbox für Bildanzeige -->
-        <lightbox
-            :is-open="lightboxOpen"
-            :image-url="imageUrlValue || ''"
-            :image-alt="imageFilenameValue || ''"
-            :image-caption="imageFilenameValue || ''"
-            @close="lightboxOpen = false"
-        />
+        </div>
     </div>
+
+    <!-- Dialog für Bildauswahl -->
+    <v-dialog v-model="imageDialogVisible" max-width="900px">
+        <wikimedia-image-selector
+            @select="selectImage"
+            @close="closeImageDialog"
+        />
+    </v-dialog>
+
+    <!-- Lightbox für Bildanzeige -->
+    <lightbox
+        :is-open="lightboxOpen"
+        :image-url="imageUrlValue || ''"
+        :image-alt="imageFilenameValue || ''"
+        :image-caption="imageFilenameValue || ''"
+        @close="lightboxOpen = false"
+    />
 </template>
 
 <script setup>
@@ -756,6 +792,128 @@ watch(
     { immediate: true, deep: true },
 );
 
+// Info-Box Funktionalität
+const activeField = ref(null);
+const activeSection = ref(null);
+
+// Funktion zum Setzen des aktiven Feldes
+const setActiveField = (fieldName) => {
+    activeField.value = fieldName;
+};
+
+// Funktion zum Setzen der aktiven Sektion
+const setActiveSection = (sectionName) => {
+    activeSection.value = sectionName;
+};
+
+// Info-Box-Titel basierend auf dem aktiven Feld
+const getInfoTitle = (fieldName) => {
+    const titles = {
+        title: "Titel des Ereignisses",
+        description: "Beschreibung",
+        "event-date": "Datum des Ereignisses",
+        "event-start-date": "Beginn des Ereignisses",
+        "event-end-date": "Ende des Ereignisses",
+        "victim-count": "Anzahl der Opfer",
+        "survivor-count": "Anzahl der Überlebenden",
+        "death-count": "Anzahl der Todesfälle",
+        "arrest-count": "Anzahl der Festnahmen",
+        cause: "Ursache der Verfolgung",
+        location: "Standort",
+        image: "Bild",
+        victims: "Geschädigte Personen",
+        perpetrators: "Verantwortliche Personen",
+    };
+    return titles[fieldName] || "Information";
+};
+
+// Info-Box-Inhalt basierend auf dem aktiven Feld
+const getInfoContent = (fieldName) => {
+    const contents = {
+        title: `<p>Geben Sie hier einen präzisen und aussagekräftigen Titel für das Ereignis ein.</p>
+                 <p>Ein guter Titel enthält:</p>
+                 <ul>
+                    <li>Die Art des Ereignisses (z.B. Deportation, Pogrom)</li>
+                    <li>Zeit und/oder Ort</li>
+                    <li>Ggf. beteiligte Gruppen</li>
+                 </ul>
+                 <p>Beispiele:</p>
+                 <ul>
+                    <li>Novemberpogrom 1938 in Osnabrück</li>
+                    <li>Deportation der jüdischen Bevölkerung aus Hamburg (1941)</li>
+                 </ul>`,
+        description: `<p>Beschreiben Sie das Ereignis kurz und informativ.</p>
+                      <p>Eine gute Beschreibung:</p>
+                      <ul>
+                        <li>Fasst die wichtigsten Fakten zusammen</li>
+                        <li>Nennt beteiligte Personen oder Gruppen</li>
+                        <li>Erwähnt historischen Kontext</li>
+                        <li>Ist sachlich und neutral formuliert</li>
+                      </ul>`,
+        "event-date": `<p>Wählen Sie das exakte Datum, an dem das Ereignis stattfand.</p>
+                      <p>Falls das genaue Datum nicht bekannt ist, wählen Sie einen bestmöglichen Schätzwert und erwähnen Sie die Unsicherheit in der Beschreibung.</p>`,
+        "event-start-date": `<p>Wählen Sie das Datum, an dem der Ereigniszeitraum begann.</p>`,
+        "event-end-date": `<p>Wählen Sie das Datum, an dem der Ereigniszeitraum endete.</p>
+                         <p>Falls das Ereignis noch andauert, lassen Sie dieses Feld leer.</p>`,
+        "victim-count": `<p>Tragen Sie hier die Gesamtzahl der Opfer ein, sofern bekannt.</p>
+                       <p>Verwenden Sie nur gesicherte Zahlen aus verlässlichen Quellen. Bei Unsicherheit ist ein Bereich (z.B. in der Beschreibung: "etwa 100-150 Opfer") besser als eine exakte Zahl.</p>`,
+        "survivor-count": `<p>Tragen Sie hier die Anzahl der Überlebenden ein, sofern bekannt.</p>`,
+        "death-count": `<p>Tragen Sie hier die Anzahl der Todesopfer ein, sofern bekannt.</p>`,
+        "arrest-count": `<p>Tragen Sie hier die Anzahl der Festnahmen ein, sofern bekannt.</p>`,
+        cause: `<p>Wählen Sie die Hauptursache(n) der Verfolgung aus oder fügen Sie neue hinzu.</p>
+                <p>Typische Kategorien sind:</p>
+                <ul>
+                  <li>Religiöse Verfolgung</li>
+                  <li>Rassistische Verfolgung</li>
+                  <li>Politische Verfolgung</li>
+                  <li>Soziale Verfolgung</li>
+                </ul>`,
+        location: `<p>Markieren Sie den genauen Ort des Ereignisses auf der Karte.</p>
+                   <p>Sie können:</p>
+                   <ul>
+                     <li>Direkt auf die Karte klicken</li>
+                     <li>Nach einem Ort suchen</li>
+                     <li>Die Karte zoomen und verschieben</li>
+                   </ul>
+                   <p>Präzise Ortsangaben sind wichtig für die historische Dokumentation.</p>`,
+        image: `<p>Fügen Sie ein passendes Bild zum Ereignis hinzu.</p>
+                <p>Geeignete Bilder sind:</p>
+                <ul>
+                  <li>Historische Fotos vom Ereignis</li>
+                  <li>Bilder des Ortes</li>
+                  <li>Dokumente zum Ereignis</li>
+                  <li>Denkmäler oder Gedenktafeln</li>
+                </ul>
+                <p>Verwenden Sie nur Bilder, die Sie rechtlich nutzen dürfen.</p>`,
+        victims: `<p>Fügen Sie hier die Geschädigten oder Opfer des Ereignisses hinzu.</p>
+                <p>Sie können:</p>
+                <ul>
+                  <li>Nach bereits bekannten Personen suchen</li>
+                  <li>Neue Personen manuell hinzufügen</li>
+                </ul>
+                <p>Bei der Eingabe neuer Personen:</p>
+                <ul>
+                  <li>Verwenden Sie korrekte Schreibweisen von Namen</li>
+                  <li>Fügen Sie Lebensdaten hinzu, falls bekannt</li>
+                  <li>Geben Sie eine kurze Beschreibung zur Person an</li>
+                </ul>
+                <p>Dies hilft bei der Verknüpfung mit anderen Ereignissen und bei der Nachverfolgung von Schicksalen.</p>`,
+        perpetrators: `<p>Dokumentieren Sie hier die für das Ereignis verantwortlichen Personen oder Gruppen.</p>
+                     <p>Wichtige Hinweise:</p>
+                     <ul>
+                       <li>Beachten Sie die juristische und historische Genauigkeit</li>
+                       <li>Unterscheiden Sie zwischen direkten Tätern und Befehlsgebern</li>
+                       <li>Dokumentieren Sie auch institutionelle Verantwortlichkeiten</li>
+                       <li>Stützen Sie sich auf nachweisbare Fakten und Quellen</li>
+                     </ul>
+                     <p>Eine präzise Dokumentation der Täter ist ein wichtiger Teil der historischen Aufarbeitung.</p>`,
+    };
+    return (
+        contents[fieldName] ||
+        "<p>Wählen Sie ein Feld aus, um Hilfe zu erhalten.</p>"
+    );
+};
+
 // Benutzerdefiniertes Marker-Icon erstellen
 const createCustomIcon = (type) => {
     return L.icon({
@@ -843,7 +1001,7 @@ const onAddNewVictim = () => {
 const onRemoveVictim = (id) => emit("removeVictim", id);
 const onStartAddingAnotherVictim = () => emit("startAddingAnotherVictim");
 
-// Tu00e4ter (Perpetrator) Handler-Funktionen
+// Täter (Perpetrator) Handler-Funktionen
 const onSearchPerpetrators = (query) => {
     if (query && query.length >= 2) {
         // Kurze Verzögerung, damit das Ladeicon nicht bei jeder Eingabe kurz aufflackert
@@ -946,7 +1104,7 @@ const openLightbox = () => {
 }
 
 .forms-container {
-    max-width: 800px;
+    width: 100%;
 }
 
 .step-container {
@@ -962,13 +1120,81 @@ const openLightbox = () => {
     color: #333;
 }
 
-.forms {
-    --max-width: 100%;
-
+/* Layout für Formular mit Info-Box */
+.event-form-wrapper {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    gap: 2rem;
     width: 100%;
+}
+
+.step-container {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    width: 65%; /* Reduzierte Breite, um Platz für die Info-Box zu lassen */
+}
+
+.info-box {
+    width: 30%;
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    position: sticky;
+    top: 2rem;
+    align-self: flex-start;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 2.7rem; /* Align with first input field */
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+}
+
+.info-box-header {
+    border-bottom: 1px solid #e9ecef;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+}
+
+.info-box-header h3 {
+    font-size: 1.2rem;
+    color: #1976d2;
+    margin: 0;
+}
+
+.info-box-content {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #495057;
+}
+
+.info-box-content p {
+    margin-bottom: 1rem;
+}
+
+.info-box-content ul {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.info-box-content li {
+    margin-bottom: 0.5rem;
+}
+
+@media (max-width: 1200px) {
+    .event-form-wrapper {
+        flex-direction: column;
+    }
+
+    .step-container,
+    .info-box {
+        width: 100%;
+    }
+
+    .info-box {
+        margin-top: 0;
+        position: static;
+    }
 }
 
 .forms > *:not(:last-child) {
@@ -1382,7 +1608,7 @@ label.section-label {
     flex: 1;
 }
 
-/* Tu00e4ter Styling */
+/* Täter Styling */
 .perpetrators-section {
     width: 100%;
     margin-bottom: 1.5rem;
