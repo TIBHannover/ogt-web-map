@@ -810,6 +810,10 @@ const props = defineProps({
         type: String,
         default: null,
     },
+    selectedSources: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 // Emit-Ereignisse, die an die Elternkomponente gesendet werden
@@ -843,6 +847,7 @@ const emit = defineEmits([
     "update:error",
     "update:imageUrl",
     "update:imageFilename",
+    "update:selectedSources",
     "searchWikidataEntities",
     "selectExistingEntity",
     "searchPeople",
@@ -969,7 +974,10 @@ const imageFilenameValue = computed({
     set: (value) => emit("update:imageFilename", value),
 });
 
-const selectedSourcesValue = ref([]);
+const selectedSourcesValue = computed({
+    get: () => props.selectedSources,
+    set: (value) => emit("update:selectedSources", value),
+});
 
 // Bild-Dialog
 const imageDialogVisible = ref(false);
@@ -1366,12 +1374,15 @@ const closeSourcesDialog = () => {
 };
 
 const selectSource = (data) => {
-    selectedSourcesValue.value.push(data.source);
+    const newSources = [...selectedSourcesValue.value, data.source];
+    emit("update:selectedSources", newSources);
     sourcesDialogVisible.value = false;
 };
 
 const removeSource = (index) => {
-    selectedSourcesValue.value.splice(index, 1);
+    const newSources = [...selectedSourcesValue.value];
+    newSources.splice(index, 1);
+    emit("update:selectedSources", newSources);
 };
 
 // Formatiert ein Datum im deutschen Format

@@ -226,7 +226,7 @@
 
                                 @if($request->perpetrators && count($request->perpetrators) > 0)
                                     <div class="mb-3">
-                                        <strong>Täter:</strong>
+                                        <strong>Täter*Innen:</strong>
                                         <div class="list-group mt-2">
                                             @foreach($request->perpetrators as $perpetrator)
                                                 <div class="list-group-item">
@@ -307,6 +307,92 @@
                                         </div>
                                     </div>
                                 @endif
+                            </div>
+                        @endif
+
+                        <!-- Quellenangaben -->
+                        @if($request->sources && count($request->sources) > 0)
+                            <div class="mb-3">
+                                <h6>Quellenangaben:</h6>
+                                <div class="list-group mt-2">
+                                    @foreach($request->sources as $source)
+                                        <div class="list-group-item">
+                                            @if(is_array($source))
+                                                <div class="d-flex align-items-center mb-1">
+                                                    <!-- Icon je nach Quellentyp -->
+                                                    @if(isset($source['type']))
+                                                        <div class="me-2">
+                                                            @if($source['type'] == 'book')
+                                                                <i class="bi bi-book"></i>
+                                                            @elseif($source['type'] == 'url')
+                                                                <i class="bi bi-link"></i>
+                                                            @elseif($source['type'] == 'archive')
+                                                                <i class="bi bi-archive"></i>
+                                                            @else
+                                                                <i class="bi bi-file-text"></i>
+                                                            @endif
+                                                        </div>
+                                                    @endif
+                                                    
+                                                    <!-- Titel der Quelle -->
+                                                    @if(isset($source['title']))
+                                                        <div class="fw-bold">{{ $source['title'] }}</div>
+                                                    @endif
+                                                </div>
+                                                
+                                                <!-- Beschreibung -->
+                                                @if(isset($source['description']))
+                                                    <div class="text-muted small mb-1">{{ $source['description'] }}</div>
+                                                @endif
+                                                
+                                                <!-- Typenspezifische Details -->
+                                                <div class="small">
+                                                    @if(isset($source['type']))
+                                                        @if($source['type'] == 'book')
+                                                            @if(isset($source['pages']))
+                                                                <div><strong>Seiten:</strong> {{ $source['pages'] }}</div>
+                                                            @endif
+                                                            @if(isset($source['id']) && $source['id'] != 'manual')
+                                                                <div>
+                                                                    <a href="https://www.wikidata.org/wiki/{{ $source['id'] }}" target="_blank">
+                                                                        <span class="badge bg-secondary">{{ $source['id'] }}</span>
+                                                                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                                                    </a>
+                                                                </div>
+                                                            @endif
+                                                        @elseif($source['type'] == 'url')
+                                                            @if(isset($source['url']))
+                                                                <div>
+                                                                    <a href="{{ $source['url'] }}" target="_blank" class="text-break">
+                                                                        {{ $source['url'] }}
+                                                                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                                                    </a>
+                                                                </div>
+                                                            @endif
+                                                            @if(isset($source['accessDate']))
+                                                                <div><strong>Zugriff am:</strong> {{ \Carbon\Carbon::parse($source['accessDate'])->format('d.m.Y') }}</div>
+                                                            @endif
+                                                        @elseif($source['type'] == 'archive')
+                                                            @if(isset($source['inventoryNumber']))
+                                                                <div><strong>Inv. Nr.:</strong> {{ $source['inventoryNumber'] }}</div>
+                                                            @endif
+                                                            @if(isset($source['id']) && $source['id'] != 'manual')
+                                                                <div>
+                                                                    <a href="https://www.wikidata.org/wiki/{{ $source['id'] }}" target="_blank">
+                                                                        <span class="badge bg-secondary">{{ $source['id'] }}</span>
+                                                                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                                                    </a>
+                                                                </div>
+                                                            @endif
+                                                        @endif
+                                                    @endif
+                                                </div>
+                                            @elseif(is_string($source))
+                                                {{ $source }}
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
                         @endif
                     @endif

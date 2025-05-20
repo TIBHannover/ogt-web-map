@@ -145,6 +145,7 @@
                         v-model:error="error"
                         v-model:imageUrl="imageUrl"
                         v-model:imageFilename="imageFilename"
+                        v-model:selectedSources="selectedSources"
                         @searchWikidataEntities="searchWikidataEntities"
                         @selectExistingEntity="selectExistingEntity"
                         @searchPeople="searchPeople"
@@ -404,6 +405,7 @@ const locationSearch = ref(""); // Suchtext für Standorte
 // Bild-spezifische Daten
 const imageUrl = ref(null);
 const imageFilename = ref(null);
+const selectedSources = ref([]);
 
 // Benutzerdefiniertes Marker-Icon erstellen
 const createCustomIcon = (type) => {
@@ -938,6 +940,7 @@ const resetForm = async () => {
                 causes: selectedCauses.value,
                 imageUrl: imageUrl.value,
                 imageFilename: imageFilename.value,
+                sources: selectedSources.value,
             },
             {
                 headers: {
@@ -1014,6 +1017,7 @@ const clearForm = () => {
     // Bild zurücksetzen
     imageUrl.value = null;
     imageFilename.value = null;
+    selectedSources.value = [];
 };
 
 // Watcher für currentStep - invalidiert die Kartengröu00dfe, wenn wir zu Schritt 2 gehen

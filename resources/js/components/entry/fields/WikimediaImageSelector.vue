@@ -169,6 +169,11 @@ const closeDialog = () => {
 </script>
 
 <style scoped>
+.wikimedia-image-selector {
+    max-height: 90vh;
+    overflow-y: scroll;
+}
+
 .image-card {
     position: relative;
     cursor: pointer;

@@ -43,6 +43,7 @@ class WikidataEntityController extends Controller
             "arrestCount" => "nullable|integer",
             "cause" => "nullable|string",
             "causes" => "nullable|array",
+            "sources" => "nullable|array",
             "imageUrl" => "nullable|string",
             "imageFilename" => "nullable|string",
         ]);
@@ -76,6 +77,9 @@ class WikidataEntityController extends Controller
 
             // Ursache
             $entryRequest->cause = $validated["cause"] ?? null;
+            
+            // Quellen
+            $entryRequest->sources = $validated["sources"] ?? null;
 
             // Bildinformationen
             $entryRequest->image_url = $validated["imageUrl"] ?? null;

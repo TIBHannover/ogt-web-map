@@ -32,11 +32,13 @@ class WikidataEntryRequest extends Model
         "death_count",
         "arrest_count",
         "cause",
+        "sources",
     ];
 
     protected $casts = [
         'victims' => 'array',
         'perpetrators' => 'array',
+        'sources' => 'array',
     ];
 
 }
