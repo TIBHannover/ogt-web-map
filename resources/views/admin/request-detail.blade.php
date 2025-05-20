@@ -341,6 +341,51 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Debug: Aufbereitete Wikidata-Daten -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Debug: Aufbereitete Wikidata-Daten</h5>
+                    <button class="btn btn-sm btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWikidataDebug" aria-expanded="false" aria-controls="collapseWikidataDebug">Anzeigen/Verbergen</button>
+                </div>
+                <div class="collapse" id="collapseWikidataDebug">
+                    <div class="card-body">
+                        @php
+                            // WikidataService verwenden, um die Daten aufzubereiten
+                            $wikidataService = app(\App\Services\Wikidata\WikidataService::class);
+                            
+                            // Relevante Daten extrahieren
+                            $additionalData = [];
+                            $requestArray = $request->toArray();
+                            $excludeKeys = ['id', 'title', 'description', 'type', 'created_at', 'updated_at', 'status', 'submitted_by', 'approved_by', 'rejection_reason', 'error_message', 'wikidata_id', 'wikidata_url'];
+                            
+                            foreach ($requestArray as $key => $value) {
+                                if (!in_array($key, $excludeKeys) && !is_null($value)) {
+                                    $additionalData[$key] = $value;
+                                }
+                            }
+                            
+                            // Daten durch WikidataService vorbereiten (wie im Controller)
+                            $serviceData = $wikidataService->prepareEntityData(
+                                $request->title,
+                                $request->description,
+                                $request->type,
+                                $additionalData
+                            );
+                        @endphp
+                        
+                        <div class="mb-4">
+                            <h6>Aufbereitete Daten für Wikidata API:</h6>
+                            <pre class="bg-light p-3" style="max-height: 400px; overflow-y: auto;">{{ json_encode($serviceData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Diese Daten werden vom System aufbereitet und an die Wikidata API gesendet, wenn die Anfrage genehmigt wird. Die Struktur entspricht den Anforderungen der Wikidata API für die Erstellung neuer Entitäten.
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Seitenleiste -->
