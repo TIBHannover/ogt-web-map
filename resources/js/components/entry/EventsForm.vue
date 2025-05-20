@@ -1065,12 +1065,12 @@ const getInfoTitle = (fieldName) => {
     const sectionTitles = {
         title: "Basis-Informationen",
         time: "Zeitliche Informationen",
-        "victim-count": "Opferzahlen",
+        "victim-count": "Geschädigte-Zahlen",
         cause: "Ursache der Verfolgung",
         location: "Standort",
         image: "Bild",
         victims: "Geschädigte Personen",
-        perpetrators: "Verantwortliche Personen",
+        perpetrators: "Täter*Innen",
     };
 
     if (sectionTitles[fieldName]) {
