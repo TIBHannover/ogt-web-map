@@ -227,7 +227,7 @@
                                 placeholder="z.B. Gedenkstätte für die Opfer des Konzentrationslagers Bergen-Belsen."
                             ></textarea>
 
-                            <label for="location">Standort auswählen *</label>
+                            <label for="location">Standort auswählen: *</label>
                             <div class="map-container">
                                 <l-map
                                     ref="mapRef"

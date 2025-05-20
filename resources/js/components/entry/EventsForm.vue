@@ -408,7 +408,7 @@
                 <!-- Bild aus Wikimedia Commons -->
                 <div class="container-section image-section">
                     <div class="section-header">
-                        <label class="section-label">Bild</label>
+                        <label class="section-label">Bild:</label>
                         <button
                             type="button"
                             class="info-icon"
@@ -468,7 +468,7 @@
                 <!-- Quellenangaben -->
                 <div class="container-section sources-section">
                     <div class="section-header">
-                        <label class="section-label">Quellenangaben</label>
+                        <label class="section-label">Quellenangaben:</label>
                         <button
                             type="button"
                             class="info-icon"
@@ -488,55 +488,102 @@
                             Quellenangabe hinzufügen
                         </button>
 
-                        <div v-if="selectedSourcesValue.length > 0" class="selected-sources mt-4">
-                            <div 
-                                v-for="(source, index) in selectedSourcesValue" 
+                        <div
+                            v-if="selectedSourcesValue.length > 0"
+                            class="selected-sources mt-4"
+                        >
+                            <div
+                                v-for="(source, index) in selectedSourcesValue"
                                 :key="index"
                                 class="source-item"
                             >
                                 <div class="source-type-icon">
-                                    <v-icon v-if="source.type === 'book'">mdi-book</v-icon>
-                                    <v-icon v-else-if="source.type === 'url'">mdi-link</v-icon>
-                                    <v-icon v-else-if="source.type === 'archive'">mdi-archive</v-icon>
+                                    <v-icon v-if="source.type === 'book'"
+                                        >mdi-book</v-icon
+                                    >
+                                    <v-icon v-else-if="source.type === 'url'"
+                                        >mdi-link</v-icon
+                                    >
+                                    <v-icon
+                                        v-else-if="source.type === 'archive'"
+                                        >mdi-archive</v-icon
+                                    >
                                 </div>
                                 <div class="source-content">
-                                    <div class="source-title">{{ source.title }}</div>
-                                    <div v-if="source.description" class="source-description">{{ source.description }}</div>
+                                    <div class="source-title">
+                                        {{ source.title }}
+                                    </div>
+                                    <div
+                                        v-if="source.description"
+                                        class="source-description"
+                                    >
+                                        {{ source.description }}
+                                    </div>
                                     <div class="source-details">
                                         <template v-if="source.type === 'book'">
-                                            <span v-if="source.pages">S. {{ source.pages }}</span>
-                                            <a 
-                                                v-if="source.id && source.id !== 'manual'"
+                                            <span v-if="source.pages"
+                                                >S. {{ source.pages }}</span
+                                            >
+                                            <a
+                                                v-if="
+                                                    source.id &&
+                                                    source.id !== 'manual'
+                                                "
                                                 :href="`https://www.wikidata.org/wiki/${source.id}`"
                                                 target="_blank"
                                                 class="source-link"
                                             >
-                                                <v-icon size="x-small">mdi-open-in-new</v-icon>
+                                                <v-icon size="x-small"
+                                                    >mdi-open-in-new</v-icon
+                                                >
                                                 Wikidata
                                             </a>
                                         </template>
-                                        <template v-else-if="source.type === 'url'">
+                                        <template
+                                            v-else-if="source.type === 'url'"
+                                        >
                                             <span v-if="source.accessDate">
-                                                Zugriff am {{ formatDate(source.accessDate) }}
+                                                Zugriff am
+                                                {{
+                                                    formatDate(
+                                                        source.accessDate,
+                                                    )
+                                                }}
                                             </span>
-                                            <a 
+                                            <a
                                                 :href="source.url"
                                                 target="_blank"
                                                 class="source-link"
                                             >
-                                                <v-icon size="x-small">mdi-open-in-new</v-icon>
+                                                <v-icon size="x-small"
+                                                    >mdi-open-in-new</v-icon
+                                                >
                                                 Link
                                             </a>
                                         </template>
-                                        <template v-else-if="source.type === 'archive'">
-                                            <span>Inv. Nr. {{ source.inventoryNumber }}</span>
-                                            <a 
-                                                v-if="source.id && source.id !== 'manual'"
+                                        <template
+                                            v-else-if="
+                                                source.type === 'archive'
+                                            "
+                                        >
+                                            <span
+                                                >Inv. Nr.
+                                                {{
+                                                    source.inventoryNumber
+                                                }}</span
+                                            >
+                                            <a
+                                                v-if="
+                                                    source.id &&
+                                                    source.id !== 'manual'
+                                                "
                                                 :href="`https://www.wikidata.org/wiki/${source.id}`"
                                                 target="_blank"
                                                 class="source-link"
                                             >
-                                                <v-icon size="x-small">mdi-open-in-new</v-icon>
+                                                <v-icon size="x-small"
+                                                    >mdi-open-in-new</v-icon
+                                                >
                                                 Wikidata
                                             </a>
                                         </template>
@@ -610,10 +657,7 @@
 
     <!-- Dialog für Quellenauswahl -->
     <v-dialog v-model="sourcesDialogVisible" max-width="900px">
-        <sources-selector
-            @select="selectSource"
-            @close="closeSourcesDialog"
-        />
+        <sources-selector @select="selectSource" @close="closeSourcesDialog" />
     </v-dialog>
 
     <!-- Lightbox für Bildanzeige -->
@@ -1332,9 +1376,9 @@ const removeSource = (index) => {
 
 // Formatiert ein Datum im deutschen Format
 const formatDate = (dateString) => {
-    if (!dateString) return '';
+    if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toLocaleDateString('de-DE');
+    return date.toLocaleDateString("de-DE");
 };
 
 const openLightbox = () => {
