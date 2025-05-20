@@ -54,7 +54,7 @@
                     <v-expansion-panel
                         v-for="(
                             glossaryItem, glossaryItemLabel
-                        ) in glossaryData"
+                        ) in glossaryDataRef"
                         :key="glossaryItem.id"
                         v-show="
                             filterGlossaryItems(
@@ -84,11 +84,7 @@
                                         {{ enumerationText }}
                                     </li>
                                 </ul>
-                                <p
-                                    v-else
-                                    @click="showLinkedGlossaryItem"
-                                    v-html="description"
-                                ></p>
+                                <p v-else v-html="description"></p>
                             </template>
 
                             <h5
@@ -165,50 +161,56 @@ const filterGlossaryItems = (glossaryItemLabel, glossaryItemDescriptions) => {
 };
 
 const linkGlossaryItems = () => {
-    let searchTerms = [];
-
-    // create regex search terms for glossary item labels
-    for (const [glossaryItemLabel, glossaryItemData] of Object.entries(
-        glossaryDataRef.value,
-    )) {
-        let termRegex =
-            glossaryItemLabel.replace("s ", "[ens]{0,3} ") + "[ens]{0,3}";
+    const searchTerms = [];
+    for (const [label, data] of Object.entries(glossaryDataRef.value)) {
         searchTerms.push({
-            label: glossaryItemLabel,
-            regex: termRegex,
+            label,
+            regex: label.replace(/s /g, "[ens]{0,3} ") + "[ens]{0,3}",
+            id: data.id,
         });
     }
 
-    for (let [glossaryItemLabel, glossaryItemData] of Object.entries(
-        glossaryDataRef.value,
-    )) {
-        glossaryItemData.descriptions.forEach(
-            (description, descriptionIndex) => {
-                if (Array.isArray(description)) return;
+    const newGlossaryData = {};
 
-                searchTerms.forEach((term, termIndex) => {
-                    if (term.label == glossaryItemLabel) return;
+    for (const [label, data] of Object.entries(glossaryDataRef.value)) {
+        const newItemData = {
+            ...data,
+            descriptions: [...data.descriptions],
+            sources: [...data.sources],
+        };
 
-                    let regex = new RegExp(
-                        `(^| |\\.|\\()(${term.regex})( |,|\\.|$|\\))`,
-                        "gi",
-                    );
-                    let replacement = `$1<a href='javascript:' data-glossary-index='${termIndex}' data-search-term='${term.label}'>$2</a>$3`;
+        newItemData.descriptions = newItemData.descriptions.map((desc) => {
+            if (Array.isArray(desc)) return desc; // Skip arrays
 
-                    description = description.replace(regex, replacement);
-                });
+            let processedDesc = desc;
+            for (const [idx, term] of searchTerms.entries()) {
+                if (term.label === label) continue;
 
-                glossaryItemData.descriptions[descriptionIndex] = description;
-            },
-        );
+                const regex = new RegExp(
+                    `(^| |\\.|\\()(${term.regex})( |,|\\.|$|\\))`,
+                    "gi",
+                );
 
-        glossaryItemData.sources.forEach((source, sourceIndex) => {
-            glossaryItemData.sources[sourceIndex] = source.replace(
-                /(^https:.[^ ]*)/i,
+                processedDesc = processedDesc.replace(
+                    regex,
+                    `$1<a href='#${term.id}' class='glossary-link' data-glossary-index='${idx}' data-search-term='${term.label}'>$2</a>$3`,
+                );
+            }
+
+            return processedDesc;
+        });
+
+        newItemData.sources = newItemData.sources.map((source) => {
+            return source.replace(
+                /(^https?:\/\/[^ ]*)/i,
                 "<a href='$1' target='_blank'>$1</a>",
             );
         });
+
+        newGlossaryData[label] = newItemData;
     }
+
+    glossaryDataRef.value = newGlossaryData;
 };
 
 const showGlossaryItemByUrlHash = () => {
@@ -222,12 +224,27 @@ const showGlossaryItemByUrlHash = () => {
 };
 
 const showLinkedGlossaryItem = (event) => {
-    if (event.target.hasAttribute("data-glossary-index")) {
-        selectedGlossaryIndex.value = GLOSSARY_INDEX_ALL;
-        searchTerm.value = event.target.getAttribute("data-search-term");
-        openedGlossaryPanel.value = parseInt(
-            event.target.getAttribute("data-glossary-index"),
-        );
+    // Only proceed if we clicked on a glossary link
+    if (
+        event.target.classList &&
+        event.target.classList.contains("glossary-link")
+    ) {
+        const targetId = event.target.getAttribute("href").substring(1);
+        const targetPanel = document.getElementById(targetId);
+
+        if (targetPanel) {
+            selectedGlossaryIndex.value = GLOSSARY_INDEX_ALL;
+
+            searchTerm.value = null;
+
+            setTimeout(() => {
+                targetPanel.click();
+                // Scroll to the panel
+                targetPanel.scrollIntoView({ behavior: "smooth" });
+            }, 100);
+
+            event.preventDefault();
+        }
     }
 };
 
@@ -235,8 +252,21 @@ const showLinkedGlossaryItem = (event) => {
 onMounted(() => {
     setFreeClientWidth();
     setGlossaryIndex();
+
+    glossaryDataRef.value = structuredClone(glossaryData);
+
     linkGlossaryItems();
+
     showGlossaryItemByUrlHash();
+
+    document.addEventListener("click", (event) => {
+        if (
+            event.target.classList &&
+            event.target.classList.contains("glossary-link")
+        ) {
+            showLinkedGlossaryItem(event);
+        }
+    });
 });
 
 onUnmounted(() => {
@@ -274,5 +304,11 @@ window.addEventListener("resize", setFreeClientWidth);
 
 .noBullets {
     list-style-type: none;
+}
+
+.glossary-link {
+    color: #4657b5;
+    text-decoration: underline;
+    cursor: pointer;
 }
 </style>
