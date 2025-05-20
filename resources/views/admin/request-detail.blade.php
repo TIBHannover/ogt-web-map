@@ -22,12 +22,12 @@
     @endif
 
     <!-- Status-Banner -->
-    <div class="alert alert-{{ 
-        $request->status == 'approved' ? 'success' : 
-        ($request->status == 'rejected' ? 'danger' : 
-        ($request->status == 'error' ? 'warning' : 'primary')) 
+    <div class="alert alert-{{
+        $request->status == 'approved' ? 'success' :
+        ($request->status == 'rejected' ? 'danger' :
+        ($request->status == 'error' ? 'warning' : 'primary'))
     }} mb-4">
-        <h5 class="alert-heading">Status: 
+        <h5 class="alert-heading">Status:
             @if($request->status == 'pending')
                 In Bearbeitung
             @elseif($request->status == 'approved')
@@ -38,10 +38,10 @@
                 Fehler
             @endif
         </h5>
-        
+
         @if($request->status == 'approved' && $request->wikidata_id)
             <div class="mt-2">
-                <a href="https://www.wikidata.org/wiki/{{ $request->wikidata_id }}" 
+                <a href="https://www.wikidata.org/wiki/{{ $request->wikidata_id }}"
                    target="_blank" class="btn btn-sm btn-light">
                     Wikidata-Eintrag öffnen <i class="bi bi-box-arrow-up-right ms-1"></i>
                 </a>
@@ -90,14 +90,14 @@
                                 {{ $request->type }}
                             @endif
                         </span>
-                        
+
                         <!-- Erstellungsdatum -->
                         @if($request->created_at)
                             <span class="badge bg-secondary me-2">
                                 Erstellt am: {{ $request->created_at->format('d.m.Y H:i') }}
                             </span>
                         @endif
-                        
+
                         <!-- Ersteller -->
                         <span class="badge bg-secondary">
                             Erstellt von: {{ $request->submitted_by ?? 'Unbekannt' }}
@@ -216,6 +216,97 @@
                                         <li>Verhaftungen: {{ $request->arrest_count }}</li>
                                     @endif
                                 </ul>
+                            </div>
+                        @endif
+
+                        <!-- Beteiligte Personen (Täter und Geschädigte) -->
+                        @if($request->perpetrators || $request->victims)
+                            <div class="mb-3">
+                                <h6>Beteiligte Personen:</h6>
+
+                                @if($request->perpetrators && count($request->perpetrators) > 0)
+                                    <div class="mb-3">
+                                        <strong>Täter:</strong>
+                                        <div class="list-group mt-2">
+                                            @foreach($request->perpetrators as $perpetrator)
+                                                <div class="list-group-item">
+                                                    @if(is_array($perpetrator))
+                                                        @if(isset($perpetrator['label']))
+                                                            <div class="fw-bold">{{ $perpetrator['label'] }}</div>
+                                                        @else
+                                                            <div class="fw-bold">{{ $perpetrator['firstName'] }} {{ $perpetrator['lastName'] }}</div>
+                                                        @endif
+
+                                                        @if(isset($perpetrator['id']))
+                                                            <div>
+                                                                <a href="https://www.wikidata.org/wiki/{{ $perpetrator['id'] }}" target="_blank" class="text-decoration-none">
+                                                                    <span class="badge bg-secondary">{{ $perpetrator['id'] }}</span>
+                                                                    <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                                                </a>
+                                                            </div>
+                                                        @endif
+
+                                                        @if(isset($perpetrator['description']))
+                                                            <div class="text-muted small mt-1">{{ $perpetrator['description'] }}</div>
+                                                        @endif
+
+                                                        @foreach($perpetrator as $key => $value)
+                                                            @if(!in_array($key, ['id', 'label', 'description', 'tempId']) && !is_array($value))
+                                                                <div class="small mt-1">
+                                                                    <strong>{{ ucfirst($key) }}:</strong> {{ $value }}
+                                                                </div>
+                                                            @endif
+                                                        @endforeach
+                                                    @elseif(is_string($perpetrator))
+                                                        {{ $perpetrator }}
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+
+                                @if($request->victims && count($request->victims) > 0)
+                                    <div>
+                                        <strong>Geschädigte:</strong>
+                                        <div class="list-group mt-2">
+                                            @foreach($request->victims as $victim)
+                                                <div class="list-group-item">
+                                                    @if(is_array($victim))
+                                                        @if(isset($victim['label']))
+                                                            <div class="fw-bold">{{ $victim['label'] }}</div>
+                                                        @else
+                                                            <div class="fw-bold">{{ $victim['firstName'] }} {{ $victim['lastName'] }}</div>
+                                                        @endif
+
+                                                        @if(isset($victim['id']))
+                                                            <div>
+                                                                <a href="https://www.wikidata.org/wiki/{{ $victim['id'] }}" target="_blank" class="text-decoration-none">
+                                                                    <span class="badge bg-secondary">{{ $victim['id'] }}</span>
+                                                                    <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                                                </a>
+                                                            </div>
+                                                        @endif
+
+                                                        @if(isset($victim['description']))
+                                                            <div class="text-muted small mt-1">{{ $victim['description'] }}</div>
+                                                        @endif
+
+                                                        @foreach($victim as $key => $value)
+                                                            @if(!in_array($key, ['id', 'label', 'description', 'tempId']) && !is_array($value))
+                                                                <div class="small mt-1">
+                                                                    <strong>{{ ucfirst($key) }}:</strong> {{ $value }}
+                                                                </div>
+                                                            @endif
+                                                        @endforeach
+                                                    @elseif(is_string($victim))
+                                                        {{ $victim }}
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
                         @endif
                     @endif
@@ -341,7 +432,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Debug: Aufbereitete Wikidata-Daten -->
             <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
@@ -353,18 +444,18 @@
                         @php
                             // WikidataService verwenden, um die Daten aufzubereiten
                             $wikidataService = app(\App\Services\Wikidata\WikidataService::class);
-                            
+
                             // Relevante Daten extrahieren
                             $additionalData = [];
                             $requestArray = $request->toArray();
                             $excludeKeys = ['id', 'title', 'description', 'type', 'created_at', 'updated_at', 'status', 'submitted_by', 'approved_by', 'rejection_reason', 'error_message', 'wikidata_id', 'wikidata_url'];
-                            
+
                             foreach ($requestArray as $key => $value) {
                                 if (!in_array($key, $excludeKeys) && !is_null($value)) {
                                     $additionalData[$key] = $value;
                                 }
                             }
-                            
+
                             // Daten durch WikidataService vorbereiten (wie im Controller)
                             $serviceData = $wikidataService->prepareEntityData(
                                 $request->title,
@@ -373,12 +464,12 @@
                                 $additionalData
                             );
                         @endphp
-                        
+
                         <div class="mb-4">
                             <h6>Aufbereitete Daten für Wikidata API:</h6>
                             <pre class="bg-light p-3" style="max-height: 400px; overflow-y: auto;">{{ json_encode($serviceData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
                         </div>
-                        
+
                         <div class="alert alert-info">
                             <i class="bi bi-info-circle me-2"></i>
                             Diese Daten werden vom System aufbereitet und an die Wikidata API gesendet, wenn die Anfrage genehmigt wird. Die Struktur entspricht den Anforderungen der Wikidata API für die Erstellung neuer Entitäten.
@@ -397,9 +488,9 @@
                         <h5 class="card-title mb-0">Bild</h5>
                     </div>
                     <div class="card-body text-center">
-                        <img src="{{ $request->image_url }}" 
-                             alt="{{ $request->title }}" 
-                             class="img-fluid mb-2" 
+                        <img src="{{ $request->image_url }}"
+                             alt="{{ $request->title }}"
+                             class="img-fluid mb-2"
                              style="max-height: 250px;">
                         @if($request->image_filename)
                             <div class="text-muted small">{{ $request->image_filename }}</div>
@@ -419,8 +510,8 @@
                             <button type="button" class="btn btn-success w-100 mb-2" data-bs-toggle="modal" data-bs-target="#approveModal">
                                 <i class="bi bi-check-circle me-1"></i> Genehmigen
                             </button>
-                            
-                            <button type="button" class="btn btn-danger w-100 mb-2" 
+
+                            <button type="button" class="btn btn-danger w-100 mb-2"
                                     data-bs-toggle="modal" data-bs-target="#rejectModal">
                                 <i class="bi bi-x-circle me-1"></i> Ablehnen
                             </button>
@@ -494,7 +585,7 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="rejection_reason" class="form-label">Ablehnungsgrund</label>
-                        <textarea class="form-control" id="rejection_reason" name="rejection_reason" 
+                        <textarea class="form-control" id="rejection_reason" name="rejection_reason"
                                   rows="3" required></textarea>
                     </div>
                 </div>
@@ -548,19 +639,19 @@
         // Koordinaten aus PHP-Variablen
         var lat = {{ $lat ?? 0 }};
         var lng = {{ $lng ?? 0 }};
-        
+
         if (lat && lng) {
-            // Container-Element 
+            // Container-Element
             var mapContainer = document.getElementById('map-container');
-            
+
             // Karte initialisieren
             var map = L.map(mapContainer).setView([lat, lng], 15);
-            
+
             // OpenStreetMap-Tile-Layer hinzufügen
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
-            
+
             // Marker hinzufügen
             L.marker([lat, lng]).addTo(map)
                 .bindPopup("{{ addslashes($request->title) }}");
