@@ -123,15 +123,25 @@
                         </div>
 
                         <!-- Info-Box (Desktop) -->
-                        <div
-                            class="info-box desktop-info"
-                            v-if="!isMobileView && typeInfoContent"
-                        >
+                        <div class="info-box desktop-info" v-if="!isMobileView">
                             <div class="info-box-header">
-                                <h3>{{ getTypeInfoTitle() }}</h3>
+                                <h3>{{ typeInfoContent ? getTypeInfoTitle() : "Eintragstypen" }}</h3>
                             </div>
                             <div class="info-box-content">
-                                <div v-html="typeInfoContent"></div>
+                                <div v-if="typeInfoContent" v-html="typeInfoContent"></div>
+                                <div v-else>
+                                    <p>Bitte wählen Sie einen Eintragstyp aus, um Informationen darüber zu erhalten.</p>
+                                    <p>Zu den verfügbaren Eintragstypen gehören:</p>
+                                    <ul>
+                                        <li><strong>Ereignis</strong> - Historische Geschehnisse im Zeitraum 1933-1945</li>
+                                        <li><strong>Erinnerungsort</strong> - Physische Orte, die an die Opfer des Nationalsozialismus erinnern</li>
+                                        <li><strong>Staatspolizeistelle</strong> - Regionale Dienstellen der Geheimen Staatspolizei</li>
+                                        <li><strong>Staatspolizeiaußenstelle</strong> - Lokale Zweigstellen einer Staatspolizeistelle</li>
+                                        <li><strong>Arbeitserziehungslager</strong> - Haftsystem der Gestapo während des Nationalsozialismus</li>
+                                        <li><strong>Gefängnis</strong> - Haftanstalten, die während der NS-Zeit für politische Gefangene genutzt wurden</li>
+                                    </ul>
+                                    <p>Wählen Sie einen Typ, um detailliertere Informationen zu erhalten.</p>
+                                </div>
                             </div>
                         </div>
                     </div>

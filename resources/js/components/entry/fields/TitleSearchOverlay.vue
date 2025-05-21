@@ -10,16 +10,29 @@
             <div class="overlay-body">
                 <div class="input-group">
                     <label for="entry-title">Titel des Eintrags</label>
-                    <input
-                        id="entry-title"
-                        type="text"
-                        v-model="localTitle"
-                        @input="onInput"
-                        placeholder="Titel eingeben..."
-                        maxlength="250"
-                        autocomplete="off"
-                        autofocus
-                    />
+                    <div class="search-input-container">
+                        <input
+                            id="entry-title"
+                            type="text"
+                            v-model="localTitle"
+                            @input="onInput"
+                            @keydown.enter.prevent="performSearch"
+                            placeholder="Titel eingeben..."
+                            maxlength="250"
+                            autocomplete="off"
+                            autofocus
+                        />
+                        <button
+                            class="button search-button"
+                            @click="performSearch"
+                            :disabled="!localTitle || localTitle.length < 3"
+                        >
+                            <v-icon size="small" class="me-1"
+                                >mdi-magnify</v-icon
+                            >
+                            Suchen
+                        </button>
+                    </div>
                 </div>
                 <p class="search-info">
                     Bitte prüfen Sie, ob dieser Eintrag bereits existiert.
@@ -77,6 +90,22 @@
                     Keine Einträge gefunden.
                 </div>
 
+                <!-- Checkbox - erscheint nur nach durchgeführter Suche -->
+                <div
+                    v-if="searchPerformed && !isLoading"
+                    class="confirmation-checkbox"
+                >
+                    <input
+                        type="checkbox"
+                        id="no-existing-entry"
+                        v-model="noExistingEntry"
+                    />
+                    <label for="no-existing-entry"
+                        >Es gibt keinen vorhandenen Eintrag mit diesem
+                        Titel</label
+                    >
+                </div>
+
                 <div class="button-group">
                     <button class="button bg-secondary" @click="$emit('close')">
                         Abbrechen
@@ -84,7 +113,11 @@
                     <button
                         class="button create-button"
                         :disabled="
-                            !localTitle || localTitle.length < 3 || isLoading
+                            !localTitle ||
+                            localTitle.length < 3 ||
+                            isLoading ||
+                            !searchPerformed ||
+                            !noExistingEntry
                         "
                         @click="createEntry"
                     >
@@ -123,16 +156,18 @@ const localTitle = ref(props.initialTitle || "");
 const searchResults = ref([]);
 const isLoading = ref(false);
 const searchPerformed = ref(false);
+const noExistingEntry = ref(false);
 
-// Debounced search function
-const searchWikidata = debounce(async () => {
+// Search function
+const performSearch = async () => {
     if (!localTitle.value || localTitle.value.length < 3) {
-        searchResults.value = [];
-        searchPerformed.value = false;
         return;
     }
 
+    searchResults.value = [];
     isLoading.value = true;
+    noExistingEntry.value = false; // Reset checkbox when performing a new search
+
     try {
         const response = await axios.get("/api/wikidata/entities", {
             params: {
@@ -154,12 +189,12 @@ const searchWikidata = debounce(async () => {
     } finally {
         isLoading.value = false;
     }
-}, 500);
+};
 
-// Watch for changes to the input field
+// Update title when input changes
 const onInput = () => {
     emit("update:title", localTitle.value);
-    searchWikidata();
+    // Search no longer triggered automatically on input
 };
 
 // Open wikidata entry in new tab
@@ -184,7 +219,12 @@ const getCreateButtonText = () => {
 
 // Create the entry and proceed to the next step
 const createEntry = () => {
-    if (!localTitle.value || localTitle.value.length < 3) return;
+    if (
+        !localTitle.value ||
+        localTitle.value.length < 3 ||
+        !noExistingEntry.value
+    )
+        return;
     emit("create", localTitle.value);
 };
 
@@ -253,8 +293,13 @@ watch(
     font-weight: 500;
 }
 
-.input-group input {
-    width: 100%;
+.search-input-container {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.search-input-container input {
+    flex: 1;
     padding: 0.75rem;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -265,7 +310,7 @@ watch(
         box-shadow 0.2s;
 }
 
-.input-group input:focus {
+.search-input-container input:focus {
     outline: none;
     border-color: #1976d2;
     box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
@@ -275,6 +320,22 @@ watch(
     color: #666;
     margin-bottom: 1rem;
     font-size: 0.95rem;
+}
+
+.search-button {
+    background-color: #1976d2;
+    color: white;
+    white-space: nowrap;
+    padding: 0 1.25rem;
+}
+
+.search-button:hover {
+    background-color: #1565c0;
+}
+
+.search-button:disabled {
+    background-color: #bbdefb;
+    cursor: not-allowed;
 }
 
 .loading {
@@ -367,6 +428,29 @@ watch(
     background-color: #f9f9f9;
     border-radius: 4px;
     margin-bottom: 1.5rem;
+}
+
+.confirmation-checkbox {
+    display: flex;
+    align-items: center;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    border-left: 4px solid #1976d2;
+}
+
+.confirmation-checkbox input[type="checkbox"] {
+    margin-right: 0.75rem;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.confirmation-checkbox label {
+    font-weight: 500;
+    color: #333;
+    cursor: pointer;
 }
 
 .button-group {
