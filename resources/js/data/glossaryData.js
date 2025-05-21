@@ -346,7 +346,7 @@ const glossaryItems = {
         descriptions: [
             `Als „Judenhäuser“ werden Häuser bezeichnet, in denen Jüdinnen und Juden im nationalsozialistischen Deutschland zwangsweise untergebracht wurden. Ab etwa 1939 ordneten kommunale Behörden und die Gestapo in vielen Städten die Zusammenlegung jüdischer Menschen in bestimmten Gebäuden an.`,
             `Bei diesen Gebäuden handelte es sich meist um Immobilien, die zuvor im Besitz jüdischer Eigentümer*innen waren – teilweise auch um ehemalige Einrichtungen jüdischer Gemeinden wie Kindergärten, Schulen, Altersheime, Krankenhäuser, Büros, Versammlungsräume, Betsäle oder Friedhofshallen.`,
-            `Ziel war es, die jüdische Bevölkerung sozial zu isolieren und unter ständiger Kontrolle zu halten. In den Häusern herrschten beengte und häufig menschenunwürdige Wohnverhältnisse. Die Gestapo überwachte viele dieser Häuser direkt, setzte jedoch auch auf die Kontrolle „durch das wachsame Auge der gesamten Bevölkerung“ 1. „Judenhäuser“ wurden häufig von Gestapobeamten durchsucht und dienten zudem als Ausgangspunkte für Verhaftungen und Deportationen.`,
+            `Ziel war es, die jüdische Bevölkerung sozial zu isolieren und unter ständiger Kontrolle zu halten. In den Häusern herrschten beengte und häufig menschenunwürdige Wohnverhältnisse. Die Gestapo überwachte viele dieser Häuser direkt, setzte jedoch auch auf die Kontrolle „durch das wachsame Auge der gesamten Bevölkerung“ <sup>1</sup>. „Judenhäuser“ wurden häufig von Gestapobeamten durchsucht und dienten zudem als Ausgangspunkte für Verhaftungen und Deportationen.`,
             `Der Begriff „Judenhaus“ stammt aus der NS-Verwaltungssprache und ist somit Teil der Tätersprache. Deshalb wird er heute kritisch hinterfragt und in Anführungszeichen gesetzt. Statt des nationalsozialistischen Begriffs findet heute auch der Ausdruck „Ghettohaus“ Verwendung.`,
         ],
         sources: [
@@ -354,7 +354,8 @@ const glossaryItems = {
             Hildesheim 1987.`,
             `Raim, Edith: Judenhäuser. In: NSDOKU München (Hrsg.): Online-Lexikon: Judenhäuser.
              https://www.nsdoku.de/lexikon/artikel/judenhaeuser-398 (zuletzt aufgerufen: 19.05.2025).`,
-            `https://www.nsdoku.de/lexikon/artikel/judenhaeuser-398`,
+            `<hr /><sup>1</sup>Das Zitat stammt von <a href="https://de.wikipedia.org/wiki/Reinhard_Heydrich" target="_blank">Reinhard Heydrich</a>. Nachzulesen in: Die Verfolgung und Ermordung der europäischen Juden durch das nationalsozialistische Deutschland 1933-1945. Band 2: Deutsches Reich 1938 – August 1939. München 2009, <a href="https://de.wikipedia.org/wiki/Spezial:ISBN-Suche/9783486585230" target="_blank">ISBN 978-3-486-58523-0</a>, Dokument 146: Besprechung bei Göring…, S. 432.
+`,
         ],
     },
     Polizeigefängnis: {
