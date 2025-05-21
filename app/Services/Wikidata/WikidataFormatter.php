@@ -31,8 +31,9 @@ class WikidataFormatter
      */
     public function formatEntityData(array $data, string $type): array
     {
-        // Basis-Struktur fu00fcr alle Entity-Typen
+        // Basis-Struktur gemäß Wikibase-Dokumentation
         $formattedData = [
+            'type' => 'item',
             'labels' => [
                 'de' => [
                     'language' => 'de',
@@ -45,22 +46,28 @@ class WikidataFormatter
                     'value' => $data['description'] ?? '',
                 ],
             ],
-            'claims' => [
-                // Instanz von (P31)
-                'P31' => [
-                    [
-                        'mainsnak' => [
-                            'snaktype' => 'value',
-                            'property' => 'P31',
-                            'datavalue' => [
-                                'value' => $this->entityUrlBase . $type,
-                                'type' => 'string',
-                            ],
+            'aliases' => [],
+            'claims' => [],
+            'sitelinks' => [],
+        ];
+
+        // Instanz von (P31) - Claim erstellen
+        $formattedData['claims']['P31'] = [
+            [
+                'mainsnak' => [
+                    'snaktype' => 'value',
+                    'property' => 'P31',
+                    'datavalue' => [
+                        'value' => [
+                            'entity-type' => 'item',
+                            'id' => $type,
+                            'numeric-id' => intval(substr($type, 1)), // "Q123" -> 123
                         ],
-                        'type' => 'statement',
-                        'rank' => 'normal',
+                        'type' => 'wikibase-entityid',
                     ],
                 ],
+                'type' => 'statement',
+                'rank' => 'normal',
             ],
         ];
 
@@ -142,6 +149,11 @@ class WikidataFormatter
             case 'Q811979': // Architektonische Struktur
                 $this->formatStructureEntity($formattedData, $data);
                 break;
+        }
+
+        // Quellenangaben hinzufügen, falls vorhanden
+        if (!empty($data['sources'])) {
+            $this->addSourcesToEntity($formattedData, $data['sources']);
         }
 
         return $formattedData;
@@ -256,40 +268,88 @@ class WikidataFormatter
             }
         }
 
-        // Beruf (P106)
+        // Beruf (P106) - Sollte ein Wikidata-Item sein, nicht ein String
         if (!empty($data['occupation'])) {
-            $formattedData['claims']['P106'] = [
-                [
-                    'mainsnak' => [
-                        'snaktype' => 'value',
-                        'property' => 'P106',
-                        'datavalue' => [
-                            'value' => $data['occupation'],
-                            'type' => 'string',
+            // Wir nehmen hier an, dass occupation entweder eine Wikidata-ID ist oder als String behandelt werden sollte
+            // Wenn es eine Wikidata-ID ist (beginnt mit Q), dann als Entity behandeln
+            if (isset($data['occupation']) && is_string($data['occupation']) && substr($data['occupation'], 0, 1) === 'Q') {
+                $formattedData['claims']['P106'] = [
+                    [
+                        'mainsnak' => [
+                            'snaktype' => 'value',
+                            'property' => 'P106',
+                            'datavalue' => [
+                                'value' => [
+                                    'entity-type' => 'item',
+                                    'id' => $data['occupation'],
+                                    'numeric-id' => intval(substr($data['occupation'], 1)),
+                                ],
+                                'type' => 'wikibase-entityid',
+                            ],
                         ],
+                        'type' => 'statement',
+                        'rank' => 'normal',
                     ],
-                    'type' => 'statement',
-                    'rank' => 'normal',
-                ],
-            ];
+                ];
+            } else {
+                // Als Freitext-Qualifier hinzufu00fcgen (P1343 - beschrieben durch Quelle)
+                $formattedData['claims']['P1343'] = [
+                    [
+                        'mainsnak' => [
+                            'snaktype' => 'value',
+                            'property' => 'P1343',
+                            'datavalue' => [
+                                'value' => 'Berufsbezeichnung: ' . $data['occupation'],
+                                'type' => 'string',
+                            ],
+                        ],
+                        'type' => 'statement',
+                        'rank' => 'normal',
+                    ],
+                ];
+            }
         }
 
-        // Nationalitu00e4t (P27)
+        // Nationalitu00e4t (P27) - Sollte ein Wikidata-Item sein, nicht ein String
         if (!empty($data['nationality'])) {
-            $formattedData['claims']['P27'] = [
-                [
-                    'mainsnak' => [
-                        'snaktype' => 'value',
-                        'property' => 'P27',
-                        'datavalue' => [
-                            'value' => $data['nationality'],
-                            'type' => 'string',
+            // Wir nehmen hier an, dass nationality entweder eine Wikidata-ID ist oder als String behandelt werden sollte
+            // Wenn es eine Wikidata-ID ist (beginnt mit Q), dann als Entity behandeln
+            if (isset($data['nationality']) && is_string($data['nationality']) && substr($data['nationality'], 0, 1) === 'Q') {
+                $formattedData['claims']['P27'] = [
+                    [
+                        'mainsnak' => [
+                            'snaktype' => 'value',
+                            'property' => 'P27',
+                            'datavalue' => [
+                                'value' => [
+                                    'entity-type' => 'item',
+                                    'id' => $data['nationality'],
+                                    'numeric-id' => intval(substr($data['nationality'], 1)),
+                                ],
+                                'type' => 'wikibase-entityid',
+                            ],
                         ],
+                        'type' => 'statement',
+                        'rank' => 'normal',
                     ],
-                    'type' => 'statement',
-                    'rank' => 'normal',
-                ],
-            ];
+                ];
+            } else {
+                // Als Freitext-Qualifier hinzufu00fcgen (P1343 - beschrieben durch Quelle)
+                $formattedData['claims']['P1343'] = [
+                    [
+                        'mainsnak' => [
+                            'snaktype' => 'value',
+                            'property' => 'P1343',
+                            'datavalue' => [
+                                'value' => 'Nationalitu00e4t: ' . $data['nationality'],
+                                'type' => 'string',
+                            ],
+                        ],
+                        'type' => 'statement',
+                        'rank' => 'normal',
+                    ],
+                ];
+            }
         }
     }
 
@@ -364,25 +424,49 @@ class WikidataFormatter
             }
         }
 
-        // Ursache (P828)
+        // Ursache (P828) - Sollte ein Wikidata-Item sein, nicht ein String
         if (!empty($data['cause'])) {
-            $formattedData['claims']['P828'] = [
-                [
-                    'mainsnak' => [
-                        'snaktype' => 'value',
-                        'property' => 'P828',
-                        'datavalue' => [
-                            'value' => $data['cause'],
-                            'type' => 'string',
+            // Wir nehmen hier an, dass cause entweder eine Wikidata-ID ist oder als String behandelt werden sollte
+            if (isset($data['cause']) && is_string($data['cause']) && substr($data['cause'], 0, 1) === 'Q') {
+                // Als Wikidata-Item hinzufu00fcgen
+                $formattedData['claims']['P828'] = [
+                    [
+                        'mainsnak' => [
+                            'snaktype' => 'value',
+                            'property' => 'P828',
+                            'datavalue' => [
+                                'value' => [
+                                    'entity-type' => 'item',
+                                    'id' => $data['cause'],
+                                    'numeric-id' => intval(substr($data['cause'], 1)),
+                                ],
+                                'type' => 'wikibase-entityid',
+                            ],
                         ],
+                        'type' => 'statement',
+                        'rank' => 'normal',
                     ],
-                    'type' => 'statement',
-                    'rank' => 'normal',
-                ],
-            ];
+                ];
+            } else {
+                // Als String in der Beschreibung hinzufu00fcgen (P2093 - "Autor" als freitext-Feld)
+                $formattedData['claims']['P2093'] = [
+                    [
+                        'mainsnak' => [
+                            'snaktype' => 'value',
+                            'property' => 'P2093',
+                            'datavalue' => [
+                                'value' => 'Ursache: ' . $data['cause'],
+                                'type' => 'string',
+                            ],
+                        ],
+                        'type' => 'statement',
+                        'rank' => 'normal',
+                    ],
+                ];
+            }
         }
 
-        // Opferzahl (P1355)
+        // Opferzahl (P1355) - Quantity-Typ
         if (!empty($data['victim_count'])) {
             $formattedData['claims']['P1355'] = [
                 [
@@ -392,6 +476,69 @@ class WikidataFormatter
                         'datavalue' => [
                             'value' => [
                                 'amount' => '+' . (int)$data['victim_count'],
+                                'unit' => '1',
+                            ],
+                            'type' => 'quantity',
+                        ],
+                    ],
+                    'type' => 'statement',
+                    'rank' => 'normal',
+                ],
+            ];
+        }
+        
+        // u00dcberlebende (eigenes Property, z.B. P1234)
+        if (!empty($data['survivor_count'])) {
+            $formattedData['claims']['P1234'] = [
+                [
+                    'mainsnak' => [
+                        'snaktype' => 'value',
+                        'property' => 'P1234',
+                        'datavalue' => [
+                            'value' => [
+                                'amount' => '+' . (int)$data['survivor_count'],
+                                'unit' => '1',
+                            ],
+                            'type' => 'quantity',
+                        ],
+                    ],
+                    'type' => 'statement',
+                    'rank' => 'normal',
+                ],
+            ];
+        }
+        
+        // Todesfälle (P1120)
+        if (!empty($data['death_count'])) {
+            $formattedData['claims']['P1120'] = [
+                [
+                    'mainsnak' => [
+                        'snaktype' => 'value',
+                        'property' => 'P1120',
+                        'datavalue' => [
+                            'value' => [
+                                'amount' => '+' . (int)$data['death_count'],
+                                'unit' => '1',
+                            ],
+                            'type' => 'quantity',
+                        ],
+                    ],
+                    'type' => 'statement',
+                    'rank' => 'normal',
+                ],
+            ];
+        }
+        
+        // Festnahmen (eigenes Property, z.B. P5678)
+        if (!empty($data['arrest_count'])) {
+            $formattedData['claims']['P5678'] = [
+                [
+                    'mainsnak' => [
+                        'snaktype' => 'value',
+                        'property' => 'P5678',
+                        'datavalue' => [
+                            'value' => [
+                                'amount' => '+' . (int)$data['arrest_count'],
                                 'unit' => '1',
                             ],
                             'type' => 'quantity',
@@ -454,22 +601,48 @@ class WikidataFormatter
             }
         }
 
-        // Hauptsitz (P159)
+        // Hauptsitz (P159) - Sollte ein Wikidata-Item sein
         if (!empty($data['headquarters_location'])) {
-            $formattedData['claims']['P159'] = [
-                [
-                    'mainsnak' => [
-                        'snaktype' => 'value',
-                        'property' => 'P159',
-                        'datavalue' => [
-                            'value' => $data['headquarters_location'],
-                            'type' => 'string',
+            if (isset($data['headquarters_location']) && is_string($data['headquarters_location']) && substr($data['headquarters_location'], 0, 1) === 'Q') {
+                // Als Wikidata-Item hinzufu00fcgen
+                $formattedData['claims']['P159'] = [
+                    [
+                        'mainsnak' => [
+                            'snaktype' => 'value',
+                            'property' => 'P159',
+                            'datavalue' => [
+                                'value' => [
+                                    'entity-type' => 'item',
+                                    'id' => $data['headquarters_location'],
+                                    'numeric-id' => intval(substr($data['headquarters_location'], 1)),
+                                ],
+                                'type' => 'wikibase-entityid',
+                            ],
                         ],
+                        'type' => 'statement',
+                        'rank' => 'normal',
                     ],
-                    'type' => 'statement',
-                    'rank' => 'normal',
-                ],
-            ];
+                ];
+            } else {
+                // Wenn es ein String ist, dann als monolingualer Text (Bezeichnung des Standorts)
+                $formattedData['claims']['P1448'] = [ // P1448 ist "offizielle Bezeichnung"
+                    [
+                        'mainsnak' => [
+                            'snaktype' => 'value',
+                            'property' => 'P1448',
+                            'datavalue' => [
+                                'value' => [
+                                    'text' => $data['headquarters_location'],
+                                    'language' => 'de',
+                                ],
+                                'type' => 'monolingualtext',
+                            ],
+                        ],
+                        'type' => 'statement',
+                        'rank' => 'normal',
+                    ],
+                ];
+            }
         }
     }
 
@@ -523,25 +696,48 @@ class WikidataFormatter
             }
         }
 
-        // Architekt (P84)
+        // Architekt (P84) - Sollte ein Wikidata-Item sein
         if (!empty($data['architect'])) {
-            $formattedData['claims']['P84'] = [
-                [
-                    'mainsnak' => [
-                        'snaktype' => 'value',
-                        'property' => 'P84',
-                        'datavalue' => [
-                            'value' => $data['architect'],
-                            'type' => 'string',
+            if (isset($data['architect']) && is_string($data['architect']) && substr($data['architect'], 0, 1) === 'Q') {
+                // Als Wikidata-Item hinzufu00fcgen
+                $formattedData['claims']['P84'] = [
+                    [
+                        'mainsnak' => [
+                            'snaktype' => 'value',
+                            'property' => 'P84',
+                            'datavalue' => [
+                                'value' => [
+                                    'entity-type' => 'item',
+                                    'id' => $data['architect'],
+                                    'numeric-id' => intval(substr($data['architect'], 1)),
+                                ],
+                                'type' => 'wikibase-entityid',
+                            ],
                         ],
+                        'type' => 'statement',
+                        'rank' => 'normal',
                     ],
-                    'type' => 'statement',
-                    'rank' => 'normal',
-                ],
-            ];
+                ];
+            } else {
+                // Wenn es ein String ist, als Name des Architekten
+                $formattedData['claims']['P2093'] = [ // P2093 ist "Autor als Freitext"
+                    [
+                        'mainsnak' => [
+                            'snaktype' => 'value',
+                            'property' => 'P2093',
+                            'datavalue' => [
+                                'value' => $data['architect'],
+                                'type' => 'string',
+                            ],
+                        ],
+                        'type' => 'statement',
+                        'rank' => 'normal',
+                    ],
+                ];
+            }
         }
 
-        // Hu00f6he (P2048)
+        // Hu00f6he (P2048) - Quantity-Typ
         if (!empty($data['height'])) {
             $formattedData['claims']['P2048'] = [
                 [
@@ -589,5 +785,196 @@ class WikidataFormatter
             Log::warning('Fehler beim Formatieren des Datums', ['date' => $date, 'error' => $e->getMessage()]);
             return null;
         }
+    }
+
+    /**
+     * Fu00fcgt Quellenangaben als Referenzen zu den Claims hinzu.
+     * 
+     * @param array &$formattedData Referenz auf die formatierte Datenstruktur
+     * @param array $sources Die Quellenangaben
+     */
+    protected function addSourcesToEntity(array &$formattedData, array $sources): void
+    {
+        if (empty($sources)) {
+            return;
+        }
+
+        // Erstelle Referenzen fu00fcr alle relevanten Claims
+        foreach ($formattedData['claims'] as $propertyId => &$statements) {
+            // Ignoriere bestimmte Properties, die keine Quellen benu00f6tigen
+            // z.B. P31 (Instanz von) oder andere grundlegende Eigenschaften
+            if (in_array($propertyId, ['P31'])) {
+                continue;
+            }
+
+            foreach ($statements as &$statement) {
+                $statement['references'] = [];
+                
+                // Jede Quelle als Referenz hinzufu00fcgen
+                foreach ($sources as $source) {
+                    // Referenz auf Basis des Quellentyps erstellen
+                    $reference = $this->createReferenceFromSource($source);
+                    if (!empty($reference)) {
+                        $statement['references'][] = $reference;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Erstellt eine Referenz basierend auf dem Quellentyp.
+     * 
+     * @param array $source Die Quellenangabe
+     * @return array Die formatierte Referenz oder leeres Array bei Fehler
+     */
+    protected function createReferenceFromSource(array $source): array
+    {
+        if (empty($source) || !isset($source['type']) || !isset($source['title'])) {
+            return [];
+        }
+
+        $reference = [
+            'hash' => 'reference-' . md5(json_encode($source)),
+            'snaks' => [],
+        ];
+
+        // Basisdaten fu00fcr jede Referenz: Titel (P1476)
+        $reference['snaks']['P1476'] = [
+            [
+                'snaktype' => 'value',
+                'property' => 'P1476',
+                'datavalue' => [
+                    'value' => [
+                        'text' => $source['title'],
+                        'language' => 'de'
+                    ],
+                    'type' => 'monolingualtext',
+                ],
+            ],
+        ];
+
+        // Fu00fcge spezifische Daten je nach Quellentyp hinzu
+        switch ($source['type']) {
+            case 'book':
+                // Fu00fcr Buchquellen
+                if (isset($source['id']) && $source['id'] !== 'manual') {
+                    // Angabe der Wikidata-ID (P248)
+                    $reference['snaks']['P248'] = [
+                        [
+                            'snaktype' => 'value',
+                            'property' => 'P248',
+                            'datavalue' => [
+                                'value' => [
+                                    'entity-type' => 'item',
+                                    'id' => $source['id'],
+                                    'numeric-id' => intval(substr($source['id'], 1)),
+                                ],
+                                'type' => 'wikibase-entityid',
+                            ],
+                        ],
+                    ];
+                }
+                
+                // Seitenangabe (P304)
+                if (isset($source['pages'])) {
+                    $reference['snaks']['P304'] = [
+                        [
+                            'snaktype' => 'value',
+                            'property' => 'P304',
+                            'datavalue' => [
+                                'value' => $source['pages'],
+                                'type' => 'string',
+                            ],
+                        ],
+                    ];
+                }
+                break;
+                
+            case 'url':
+                // Fu00fcr URL-Quellen
+                if (isset($source['url'])) {
+                    // URL der Referenz (P854)
+                    $reference['snaks']['P854'] = [
+                        [
+                            'snaktype' => 'value',
+                            'property' => 'P854',
+                            'datavalue' => [
+                                'value' => $source['url'],
+                                'type' => 'string',
+                            ],
+                        ],
+                    ];
+                }
+                
+                // Zugriffsdatum (P813)
+                if (isset($source['accessDate'])) {
+                    $accessDate = $this->formatDate($source['accessDate']);
+                    if ($accessDate !== null) {
+                        $reference['snaks']['P813'] = [
+                            [
+                                'snaktype' => 'value',
+                                'property' => 'P813',
+                                'datavalue' => [
+                                    'value' => $accessDate,
+                                    'type' => 'time',
+                                ],
+                            ],
+                        ];
+                    }
+                }
+                break;
+                
+            case 'archive':
+                // Fu00fcr Archivquellen
+                if (isset($source['id']) && $source['id'] !== 'manual') {
+                    // Angabe des Archivs (P485)
+                    $reference['snaks']['P485'] = [
+                        [
+                            'snaktype' => 'value',
+                            'property' => 'P485',
+                            'datavalue' => [
+                                'value' => [
+                                    'entity-type' => 'item',
+                                    'id' => $source['id'],
+                                    'numeric-id' => intval(substr($source['id'], 1)),
+                                ],
+                                'type' => 'wikibase-entityid',
+                            ],
+                        ],
+                    ];
+                }
+                
+                // Inventarnummer (P217)
+                if (isset($source['inventoryNumber'])) {
+                    $reference['snaks']['P217'] = [
+                        [
+                            'snaktype' => 'value',
+                            'property' => 'P217',
+                            'datavalue' => [
+                                'value' => $source['inventoryNumber'],
+                                'type' => 'string',
+                            ],
+                        ],
+                    ];
+                }
+                break;
+        }
+        
+        // Beschreibung als Notiz hinzufu00fcgen (P2093)
+        if (isset($source['description'])) {
+            $reference['snaks']['P2093'] = [
+                [
+                    'snaktype' => 'value',
+                    'property' => 'P2093',
+                    'datavalue' => [
+                        'value' => $source['description'],
+                        'type' => 'string',
+                    ],
+                ],
+            ];
+        }
+
+        return $reference;
     }
 }

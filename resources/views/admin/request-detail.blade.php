@@ -528,32 +528,27 @@
                 <div class="collapse" id="collapseWikidataDebug">
                     <div class="card-body">
                         @php
-                            // WikidataService verwenden, um die Daten aufzubereiten
-                            $wikidataService = app(\App\Services\Wikidata\WikidataService::class);
+                            // Wir benu00f6tigen den WikidataFormatter direkt
+                            $formatter = app(\App\Services\Wikidata\WikidataFormatter::class);
 
                             // Relevante Daten extrahieren
-                            $additionalData = [];
+                            $requestData = [];
                             $requestArray = $request->toArray();
-                            $excludeKeys = ['id', 'title', 'description', 'type', 'created_at', 'updated_at', 'status', 'submitted_by', 'approved_by', 'rejection_reason', 'error_message', 'wikidata_id', 'wikidata_url'];
+                            $excludeKeys = ['id', 'created_at', 'updated_at', 'status', 'submitted_by', 'approved_by', 'rejection_reason', 'error_message', 'wikidata_id', 'wikidata_url'];
 
                             foreach ($requestArray as $key => $value) {
                                 if (!in_array($key, $excludeKeys) && !is_null($value)) {
-                                    $additionalData[$key] = $value;
+                                    $requestData[$key] = $value;
                                 }
                             }
 
-                            // Daten durch WikidataService vorbereiten (wie im Controller)
-                            $serviceData = $wikidataService->prepareEntityData(
-                                $request->title,
-                                $request->description,
-                                $request->type,
-                                $additionalData
-                            );
+                            // Formatierte Daten fu00fcr Wikibase vorbereiten
+                            $formattedData = $formatter->formatEntityData($requestData, $request->type);
                         @endphp
 
                         <div class="mb-4">
-                            <h6>Aufbereitete Daten für Wikidata API:</h6>
-                            <pre class="bg-light p-3" style="max-height: 400px; overflow-y: auto;">{{ json_encode($serviceData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
+                            <h6>Aufbereitete Daten fu00fcr Wikidata API:</h6>
+                            <pre class="bg-light p-3" style="max-height: 400px; overflow-y: auto;">{{ json_encode($formattedData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
                         </div>
 
                         <div class="alert alert-info">
