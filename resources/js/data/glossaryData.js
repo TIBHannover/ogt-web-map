@@ -521,6 +521,22 @@ const glossaryItems = {
             herausgegeben von Hans-Dieter Schmid, Hans-Joachim Heuer, Hans-Dieter Klosa, und Burkhard Lange, 89–119, 2003.`,
         ],
     },
+    Tätersprache: {
+        id: "taeterSprache",
+        descriptions: [
+            `Als Tätersprache bezeichnet man die Sprache des nationalsozialistischen Regimes, insbesondere Begriffe und Formulierungen, mit denen Gewalt, Verfolgung und Vernichtung verschleiert, beschönigt oder bürokratisch entpersonalisiert wurden. Viele dieser Ausdrücke stammen aus dem Verwaltungs- und Polizeijargon der NS-Zeit.`,
+            `Beispiele sind „Evakuierung“, „Sonderbehandlung“, „Umsiedlung“ oder „Arbeitseinsatz“. Sie verschleierten systematisch die Realität von Deportation, Mord oder Zwangsarbeit. Auch der Ausdruck „Judenhaus“ gehört in diesen Zusammenhang.`,
+            `Eine unkritische Übernahme solcher Begriffe ist zu vermeiden.
+            Wenn ihre Nennung notwendig ist, bspw. zur genauen Wiedergabe historischer Quellen, sollte eine klare Distanz zum Sprachgebrauch der Täter sichtbar gemacht werden. NS-Begriffe sollten typografisch markiert (z. B. durch Anführungszeichen oder Kursivsetzung) und kontextualisiert werden. Wenn möglich, sind sachlich beschreibende Begriffe vorzuziehen.`,
+            `Sensible Sprache betrifft dabei nicht nur Tätersprache im engeren Sinn, sondern auch Fremdzuschreibungen, die von Täterinstitutionen genutzt wurden. Eine achtsame, kontextualisierte Benennung ist wichtig, um Menschen nicht auf ihre Verfolgung oder Opferrolle zu reduzieren.`,
+        ],
+        sources: [
+            `Schmitz-Berning, Cornelia: Sprache und Politik. Sprache und Sprachlenkung im Nationalsozialismus. In: Bundeszentrale für politische Bildung (Hrsg.).www.bpb.de. 2010 <a href="https://www.bpb.de/themen/parteien/sprache-und-politik/42752/sprache-und-sprachlenkung-im-nationalsozialismus/" target="_blank">https://www.bpb.de/themen/parteien/sprache-und-politik/42752/sprache-und-sprachlenkung-im-nationalsozialismus/</a> (zuletzt aufgerufen am : 21.05.2025).`,
+            `Schmitz-Berning, Cornelia: Sprache und Politik. Vokabeln im Nationalsozialismus In: Bundeszentrale für politische Bildung (Hrsg.).www.bpb.de. 2010 <a href="https://www.bpb.de/themen/parteien/sprache-und-politik/42759/vokabeln-im-nationalsozialismus/" target="_blank">https://www.bpb.de/themen/parteien/sprache-und-politik/42759/vokabeln-im-nationalsozialismus/</a> (zuletzt aufgerufen am: 21.05.2025)`,
+            `Klemperer, Victor: LTI- Lingua Tertii Imperii. Notizbuch eines Philologen. 25. Durchgesehene Auflage. Stuttgart 2015.`,
+            `Markewitz, Friedrich u.a. (Hrsg.): Kommunikative Praktiken im Nationalsozialismus. Göttingen 2023.`,
+        ],
+    },
     Terror: {
         id: "terror",
         descriptions: [
