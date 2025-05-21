@@ -1,0 +1,434 @@
+<template>
+    <div class="search-overlay">
+        <div class="overlay-content">
+            <div class="overlay-header">
+                <h3>{{ title }}</h3>
+                <button class="close-overlay" @click="$emit('close')">
+                    &times;
+                </button>
+            </div>
+            <div class="overlay-body">
+                <div class="input-group">
+                    <label for="entry-title">Titel des Eintrags</label>
+                    <input
+                        id="entry-title"
+                        type="text"
+                        v-model="localTitle"
+                        @input="onInput"
+                        placeholder="Titel eingeben..."
+                        maxlength="250"
+                        autocomplete="off"
+                        autofocus
+                    />
+                </div>
+                <p class="search-info">
+                    Bitte prüfen Sie, ob dieser Eintrag bereits existiert.
+                </p>
+
+                <!-- Suchergebnisse anzeigen -->
+                <div
+                    v-if="searchResults && searchResults.length > 0"
+                    class="search-results"
+                >
+                    <h4>Suchergebnisse:</h4>
+                    <div
+                        v-for="result in searchResults"
+                        :key="result.id"
+                        class="search-result-item"
+                    >
+                        <div class="result-title">{{ result.label }}</div>
+                        <div
+                            class="result-description"
+                            v-if="result.description"
+                        >
+                            {{ result.description }}
+                        </div>
+                        <div class="result-actions">
+                            <div class="result-id">{{ result.id }}</div>
+                            <button
+                                class="open-wikidata-button"
+                                @click="openWikidata(result.id)"
+                            >
+                                <v-icon size="small">mdi-open-in-new</v-icon>
+                                Auf Wikidata öffnen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading Indikator -->
+                <div v-if="isLoading" class="loading">
+                    <v-progress-circular
+                        indeterminate
+                        color="primary"
+                    ></v-progress-circular>
+                    <span>Suche läuft...</span>
+                </div>
+
+                <!-- Keine Ergebnisse -->
+                <div
+                    v-if="
+                        searchPerformed &&
+                        searchResults.length === 0 &&
+                        !isLoading
+                    "
+                    class="no-results"
+                >
+                    Keine Einträge gefunden.
+                </div>
+
+                <div class="button-group">
+                    <button class="button bg-secondary" @click="$emit('close')">
+                        Abbrechen
+                    </button>
+                    <button
+                        class="button create-button"
+                        :disabled="
+                            !localTitle || localTitle.length < 3 || isLoading
+                        "
+                        @click="createEntry"
+                    >
+                        <v-icon size="small" class="me-1">mdi-plus</v-icon>
+                        {{ getCreateButtonText() }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script setup>
+import { ref, watch } from "vue";
+import { debounce } from "lodash";
+import axios from "axios";
+
+const props = defineProps({
+    initialTitle: {
+        type: String,
+        default: "",
+    },
+    entryType: {
+        type: String,
+        required: true,
+    },
+    title: {
+        type: String,
+        default: "Neuen Eintrag erstellen",
+    },
+});
+
+const emit = defineEmits(["update:title", "close", "create"]);
+
+const localTitle = ref(props.initialTitle || "");
+const searchResults = ref([]);
+const isLoading = ref(false);
+const searchPerformed = ref(false);
+
+// Debounced search function
+const searchWikidata = debounce(async () => {
+    if (!localTitle.value || localTitle.value.length < 3) {
+        searchResults.value = [];
+        searchPerformed.value = false;
+        return;
+    }
+
+    isLoading.value = true;
+    try {
+        const response = await axios.get("/api/wikidata/entities", {
+            params: {
+                title: localTitle.value,
+                limit: 5,
+            },
+        });
+
+        if (response.data.success && response.data.results) {
+            searchResults.value = response.data.results;
+        } else {
+            searchResults.value = [];
+        }
+        searchPerformed.value = true;
+    } catch (err) {
+        console.error("Fehler bei der Wikidata-Suche:", err);
+        searchResults.value = [];
+        searchPerformed.value = true;
+    } finally {
+        isLoading.value = false;
+    }
+}, 500);
+
+// Watch for changes to the input field
+const onInput = () => {
+    emit("update:title", localTitle.value);
+    searchWikidata();
+};
+
+// Open wikidata entry in new tab
+const openWikidata = (id) => {
+    window.open(`https://www.wikidata.org/wiki/${id}`, "_blank");
+};
+
+// Get the create button text based on entry type
+const getCreateButtonText = () => {
+    const typeNames = {
+        Q6983405: "Ereignis",
+        Q5003624: "Erinnerungsort",
+        Q108047567: "Staatspolizeistelle",
+        Q108047541: "Staatspolizeiauu00dfenstelle",
+        Q277565: "Arbeitserziehungslager",
+        Q40357: "Gefängnis",
+    };
+
+    const typeName = typeNames[props.entryType] || "Eintrag";
+    return `${typeName} erstellen`;
+};
+
+// Create the entry and proceed to the next step
+const createEntry = () => {
+    if (!localTitle.value || localTitle.value.length < 3) return;
+    emit("create", localTitle.value);
+};
+
+// Update local title when prop changes
+watch(
+    () => props.initialTitle,
+    (newVal) => {
+        localTitle.value = newVal || "";
+    },
+);
+</script>
+
+<style scoped>
+.search-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.overlay-content {
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.overlay-header {
+    padding: 1rem;
+    background-color: #1976d2;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.overlay-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.overlay-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    max-height: calc(90vh - 3.5rem);
+}
+
+.input-group {
+    margin-bottom: 1.5rem;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #1976d2;
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
+}
+
+.search-info {
+    color: #666;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 2rem 0;
+    gap: 1rem;
+    color: #666;
+}
+
+.search-results {
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.search-results h4 {
+    margin: 0;
+    padding: 0.75rem 1rem;
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 1rem;
+    color: #333;
+}
+
+.search-result-item {
+    padding: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+    background-color: white;
+    transition: background-color 0.2s;
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item:hover {
+    background-color: #f9f9f9;
+}
+
+.result-title {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.result-description {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.75rem;
+}
+
+.result-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.result-id {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.open-wikidata-button {
+    background-color: transparent;
+    border: none;
+    color: #1976d2;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: color 0.2s;
+}
+
+.open-wikidata-button:hover {
+    color: #0d47a1;
+    text-decoration: underline;
+}
+
+.no-results {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+    font-style: italic;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+}
+
+.button-group {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+    gap: 1rem;
+}
+
+.button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.bg-secondary {
+    background-color: #757575;
+    color: white;
+}
+
+.bg-secondary:hover {
+    background-color: #616161;
+}
+
+.create-button {
+    background-color: #1976d2;
+    color: white;
+}
+
+.create-button:hover {
+    background-color: #1565c0;
+}
+
+.create-button:disabled {
+    background-color: #bbdefb;
+    cursor: not-allowed;
+}
+
+.close-overlay {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+.close-overlay:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+</style>

@@ -22,93 +22,118 @@
             <v-col>
                 <div class="forms-container">
                     <!-- Schritt 1: Eintragstyp wählen -->
-                    <div v-if="currentStep === 1" class="step-container">
-                        <h2 class="step-title">
-                            Schritt 1: Wählen Sie den Eintragstyp
-                        </h2>
-                        <form class="forms">
-                            <fieldset>
-                                <legend for="type">Eintrag-Typ</legend>
-                                <div>
-                                    <input
-                                        v-model="formsType"
-                                        name="type"
-                                        type="radio"
-                                        value="Q6983405"
-                                        id="type-Q6983405"
-                                    />
-                                    <label for="type-Q6983405">Ereignis</label>
-                                </div>
-                                <div>
-                                    <input
-                                        v-model="formsType"
-                                        name="type"
-                                        type="radio"
-                                        value="Q5003624"
-                                        id="type-Q5003624"
-                                    />
-                                    <label for="type-Q5003624"
-                                        >Erinnerungsort</label
+                    <div v-if="currentStep === 1" class="entry-form-wrapper">
+                        <div class="step-container">
+                            <h2 class="step-title">
+                                Schritt 1: Wählen Sie den Eintragstyp
+                            </h2>
+                            <form class="forms">
+                                <fieldset>
+                                    <legend for="type">Eintrag-Typ</legend>
+                                    <div>
+                                        <input
+                                            v-model="formsType"
+                                            name="type"
+                                            type="radio"
+                                            value="Q6983405"
+                                            id="type-Q6983405"
+                                            @change="updateTypeInfo"
+                                        />
+                                        <label for="type-Q6983405"
+                                            >Ereignis</label
+                                        >
+                                    </div>
+                                    <div>
+                                        <input
+                                            v-model="formsType"
+                                            name="type"
+                                            type="radio"
+                                            value="Q5003624"
+                                            id="type-Q5003624"
+                                            @change="updateTypeInfo"
+                                        />
+                                        <label for="type-Q5003624"
+                                            >Erinnerungsort</label
+                                        >
+                                    </div>
+                                    <div>
+                                        <input
+                                            v-model="formsType"
+                                            name="type"
+                                            type="radio"
+                                            value="Q108047567"
+                                            id="type-Q108047567"
+                                            @change="updateTypeInfo"
+                                        />
+                                        <label for="type-Q108047567"
+                                            >Staatspolizeistelle</label
+                                        >
+                                    </div>
+                                    <div>
+                                        <input
+                                            v-model="formsType"
+                                            name="type"
+                                            type="radio"
+                                            value="Q108047541"
+                                            id="type-Q108047541"
+                                            @change="updateTypeInfo"
+                                        />
+                                        <label for="type-Q108047541"
+                                            >Staatspolizeiaußenstelle</label
+                                        >
+                                    </div>
+                                    <div>
+                                        <input
+                                            v-model="formsType"
+                                            name="type"
+                                            type="radio"
+                                            value="Q277565"
+                                            id="type-Q277565"
+                                            @change="updateTypeInfo"
+                                        />
+                                        <label for="type-Q277565"
+                                            >Arbeitserziehungslager</label
+                                        >
+                                    </div>
+                                    <div>
+                                        <input
+                                            v-model="formsType"
+                                            name="type"
+                                            type="radio"
+                                            value="Q40357"
+                                            id="type-Q40357"
+                                            @change="updateTypeInfo"
+                                        />
+                                        <label for="type-Q40357"
+                                            >Gefängnis</label
+                                        >
+                                    </div>
+                                </fieldset>
+                                <div class="button-container">
+                                    <button
+                                        class="button"
+                                        type="button"
+                                        @click="openTitleOverlay"
+                                        :disabled="!formsType"
                                     >
+                                        Weiter
+                                    </button>
                                 </div>
-                                <div>
-                                    <input
-                                        v-model="formsType"
-                                        name="type"
-                                        type="radio"
-                                        value="Q108047567"
-                                        id="type-Q108047567"
-                                    />
-                                    <label for="type-Q108047567"
-                                        >Staatspolizeistelle</label
-                                    >
-                                </div>
-                                <div>
-                                    <input
-                                        v-model="formsType"
-                                        name="type"
-                                        type="radio"
-                                        value="Q108047541"
-                                        id="type-Q108047541"
-                                    />
-                                    <label for="type-Q108047541"
-                                        >Staatspolizeiaußenstelle</label
-                                    >
-                                </div>
-                                <div>
-                                    <input
-                                        v-model="formsType"
-                                        name="type"
-                                        type="radio"
-                                        value="Q277565"
-                                        id="type-Q277565"
-                                    />
-                                    <label for="type-Q277565"
-                                        >Arbeitserziehungslager</label
-                                    >
-                                </div>
-                                <div>
-                                    <input
-                                        v-model="formsType"
-                                        name="type"
-                                        type="radio"
-                                        value="Q40357"
-                                        id="type-Q40357"
-                                    />
-                                    <label for="type-Q40357">Gefängnis</label>
-                                </div>
-                            </fieldset>
-                            <div class="button-container">
-                                <button
-                                    class="button"
-                                    type="button"
-                                    @click="goToStep(2)"
-                                    :disabled="!formsType"
-                                >
-                                    Weiter
-                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Info-Box (Desktop) -->
+                        <div
+                            class="info-box desktop-info"
+                            v-if="!isMobileView && typeInfoContent"
+                        >
+                            <div class="info-box-header">
+                                <h3>{{ getTypeInfoTitle() }}</h3>
                             </div>
-                        </form>
+                            <div class="info-box-content">
+                                <div v-html="typeInfoContent"></div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Schritt 2: Ereignis-Formular -->
@@ -327,6 +352,36 @@
             </v-col>
         </v-row>
     </v-container>
+
+    <!-- Mobile Info-Overlay -->
+    <div
+        class="mobile-info-overlay"
+        v-if="showMobileInfoOverlay && isMobileView"
+        @click="closeMobileInfoOverlay"
+    >
+        <div class="overlay-content" @click.stop>
+            <div class="overlay-header">
+                <h3>{{ getTypeInfoTitle() }}</h3>
+                <button class="close-overlay" @click="closeMobileInfoOverlay">
+                    &times;
+                </button>
+            </div>
+            <div class="overlay-body">
+                <div v-html="typeInfoContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Title Search Overlay -->
+    <TitleSearchOverlay
+        v-if="showTitleOverlay"
+        :initial-title="formsTitle"
+        :entry-type="formsType"
+        :title="'Neuen ' + getTypeInfoTitle() + ' anlegen'"
+        @update:title="updateTitle"
+        @close="cancelTitleOverlay"
+        @create="createWithTitle"
+    />
 </template>
 
 <script setup>
@@ -339,6 +394,8 @@ import { debounce } from "lodash";
 
 // Import the EventsForm component
 import EventsForm from "./entry/EventsForm.vue";
+// Import the TitleSearchOverlay component
+import TitleSearchOverlay from "./entry/fields/TitleSearchOverlay.vue";
 
 // Props
 const props = defineProps({
@@ -451,7 +508,135 @@ const goToStep = (step) => {
     currentStep.value = step;
 };
 
-// Karte zuru00fccksetzen auf Niedersachsen-Ansicht
+// Mobile/Desktop View Detection
+const isMobileView = ref(false);
+const checkScreenSize = () => {
+    isMobileView.value = window.innerWidth < 1200;
+};
+
+// Typeinfo Content
+const typeInfoContent = ref("");
+const showMobileInfoOverlay = ref(false);
+
+// Update type information based on selected type
+const updateTypeInfo = () => {
+    const typeInfoTexts = {
+        Q6983405: `<p>Ein <strong>Ereignis</strong> im Kontext des Nationalsozialismus bezeichnet ein spezifisches historisches Geschehen im Zeitraum 1933-1945.</p>
+        <p>Beispiele für Ereignisse sind:</p>
+        <ul>
+            <li>Pogrome (z.B. Novemberpogrom 1938)</li>
+            <li>Verhaftungswellen</li>
+            <li>Deportationen</li>
+            <li>Erschießungen und Hinrichtungen</li>
+            <li>Bombardierungen und Kriegsereignisse</li>
+        </ul>
+        <p>Ereignisse sind zeitlich begrenzt und haben einen bestimmten Ort sowie identifizierbare Beteiligte.</p>`,
+
+        Q5003624: `<p>Ein <strong>Erinnerungsort</strong> ist ein physischer Ort, der an die Opfer des Nationalsozialismus erinnert.</p>
+        <p>Dazu zählen:</p>
+        <ul>
+            <li>Gedenkstätten</li>
+            <li>Denkmäler</li>
+            <li>Mahnmale</li>
+            <li>Gedenktafeln</li>
+            <li>Stolpersteine</li>
+        </ul>
+        <p>Erinnerungsorte dienen dem Gedenken, der Dokumentation und der Aufklärung über historische Ereignisse.</p>`,
+
+        Q108047567: `<p>Eine <strong>Staatspolizeistelle</strong> (Stapo oder Gestapodienststelle) war eine regionale Dienststelle der Geheimen Staatspolizei (Gestapo) im nationalsozialistischen Deutschland.</p>
+        <p>Aufgaben waren:</p>
+        <ul>
+            <li>Bekämpfung politischer Gegner</li>
+            <li>Verfolgung von Juden und anderen Minderheiten</li>
+            <li>Überwachung der Bevölkerung</li>
+            <li>Durchführung von Verhaftungen und Verhören</li>
+        </ul>
+        <p>Staatspolizeistellen waren zentrale Organe des NS-Terrorsystems.</p>`,
+
+        Q108047541: `<p>Eine <strong>Staatspolizeiaußenstelle</strong> war eine lokale Zweigstelle einer Staatspolizeistelle im nationalsozialistischen Herrschaftsbereich.</p>
+        <p>Charakteristika:</p>
+        <ul>
+            <li>Kleiner als Staatspolizeistellen</li>
+            <li>Regional begrenzte Zuständigkeit</li>
+            <li>Berichtspflicht an übergeordnete Staatspolizeistelle</li>
+            <li>Umsetzung der Gestapo-Maßnahmen auf lokaler Ebene</li>
+        </ul>
+        <p>Diese Außenstellen sicherten die flächendeckende Kontrolle und Unterdrückung.</p>`,
+
+        Q277565: `<p>Ein <strong>Arbeitserziehungslager</strong> (AEL) war ein Haftsystem der Gestapo während des Nationalsozialismus.</p>
+        <p>Merkmale:</p>
+        <ul>
+            <li>Inhaftierung für normalerweise 3-8 Wochen</li>
+            <li>Extreme Brutalität und hohe Sterblichkeit</li>
+            <li>Schwere Zwangsarbeit bei minimaler Verpflegung</li>
+            <li>Bestrafung für angebliche "Arbeitsverweigerung"</li>
+        </ul>
+        <p>AEL dienten als abschreckende Maßnahme zur Disziplinierung von Arbeitern und Zwangsarbeiter*innen.</p>`,
+
+        Q40357: `<p>Ein <strong>Gefängnis</strong> im NS-Kontext bezeichnet reguläre Haftanstalten, die während der NS-Zeit auch für politische Gefangene genutzt wurden.</p>
+        <p>Besonderheiten im NS-System:</p>
+        <ul>
+            <li>Überfüllung durch politische Häftlinge</li>
+            <li>Verstärkte Brutalität und Willkür</li>
+            <li>Oft Durchgangsstationen vor Deportation</li>
+            <li>Teil des NS-Verfolgungsapparats</li>
+        </ul>
+        <p>Viele reguläre Gefängnisse wurden unter NS-Herrschaft zu Orten schwerer Menschenrechtsverletzungen.</p>`,
+    };
+
+    typeInfoContent.value = typeInfoTexts[formsType.value] || "";
+
+    // Automatically open info overlay on mobile when type is selected
+    if (isMobileView.value && typeInfoContent.value) {
+        showMobileInfoOverlay.value = true;
+    }
+};
+
+// Close mobile info overlay
+const closeMobileInfoOverlay = () => {
+    showMobileInfoOverlay.value = false;
+};
+
+// Get type info title
+const getTypeInfoTitle = () => {
+    const typeTitles = {
+        Q6983405: "Ereignis",
+        Q5003624: "Erinnerungsort",
+        Q108047567: "Staatspolizeistelle",
+        Q108047541: "Staatspolizeiaußenstelle",
+        Q277565: "Arbeitserziehungslager",
+        Q40357: "Gefängnis",
+    };
+
+    return typeTitles[formsType.value] || "Eintragstyp";
+};
+
+// Title overlay management
+const showTitleOverlay = ref(false);
+
+// Open title overlay
+const openTitleOverlay = () => {
+    showTitleOverlay.value = true;
+};
+
+// Cancel title overlay
+const cancelTitleOverlay = () => {
+    showTitleOverlay.value = false;
+};
+
+// Update title from overlay
+const updateTitle = (newTitle) => {
+    formsTitle.value = newTitle;
+};
+
+// Create entry with title from overlay
+const createWithTitle = (title) => {
+    formsTitle.value = title;
+    showTitleOverlay.value = false;
+    currentStep.value = 2;
+};
+
+// Karte zurücksetzen auf Niedersachsen-Ansicht
 const resetMapView = () => {
     if (mapRef.value && mapRef.value.leafletObject) {
         mapRef.value.leafletObject.setView(mapCenter.value, mapZoom.value, {
@@ -1035,6 +1220,10 @@ watch(currentStep, (newStep) => {
 onMounted(() => {
     window.addEventListener("resize", setFreeClientWidth);
 
+    // Initialize screen size detection
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+
     // Apply the CSS fixes for Leaflet tiles with fixed size
     applyLeafletCSS();
 
@@ -1059,6 +1248,7 @@ onMounted(() => {
 
 onUnmounted(() => {
     window.removeEventListener("resize", setFreeClientWidth);
+    window.removeEventListener("resize", checkScreenSize);
 });
 </script>
 
@@ -1339,5 +1529,137 @@ onUnmounted(() => {
 .result-id {
     font-size: 0.8rem;
     color: #888;
+}
+
+/* Info box and mobile overlay styles */
+.info-box {
+    width: 30%;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.info-box-header {
+    border-bottom: 1px solid #e9ecef;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+}
+
+.info-box-header h3 {
+    font-size: 1.2rem;
+    color: #1976d2;
+    margin: 0;
+}
+
+.info-box-content {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #495057;
+}
+
+.info-box-content p {
+    margin-bottom: 1rem;
+}
+
+.info-box-content ul {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.info-box-content li {
+    margin-bottom: 0.5rem;
+}
+
+/* Mobile Info Overlay */
+.mobile-info-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.overlay-content {
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.overlay-header {
+    padding: 1rem;
+    background-color: #1976d2;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.overlay-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.overlay-body {
+    padding: 1rem;
+    overflow-y: auto;
+    max-height: 60vh;
+}
+
+.close-overlay {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+.close-overlay:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+@media (max-width: 1200px) {
+    .desktop-info {
+        display: none; /* Desktop-Infobox auf mobilen Geräten ausblenden */
+    }
+}
+
+/* Responsiver Aufbau für Entry Form */
+.entry-form-wrapper {
+    display: flex;
+    gap: 2rem;
+}
+
+@media (max-width: 1200px) {
+    .entry-form-wrapper {
+        flex-direction: column;
+    }
+
+    .step-container {
+        width: 100%;
+    }
 }
 </style>
