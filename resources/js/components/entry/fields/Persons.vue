@@ -11,136 +11,18 @@
                 <v-icon>mdi-information-variant</v-icon>
             </button>
         </div>
-        <div v-if="!showNewPersonForm" class="persons-search">
-            <input
-                type="text"
-                :placeholder="`Namen der ${label} suchen...`"
-                @input="(event) => onSearchPeople(event.target.value)"
-                @focus="(event) => onSearchPeople(event.target.value)"
-            />
 
-            <!-- Ladeindikator -->
-            <div
-                v-if="
-                    isSearchLoading &&
-                    !(searchPerformed && peopleSearchResults.length === 0)
-                "
-                class="search-loading"
+        <div class="add-person-container">
+            <v-btn
+                color="primary"
+                class="mt-4"
+                @click="dialogOpen = true"
+                prepend-icon="mdi-account-plus"
             >
-                <v-progress-circular
-                    size="24"
-                    indeterminate
-                    color="primary"
-                ></v-progress-circular>
-                <span>Suche läuft...</span>
-            </div>
-
-            <!-- Keine Ergebnisse Meldung -->
-            <div
-                v-else-if="
-                    searchPerformed &&
-                    !isSearchLoading &&
-                    peopleSearchResults.length === 0
-                "
-                class="search-no-results"
-            >
-                Keine Ergebnisse gefunden
-            </div>
+                {{ label }} hinzufügen
+            </v-btn>
         </div>
 
-        <!-- Suchergebnisse für Personen -->
-        <div
-            v-if="peopleSearchResults.length > 0 && !showNewPersonForm"
-            class="search-results"
-        >
-            <div
-                v-for="person in peopleSearchResults"
-                :key="person.id"
-                class="search-result-item"
-                @click="onSelectPerson(person)"
-            >
-                <div class="result-title">{{ person.label }}</div>
-                <div class="result-description" v-if="person.description">
-                    {{ person.description }}
-                </div>
-                <div
-                    class="result-metadata"
-                    v-if="person.birth || person.death"
-                >
-                    <span v-if="person.birth">* {{ person.birth }}</span>
-                    <span v-if="person.death">† {{ person.death }}</span>
-                </div>
-                <div class="result-id">{{ person.id }}</div>
-            </div>
-        </div>
-
-        <!-- Formular für neue Person -->
-        <div v-if="showNewPersonForm" class="new-person-form">
-            <h4>Neue Person anlegen</h4>
-            <div class="form-group">
-                <label :for="`${fieldId}-firstName`">Vorname *</label>
-                <input
-                    v-model="newPersonLocal.firstName"
-                    type="text"
-                    :id="`${fieldId}-firstName`"
-                    required
-                />
-            </div>
-            <div class="form-group">
-                <label :for="`${fieldId}-lastName`">Nachname *</label>
-                <input
-                    v-model="newPersonLocal.lastName"
-                    type="text"
-                    :id="`${fieldId}-lastName`"
-                    required
-                />
-            </div>
-            <div class="form-group">
-                <label :for="`${fieldId}-birthDate`">Geburtsdatum</label>
-                <input
-                    v-model="newPersonLocal.birthDate"
-                    type="date"
-                    :id="`${fieldId}-birthDate`"
-                />
-            </div>
-            <div class="form-group">
-                <label :for="`${fieldId}-deathDate`">Sterbedatum</label>
-                <input
-                    v-model="newPersonLocal.deathDate"
-                    type="date"
-                    :id="`${fieldId}-deathDate`"
-                />
-            </div>
-            <div class="form-group">
-                <label :for="`${fieldId}-description`"
-                    >Kurze Beschreibung</label
-                >
-                <textarea
-                    v-model="newPersonLocal.description"
-                    :id="`${fieldId}-description`"
-                    rows="3"
-                ></textarea>
-            </div>
-            <div class="button-group">
-                <button
-                    type="button"
-                    class="button bg-secondary"
-                    @click="onCancelNewPersonForm"
-                >
-                    Abbrechen
-                </button>
-                <button
-                    type="button"
-                    class="button"
-                    @click="onAddNewPerson"
-                    :disabled="!canAddNewPerson"
-                >
-                    Person hinzufügen
-                </button>
-            </div>
-        </div>
-
-        <!-- Ausgewählte Personen -->
         <div v-if="selectedPersons.length > 0" class="selected-persons">
             <h4>Ausgewählte {{ label }}:</h4>
             <div
@@ -176,23 +58,182 @@
             </div>
         </div>
 
-        <!-- Button für weitere Person -->
-        <div v-if="!showNewPersonForm" class="add-another-person">
-            <div class="new-person-option">
-                <button
-                    type="button"
-                    class="button bg-secondary"
-                    @click="onStartNewPersonForm"
-                >
-                    Person nicht gefunden? Neue Person anlegen
-                </button>
-            </div>
-        </div>
+        <v-dialog v-model="dialogOpen" max-width="600px">
+            <v-card>
+                <v-card-title>{{ label }} hinzufügen</v-card-title>
+                <v-card-text class="overlay-content">
+                    <!-- Person suchen -->
+                    <div v-if="!showNewPersonForm" class="persons-search">
+                        <div class="search-input-container">
+                            <v-text-field
+                                :placeholder="`Namen der ${label} suchen...`"
+                                v-model="searchQuery"
+                                append-inner-icon="mdi-magnify"
+                                @click:append-inner="
+                                    onSearchPeople(searchQuery)
+                                "
+                                @keydown.enter="onSearchPeople(searchQuery)"
+                                clearable
+                                :loading="isSearchLoading"
+                            ></v-text-field>
+                            <v-btn
+                                color="primary"
+                                class="ml-3 search-button"
+                                @click="onSearchPeople(searchQuery)"
+                                :disabled="!searchQuery.trim()"
+                                :loading="isSearchLoading"
+                            >
+                                Suchen
+                            </v-btn>
+                        </div>
+
+                        <!-- Ladeindikator -->
+                        <div
+                            v-if="
+                                isSearchLoading &&
+                                !(
+                                    searchPerformed &&
+                                    peopleSearchResults.length === 0
+                                )
+                            "
+                            class="search-loading"
+                        >
+                            <v-progress-circular
+                                size="24"
+                                indeterminate
+                                color="primary"
+                            ></v-progress-circular>
+                            <span>Suche läuft...</span>
+                        </div>
+
+                        <!-- Keine Ergebnisse Meldung -->
+                        <div
+                            v-else-if="
+                                searchPerformed &&
+                                !isSearchLoading &&
+                                peopleSearchResults.length === 0
+                            "
+                            class="search-no-results"
+                        >
+                            Keine Ergebnisse gefunden
+                        </div>
+                    </div>
+
+                    <!-- Suchergebnisse für Personen -->
+                    <v-list
+                        v-if="
+                            peopleSearchResults.length > 0 && !showNewPersonForm
+                        "
+                        class="search-results mt-3"
+                        density="compact"
+                    >
+                        <v-list-item
+                            v-for="person in peopleSearchResults"
+                            :key="person.id"
+                            @click="onSelectPerson(person)"
+                            class="search-result-item"
+                        >
+                            <v-list-item-title>{{
+                                person.label
+                            }}</v-list-item-title>
+                            <v-list-item-subtitle v-if="person.description">
+                                {{ person.description }}
+                            </v-list-item-subtitle>
+                            <v-list-item-subtitle
+                                v-if="person.birth || person.death"
+                                class="result-metadata"
+                            >
+                                <span v-if="person.birth"
+                                    >* {{ person.birth }}</span
+                                >
+                                <span v-if="person.death"
+                                    >† {{ person.death }}</span
+                                >
+                            </v-list-item-subtitle>
+                            <v-list-item-subtitle class="result-id">{{
+                                person.id
+                            }}</v-list-item-subtitle>
+                        </v-list-item>
+                    </v-list>
+
+                    <!-- Button für neue Person -->
+                    <div
+                        v-if="!showNewPersonForm && searchPerformed"
+                        class="mt-4"
+                    >
+                        <v-divider class="mb-3"></v-divider>
+                        <div class="d-flex justify-center">
+                            <v-btn
+                                color="secondary"
+                                @click="onStartNewPersonForm"
+                                prepend-icon="mdi-account-plus"
+                            >
+                                Person nicht gefunden? Neue Person anlegen
+                            </v-btn>
+                        </div>
+                    </div>
+
+                    <!-- Formular für neue Person -->
+                    <div v-if="showNewPersonForm" class="new-person-form">
+                        <h4 class="text-h6 mb-4">Neue Person anlegen</h4>
+                        <div class="form-group">
+                            <v-text-field
+                                v-model="newPersonLocal.firstName"
+                                label="Vorname *"
+                                :rules="[rules.required]"
+                                required
+                            ></v-text-field>
+                        </div>
+                        <div class="form-group">
+                            <v-text-field
+                                v-model="newPersonLocal.lastName"
+                                label="Nachname *"
+                                :rules="[rules.required]"
+                                required
+                            ></v-text-field>
+                        </div>
+                        <div class="form-group">
+                            <v-text-field
+                                v-model="newPersonLocal.birthDate"
+                                label="Geburtsdatum"
+                                type="date"
+                            ></v-text-field>
+                        </div>
+                        <div class="form-group">
+                            <v-text-field
+                                v-model="newPersonLocal.deathDate"
+                                label="Sterbedatum"
+                                type="date"
+                            ></v-text-field>
+                        </div>
+                        <div class="form-group">
+                            <v-textarea
+                                v-model="newPersonLocal.description"
+                                label="Kurze Beschreibung"
+                                rows="3"
+                            ></v-textarea>
+                        </div>
+                    </div>
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="grey" @click="closeDialog"> Abbrechen </v-btn>
+                    <v-btn
+                        v-if="showNewPersonForm"
+                        color="primary"
+                        @click="onAddNewPerson"
+                        :disabled="!canAddNewPerson"
+                    >
+                        Person hinzufügen
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </div>
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 
 const props = defineProps({
     label: {
@@ -252,7 +293,14 @@ const emit = defineEmits([
 ]);
 
 // Local state
+const dialogOpen = ref(false);
+const searchQuery = ref("");
 const newPersonLocal = computed(() => props.newPerson);
+
+// Validierungsregeln
+const rules = {
+    required: (v) => !!v || "Dieses Feld ist erforderlich",
+};
 
 // Computed für die Prüfung, ob eine neue Person hinzugefügt werden kann
 const canAddNewPerson = computed(() => {
@@ -261,11 +309,13 @@ const canAddNewPerson = computed(() => {
 
 // Event handlers
 const onSearchPeople = (query) => {
+    if (!query || query.trim() === "") return;
     emit("searchPeople", query);
 };
 
 const onSelectPerson = (person) => {
     emit("selectPerson", person);
+    dialogOpen.value = false;
 };
 
 const onStartNewPersonForm = () => {
@@ -279,6 +329,7 @@ const onCancelNewPersonForm = () => {
 const onAddNewPerson = () => {
     emit("update:newPerson", newPersonLocal.value);
     emit("addNewPerson");
+    dialogOpen.value = false;
 };
 
 const onRemovePerson = (id) => {
@@ -287,6 +338,14 @@ const onRemovePerson = (id) => {
 
 const onInfoButtonClick = () => {
     emit("infoButtonClick", props.fieldId);
+};
+
+const closeDialog = () => {
+    dialogOpen.value = false;
+    searchQuery.value = "";
+    if (props.showNewPersonForm) {
+        onCancelNewPersonForm();
+    }
 };
 </script>
 
@@ -333,23 +392,15 @@ label.section-label {
     width: 100%;
 }
 
-.persons-search input {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1px solid #ddd;
-    background-color: #fff;
-    border-radius: 4px;
-    font-size: 1rem;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition:
-        border-color 0.2s,
-        box-shadow 0.2s;
+.search-input-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
 }
 
-.persons-search input:focus {
-    outline: none;
-    border-color: #1976d2;
-    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
+.search-button {
+    height: 56px;
+    white-space: nowrap;
 }
 
 .search-loading {
@@ -372,41 +423,9 @@ label.section-label {
     font-style: italic;
 }
 
-.form-group {
-    margin-bottom: 1rem;
-    width: 100%;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-}
-
-.form-group input,
-.form-group textarea {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition:
-        border-color 0.2s,
-        box-shadow 0.2s;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: #1976d2;
-    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
-}
-
-.form-group textarea {
-    min-height: 6rem;
-    resize: vertical;
+.overlay-content {
+    max-height: 80vh;
+    overflow-y: auto;
 }
 
 .new-person-form {
@@ -415,47 +434,6 @@ label.section-label {
     border-radius: 4px;
     margin-bottom: 1.5rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.new-person-form h4 {
-    margin-top: 0;
-    margin-bottom: 1.25rem;
-    font-size: 1.2rem;
-    color: #333;
-}
-
-.button-group {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 1.5rem;
-}
-
-.button-group .button {
-    padding: 12px 24px;
-    background-color: #1976d2;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s;
-}
-
-.button-group .button:hover {
-    background-color: #1565c0;
-}
-
-.button-group .button:disabled {
-    background-color: #bbdefb;
-    cursor: not-allowed;
-}
-
-.button-group .button.bg-secondary {
-    background-color: #757575;
-}
-
-.button-group .button.bg-secondary:hover {
-    background-color: #616161;
 }
 
 .selected-persons {
@@ -539,30 +517,6 @@ label.section-label {
     margin-right: 0.75rem;
 }
 
-.new-person-option,
-.add-another-person {
-    padding: 1rem;
-    margin-top: 1rem;
-    border-top: 1px solid #eee;
-    text-align: center;
-}
-
-.add-another-person button {
-    padding: 12px 24px;
-    background-color: #757575;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s;
-}
-
-.add-another-person button:hover {
-    background-color: #616161;
-}
-
-/* Diese Stile gelten für Suchresultate */
 .search-results {
     background-color: white;
     border-radius: 4px;
@@ -575,39 +529,13 @@ label.section-label {
     border: 1px solid #eee;
 }
 
-.search-info {
-    padding: 10px 15px;
-    color: #666;
-    font-style: italic;
-    text-align: center;
-    border-bottom: 1px solid #eee;
-}
-
 .search-result-item {
-    padding: 0.75rem 1rem;
     cursor: pointer;
-    border-bottom: 1px solid #eee;
     transition: background-color 0.2s;
 }
 
 .search-result-item:hover {
     background-color: #f5f5f5;
-}
-
-.search-result-item:last-child {
-    border-bottom: none;
-}
-
-.result-title {
-    font-weight: 500;
-    margin-bottom: 0.25rem;
-    color: #333;
-}
-
-.result-description {
-    color: #666;
-    font-size: 0.9rem;
-    margin-bottom: 0.25rem;
 }
 
 .result-id {
