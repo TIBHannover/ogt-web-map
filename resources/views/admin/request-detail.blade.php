@@ -333,18 +333,18 @@
                                                             @endif
                                                         </div>
                                                     @endif
-                                                    
+
                                                     <!-- Titel der Quelle -->
                                                     @if(isset($source['title']))
                                                         <div class="fw-bold">{{ $source['title'] }}</div>
                                                     @endif
                                                 </div>
-                                                
+
                                                 <!-- Beschreibung -->
                                                 @if(isset($source['description']))
                                                     <div class="text-muted small mb-1">{{ $source['description'] }}</div>
                                                 @endif
-                                                
+
                                                 <!-- Typenspezifische Details -->
                                                 <div class="small">
                                                     @if(isset($source['type']))

@@ -3,149 +3,30 @@
         <div class="step-container">
             <h2 class="step-title">Schritt 2: Ereignis-Details eingeben</h2>
             <form class="forms">
-                <div
-                    class="main-section container-section"
+                <BaseInfos
+                    :title="title"
+                    :description="description"
+                    :wikidata-results="wikidataResultsValue"
+                    @update:title="title = $event"
+                    @update:description="description = $event"
+                    @field-focus="setActiveField"
                     @focusin="setActiveSection('title')"
-                >
-                    <div class="section-header">
-                        <label class="section-label"
-                            >Basis Informationen:</label
-                        >
-                        <button
-                            type="button"
-                            class="info-icon"
-                            @click="openSectionInfo('title')"
-                        >
-                            <v-icon>mdi-information-variant</v-icon>
-                        </button>
-                    </div>
-                    <label for="title" class="">Titel *</label>
-                    <input
-                        v-model="title"
-                        name="title"
-                        type="text"
-                        maxlength="250"
-                        placeholder="z.B. Novemberpogrom 1938 in Osnabrück"
-                        @input="onTitleInput"
-                        @focus="setActiveField('title')"
-                    />
-
-                    <!-- Anzeige der Suchergebnisse -->
-                    <div
-                        v-if="wikidataResultsValue.length > 0"
-                        class="search-results"
-                    >
-                        <p class="search-info">
-                            Möglicherweise existiert dieser Eintrag bereits:
-                        </p>
-                        <div
-                            v-for="result in wikidataResultsValue"
-                            :key="result.id"
-                            class="search-result-item"
-                            @click="onSelectExistingEntity(result)"
-                        >
-                            <div class="result-title">{{ result.label }}</div>
-                            <div
-                                class="result-description"
-                                v-if="result.description"
-                            >
-                                {{ result.description }}
-                            </div>
-                            <div class="result-id">{{ result.id }}</div>
-                        </div>
-                    </div>
-
-                    <label for="description" class="mt-3 d-block"
-                        >Kurzbeschreibung *</label
-                    >
-                    <textarea
-                        v-model="description"
-                        name="description"
-                        maxlength="750"
-                        placeholder="z.B. vom NS-Regime gelenkte Gewaltmaßnahmen gegen Juden in Osnabrück."
-                        @focus="setActiveField('title')"
-                    ></textarea>
-                </div>
+                    @info-button-click="openSectionInfo"
+                    @select-existing-entity="onSelectExistingEntity"
+                />
                 <!-- Zeitpunkt/Zeitraum -->
-                <div class="time-section container-section">
-                    <div class="section-header">
-                        <label class="section-label"
-                            >Zeitpunkt / Zeitraum:</label
-                        >
-                        <button
-                            type="button"
-                            class="info-icon"
-                            @click="openSectionInfo('time')"
-                        >
-                            <v-icon>mdi-information-variant</v-icon>
-                        </button>
-                    </div>
-                    <div class="time-type-selection">
-                        <div class="form-group">
-                            <input
-                                type="radio"
-                                id="time-point"
-                                name="event-time-type"
-                                value="point"
-                                v-model="eventTimeTypeValue"
-                            />
-                            <label for="time-point">Zeitpunkt</label>
-                        </div>
-                        <div class="form-group">
-                            <input
-                                type="radio"
-                                id="time-range"
-                                name="event-time-type"
-                                value="range"
-                                v-model="eventTimeTypeValue"
-                            />
-                            <label for="time-range">Zeitraum</label>
-                        </div>
-                    </div>
-
-                    <!-- Zeitpunkt-Eingabe -->
-                    <div
-                        v-if="eventTimeTypeValue === 'point'"
-                        class="form-group"
-                    >
-                        <label for="event-date">Datum des Ereignisses</label>
-                        <input
-                            type="date"
-                            id="event-date"
-                            v-model="eventDateValue"
-                            @focus="setActiveField('time')"
-                        />
-                    </div>
-
-                    <!-- Zeitraum-Eingabe -->
-                    <div
-                        v-if="eventTimeTypeValue === 'range'"
-                        class="time-range-inputs"
-                    >
-                        <div class="form-group">
-                            <label for="event-start-date"
-                                >Beginn des Ereignisses</label
-                            >
-                            <input
-                                type="date"
-                                id="event-start-date"
-                                v-model="eventStartDateValue"
-                                @focus="setActiveField('time')"
-                            />
-                        </div>
-                        <div class="form-group">
-                            <label for="event-end-date"
-                                >Ende des Ereignisses</label
-                            >
-                            <input
-                                type="date"
-                                id="event-end-date"
-                                v-model="eventEndDateValue"
-                                @focus="setActiveField('time')"
-                            />
-                        </div>
-                    </div>
-                </div>
+                <TimeSelector
+                    :event-time-type="eventTimeTypeValue"
+                    :event-date="eventDateValue"
+                    :event-start-date="eventStartDateValue"
+                    :event-end-date="eventEndDateValue"
+                    @update:event-time-type="eventTimeTypeValue = $event"
+                    @update:event-date="eventDateValue = $event"
+                    @update:event-start-date="eventStartDateValue = $event"
+                    @update:event-end-date="eventEndDateValue = $event"
+                    @field-focus="setActiveField"
+                    @info-button-click="openSectionInfo"
+                />
 
                 <!-- Opfer-Eingabefeld -->
                 <PersonsField
@@ -192,414 +73,71 @@
                 />
 
                 <!-- Opferzahlen -->
-                <div class="counts-section container-section">
-                    <div class="section-header">
-                        <label class="section-label">Opferzahlen:</label>
-                        <button
-                            type="button"
-                            class="info-icon"
-                            @click="openSectionInfo('counts')"
-                        >
-                            <v-icon>mdi-information-variant</v-icon>
-                        </button>
-                    </div>
-                    <v-row class="align-end">
-                        <v-col cols="12" md="3">
-                            <div class="form-group">
-                                <label for="victim-count"
-                                    >Anzahl der Geschädigten</label
-                                >
-                                <input
-                                    type="number"
-                                    id="victim-count"
-                                    v-model="victimCountValue"
-                                    min="0"
-                                    @focus="setActiveField('victim-count')"
-                                />
-                            </div>
-                        </v-col>
-                        <v-col cols="12" md="3">
-                            <div class="form-group">
-                                <label for="survivor-count"
-                                    >Anzahl der Überlebenden</label
-                                >
-                                <input
-                                    type="number"
-                                    id="survivor-count"
-                                    v-model="survivorCountValue"
-                                    min="0"
-                                    @focus="setActiveField('victim-count')"
-                                />
-                            </div>
-                        </v-col>
-                        <v-col cols="12" md="3">
-                            <div class="form-group">
-                                <label for="death-count"
-                                    >Anzahl der Todesfälle</label
-                                >
-                                <input
-                                    type="number"
-                                    id="death-count"
-                                    v-model="deathCountValue"
-                                    min="0"
-                                    @focus="setActiveField('victim-count')"
-                                />
-                            </div>
-                        </v-col>
-                        <v-col cols="12" md="3">
-                            <div class="form-group">
-                                <label for="arrest-count"
-                                    >Anzahl der Festnahmen</label
-                                >
-                                <input
-                                    type="number"
-                                    id="arrest-count"
-                                    v-model="arrestCountValue"
-                                    min="0"
-                                    @focus="setActiveField('victim-count')"
-                                />
-                            </div>
-                        </v-col>
-                    </v-row>
-                </div>
+                <VictimsCounts
+                    :victim-count="victimCountValue"
+                    :survivor-count="survivorCountValue"
+                    :death-count="deathCountValue"
+                    :arrest-count="arrestCountValue"
+                    @update:victim-count="victimCountValue = $event"
+                    @update:survivor-count="survivorCountValue = $event"
+                    @update:death-count="deathCountValue = $event"
+                    @update:arrest-count="arrestCountValue = $event"
+                    @field-focus="setActiveField"
+                    @info-button-click="openSectionInfo"
+                />
 
                 <!-- Ursache der Verfolgung -->
-                <div class="cause-section container-section">
-                    <div class="section-header">
-                        <label class="section-label"
-                            >Ursache der Verfolgung:</label
-                        >
-                        <button
-                            type="button"
-                            class="info-icon"
-                            @click="openSectionInfo('cause')"
-                        >
-                            <v-icon>mdi-information-variant</v-icon>
-                        </button>
-                    </div>
-                    <!-- Sucheingabefeld ist immer sichtbar -->
-                    <div class="cause-search">
-                        <input
-                            type="text"
-                            id="cause-search"
-                            placeholder="Nach Ursache der Verfolgung suchen..."
-                            @input="
-                                (event) => onSearchCause(event.target.value)
-                            "
-                            @focus="setActiveField('cause')"
-                        />
-                    </div>
-
-                    <!-- Suchergebnisse für Ursachen -->
-                    <div
-                        v-if="causeSearchResultsValue.length > 0"
-                        class="search-results"
-                    >
-                        <div
-                            v-for="cause in causeSearchResultsValue"
-                            :key="cause.id"
-                            class="search-result-item"
-                            @click="onSelectCause(cause)"
-                        >
-                            <div class="result-title">{{ cause.label }}</div>
-                            <div
-                                class="result-description"
-                                v-if="cause.description"
-                            >
-                                {{ cause.description }}
-                            </div>
-                            <div class="result-id">{{ cause.id }}</div>
-                        </div>
-                    </div>
-
-                    <!-- Anzeige der ausgewählten Ursachen -->
-                    <div
-                        v-if="selectedCausesValue.length > 0"
-                        class="selected-causes"
-                    >
-                        <div
-                            v-for="cause in selectedCausesValue"
-                            :key="cause.id"
-                            class="cause-display"
-                        >
-                            <span class="cause-name">
-                                <a
-                                    :href="`https://www.wikidata.org/wiki/${cause.id}`"
-                                    target="_blank"
-                                >
-                                    {{ cause.label }}
-                                </a>
-                            </span>
-                            <span
-                                class="cause-description"
-                                v-if="cause.description"
-                            >
-                                - {{ cause.description }}
-                            </span>
-                            <button
-                                type="button"
-                                class="remove-cause"
-                                @click="onRemoveCause(cause.id)"
-                            >
-                                ✕
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <CauseSelector
+                    :cause="causeValue"
+                    :cause-search-results="causeSearchResultsValue"
+                    :selected-causes="selectedCausesValue"
+                    @search-cause="onSearchCause"
+                    @select-cause="onSelectCause"
+                    @remove-cause="onRemoveCause"
+                    @field-focus="setActiveField"
+                    @info-button-click="openSectionInfo"
+                />
 
                 <!-- Standort -->
-                <div class="container-section location-section">
-                    <div class="section-header">
-                        <label class="section-label"
-                            >Standort auswählen *</label
-                        >
-                        <button
-                            type="button"
-                            class="info-icon"
-                            @click="openSectionInfo('location')"
-                        >
-                            <v-icon>mdi-information-variant</v-icon>
-                        </button>
-                    </div>
-                    <div class="map-search">
-                        <input
-                            v-model="locationSearchValue"
-                            type="text"
-                            placeholder="Adresse oder Ort suchen..."
-                            @keydown.enter.prevent="onSearchLocation"
-                            @focus="setActiveField('location')"
-                        />
-                        <button type="button" @click="onSearchLocation">
-                            Suchen
-                        </button>
-                    </div>
-                    <div class="map-container">
-                        <l-map
-                            ref="mapRef"
-                            :zoom="mapZoomValue"
-                            :center="mapCenterValue"
-                            @click="onHandleMapClick"
-                            @ready="onMapReady"
-                            style="height: 100%; width: 100%"
-                        >
-                            <l-tile-layer
-                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                layer-type="base"
-                                name="OpenStreetMap"
-                            ></l-tile-layer>
-                            <l-marker
-                                v-if="selectedLocationValue"
-                                :lat-lng="selectedLocationValue"
-                                :icon="markerIcon"
-                                :z-index-offset="1000"
-                            ></l-marker>
-                        </l-map>
-                        <div
-                            class="selected-coordinates"
-                            v-if="selectedLocationValue"
-                        >
-                            <strong>Ausgewählte Koordinaten:</strong>
-                            {{ selectedLocationValue.lat.toFixed(6) }},
-                            {{ selectedLocationValue.lng.toFixed(6) }}
-                        </div>
-                    </div>
-                </div>
+                <LocationSelector
+                    :map-zoom="mapZoomValue"
+                    :map-center="mapCenterValue"
+                    :selected-location="selectedLocationValue"
+                    :location-search="locationSearchValue"
+                    @update:map-zoom="
+                        ($event) => emit('update:mapZoom', $event)
+                    "
+                    @update:map-center="
+                        ($event) => emit('update:mapCenter', $event)
+                    "
+                    @update:selected-location="
+                        ($event) => emit('update:selectedLocation', $event)
+                    "
+                    @update:location-search="locationSearchValue = $event"
+                    @search-location="onSearchLocation"
+                    @handle-map-click="onHandleMapClick"
+                    @field-focus="setActiveField"
+                    @info-button-click="openSectionInfo"
+                />
 
                 <!-- Bild aus Wikimedia Commons -->
-                <div class="container-section image-section">
-                    <div class="section-header">
-                        <label class="section-label">Bild:</label>
-                        <button
-                            type="button"
-                            class="info-icon"
-                            @click="openSectionInfo('image')"
-                        >
-                            <v-icon>mdi-information-variant</v-icon>
-                        </button>
-                    </div>
-                    <div class="image-selection">
-                        <button
-                            type="button"
-                            class="button bg-secondary"
-                            @click="openImageSelector"
-                            @focus="setActiveField('image')"
-                        >
-                            {{
-                                imageUrlValue &&
-                                typeof imageUrlValue === "string" &&
-                                imageUrlValue.trim() !== ""
-                                    ? "Bild ändern"
-                                    : "Bild aus Wikimedia Commons auswählen"
-                            }}
-                        </button>
-
-                        <div
-                            v-if="
-                                imageUrlValue &&
-                                typeof imageUrlValue === 'string' &&
-                                imageUrlValue.trim() !== ''
-                            "
-                            class="selected-image"
-                        >
-                            <img
-                                :src="imageUrlValue"
-                                :alt="imageFilenameValue || ''"
-                                class="preview-image"
-                                @click="openLightbox"
-                                style="cursor: pointer"
-                            />
-                            <div class="click-hint">Klicken zum Vergrößern</div>
-                            <div class="image-details">
-                                <span class="image-filename">{{
-                                    imageFilenameValue
-                                }}</span>
-                                <button
-                                    type="button"
-                                    class="remove-image"
-                                    @click="removeImage"
-                                >
-                                    ✕
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <ImageSelector
+                    :image-url="imageUrlValue"
+                    :image-filename="imageFilenameValue"
+                    @update:image-url="imageUrlValue = $event"
+                    @update:image-filename="imageFilenameValue = $event"
+                    @field-focus="setActiveField"
+                    @info-button-click="openSectionInfo"
+                />
 
                 <!-- Quellenangaben -->
-                <div class="container-section sources-section">
-                    <div class="section-header">
-                        <label class="section-label">Quellenangaben:</label>
-                        <button
-                            type="button"
-                            class="info-icon"
-                            @click="openSectionInfo('sources')"
-                        >
-                            <v-icon>mdi-information-variant</v-icon>
-                        </button>
-                    </div>
-                    <div class="sources-selection">
-                        <button
-                            type="button"
-                            class="button bg-secondary"
-                            @click="openSourcesSelector"
-                            @focus="setActiveField('sources')"
-                        >
-                            <v-icon class="me-1">mdi-plus</v-icon>
-                            Quellenangabe hinzufügen
-                        </button>
-
-                        <div
-                            v-if="selectedSourcesValue.length > 0"
-                            class="selected-sources mt-4"
-                        >
-                            <div
-                                v-for="(source, index) in selectedSourcesValue"
-                                :key="index"
-                                class="source-item"
-                            >
-                                <div class="source-type-icon">
-                                    <v-icon v-if="source.type === 'book'"
-                                        >mdi-book</v-icon
-                                    >
-                                    <v-icon v-else-if="source.type === 'url'"
-                                        >mdi-link</v-icon
-                                    >
-                                    <v-icon
-                                        v-else-if="source.type === 'archive'"
-                                        >mdi-archive</v-icon
-                                    >
-                                </div>
-                                <div class="source-content">
-                                    <div class="source-title">
-                                        {{ source.title }}
-                                    </div>
-                                    <div
-                                        v-if="source.description"
-                                        class="source-description"
-                                    >
-                                        {{ source.description }}
-                                    </div>
-                                    <div class="source-details">
-                                        <template v-if="source.type === 'book'">
-                                            <span v-if="source.pages"
-                                                >S. {{ source.pages }}</span
-                                            >
-                                            <a
-                                                v-if="
-                                                    source.id &&
-                                                    source.id !== 'manual'
-                                                "
-                                                :href="`https://www.wikidata.org/wiki/${source.id}`"
-                                                target="_blank"
-                                                class="source-link"
-                                            >
-                                                <v-icon size="x-small"
-                                                    >mdi-open-in-new</v-icon
-                                                >
-                                                Wikidata
-                                            </a>
-                                        </template>
-                                        <template
-                                            v-else-if="source.type === 'url'"
-                                        >
-                                            <span v-if="source.accessDate">
-                                                Zugriff am
-                                                {{
-                                                    formatDate(
-                                                        source.accessDate,
-                                                    )
-                                                }}
-                                            </span>
-                                            <a
-                                                :href="source.url"
-                                                target="_blank"
-                                                class="source-link"
-                                            >
-                                                <v-icon size="x-small"
-                                                    >mdi-open-in-new</v-icon
-                                                >
-                                                Link
-                                            </a>
-                                        </template>
-                                        <template
-                                            v-else-if="
-                                                source.type === 'archive'
-                                            "
-                                        >
-                                            <span
-                                                >Inv. Nr.
-                                                {{
-                                                    source.inventoryNumber
-                                                }}</span
-                                            >
-                                            <a
-                                                v-if="
-                                                    source.id &&
-                                                    source.id !== 'manual'
-                                                "
-                                                :href="`https://www.wikidata.org/wiki/${source.id}`"
-                                                target="_blank"
-                                                class="source-link"
-                                            >
-                                                <v-icon size="x-small"
-                                                    >mdi-open-in-new</v-icon
-                                                >
-                                                Wikidata
-                                            </a>
-                                        </template>
-                                    </div>
-                                </div>
-                                <button
-                                    type="button"
-                                    class="remove-source"
-                                    @click="removeSource(index)"
-                                >
-                                    <v-icon>mdi-close</v-icon>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <SourcesField
+                    :selected-sources="selectedSourcesValue"
+                    @update:selected-sources="selectedSourcesValue = $event"
+                    @field-focus="setActiveField"
+                    @info-button-click="openSectionInfo"
+                />
+                <!-- Source items display is moved to SourcesField component -->
 
                 <div class="button-container">
                     <button
@@ -679,6 +217,13 @@ import { LMap, LTileLayer, LMarker } from "@vue-leaflet/vue-leaflet";
 import WikimediaImageSelector from "./fields/WikimediaImageSelector.vue";
 import SourcesSelector from "./fields/SourcesSelector.vue";
 import Lightbox from "../helpers/Lightbox.vue";
+import BaseInfos from "./fields/BaseInfos.vue";
+import TimeSelector from "./fields/TimeSelector.vue";
+import VictimsCounts from "./fields/VictimsCounts.vue";
+import CauseSelector from "./fields/CauseSelector.vue";
+import LocationSelector from "./fields/LocationSelector.vue";
+import ImageSelector from "./fields/ImageSelector.vue";
+import SourcesField from "./fields/SourcesField.vue";
 
 // Props von der übergeordneten Komponente
 const props = defineProps({
@@ -1057,7 +602,7 @@ const closeMobileInfoOverlay = () => {
     showMobileInfoOverlay.value = false;
 };
 
-// Bildschirmgru00f6u00dfe beim Laden und bei Gro00dfena00e4nderung u00fcberpru00fcfen
+// Bildschirmgru00f6u00dfe beim Laden und bei Gro00dfena00e4nderungüberpru00fcfen
 onMounted(() => {
     checkScreenSize();
     window.addEventListener("resize", checkScreenSize);

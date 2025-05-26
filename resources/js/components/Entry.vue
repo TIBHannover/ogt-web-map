@@ -918,7 +918,7 @@ const searchPerpetrators = debounce(async (query) => {
         });
         perpetratorsSearchResults.value = response.data;
     } catch (error) {
-        console.error("Fehler bei der Tu00e4tersuche:", error);
+        console.error("Fehler bei der Tätersuche:", error);
         perpetratorsSearchResults.value = [];
     }
 }, 300);
@@ -1373,7 +1373,7 @@ onUnmounted(() => {
     margin-bottom: 1rem;
     border: 1px solid #ccc;
     border-radius: 4px;
-    overflow: visible; /* Geu00e4ndert von hidden zu visible, damit Suchfeld sichtbar bleibt */
+    overflow: visible; /* Geändert von hidden zu visible, damit Suchfeld sichtbar bleibt */
     position: relative;
 }
 

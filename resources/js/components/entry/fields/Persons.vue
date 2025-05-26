@@ -2,20 +2,20 @@
     <div class="persons-section container-section">
         <div class="section-header">
             <label :for="fieldId" class="section-label">{{ label }}:</label>
-            <button
+            <v-button
                 v-if="showInfoButton"
                 type="button"
                 class="info-icon"
                 @click="onInfoButtonClick"
             >
                 <v-icon>mdi-information-variant</v-icon>
-            </button>
+            </v-button>
         </div>
 
         <div class="add-person-container">
             <v-btn
                 color="primary"
-                class="mt-4"
+                class="mt-2 button bg-secondary"
                 @click="dialogOpen = true"
                 prepend-icon="mdi-account-plus"
             >
@@ -51,14 +51,25 @@
                     </span>
                 </div>
                 <div class="person-actions">
+                    <a
+                        v-if="person.id && person.id.startsWith('Q')"
+                        :href="`https://www.wikidata.org/wiki/${person.id}`"
+                        target="_blank"
+                        class="source-link"
+                    >
+                        <v-icon size="x-small mr-1">mdi-open-in-new</v-icon>
+                        Wikidata
+                    </a>
                     <button
                         type="button"
                         class="edit-person"
                         @click="onEditPerson(person)"
                         title="Person bearbeiten"
+                        v-if="!person.id"
                     >
                         <v-icon size="small">mdi-pencil</v-icon>
                     </button>
+
                     <button
                         type="button"
                         class="remove-person"
@@ -73,7 +84,9 @@
 
         <v-dialog v-model="dialogOpen" max-width="600px">
             <v-card>
-                <v-card-title>{{ editMode ? `${label} bearbeiten` : `${label} hinzufügen` }}</v-card-title>
+                <v-card-title>{{
+                    editMode ? `${label} bearbeiten` : `${label} hinzufügen`
+                }}</v-card-title>
                 <v-card-text class="overlay-content">
                     <!-- Person suchen -->
                     <div v-if="!showNewPersonForm" class="persons-search">
@@ -188,7 +201,13 @@
 
                     <!-- Formular für neue Person -->
                     <div v-if="showNewPersonForm" class="new-person-form">
-                        <h4 class="text-h6 mb-4">{{ editMode ? 'Person bearbeiten' : 'Neue Person anlegen' }}</h4>
+                        <h4 class="text-h6 mb-4">
+                            {{
+                                editMode
+                                    ? "Person bearbeiten"
+                                    : "Neue Person anlegen"
+                            }}
+                        </h4>
                         <div class="form-group">
                             <v-text-field
                                 v-model="newPersonLocal.firstName"
@@ -237,7 +256,7 @@
                         @click="editMode ? onUpdatePerson() : onAddNewPerson()"
                         :disabled="!canAddNewPerson"
                     >
-                        {{ editMode ? 'Speichern' : 'Person hinzufügen' }}
+                        {{ editMode ? "Speichern" : "Person hinzufügen" }}
                     </v-btn>
                 </v-card-actions>
             </v-card>
@@ -355,7 +374,7 @@ const onEditPerson = (person) => {
     // Aktiviere den Bearbeitungsmodus
     editMode.value = true;
     editingPersonId.value = person.id || person.tempId;
-    
+
     // Fu00fclle das Formular mit den Daten der Person
     const personData = {
         firstName: person.firstName || "",
@@ -368,29 +387,29 @@ const onEditPerson = (person) => {
         tempId: person.tempId,
         label: person.label,
     };
-    
+
     // Aktualisiere die newPerson-Daten
     emit("update:newPerson", personData);
-    
+
     // Starte das Formular fu00fcr die Person
     emit("startNewPersonForm");
-    
+
     // u00d6ffne den Dialog
     dialogOpen.value = true;
 };
 
 const onUpdatePerson = () => {
     if (!canAddNewPerson.value) return;
-    
+
     // Fu00fcge die ID des bearbeiteten Eintrags hinzu
     const updatedPerson = {
         ...newPersonLocal.value,
-        id: editingPersonId.value
+        id: editingPersonId.value,
     };
-    
+
     // Aktualisiere die Person
     emit("updatePerson", updatedPerson);
-    
+
     // Schlieu00dfe den Dialog und setze den Bearbeitungsmodus zuru00fcck
     dialogOpen.value = false;
     editMode.value = false;
@@ -433,6 +452,35 @@ label.section-label {
     display: block;
     font-weight: 500;
     margin-bottom: 0.5rem;
+}
+
+.button {
+    padding: 12px 24px;
+    font-size: 16px;
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+    height: auto;
+    text-transform: none;
+}
+
+.button:hover {
+    background-color: #1565c0;
+}
+
+.source-link {
+    color: #005691;
+    text-decoration: none;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    &:hover {
+        text-decoration: underline;
+    }
 }
 
 .info-icon {

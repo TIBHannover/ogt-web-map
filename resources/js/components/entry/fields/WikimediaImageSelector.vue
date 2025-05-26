@@ -77,7 +77,7 @@
                                 {{ image.title }}
                             </div>
 
-                            <!-- Ausgewu00e4hlt Icon -->
+                            <!-- Ausgewählt Icon -->
                             <div
                                 v-if="
                                     selectedImage &&
@@ -141,7 +141,7 @@ const searchImages = async () => {
     } catch (err) {
         console.error("Fehler bei der Bildsuche:", err);
         error.value =
-            "Bei der Suche nach Bildern ist ein Fehler aufgetreten. Bitte versuchen Sie es spu00e4ter erneut.";
+            "Bei der Suche nach Bildern ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.";
     } finally {
         loading.value = false;
     }
