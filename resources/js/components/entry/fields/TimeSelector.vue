@@ -2,133 +2,210 @@
     <div class="time-section container-section">
         <div class="section-header">
             <label class="section-label">Zeitpunkt / Zeitraum:</label>
-            <button
+            <v-button
                 type="button"
                 class="info-icon"
                 @click="$emit('infoButtonClick', 'time')"
             >
                 <v-icon>mdi-information-variant</v-icon>
-            </button>
+            </v-button>
         </div>
         <div class="time-type-selection">
-            <div class="form-group">
-                <input
-                    type="radio"
-                    id="time-point"
-                    name="event-time-type"
-                    value="point"
-                    :checked="eventTimeType === 'point'"
-                    @change="$emit('update:eventTimeType', 'point')"
-                />
-                <label for="time-point">Zeitpunkt</label>
-            </div>
-            <div class="form-group">
-                <input
-                    type="radio"
-                    id="time-range"
-                    name="event-time-type"
-                    value="range"
-                    :checked="eventTimeType === 'range'"
-                    @change="$emit('update:eventTimeType', 'range')"
-                />
-                <label for="time-range">Zeitraum</label>
-            </div>
+            <v-btn-toggle
+                v-model="localEventTimeType"
+                mandatory
+                density="comfortable"
+                color="primary"
+                class="time-toggle"
+            >
+                <v-btn value="point">
+                    <v-icon start>mdi-clock</v-icon>
+                    Zeitpunkt
+                </v-btn>
+                <v-btn value="range">
+                    <v-icon start>mdi-calendar-range</v-icon>
+                    Zeitraum
+                </v-btn>
+            </v-btn-toggle>
         </div>
 
         <!-- Zeitpunkt-Eingabe -->
         <div
-            v-if="eventTimeType === 'point'"
-            class="form-group"
+            v-if="localEventTimeType === 'point'"
+            class="form-group date-field-container"
         >
-            <label for="event-date">Datum des Ereignisses</label>
-            <input
+            <label for="">Datum des Ereignisses</label>
+            <v-text-field
+                v-model="eventDate"
                 type="date"
-                id="event-date"
-                :value="eventDate"
-                @input="$emit('update:eventDate', $event.target.value)"
+                variant="outlined"
+                density="comfortable"
+                class="date-field"
+                bg-color="white"
                 @focus="$emit('fieldFocus', 'time')"
-            />
+                @update:model-value="$emit('update:eventDate', $event)"
+            ></v-text-field>
         </div>
 
         <!-- Zeitraum-Eingabe -->
-        <div
-            v-if="eventTimeType === 'range'"
-            class="time-range-inputs"
-        >
+        <div v-if="localEventTimeType === 'range'" class="time-range-inputs">
             <div class="form-group">
-                <label for="event-start-date">Beginn des Ereignisses</label>
-                <input
+                <label>Beginn des Ereignisses</label>
+                <v-text-field
+                    v-model="eventStartDate"
                     type="date"
-                    id="event-start-date"
-                    :value="eventStartDate"
-                    @input="$emit('update:eventStartDate', $event.target.value)"
+                    variant="outlined"
+                    density="comfortable"
+                    class="date-field"
+                    bg-color="white"
                     @focus="$emit('fieldFocus', 'time')"
-                />
+                    @update:model-value="$emit('update:eventStartDate', $event)"
+                ></v-text-field>
             </div>
             <div class="form-group">
-                <label for="event-end-date">Ende des Ereignisses</label>
-                <input
+                <label>Ende des Ereignisses</label>
+                <v-text-field
+                    v-model="eventEndDate"
                     type="date"
-                    id="event-end-date"
-                    :value="eventEndDate"
-                    @input="$emit('update:eventEndDate', $event.target.value)"
+                    variant="outlined"
+                    density="comfortable"
+                    class="date-field"
+                    bg-color="white"
                     @focus="$emit('fieldFocus', 'time')"
-                />
+                    @update:model-value="$emit('update:eventEndDate', $event)"
+                ></v-text-field>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
-defineProps({
+import { ref, watch } from "vue";
+
+const props = defineProps({
     eventTimeType: {
         type: String,
-        default: 'point' // 'point' oder 'range'
+        default: "point", // 'point' oder 'range'
     },
     eventDate: {
         type: String,
-        default: null
+        default: null,
     },
     eventStartDate: {
         type: String,
-        default: null
+        default: null,
     },
     eventEndDate: {
         type: String,
-        default: null
-    }
+        default: null,
+    },
 });
 
-defineEmits([
-    'update:eventTimeType',
-    'update:eventDate',
-    'update:eventStartDate',
-    'update:eventEndDate',
-    'fieldFocus',
-    'infoButtonClick'
+const emit = defineEmits([
+    "update:eventTimeType",
+    "update:eventDate",
+    "update:eventStartDate",
+    "update:eventEndDate",
+    "fieldFocus",
+    "infoButtonClick",
 ]);
+
+// Local state for v-btn-toggle
+const localEventTimeType = ref(props.eventTimeType);
+
+// Local state for date fields
+const eventDate = ref(props.eventDate);
+const eventStartDate = ref(props.eventStartDate);
+const eventEndDate = ref(props.eventEndDate);
+
+// Watch for changes to local state and emit events
+watch(localEventTimeType, (newValue) => {
+    emit("update:eventTimeType", newValue);
+});
+
+watch(eventDate, (newValue) => {
+    emit("update:eventDate", newValue);
+});
+
+watch(eventStartDate, (newValue) => {
+    emit("update:eventStartDate", newValue);
+});
+
+watch(eventEndDate, (newValue) => {
+    emit("update:eventEndDate", newValue);
+});
+
+// Watch for prop changes to update local state
+watch(
+    () => props.eventTimeType,
+    (newValue) => {
+        localEventTimeType.value = newValue;
+    },
+);
+
+watch(
+    () => props.eventDate,
+    (newValue) => {
+        eventDate.value = newValue;
+    },
+);
+
+watch(
+    () => props.eventStartDate,
+    (newValue) => {
+        eventStartDate.value = newValue;
+    },
+);
+
+watch(
+    () => props.eventEndDate,
+    (newValue) => {
+        eventEndDate.value = newValue;
+    },
+);
 </script>
 
 <style scoped>
 .container-section {
     width: 100%;
-    margin-bottom: 1.5rem;
-    background-color: #f5f5f5;
-    padding: 1rem;
-    border-radius: 4px;
+    margin-bottom: 2rem;
+    background-color: var(--v-surface-variant);
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
 }
 
 .section-label {
     display: block;
     font-weight: 500;
-    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    margin-bottom: 0;
+}
+
+.time-type-selection {
+    margin-bottom: 2rem;
+}
+
+.time-toggle {
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.time-toggle .v-btn {
+    flex: 1;
+    justify-content: center;
+    height: 44px;
+    font-weight: 500;
 }
 
 .info-icon {
@@ -150,34 +227,47 @@ defineEmits([
     background-color: #1565c0;
 }
 
-.time-type-selection {
-    display: flex;
-    gap: 2rem;
-    margin-bottom: 1rem;
-}
-
-.time-type-selection .form-group {
-    display: flex;
-    align-items: center;
-    margin-bottom: 0;
-}
-
-.time-type-selection .form-group input {
-    width: auto;
-    margin-right: 0.5rem;
-}
-
 .form-group {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     width: 100%;
 }
 
-.form-group label {
-    display: block;
-    margin-bottom: 0.25rem;
+.date-field {
+    width: 100%;
 }
 
-.form-group input {
+.date-field :deep(.v-field__input) {
+    padding-top: 6px;
+    min-height: 44px;
+    font-size: 1rem;
+}
+
+.date-field :deep(.v-field__outline) {
+    color: rgba(0, 0, 0, 0.12);
+}
+
+.date-field :deep(.v-field--focused .v-field__outline) {
+    color: var(--v-primary-base, #1976d2);
+}
+
+.date-field :deep(input[type="date"]) {
+    font-family: inherit;
+    font-size: 1rem;
+    color: rgba(0, 0, 0, 0.87);
+}
+
+/* Spezielle Stylings für den Zeitraum */
+.time-range-inputs {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+}
+
+.time-range-inputs .form-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+input.v-field__input {
     padding: 0.75rem 1rem;
     width: 100%;
     background-color: white;
@@ -190,19 +280,27 @@ defineEmits([
         box-shadow 0.2s;
 }
 
-.form-group input:focus {
-    outline: none;
-    border-color: #1976d2;
-    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
-}
+/* Responsive Styles */
+@media (max-width: 600px) {
+    .time-range-inputs {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
 
-.time-range-inputs {
-    display: flex;
-    gap: 1rem;
-    width: 100%;
-}
+    .time-range-inputs .form-group:first-child {
+        margin-bottom: 0.5rem;
+    }
 
-.time-range-inputs .form-group {
-    flex: 1;
+    .time-toggle {
+        max-width: 100%;
+    }
+
+    .date-field-container {
+        max-width: 100%;
+    }
+
+    .container-section {
+        padding: 1.25rem 1rem;
+    }
 }
 </style>

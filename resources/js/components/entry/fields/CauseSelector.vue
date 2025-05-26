@@ -402,10 +402,4 @@ const closeDialog = () => {
 .button:hover {
     background-color: #1565c0;
 }
-
-@media (min-width: 1200px) {
-    .info-icon {
-        display: none !important;
-    }
-}
 </style>

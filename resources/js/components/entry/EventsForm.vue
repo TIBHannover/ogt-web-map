@@ -3,6 +3,7 @@
         <div class="step-container">
             <h2 class="step-title">Schritt 2: Ereignis-Details eingeben</h2>
             <form class="forms">
+                <!-- Titel/Kurzbeschreibung -->
                 <BaseInfos
                     :title="title"
                     :description="description"
@@ -14,6 +15,7 @@
                     @info-button-click="openSectionInfo"
                     @select-existing-entity="onSelectExistingEntity"
                 />
+
                 <!-- Zeitpunkt/Zeitraum -->
                 <TimeSelector
                     :event-time-type="eventTimeTypeValue"
@@ -591,10 +593,11 @@ const checkScreenSize = () => {
     isMobileView.value = window.innerWidth < 1200;
 };
 
-// Funktion zum O00dffnen des mobilen Info-Overlays fu00fcr eine Sektion
+// Funktion zum Öffnen des Info-Bereichs (Desktop) oder Overlays (Mobil) für eine Sektion
 const openSectionInfo = (sectionName) => {
     lastActiveField.value = sectionName;
-    showMobileInfoOverlay.value = true;
+    activeField.value = sectionName; // Set activeField for desktop view
+    showMobileInfoOverlay.value = isMobileView.value; // Only show overlay on mobile
 };
 
 // Funktion zum Schlieu00dfen des mobilen Info-Overlays

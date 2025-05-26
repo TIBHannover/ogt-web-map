@@ -691,10 +691,4 @@ label.section-label {
     font-size: 0.8rem;
     color: #888;
 }
-
-@media (min-width: 1200px) {
-    .info-icon {
-        display: none !important;
-    }
-}
 </style>

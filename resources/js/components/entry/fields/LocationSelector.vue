@@ -15,6 +15,7 @@
                 :value="locationSearch"
                 @input="$emit('update:locationSearch', $event.target.value)"
                 type="text"
+                class="map-search-input"
                 placeholder="Adresse oder Ort suchen..."
                 @keydown.enter.prevent="$emit('searchLocation')"
                 @focus="$emit('fieldFocus', 'location')"
@@ -231,6 +232,7 @@ onMounted(() => {
     padding: 0.75rem 1rem;
     border: 1px solid #ccc;
     border-radius: 4px;
+    background-color: #fff;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
     transition:
         border-color 0.2s,
