@@ -125,22 +125,69 @@
                         <!-- Info-Box (Desktop) -->
                         <div class="info-box desktop-info" v-if="!isMobileView">
                             <div class="info-box-header">
-                                <h3>{{ typeInfoContent ? getTypeInfoTitle() : "Eintragstypen" }}</h3>
+                                <h3>
+                                    {{
+                                        typeInfoContent
+                                            ? getTypeInfoTitle()
+                                            : "Eintragstypen"
+                                    }}
+                                </h3>
                             </div>
                             <div class="info-box-content">
-                                <div v-if="typeInfoContent" v-html="typeInfoContent"></div>
+                                <div
+                                    v-if="typeInfoContent"
+                                    v-html="typeInfoContent"
+                                ></div>
                                 <div v-else>
-                                    <p>Bitte wählen Sie einen Eintragstyp aus, um Informationen darüber zu erhalten.</p>
-                                    <p>Zu den verfügbaren Eintragstypen gehören:</p>
+                                    <p>
+                                        Bitte wählen Sie einen Eintragstyp aus,
+                                        um Informationen darüber zu erhalten.
+                                    </p>
+                                    <p>
+                                        Zu den verfügbaren Eintragstypen
+                                        gehören:
+                                    </p>
                                     <ul>
-                                        <li><strong>Ereignis</strong> - Historische Geschehnisse im Zeitraum 1933-1945</li>
-                                        <li><strong>Erinnerungsort</strong> - Physische Orte, die an die Opfer des Nationalsozialismus erinnern</li>
-                                        <li><strong>Staatspolizeistelle</strong> - Regionale Dienstellen der Geheimen Staatspolizei</li>
-                                        <li><strong>Staatspolizeiaußenstelle</strong> - Lokale Zweigstellen einer Staatspolizeistelle</li>
-                                        <li><strong>Arbeitserziehungslager</strong> - Haftsystem der Gestapo während des Nationalsozialismus</li>
-                                        <li><strong>Gefängnis</strong> - Haftanstalten, die während der NS-Zeit für politische Gefangene genutzt wurden</li>
+                                        <li>
+                                            <strong>Ereignis</strong> -
+                                            Historische Geschehnisse im Zeitraum
+                                            1933-1945
+                                        </li>
+                                        <li>
+                                            <strong>Erinnerungsort</strong> -
+                                            Physische Orte, die an die Opfer des
+                                            Nationalsozialismus erinnern
+                                        </li>
+                                        <li>
+                                            <strong>Staatspolizeistelle</strong>
+                                            - Regionale Dienstellen der Geheimen
+                                            Staatspolizei
+                                        </li>
+                                        <li>
+                                            <strong
+                                                >Staatspolizeiaußenstelle</strong
+                                            >
+                                            - Lokale Zweigstellen einer
+                                            Staatspolizeistelle
+                                        </li>
+                                        <li>
+                                            <strong
+                                                >Arbeitserziehungslager</strong
+                                            >
+                                            - Haftsystem der Gestapo während des
+                                            Nationalsozialismus
+                                        </li>
+                                        <li>
+                                            <strong>Gefängnis</strong> -
+                                            Haftanstalten, die während der
+                                            NS-Zeit für politische Gefangene
+                                            genutzt wurden
+                                        </li>
                                     </ul>
-                                    <p>Wählen Sie einen Typ, um detailliertere Informationen zu erhalten.</p>
+                                    <p>
+                                        Wählen Sie einen Typ, um detailliertere
+                                        Informationen zu erhalten.
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -401,11 +448,9 @@ import "leaflet/dist/leaflet.css";
 import * as L from "leaflet";
 import axios from "axios";
 import { debounce } from "lodash";
-
-// Import the EventsForm component
 import EventsForm from "./entry/EventsForm.vue";
-// Import the TitleSearchOverlay component
 import TitleSearchOverlay from "./entry/fields/TitleSearchOverlay.vue";
+import glossaryItems from "../data/glossaryData";
 
 // Props
 const props = defineProps({
@@ -420,9 +465,9 @@ const formsTitle = ref(null);
 const formsDescription = ref(null);
 const isSubmitting = ref(false);
 const wikidataResults = ref([]);
-const peopleSearchResults = ref([]); // For victims search
-const selectedVictims = ref([]); // Store selected victims
-const currentStep = ref(1); // Aktueller Schritt des Formulars
+const peopleSearchResults = ref([]);
+const selectedVictims = ref([]);
+const currentStep = ref(1);
 const showNewVictimForm = ref(false);
 const newVictim = ref({
     firstName: "",
@@ -446,13 +491,11 @@ const newPerpetrator = ref({
 });
 const lastPerpetratorSearchQuery = ref("");
 
-// Zeitpunkt/Zeitraum Zustandsvariablen
 const eventTimeType = ref("point"); // 'point' oder 'range'
 const eventDate = ref(null);
 const eventStartDate = ref(null);
 const eventEndDate = ref(null);
 
-// Opferzahlen und Ursache
 const victimCount = ref(0);
 const survivorCount = ref(0);
 const deathCount = ref(0);
@@ -462,19 +505,16 @@ const causeSearchResults = ref([]);
 const selectedCauses = ref([]);
 const lastCauseSearchQuery = ref("");
 
-// Karten-spezifische Daten
 const mapRef = ref(null);
-const mapZoom = ref(8); // Angepasster Zoom für Niedersachsen
+const mapZoom = ref(8);
 const mapCenter = ref([52.8, 9.0]); // Zentrum von Niedersachsen
-const selectedLocation = ref(null); // Ausgewählte Koordinaten
-const locationSearch = ref(""); // Suchtext für Standorte
+const selectedLocation = ref(null);
+const locationSearch = ref("");
 
-// Bild-spezifische Daten
 const imageUrl = ref(null);
 const imageFilename = ref(null);
 const selectedSources = ref([]);
 
-// Benutzerdefiniertes Marker-Icon erstellen
 const createCustomIcon = (type) => {
     return L.icon({
         iconUrl: `/images/leaflet/markerIcons/coloredFilledWhite/${type}.svg`,
@@ -486,7 +526,6 @@ const createCustomIcon = (type) => {
     });
 };
 
-// Icon für den Marker basierend auf dem Typ
 const markerIcon = computed(() => {
     if (formsType.value === "Q6983405") return createCustomIcon("events");
     if (formsType.value === "Q5003624") return createCustomIcon("memorials");
@@ -500,103 +539,66 @@ const markerIcon = computed(() => {
     return createCustomIcon("events"); // Standard-Icon
 });
 
-// Methods
 const setFreeClientWidth = () => {
     const container = document.getElementById("container");
     freeClientWidth.value =
         (document.documentElement.clientWidth - container.clientWidth) / 2;
 };
 
-// Navigation zwischen den Schritten
 const goToStep = (step) => {
     if (step === 2 && !formsType.value) {
         error.value = "Bitte wählen Sie einen Eintragstyp aus";
         return;
     }
 
-    error.value = null; // Fehler zurücksetzen beim Schrittwechsel
+    error.value = null;
     currentStep.value = step;
 };
 
-// Mobile/Desktop View Detection
 const isMobileView = ref(false);
 const checkScreenSize = () => {
     isMobileView.value = window.innerWidth < 1200;
 };
 
-// Typeinfo Content
 const typeInfoContent = ref("");
 const showMobileInfoOverlay = ref(false);
 
-// Update type information based on selected type
 const updateTypeInfo = () => {
-    const typeInfoTexts = {
-        Q6983405: `<p>Ein <strong>Ereignis</strong> im Kontext des Nationalsozialismus bezeichnet ein spezifisches historisches Geschehen im Zeitraum 1933-1945.</p>
-        <p>Beispiele für Ereignisse sind:</p>
-        <ul>
-            <li>Pogrome (z.B. Novemberpogrom 1938)</li>
-            <li>Verhaftungswellen</li>
-            <li>Deportationen</li>
-            <li>Erschießungen und Hinrichtungen</li>
-            <li>Bombardierungen und Kriegsereignisse</li>
-        </ul>
-        <p>Ereignisse sind zeitlich begrenzt und haben einen bestimmten Ort sowie identifizierbare Beteiligte.</p>`,
-
-        Q5003624: `<p>Ein <strong>Erinnerungsort</strong> ist ein physischer Ort, der an die Opfer des Nationalsozialismus erinnert.</p>
-        <p>Dazu zählen:</p>
-        <ul>
-            <li>Gedenkstätten</li>
-            <li>Denkmäler</li>
-            <li>Mahnmale</li>
-            <li>Gedenktafeln</li>
-            <li>Stolpersteine</li>
-        </ul>
-        <p>Erinnerungsorte dienen dem Gedenken, der Dokumentation und der Aufklärung über historische Ereignisse.</p>`,
-
-        Q108047567: `<p>Eine <strong>Staatspolizeistelle</strong> (Stapo oder Gestapodienststelle) war eine regionale Dienststelle der Geheimen Staatspolizei (Gestapo) im nationalsozialistischen Deutschland.</p>
-        <p>Aufgaben waren:</p>
-        <ul>
-            <li>Bekämpfung politischer Gegner</li>
-            <li>Verfolgung von Juden und anderen Minderheiten</li>
-            <li>Überwachung der Bevölkerung</li>
-            <li>Durchführung von Verhaftungen und Verhören</li>
-        </ul>
-        <p>Staatspolizeistellen waren zentrale Organe des NS-Terrorsystems.</p>`,
-
-        Q108047541: `<p>Eine <strong>Staatspolizeiaußenstelle</strong> war eine lokale Zweigstelle einer Staatspolizeistelle im nationalsozialistischen Herrschaftsbereich.</p>
-        <p>Charakteristika:</p>
-        <ul>
-            <li>Kleiner als Staatspolizeistellen</li>
-            <li>Regional begrenzte Zuständigkeit</li>
-            <li>Berichtspflicht an übergeordnete Staatspolizeistelle</li>
-            <li>Umsetzung der Gestapo-Maßnahmen auf lokaler Ebene</li>
-        </ul>
-        <p>Diese Außenstellen sicherten die flächendeckende Kontrolle und Unterdrückung.</p>`,
-
-        Q277565: `<p>Ein <strong>Arbeitserziehungslager</strong> (AEL) war ein Haftsystem der Gestapo während des Nationalsozialismus.</p>
-        <p>Merkmale:</p>
-        <ul>
-            <li>Inhaftierung für normalerweise 3-8 Wochen</li>
-            <li>Extreme Brutalität und hohe Sterblichkeit</li>
-            <li>Schwere Zwangsarbeit bei minimaler Verpflegung</li>
-            <li>Bestrafung für angebliche "Arbeitsverweigerung"</li>
-        </ul>
-        <p>AEL dienten als abschreckende Maßnahme zur Disziplinierung von Arbeitern und Zwangsarbeiter*innen.</p>`,
-
-        Q40357: `<p>Ein <strong>Gefängnis</strong> im NS-Kontext bezeichnet reguläre Haftanstalten, die während der NS-Zeit auch für politische Gefangene genutzt wurden.</p>
-        <p>Besonderheiten im NS-System:</p>
-        <ul>
-            <li>Überfüllung durch politische Häftlinge</li>
-            <li>Verstärkte Brutalität und Willkür</li>
-            <li>Oft Durchgangsstationen vor Deportation</li>
-            <li>Teil des NS-Verfolgungsapparats</li>
-        </ul>
-        <p>Viele reguläre Gefängnisse wurden unter NS-Herrschaft zu Orten schwerer Menschenrechtsverletzungen.</p>`,
+    const typeToGlossaryMapping = {
+        Q6983405: "Ereignis",
+        Q5003624: "Erinnerungsort",
+        Q108047567: "Staatspolizeistelle",
+        Q108047541: "Außendienststelle", // Im Glossar als "Außendienststelle"
+        Q277565: "Arbeitserziehungslager",
+        Q40357: "Gefängnis",
     };
 
-    typeInfoContent.value = typeInfoTexts[formsType.value] || "";
+    // Get the corresponding glossary item key
+    const glossaryKey = typeToGlossaryMapping[formsType.value];
 
-    // Automatically open info overlay on mobile when type is selected
+    // Get the glossary item if it exists
+    const glossaryItem = glossaryKey ? glossaryItems[glossaryKey] : null;
+
+    if (glossaryItem) {
+        let content = "";
+
+        glossaryItem.descriptions.forEach((desc) => {
+            if (typeof desc === "string") {
+                content += `<p>${desc}</p>`;
+            } else if (Array.isArray(desc)) {
+                content += "<ul>";
+                desc.forEach((item) => {
+                    content += `<li>${item}</li>`;
+                });
+                content += "</ul>";
+            }
+        });
+
+        typeInfoContent.value = content;
+    } else {
+        typeInfoContent.value = "";
+    }
+
     if (isMobileView.value && typeInfoContent.value) {
         showMobileInfoOverlay.value = true;
     }
@@ -607,7 +609,6 @@ const closeMobileInfoOverlay = () => {
     showMobileInfoOverlay.value = false;
 };
 
-// Get type info title
 const getTypeInfoTitle = () => {
     const typeTitles = {
         Q6983405: "Ereignis",
@@ -621,32 +622,26 @@ const getTypeInfoTitle = () => {
     return typeTitles[formsType.value] || "Eintragstyp";
 };
 
-// Title overlay management
 const showTitleOverlay = ref(false);
 
-// Open title overlay
 const openTitleOverlay = () => {
     showTitleOverlay.value = true;
 };
 
-// Cancel title overlay
 const cancelTitleOverlay = () => {
     showTitleOverlay.value = false;
 };
 
-// Update title from overlay
 const updateTitle = (newTitle) => {
     formsTitle.value = newTitle;
 };
 
-// Create entry with title from overlay
 const createWithTitle = (title) => {
     formsTitle.value = title;
     showTitleOverlay.value = false;
     currentStep.value = 2;
 };
 
-// Karte zurücksetzen auf Niedersachsen-Ansicht
 const resetMapView = () => {
     if (mapRef.value && mapRef.value.leafletObject) {
         mapRef.value.leafletObject.setView(mapCenter.value, mapZoom.value, {
@@ -657,12 +652,9 @@ const resetMapView = () => {
     selectedLocation.value = null;
 };
 
-// Reinitialisiert die Karte und sorgt fu00fcr korrekte Darstellung
 const reinitializeMap = () => {
-    // CSS-Fixes anwenden
     applyLeafletCSS();
 
-    // Map neu initialisieren
     if (mapRef.value && mapRef.value.leafletObject) {
         setTimeout(() => {
             mapRef.value.leafletObject.invalidateSize(true);
@@ -678,22 +670,17 @@ const reinitializeMap = () => {
     }
 };
 
-// OpenStreetMap-Integration
 const handleMapClick = (event) => {
     console.log("Map clicked!", event.latlng);
-    // Die angeklickten Koordinaten speichern
     selectedLocation.value = event.latlng;
 
-    // Sicherstellen, dass die Karte aktualisiert wird, falls der Marker nicht angezeigt wird
     if (mapRef.value && mapRef.value.leafletObject) {
-        // Kurzes Timeout, um die Vue-Aktualisierung abzuwarten
         setTimeout(() => {
             mapRef.value.leafletObject.invalidateSize(true);
         }, 50);
     }
 };
 
-// Standortsuche mit Nominatim (OpenStreetMap Geocoding-Service)
 const searchLocation = async () => {
     if (!locationSearch.value) return;
 
@@ -717,11 +704,9 @@ const searchLocation = async () => {
             const lat = parseFloat(result.lat);
             const lng = parseFloat(result.lon);
 
-            // Karte auf das gefundene Ergebnis zentrieren
             mapCenter.value = [lat, lng];
             mapZoom.value = 15; // Näher heranzoomen
 
-            // Marker setzen
             selectedLocation.value = { lat, lng };
         } else {
             alert("Keine Ergebnisse gefunden");
@@ -732,7 +717,6 @@ const searchLocation = async () => {
     }
 };
 
-// Debounce-Funktion für die Wikidata-Suche
 const searchWikidataEntities = debounce(async () => {
     if (!formsTitle.value || formsTitle.value.length < 3) {
         wikidataResults.value = [];
@@ -758,12 +742,9 @@ const searchWikidataEntities = debounce(async () => {
     }
 }, 300);
 
-// CSS Reset fu00fcr Leaflet-Tiles
 const applyLeafletCSS = () => {
-    // Lu00f6sung fu00fcr Probleme mit Tile-Abstu00e4nden
     const styleId = "leaflet-tile-fix";
 
-    // Entferne bereits existierende Styles mit dieser ID
     const existingStyle = document.getElementById(styleId);
     if (existingStyle) {
         existingStyle.remove();
@@ -823,17 +804,13 @@ const applyLeafletCSS = () => {
     document.head.appendChild(style);
 };
 
-// Bei Auswahl eines existierenden Eintrags
 const selectExistingEntity = (entity) => {
-    // Öffne den Wikidata-Eintrag in einem neuen Fenster/Tab
     const wikidataUrl = `https://www.wikidata.org/wiki/${entity.id}`;
     window.open(wikidataUrl, "_blank");
 
-    // Leere die Suchergebnisse nach dem Öffnen
     wikidataResults.value = [];
 };
 
-// Opfer-Suche und Formular Funktionen
 const searchPeople = debounce(async (query) => {
     if (!query || query.length < 2) {
         peopleSearchResults.value = [];
@@ -855,7 +832,6 @@ const searchPeople = debounce(async (query) => {
 
 const startNewVictimForm = () => {
     showNewVictimForm.value = true;
-    // Vorname/Nachname aus der Suche vorausfüllen, wenn möglich
     if (lastSearchQuery.value) {
         const parts = lastSearchQuery.value.trim().split(" ");
         if (parts.length > 1) {
@@ -904,13 +880,11 @@ const startAddingAnotherVictim = () => {
     peopleSearchResults.value = [];
 };
 
-// Computed property für die Validierung des neuen Opfer-Formulars
 const canAddNewVictim = computed(() => {
     return newVictim.value.firstName.trim() && newVictim.value.lastName.trim();
 });
 
 const selectVictim = (person) => {
-    // Check if person is not already selected
     if (!selectedVictims.value.some((v) => v.id === person.id)) {
         selectedVictims.value.push({
             id: person.id,
@@ -930,7 +904,6 @@ const removeVictim = (victimId) => {
     );
 };
 
-// Tu00e4ter Funktionen
 const searchPerpetrators = debounce(async (query) => {
     if (!query || query.length < 2) {
         perpetratorsSearchResults.value = [];
@@ -952,7 +925,6 @@ const searchPerpetrators = debounce(async (query) => {
 
 const startNewPerpetratorForm = () => {
     showNewPerpetratorForm.value = true;
-    // Vorname/Nachname aus der Suche vorausfu00fcllen, wenn möglich
     if (lastPerpetratorSearchQuery.value) {
         const parts = lastPerpetratorSearchQuery.value.trim().split(" ");
         if (parts.length > 1) {
@@ -1001,7 +973,6 @@ const startAddingAnotherPerpetrator = () => {
     perpetratorsSearchResults.value = [];
 };
 
-// Computed property fu00fcr die Validierung des neuen Tu00e4ter-Formulars
 const canAddNewPerpetrator = computed(() => {
     return (
         newPerpetrator.value.firstName.trim() &&
@@ -1010,7 +981,6 @@ const canAddNewPerpetrator = computed(() => {
 });
 
 const selectPerpetrator = (person) => {
-    // Check if person is not already selected
     if (!selectedPerpetrators.value.some((v) => v.id === person.id)) {
         selectedPerpetrators.value.push({
             id: person.id,
@@ -1020,7 +990,7 @@ const selectPerpetrator = (person) => {
             death: person.death,
         });
     }
-    perpetratorsSearchResults.value = []; // Clear search results
+    perpetratorsSearchResults.value = [];
     lastPerpetratorSearchQuery.value = "";
 };
 
@@ -1030,7 +1000,6 @@ const removePerpetrator = (perpetratorId) => {
     );
 };
 
-// Ursachen-Funktionen
 const searchCause = debounce(async (query) => {
     if (!query || query.length < 2) {
         causeSearchResults.value = [];
@@ -1040,7 +1009,6 @@ const searchCause = debounce(async (query) => {
     lastCauseSearchQuery.value = query;
 
     try {
-        // Suche nach Wikidata-Einträgen
         const response = await axios.get("/api/wikidata/search/concepts", {
             params: {
                 query,
@@ -1054,7 +1022,6 @@ const searchCause = debounce(async (query) => {
 }, 300);
 
 const selectCause = (cause) => {
-    // Prüfe, ob die Ursache bereits in der Liste ist, um Duplikate zu vermeiden
     if (!selectedCauses.value.some((item) => item.id === cause.id)) {
         selectedCauses.value.push({
             id: cause.id,
@@ -1077,7 +1044,6 @@ const resetForm = async () => {
     isSubmitting.value = true;
 
     try {
-        // Validierung abhängig vom Eintragstyp
         const missingFields = [];
 
         if (!(formsTitle.value || "").trim()) {
@@ -1088,7 +1054,6 @@ const resetForm = async () => {
             missingFields.push("Kurzbeschreibung");
         }
 
-        // Für Ereignisse und Erinnerungsorte sind Koordinaten erforderlich
         if (
             ["Q6983405", "Q5003624"].includes(formsType.value) &&
             !selectedLocation.value
@@ -1102,18 +1067,15 @@ const resetForm = async () => {
             return;
         }
 
-        // Koordinaten vorbereiten für die API-Anfrage
         let coordinates = null;
         if (selectedLocation.value) {
             coordinates = `${selectedLocation.value.lat}, ${selectedLocation.value.lng}`;
         }
 
-        // CSRF-Token für Laravel aus dem Meta-Tag holen
         const csrfToken = document
             .querySelector('meta[name="csrf-token"]')
             .getAttribute("content");
 
-        // Daten an Laravel-Backend senden
         const response = await axios.post(
             "/api/wikidata/entities",
             {
@@ -1161,13 +1123,11 @@ const resetForm = async () => {
     }
 };
 
-// Funktion zum Leeren des Formulars nach erfolgreicher Eingabe
 const clearForm = () => {
     formsTitle.value = null;
     formsDescription.value = null;
     selectedLocation.value = null;
     selectedVictims.value = [];
-    // newVictim zuru00fccksetzen
     newVictim.value = {
         firstName: "",
         lastName: "",
@@ -1177,7 +1137,6 @@ const clearForm = () => {
     };
     showNewVictimForm.value = false;
 
-    // Neue Felder zuru00fccksetzen
     selectedPerpetrators.value = [];
     newPerpetrator.value = {
         firstName: "",
@@ -1188,13 +1147,11 @@ const clearForm = () => {
     };
     showNewPerpetratorForm.value = false;
 
-    // Zeitpunkt/Zeitraum zuru00fccksetzen
     eventTimeType.value = "point";
     eventDate.value = null;
     eventStartDate.value = null;
     eventEndDate.value = null;
 
-    // Opferzahlen und Ursache zuru00fccksetzen
     victimCount.value = 0;
     survivorCount.value = 0;
     deathCount.value = 0;
@@ -1204,23 +1161,18 @@ const clearForm = () => {
     selectedCauses.value = [];
     lastCauseSearchQuery.value = "";
 
-    // Karte zuru00fccksetzen
     mapZoom.value = 8;
     mapCenter.value = [52.8, 9.0];
     locationSearch.value = "";
 
-    // Bild zurücksetzen
     imageUrl.value = null;
     imageFilename.value = null;
     selectedSources.value = [];
 };
 
-// Watcher für currentStep - invalidiert die Kartengröu00dfe, wenn wir zu Schritt 2 gehen
 watch(currentStep, (newStep) => {
     if (newStep === 2) {
-        // Warte kurz, bis das DOM aktualisiert wurde, dann Kartengröu00dfe aktualisieren
         setTimeout(() => {
-            // Verwende unsere neue Reinitialisierungsfunktion
             reinitializeMap();
         }, 300);
     }
@@ -1230,11 +1182,9 @@ watch(currentStep, (newStep) => {
 onMounted(() => {
     window.addEventListener("resize", setFreeClientWidth);
 
-    // Initialize screen size detection
     checkScreenSize();
     window.addEventListener("resize", checkScreenSize);
 
-    // Apply the CSS fixes for Leaflet tiles with fixed size
     applyLeafletCSS();
 
     // Fix für Leaflet-Icons in Vue
@@ -1249,9 +1199,7 @@ onMounted(() => {
             "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
     });
 
-    // Timing-Fix: Warte auf den nächsten Tick und initialisiere die Karte vollständig
     setTimeout(() => {
-        // Verwende unsere neue Reinitialisierungsfunktion
         reinitializeMap();
     }, 300);
 });

@@ -30,37 +30,50 @@
                 :key="person.id || person.tempId"
                 class="selected-person"
             >
-                <span class="person-name">
-                    <a
-                        v-if="person.id"
-                        :href="`https://www.wikidata.org/wiki/${person.id}`"
-                        target="_blank"
-                    >
-                        {{
-                            person.label ||
-                            `${person.firstName} ${person.lastName}`
-                        }}
-                    </a>
-                    <span v-else>
-                        {{ `${person.firstName} ${person.lastName}` }}
+                <div class="person-info">
+                    <span class="person-name">
+                        <a
+                            v-if="person.id && person.id.startsWith('Q')"
+                            :href="`https://www.wikidata.org/wiki/${person.id}`"
+                            target="_blank"
+                        >
+                            {{
+                                person.label ||
+                                `${person.firstName} ${person.lastName}`
+                            }}
+                        </a>
+                        <span v-else>
+                            {{ `${person.firstName} ${person.lastName}` }}
+                        </span>
                     </span>
-                </span>
-                <span class="person-description" v-if="person.description">
-                    - {{ person.description }}
-                </span>
-                <button
-                    type="button"
-                    class="remove-person"
-                    @click="onRemovePerson(person.id || person.tempId)"
-                >
-                    ✕
-                </button>
+                    <span class="person-description" v-if="person.description">
+                        - {{ person.description }}
+                    </span>
+                </div>
+                <div class="person-actions">
+                    <button
+                        type="button"
+                        class="edit-person"
+                        @click="onEditPerson(person)"
+                        title="Person bearbeiten"
+                    >
+                        <v-icon size="small">mdi-pencil</v-icon>
+                    </button>
+                    <button
+                        type="button"
+                        class="remove-person"
+                        @click="onRemovePerson(person.id || person.tempId)"
+                        title="Person entfernen"
+                    >
+                        ✕
+                    </button>
+                </div>
             </div>
         </div>
 
         <v-dialog v-model="dialogOpen" max-width="600px">
             <v-card>
-                <v-card-title>{{ label }} hinzufügen</v-card-title>
+                <v-card-title>{{ editMode ? `${label} bearbeiten` : `${label} hinzufügen` }}</v-card-title>
                 <v-card-text class="overlay-content">
                     <!-- Person suchen -->
                     <div v-if="!showNewPersonForm" class="persons-search">
@@ -175,7 +188,7 @@
 
                     <!-- Formular für neue Person -->
                     <div v-if="showNewPersonForm" class="new-person-form">
-                        <h4 class="text-h6 mb-4">Neue Person anlegen</h4>
+                        <h4 class="text-h6 mb-4">{{ editMode ? 'Person bearbeiten' : 'Neue Person anlegen' }}</h4>
                         <div class="form-group">
                             <v-text-field
                                 v-model="newPersonLocal.firstName"
@@ -221,10 +234,10 @@
                     <v-btn
                         v-if="showNewPersonForm"
                         color="primary"
-                        @click="onAddNewPerson"
+                        @click="editMode ? onUpdatePerson() : onAddNewPerson()"
                         :disabled="!canAddNewPerson"
                     >
-                        Person hinzufügen
+                        {{ editMode ? 'Speichern' : 'Person hinzufügen' }}
                     </v-btn>
                 </v-card-actions>
             </v-card>
@@ -288,6 +301,7 @@ const emit = defineEmits([
     "cancelNewPersonForm",
     "update:newPerson",
     "addNewPerson",
+    "updatePerson",
     "removePerson",
     "infoButtonClick",
 ]);
@@ -295,6 +309,8 @@ const emit = defineEmits([
 // Local state
 const dialogOpen = ref(false);
 const searchQuery = ref("");
+const editMode = ref(false);
+const editingPersonId = ref(null);
 const newPersonLocal = computed(() => props.newPerson);
 
 // Validierungsregeln
@@ -319,10 +335,13 @@ const onSelectPerson = (person) => {
 };
 
 const onStartNewPersonForm = () => {
+    editMode.value = false; // Stelle sicher, dass wir nicht im Bearbeitungsmodus sind
     emit("startNewPersonForm");
 };
 
 const onCancelNewPersonForm = () => {
+    editMode.value = false;
+    editingPersonId.value = null;
     emit("cancelNewPersonForm");
 };
 
@@ -330,6 +349,52 @@ const onAddNewPerson = () => {
     emit("update:newPerson", newPersonLocal.value);
     emit("addNewPerson");
     dialogOpen.value = false;
+};
+
+const onEditPerson = (person) => {
+    // Aktiviere den Bearbeitungsmodus
+    editMode.value = true;
+    editingPersonId.value = person.id || person.tempId;
+    
+    // Fu00fclle das Formular mit den Daten der Person
+    const personData = {
+        firstName: person.firstName || "",
+        lastName: person.lastName || "",
+        birthDate: person.birthDate || null,
+        deathDate: person.deathDate || null,
+        description: person.description || "",
+        // Bewahre die ID und andere wichtige Eigenschaften
+        id: person.id,
+        tempId: person.tempId,
+        label: person.label,
+    };
+    
+    // Aktualisiere die newPerson-Daten
+    emit("update:newPerson", personData);
+    
+    // Starte das Formular fu00fcr die Person
+    emit("startNewPersonForm");
+    
+    // u00d6ffne den Dialog
+    dialogOpen.value = true;
+};
+
+const onUpdatePerson = () => {
+    if (!canAddNewPerson.value) return;
+    
+    // Fu00fcge die ID des bearbeiteten Eintrags hinzu
+    const updatedPerson = {
+        ...newPersonLocal.value,
+        id: editingPersonId.value
+    };
+    
+    // Aktualisiere die Person
+    emit("updatePerson", updatedPerson);
+    
+    // Schlieu00dfe den Dialog und setze den Bearbeitungsmodus zuru00fcck
+    dialogOpen.value = false;
+    editMode.value = false;
+    editingPersonId.value = null;
 };
 
 const onRemovePerson = (id) => {
@@ -343,6 +408,8 @@ const onInfoButtonClick = () => {
 const closeDialog = () => {
     dialogOpen.value = false;
     searchQuery.value = "";
+    editMode.value = false;
+    editingPersonId.value = null;
     if (props.showNewPersonForm) {
         onCancelNewPersonForm();
     }
@@ -449,6 +516,40 @@ label.section-label {
     margin-bottom: 1rem;
     font-size: 1.1rem;
     color: #333;
+}
+
+.person-info {
+    display: flex;
+    flex-grow: 1;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.person-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.edit-person {
+    background: none;
+    border: none;
+    color: #1976d2;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+}
+
+.edit-person:hover {
+    background-color: rgba(25, 118, 210, 0.1);
 }
 
 .selected-person {
