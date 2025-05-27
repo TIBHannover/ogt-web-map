@@ -14,7 +14,7 @@ class WikidataFormatter
     public const ENTITY_TYPE_ORGANIZATION = "Q43229"; // Organisation
     public const ENTITY_TYPE_STRUCTURE = "Q811979"; // Architektonische Struktur
 
-    /**
+    /*
      * Common Property Constants
      */
     public const WIKIDATA_INSTANCE_OF = "P31"; // Instanz von
@@ -1060,11 +1060,44 @@ class WikidataFormatter
                             ],
                             "type" => "statement",
                             "rank" => "normal",
+                            // Wenn Seitenangaben vorhanden sind, als Qualifier hinzufu00fcgen
+                            "qualifiers" => $this->createSourceQualifiers(
+                                $source
+                            ),
                         ];
                     }
                     break;
             }
         }
+    }
+
+    /**
+     * Erstellt Qualifier fu00fcr Quellenangaben wie Seitenzahlen
+     *
+     * @param array $source Die Quellenangabe
+     * @return array Die Qualifier fu00fcr die Quelle
+     */
+    protected function createSourceQualifiers(array $source): array
+    {
+        $qualifiers = [];
+
+        // Seitenangaben als Qualifier hinzufu00fcgen
+        if (!empty($source["pages"])) {
+            $qualifiers[self::WIKIDATA_PAGE] = [
+                [
+                    "snaktype" => "value",
+                    "property" => self::WIKIDATA_PAGE,
+                    "datavalue" => [
+                        "value" => $source["pages"],
+                        "type" => "string",
+                    ],
+                ],
+            ];
+        }
+
+        // Weitere Qualifier ku00f6nnten hier hinzugefu00fcgt werden
+
+        return $qualifiers;
     }
 
     /**
