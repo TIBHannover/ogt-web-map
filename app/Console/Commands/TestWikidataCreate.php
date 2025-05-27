@@ -15,14 +15,14 @@ class TestWikidataCreate extends Command
      *
      * @var string
      */
-    protected $signature = 'wikidata:test-create';
+    protected $signature = "wikidata:test-create";
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Test creating a Wikidata entity';
+    protected $description = "Test creating a Wikidata entity";
 
     /**
      * Execute the console command.
@@ -31,30 +31,32 @@ class TestWikidataCreate extends Command
      */
     public function handle()
     {
-        $username = config('wikidata.bot_username');
-        $password = config('wikidata.bot_password');
-        $apiUrl = config('wikidata.api_url');
-        
-        $this->info("Testing Wikidata entity creation with username: {$username}");
+        $username = config("wikidata.bot_username");
+        $password = config("wikidata.bot_password");
+        $apiUrl = config("wikidata.api_url");
+
+        $this->info(
+            "Testing Wikidata entity creation with username: {$username}"
+        );
         $this->info("API URL: {$apiUrl}");
-        
+
         // HTTP-Client mit spezifischer Cookie-Jar initialisieren
         $cookieJar = new CookieJar();
         $client = new Client([
-            'cookies' => $cookieJar,
-            'headers' => [
-                'User-Agent' => 'Ontology Generator Toolkit Bot/1.0',
+            "cookies" => $cookieJar,
+            "headers" => [
+                "User-Agent" => "Ontology Generator Toolkit Bot/1.0",
             ],
-            'verify' => false, // Deaktiviere SSL-Verifizierung nur fu00fcr Tests!
+            "verify" => false, // Deaktiviere SSL-Verifizierung nur für Tests!
         ]);
-        
+
         try {
             // Step 1: Login
             $this->info("Step 1: Login...");
-            
+
             // 1.1: Get login token
             $tokenResponse = $client->get($apiUrl, [
-                'query' => [
+                "query" => [
                     "action" => "query",
                     "meta" => "tokens",
                     "type" => "login",
@@ -62,7 +64,10 @@ class TestWikidataCreate extends Command
                 ],
             ]);
 
-            $tokenData = json_decode($tokenResponse->getBody()->getContents(), true);
+            $tokenData = json_decode(
+                $tokenResponse->getBody()->getContents(),
+                true
+            );
             if (!isset($tokenData["query"]["tokens"]["logintoken"])) {
                 $this->error("Failed to get login token");
                 return Command::FAILURE;
@@ -73,7 +78,7 @@ class TestWikidataCreate extends Command
 
             // 1.2: Login with token
             $loginResponse = $client->post($apiUrl, [
-                'form_params' => [
+                "form_params" => [
                     "action" => "login",
                     "lgname" => $username,
                     "lgpassword" => $password,
@@ -82,12 +87,18 @@ class TestWikidataCreate extends Command
                 ],
             ]);
 
-            $loginData = json_decode($loginResponse->getBody()->getContents(), true);
+            $loginData = json_decode(
+                $loginResponse->getBody()->getContents(),
+                true
+            );
             if (
                 !isset($loginData["login"]["result"]) ||
                 $loginData["login"]["result"] !== "Success"
             ) {
-                $this->error("Failed to login: " . ($loginData["login"]["reason"] ?? "Unknown error"));
+                $this->error(
+                    "Failed to login: " .
+                        ($loginData["login"]["reason"] ?? "Unknown error")
+                );
                 return Command::FAILURE;
             }
 
@@ -95,14 +106,17 @@ class TestWikidataCreate extends Command
 
             // 1.3: Get CSRF token
             $csrfResponse = $client->get($apiUrl, [
-                'query' => [
+                "query" => [
                     "action" => "query",
                     "meta" => "tokens",
                     "format" => "json",
                 ],
             ]);
 
-            $csrfData = json_decode($csrfResponse->getBody()->getContents(), true);
+            $csrfData = json_decode(
+                $csrfResponse->getBody()->getContents(),
+                true
+            );
             if (!isset($csrfData["query"]["tokens"]["csrftoken"])) {
                 $this->error("Failed to get CSRF token");
                 return Command::FAILURE;
@@ -110,82 +124,88 @@ class TestWikidataCreate extends Command
 
             $csrfToken = $csrfData["query"]["tokens"]["csrftoken"];
             $this->info("Obtained CSRF token");
-            
+
             // Step 2: Create test entity
             $this->info("Step 2: Creating test entity...");
-            
+
             // Prepare test data
             $testData = [
-                'labels' => [
-                    'de' => [
-                        'language' => 'de',
-                        'value' => 'Test Entitu00e4t ' . date('Y-m-d H:i:s'),
+                "labels" => [
+                    "de" => [
+                        "language" => "de",
+                        "value" => "Test Entitu00e4t " . date("Y-m-d H:i:s"),
                     ],
                 ],
-                'descriptions' => [
-                    'de' => [
-                        'language' => 'de',
-                        'value' => 'Test Beschreibung - erstellt von OGT API Tests',
+                "descriptions" => [
+                    "de" => [
+                        "language" => "de",
+                        "value" =>
+                            "Test Beschreibung - erstellt von OGT API Tests",
                     ],
                 ],
-                'claims' => [
-                    'P31' => [
+                "claims" => [
+                    "P31" => [
                         [
-                            'mainsnak' => [
-                                'snaktype' => 'value',
-                                'property' => 'P31',
-                                'datavalue' => [
-                                    'value' => [
-                                        'entity-type' => 'item',
-                                        'id' => 'Q6983405', // event
-                                        'numeric-id' => 6983405,
+                            "mainsnak" => [
+                                "snaktype" => "value",
+                                "property" => "P31",
+                                "datavalue" => [
+                                    "value" => [
+                                        "entity-type" => "item",
+                                        "id" => "Q6983405", // event
+                                        "numeric-id" => 6983405,
                                     ],
-                                    'type' => 'wikibase-entityid',
+                                    "type" => "wikibase-entityid",
                                 ],
                             ],
-                            'type' => 'statement',
-                            'rank' => 'normal',
+                            "type" => "statement",
+                            "rank" => "normal",
                         ],
                     ],
                 ],
             ];
-            
+
             // Send create request
             $formData = [
-                'action' => 'wbeditentity',
-                'new' => 'item',
-                'data' => json_encode($testData),
-                'token' => $csrfToken,
-                'format' => 'json',
-                'bot' => '1',
+                "action" => "wbeditentity",
+                "new" => "item",
+                "data" => json_encode($testData),
+                "token" => $csrfToken,
+                "format" => "json",
+                "bot" => "1",
             ];
-            
-            $this->info("Sending create request with data: " . json_encode($formData, JSON_PRETTY_PRINT));
-            
+
+            $this->info(
+                "Sending create request with data: " .
+                    json_encode($formData, JSON_PRETTY_PRINT)
+            );
+
             $response = $client->post($apiUrl, [
-                'form_params' => $formData,
+                "form_params" => $formData,
             ]);
-            
+
             $responseBody = $response->getBody()->getContents();
             $jsonResponse = json_decode($responseBody, true);
-            
+
             $this->info("API Response: " . $responseBody);
-            
-            if (isset($jsonResponse['error'])) {
-                $this->error("Error creating entity: " . ($jsonResponse['error']['info'] ?? 'Unknown error'));
+
+            if (isset($jsonResponse["error"])) {
+                $this->error(
+                    "Error creating entity: " .
+                        ($jsonResponse["error"]["info"] ?? "Unknown error")
+                );
                 return Command::FAILURE;
             }
-            
-            if (!isset($jsonResponse['entity']['id'])) {
+
+            if (!isset($jsonResponse["entity"]["id"])) {
                 $this->error("Entity ID not found in response");
                 return Command::FAILURE;
             }
-            
-            $entityId = $jsonResponse['entity']['id'];
+
+            $entityId = $jsonResponse["entity"]["id"];
             $this->info("Successfully created entity with ID: {$entityId}");
-            
+
             return Command::SUCCESS;
-            
         } catch (\Exception $e) {
             $this->error("Error: {$e->getMessage()}");
             $this->error("Stack trace: {$e->getTraceAsString()}");

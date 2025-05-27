@@ -16,22 +16,34 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        // Statistiken fu00fcr das Dashboard abrufen
+        // Statistiken für das Dashboard abrufen
         $stats = [
-            'pending_requests' => WikidataEntryRequest::where('status', 'pending')->count(),
-            'approved_requests' => WikidataEntryRequest::where('status', 'approved')->count(),
-            'rejected_requests' => WikidataEntryRequest::where('status', 'rejected')->count(),
-            'error_requests' => WikidataEntryRequest::where('status', 'error')->count(),
+            "pending_requests" => WikidataEntryRequest::where(
+                "status",
+                "pending"
+            )->count(),
+            "approved_requests" => WikidataEntryRequest::where(
+                "status",
+                "approved"
+            )->count(),
+            "rejected_requests" => WikidataEntryRequest::where(
+                "status",
+                "rejected"
+            )->count(),
+            "error_requests" => WikidataEntryRequest::where(
+                "status",
+                "error"
+            )->count(),
         ];
 
         // Letzte Anfragen abrufen
-        $latestRequests = WikidataEntryRequest::orderBy('created_at', 'desc')
+        $latestRequests = WikidataEntryRequest::orderBy("created_at", "desc")
             ->limit(5)
             ->get();
 
-        return view('admin.dashboard', [
-            'stats' => $stats,
-            'latestRequests' => $latestRequests,
+        return view("admin.dashboard", [
+            "stats" => $stats,
+            "latestRequests" => $latestRequests,
         ]);
     }
 
@@ -44,9 +56,9 @@ class DashboardController extends Controller
     public function wikidataSettings(WikidataService $wikidataService)
     {
         $hasCredentials = $wikidataService->hasValidCredentials();
-        
-        return view('admin.wikidata-settings', [
-            'hasCredentials' => $hasCredentials,
+
+        return view("admin.wikidata-settings", [
+            "hasCredentials" => $hasCredentials,
         ]);
     }
 
@@ -58,19 +70,18 @@ class DashboardController extends Controller
      */
     public function requests(Request $request)
     {
-        $status = $request->input('status', 'all');
+        $status = $request->input("status", "all");
         $query = WikidataEntryRequest::query();
-        
-        if ($status !== 'all') {
-            $query->where('status', $status);
+
+        if ($status !== "all") {
+            $query->where("status", $status);
         }
-        
-        $requests = $query->orderBy('created_at', 'desc')
-            ->paginate(10);
-            
-        return view('admin.requests', [
-            'requests' => $requests,
-            'currentStatus' => $status,
+
+        $requests = $query->orderBy("created_at", "desc")->paginate(10);
+
+        return view("admin.requests", [
+            "requests" => $requests,
+            "currentStatus" => $status,
         ]);
     }
 
@@ -81,15 +92,14 @@ class DashboardController extends Controller
      */
     public function users()
     {
-        // Nur fu00fcr Super-Admin zugu00e4nglich
+        // Nur für Super-Admin zugu00e4nglich
         if (!auth()->user()->isAdmin()) {
-            abort(403, 'Unbefugter Zugriff');
+            abort(403, "Unbefugter Zugriff");
         }
-        
-        $users = \App\Models\User::orderBy('created_at', 'desc')
-            ->paginate(10);
-            
-        return view('admin.users', ['users' => $users]);
+
+        $users = \App\Models\User::orderBy("created_at", "desc")->paginate(10);
+
+        return view("admin.users", ["users" => $users]);
     }
 
     /**
@@ -101,9 +111,9 @@ class DashboardController extends Controller
     public function showRequest($id)
     {
         $request = WikidataEntryRequest::findOrFail($id);
-        
-        return view('admin.request-detail', [
-            'request' => $request,
+
+        return view("admin.request-detail", [
+            "request" => $request,
         ]);
     }
 }

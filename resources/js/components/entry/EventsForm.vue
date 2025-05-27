@@ -585,7 +585,7 @@ const lastActiveField = ref(null);
 // Funktion zum Setzen des aktiven Feldes
 const setActiveField = (fieldName) => {
     activeField.value = fieldName;
-    lastActiveField.value = fieldName; // Speichern des Feldnamens fu00fcr mobile Anzeige
+    lastActiveField.value = fieldName; // Speichern des Feldnamens für mobile Anzeige
 };
 
 // Funktion zum U00dcberpru00fcfen der Bildschirmgro00dfe

@@ -779,7 +779,7 @@ const applyLeafletCSS = () => {
             padding: 0 !important;
         }
 
-        /* Korrektur fu00fcr Tile-Bilder */
+        /* Korrektur für Tile-Bilder */
         .leaflet-tile-container img {
             display: block !important;
             width: 256px !important;

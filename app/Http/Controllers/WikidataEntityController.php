@@ -10,14 +10,14 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 /**
- * Controller fu00fcr die Verwaltung von Wikidata-Entitu00e4ten und Anfragen.
+ * Controller für die Verwaltung von Wikidata-Entitu00e4ten und Anfragen.
  *
  * Diese Klasse ermu00f6glicht das Erstellen, Genehmigen und Ablehnen von Wikidata-Eintru00e4gen.
  */
 class WikidataEntityController extends Controller
 {
     /**
-     * Erstellt eine neue Anfrage fu00fcr einen Wikidata-Eintrag.
+     * Erstellt eine neue Anfrage für einen Wikidata-Eintrag.
      *
      * @param  Request  $request
      *
@@ -77,7 +77,7 @@ class WikidataEntityController extends Controller
 
             // Ursache
             $entryRequest->cause = $validated["cause"] ?? null;
-            
+
             // Quellen
             $entryRequest->sources = $validated["sources"] ?? null;
 
@@ -436,7 +436,7 @@ class WikidataEntityController extends Controller
         $csrfToken = null;
         $client = new \GuzzleHttp\Client([
             "cookies" => true,
-            "verify" => true, // Nur fu00fcr Tests, in der Produktion nicht verwenden!
+            "verify" => true, // Nur für Tests, in der Produktion nicht verwenden!
         ]);
 
         try {
@@ -507,7 +507,7 @@ class WikidataEntityController extends Controller
     }
 
     /**
-     * Bereitet die Daten fu00fcr die Erstellung einer Wikidata-Entitu00e4t vor.
+     * Bereitet die Daten für die Erstellung einer Wikidata-Entitu00e4t vor.
      *
      * @param WikidataEntryRequest $entryRequest
      * @return array
@@ -524,14 +524,14 @@ class WikidataEntityController extends Controller
             "de" => $entryRequest->description,
         ];
 
-        // Statements (Aussagen) fu00fcr die Entitu00e4t vorbereiten
+        // Statements (Aussagen) für die Entitu00e4t vorbereiten
         $statements = [
             // Instanz von (P31) - je nach Typ des Eintrags
             "P31" => [
                 [
                     "value" => [
                         "entity-type" => "item",
-                        "id" => $entryRequest->type, // Q6983405 fu00fcr Ereignis, etc.
+                        "id" => $entryRequest->type, // Q6983405 für Ereignis, etc.
                     ],
                     "type" => "wikibase-entityid",
                 ],

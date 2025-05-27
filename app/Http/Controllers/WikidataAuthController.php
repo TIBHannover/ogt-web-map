@@ -28,7 +28,7 @@ class WikidataAuthController extends Controller
     }
 
     /**
-     * Startet den OAuth-Prozess fu00fcr die Benutzerauthentifizierung.
+     * Startet den OAuth-Prozess für die Benutzerauthentifizierung.
      *
      * @return \Illuminate\Http\RedirectResponse
      */
@@ -38,7 +38,7 @@ class WikidataAuthController extends Controller
             // Eindeutige State-ID generieren, um die Sitzung zu identifizieren
             $state = Str::random(40);
 
-            // Speichern in der Session fu00fcr die Ru00fcckkehr
+            // Speichern in der Session für die Ru00fcckkehr
             $request->session()->put("wikidata_auth_state", $state);
 
             // Speichern des Redirekts nach erfolgreicher Authentifizierung
@@ -70,7 +70,7 @@ class WikidataAuthController extends Controller
     }
 
     /**
-     * Verarbeitet den OAuth-Callback von Wikidata fu00fcr die Benutzerauthentifizierung.
+     * Verarbeitet den OAuth-Callback von Wikidata für die Benutzerauthentifizierung.
      *
      * @param Request $request
      * @return \Illuminate\Http\RedirectResponse
@@ -198,7 +198,7 @@ class WikidataAuthController extends Controller
         return User::create([
             "name" => $userInfo["username"],
             "email" => $userInfo["id"] . "@wikidata.example.com", // Platzhalter-E-Mail
-            "password" => bcrypt(Str::random(16)), // Zufu00e4lliges Passwort, nicht verwendbar fu00fcr direkten Login
+            "password" => bcrypt(Str::random(16)), // Zufu00e4lliges Passwort, nicht verwendbar für direkten Login
             "wikidata_id" => $userInfo["id"],
             "wikidata_username" => $userInfo["username"],
             "wikidata_token" => $userInfo["access_token"] ?? null,

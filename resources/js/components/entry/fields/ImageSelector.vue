@@ -56,7 +56,7 @@
             </div>
         </div>
 
-        <!-- Dialog fu00fcr Bildauswahl -->
+        <!-- Dialog für Bildauswahl -->
         <v-dialog v-model="imageDialogVisible" max-width="900px">
             <WikimediaImageSelector
                 @select="selectImage"
@@ -64,7 +64,7 @@
             />
         </v-dialog>
 
-        <!-- Lightbox fu00fcr Bildanzeige -->
+        <!-- Lightbox für Bildanzeige -->
         <lightbox
             :is-open="lightboxOpen"
             :image-url="imageUrl || ''"

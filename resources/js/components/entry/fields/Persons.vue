@@ -391,7 +391,7 @@ const onEditPerson = (person) => {
     // Aktualisiere die newPerson-Daten
     emit("update:newPerson", personData);
 
-    // Starte das Formular fu00fcr die Person
+    // Starte das Formular für die Person
     emit("startNewPersonForm");
 
     // u00d6ffne den Dialog

@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Log;
 
 class WikidataFormatter
 {
-    /**
+    /*
      * Entity Type Constants
      */
     public const ENTITY_TYPE_PERSON = "Q5"; // Person
@@ -24,6 +24,7 @@ class WikidataFormatter
     public const WIKIDATA_DESCRIBED_BY_SOURCE = "P1343"; // Beschrieben durch Quelle
     public const WIKIDATA_OFFICIAL_NAME = "P1448"; // Offizielle Bezeichnung
     public const WIKIDATA_AUTHOR_STRING = "P2093"; // Autor als String
+    public const WIKIDATA_IMAGE = "P18"; // Bild
 
     /**
      * Person Property Constants
@@ -56,10 +57,9 @@ class WikidataFormatter
     /**
      * Source/Reference Property Constants
      */
-    public const WIKIDATA_TITLE = "P1476"; // Titel
-    public const WIKIDATA_STATED_IN = "P248"; // Beschrieben in
+    public const WIKIDATA_STATED_IN = "P1343"; // Beschrieben in
     public const WIKIDATA_PAGE = "P304"; // Seite
-    public const WIKIDATA_URL = "P854"; // URL
+    public const WIKIDATA_STATED_IN_URL = "P973"; // Beschrieben in URL
     public const WIKIDATA_RETRIEVED_DATE = "P813"; // Zugriffsdatum
     public const WIKIDATA_ARCHIVE = "P485"; // Archiv
     public const WIKIDATA_INVENTORY_NUMBER = "P217"; // Inventarnummer
@@ -81,11 +81,11 @@ class WikidataFormatter
         $this->entityUrlBase = "https://{$domain}/entity/";
     }
     /**
-     * Formatiert die Daten fu00fcr Wikidata basierend auf dem Entity-Typ.
+     * Formatiert die Daten für Wikidata basierend auf dem Entity-Typ.
      *
      * @param array $data Die Ausgangsdaten aus dem Request
      * @param string $type Der Entity-Typ (Q5 = Person, Q6983405 = Ereignis, Q43229 = Organisation, Q811979 = Architektonische Struktur)
-     * @return array Formatierte Daten fu00fcr Wikidata
+     * @return array Formatierte Daten für Wikidata
      */
     public function formatEntityData(array $data, string $type): array
     {
@@ -178,6 +178,24 @@ class WikidataFormatter
             }
         }
 
+        // Füge Bild hinzu, wenn vorhanden (P18 - Bild)
+        if (!empty($data["image_filename"])) {
+            $formattedData["claims"][self::WIKIDATA_IMAGE] = [
+                [
+                    "mainsnak" => [
+                        "snaktype" => "value",
+                        "property" => self::WIKIDATA_IMAGE,
+                        "datavalue" => [
+                            "value" => $data["image_filename"],
+                            "type" => "string",
+                        ],
+                    ],
+                    "type" => "statement",
+                    "rank" => "normal",
+                ],
+            ];
+        }
+
         // Fu00fcge Ursache der Verfolgung hinzu, wenn vorhanden (P1534 - Ursache)
         if (!empty($data["cause_search"])) {
             $formattedData["claims"][self::WIKIDATA_CAUSE] = [
@@ -214,7 +232,7 @@ class WikidataFormatter
 
         // Quellenangaben hinzufügen, falls vorhanden
         if (!empty($data["sources"])) {
-            //$this->addSourcesToEntity($formattedData, $data["sources"]);
+            $this->addSourcesAsClaims($formattedData, $data["sources"]);
         }
 
         return $formattedData;
@@ -884,7 +902,7 @@ class WikidataFormatter
      * Formatiert ein Datum in das von Wikidata erwartete Format.
      *
      * @param string $date Das zu formatierende Datum
-     * @return array|null Ein formatiertes Datum fu00fcr Wikidata oder null bei Fehler
+     * @return array|null Ein formatiertes Datum für Wikidata oder null bei Fehler
      */
     protected function formatDate(string $date): ?array
     {
@@ -925,7 +943,7 @@ class WikidataFormatter
             return;
         }
 
-        // Erstelle Referenzen fu00fcr alle relevanten Claims
+        // Erstelle Referenzen für alle relevanten Claims
         foreach ($formattedData["claims"] as $propertyId => &$statements) {
             // Ignoriere bestimmte Properties, die keine Quellen benu00f6tigen
             // z.B. P31 (Instanz von) oder andere grundlegende Eigenschaften
@@ -944,6 +962,107 @@ class WikidataFormatter
                         $statement["references"][] = $reference;
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     * Fu00fcgt Quellenangaben als eigenstu00e4ndige Claims hinzu.
+     *
+     * @param array &$formattedData Referenz auf die formatierte Datenstruktur
+     * @param array $sources Die Quellenangaben
+     */
+    protected function addSourcesAsClaims(
+        array &$formattedData,
+        array $sources
+    ): void {
+        if (empty($sources)) {
+            return;
+        }
+
+        // Stellt sicher, dass $sources ein Array ist
+        if (is_string($sources)) {
+            $sources = json_decode($sources, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                Log::warning("Fehler beim Parsen der Quellenangaben als JSON", [
+                    "sources" => $sources,
+                    "error" => json_last_error_msg(),
+                ]);
+                return;
+            }
+        }
+
+        foreach ($sources as $source) {
+            if (empty($source) || !isset($source["type"])) {
+                continue;
+            }
+
+            switch ($source["type"]) {
+                case "url":
+                    // URL zur Property P973 (URL) hinzufühen
+                    if (!empty($source["url"])) {
+                        if (
+                            !isset(
+                                $formattedData["claims"][
+                                    self::WIKIDATA_STATED_IN_URL
+                                ]
+                            )
+                        ) {
+                            $formattedData["claims"][
+                                self::WIKIDATA_STATED_IN_URL
+                            ] = [];
+                        }
+
+                        $formattedData["claims"][
+                            self::WIKIDATA_STATED_IN_URL
+                        ][] = [
+                            "mainsnak" => [
+                                "snaktype" => "value",
+                                "property" => self::WIKIDATA_STATED_IN_URL,
+                                "datavalue" => [
+                                    "value" => $source["url"],
+                                    "type" => "string",
+                                ],
+                            ],
+                            "type" => "statement",
+                            "rank" => "normal",
+                        ];
+                    }
+                    break;
+
+                case "book":
+                case "archive":
+                    // Buch/Archiv zur Property P1343 (beschrieben durch Quelle) hinzufu00fcgen
+                    if (
+                        !empty($source["id"]) &&
+                        substr($source["id"], 0, 1) === "Q"
+                    ) {
+                        if (
+                            !isset(
+                                $formattedData["claims"][
+                                    self::WIKIDATA_STATED_IN
+                                ]
+                            )
+                        ) {
+                            $formattedData["claims"][
+                                self::WIKIDATA_STATED_IN
+                            ] = [];
+                        }
+
+                        $formattedData["claims"][self::WIKIDATA_STATED_IN][] = [
+                            "mainsnak" => [
+                                "snaktype" => "value",
+                                "property" => self::WIKIDATA_STATED_IN,
+                                "datavalue" => [
+                                    "value" => $source["id"],
+                                    "type" => "string", // Wir nutzen string anstatt wikibase-entityid
+                                ],
+                            ],
+                            "type" => "statement",
+                            "rank" => "normal",
+                        ];
+                    }
+                    break;
             }
         }
     }
@@ -969,7 +1088,7 @@ class WikidataFormatter
             "snaks" => [],
         ];
 
-        // Basisdaten fu00fcr jede Referenz: Titel (P1476)
+        // Basisdaten für jede Referenz: Titel (P1476)
         $reference["snaks"]["P1476"] = [
             [
                 "snaktype" => "value",
@@ -987,7 +1106,7 @@ class WikidataFormatter
         // Fu00fcge spezifische Daten je nach Quellentyp hinzu
         switch ($source["type"]) {
             case "book":
-                // Fu00fcr Buchquellen
+                // für Buchquellen
                 if (isset($source["id"]) && $source["id"] !== "manual") {
                     // Angabe der Wikidata-ID (P248)
                     $reference["snaks"]["P248"] = [
@@ -1024,7 +1143,7 @@ class WikidataFormatter
                 break;
 
             case "url":
-                // Fu00fcr URL-Quellen
+                // für URL-Quellen
                 if (isset($source["url"])) {
                     // URL der Referenz (P854)
                     $reference["snaks"]["P854"] = [
@@ -1058,7 +1177,7 @@ class WikidataFormatter
                 break;
 
             case "archive":
-                // Fu00fcr Archivquellen
+                // für Archivquellen
                 if (isset($source["id"]) && $source["id"] !== "manual") {
                     // Angabe des Archivs (P485)
                     $reference["snaks"]["P485"] = [

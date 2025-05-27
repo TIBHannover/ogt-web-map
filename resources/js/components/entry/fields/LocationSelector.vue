@@ -106,7 +106,7 @@ const createCustomIcon = () => {
     });
 };
 
-// Icon fu00fcr den Marker (verwende Q6983405 fu00fcr Ereignisse)
+// Icon für den Marker (verwende Q6983405 für Ereignisse)
 const markerIcon = createCustomIcon();
 
 // Wird aufgerufen, wenn die Leaflet-Karte bereit ist

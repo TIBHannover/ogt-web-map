@@ -542,12 +542,12 @@
                                 }
                             }
 
-                            // Formatierte Daten fu00fcr Wikibase vorbereiten
+                            // Formatierte Daten für Wikibase vorbereiten
                             $formattedData = $formatter->formatEntityData($requestData, $request->type);
                         @endphp
 
                         <div class="mb-4">
-                            <h6>Aufbereitete Daten fu00fcr Wikidata API:</h6>
+                            <h6>Aufbereitete Daten für Wikidata API:</h6>
                             <pre class="bg-light p-3" style="max-height: 400px; overflow-y: auto;">{{ json_encode($formattedData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
                         </div>
 
