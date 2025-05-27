@@ -214,7 +214,7 @@ class WikidataFormatter
 
         // Quellenangaben hinzufügen, falls vorhanden
         if (!empty($data["sources"])) {
-            $this->addSourcesToEntity($formattedData, $data["sources"]);
+            //$this->addSourcesToEntity($formattedData, $data["sources"]);
         }
 
         return $formattedData;

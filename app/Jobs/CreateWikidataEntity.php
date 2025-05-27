@@ -41,23 +41,36 @@ class CreateWikidataEntity implements ShouldQueue
                 "title" => $this->entryRequest->title,
             ]);
 
-            // Prüfe, ob Bot-Zugangsdaten vorhanden sind
+            // Prüfe, ob OAuth-Zugangsdaten vorhanden sind
             if (!$wikidataService->hasValidCredentials()) {
-                // Fallback zu simuliertem Modus, wenn keine Bot-Credentials vorhanden sind
+                // Fallback zu simuliertem Modus, wenn keine OAuth-Credentials vorhanden sind
                 Log::warning(
-                    "No bot credentials available, using simulation mode"
+                    "No OAuth credentials available, using simulation mode"
                 );
                 return;
             }
 
             // Daten für Wikidata-Entität vorbereiten
+            $additionalData = $this->entryRequest->toArray();
+            
+            // Entferne die Basis-Felder, die bereits explizit übergeben werden
+            unset($additionalData['title']);
+            unset($additionalData['description']);
+            unset($additionalData['type']);
+            unset($additionalData['id']);
+            unset($additionalData['created_at']);
+            unset($additionalData['updated_at']);
+            unset($additionalData['status']);
+            unset($additionalData['wikidata_id']);
+            
             $entityData = $wikidataService->prepareEntityData(
                 $this->entryRequest->title,
                 $this->entryRequest->description,
-                $this->entryRequest->type
+                $this->entryRequest->type,
+                $additionalData
             );
             
-            // Entität mit Bot-Authentifizierung erstellen
+            // Entität mit OAuth-Authentifizierung erstellen
             $response = $wikidataService->createEntity($entityData);
 
             if ($response === null) {
