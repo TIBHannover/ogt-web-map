@@ -1054,8 +1054,12 @@ class WikidataFormatter
                                 "snaktype" => "value",
                                 "property" => self::WIKIDATA_STATED_IN,
                                 "datavalue" => [
-                                    "value" => $source["id"],
-                                    "type" => "string", // Wir nutzen string anstatt wikibase-entityid
+                                    "value" => [
+                                        "entity-type" => "item",
+                                        "id" => $source["id"],
+                                        "numeric-id" => intval(substr($source["id"], 1)),
+                                    ],
+                                    "type" => "wikibase-entityid",
                                 ],
                             ],
                             "type" => "statement",
