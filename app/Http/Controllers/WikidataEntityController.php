@@ -77,6 +77,10 @@ class WikidataEntityController extends Controller
 
             // Ursache
             $entryRequest->cause = $validated["cause"] ?? null;
+            // Speichern der ausgewählten Ursachen
+            if (!empty($validated["causes"])) {
+                $entryRequest->selected_causes = json_encode($validated["causes"]);
+            }
 
             // Quellen
             $entryRequest->sources = $validated["sources"] ?? null;

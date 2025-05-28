@@ -317,10 +317,6 @@ const props = defineProps({
         type: Number,
         default: 0,
     },
-    cause: {
-        type: String,
-        default: "",
-    },
     causeSearchResults: {
         type: Array,
         default: () => [],

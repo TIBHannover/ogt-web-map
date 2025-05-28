@@ -25,15 +25,17 @@ return new class extends Migration {
             $table->integer("survivor_count")->nullable(); // Anzahl der Überlebenden
             $table->integer("death_count")->nullable(); // Anzahl der Todesfälle
             $table->integer("arrest_count")->nullable(); // Anzahl der Festnahmen
-            $table->text("cause")->nullable(); // Ursache der Verfolgung
+            $table->text("cause")->nullable(); // Ursache der Verfolgung (Einzelursache)
+            $table->json("selected_causes")->nullable(); // Ursachen der Verfolgung (Mehrere)
+            $table->string("image_url")->nullable();
+            $table->string("image_filename")->nullable();
+            $table->json("sources")->nullable();
             $table->enum("status", [
                 "pending",
                 "approved",
                 "rejected",
                 "error",
             ]);
-            $table->string("image_url")->nullable()->after("description");
-            $table->string("image_filename")->nullable()->after("image_url");
             $table->string("wikidata_id")->nullable();
             $table->string("submitted_by")->nullable(); // String statt User-ID
             $table->string("approved_by")->nullable(); // String statt User-ID

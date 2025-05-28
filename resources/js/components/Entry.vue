@@ -217,7 +217,6 @@
                         v-model:survivorCount="survivorCount"
                         v-model:deathCount="deathCount"
                         v-model:arrestCount="arrestCount"
-                        v-model:cause="cause"
                         v-model:causeSearchResults="causeSearchResults"
                         v-model:selectedCauses="selectedCauses"
                         v-model:mapZoom="mapZoom"
@@ -1093,7 +1092,6 @@ const resetForm = async () => {
                 survivorCount: survivorCount.value,
                 deathCount: deathCount.value,
                 arrestCount: arrestCount.value,
-                cause: cause.value,
                 causes: selectedCauses.value,
                 imageUrl: imageUrl.value,
                 imageFilename: imageFilename.value,
@@ -1156,7 +1154,6 @@ const clearForm = () => {
     survivorCount.value = 0;
     deathCount.value = 0;
     arrestCount.value = 0;
-    cause.value = "";
     causeSearchResults.value = [];
     selectedCauses.value = [];
     lastCauseSearchQuery.value = "";

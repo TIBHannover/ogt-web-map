@@ -192,10 +192,39 @@
                             </div>
                         @endif
 
-                        @if($request->cause_search)
+                        @if($request->selected_causes)
                             <div class="mb-3">
-                                <h6>Ursache der Verfolgung:</h6>
-                                <p>{{ $request->cause_search }}</p>
+                                <h6>Ursachen der Verfolgung:</h6>
+                                @php
+                                    // Versuche JSON zu parsen
+                                    $causes = json_decode($request->selected_causes, true);
+                                    // Wenn es kein gu00fcltiges JSON ist, als Text behandeln
+                                    $isJson = json_last_error() === JSON_ERROR_NONE && is_array($causes);
+                                @endphp
+        
+                                @if($isJson && count($causes) > 0)
+                                    <div class="list-group mt-2">
+                                        @foreach($causes as $cause)
+                                            <div class="list-group-item">
+                                                @if(is_array($cause))
+                                                    <div class="fw-bold">
+                                                        <a href="https://www.wikidata.org/wiki/{{ $cause['id'] }}" target="_blank" class="text-decoration-none">
+                                                            {{ $cause['label'] }}
+                                                            <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                                        </a>
+                                                    </div>
+                                                    @if(isset($cause['description']))
+                                                        <div class="text-muted small mt-1">{{ $cause['description'] }}</div>
+                                                    @endif
+                                                @elseif(is_string($cause))
+                                                    {{ $cause }}
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <p>{{ $request->selected_causes }}</p>
+                                @endif
                             </div>
                         @endif
 
@@ -399,12 +428,6 @@
 
                     <!-- Person (Q5) -->
                     @if($request->type == 'Q5')
-                        @if($request->cause_search)
-                            <div class="mb-3">
-                                <h6>Ursache der Verfolgung:</h6>
-                                <p>{{ $request->cause_search }}</p>
-                            </div>
-                        @endif
 
                         @if($request->date_of_birth || $request->date_of_death)
                             <div class="mb-3">
@@ -437,13 +460,6 @@
 
                     <!-- Organisation (Q43229) -->
                     @if($request->type == 'Q43229')
-                        @if($request->cause_search)
-                            <div class="mb-3">
-                                <h6>Ursache der Verfolgung:</h6>
-                                <p>{{ $request->cause_search }}</p>
-                            </div>
-                        @endif
-
                         @if($request->inception || $request->dissolved_date)
                             <div class="mb-3">
                                 <h6>Zeitraum:</h6>
@@ -462,44 +478,6 @@
                             <div class="mb-3">
                                 <h6>Hauptsitz:</h6>
                                 <p>{{ $request->headquarters_location }}</p>
-                            </div>
-                        @endif
-                    @endif
-
-                    <!-- Architektonische Struktur (Q811979) -->
-                    @if($request->type == 'Q811979')
-                        @if($request->cause_search)
-                            <div class="mb-3">
-                                <h6>Ursache der Verfolgung:</h6>
-                                <p>{{ $request->cause_search }}</p>
-                            </div>
-                        @endif
-
-                        @if($request->inception || $request->demolished_date)
-                            <div class="mb-3">
-                                <h6>Zeitraum:</h6>
-                                <p>
-                                    @if($request->inception)
-                                        Errichtet: {{ \Carbon\Carbon::parse($request->inception)->format('d.m.Y') }}
-                                    @endif
-                                    @if($request->demolished_date)
-                                        {{ $request->inception ? ' | ' : '' }}Abgerissen: {{ \Carbon\Carbon::parse($request->demolished_date)->format('d.m.Y') }}
-                                    @endif
-                                </p>
-                            </div>
-                        @endif
-
-                        @if($request->architect)
-                            <div class="mb-3">
-                                <h6>Architekt:</h6>
-                                <p>{{ $request->architect }}</p>
-                            </div>
-                        @endif
-
-                        @if($request->height)
-                            <div class="mb-3">
-                                <h6>Höhe:</h6>
-                                <p>{{ $request->height }} m</p>
                             </div>
                         @endif
                     @endif

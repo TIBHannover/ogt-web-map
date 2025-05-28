@@ -196,22 +196,39 @@ class WikidataFormatter
             ];
         }
 
-        // Fu00fcge Ursache der Verfolgung hinzu, wenn vorhanden (P1534 - Ursache)
-        if (!empty($data["cause_search"])) {
-            $formattedData["claims"][self::WIKIDATA_CAUSE] = [
-                [
-                    "mainsnak" => [
-                        "snaktype" => "value",
-                        "property" => self::WIKIDATA_CAUSE,
-                        "datavalue" => [
-                            "value" => $data["cause_search"],
-                            "type" => "string",
-                        ],
-                    ],
-                    "type" => "statement",
-                    "rank" => "normal",
-                ],
-            ];
+        // Ursache der Verfolgung (causes array)
+        if (!empty($data["selected_causes"])) {
+            // Check if selected_causes contains JSON data of multiple causes
+            $causes = is_string($data["selected_causes"]) 
+                ? json_decode($data["selected_causes"], true) 
+                : $data["selected_causes"];
+                
+            if (is_array($causes) && count($causes) > 0 && isset($causes[0]["id"])) {
+                // It's a JSON array of causes
+                $formattedData["claims"][self::WIKIDATA_CAUSE] = [];
+                
+                foreach ($causes as $cause) {
+                    if (is_array($cause) && isset($cause["id"]) && substr($cause["id"], 0, 1) === "Q") {
+                        // Add as Wikidata entity reference
+                        $formattedData["claims"][self::WIKIDATA_CAUSE][] = [
+                            "mainsnak" => [
+                                "snaktype" => "value",
+                                "property" => self::WIKIDATA_CAUSE,
+                                "datavalue" => [
+                                    "value" => [
+                                        "entity-type" => "item",
+                                        "id" => $cause["id"],
+                                        "numeric-id" => intval(substr($cause["id"], 1)),
+                                    ],
+                                    "type" => "wikibase-entityid",
+                                ],
+                            ],
+                            "type" => "statement",
+                            "rank" => "normal",
+                        ];
+                    }
+                }
+            } 
         }
 
         // Typ-spezifische Formatierungen
