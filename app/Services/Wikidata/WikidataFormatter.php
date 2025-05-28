@@ -371,7 +371,7 @@ class WikidataFormatter
     protected function formatPersonEntity(
         array &$formattedData,
         array $data
-    ): array {
+    ): void {
         // Geburtsdatum (P569)
         if (!empty($data["date_of_birth"])) {
             $birthDate = $this->formatDate($data["date_of_birth"]);
@@ -1030,18 +1030,27 @@ class WikidataFormatter
             ) {
                 $perpetratorId = $perpetrator["id"];
             }
-            // Wenn der/die Täter/in eine temp_id hat (neuer Eintrag)
-            elseif (!empty($perpetrator["temp_id"]) && !empty($perpetrator["name"])) {
+            // Wenn der/die Täter/in eine temp_id oder tempId hat (neuer Eintrag)
+            elseif ((!empty($perpetrator["temp_id"]) || !empty($perpetrator["tempId"])) && 
+                  (!empty($perpetrator["name"]) || !empty($perpetrator["firstName"]) || !empty($perpetrator["lastName"]))) {
+                // Erstelle Namen aus firstName und lastName, falls vorhanden
+                $name = !empty($perpetrator["name"]) ? $perpetrator["name"] : 
+                       trim(($perpetrator["firstName"] ?? "") . " " . ($perpetrator["lastName"] ?? ""));
+                
+                // Konvertiere birthDate/deathDate zu date_of_birth/date_of_death
+                $dateOfBirth = $perpetrator["date_of_birth"] ?? $perpetrator["birthDate"] ?? null;
+                $dateOfDeath = $perpetrator["date_of_death"] ?? $perpetrator["deathDate"] ?? null;
+                
                 // Neue Person erstellen, wenn Daten vorhanden sind
                 $personData = [
-                    "name" => $perpetrator["name"],
+                    "name" => $name,
                     "description" =>
                         $perpetrator["description"] ??
                         "Täter/in im Zusammenhang mit " .
                             ($formattedData["labels"]["de"]["value"] ??
                                 "einem Ereignis"),
-                    "date_of_birth" => $perpetrator["date_of_birth"] ?? null,
-                    "date_of_death" => $perpetrator["date_of_death"] ?? null,
+                    "date_of_birth" => $dateOfBirth,
+                    "date_of_death" => $dateOfDeath,
                     "occupation" => $perpetrator["occupation"] ?? null,
                     "nationality" => $perpetrator["nationality"] ?? null,
                 ];
@@ -1056,13 +1065,18 @@ class WikidataFormatter
                 );
                 
                 if ($perpetratorId !== null) {
-                    // temp_id durch echte Wikidata-ID ersetzen
-                    unset($updatedPerpetrator["temp_id"]);
+                    // temp_id/tempId durch echte Wikidata-ID ersetzen
+                    if (isset($updatedPerpetrator["temp_id"])) {
+                        unset($updatedPerpetrator["temp_id"]);
+                    }
+                    if (isset($updatedPerpetrator["tempId"])) {
+                        unset($updatedPerpetrator["tempId"]);
+                    }
                     $updatedPerpetrator["id"] = $perpetratorId;
                     
                     Log::info("Neue Person als Täter/in erstellt und verlinkt", [
-                        "name" => $perpetrator["name"],
-                        "temp_id" => $perpetrator["temp_id"],
+                        "name" => $name ?? $perpetrator["name"] ?? "Unbekannt",
+                        "temp_id/tempId" => $perpetrator["temp_id"] ?? $perpetrator["tempId"] ?? "none",
                         "wikidata_id" => $perpetratorId
                     ]);
                     
@@ -1070,18 +1084,26 @@ class WikidataFormatter
                     $perpetrators[$index] = $updatedPerpetrator;
                 }
             }
-            // Fallback, wenn weder ID noch temp_id, aber Name vorhanden ist
-            elseif (!empty($perpetrator["name"])) {
+            // Fallback, wenn weder ID noch temp_id/tempId, aber Name oder firstName/lastName vorhanden ist
+            elseif (!empty($perpetrator["name"]) || !empty($perpetrator["firstName"]) || !empty($perpetrator["lastName"])) {
+                // Erstelle Namen aus firstName und lastName, falls vorhanden
+                $name = !empty($perpetrator["name"]) ? $perpetrator["name"] : 
+                       trim(($perpetrator["firstName"] ?? "") . " " . ($perpetrator["lastName"] ?? ""));
+                
+                // Konvertiere birthDate/deathDate zu date_of_birth/date_of_death
+                $dateOfBirth = $perpetrator["date_of_birth"] ?? $perpetrator["birthDate"] ?? null;
+                $dateOfDeath = $perpetrator["date_of_death"] ?? $perpetrator["deathDate"] ?? null;
+                
                 // Neue Person erstellen, wenn Daten vorhanden sind
                 $personData = [
-                    "name" => $perpetrator["name"],
+                    "name" => $name,
                     "description" =>
                         $perpetrator["description"] ??
                         "Täter/in im Zusammenhang mit " .
                             ($formattedData["labels"]["de"]["value"] ??
                                 "einem Ereignis"),
-                    "date_of_birth" => $perpetrator["date_of_birth"] ?? null,
-                    "date_of_death" => $perpetrator["date_of_death"] ?? null,
+                    "date_of_birth" => $dateOfBirth,
+                    "date_of_death" => $dateOfDeath,
                     "occupation" => $perpetrator["occupation"] ?? null,
                     "nationality" => $perpetrator["nationality"] ?? null,
                 ];
@@ -1100,7 +1122,7 @@ class WikidataFormatter
                     $updatedPerpetrator["id"] = $perpetratorId;
                     
                     Log::info("Neue Person als Täter/in erstellt und verlinkt", [
-                        "name" => $perpetrator["name"],
+                        "name" => $name,
                         "wikidata_id" => $perpetratorId
                     ]);
                     
@@ -1193,18 +1215,27 @@ class WikidataFormatter
             ) {
                 $victimId = $victim["id"];
             }
-            // Wenn das Opfer eine temp_id hat (neuer Eintrag)
-            elseif (!empty($victim["temp_id"]) && !empty($victim["name"])) {
+            // Wenn das Opfer eine temp_id oder tempId hat (neuer Eintrag)
+            elseif ((!empty($victim["temp_id"]) || !empty($victim["tempId"])) && 
+                   (!empty($victim["name"]) || !empty($victim["firstName"]) || !empty($victim["lastName"]))) {
+                // Erstelle Namen aus firstName und lastName, falls vorhanden
+                $name = !empty($victim["name"]) ? $victim["name"] : 
+                       trim(($victim["firstName"] ?? "") . " " . ($victim["lastName"] ?? ""));
+                
+                // Konvertiere birthDate/deathDate zu date_of_birth/date_of_death
+                $dateOfBirth = $victim["date_of_birth"] ?? $victim["birthDate"] ?? null;
+                $dateOfDeath = $victim["date_of_death"] ?? $victim["deathDate"] ?? null;
+                
                 // Neue Person erstellen, wenn Daten vorhanden sind
                 $personData = [
-                    "name" => $victim["name"],
+                    "name" => $name,
                     "description" =>
                         $victim["description"] ??
                         "Opfer im Zusammenhang mit " .
                             ($formattedData["labels"]["de"]["value"] ??
                                 "einem Ereignis"),
-                    "date_of_birth" => $victim["date_of_birth"] ?? null,
-                    "date_of_death" => $victim["date_of_death"] ?? null,
+                    "date_of_birth" => $dateOfBirth,
+                    "date_of_death" => $dateOfDeath,
                     "occupation" => $victim["occupation"] ?? null,
                     "nationality" => $victim["nationality"] ?? null,
                 ];
@@ -1216,13 +1247,18 @@ class WikidataFormatter
                 $victimId = $this->createNewPersonEntity($personData, $sources);
                 
                 if ($victimId !== null) {
-                    // temp_id durch echte Wikidata-ID ersetzen
-                    unset($updatedVictim["temp_id"]);
+                    // temp_id/tempId durch echte Wikidata-ID ersetzen
+                    if (isset($updatedVictim["temp_id"])) {
+                        unset($updatedVictim["temp_id"]);
+                    }
+                    if (isset($updatedVictim["tempId"])) {
+                        unset($updatedVictim["tempId"]);
+                    }
                     $updatedVictim["id"] = $victimId;
                     
                     Log::info("Neue Person als Opfer erstellt und verlinkt", [
-                        "name" => $victim["name"],
-                        "temp_id" => $victim["temp_id"],
+                        "name" => $name ?? $victim["name"] ?? "Unbekannt",
+                        "temp_id/tempId" => $victim["temp_id"] ?? $victim["tempId"] ?? "none",
                         "wikidata_id" => $victimId
                     ]);
                     
@@ -1231,17 +1267,26 @@ class WikidataFormatter
                 }
             }
             // Fallback für Einträge ohne ID aber mit Namen
-            elseif (!empty($victim["name"])) {
+            // Fallback, wenn weder ID noch temp_id/tempId, aber Name oder firstName/lastName vorhanden ist
+            elseif (!empty($victim["name"]) || !empty($victim["firstName"]) || !empty($victim["lastName"])) {
+                // Erstelle Namen aus firstName und lastName, falls vorhanden
+                $name = !empty($victim["name"]) ? $victim["name"] : 
+                       trim(($victim["firstName"] ?? "") . " " . ($victim["lastName"] ?? ""));
+                
+                // Konvertiere birthDate/deathDate zu date_of_birth/date_of_death
+                $dateOfBirth = $victim["date_of_birth"] ?? $victim["birthDate"] ?? null;
+                $dateOfDeath = $victim["date_of_death"] ?? $victim["deathDate"] ?? null;
+                
                 // Neue Person erstellen, wenn Daten vorhanden sind
                 $personData = [
-                    "name" => $victim["name"],
+                    "name" => $name,
                     "description" =>
                         $victim["description"] ??
                         "Opfer im Zusammenhang mit " .
                             ($formattedData["labels"]["de"]["value"] ??
                                 "einem Ereignis"),
-                    "date_of_birth" => $victim["date_of_birth"] ?? null,
-                    "date_of_death" => $victim["date_of_death"] ?? null,
+                    "date_of_birth" => $dateOfBirth,
+                    "date_of_death" => $dateOfDeath,
                     "occupation" => $victim["occupation"] ?? null,
                     "nationality" => $victim["nationality"] ?? null,
                 ];
@@ -1257,7 +1302,7 @@ class WikidataFormatter
                     $updatedVictim["id"] = $victimId;
                     
                     Log::info("Neue Person als Opfer erstellt und verlinkt", [
-                        "name" => $victim["name"],
+                        "name" => $name,
                         "wikidata_id" => $victimId
                     ]);
                     
