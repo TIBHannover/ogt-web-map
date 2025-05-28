@@ -637,14 +637,15 @@
         <div class="modal-content">
             <form action="/api/wikidata/requests/{{ $request->id }}/reject" method="POST">
                 @csrf
+                <input type="hidden" name="redirect" value="{{ route('admin.requests.show', $request->id) }}">
                 <div class="modal-header">
                     <h5 class="modal-title" id="rejectModalLabel">Anfrage ablehnen</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="rejection_reason" class="form-label">Ablehnungsgrund</label>
-                        <textarea class="form-control" id="rejection_reason" name="rejection_reason"
+                        <label for="reason" class="form-label">Ablehnungsgrund</label>
+                        <textarea class="form-control" id="reason" name="reason"
                                   rows="3" required></textarea>
                     </div>
                 </div>
@@ -665,6 +666,7 @@
         <div class="modal-content">
             <form action="/api/wikidata/requests/{{ $request->id }}/approve" method="POST">
                 @csrf
+                <input type="hidden" name="redirect" value="{{ route('admin.requests.show', $request->id) }}">
                 <div class="modal-header">
                     <h5 class="modal-title" id="approveModalLabel">Anfrage genehmigen</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
@@ -715,6 +717,39 @@
             L.marker([lat, lng]).addTo(map)
                 .bindPopup("{{ addslashes($request->title) }}");
         }
+
+        // Handle form submissions with redirects
+        const forms = document.querySelectorAll('form[action^="/api/wikidata/requests/"]');
+        forms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                if (form.querySelector('input[name="redirect"]')) {
+                    e.preventDefault();
+                    const formData = new FormData(form);
+                    
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.redirect) {
+                            window.location.href = data.redirect;
+                        } else {
+                            // Fallback if no redirect provided
+                            window.location.reload();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
+                    });
+                }
+                // If no redirect input exists, the form will submit normally
+            });
+        });
     });
 </script>
 <style>

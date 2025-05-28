@@ -179,6 +179,17 @@ class WikidataEntityController extends Controller
 
             // Pru00fcfen, ob die Anfrage bereits genehmigt wurde
             if ($entryRequest->status === "approved") {
+                if ($request->has('redirect')) {
+                    return response()->json(
+                        [
+                            "redirect" => $request->input('redirect'),
+                            "success" => false,
+                            "message" => "Diese Anfrage wurde bereits genehmigt.",
+                        ],
+                        Response::HTTP_BAD_REQUEST
+                    );
+                }
+                
                 return response()->json(
                     [
                         "success" => false,
@@ -196,6 +207,18 @@ class WikidataEntityController extends Controller
             // Job in die Queue stellen, um Wikidata-Eintrag asynchron zu erstellen
             \App\Jobs\CreateWikidataEntity::dispatch($entryRequest);
 
+            if ($request->has('redirect')) {
+                return response()->json(
+                    [
+                        "redirect" => $request->input('redirect'),
+                        "success" => true,
+                        "message" =>
+                            "Anfrage genehmigt und Wikidata-Eintrag zur Queue hinzugefügt.",
+                    ],
+                    Response::HTTP_OK
+                );
+            }
+            
             return response()->json(
                 [
                     "success" => true,
@@ -207,6 +230,19 @@ class WikidataEntityController extends Controller
         } catch (\Exception $e) {
             Log::error("Error approving request: " . $e->getMessage());
 
+            if ($request->has('redirect')) {
+                return response()->json(
+                    [
+                        "redirect" => $request->input('redirect'),
+                        "success" => false,
+                        "message" =>
+                            "Fehler bei der Genehmigung der Anfrage: " .
+                            $e->getMessage(),
+                    ],
+                    Response::HTTP_INTERNAL_SERVER_ERROR
+                );
+            }
+            
             return response()->json(
                 [
                     "success" => false,
@@ -235,6 +271,18 @@ class WikidataEntityController extends Controller
         ]);
 
         if ($validator->fails()) {
+            if ($request->has('redirect')) {
+                return response()->json(
+                    [
+                        "redirect" => $request->input('redirect'),
+                        "success" => false,
+                        "message" => "Ungültige Eingabe",
+                        "errors" => $validator->errors(),
+                    ],
+                    Response::HTTP_BAD_REQUEST
+                );
+            }
+            
             return response()->json(
                 [
                     "success" => false,
@@ -250,6 +298,17 @@ class WikidataEntityController extends Controller
 
             // Pru00fcfen, ob die Anfrage bereits abgelehnt wurde
             if ($entryRequest->status === "rejected") {
+                if ($request->has('redirect')) {
+                    return response()->json(
+                        [
+                            "redirect" => $request->input('redirect'),
+                            "success" => false,
+                            "message" => "Diese Anfrage wurde bereits abgelehnt.",
+                        ],
+                        Response::HTTP_BAD_REQUEST
+                    );
+                }
+                
                 return response()->json(
                     [
                         "success" => false,
@@ -265,6 +324,17 @@ class WikidataEntityController extends Controller
             $entryRequest->rejection_reason = $request->input("reason");
             $entryRequest->save();
 
+            if ($request->has('redirect')) {
+                return response()->json(
+                    [
+                        "redirect" => $request->input('redirect'),
+                        "success" => true,
+                        "message" => "Anfrage erfolgreich abgelehnt.",
+                    ],
+                    Response::HTTP_OK
+                );
+            }
+            
             return response()->json(
                 [
                     "success" => true,
@@ -275,6 +345,19 @@ class WikidataEntityController extends Controller
         } catch (\Exception $e) {
             Log::error("Error rejecting request: " . $e->getMessage());
 
+            if ($request->has('redirect')) {
+                return response()->json(
+                    [
+                        "redirect" => $request->input('redirect'),
+                        "success" => false,
+                        "message" =>
+                            "Fehler bei der Ablehnung der Anfrage: " .
+                            $e->getMessage(),
+                    ],
+                    Response::HTTP_INTERNAL_SERVER_ERROR
+                );
+            }
+            
             return response()->json(
                 [
                     "success" => false,
