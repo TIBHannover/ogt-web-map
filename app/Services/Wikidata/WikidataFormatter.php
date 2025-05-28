@@ -366,11 +366,12 @@ class WikidataFormatter
      *
      * @param array &$formattedData Referenz auf die formatierte Datenstruktur
      * @param array $data Originaldaten
+     * @return array Die aktualisierten Daten
      */
     protected function formatPersonEntity(
         array &$formattedData,
         array $data
-    ): void {
+    ): array {
         // Geburtsdatum (P569)
         if (!empty($data["date_of_birth"])) {
             $birthDate = $this->formatDate($data["date_of_birth"]);
@@ -510,8 +511,6 @@ class WikidataFormatter
                 ];
             }
         }
-        
-        return $perpetrators;
     }
 
     /**
@@ -1148,6 +1147,8 @@ class WikidataFormatter
                 ];
             }
         }
+        
+        return $perpetrators;
     }
 
     /**

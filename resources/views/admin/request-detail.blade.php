@@ -521,12 +521,26 @@
                             }
 
                             // Formatierte Daten für Wikibase vorbereiten
-                            $formattedData = $formatter->formatEntityData($requestData, $request->type);
+                            $result = $formatter->formatEntityData($requestData, $request->type);
+                            
+                            // Nach unseren Änderungen gibt formatEntityData ein Array mit zwei Schlüsseln zurück
+                            if (is_array($result) && isset($result['formattedData'])) {
+                                $formattedData = $result['formattedData'];
+                                $updatedRequestData = $result['updatedData'];
+                            } else {
+                                $formattedData = $result; // Fallback für alte Struktur
+                                $updatedRequestData = $requestData;
+                            }
                         @endphp
 
                         <div class="mb-4">
                             <h6>Aufbereitete Daten für Wikidata API:</h6>
                             <pre class="bg-light p-3" style="max-height: 400px; overflow-y: auto;">{{ json_encode($formattedData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6>Aktualisierte Eingabedaten (mit neuen IDs):</h6>
+                            <pre class="bg-light p-3" style="max-height: 400px; overflow-y: auto;">{{ json_encode($updatedRequestData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
                         </div>
 
                         <div class="alert alert-info">
