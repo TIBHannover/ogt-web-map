@@ -80,6 +80,19 @@ class WikidataOptimizer
     }
     
     /**
+     * Pru00fcft, ob ein String wie eine URL aussieht.
+     *
+     * @param string $str Der zu pru00fcfende String
+     * @return bool Ob der String wie eine URL aussieht
+     */
+    private function looksLikeUrl(string $str): bool
+    {
+        // Grundlegende Pru00fcfung auf domain-u00e4hnliche Muster
+        return preg_match('/^[a-z0-9]+(\.[a-z0-9]+)+/i', $str) &&
+               !preg_match('/\s/', $str);
+    }
+    
+    /**
      * Optimiert Daten für die Aktualisierung einer bestehenden Entity
      * 
      * @param array $data Die zu optimierenden Daten
@@ -136,6 +149,13 @@ class WikidataOptimizer
                 }
             } elseif ($value === null || (is_string($value) && trim($value) === '')) {
                 unset($data[$key]);
+            } elseif (is_string($value) && $this->looksLikeUrl($value) && !preg_match('#^https?://#i', $value)) {
+                // Fu00fcr URL-u00e4hnliche Strings ohne Schema ein Schema hinzufu00fcgen
+                $data[$key] = 'https://' . $value;
+                Log::info('WikidataOptimizer: Added https:// to URL-like string', [
+                    'original' => $value,
+                    'fixed' => $data[$key]
+                ]);
             }
         }
         

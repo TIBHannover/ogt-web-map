@@ -201,7 +201,7 @@
                                     // Wenn es kein gu00fcltiges JSON ist, als Text behandeln
                                     $isJson = json_last_error() === JSON_ERROR_NONE && is_array($causes);
                                 @endphp
-        
+
                                 @if($isJson && count($causes) > 0)
                                     <div class="list-group mt-2">
                                         @foreach($causes as $cause)
@@ -725,7 +725,7 @@
                 if (form.querySelector('input[name="redirect"]')) {
                     e.preventDefault();
                     const formData = new FormData(form);
-                    
+
                     fetch(form.action, {
                         method: 'POST',
                         body: formData,
@@ -747,7 +747,6 @@
                         alert('Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
                     });
                 }
-                // If no redirect input exists, the form will submit normally
             });
         });
     });
