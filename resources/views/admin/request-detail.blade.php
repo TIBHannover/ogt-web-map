@@ -521,7 +521,7 @@
                             }
 
                             // Formatierte Daten für Wikibase vorbereiten
-                            $result = $formatter->formatEntityData($requestData, $request->type);
+                            $result = $formatter->formatEntityData($requestData, $request->type, false); // false = keine Entities erstellen
                             
                             // Nach unseren Änderungen gibt formatEntityData ein Array mit zwei Schlüsseln zurück
                             if (is_array($result) && isset($result['formattedData'])) {

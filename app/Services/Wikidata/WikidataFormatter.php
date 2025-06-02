@@ -91,9 +91,10 @@ class WikidataFormatter
      *
      * @param array $data Die Ausgangsdaten aus dem Request
      * @param string $type Der Entity-Typ (Q5 = Person, Q6983405 = Ereignis, Q43229 = Organisation, Q811979 = Architektonische Struktur)
+     * @param bool $createEntities Flag, ob neue Entities erstellt werden sollen (nur im Job, nicht bei Vorschau)
      * @return array Formatierte Daten für Wikidata
      */
-    public function formatEntityData(array $data, string $type): array
+    public function formatEntityData(array $data, string $type, bool $createEntities = false): array
     {
         // Basis-Struktur gemäß Wikibase-Dokumentation
         $formattedData = [
@@ -252,12 +253,12 @@ class WikidataFormatter
 
         // Täter/innen hinzufügen, wenn vorhanden
         if (!empty($data["perpetrators"])) {
-            $data["perpetrators"] = $this->addPerpetrators($formattedData, $data["perpetrators"]);
+            $data["perpetrators"] = $this->addPerpetrators($formattedData, $data["perpetrators"], $createEntities);
         }
 
         // Opfer hinzufügen, wenn vorhanden
         if (!empty($data["victims"])) {
-            $data["victims"] = $this->addVictims($formattedData, $data["victims"]);
+            $data["victims"] = $this->addVictims($formattedData, $data["victims"], $createEntities);
         }
 
         // Typ-spezifische Formatierungen
@@ -985,11 +986,13 @@ class WikidataFormatter
      *
      * @param array &$formattedData Referenz auf die formatierte Datenstruktur
      * @param array $perpetrators Array mit Täter/Täterinnen-Daten
+     * @param bool $createEntities Flag, ob neue Entities erstellt werden sollen (nur im Job, nicht bei Vorschau)
      * @return array Die aktualisierten Täter/Täterinnen-Daten
      */
     protected function addPerpetrators(
         array &$formattedData,
-        array $perpetrators
+        array $perpetrators,
+        bool $createEntities = false
     ): array {
         if (empty($perpetrators)) {
             return [];
@@ -1010,9 +1013,6 @@ class WikidataFormatter
             }
         }
 
-        // Array für aktualisierte Täter/Täterinnen-Daten
-        $updatedPerpetrators = [];
-
         // Initialisiere das Claims-Array für Täter/Täterinnen, falls es noch nicht existiert
         if (!isset($formattedData["claims"][self::WIKIDATA_PERPETRATOR])) {
             $formattedData["claims"][self::WIKIDATA_PERPETRATOR] = [];
@@ -1029,138 +1029,46 @@ class WikidataFormatter
                 substr($perpetrator["id"], 0, 1) === "Q"
             ) {
                 $perpetratorId = $perpetrator["id"];
-            }
-            // Wenn der/die Täter/in eine temp_id oder tempId hat (neuer Eintrag)
-            elseif ((!empty($perpetrator["temp_id"]) || !empty($perpetrator["tempId"])) && 
-                  (!empty($perpetrator["name"]) || !empty($perpetrator["firstName"]) || !empty($perpetrator["lastName"]))) {
-                // Erstelle Namen aus firstName und lastName, falls vorhanden
-                $name = !empty($perpetrator["name"]) ? $perpetrator["name"] : 
-                       trim(($perpetrator["firstName"] ?? "") . " " . ($perpetrator["lastName"] ?? ""));
                 
-                // Konvertiere birthDate/deathDate zu date_of_birth/date_of_death
-                $dateOfBirth = $perpetrator["date_of_birth"] ?? $perpetrator["birthDate"] ?? null;
-                $dateOfDeath = $perpetrator["date_of_death"] ?? $perpetrator["deathDate"] ?? null;
-                
-                // Neue Person erstellen, wenn Daten vorhanden sind
-                $personData = [
-                    "name" => $name,
-                    "description" =>
-                        $perpetrator["description"] ??
-                        "Täter/in im Zusammenhang mit " .
-                            ($formattedData["labels"]["de"]["value"] ??
-                                "einem Ereignis"),
-                    "date_of_birth" => $dateOfBirth,
-                    "date_of_death" => $dateOfDeath,
-                    "occupation" => $perpetrator["occupation"] ?? null,
-                    "nationality" => $perpetrator["nationality"] ?? null,
-                ];
-
-                // Quellenangaben verwenden, wenn vorhanden
-                $sources = $perpetrator["sources"] ?? [];
-
-                // Person in Wikidata erstellen und ID erhalten
-                $perpetratorId = $this->createNewPersonEntity(
-                    $personData,
-                    $sources
-                );
-                
+                // Wenn wir eine gültige Wikidata-ID haben, den Täter/die Täterin hinzufügen
                 if ($perpetratorId !== null) {
-                    // temp_id/tempId durch echte Wikidata-ID ersetzen
-                    if (isset($updatedPerpetrator["temp_id"])) {
-                        unset($updatedPerpetrator["temp_id"]);
-                    }
-                    if (isset($updatedPerpetrator["tempId"])) {
-                        unset($updatedPerpetrator["tempId"]);
-                    }
-                    $updatedPerpetrator["id"] = $perpetratorId;
-                    
-                    Log::info("Neue Person als Täter/in erstellt und verlinkt", [
-                        "name" => $name ?? $perpetrator["name"] ?? "Unbekannt",
-                        "temp_id/tempId" => $perpetrator["temp_id"] ?? $perpetrator["tempId"] ?? "none",
-                        "wikidata_id" => $perpetratorId
-                    ]);
-                    
-                    // Aktualisiere den originalen Perpetrator im Array
-                    $perpetrators[$index] = $updatedPerpetrator;
-                }
-            }
-            // Fallback, wenn weder ID noch temp_id/tempId, aber Name oder firstName/lastName vorhanden ist
-            elseif (!empty($perpetrator["name"]) || !empty($perpetrator["firstName"]) || !empty($perpetrator["lastName"])) {
-                // Erstelle Namen aus firstName und lastName, falls vorhanden
-                $name = !empty($perpetrator["name"]) ? $perpetrator["name"] : 
-                       trim(($perpetrator["firstName"] ?? "") . " " . ($perpetrator["lastName"] ?? ""));
-                
-                // Konvertiere birthDate/deathDate zu date_of_birth/date_of_death
-                $dateOfBirth = $perpetrator["date_of_birth"] ?? $perpetrator["birthDate"] ?? null;
-                $dateOfDeath = $perpetrator["date_of_death"] ?? $perpetrator["deathDate"] ?? null;
-                
-                // Neue Person erstellen, wenn Daten vorhanden sind
-                $personData = [
-                    "name" => $name,
-                    "description" =>
-                        $perpetrator["description"] ??
-                        "Täter/in im Zusammenhang mit " .
-                            ($formattedData["labels"]["de"]["value"] ??
-                                "einem Ereignis"),
-                    "date_of_birth" => $dateOfBirth,
-                    "date_of_death" => $dateOfDeath,
-                    "occupation" => $perpetrator["occupation"] ?? null,
-                    "nationality" => $perpetrator["nationality"] ?? null,
-                ];
-
-                // Quellenangaben aus dem Hauptereignis verwenden, wenn vorhanden
-                $sources = $perpetrator["sources"] ?? [];
-
-                // Person in Wikidata erstellen und ID erhalten
-                $perpetratorId = $this->createNewPersonEntity(
-                    $personData,
-                    $sources
-                );
-                
-                if ($perpetratorId !== null) {
-                    // Neue ID dem Perpetrator zuweisen
-                    $updatedPerpetrator["id"] = $perpetratorId;
-                    
-                    Log::info("Neue Person als Täter/in erstellt und verlinkt", [
-                        "name" => $name,
-                        "wikidata_id" => $perpetratorId
-                    ]);
-                    
-                    // Aktualisiere den originalen Perpetrator im Array
-                    $perpetrators[$index] = $updatedPerpetrator;
-                }
-            }
-
-            // Wenn wir eine gültige Wikidata-ID haben, den Täter/die Täterin hinzufügen
-            if ($perpetratorId !== null) {
-                $formattedData["claims"][self::WIKIDATA_PERPETRATOR][] = [
-                    "mainsnak" => [
-                        "snaktype" => "value",
-                        "property" => self::WIKIDATA_PERPETRATOR,
-                        "datavalue" => [
-                            "value" => [
-                                "entity-type" => "item",
-                                "id" => $perpetratorId,
-                                "numeric-id" => intval(
-                                    substr($perpetratorId, 1)
-                                ),
+                    $formattedData["claims"][self::WIKIDATA_PERPETRATOR][] = [
+                        "mainsnak" => [
+                            "snaktype" => "value",
+                            "property" => self::WIKIDATA_PERPETRATOR,
+                            "datavalue" => [
+                                "value" => [
+                                    "entity-type" => "item",
+                                    "id" => $perpetratorId,
+                                    "numeric-id" => intval(
+                                        substr($perpetratorId, 1)
+                                    ),
+                                ],
+                                "type" => "wikibase-entityid",
                             ],
-                            "type" => "wikibase-entityid",
                         ],
-                    ],
-                    "type" => "statement",
-                    "rank" => "normal",
-                ];
-            } else {
-                // Wenn keine ID vorhanden und nicht erstellt werden konnte, als Freitext-Hinweis hinzufügen
+                        "type" => "statement",
+                        "rank" => "normal",
+                    ];
+                }
+            }
+            // Bei temporären IDs oder neuen Einträgen nur die Daten behalten - KEINE neuen Einträge erstellen
+            else {
+                // Für temporäre IDs oder neue Einträge - wir behalten sie nur in den updatedPerpetrators bei
+                // KEINE neuen Wikidata-Einträge an dieser Stelle erstellen!
+                
+                // Info zu temporären Personen als Freitext-Hinweis hinzufügen
+                $name = !empty($perpetrator["name"]) ? $perpetrator["name"] : 
+                       trim(($perpetrator["firstName"] ?? "") . " " . ($perpetrator["lastName"] ?? ""));
+                
                 $formattedData["claims"][self::WIKIDATA_AUTHOR_STRING][] = [
                     "mainsnak" => [
                         "snaktype" => "value",
                         "property" => self::WIKIDATA_AUTHOR_STRING,
                         "datavalue" => [
                             "value" =>
-                                "Täter/in: " .
-                                ($perpetrator["name"] ?? "Unbekannt"),
+                                "Täter/in: " . ($name ?: "Unbekannt") . 
+                                " (Wird bei Genehmigung erstellt)",
                             "type" => "string",
                         ],
                     ],
@@ -1178,9 +1086,10 @@ class WikidataFormatter
      *
      * @param array &$formattedData Referenz auf die formatierte Datenstruktur
      * @param array $victims Array mit Opfer-Daten
+     * @param bool $createEntities Flag, ob neue Entities erstellt werden sollen (nur im Job, nicht bei Vorschau)
      * @return array Die aktualisierten Opfer-Daten
      */
-    protected function addVictims(array &$formattedData, array $victims): array
+    protected function addVictims(array &$formattedData, array $victims, bool $createEntities = false): array
     {
         if (empty($victims)) {
             return [];
@@ -1243,27 +1152,36 @@ class WikidataFormatter
                 // Quellenangaben verwenden, wenn vorhanden
                 $sources = $victim["sources"] ?? [];
 
-                // Person in Wikidata erstellen und ID erhalten
-                $victimId = $this->createNewPersonEntity($personData, $sources);
-                
-                if ($victimId !== null) {
-                    // temp_id/tempId durch echte Wikidata-ID ersetzen
-                    if (isset($updatedVictim["temp_id"])) {
-                        unset($updatedVictim["temp_id"]);
-                    }
-                    if (isset($updatedVictim["tempId"])) {
-                        unset($updatedVictim["tempId"]);
-                    }
-                    $updatedVictim["id"] = $victimId;
+                // Person in Wikidata erstellen und ID erhalten - nur wenn $createEntities=true
+                $victimId = null;
+                if ($createEntities) {
+                    $victimId = $this->createNewPersonEntity($personData, $sources);
                     
-                    Log::info("Neue Person als Opfer erstellt und verlinkt", [
+                    if ($victimId !== null) {
+                        // temp_id/tempId durch echte Wikidata-ID ersetzen
+                        if (isset($updatedVictim["temp_id"])) {
+                            unset($updatedVictim["temp_id"]);
+                        }
+                        if (isset($updatedVictim["tempId"])) {
+                            unset($updatedVictim["tempId"]);
+                        }
+                        $updatedVictim["id"] = $victimId;
+                        
+                        Log::info("Neue Person als Opfer erstellt und verlinkt", [
+                            "name" => $name ?? $victim["name"] ?? "Unbekannt",
+                            "temp_id/tempId" => $victim["temp_id"] ?? $victim["tempId"] ?? "none",
+                            "wikidata_id" => $victimId
+                        ]);
+                        
+                        // Aktualisiere das originale Opfer im Array
+                        $victims[$index] = $updatedVictim;
+                    }
+                } else {
+                    // Im Vorschau-Modus nur Platzhalter-ID erstellen
+                    Log::info("Nur Vorschau: Kein Opfer erstellt für", [
                         "name" => $name ?? $victim["name"] ?? "Unbekannt",
-                        "temp_id/tempId" => $victim["temp_id"] ?? $victim["tempId"] ?? "none",
-                        "wikidata_id" => $victimId
+                        "temp_id/tempId" => $victim["temp_id"] ?? $victim["tempId"] ?? "none"
                     ]);
-                    
-                    // Aktualisiere das originale Opfer im Array
-                    $victims[$index] = $updatedVictim;
                 }
             }
             // Fallback für Einträge ohne ID aber mit Namen
@@ -1294,20 +1212,28 @@ class WikidataFormatter
                 // Quellenangaben aus dem Hauptereignis verwenden, wenn vorhanden
                 $sources = $victim["sources"] ?? [];
 
-                // Person in Wikidata erstellen und ID erhalten
-                $victimId = $this->createNewPersonEntity($personData, $sources);
-                
-                if ($victimId !== null) {
-                    // Neue ID dem Opfer zuweisen
-                    $updatedVictim["id"] = $victimId;
+                // Person in Wikidata erstellen und ID erhalten - nur wenn $createEntities=true
+                $victimId = null;
+                if ($createEntities) {
+                    $victimId = $this->createNewPersonEntity($personData, $sources);
                     
-                    Log::info("Neue Person als Opfer erstellt und verlinkt", [
-                        "name" => $name,
-                        "wikidata_id" => $victimId
+                    if ($victimId !== null) {
+                        // Neue ID dem Opfer zuweisen
+                        $updatedVictim["id"] = $victimId;
+                        
+                        Log::info("Neue Person als Opfer erstellt und verlinkt", [
+                            "name" => $name,
+                            "wikidata_id" => $victimId
+                        ]);
+                        
+                        // Aktualisiere das originale Opfer im Array
+                        $victims[$index] = $updatedVictim;
+                    }
+                } else {
+                    // Im Vorschau-Modus nur Platzhalter-ID erstellen
+                    Log::info("Nur Vorschau: Kein Opfer erstellt für", [
+                        "name" => $name ?? $victim["name"] ?? "Unbekannt"
                     ]);
-                    
-                    // Aktualisiere das originale Opfer im Array
-                    $victims[$index] = $updatedVictim;
                 }
             }
 

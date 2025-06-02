@@ -259,7 +259,8 @@ class WikidataService
 
             $formattedData = $this->formatter->formatEntityData(
                 $entityData,
-                $type
+                $type,
+                true // createEntities = true, weil wir hier tatsächlich eine Entity erstellen wollen
             );
 
             // Debug-Ausgabe der ursprüunglichen formatierten Daten
@@ -270,9 +271,14 @@ class WikidataService
                 ),
             ]);
 
+            // Extrahiere die formattedData aus dem Ergebnis
+            $dataToUse = is_array($formattedData) && isset($formattedData['formattedData']) 
+                ? $formattedData['formattedData'] 
+                : $formattedData;
+
             // Daten für die Erstellung optimieren (entferne ID, etc.)
             $optimizedData = $this->optimizer->optimize(
-                $formattedData,
+                $dataToUse,
                 "create"
             );
 
@@ -457,7 +463,11 @@ class WikidataService
     {
         try {
             // Daten für Wikidata formatieren
-            $entityData = $this->formatter->formatEntityData($rawData, $type);
+            $entityData = $this->formatter->formatEntityData(
+                $rawData, 
+                $type,
+                true // createEntities = true, weil wir hier tatsächlich eine Entity aktualisieren
+            );
 
             // Debug-Ausgabe der urspru00fcnglichen formatierten Daten
             Log::info("Original formatted entity data for update", [
@@ -468,8 +478,13 @@ class WikidataService
                 ),
             ]);
 
+            // Extrahiere die formattedData aus dem Ergebnis
+            $dataToUse = is_array($entityData) && isset($entityData['formattedData']) 
+                ? $entityData['formattedData'] 
+                : $entityData;
+
             // Daten für die Aktualisierung optimieren
-            $optimizedData = $this->optimizer->optimize($entityData, "update");
+            $optimizedData = $this->optimizer->optimize($dataToUse, "update");
 
             // Wenn Simulationsmodus aktiv ist, beenden wir hier und geben eine simulierte Antwort zuru00fcck
             if ($this->simulationMode) {
