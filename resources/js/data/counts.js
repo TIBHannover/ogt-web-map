@@ -8,6 +8,7 @@ export const groupedPlaces = {
         places: {},
         placesByCoordinates: [],
         countHistory: {
+            "2025-05-28": "126",
             "2025-04-24": "113",
             "2025-04-04": "67",
             "2025-03-27": "52",
@@ -24,6 +25,7 @@ export const groupedPlaces = {
         places: {},
         placesByCoordinates: [],
         countHistory: {
+            "2025-05-28": "4",
             "2025-04-24": "4",
             "2025-04-04": "4",
             "2025-03-27": "4",
@@ -40,6 +42,7 @@ export const groupedPlaces = {
         places: {},
         placesByCoordinates: [],
         countHistory: {
+            "2025-05-28": "39",
             "2025-04-24": "39",
             "2025-04-04": "39",
             "2025-03-27": "39",
@@ -56,6 +59,7 @@ export const groupedPlaces = {
         places: {},
         placesByCoordinates: [],
         countHistory: {
+            "2025-05-28": "24",
             "2025-04-24": "24",
             "2025-04-04": "24",
             "2025-03-27": "24",
@@ -72,6 +76,7 @@ export const groupedPlaces = {
         places: {},
         placesByCoordinates: [],
         countHistory: {
+            "2025-05-28": "29",
             "2025-04-24": "26",
             "2025-04-04": "25",
             "2025-03-27": "25",
@@ -88,6 +93,7 @@ export const groupedPlaces = {
         places: {},
         placesByCoordinates: [],
         countHistory: {
+            "2025-05-28": "9",
             "2025-04-24": "9",
             "2025-04-04": "8",
             "2025-03-27": "8",
@@ -104,6 +110,7 @@ export const groupedPlaces = {
         places: {},
         placesByCoordinates: [],
         countHistory: {
+            "2025-05-28": "5",
             "2025-04-24": "5",
             "2025-04-04": "5",
             "2025-03-27": "5",
@@ -120,6 +127,7 @@ export const groupedPlaces = {
         places: {},
         placesByCoordinates: [],
         countHistory: {
+            "2025-05-28": "20",
             "2025-04-24": "20",
             "2025-04-04": "20",
             "2025-03-27": "20",
@@ -136,6 +144,7 @@ export const groupedPlaces = {
         places: {},
         placesByCoordinates: [],
         countHistory: {
+            "2025-05-28": "50",
             "2025-04-24": "50",
             "2025-04-04": "50",
             "2025-03-27": "50",
@@ -152,6 +161,7 @@ export const groupedPlaces = {
         places: {},
         placesByCoordinates: [],
         countHistory: {
+            "2025-05-28": "865",
             "2025-04-24": "839",
             "2025-04-04": "798",
             "2025-03-27": "784",
