@@ -16,7 +16,6 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Pru00fcfen, ob der Benutzer angemeldet ist
         if (!Auth::check()) {
             return redirect()
                 ->route("login")
@@ -26,7 +25,6 @@ class AdminMiddleware
                 );
         }
 
-        // Pru00fcfen, ob der Benutzer ein Administrator ist
         if (!Auth::user()->isAdmin()) {
             return redirect()
                 ->route("home")

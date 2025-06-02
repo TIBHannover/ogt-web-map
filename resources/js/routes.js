@@ -10,12 +10,22 @@ const Entry = () => import("./components/Entry.vue");
 // const WikidataRequestDetail = () => import("./components/admin/WikidataRequestDetail.vue");
 const Bibliography = () => import("./components/Bibliography.vue");
 const Workshops = () => import("./components/Workshops.vue");
+const ThankYou = () => import("./components/entry/ThankYou.vue");
 
 export const routes = [
     {
         name: "welcome",
         path: "/starteite",
         component: Welcome,
+    },
+    {
+        name: "thank-you",
+        path: "/thank-you",
+        component: ThankYou,
+        props: true,
+        meta: {
+            title: "Vielen Dank für Ihren Eintrag",
+        },
     },
     {
         name: "project",
@@ -77,6 +87,15 @@ export const routes = [
         component: Workshops,
         meta: {
             title: "Werkstätte für historische Daten: Gestapo. Terror. Orte",
+        },
+    },
+    {
+        name: "thank-you",
+        path: "/thank-you",
+        component: ThankYou,
+        props: true,
+        meta: {
+            title: "Vielen Dank: Gestapo. Terror. Orte",
         },
     },
     {

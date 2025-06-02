@@ -447,6 +447,7 @@ import "leaflet/dist/leaflet.css";
 import * as L from "leaflet";
 import axios from "axios";
 import { debounce } from "lodash";
+import { useRouter } from "vue-router";
 import EventsForm from "./entry/EventsForm.vue";
 import TitleSearchOverlay from "./entry/fields/TitleSearchOverlay.vue";
 import glossaryItems from "../data/glossaryData";
@@ -457,6 +458,7 @@ const props = defineProps({
 });
 
 // Reactive references
+const router = useRouter();
 const freeClientWidth = ref(document.documentElement.clientWidth);
 const error = ref(null);
 const formsType = ref("Q6983405");
@@ -1008,7 +1010,7 @@ const searchCause = debounce(async (query) => {
     lastCauseSearchQuery.value = query;
 
     try {
-        const response = await axios.get("/api/wikidata/search/concepts", {
+        const response = await axios.get("/api/wikidata/search/cause", {
             params: {
                 query,
             },
@@ -1060,6 +1062,23 @@ const resetForm = async () => {
             missingFields.push("Standort");
         }
 
+        // Prüfe, ob mindestens ein Täter vorhanden ist
+        if (
+            formsType.value === "Q6983405" &&
+            (!selectedPerpetrators.value ||
+                selectedPerpetrators.value.length === 0)
+        ) {
+            missingFields.push("Täter*In");
+        }
+
+        // Prüfe, ob mindestens eine Quelle vorhanden ist
+        if (
+            formsType.value === "Q6983405" &&
+            (!selectedSources.value || selectedSources.value.length === 0)
+        ) {
+            missingFields.push("Quelle");
+        }
+
         if (missingFields.length) {
             error.value = `Fehlende Pflichtfelder: ${missingFields.join(", ")}`;
             isSubmitting.value = false;
@@ -1105,9 +1124,11 @@ const resetForm = async () => {
         );
 
         if (response.data.success) {
-            alert(`Eintrag erfolgreich erstellt: ${response.data.requestId}`);
-            clearForm();
-            currentStep.value = 1;
+            // Redirect to thank-you page with request ID
+            router.push({
+                name: "thank-you",
+                params: { requestId: response.data.requestId },
+            });
         } else {
             error.value =
                 response.data.message ||

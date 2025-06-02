@@ -9,6 +9,12 @@ use Illuminate\Routing\Controller;
 
 class WikidataSearchController extends Controller
 {
+    /**
+     * Search for people, organizations, and Gestapo terror sites in Wikidata
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function searchPeople(Request $request): JsonResponse
     {
         $request->validate([
@@ -37,13 +43,15 @@ class WikidataSearchController extends Controller
                 ) {
                     $entity = $response->json()["entities"][$query];
 
-                    // Pru00fcfe, ob es sich um einen Menschen handelt (P31 = instance of, Q5 = human)
+                    // Pru00fcfe, ob es sich um eine Person, Organisation oder Ort des Gestapoterrors handelt (P31 = instance of)
                     if (isset($entity["claims"]["P31"])) {
                         foreach ($entity["claims"]["P31"] as $claim) {
+                            $entityType =
+                                $claim["mainsnak"]["datavalue"]["value"]["id"];
                             if (
-                                $claim["mainsnak"]["datavalue"]["value"][
-                                    "id"
-                                ] === "Q5"
+                                $entityType === "Q5" || // Human
+                                $entityType === "Q43229" || // Organization
+                                $entityType === "Q106996250" // Orte des Gestapoterrors
                             ) {
                                 // Geburtsdatum und Todesdatum ermitteln falls vorhanden
                                 $birth = null;
@@ -68,36 +76,19 @@ class WikidataSearchController extends Controller
                                         ]["datavalue"]["value"]["time"] ?? null;
                                     $death = $death
                                         ? substr($death, 1, 10)
-                                        : null; // '+' und Pru00e4zision entfernen
+                                        : null;
                                 }
 
-                                // Beschreibungstext priorisieren: Deutsch > Englisch > leer
-                                $description = null;
-                                if (
-                                    !empty(
-                                        $entity["descriptions"]["de"]["value"]
-                                    )
-                                ) {
-                                    $description =
-                                        $entity["descriptions"]["de"]["value"];
-                                } elseif (
-                                    !empty(
-                                        $entity["descriptions"]["en"]["value"]
-                                    )
-                                ) {
-                                    $description =
-                                        $entity["descriptions"]["en"]["value"];
-                                }
+                                $resultObj = ["id" => $query];
 
-                                // Label priorisieren: Deutsch > Englisch > Q-ID
-                                $label = $query;
-                                if (!empty($entity["labels"]["de"]["value"])) {
-                                    $label = $entity["labels"]["de"]["value"];
-                                } elseif (
-                                    !empty($entity["labels"]["en"]["value"])
-                                ) {
-                                    $label = $entity["labels"]["en"]["value"];
-                                }
+                                $label = $this->getPrioritizedLabel(
+                                    $entity,
+                                    $resultObj
+                                );
+                                $description = $this->getPrioritizedDescription(
+                                    $entity,
+                                    $resultObj
+                                );
 
                                 return response()->json([
                                     [
@@ -155,13 +146,15 @@ class WikidataSearchController extends Controller
                         $entityResponse->json()["entities"][$result["id"]] ??
                         null;
 
-                    // Check if entity is human (P31 = instance of, Q5 = human)
+                    // Check if entity is a person, organization, or Gestapo terror site (P31 = instance of)
                     if ($entity && isset($entity["claims"]["P31"])) {
                         foreach ($entity["claims"]["P31"] as $claim) {
+                            $entityType =
+                                $claim["mainsnak"]["datavalue"]["value"]["id"];
                             if (
-                                $claim["mainsnak"]["datavalue"]["value"][
-                                    "id"
-                                ] === "Q5"
+                                $entityType === "Q5" || // Human
+                                $entityType === "Q43229" || // Organization
+                                $entityType === "Q106996250" // Orte des Gestapoterrors
                             ) {
                                 // Get birth and death dates if available
                                 $birth = null;
@@ -189,40 +182,18 @@ class WikidataSearchController extends Controller
                                         : null; // Remove '+' and precision
                                 }
 
-                                // Beschreibung priorisieren: Aus Suchergebnis > Deutsch > Englisch > leer
-                                $description = $result["description"] ?? null;
-
-                                // Wenn keine Beschreibung aus dem Suchergebnis vorhanden ist
-                                if (empty($description)) {
-                                    if (
-                                        !empty(
-                                            $entity["descriptions"]["de"][
-                                                "value"
-                                            ]
-                                        )
-                                    ) {
-                                        $description =
-                                            $entity["descriptions"]["de"][
-                                                "value"
-                                            ];
-                                    } elseif (
-                                        !empty(
-                                            $entity["descriptions"]["en"][
-                                                "value"
-                                            ]
-                                        )
-                                    ) {
-                                        $description =
-                                            $entity["descriptions"]["en"][
-                                                "value"
-                                            ];
-                                    }
-                                }
+                                // Prioritäten für Beschreibung anwenden
+                                $description = $this->getPrioritizedDescription(
+                                    $entity,
+                                    $result
+                                );
 
                                 $filteredResults[] = [
                                     "id" => $result["id"],
-                                    "label" =>
-                                        $result["label"] ?? $result["id"],
+                                    "label" => $this->getPrioritizedLabel(
+                                        $entity,
+                                        $result
+                                    ),
                                     "description" => $description,
                                     "birth" => $birth,
                                     "death" => $death,
@@ -244,6 +215,63 @@ class WikidataSearchController extends Controller
         }
     }
 
+    /**
+     * Prioritize description extraction: German > English > Search Result > Empty
+     *
+     * @param array $entity Full entity data from Wikidata
+     * @param array $result Initial search result from Wikidata
+     * @return string|null The prioritized description or null if not found
+     */
+    private function getPrioritizedDescription(
+        array $entity,
+        array $result
+    ): ?string {
+        // Default to null if nothing is found
+        $description = null;
+
+        // First try German description from full entity lookup
+        if (!empty($entity["descriptions"]["de"]["value"])) {
+            $description = $entity["descriptions"]["de"]["value"];
+        }
+        // Fallback to English description from entity lookup
+        elseif (!empty($entity["descriptions"]["en"]["value"])) {
+            $description = $entity["descriptions"]["en"]["value"];
+        }
+        // Fallback to description from search result
+        elseif (!empty($result["description"])) {
+            $description = $result["description"];
+        }
+
+        return $description;
+    }
+
+    /**
+     * Prioritize label extraction: German > English > Search Result > ID
+     *
+     * @param array $entity Full entity data from Wikidata
+     * @param array $result Initial search result from Wikidata
+     * @return string The prioritized label
+     */
+    private function getPrioritizedLabel(array $entity, array $result): string
+    {
+        // Default to ID if nothing else is found
+        $label = $result["id"];
+
+        // First try German label from full entity lookup
+        if (!empty($entity["labels"]["de"]["value"])) {
+            $label = $entity["labels"]["de"]["value"];
+        }
+        // Fallback to English label from entity lookup
+        elseif (!empty($entity["labels"]["en"]["value"])) {
+            $label = $entity["labels"]["en"]["value"];
+        }
+        // Fallback to label from search result
+        elseif (!empty($result["label"])) {
+            $label = $result["label"];
+        }
+
+        return $label;
+    }
     public function searchByTitle(Request $request): JsonResponse
     {
         $request->validate([
@@ -272,21 +300,13 @@ class WikidataSearchController extends Controller
                 ) {
                     $entity = $response->json()["entities"][$title];
 
-                    // Prioritize description: German > English > empty
-                    $description = null;
-                    if (!empty($entity["descriptions"]["de"]["value"])) {
-                        $description = $entity["descriptions"]["de"]["value"];
-                    } elseif (!empty($entity["descriptions"]["en"]["value"])) {
-                        $description = $entity["descriptions"]["en"]["value"];
-                    }
+                    $resultObj = ["id" => $title];
 
-                    // Prioritize label: German > English > Q-ID
-                    $label = $title;
-                    if (!empty($entity["labels"]["de"]["value"])) {
-                        $label = $entity["labels"]["de"]["value"];
-                    } elseif (!empty($entity["labels"]["en"]["value"])) {
-                        $label = $entity["labels"]["en"]["value"];
-                    }
+                    $label = $this->getPrioritizedLabel($entity, $resultObj);
+                    $description = $this->getPrioritizedDescription(
+                        $entity,
+                        $resultObj
+                    );
 
                     return response()->json([
                         "success" => true,
@@ -327,9 +347,48 @@ class WikidataSearchController extends Controller
                 return response()->json([]);
             }
 
+            $processedResults = [];
+            foreach ($results as $result) {
+                $entityResponse = Http::accept("application/json")->get(
+                    "https://www.wikidata.org/w/api.php",
+                    [
+                        "action" => "wbgetentities",
+                        "ids" => $result["id"],
+                        "languages" => "de|en", // Deutsch und Englisch anfordern
+                        "format" => "json",
+                    ]
+                );
+
+                if ($entityResponse->successful()) {
+                    $entity =
+                        $entityResponse->json()["entities"][$result["id"]] ??
+                        null;
+
+                    if ($entity) {
+                        $label = $this->getPrioritizedLabel($entity, $result);
+                        $description = $this->getPrioritizedDescription(
+                            $entity,
+                            $result
+                        );
+
+                        $processedResults[] = [
+                            "id" => $result["id"],
+                            "label" => $label,
+                            "description" => $description,
+                        ];
+                    } else {
+                        // Fallback auf originales Ergebnis
+                        $processedResults[] = $result;
+                    }
+                } else {
+                    // Fallback auf originales Ergebnis
+                    $processedResults[] = $result;
+                }
+            }
+
             return response()->json([
                 "success" => true,
-                "results" => $results,
+                "results" => $processedResults,
             ]);
         } catch (\Exception $e) {
             \Log::error("Wikidata title search error: " . $e->getMessage());
@@ -340,7 +399,62 @@ class WikidataSearchController extends Controller
         }
     }
 
-    public function searchConcepts(Request $request): JsonResponse
+    /**
+     * Process search results to prioritize German labels and descriptions
+     *
+     * @param array $results Raw search results from Wikidata API
+     * @return array Processed results with prioritized German labels and descriptions
+     */
+    private function processSearchResults(array $results): array
+    {
+        $processedResults = [];
+        foreach ($results as $result) {
+            $entityResponse = Http::accept("application/json")->get(
+                "https://www.wikidata.org/w/api.php",
+                [
+                    "action" => "wbgetentities",
+                    "ids" => $result["id"],
+                    "languages" => "de|en",
+                    "format" => "json",
+                ]
+            );
+
+            if ($entityResponse->successful()) {
+                $entity =
+                    $entityResponse->json()["entities"][$result["id"]] ?? null;
+
+                if ($entity) {
+                    $label = $this->getPrioritizedLabel($entity, $result);
+                    $description = $this->getPrioritizedDescription(
+                        $entity,
+                        $result
+                    );
+
+                    $processedResults[] = [
+                        "id" => $result["id"],
+                        "label" => $label,
+                        "description" => $description,
+                    ];
+                } else {
+                    // Fallback auf originales Ergebnis
+                    $processedResults[] = $result;
+                }
+            } else {
+                // Fallback auf originales Ergebnis
+                $processedResults[] = $result;
+            }
+        }
+
+        return $processedResults;
+    }
+
+    /**
+     * Search for concepts (causes) in Wikidata
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function searchCauses(Request $request): JsonResponse
     {
         $request->validate([
             "query" => "required|string|min:2",
@@ -385,31 +499,17 @@ class WikidataSearchController extends Controller
                             $sparqlResponse->json()["results"]["bindings"] ??
                             [];
 
-                        // If we got results, the entity exists
                         if (!empty($results)) {
-                            // Prioritize description: German > English > empty
-                            $description = null;
-                            if (
-                                !empty($entity["descriptions"]["de"]["value"])
-                            ) {
-                                $description =
-                                    $entity["descriptions"]["de"]["value"];
-                            } elseif (
-                                !empty($entity["descriptions"]["en"]["value"])
-                            ) {
-                                $description =
-                                    $entity["descriptions"]["en"]["value"];
-                            }
+                            $resultObj = ["id" => $query];
 
-                            // Prioritize label: German > English > Q-ID
-                            $label = $query;
-                            if (!empty($entity["labels"]["de"]["value"])) {
-                                $label = $entity["labels"]["de"]["value"];
-                            } elseif (
-                                !empty($entity["labels"]["en"]["value"])
-                            ) {
-                                $label = $entity["labels"]["en"]["value"];
-                            }
+                            $label = $this->getPrioritizedLabel(
+                                $entity,
+                                $resultObj
+                            );
+                            $description = $this->getPrioritizedDescription(
+                                $entity,
+                                $resultObj
+                            );
 
                             return response()->json([
                                 [
@@ -508,12 +608,33 @@ class WikidataSearchController extends Controller
                 }
 
                 // Get label and description
-                $label =
-                    $originalResult["label"] ??
-                    ($result["itemLabel"]["value"] ?? $entityId);
-                $description =
-                    $originalResult["description"] ??
-                    ($result["itemDescription"]["value"] ?? null);
+                $label = null;
+                $description = null;
+
+                // Zuerst versuchen, die Daten aus dem Originalergebnis zu bekommen
+                if ($originalResult) {
+                    // Priorisieren: Deutsche Labels aus der Suche > Englische Labels > ID
+                    if (!empty($result["itemLabel"]["value"])) {
+                        // Das Label aus dem SPARQL-Ergebnis ist bereits nach de,en priorisiert
+                        $label = $result["itemLabel"]["value"];
+                    } elseif (!empty($originalResult["label"])) {
+                        $label = $originalResult["label"];
+                    } else {
+                        $label = $entityId;
+                    }
+
+                    // Priorisieren: Deutsche Beschreibung aus der Suche > Englische Beschreibung > null
+                    if (!empty($result["itemDescription"]["value"])) {
+                        // Die Beschreibung aus dem SPARQL-Ergebnis ist bereits nach de,en priorisiert
+                        $description = $result["itemDescription"]["value"];
+                    } elseif (!empty($originalResult["description"])) {
+                        $description = $originalResult["description"];
+                    }
+                } else {
+                    // Fallback auf SPARQL-Ergebnisse
+                    $label = $result["itemLabel"]["value"] ?? $entityId;
+                    $description = $result["itemDescription"]["value"] ?? null;
+                }
 
                 $filteredResults[] = [
                     "id" => $entityId,
@@ -626,21 +747,13 @@ class WikidataSearchController extends Controller
                         }
                     }
 
-                    // Prioritize description: German > English > empty
-                    $description = null;
-                    if (!empty($entity["descriptions"]["de"]["value"])) {
-                        $description = $entity["descriptions"]["de"]["value"];
-                    } elseif (!empty($entity["descriptions"]["en"]["value"])) {
-                        $description = $entity["descriptions"]["en"]["value"];
-                    }
+                    $resultObj = ["id" => $query];
 
-                    // Prioritize label: German > English > Q-ID
-                    $label = $query;
-                    if (!empty($entity["labels"]["de"]["value"])) {
-                        $label = $entity["labels"]["de"]["value"];
-                    } elseif (!empty($entity["labels"]["en"]["value"])) {
-                        $label = $entity["labels"]["en"]["value"];
-                    }
+                    $label = $this->getPrioritizedLabel($entity, $resultObj);
+                    $description = $this->getPrioritizedDescription(
+                        $entity,
+                        $resultObj
+                    );
 
                     return response()->json([
                         "success" => true,
@@ -685,14 +798,49 @@ class WikidataSearchController extends Controller
                 ]);
             }
 
-            // We'll need to filter these results to only include books
-            // This would be best done by checking if each entity is an instance of book (Q571)
-            // But that would require additional API calls for each result
-            // For now, we'll return all results and let the frontend handle filtering
+            $processedResults = [];
+            foreach ($results as $result) {
+                $entityResponse = Http::accept("application/json")->get(
+                    "https://www.wikidata.org/w/api.php",
+                    [
+                        "action" => "wbgetentities",
+                        "ids" => $result["id"],
+                        "languages" => "de|en",
+                        "format" => "json",
+                    ]
+                );
+
+                if ($entityResponse->successful()) {
+                    $entity =
+                        $entityResponse->json()["entities"][$result["id"]] ??
+                        null;
+
+                    if ($entity) {
+                        // Prioritäten für Label und Beschreibung anwenden
+                        $label = $this->getPrioritizedLabel($entity, $result);
+                        $description = $this->getPrioritizedDescription(
+                            $entity,
+                            $result
+                        );
+
+                        $processedResults[] = [
+                            "id" => $result["id"],
+                            "label" => $label,
+                            "description" => $description,
+                        ];
+                    } else {
+                        // Fallback auf originales Ergebnis
+                        $processedResults[] = $result;
+                    }
+                } else {
+                    // Fallback auf originales Ergebnis
+                    $processedResults[] = $result;
+                }
+            }
 
             return response()->json([
                 "success" => true,
-                "results" => $results,
+                "results" => $processedResults,
             ]);
         } catch (\Exception $e) {
             \Log::error("Wikidata book search error: " . $e->getMessage());
@@ -776,21 +924,15 @@ class WikidataSearchController extends Controller
                         ]);
                     }
 
-                    // Prioritize description: German > English > empty
-                    $description = null;
-                    if (!empty($entity["descriptions"]["de"]["value"])) {
-                        $description = $entity["descriptions"]["de"]["value"];
-                    } elseif (!empty($entity["descriptions"]["en"]["value"])) {
-                        $description = $entity["descriptions"]["en"]["value"];
-                    }
+                    // Manuelles Objekt erstellen, um unsere Hilfsfunktionen zu nutzen
+                    $resultObj = ["id" => $query];
 
-                    // Prioritize label: German > English > Q-ID
-                    $label = $query;
-                    if (!empty($entity["labels"]["de"]["value"])) {
-                        $label = $entity["labels"]["de"]["value"];
-                    } elseif (!empty($entity["labels"]["en"]["value"])) {
-                        $label = $entity["labels"]["en"]["value"];
-                    }
+                    // Prioritu00e4ten fu00fcr Label und Beschreibung anwenden
+                    $label = $this->getPrioritizedLabel($entity, $resultObj);
+                    $description = $this->getPrioritizedDescription(
+                        $entity,
+                        $resultObj
+                    );
 
                     return response()->json([
                         "success" => true,
@@ -834,12 +976,51 @@ class WikidataSearchController extends Controller
                 ]);
             }
 
-            // Like with books, filtering to ensure we only return archives would need more API calls
-            // For now, we'll return all results and filter on the frontend or refine the search term
+            // Fu00fcr jedes Suchergebnis sollten wir die Beschreibung und Labels auf Deutsch priorisieren
+            $processedResults = [];
+            foreach ($results as $result) {
+                // Vollstu00e4ndige Entitu00e4tsdaten abrufen
+                $entityResponse = Http::accept("application/json")->get(
+                    "https://www.wikidata.org/w/api.php",
+                    [
+                        "action" => "wbgetentities",
+                        "ids" => $result["id"],
+                        "languages" => "de|en", // Deutsch und Englisch anfordern
+                        "format" => "json",
+                    ]
+                );
+
+                if ($entityResponse->successful()) {
+                    $entity =
+                        $entityResponse->json()["entities"][$result["id"]] ??
+                        null;
+
+                    if ($entity) {
+                        // Prioritu00e4ten fu00fcr Label und Beschreibung anwenden
+                        $label = $this->getPrioritizedLabel($entity, $result);
+                        $description = $this->getPrioritizedDescription(
+                            $entity,
+                            $result
+                        );
+
+                        $processedResults[] = [
+                            "id" => $result["id"],
+                            "label" => $label,
+                            "description" => $description,
+                        ];
+                    } else {
+                        // Fallback auf originales Ergebnis
+                        $processedResults[] = $result;
+                    }
+                } else {
+                    // Fallback auf originales Ergebnis
+                    $processedResults[] = $result;
+                }
+            }
 
             return response()->json([
                 "success" => true,
-                "results" => $results,
+                "results" => $processedResults,
             ]);
         } catch (\Exception $e) {
             \Log::error("Wikidata archive search error: " . $e->getMessage());

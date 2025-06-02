@@ -1,7 +1,7 @@
 <template>
     <div class="container-section sources-section">
         <div class="section-header">
-            <label class="section-label">Quellenangaben:</label>
+            <label class="section-label">Quellenangaben: *</label>
             <button
                 type="button"
                 class="info-icon"

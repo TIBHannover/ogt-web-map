@@ -54,7 +54,7 @@
 
                 <!-- Täter-Eingabefeld -->
                 <PersonsField
-                    label="Täter*In"
+                    label="Täter*In *"
                     fieldId="perpetrators"
                     :peopleSearchResults="perpetratorsSearchResultsValue"
                     :selectedPersons="selectedPerpetratorsValue"
@@ -138,6 +138,7 @@
                     @update:selected-sources="selectedSourcesValue = $event"
                     @field-focus="setActiveField"
                     @info-button-click="openSectionInfo"
+                    required="true"
                 />
                 <!-- Source items display is moved to SourcesField component -->
 
@@ -152,6 +153,9 @@
                     <button class="button" type="button" @click="onSubmit">
                         Eintrag anlegen
                     </button>
+                </div>
+                <div class="required-fields-note">
+                    * Pflichtfelder müssen ausgefüllt werden
                 </div>
                 <div v-if="errorValue" class="bg-error">{{ errorValue }}</div>
             </form>
@@ -709,6 +713,7 @@ const getSectionInfoContent = (sectionName) => {
                <p>Verwenden Sie nur Bilder, die Sie rechtlich nutzen dürfen, und achten Sie auf korrekte Quellenangaben.</p>`,
 
         sources: `<p>Hier können Sie Quellenangaben zum Ereignis hinzufügen.</p>
+                <p><strong>Diese Angabe ist verpflichtend:</strong> Jedes Ereignis muss mindestens eine Quelle enthalten.</p>
                 <p>Sie können verschiedene Arten von Quellen angeben:</p>
                 <ul>
                   <li><strong>Bücher:</strong> Wissenschaftliche Werke, Monographien, Sammelbände etc.</li>
@@ -725,6 +730,7 @@ const getSectionInfoContent = (sectionName) => {
                 <p>Dies hilft bei der Verknüpfung mit anderen Ereignissen und der Nachverfolgung von Schicksalen.</p>`,
 
         perpetrators: `<p>Hier dokumentieren Sie die für das Ereignis verantwortlichen Personen oder Gruppen.</p>
+                     <p><strong>Diese Angabe ist verpflichtend:</strong> Jedes Ereignis muss mindestens einen Täter oder eine verantwortliche Organisation haben.</p>
                      <p>Beachten Sie dabei die juristische und historische Genauigkeit, unterscheiden Sie zwischen direkten Tätern und Befehlsgebern und dokumentieren Sie auch institutionelle Verantwortlichkeiten.</p>
                      <p>Eine präzise Dokumentation der Täter ist ein wichtiger Teil der historischen Aufarbeitung.</p>`,
     };
@@ -869,6 +875,7 @@ const onHandleMapClick = (e) => {
     }
 };
 const onGoToStep = (step) => emit("goToStep", step);
+
 const onSubmit = () => emit("submit");
 
 // Ladet den Ladezustand zurücksetzen, wenn Ergebnisse da sind oder wenn nichts gefunden wurde
@@ -1233,6 +1240,13 @@ const openLightbox = () => {
 
 .button.bg-secondary:hover {
     background-color: #616161;
+}
+
+.required-fields-note {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #666;
+    font-style: italic;
 }
 
 .bg-error {

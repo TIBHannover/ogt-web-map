@@ -90,9 +90,9 @@ Route::get("/wikidata/search/people", [
 ]);
 
 // Route for searching concepts in Wikidata (subclasses of specific entity)
-Route::get("/wikidata/search/concepts", [
+Route::get("/wikidata/search/cause", [
     WikidataSearchController::class,
-    "searchConcepts",
+    "searchCauses",
 ]);
 
 // Route for searching books in Wikidata

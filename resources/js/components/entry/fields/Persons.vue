@@ -39,11 +39,15 @@
                         >
                             {{
                                 person.label ||
-                                `${person.firstName} ${person.lastName}`
+                                (person.isOrganization 
+                                    ? person.lastName 
+                                    : `${person.firstName} ${person.lastName}`)
                             }}
                         </a>
                         <span v-else>
-                            {{ `${person.firstName} ${person.lastName}` }}
+                            {{ person.isOrganization 
+                               ? person.lastName 
+                               : `${person.firstName} ${person.lastName}` }}
                         </span>
                     </span>
                     <span class="person-description" v-if="person.description">
@@ -92,7 +96,7 @@
                     <div v-if="!showNewPersonForm" class="persons-search">
                         <div class="search-input-container">
                             <v-text-field
-                                :placeholder="`Namen der ${label} suchen...`"
+                                :placeholder="`Namen der ${label} oder einer Organisation suchen...`"
                                 v-model="searchQuery"
                                 append-inner-icon="mdi-magnify"
                                 @click:append-inner="
@@ -194,7 +198,7 @@
                                 @click="onStartNewPersonForm"
                                 prepend-icon="mdi-account-plus"
                             >
-                                Person nicht gefunden? Neue Person anlegen
+                                Person/Organisation nicht gefunden? Neu anlegen
                             </v-btn>
                         </div>
                     </div>
@@ -202,36 +206,40 @@
                     <!-- Formular für neue Person -->
                     <div v-if="showNewPersonForm" class="new-person-form">
                         <h4 class="text-h6 mb-4">
-                            {{
-                                editMode
-                                    ? "Person bearbeiten"
-                                    : "Neue Person anlegen"
-                            }}
+                            {{editMode ? "Eintrag bearbeiten" : "Neuen Eintrag anlegen"}}
                         </h4>
                         <div class="form-group">
                             <v-text-field
                                 v-model="newPersonLocal.firstName"
-                                label="Vorname *"
-                                :rules="[rules.required]"
-                                required
+                                :label="'Vorname' + (newPersonLocal.isOrganization ? ' (optional)' : ' *')"
+                                :rules="[newPersonLocal.isOrganization ? '' : rules.required]"
+                                :required="!newPersonLocal.isOrganization"
                             ></v-text-field>
                         </div>
                         <div class="form-group">
                             <v-text-field
                                 v-model="newPersonLocal.lastName"
-                                label="Nachname *"
+                                :label="newPersonLocal.isOrganization ? 'Name der Organisation *' : 'Nachname *'"
                                 :rules="[rules.required]"
                                 required
                             ></v-text-field>
                         </div>
                         <div class="form-group">
+                            <v-checkbox
+                                v-model="newPersonLocal.isOrganization"
+                                label="Dies ist eine Organisation/Institution"
+                                hide-details
+                                class="mb-3"
+                            ></v-checkbox>
+                        </div>
+                        <div class="form-group" v-if="!newPersonLocal.isOrganization">
                             <v-text-field
                                 v-model="newPersonLocal.birthDate"
                                 label="Geburtsdatum"
                                 type="date"
                             ></v-text-field>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" v-if="!newPersonLocal.isOrganization">
                             <v-text-field
                                 v-model="newPersonLocal.deathDate"
                                 label="Sterbedatum"
@@ -296,6 +304,7 @@ const props = defineProps({
             birthDate: null,
             deathDate: null,
             description: "",
+            isOrganization: false,
         }),
     },
     isSearchLoading: {
@@ -339,6 +348,11 @@ const rules = {
 
 // Computed für die Prüfung, ob eine neue Person hinzugefügt werden kann
 const canAddNewPerson = computed(() => {
+    // Bei Organisationen brauchen wir nur einen Nachnamen/Organisationsnamen
+    if (newPersonLocal.value.isOrganization) {
+        return !!newPersonLocal.value.lastName;
+    }
+    // Bei Personen brauchen wir Vor- und Nachnamen
     return newPersonLocal.value.firstName && newPersonLocal.value.lastName;
 });
 
@@ -382,6 +396,7 @@ const onEditPerson = (person) => {
         birthDate: person.birthDate || null,
         deathDate: person.deathDate || null,
         description: person.description || "",
+        isOrganization: person.isOrganization || false,
         // Bewahre die ID und andere wichtige Eigenschaften
         id: person.id,
         tempId: person.tempId,
