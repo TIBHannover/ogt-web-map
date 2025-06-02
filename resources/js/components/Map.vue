@@ -1875,30 +1875,9 @@ export default {
                     for (const [statementId, numberOfArrests] of Object.entries(
                         place.numberOfArrests,
                     )) {
-                        let pointInTime = numberOfArrests.pointInTime
-                            ? getDate(
-                                  numberOfArrests.pointInTime.value,
-                                  numberOfArrests.pointInTime.datePrecision,
-                              )
-                            : null;
-
-                        let sourcingCircumstance = "";
-                        if (
-                            numberOfArrests.sourcingCircumstance &&
-                            numberOfArrests.sourcingCircumstance.id in
-                                sourceCircumstances.value
-                        ) {
-                            sourcingCircumstance =
-                                sourceCircumstances.value[
-                                    numberOfArrests.sourcingCircumstance.id
-                                ];
-                        }
-
-                        selectedPlace.value.numberOfArrests.push({
-                            pointInTime: pointInTime,
-                            sourcingCircumstance: sourcingCircumstance,
-                            value: numberOfArrests.value,
-                        });
+                        selectedPlace.value.numberOfArrests.push(
+                            numberOfArrests.value,
+                        );
                     }
                 }
 
@@ -1997,7 +1976,7 @@ export default {
                         selectedPlace.value.victims.push(victim);
                     }
                 }
-                console.log("selectedPlace", selectedPlace);
+                //console.log("selectedPlace", selectedPlace);
             } catch (error) {
                 console.error("Error in setSelectedPlace:", error);
             }
