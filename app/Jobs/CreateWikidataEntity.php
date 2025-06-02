@@ -52,24 +52,24 @@ class CreateWikidataEntity implements ShouldQueue
 
             // Daten für Wikidata-Entität vorbereiten
             $additionalData = $this->entryRequest->toArray();
-            
+
             // Entferne die Basis-Felder, die bereits explizit übergeben werden
-            unset($additionalData['title']);
-            unset($additionalData['description']);
-            unset($additionalData['type']);
-            unset($additionalData['id']);
-            unset($additionalData['created_at']);
-            unset($additionalData['updated_at']);
-            unset($additionalData['status']);
-            unset($additionalData['wikidata_id']);
-            
+            unset($additionalData["title"]);
+            unset($additionalData["description"]);
+            unset($additionalData["type"]);
+            unset($additionalData["id"]);
+            unset($additionalData["created_at"]);
+            unset($additionalData["updated_at"]);
+            unset($additionalData["status"]);
+            unset($additionalData["wikidata_id"]);
+
             $entityData = $wikidataService->prepareEntityData(
                 $this->entryRequest->title,
                 $this->entryRequest->description,
                 $this->entryRequest->type,
                 $additionalData
             );
-            
+
             // Entität mit OAuth-Authentifizierung erstellen
             $response = $wikidataService->createEntity($entityData);
 
@@ -79,11 +79,64 @@ class CreateWikidataEntity implements ShouldQueue
 
             // Wikidata-ID in der Datenbank speichern
             $this->entryRequest->wikidata_id = $response["entity"]["id"];
+
+            $createdEntities = [];
+
+            if (
+                !empty($entityData["perpetrators"]) &&
+                is_array($entityData["perpetrators"])
+            ) {
+                foreach ($entityData["perpetrators"] as $perpetrator) {
+                    if (
+                        !empty($perpetrator["id"]) &&
+                        substr($perpetrator["id"], 0, 1) === "Q"
+                    ) {
+                        $createdEntities[] = [
+                            "id" => $perpetrator["id"],
+                            "type" => "perpetrator",
+                            "name" =>
+                                $perpetrator["name"] ??
+                                ($perpetrator["firstName"] .
+                                    " " .
+                                    $perpetrator["lastName"] ??
+                                    "Unbekannt"),
+                            "label" => $perpetrator["label"] ?? null,
+                        ];
+                    }
+                }
+            }
+
+            if (
+                !empty($entityData["victims"]) &&
+                is_array($entityData["victims"])
+            ) {
+                foreach ($entityData["victims"] as $victim) {
+                    if (
+                        !empty($victim["id"]) &&
+                        substr($victim["id"], 0, 1) === "Q"
+                    ) {
+                        $createdEntities[] = [
+                            "id" => $victim["id"],
+                            "type" => "victim",
+                            "name" =>
+                                $victim["name"] ??
+                                ($victim["firstName"] .
+                                    " " .
+                                    $victim["lastName"] ??
+                                    "Unbekannt"),
+                            "label" => $victim["label"] ?? null,
+                        ];
+                    }
+                }
+            }
+
+            $this->entryRequest->created_entities = $createdEntities;
             $this->entryRequest->save();
 
             Log::info("Wikidata entity created successfully", [
                 "request_id" => $this->entryRequest->id,
                 "wikidata_id" => $response["entity"]["id"],
+                "additional_entities" => count($createdEntities),
             ]);
         } catch (\Exception $e) {
             Log::error("Failed to create Wikidata entity", [

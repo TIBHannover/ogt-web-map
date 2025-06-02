@@ -18,6 +18,7 @@ class WikidataEntryRequest extends Model
         "coordinates",
         "status",
         "wikidata_id",
+        "created_entities",
         "submitted_by",
         "approved_by",
         "rejected_by",
@@ -39,6 +40,7 @@ class WikidataEntryRequest extends Model
         'victims' => 'array',
         'perpetrators' => 'array',
         'sources' => 'array',
+        'created_entities' => 'array',
     ];
 
 }

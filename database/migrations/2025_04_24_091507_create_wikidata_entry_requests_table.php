@@ -30,6 +30,7 @@ return new class extends Migration {
             $table->string("image_url")->nullable();
             $table->string("image_filename")->nullable();
             $table->json("sources")->nullable();
+            $table->json("created_entities")->nullable()->after("wikidata_id");
             $table->enum("status", [
                 "pending",
                 "approved",

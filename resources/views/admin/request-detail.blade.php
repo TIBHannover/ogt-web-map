@@ -40,11 +40,32 @@
         </h5>
 
         @if($request->status == 'approved' && $request->wikidata_id)
-            <div class="mt-2">
+            <div class="mt-2 mb-3">
                 <a href="https://www.wikidata.org/wiki/{{ $request->wikidata_id }}"
-                   target="_blank" class="btn btn-sm btn-light">
-                    Wikidata-Eintrag öffnen <i class="bi bi-box-arrow-up-right ms-1"></i>
+                   target="_blank" class="btn btn-sm btn-light mb-2">
+                    Haupt-Wikidata-Eintrag öffnen <i class="bi bi-box-arrow-up-right ms-1"></i>
                 </a>
+                
+                @if(!empty($request->created_entities))
+                    <div class="mt-2">
+                        <h6>Zusätzlich erstellte Einträge:</h6>
+                        <div class="list-group">
+                            @foreach($request->created_entities as $entity)
+                                <a href="https://www.wikidata.org/wiki/{{ $entity['id'] }}" 
+                                   target="_blank" 
+                                   class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge bg-{{ $entity['type'] == 'perpetrator' ? 'danger' : 'info' }} me-2">
+                                            {{ $entity['type'] == 'perpetrator' ? 'Täter/in' : 'Opfer' }}
+                                        </span>
+                                        {{ $entity['label'] ?? $entity['name'] ?? $entity['id'] }}
+                                    </div>
+                                    <i class="bi bi-box-arrow-up-right"></i>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             </div>
         @endif
 
