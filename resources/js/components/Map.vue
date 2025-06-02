@@ -1778,9 +1778,30 @@ export default {
                         statementId,
                         numberOfCasualties,
                     ] of Object.entries(place.numberOfCasualties)) {
-                        selectedPlace.value.numberOfCasualties.push(
-                            numberOfCasualties.value,
-                        );
+                        let pointInTime = numberOfCasualties.pointInTime
+                            ? getDate(
+                                  numberOfCasualties.pointInTime.value,
+                                  numberOfCasualties.pointInTime.datePrecision,
+                              )
+                            : null;
+
+                        let sourcingCircumstance = "";
+                        if (
+                            numberOfCasualties.sourcingCircumstance &&
+                            numberOfCasualties.sourcingCircumstance.id in
+                                sourceCircumstances.value
+                        ) {
+                            sourcingCircumstance =
+                                sourceCircumstances.value[
+                                    numberOfCasualties.sourcingCircumstance.id
+                                ];
+                        }
+
+                        selectedPlace.value.numberOfCasualties.push({
+                            pointInTime: pointInTime,
+                            sourcingCircumstance: sourcingCircumstance,
+                            value: numberOfCasualties.value,
+                        });
                     }
                 }
 
@@ -1789,9 +1810,30 @@ export default {
                     for (const [statementId, numberOfDeaths] of Object.entries(
                         place.numberOfDeaths,
                     )) {
-                        selectedPlace.value.numberOfDeaths.push(
-                            numberOfDeaths.value,
-                        );
+                        let pointInTime = numberOfDeaths.pointInTime
+                            ? getDate(
+                                  numberOfDeaths.pointInTime.value,
+                                  numberOfDeaths.pointInTime.datePrecision,
+                              )
+                            : null;
+
+                        let sourcingCircumstance = "";
+                        if (
+                            numberOfDeaths.sourcingCircumstance &&
+                            numberOfDeaths.sourcingCircumstance.id in
+                                sourceCircumstances.value
+                        ) {
+                            sourcingCircumstance =
+                                sourceCircumstances.value[
+                                    numberOfDeaths.sourcingCircumstance.id
+                                ];
+                        }
+
+                        selectedPlace.value.numberOfDeaths.push({
+                            pointInTime: pointInTime,
+                            sourcingCircumstance: sourcingCircumstance,
+                            value: numberOfDeaths.value,
+                        });
                     }
                 }
 
@@ -1801,9 +1843,30 @@ export default {
                         statementId,
                         numberOfSurvivors,
                     ] of Object.entries(place.numberOfSurvivors)) {
-                        selectedPlace.value.numberOfSurvivors.push(
-                            numberOfSurvivors.value,
-                        );
+                        let pointInTime = numberOfSurvivors.pointInTime
+                            ? getDate(
+                                  numberOfSurvivors.pointInTime.value,
+                                  numberOfSurvivors.pointInTime.datePrecision,
+                              )
+                            : null;
+
+                        let sourcingCircumstance = "";
+                        if (
+                            numberOfSurvivors.sourcingCircumstance &&
+                            numberOfSurvivors.sourcingCircumstance.id in
+                                sourceCircumstances.value
+                        ) {
+                            sourcingCircumstance =
+                                sourceCircumstances.value[
+                                    numberOfSurvivors.sourcingCircumstance.id
+                                ];
+                        }
+
+                        selectedPlace.value.numberOfSurvivors.push({
+                            pointInTime: pointInTime,
+                            sourcingCircumstance: sourcingCircumstance,
+                            value: numberOfSurvivors.value,
+                        });
                     }
                 }
 
@@ -1812,9 +1875,30 @@ export default {
                     for (const [statementId, numberOfArrests] of Object.entries(
                         place.numberOfArrests,
                     )) {
-                        selectedPlace.value.numberOfArrests.push(
-                            numberOfArrests.value,
-                        );
+                        let pointInTime = numberOfArrests.pointInTime
+                            ? getDate(
+                                  numberOfArrests.pointInTime.value,
+                                  numberOfArrests.pointInTime.datePrecision,
+                              )
+                            : null;
+
+                        let sourcingCircumstance = "";
+                        if (
+                            numberOfArrests.sourcingCircumstance &&
+                            numberOfArrests.sourcingCircumstance.id in
+                                sourceCircumstances.value
+                        ) {
+                            sourcingCircumstance =
+                                sourceCircumstances.value[
+                                    numberOfArrests.sourcingCircumstance.id
+                                ];
+                        }
+
+                        selectedPlace.value.numberOfArrests.push({
+                            pointInTime: pointInTime,
+                            sourcingCircumstance: sourcingCircumstance,
+                            value: numberOfArrests.value,
+                        });
                     }
                 }
 
@@ -1913,6 +1997,7 @@ export default {
                         selectedPlace.value.victims.push(victim);
                     }
                 }
+                console.log("selectedPlace", selectedPlace);
             } catch (error) {
                 console.error("Error in setSelectedPlace:", error);
             }

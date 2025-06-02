@@ -69,7 +69,13 @@
                             :id="glossaryItem.id"
                             class="font-weight-bold"
                         >
+                            <span v-if="glossaryItemLabel == 'Judenhaus'"
+                                >"</span
+                            >
                             {{ glossaryItemLabel }}
+                            <span v-if="glossaryItemLabel == 'Judenhaus'"
+                                >"</span
+                            >
                         </v-expansion-panel-title>
 
                         <v-expansion-panel-text>
