@@ -2,14 +2,14 @@
     <div class="persons-section container-section">
         <div class="section-header">
             <label :for="fieldId" class="section-label">{{ label }}:</label>
-            <v-button
+            <button
                 v-if="showInfoButton"
                 type="button"
                 class="info-icon"
                 @click="onInfoButtonClick"
             >
                 <v-icon>mdi-information-variant</v-icon>
-            </v-button>
+            </button>
         </div>
 
         <div class="add-person-container">
@@ -39,15 +39,17 @@
                         >
                             {{
                                 person.label ||
-                                (person.isOrganization 
-                                    ? person.lastName 
+                                (person.isOrganization
+                                    ? person.lastName
                                     : `${person.firstName} ${person.lastName}`)
                             }}
                         </a>
                         <span v-else>
-                            {{ person.isOrganization 
-                               ? person.lastName 
-                               : `${person.firstName} ${person.lastName}` }}
+                            {{
+                                person.isOrganization
+                                    ? person.lastName
+                                    : `${person.firstName} ${person.lastName}`
+                            }}
                         </span>
                     </span>
                     <span class="person-description" v-if="person.description">
@@ -206,24 +208,12 @@
                     <!-- Formular für neue Person -->
                     <div v-if="showNewPersonForm" class="new-person-form">
                         <h4 class="text-h6 mb-4">
-                            {{editMode ? "Eintrag bearbeiten" : "Neuen Eintrag anlegen"}}
+                            {{
+                                editMode
+                                    ? "Eintrag bearbeiten"
+                                    : "Neuen Eintrag anlegen"
+                            }}
                         </h4>
-                        <div class="form-group">
-                            <v-text-field
-                                v-model="newPersonLocal.firstName"
-                                :label="'Vorname' + (newPersonLocal.isOrganization ? ' (optional)' : ' *')"
-                                :rules="[newPersonLocal.isOrganization ? '' : rules.required]"
-                                :required="!newPersonLocal.isOrganization"
-                            ></v-text-field>
-                        </div>
-                        <div class="form-group">
-                            <v-text-field
-                                v-model="newPersonLocal.lastName"
-                                :label="newPersonLocal.isOrganization ? 'Name der Organisation *' : 'Nachname *'"
-                                :rules="[rules.required]"
-                                required
-                            ></v-text-field>
-                        </div>
                         <div class="form-group">
                             <v-checkbox
                                 v-model="newPersonLocal.isOrganization"
@@ -232,26 +222,173 @@
                                 class="mb-3"
                             ></v-checkbox>
                         </div>
-                        <div class="form-group" v-if="!newPersonLocal.isOrganization">
+                        <div class="form-group">
+                            <v-text-field
+                                v-model="newPersonLocal.firstName"
+                                v-if="!newPersonLocal.isOrganization"
+                                :label="
+                                    'Vorname' +
+                                    (newPersonLocal.isOrganization
+                                        ? ' (optional)'
+                                        : ' *')
+                                "
+                                :rules="[
+                                    newPersonLocal.isOrganization
+                                        ? ''
+                                        : rules.required,
+                                ]"
+                                :required="!newPersonLocal.isOrganization"
+                            ></v-text-field>
+                        </div>
+                        <div class="form-group">
+                            <v-text-field
+                                v-model="newPersonLocal.lastName"
+                                :label="
+                                    newPersonLocal.isOrganization
+                                        ? 'Name der Organisation *'
+                                        : 'Nachname *'
+                                "
+                                :rules="[rules.required]"
+                                required
+                            ></v-text-field>
+                        </div>
+                        <div class="form-group">
+                            <v-textarea
+                                v-model="newPersonLocal.description"
+                                label="Kurze Beschreibung*"
+                                placeholder="Beispiel: deutscher Widerstandskämpfer... / Opfer des Nationalsozialismus"
+                                rows="3"
+                                :rules="[rules.required]"
+                                required
+                            ></v-textarea>
+                        </div>
+                        <!-- Geschlecht / Gender (P21) -->
+                        <div class="form-group">
+                            <gender-selector
+                                v-model="newPersonLocal.gender"
+                                label="Geschlecht"
+                                v-if="!newPersonLocal.isOrganization"
+                            ></gender-selector>
+                        </div>
+                        <div
+                            class="form-group"
+                            v-if="!newPersonLocal.isOrganization"
+                        >
                             <v-text-field
                                 v-model="newPersonLocal.birthDate"
                                 label="Geburtsdatum"
                                 type="date"
                             ></v-text-field>
                         </div>
-                        <div class="form-group" v-if="!newPersonLocal.isOrganization">
+                        <div
+                            class="form-group"
+                            v-if="!newPersonLocal.isOrganization"
+                        >
                             <v-text-field
                                 v-model="newPersonLocal.deathDate"
                                 label="Sterbedatum"
                                 type="date"
                             ></v-text-field>
                         </div>
-                        <div class="form-group">
-                            <v-textarea
-                                v-model="newPersonLocal.description"
-                                label="Kurze Beschreibung"
-                                rows="3"
-                            ></v-textarea>
+
+                        <!-- Neue Felder mit Wikidata-Auswahl -->
+                        <div
+                            class="form-group"
+                            v-if="!newPersonLocal.isOrganization"
+                        >
+                            <!-- Nationalität / Citizenship (P27) -->
+                            <wikidata-selector
+                                v-model="newPersonLocal.nationality"
+                                label="Staatsangehörigkeit"
+                                dialog-title="Staatsangehörigkeit auswählen"
+                                search-label="Land suchen..."
+                                :search-results="
+                                    wikidataSearchResults.nationality || []
+                                "
+                                :is-loading="
+                                    isWikidataSearchLoading.nationality
+                                "
+                                :search-performed="
+                                    wikidataSearchPerformed.nationality
+                                "
+                                endpoint="places"
+                                @search="
+                                    searchWikidataItems('nationality', $event)
+                                "
+                            ></wikidata-selector>
+
+                            <!-- Geburtsort / Place of birth (P19) -->
+                            <wikidata-selector
+                                v-model="newPersonLocal.place_of_birth"
+                                label="Geburtsort"
+                                dialog-title="Geburtsort auswählen"
+                                search-label="Ort suchen..."
+                                :search-results="
+                                    wikidataSearchResults.place_of_birth || []
+                                "
+                                :is-loading="
+                                    isWikidataSearchLoading.place_of_birth
+                                "
+                                :search-performed="
+                                    wikidataSearchPerformed.place_of_birth
+                                "
+                                endpoint="places"
+                                @search="
+                                    searchWikidataItems(
+                                        'place_of_birth',
+                                        $event,
+                                    )
+                                "
+                            ></wikidata-selector>
+
+                            <!-- Sterbeort / Place of death (P20) -->
+                            <wikidata-selector
+                                v-model="newPersonLocal.place_of_death"
+                                label="Sterbeort"
+                                dialog-title="Sterbeort auswählen"
+                                search-label="Ort suchen..."
+                                :search-results="
+                                    wikidataSearchResults.place_of_death || []
+                                "
+                                :is-loading="
+                                    isWikidataSearchLoading.place_of_death
+                                "
+                                :search-performed="
+                                    wikidataSearchPerformed.place_of_death
+                                "
+                                endpoint="places"
+                                @search="
+                                    searchWikidataItems(
+                                        'place_of_death',
+                                        $event,
+                                    )
+                                "
+                            ></wikidata-selector>
+
+                            <!-- Haftort / Place of detention (P2632) -->
+                            <wikidata-selector
+                                v-model="newPersonLocal.place_of_detention"
+                                label="Haftort"
+                                dialog-title="Haftort auswählen"
+                                search-label="Ort suchen..."
+                                :search-results="
+                                    wikidataSearchResults.place_of_detention ||
+                                    []
+                                "
+                                :is-loading="
+                                    isWikidataSearchLoading.place_of_detention
+                                "
+                                :search-performed="
+                                    wikidataSearchPerformed.place_of_detention
+                                "
+                                endpoint="places"
+                                @search="
+                                    searchWikidataItems(
+                                        'place_of_detention',
+                                        $event,
+                                    )
+                                "
+                            ></wikidata-selector>
                         </div>
                     </div>
                 </v-card-text>
@@ -274,6 +411,8 @@
 
 <script setup>
 import { computed, ref } from "vue";
+import WikidataSelector from "./common/WikidataSelector.vue";
+import GenderSelector from "./GenderSelector.vue";
 
 const props = defineProps({
     label: {
@@ -305,6 +444,11 @@ const props = defineProps({
             deathDate: null,
             description: "",
             isOrganization: false,
+            gender: null,
+            nationality: null,
+            place_of_birth: null,
+            place_of_death: null,
+            place_of_detention: null,
         }),
     },
     isSearchLoading: {
@@ -332,6 +476,7 @@ const emit = defineEmits([
     "updatePerson",
     "removePerson",
     "infoButtonClick",
+    "searchWikidata",
 ]);
 
 // Local state
@@ -340,6 +485,38 @@ const searchQuery = ref("");
 const editMode = ref(false);
 const editingPersonId = ref(null);
 const newPersonLocal = computed(() => props.newPerson);
+
+// Wikidata search state
+const wikidataSearchResults = ref({
+    nationality: [],
+    place_of_birth: [],
+    place_of_death: [],
+    place_of_detention: [],
+});
+
+const isWikidataSearchLoading = ref({
+    nationality: false,
+    place_of_birth: false,
+    place_of_death: false,
+    place_of_detention: false,
+});
+
+const wikidataSearchPerformed = ref({
+    nationality: false,
+    place_of_birth: false,
+    place_of_death: false,
+    place_of_detention: false,
+});
+
+// Predefined gender options with Wikidata IDs
+const genderOptions = [
+    { id: "Q6581097", label: "männlich" },
+    { id: "Q6581072", label: "weiblich" },
+    { id: "Q1097630", label: "Intersexualität" },
+    { id: "Q1052281", label: "Transfrau" },
+    { id: "Q2449503", label: "Transmann" },
+    { id: "Q48270", label: "nichtbinär" },
+];
 
 // Validierungsregeln
 const rules = {
@@ -397,6 +574,11 @@ const onEditPerson = (person) => {
         deathDate: person.deathDate || null,
         description: person.description || "",
         isOrganization: person.isOrganization || false,
+        gender: person.gender || null,
+        nationality: person.nationality || null,
+        place_of_birth: person.place_of_birth || null,
+        place_of_death: person.place_of_death || null,
+        place_of_detention: person.place_of_detention || null,
         // Bewahre die ID und andere wichtige Eigenschaften
         id: person.id,
         tempId: person.tempId,
@@ -448,12 +630,83 @@ const closeDialog = () => {
         onCancelNewPersonForm();
     }
 };
+
+// Wikidata search functions
+const searchWikidataItems = async (field, query, endpoint = null) => {
+    if (!query || query.trim() === "") return;
+
+    isWikidataSearchLoading.value[field] = true;
+    wikidataSearchPerformed.value[field] = true;
+
+    try {
+        // Bestimme den API-Endpunkt basierend auf dem Feldtyp
+        let apiEndpoint = "people";
+
+        if (endpoint) {
+            // Wenn ein expliziter Endpunkt übergeben wurde, verwende diesen
+            apiEndpoint = endpoint;
+        } else {
+            // Sonst bestimme den Endpunkt basierend auf dem Feldtyp
+            switch (field) {
+                case "nationality":
+                    apiEndpoint = "places"; // Staatsangehörigkeit ist ein Land, daher places-Endpunkt
+                    break;
+                case "place_of_birth":
+                case "place_of_death":
+                case "place_of_detention":
+                    apiEndpoint = "places"; // Verwende den neuen places-Endpunkt für Orte
+                    break;
+                default:
+                    apiEndpoint = "people";
+            }
+        }
+
+        // Verwende den entsprechenden API-Endpunkt
+        const response = await fetch(
+            `/api/wikidata/search/${apiEndpoint}?query=${encodeURIComponent(query)}`,
+        );
+
+        if (!response.ok) {
+            throw new Error(`Server responded with status: ${response.status}`);
+        }
+
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            throw new Error(
+                `Expected JSON response but got ${contentType || "unknown content type"}`,
+            );
+        }
+
+        const data = await response.json();
+        handleWikidataResults(field, data);
+    } catch (error) {
+        console.error(`Error searching Wikidata for ${field}:`, error);
+        wikidataSearchResults.value[field] = [];
+    } finally {
+        isWikidataSearchLoading.value[field] = false;
+    }
+};
+
+const handleWikidataResults = (field, results) => {
+    wikidataSearchResults.value[field] = results || [];
+    isWikidataSearchLoading.value[field] = false;
+};
 </script>
 
 <style scoped>
 .persons-section {
     width: 100%;
     margin-bottom: 1.5rem;
+}
+
+.field-section-title {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #333;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e0e0e0;
 }
 
 .section-header {

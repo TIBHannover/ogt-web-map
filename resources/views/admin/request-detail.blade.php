@@ -45,14 +45,14 @@
                    target="_blank" class="btn btn-sm btn-light mb-2">
                     Haupt-Wikidata-Eintrag öffnen <i class="bi bi-box-arrow-up-right ms-1"></i>
                 </a>
-                
+
                 @if(!empty($request->created_entities))
                     <div class="mt-2">
                         <h6>Zusätzlich erstellte Einträge:</h6>
                         <div class="list-group">
                             @foreach($request->created_entities as $entity)
-                                <a href="https://www.wikidata.org/wiki/{{ $entity['id'] }}" 
-                                   target="_blank" 
+                                <a href="https://www.wikidata.org/wiki/{{ $entity['id'] }}"
+                                   target="_blank"
                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                                     <div>
                                         <span class="badge bg-{{ $entity['type'] == 'perpetrator' ? 'danger' : 'info' }} me-2">
@@ -190,9 +190,9 @@
                     @if($request->type == 'Q6983405')
                         @if($request->time_point || $request->time_period_start)
                             <div class="mb-3">
-                                <h6>
+                                <strong>
                                     @if($request->time_point) Zeitpunkt: @else Zeitraum: @endif
-                                </h6>
+                                </strong>
                                 @if($request->time_point)
                                     <p>{{ \Carbon\Carbon::parse($request->time_point)->format('d.m.Y') }}</p>
                                 @else
@@ -206,52 +206,9 @@
                             </div>
                         @endif
 
-                        @if($request->cause)
-                            <div class="mb-3">
-                                <h6>Ursache:</h6>
-                                <p>{{ $request->cause }}</p>
-                            </div>
-                        @endif
-
-                        @if($request->selected_causes)
-                            <div class="mb-3">
-                                <h6>Ursachen der Verfolgung:</h6>
-                                @php
-                                    // Versuche JSON zu parsen
-                                    $causes = json_decode($request->selected_causes, true);
-                                    // Wenn es kein gu00fcltiges JSON ist, als Text behandeln
-                                    $isJson = json_last_error() === JSON_ERROR_NONE && is_array($causes);
-                                @endphp
-
-                                @if($isJson && count($causes) > 0)
-                                    <div class="list-group mt-2">
-                                        @foreach($causes as $cause)
-                                            <div class="list-group-item">
-                                                @if(is_array($cause))
-                                                    <div class="fw-bold">
-                                                        <a href="https://www.wikidata.org/wiki/{{ $cause['id'] }}" target="_blank" class="text-decoration-none">
-                                                            {{ $cause['label'] }}
-                                                            <i class="bi bi-box-arrow-up-right ms-1 small"></i>
-                                                        </a>
-                                                    </div>
-                                                    @if(isset($cause['description']))
-                                                        <div class="text-muted small mt-1">{{ $cause['description'] }}</div>
-                                                    @endif
-                                                @elseif(is_string($cause))
-                                                    {{ $cause }}
-                                                @endif
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                @else
-                                    <p>{{ $request->selected_causes }}</p>
-                                @endif
-                            </div>
-                        @endif
-
                         @if($request->victim_count || $request->survivor_count || $request->death_count || $request->arrest_count)
                             <div class="mb-3">
-                                <h6>Statistiken:</h6>
+                                <strong>Geschädigtenzahlen:</strong>
                                 <ul>
                                     @if($request->victim_count)
                                         <li>Opfer: {{ $request->victim_count }}</li>
@@ -271,9 +228,7 @@
 
                         <!-- Beteiligte Personen (Täter und Geschädigte) -->
                         @if($request->perpetrators || $request->victims)
-                            <div class="mb-3">
-                                <h6>Beteiligte Personen:</h6>
-
+                            <div class="mb-5">
                                 @if($request->perpetrators && count($request->perpetrators) > 0)
                                     <div class="mb-3">
                                         <strong>Täter*Innen:</strong>
@@ -301,12 +256,97 @@
                                                         @endif
 
                                                         @foreach($perpetrator as $key => $value)
-                                                            @if(!in_array($key, ['id', 'label', 'description', 'tempId']) && !is_array($value))
+                                                            @if(!in_array($key, ['id', 'label', 'description', 'tempId', 'isOrganization', 'birthDate', 'deathDate', 'date_of_birth', 'date_of_death']) && !is_array($value))
                                                                 <div class="small mt-1">
                                                                     <strong>{{ ucfirst($key) }}:</strong> {{ $value }}
                                                                 </div>
                                                             @endif
                                                         @endforeach
+
+                                                        <!-- Formatierte Datumsanzeige -->
+                                                        @if(isset($perpetrator['birthDate']) && $perpetrator['birthDate'])
+                                                            <div class="small mt-1">
+                                                                <strong>Geburtsdatum:</strong>
+                                                                {{ \Carbon\Carbon::parse($perpetrator['birthDate'])->format('d.m.Y') ?? $perpetrator['birthDate'] }}
+                                                            </div>
+                                                        @elseif(isset($perpetrator['date_of_birth']) && $perpetrator['date_of_birth'])
+                                                            <div class="small mt-1">
+                                                                <strong>Geburtsdatum:</strong>
+                                                                {{ \Carbon\Carbon::parse($perpetrator['date_of_birth'])->format('d.m.Y') ?? $perpetrator['date_of_birth'] }}
+                                                            </div>
+                                                        @endif
+
+                                                        @if(isset($perpetrator['deathDate']) && $perpetrator['deathDate'])
+                                                            <div class="small mt-1">
+                                                                <strong>Sterbedatum:</strong>
+                                                                {{ \Carbon\Carbon::parse($perpetrator['deathDate'])->format('d.m.Y') ?? $perpetrator['deathDate'] }}
+                                                            </div>
+                                                        @elseif(isset($perpetrator['date_of_death']) && $perpetrator['date_of_death'])
+                                                            <div class="small mt-1">
+                                                                <strong>Sterbedatum:</strong>
+                                                                {{ \Carbon\Carbon::parse($perpetrator['date_of_death'])->format('d.m.Y') ?? $perpetrator['date_of_death'] }}
+                                                            </div>
+                                                        @endif
+
+                                                        <!-- Wikidata-Verknüpfungen anzeigen -->
+                                                        @if(!isset($perpetrator['isOrganization']) || !$perpetrator['isOrganization'])
+                                                            <!-- Nur für Personen anzeigen -->
+                                                            @if(isset($perpetrator['gender']) && is_array($perpetrator['gender']))
+                                                                <div class="small mt-1">
+                                                                    <strong>Geschlecht:</strong>
+                                                                    <a href="https://www.wikidata.org/wiki/{{ $perpetrator['gender']['id'] }}" target="_blank">
+                                                                        {{ $perpetrator['gender']['label'] ?? $perpetrator['gender']['id'] }}
+                                                                        @if(isset($perpetrator['gender']['id']))<span class="text-muted small"> ({{ $perpetrator['gender']['id'] }})</span>@endif
+                                                                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                                                    </a>
+                                                                </div>
+                                                            @endif
+
+                                                            @if(isset($perpetrator['place_of_birth']) && is_array($perpetrator['place_of_birth']))
+                                                                <div class="small mt-1">
+                                                                    <strong>Geburtsort:</strong>
+                                                                    <a href="https://www.wikidata.org/wiki/{{ $perpetrator['place_of_birth']['id'] }}" target="_blank">
+                                                                        {{ $perpetrator['place_of_birth']['label'] ?? $perpetrator['place_of_birth']['id'] }}
+                                                                        @if(isset($perpetrator['place_of_birth']['id']))<span class="text-muted small"> ({{ $perpetrator['place_of_birth']['id'] }})</span>@endif
+                                                                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                                                    </a>
+                                                                </div>
+                                                            @endif
+
+                                                            @if(isset($perpetrator['place_of_death']) && is_array($perpetrator['place_of_death']))
+                                                                <div class="small mt-1">
+                                                                    <strong>Sterbeort:</strong>
+                                                                    <a href="https://www.wikidata.org/wiki/{{ $perpetrator['place_of_death']['id'] }}" target="_blank">
+                                                                        {{ $perpetrator['place_of_death']['label'] ?? $perpetrator['place_of_death']['id'] }}
+                                                                        @if(isset($perpetrator['place_of_death']['id']))<span class="text-muted small"> ({{ $perpetrator['place_of_death']['id'] }})</span>@endif
+                                                                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                                                    </a>
+                                                                </div>
+                                                            @endif
+
+                                                            @if(isset($perpetrator['place_of_detention']) && is_array($perpetrator['place_of_detention']))
+                                                                <div class="small mt-1">
+                                                                    <strong>Haftort:</strong>
+                                                                    <a href="https://www.wikidata.org/wiki/{{ $perpetrator['place_of_detention']['id'] }}" target="_blank">
+                                                                        {{ $perpetrator['place_of_detention']['label'] ?? $perpetrator['place_of_detention']['id'] }}
+                                                                        @if(isset($perpetrator['place_of_detention']['id']))<span class="text-muted small"> ({{ $perpetrator['place_of_detention']['id'] }})</span>@endif
+                                                                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                                                    </a>
+                                                                </div>
+                                                            @endif
+                                                        @endif
+
+                                                        <!-- Für Personen und Organisationen anzeigen -->
+                                                        @if(isset($perpetrator['nationality']) && is_array($perpetrator['nationality']))
+                                                            <div class="small mt-1">
+                                                                <strong>{{ isset($perpetrator['isOrganization']) && $perpetrator['isOrganization'] ? 'Land' : 'Staatsangehörigkeit' }}:</strong>
+                                                                <a href="https://www.wikidata.org/wiki/{{ $perpetrator['nationality']['id'] }}" target="_blank">
+                                                                    {{ $perpetrator['nationality']['label'] ?? $perpetrator['nationality']['id'] }}
+                                                                    @if(isset($perpetrator['nationality']['id']))<span class="text-muted small"> ({{ $perpetrator['nationality']['id'] }})</span>@endif
+                                                                    <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                                                </a>
+                                                            </div>
+                                                        @endif
                                                     @elseif(is_string($perpetrator))
                                                         {{ $perpetrator }}
                                                     @endif
@@ -343,12 +383,97 @@
                                                         @endif
 
                                                         @foreach($victim as $key => $value)
-                                                            @if(!in_array($key, ['id', 'label', 'description', 'tempId']) && !is_array($value))
+                                                            @if(!in_array($key, ['id', 'label', 'description', 'tempId', 'isOrganization', 'birthDate', 'deathDate', 'date_of_birth', 'date_of_death']) && !is_array($value))
                                                                 <div class="small mt-1">
                                                                     <strong>{{ ucfirst($key) }}:</strong> {{ $value }}
                                                                 </div>
                                                             @endif
                                                         @endforeach
+
+                                                        <!-- Formatierte Datumsanzeige -->
+                                                        @if(isset($victim['birthDate']) && $victim['birthDate'])
+                                                            <div class="small mt-1">
+                                                                <strong>Geburtsdatum:</strong>
+                                                                {{ \Carbon\Carbon::parse($victim['birthDate'])->format('d.m.Y') ?? $victim['birthDate'] }}
+                                                            </div>
+                                                        @elseif(isset($victim['date_of_birth']) && $victim['date_of_birth'])
+                                                            <div class="small mt-1">
+                                                                <strong>Geburtsdatum:</strong>
+                                                                {{ \Carbon\Carbon::parse($victim['date_of_birth'])->format('d.m.Y') ?? $victim['date_of_birth'] }}
+                                                            </div>
+                                                        @endif
+
+                                                        @if(isset($victim['deathDate']) && $victim['deathDate'])
+                                                            <div class="small mt-1">
+                                                                <strong>Sterbedatum:</strong>
+                                                                {{ \Carbon\Carbon::parse($victim['deathDate'])->format('d.m.Y') ?? $victim['deathDate'] }}
+                                                            </div>
+                                                        @elseif(isset($victim['date_of_death']) && $victim['date_of_death'])
+                                                            <div class="small mt-1">
+                                                                <strong>Sterbedatum:</strong>
+                                                                {{ \Carbon\Carbon::parse($victim['date_of_death'])->format('d.m.Y') ?? $victim['date_of_death'] }}
+                                                            </div>
+                                                        @endif
+
+                                                        <!-- Wikidata-Verknu00fcpfungen anzeigen -->
+                                                        @if(!isset($victim['isOrganization']) || !$victim['isOrganization'])
+                                                            <!-- Nur für Personen anzeigen -->
+                                                            @if(isset($victim['gender']) && is_array($victim['gender']))
+                                                                <div class="small mt-1">
+                                                                    <strong>Geschlecht:</strong>
+                                                                    <a href="https://www.wikidata.org/wiki/{{ $victim['gender']['id'] }}" target="_blank">
+                                                                        {{ $victim['gender']['label'] ?? $victim['gender']['id'] }}
+                                                                        @if(isset($victim['gender']['id']))<span class="text-muted small"> ({{ $victim['gender']['id'] }})</span>@endif
+                                                                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                                                    </a>
+                                                                </div>
+                                                            @endif
+
+                                                            @if(isset($victim['place_of_birth']) && is_array($victim['place_of_birth']))
+                                                                <div class="small mt-1">
+                                                                    <strong>Geburtsort:</strong>
+                                                                    <a href="https://www.wikidata.org/wiki/{{ $victim['place_of_birth']['id'] }}" target="_blank">
+                                                                        {{ $victim['place_of_birth']['label'] ?? $victim['place_of_birth']['id'] }}
+                                                                        @if(isset($victim['place_of_birth']['id']))<span class="text-muted small"> ({{ $victim['place_of_birth']['id'] }})</span>@endif
+                                                                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                                                    </a>
+                                                                </div>
+                                                            @endif
+
+                                                            @if(isset($victim['place_of_death']) && is_array($victim['place_of_death']))
+                                                                <div class="small mt-1">
+                                                                    <strong>Sterbeort:</strong>
+                                                                    <a href="https://www.wikidata.org/wiki/{{ $victim['place_of_death']['id'] }}" target="_blank">
+                                                                        {{ $victim['place_of_death']['label'] ?? $victim['place_of_death']['id'] }}
+                                                                        @if(isset($victim['place_of_death']['id']))<span class="text-muted small"> ({{ $victim['place_of_death']['id'] }})</span>@endif
+                                                                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                                                    </a>
+                                                                </div>
+                                                            @endif
+
+                                                            @if(isset($victim['place_of_detention']) && is_array($victim['place_of_detention']))
+                                                                <div class="small mt-1">
+                                                                    <strong>Haftort:</strong>
+                                                                    <a href="https://www.wikidata.org/wiki/{{ $victim['place_of_detention']['id'] }}" target="_blank">
+                                                                        {{ $victim['place_of_detention']['label'] ?? $victim['place_of_detention']['id'] }}
+                                                                        @if(isset($victim['place_of_detention']['id']))<span class="text-muted small"> ({{ $victim['place_of_detention']['id'] }})</span>@endif
+                                                                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                                                    </a>
+                                                                </div>
+                                                            @endif
+                                                        @endif
+
+                                                        <!-- Fu00fcr Personen und Organisationen anzeigen -->
+                                                        @if(isset($victim['nationality']) && is_array($victim['nationality']))
+                                                            <div class="small mt-1">
+                                                                <strong>{{ isset($victim['isOrganization']) && $victim['isOrganization'] ? 'Land' : 'Staatsangehu00f6rigkeit' }}:</strong>
+                                                                <a href="https://www.wikidata.org/wiki/{{ $victim['nationality']['id'] }}" target="_blank">
+                                                                    {{ $victim['nationality']['label'] ?? $victim['nationality']['id'] }}
+                                                                    @if(isset($victim['nationality']['id']))<span class="text-muted small"> ({{ $victim['nationality']['id'] }})</span>@endif
+                                                                    <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                                                </a>
+                                                            </div>
+                                                        @endif
                                                     @elseif(is_string($victim))
                                                         {{ $victim }}
                                                     @endif
@@ -359,6 +484,44 @@
                                 @endif
                             </div>
                         @endif
+
+
+                        @if($request->selected_causes)
+                            <div class="mb-3">
+                                <strong>Ursachen der Verfolgung:</strong>
+                                @php
+                                    // Versuche JSON zu parsen
+                                    $causes = json_decode($request->selected_causes, true);
+                                    // Wenn es kein gu00fcltiges JSON ist, als Text behandeln
+                                    $isJson = json_last_error() === JSON_ERROR_NONE && is_array($causes);
+                                @endphp
+
+                                @if($isJson && count($causes) > 0)
+                                    <div class="list-group mt-2">
+                                        @foreach($causes as $cause)
+                                            <div class="list-group-item">
+                                                @if(is_array($cause))
+                                                    <div class="fw-bold">
+                                                        <a href="https://www.wikidata.org/wiki/{{ $cause['id'] }}" target="_blank" class="text-decoration-none">
+                                                            {{ $cause['label'] }}
+                                                            <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                                        </a>
+                                                    </div>
+                                                    @if(isset($cause['description']))
+                                                        <div class="text-muted small mt-1">{{ $cause['description'] }}</div>
+                                                    @endif
+                                                @elseif(is_string($cause))
+                                                    {{ $cause }}
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <p>{{ $request->selected_causes }}</p>
+                                @endif
+                            </div>
+                        @endif
+
 
                         <!-- Quellenangaben -->
                         @if($request->sources && count($request->sources) > 0)
@@ -543,7 +706,7 @@
 
                             // Formatierte Daten für Wikibase vorbereiten
                             $result = $formatter->formatEntityData($requestData, $request->type, false); // false = keine Entities erstellen
-                            
+
                             // Nach unseren Änderungen gibt formatEntityData ein Array mit zwei Schlüsseln zurück
                             if (is_array($result) && isset($result['formattedData'])) {
                                 $formattedData = $result['formattedData'];

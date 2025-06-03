@@ -106,3 +106,15 @@ Route::get("/wikidata/search/archives", [
     WikidataSearchController::class,
     "searchArchives",
 ]);
+
+// Route for searching places in Wikidata
+Route::get("/wikidata/search/places", [
+    WikidataSearchController::class,
+    "searchPlaces",
+]);
+
+// General Wikidata search route
+Route::get("/wikidata/search", [
+    App\Http\Controllers\Api\WikidataSearchController::class,
+    "search",
+]);

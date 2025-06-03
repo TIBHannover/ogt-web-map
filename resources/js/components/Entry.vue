@@ -476,6 +476,12 @@ const newVictim = ref({
     birthDate: null,
     deathDate: null,
     description: "",
+    isOrganization: false,
+    gender: null,
+    nationality: null,
+    place_of_birth: null,
+    place_of_death: null,
+    place_of_detention: null,
 });
 const lastSearchQuery = ref("");
 
@@ -489,6 +495,12 @@ const newPerpetrator = ref({
     birthDate: null,
     deathDate: null,
     description: "",
+    isOrganization: false,
+    gender: null,
+    nationality: null,
+    place_of_birth: null,
+    place_of_death: null,
+    place_of_detention: null,
 });
 const lastPerpetratorSearchQuery = ref("");
 
@@ -856,6 +868,12 @@ const resetNewVictimForm = () => {
         birthDate: null,
         deathDate: null,
         description: "",
+        isOrganization: false,
+        gender: null,
+        nationality: null,
+        place_of_birth: null,
+        place_of_death: null,
+        place_of_detention: null,
     };
     lastSearchQuery.value = "";
 };
@@ -869,6 +887,13 @@ const addNewVictim = () => {
         birthDate: newVictim.value.birthDate,
         deathDate: newVictim.value.deathDate,
         description: newVictim.value.description,
+        isOrganization: newVictim.value.isOrganization || false,
+        // Wikidata fields
+        gender: newVictim.value.gender || null,
+        nationality: newVictim.value.nationality || null,
+        place_of_birth: newVictim.value.place_of_birth || null,
+        place_of_death: newVictim.value.place_of_death || null,
+        place_of_detention: newVictim.value.place_of_detention || null,
     });
 
     showNewVictimForm.value = false;
@@ -949,6 +974,12 @@ const resetNewPerpetratorForm = () => {
         birthDate: null,
         deathDate: null,
         description: "",
+        isOrganization: false,
+        gender: null,
+        nationality: null,
+        place_of_birth: null,
+        place_of_death: null,
+        place_of_detention: null,
     };
     lastPerpetratorSearchQuery.value = "";
 };
@@ -962,6 +993,13 @@ const addNewPerpetrator = () => {
         birthDate: newPerpetrator.value.birthDate,
         deathDate: newPerpetrator.value.deathDate,
         description: newPerpetrator.value.description,
+        isOrganization: newPerpetrator.value.isOrganization || false,
+        // Wikidata fields
+        gender: newPerpetrator.value.gender || null,
+        nationality: newPerpetrator.value.nationality || null,
+        place_of_birth: newPerpetrator.value.place_of_birth || null,
+        place_of_death: newPerpetrator.value.place_of_death || null,
+        place_of_detention: newPerpetrator.value.place_of_detention || null,
     });
 
     showNewPerpetratorForm.value = false;
@@ -1153,6 +1191,12 @@ const clearForm = () => {
         birthDate: null,
         deathDate: null,
         description: "",
+        isOrganization: false,
+        gender: null,
+        nationality: null,
+        place_of_birth: null,
+        place_of_death: null,
+        place_of_detention: null,
     };
     showNewVictimForm.value = false;
 
@@ -1163,6 +1207,12 @@ const clearForm = () => {
         birthDate: null,
         deathDate: null,
         description: "",
+        isOrganization: false,
+        gender: null,
+        nationality: null,
+        place_of_birth: null,
+        place_of_death: null,
+        place_of_detention: null,
     };
     showNewPerpetratorForm.value = false;
 

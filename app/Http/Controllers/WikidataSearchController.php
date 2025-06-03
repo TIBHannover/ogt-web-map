@@ -1034,4 +1034,194 @@ class WikidataSearchController extends Controller
             );
         }
     }
+    /**
+     * Search for places/locations in Wikidata
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function searchPlaces(Request $request): JsonResponse
+    {
+        $request->validate([
+            "query" => "required|string|min:2",
+        ]);
+
+        $query = $request->input("query");
+
+        try {
+            // Check if it's a direct Q-ID query
+            if (preg_match('/^Q\d+$/', $query)) {
+                // Direct query for the entity with that Q-ID
+                $response = Http::accept("application/json")->get(
+                    "https://www.wikidata.org/w/api.php",
+                    [
+                        "action" => "wbgetentities",
+                        "ids" => $query,
+                        "languages" => "de|en", // Request German and English
+                        "format" => "json",
+                    ]
+                );
+
+                if (
+                    $response->successful() &&
+                    !empty($response->json()["entities"][$query])
+                ) {
+                    $entity = $response->json()["entities"][$query];
+
+                    // Check if this is a place (instance of place Q82794)
+                    $isPlace = false;
+                    if (isset($entity["claims"]["P31"])) {
+                        foreach ($entity["claims"]["P31"] as $claim) {
+                            if (
+                                isset(
+                                    $claim["mainsnak"]["datavalue"]["value"][
+                                        "id"
+                                    ]
+                                )
+                            ) {
+                                $instanceOf =
+                                    $claim["mainsnak"]["datavalue"]["value"][
+                                        "id"
+                                    ];
+                                // Check for place (Q82794) or human settlement (Q486972)
+                                if (
+                                    $instanceOf === "Q82794" || // place
+                                    $instanceOf === "Q486972" || // human settlement
+                                    $instanceOf === "Q515" || // city
+                                    $instanceOf === "Q6256" // country
+                                ) {
+                                    $isPlace = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    // Manuelles Objekt erstellen, um unsere Hilfsfunktionen zu nutzen
+                    $resultObj = ["id" => $query];
+
+                    // Prioritäten für Label und Beschreibung anwenden
+                    $label = $this->getPrioritizedLabel($entity, $resultObj);
+                    $description = $this->getPrioritizedDescription(
+                        $entity,
+                        $resultObj
+                    );
+
+                    return response()->json([
+                        [
+                            "id" => $query,
+                            "label" => $label,
+                            "description" => $description,
+                        ],
+                    ]);
+                }
+            }
+
+            // Search for places in Wikidata
+            $response = Http::accept("application/json")->get(
+                "https://www.wikidata.org/w/api.php",
+                [
+                    "action" => "wbsearchentities",
+                    "search" => $query,
+                    "language" => "de",
+                    "format" => "json",
+                    "type" => "item",
+                    "limit" => 10,
+                ]
+            );
+
+            if (!$response->successful()) {
+                return response()->json(
+                    ["error" => "Wikidata API request failed"],
+                    500
+                );
+            }
+
+            $results = $response->json()["search"] ?? [];
+
+            if (empty($results)) {
+                return response()->json([]);
+            }
+
+            // Get more details for each result
+            $processedResults = [];
+            foreach ($results as $result) {
+                $entityResponse = Http::accept("application/json")->get(
+                    "https://www.wikidata.org/w/api.php",
+                    [
+                        "action" => "wbgetentities",
+                        "ids" => $result["id"],
+                        "languages" => "de|en", // Deutsch und Englisch anfordern
+                        "format" => "json",
+                    ]
+                );
+
+                if ($entityResponse->successful()) {
+                    $entity =
+                        $entityResponse->json()["entities"][$result["id"]] ??
+                        null;
+
+                    if ($entity) {
+                        // Check if entity is a place
+                        $isPlace = false;
+
+                        if (isset($entity["claims"]["P31"])) {
+                            foreach ($entity["claims"]["P31"] as $claim) {
+                                if (
+                                    isset(
+                                        $claim["mainsnak"]["datavalue"][
+                                            "value"
+                                        ]["id"]
+                                    )
+                                ) {
+                                    $instanceOf =
+                                        $claim["mainsnak"]["datavalue"][
+                                            "value"
+                                        ]["id"];
+                                    // Check for place (Q82794) or human settlement (Q486972)
+                                    if (
+                                        $instanceOf === "Q82794" || // place
+                                        $instanceOf === "Q486972" || // human settlement
+                                        $instanceOf === "Q515" || // city
+                                        $instanceOf === "Q6256" // country
+                                    ) {
+                                        $isPlace = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        // Include this result if it's a place or we couldn't determine
+                        // Prioritäten für Label und Beschreibung anwenden
+                        $label = $this->getPrioritizedLabel($entity, $result);
+                        $description = $this->getPrioritizedDescription(
+                            $entity,
+                            $result
+                        );
+
+                        $processedResults[] = [
+                            "id" => $result["id"],
+                            "label" => $label,
+                            "description" => $description,
+                        ];
+                    } else {
+                        // Fallback auf originales Ergebnis
+                        $processedResults[] = $result;
+                    }
+                } else {
+                    // Fallback auf originales Ergebnis
+                    $processedResults[] = $result;
+                }
+            }
+
+            return response()->json($processedResults);
+        } catch (\Exception $e) {
+            \Log::error("Wikidata places search error: " . $e->getMessage());
+            return response()->json(
+                ["error" => "Failed to search Wikidata: " . $e->getMessage()],
+                500
+            );
+        }
+    }
 }

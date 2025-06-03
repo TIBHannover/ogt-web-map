@@ -46,6 +46,12 @@ class WikidataEntityController extends Controller
             "sources" => "nullable|array",
             "imageUrl" => "nullable|string",
             "imageFilename" => "nullable|string",
+            // Neue Felder für Personen und Organisationen
+            "gender" => "nullable|array",
+            "nationality" => "nullable|array",
+            "place_of_birth" => "nullable|array",
+            "place_of_death" => "nullable|array",
+            "place_of_detention" => "nullable|array",
         ]);
 
         try {
@@ -56,6 +62,18 @@ class WikidataEntityController extends Controller
             $entryRequest->coordinates = $validated["coordinates"] ?? null;
             $entryRequest->victims = $validated["victims"] ?? null;
             $entryRequest->perpetrators = $validated["perpetrators"] ?? null;
+
+            // Neue Wikidata-Felder
+            try {
+                $entryRequest->gender = $validated["gender"] ?? null;
+                $entryRequest->nationality = $validated["nationality"] ?? null;
+                $entryRequest->place_of_birth = $validated["place_of_birth"] ?? null;
+                $entryRequest->place_of_death = $validated["place_of_death"] ?? null;
+                $entryRequest->place_of_detention = $validated["place_of_detention"] ?? null;
+            } catch (\Exception $e) {
+                // Temporärer Workaround, falls die Spalten noch nicht existieren
+                Log::warning("Wikidata fields could not be saved: " . $e->getMessage());
+            }
 
             // Zeitpunkt oder Zeitraum je nach Typ
             if (isset($validated["eventTimeType"])) {

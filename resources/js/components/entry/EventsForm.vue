@@ -265,6 +265,12 @@ const props = defineProps({
             birthDate: null,
             deathDate: null,
             description: "",
+            isOrganization: false,
+            gender: null,
+            nationality: null,
+            place_of_birth: null,
+            place_of_death: null,
+            place_of_detention: null,
         }),
     },
     perpetratorsSearchResults: {
@@ -287,6 +293,12 @@ const props = defineProps({
             birthDate: null,
             deathDate: null,
             description: "",
+            isOrganization: false,
+            gender: null,
+            nationality: null,
+            place_of_birth: null,
+            place_of_death: null,
+            place_of_detention: null,
         }),
     },
     eventTimeType: {
@@ -546,6 +558,12 @@ const newVictimLocal = ref({
     birthDate: null,
     deathDate: null,
     description: "",
+    isOrganization: false,
+    gender: null,
+    nationality: null,
+    place_of_birth: null,
+    place_of_death: null,
+    place_of_detention: null,
 });
 
 // Lokale Kopie des newPerpetrator Objekts
@@ -555,6 +573,12 @@ const newPerpetratorLocal = ref({
     birthDate: null,
     deathDate: null,
     description: "",
+    isOrganization: false,
+    gender: null,
+    nationality: null,
+    place_of_birth: null,
+    place_of_death: null,
+    place_of_detention: null,
 });
 
 // Beobachte Änderungen im Props und aktualisiere die lokale Kopie
@@ -673,10 +697,10 @@ const getSectionInfoContent = (sectionName) => {
                </ul>
                <p>Falls das genaue Datum nicht bekannt ist, wählen Sie einen bestmöglichen Schätzwert und vermerken Sie die Unsicherheit in der Beschreibung.</p>`,
 
-        counts: `<p>In diesem Bereich können Sie die Opferzahlen des Ereignisses dokumentieren.</p>
+        counts: `<p>In diesem Bereich können Sie die Geschädigtenzahl des Ereignisses dokumentieren.</p>
                 <p>Sie können folgende Informationen erführen (sofern bekannt):</p>
                 <ul>
-                  <li><strong>Gesamtzahl der Opfer:</strong> Alle betroffenen Personen</li>
+                  <li><strong>Gesamtzahl der Geschädigten:</strong> Alle betroffenen Personen</li>
                   <li><strong>Anzahl der Überlebenden:</strong> Personen, die das Ereignis überlebt haben</li>
                   <li><strong>Anzahl der Todesopfer:</strong> Personen, die durch das Ereignis ums Leben kamen</li>
                   <li><strong>Anzahl der Festnahmen:</strong> Personen, die im Zuge des Ereignisses festgenommen wurden</li>

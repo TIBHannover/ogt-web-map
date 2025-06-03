@@ -34,6 +34,11 @@ class WikidataEntryRequest extends Model
         "arrest_count",
         "cause",
         "sources",
+        "gender",
+        "nationality",
+        "place_of_birth",
+        "place_of_death",
+        "place_of_detention",
     ];
 
     protected $casts = [
@@ -41,6 +46,11 @@ class WikidataEntryRequest extends Model
         'perpetrators' => 'array',
         'sources' => 'array',
         'created_entities' => 'array',
+        'gender' => 'array',
+        'nationality' => 'array',
+        'place_of_birth' => 'array',
+        'place_of_death' => 'array',
+        'place_of_detention' => 'array',
     ];
 
 }
