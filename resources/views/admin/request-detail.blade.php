@@ -211,16 +211,68 @@
                                 <strong>Geschädigtenzahlen:</strong>
                                 <ul>
                                     @if($request->victim_count)
-                                        <li>Opfer: {{ $request->victim_count }}</li>
+                                        <li>
+                                            Opfer: {{ $request->victim_count }}
+                                            @if($request->victim_count_qualifier)
+                                                <span class="badge bg-info ms-2">
+                                                    @if($request->victim_count_qualifier == 'Q5727902')
+                                                        Circa
+                                                    @elseif($request->victim_count_qualifier == 'Q52834024')
+                                                        Weniger als
+                                                    @elseif($request->victim_count_qualifier == 'Q47035128')
+                                                        Mehr als
+                                                    @endif
+                                                </span>
+                                            @endif
+                                        </li>
                                     @endif
                                     @if($request->survivor_count)
-                                        <li>Überlebende: {{ $request->survivor_count }}</li>
+                                        <li>
+                                            Überlebende: {{ $request->survivor_count }}
+                                            @if($request->survivor_count_qualifier)
+                                                <span class="badge bg-info ms-2">
+                                                    @if($request->survivor_count_qualifier == 'Q5727902')
+                                                        Circa
+                                                    @elseif($request->survivor_count_qualifier == 'Q52834024')
+                                                        Weniger als
+                                                    @elseif($request->survivor_count_qualifier == 'Q47035128')
+                                                        Mehr als
+                                                    @endif
+                                                </span>
+                                            @endif
+                                        </li>
                                     @endif
                                     @if($request->death_count)
-                                        <li>Todesfälle: {{ $request->death_count }}</li>
+                                        <li>
+                                            Todesfälle: {{ $request->death_count }}
+                                            @if($request->death_count_qualifier)
+                                                <span class="badge bg-info ms-2">
+                                                    @if($request->death_count_qualifier == 'Q5727902')
+                                                        Circa
+                                                    @elseif($request->death_count_qualifier == 'Q52834024')
+                                                        Weniger als
+                                                    @elseif($request->death_count_qualifier == 'Q47035128')
+                                                        Mehr als
+                                                    @endif
+                                                </span>
+                                            @endif
+                                        </li>
                                     @endif
                                     @if($request->arrest_count)
-                                        <li>Verhaftungen: {{ $request->arrest_count }}</li>
+                                        <li>
+                                            Verhaftungen: {{ $request->arrest_count }}
+                                            @if($request->arrest_count_qualifier)
+                                                <span class="badge bg-info ms-2">
+                                                    @if($request->arrest_count_qualifier == 'Q5727902')
+                                                        Circa
+                                                    @elseif($request->arrest_count_qualifier == 'Q52834024')
+                                                        Weniger als
+                                                    @elseif($request->arrest_count_qualifier == 'Q47035128')
+                                                        Mehr als
+                                                    @endif
+                                                </span>
+                                            @endif
+                                        </li>
                                     @endif
                                 </ul>
                             </div>

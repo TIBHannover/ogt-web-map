@@ -76,6 +76,23 @@ class WikidataOptimizer
         // Bereinigen unerwünschter oder leerer Daten
         $data = $this->cleanupData($data);
         
+        // Überprüfen, ob es sich um eine neue Person handelt (hat P31=Q5) und ob die P2868-Eigenschaft fehlt
+        $isPersonEntity = false;
+        if (isset($data['claims']['P31'])) {
+            foreach ($data['claims']['P31'] as $p31Claim) {
+                if (isset($p31Claim['mainsnak']['datavalue']['value']['id']) && 
+                    $p31Claim['mainsnak']['datavalue']['value']['id'] === 'Q5') {
+                    $isPersonEntity = true;
+                    break;
+                }
+            }
+        }
+        
+        // Für neue Personen-Entitäten sicherstellen, dass die Rolle korrekt gesetzt ist
+        if ($isPersonEntity && !isset($data['claims']['P2868'])) {
+            Log::warning('WikidataOptimizer: Person entity without P2868 (role) property');
+        }
+        
         return $data;
     }
     

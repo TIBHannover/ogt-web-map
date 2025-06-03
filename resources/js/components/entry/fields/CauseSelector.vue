@@ -110,6 +110,14 @@
                         >
                             Keine Ergebnisse gefunden
                         </div>
+                        
+                        <!-- Vorschläge anzeigen -->
+                        <wikidata-suggestions 
+                            v-if="!isSearchLoading && !searchQuery.trim()"
+                            :q-ids="['Q1899269']"
+                            endpoint="causes"
+                            @select="onSelectCause"
+                        />
                     </div>
 
                     <!-- Suchergebnisse für Ursachen -->
@@ -147,6 +155,7 @@
 
 <script setup>
 import { ref } from "vue";
+import WikidataSuggestions from "./common/WikidataSuggestions.vue";
 
 const props = defineProps({
     cause: {

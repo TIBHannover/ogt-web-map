@@ -62,6 +62,28 @@ class CreateWikidataEntity implements ShouldQueue
             unset($additionalData["updated_at"]);
             unset($additionalData["status"]);
             unset($additionalData["wikidata_id"]);
+            
+            $existingEntityIds = [];
+            $newlyCreatedEntityIds = [];
+            
+            // Collect all existing entity IDs from perpetrators
+            if (!empty($additionalData["perpetrators"]) && is_array($additionalData["perpetrators"])) {
+                foreach ($additionalData["perpetrators"] as $perpetrator) {
+                    if (!empty($perpetrator["id"]) && substr($perpetrator["id"], 0, 1) === "Q") {
+                        $existingEntityIds[] = $perpetrator["id"];
+                    }
+                }
+            }
+            
+            // Collect all existing entity IDs from victims - nur IDs, die keine tempId oder temp_id haben
+            if (!empty($additionalData["victims"]) && is_array($additionalData["victims"])) {
+                foreach ($additionalData["victims"] as $victim) {
+                    if (!empty($victim["id"]) && substr($victim["id"], 0, 1) === "Q" && 
+                        empty($victim["tempId"]) && empty($victim["temp_id"])) {
+                        $existingEntityIds[] = $victim["id"];
+                    }
+                }
+            }
 
             $entityData = $wikidataService->prepareEntityData(
                 $this->entryRequest->title,
@@ -89,19 +111,31 @@ class CreateWikidataEntity implements ShouldQueue
                 foreach ($entityData["perpetrators"] as $perpetrator) {
                     if (
                         !empty($perpetrator["id"]) &&
-                        substr($perpetrator["id"], 0, 1) === "Q"
+                        substr($perpetrator["id"], 0, 1) === "Q" &&
+                        (!in_array($perpetrator["id"], $existingEntityIds) || 
+                         (isset($perpetrator["_wasCreated"]) && $perpetrator["_wasCreated"] === true))
                     ) {
-                        $createdEntities[] = [
-                            "id" => $perpetrator["id"],
-                            "type" => "perpetrator",
-                            "name" =>
-                                $perpetrator["name"] ??
-                                ($perpetrator["firstName"] .
-                                    " " .
-                                    $perpetrator["lastName"] ??
-                                    "Unbekannt"),
-                            "label" => $perpetrator["label"] ?? null,
-                        ];
+                        // Add to the list of newly created IDs for tracking
+                        if (!in_array($perpetrator["id"], $newlyCreatedEntityIds)) {
+                            $newlyCreatedEntityIds[] = $perpetrator["id"];
+                            
+                            $createdEntities[] = [
+                                "id" => $perpetrator["id"],
+                                "type" => "perpetrator",
+                                "name" =>
+                                    $perpetrator["name"] ??
+                                    $perpetrator["label"] ??
+                                    (isset($perpetrator["firstName"]) && isset($perpetrator["lastName"]) ?
+                                        $perpetrator["firstName"] . " " . $perpetrator["lastName"] :
+                                        "Unbekannt"),
+                                "label" => $perpetrator["label"] ?? null,
+                            ];
+                            
+                            Log::info("Added newly created perpetrator to additional entities list", [
+                                "id" => $perpetrator["id"],
+                                "name" => $perpetrator["name"] ?? $perpetrator["label"] ?? "Unbekannt",
+                            ]);
+                        }
                     }
                 }
             }
@@ -113,19 +147,31 @@ class CreateWikidataEntity implements ShouldQueue
                 foreach ($entityData["victims"] as $victim) {
                     if (
                         !empty($victim["id"]) &&
-                        substr($victim["id"], 0, 1) === "Q"
+                        substr($victim["id"], 0, 1) === "Q" &&
+                        (!in_array($victim["id"], $existingEntityIds) || 
+                         (isset($victim["_wasCreated"]) && $victim["_wasCreated"] === true))
                     ) {
-                        $createdEntities[] = [
-                            "id" => $victim["id"],
-                            "type" => "victim",
-                            "name" =>
-                                $victim["name"] ??
-                                ($victim["firstName"] .
-                                    " " .
-                                    $victim["lastName"] ??
-                                    "Unbekannt"),
-                            "label" => $victim["label"] ?? null,
-                        ];
+                        // Add to the list of newly created IDs for tracking
+                        if (!in_array($victim["id"], $newlyCreatedEntityIds)) {
+                            $newlyCreatedEntityIds[] = $victim["id"];
+                            
+                            $createdEntities[] = [
+                                "id" => $victim["id"],
+                                "type" => "victim",
+                                "name" =>
+                                    $victim["name"] ??
+                                    $victim["label"] ??
+                                    (isset($victim["firstName"]) && isset($victim["lastName"]) ?
+                                        $victim["firstName"] . " " . $victim["lastName"] :
+                                        "Unbekannt"),
+                                "label" => $victim["label"] ?? null,
+                            ];
+                            
+                            Log::info("Added newly created victim to additional entities list", [
+                                "id" => $victim["id"],
+                                "name" => $victim["name"] ?? $victim["label"] ?? "Unbekannt",
+                            ]);
+                        }
                     }
                 }
             }
@@ -137,6 +183,9 @@ class CreateWikidataEntity implements ShouldQueue
                 "request_id" => $this->entryRequest->id,
                 "wikidata_id" => $response["entity"]["id"],
                 "additional_entities" => count($createdEntities),
+                "referenced_entities" => count($existingEntityIds),
+                "newly_created_ids" => $newlyCreatedEntityIds,
+                "existing_ids" => $existingEntityIds
             ]);
         } catch (\Exception $e) {
             Log::error("Failed to create Wikidata entity", [

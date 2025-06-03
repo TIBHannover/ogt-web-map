@@ -217,6 +217,10 @@
                         v-model:survivorCount="survivorCount"
                         v-model:deathCount="deathCount"
                         v-model:arrestCount="arrestCount"
+                        v-model:victimCountQualifier="victimCountQualifier"
+                        v-model:survivorCountQualifier="survivorCountQualifier"
+                        v-model:deathCountQualifier="deathCountQualifier"
+                        v-model:arrestCountQualifier="arrestCountQualifier"
                         v-model:causeSearchResults="causeSearchResults"
                         v-model:selectedCauses="selectedCauses"
                         v-model:mapZoom="mapZoom"
@@ -513,6 +517,10 @@ const victimCount = ref(0);
 const survivorCount = ref(0);
 const deathCount = ref(0);
 const arrestCount = ref(0);
+const victimCountQualifier = ref("");
+const survivorCountQualifier = ref("");
+const deathCountQualifier = ref("");
+const arrestCountQualifier = ref("");
 const cause = ref("");
 const causeSearchResults = ref([]);
 const selectedCauses = ref([]);
@@ -1149,6 +1157,10 @@ const resetForm = async () => {
                 survivorCount: survivorCount.value,
                 deathCount: deathCount.value,
                 arrestCount: arrestCount.value,
+                victimCountQualifier: victimCountQualifier.value,
+                survivorCountQualifier: survivorCountQualifier.value,
+                deathCountQualifier: deathCountQualifier.value,
+                arrestCountQualifier: arrestCountQualifier.value,
                 causes: selectedCauses.value,
                 imageUrl: imageUrl.value,
                 imageFilename: imageFilename.value,
@@ -1162,6 +1174,14 @@ const resetForm = async () => {
         );
 
         if (response.data.success) {
+            // Debug logging
+            console.log("Submitted qualifier values:", {
+                victimCountQualifier: victimCountQualifier.value,
+                survivorCountQualifier: survivorCountQualifier.value,
+                deathCountQualifier: deathCountQualifier.value,
+                arrestCountQualifier: arrestCountQualifier.value,
+            });
+            
             // Redirect to thank-you page with request ID
             router.push({
                 name: "thank-you",
@@ -1225,6 +1245,10 @@ const clearForm = () => {
     survivorCount.value = 0;
     deathCount.value = 0;
     arrestCount.value = 0;
+    victimCountQualifier.value = "";
+    survivorCountQualifier.value = "";
+    deathCountQualifier.value = "";
+    arrestCountQualifier.value = "";
     causeSearchResults.value = [];
     selectedCauses.value = [];
     lastCauseSearchQuery.value = "";

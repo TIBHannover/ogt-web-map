@@ -1,7 +1,7 @@
 <template>
     <div class="counts-section container-section">
         <div class="section-header">
-            <label class="section-label">Opferzahlen:</label>
+            <label class="section-label">Geschädigte-Zahlen:</label>
             <button
                 type="button"
                 class="info-icon"
@@ -27,6 +27,13 @@
                         min="0"
                         @focus="$emit('fieldFocus', 'victim-count')"
                     />
+                    <WikidataQualifier
+                        id="victim-count-qualifier"
+                        :model-value="victimCountQualifier"
+                        @update:model-value="
+                            $emit('update:victimCountQualifier', $event)
+                        "
+                    />
                 </div>
             </v-col>
             <v-col cols="12" md="3">
@@ -44,6 +51,13 @@
                         "
                         min="0"
                         @focus="$emit('fieldFocus', 'victim-count')"
+                    />
+                    <WikidataQualifier
+                        id="survivor-count-qualifier"
+                        :model-value="survivorCountQualifier"
+                        @update:model-value="
+                            $emit('update:survivorCountQualifier', $event)
+                        "
                     />
                 </div>
             </v-col>
@@ -63,6 +77,13 @@
                         min="0"
                         @focus="$emit('fieldFocus', 'victim-count')"
                     />
+                    <WikidataQualifier
+                        id="death-count-qualifier"
+                        :model-value="deathCountQualifier"
+                        @update:model-value="
+                            $emit('update:deathCountQualifier', $event)
+                        "
+                    />
                 </div>
             </v-col>
             <v-col cols="12" md="3">
@@ -81,6 +102,13 @@
                         min="0"
                         @focus="$emit('fieldFocus', 'victim-count')"
                     />
+                    <WikidataQualifier
+                        id="arrest-count-qualifier"
+                        :model-value="arrestCountQualifier"
+                        @update:model-value="
+                            $emit('update:arrestCountQualifier', $event)
+                        "
+                    />
                 </div>
             </v-col>
         </v-row>
@@ -88,6 +116,8 @@
 </template>
 
 <script setup>
+import WikidataQualifier from "./common/WikidataQualifier.vue";
+
 defineProps({
     victimCount: {
         type: Number,
@@ -105,6 +135,22 @@ defineProps({
         type: Number,
         default: 0,
     },
+    victimCountQualifier: {
+        type: String,
+        default: "",
+    },
+    survivorCountQualifier: {
+        type: String,
+        default: "",
+    },
+    deathCountQualifier: {
+        type: String,
+        default: "",
+    },
+    arrestCountQualifier: {
+        type: String,
+        default: "",
+    },
 });
 
 defineEmits([
@@ -112,6 +158,10 @@ defineEmits([
     "update:survivorCount",
     "update:deathCount",
     "update:arrestCount",
+    "update:victimCountQualifier",
+    "update:survivorCountQualifier",
+    "update:deathCountQualifier",
+    "update:arrestCountQualifier",
     "fieldFocus",
     "infoButtonClick",
 ]);

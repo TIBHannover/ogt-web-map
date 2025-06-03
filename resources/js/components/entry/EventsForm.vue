@@ -80,10 +80,18 @@
                     :survivor-count="survivorCountValue"
                     :death-count="deathCountValue"
                     :arrest-count="arrestCountValue"
+                    :victim-count-qualifier="victimCountQualifierValue"
+                    :survivor-count-qualifier="survivorCountQualifierValue"
+                    :death-count-qualifier="deathCountQualifierValue"
+                    :arrest-count-qualifier="arrestCountQualifierValue"
                     @update:victim-count="victimCountValue = $event"
                     @update:survivor-count="survivorCountValue = $event"
                     @update:death-count="deathCountValue = $event"
                     @update:arrest-count="arrestCountValue = $event"
+                    @update:victim-count-qualifier="victimCountQualifierValue = $event"
+                    @update:survivor-count-qualifier="survivorCountQualifierValue = $event"
+                    @update:death-count-qualifier="deathCountQualifierValue = $event"
+                    @update:arrest-count-qualifier="arrestCountQualifierValue = $event"
                     @field-focus="setActiveField"
                     @info-button-click="openSectionInfo"
                 />
@@ -333,6 +341,22 @@ const props = defineProps({
         type: Number,
         default: 0,
     },
+    victimCountQualifier: {
+        type: String,
+        default: "",
+    },
+    survivorCountQualifier: {
+        type: String,
+        default: "",
+    },
+    deathCountQualifier: {
+        type: String,
+        default: "",
+    },
+    arrestCountQualifier: {
+        type: String,
+        default: "",
+    },
     causeSearchResults: {
         type: Array,
         default: () => [],
@@ -396,6 +420,10 @@ const emit = defineEmits([
     "update:survivorCount",
     "update:deathCount",
     "update:arrestCount",
+    "update:victimCountQualifier",
+    "update:survivorCountQualifier",
+    "update:deathCountQualifier",
+    "update:arrestCountQualifier",
     "update:cause",
     "update:causeSearchResults",
     "update:selectedCause",
@@ -498,6 +526,27 @@ const deathCountValue = computed({
 const arrestCountValue = computed({
     get: () => props.arrestCount,
     set: (value) => emit("update:arrestCount", value),
+});
+
+// Qualifier computed properties
+const victimCountQualifierValue = computed({
+    get: () => props.victimCountQualifier,
+    set: (value) => emit("update:victimCountQualifier", value),
+});
+
+const survivorCountQualifierValue = computed({
+    get: () => props.survivorCountQualifier,
+    set: (value) => emit("update:survivorCountQualifier", value),
+});
+
+const deathCountQualifierValue = computed({
+    get: () => props.deathCountQualifier,
+    set: (value) => emit("update:deathCountQualifier", value),
+});
+
+const arrestCountQualifierValue = computed({
+    get: () => props.arrestCountQualifier,
+    set: (value) => emit("update:arrestCountQualifier", value),
 });
 
 // Ursache computed properties

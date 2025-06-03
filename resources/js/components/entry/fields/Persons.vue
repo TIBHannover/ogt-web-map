@@ -149,6 +149,17 @@
                         >
                             Keine Ergebnisse gefunden
                         </div>
+
+                        <wikidata-suggestions
+                            v-if="
+                                !isSearchLoading &&
+                                !searchQuery.trim() &&
+                                label === 'Täter*In *'
+                            "
+                            :q-ids="['Q106625639']"
+                            endpoint="people"
+                            @select="onSelectPerson"
+                        />
                     </div>
 
                     <!-- Suchergebnisse für Personen -->
@@ -413,6 +424,7 @@
 import { computed, ref } from "vue";
 import WikidataSelector from "./common/WikidataSelector.vue";
 import GenderSelector from "./GenderSelector.vue";
+import WikidataSuggestions from "./common/WikidataSuggestions.vue";
 
 const props = defineProps({
     label: {

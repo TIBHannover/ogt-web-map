@@ -41,6 +41,10 @@ class WikidataEntityController extends Controller
             "survivorCount" => "nullable|integer",
             "deathCount" => "nullable|integer",
             "arrestCount" => "nullable|integer",
+            "victimCountQualifier" => "nullable|string",
+            "survivorCountQualifier" => "nullable|string",
+            "deathCountQualifier" => "nullable|string",
+            "arrestCountQualifier" => "nullable|string",
             "cause" => "nullable|string",
             "causes" => "nullable|array",
             "sources" => "nullable|array",
@@ -92,6 +96,20 @@ class WikidataEntityController extends Controller
             $entryRequest->survivor_count = $validated["survivorCount"] ?? null;
             $entryRequest->death_count = $validated["deathCount"] ?? null;
             $entryRequest->arrest_count = $validated["arrestCount"] ?? null;
+            
+            // Qualifier für Statistiken
+            $entryRequest->victim_count_qualifier = $validated["victimCountQualifier"] ?? null;
+            $entryRequest->survivor_count_qualifier = $validated["survivorCountQualifier"] ?? null;
+            $entryRequest->death_count_qualifier = $validated["deathCountQualifier"] ?? null;
+            $entryRequest->arrest_count_qualifier = $validated["arrestCountQualifier"] ?? null;
+            
+            // Debug-Ausgabe für Qualifier
+            Log::debug("Qualifier-Werte", [
+                'victim_qualifier' => $validated["victimCountQualifier"] ?? 'nicht gesetzt',
+                'survivor_qualifier' => $validated["survivorCountQualifier"] ?? 'nicht gesetzt',
+                'death_qualifier' => $validated["deathCountQualifier"] ?? 'nicht gesetzt',
+                'arrest_qualifier' => $validated["arrestCountQualifier"] ?? 'nicht gesetzt',
+            ]);
 
             // Ursache
             $entryRequest->cause = $validated["cause"] ?? null;
