@@ -195,6 +195,7 @@
 
                     <!-- Schritt 2: Ereignis-Formular -->
                     <EventsForm
+                        ref="eventsFormRef"
                         v-if="currentStep === 2 && formsType === 'Q6983405'"
                         v-model:formsTitle="formsTitle"
                         v-model:formsDescription="formsDescription"
@@ -257,131 +258,6 @@
                         @goToStep="goToStep"
                         @submit="resetForm"
                     />
-
-                    <!-- Schritt 2: Erinnerungsort-Formular -->
-                    <div
-                        v-if="currentStep === 2 && formsType === 'Q5003624'"
-                        class="step-container"
-                    >
-                        <h2 class="step-title">
-                            Schritt 2: Erinnerungsort-Details eingeben
-                        </h2>
-                        <form class="forms">
-                            <label for="title">Titel *</label>
-                            <input
-                                v-model="formsTitle"
-                                name="title"
-                                type="text"
-                                maxlength="250"
-                                placeholder="z.B. Gedenkstätte Bergen-Belsen"
-                                @input="searchWikidataEntities"
-                            />
-
-                            <!-- Anzeige der Suchergebnisse -->
-                            <div
-                                v-if="wikidataResults.length > 0"
-                                class="search-results"
-                            >
-                                <p class="search-info">
-                                    Möglicherweise existiert dieser Eintrag
-                                    bereits:
-                                </p>
-                                <div
-                                    v-for="result in wikidataResults"
-                                    :key="result.id"
-                                    class="search-result-item"
-                                    @click="selectExistingEntity(result)"
-                                >
-                                    <div class="result-title">
-                                        {{ result.label }}
-                                    </div>
-                                    <div
-                                        class="result-description"
-                                        v-if="result.description"
-                                    >
-                                        {{ result.description }}
-                                    </div>
-                                    <div class="result-id">{{ result.id }}</div>
-                                </div>
-                            </div>
-
-                            <label for="description">Kurzbeschreibung *</label>
-                            <textarea
-                                v-model="formsDescription"
-                                name="description"
-                                maxlength="750"
-                                placeholder="z.B. Gedenkstätte für die Opfer des Konzentrationslagers Bergen-Belsen."
-                            ></textarea>
-
-                            <label for="location">Standort auswählen: *</label>
-                            <div class="map-container">
-                                <l-map
-                                    ref="mapRef"
-                                    :zoom="mapZoom"
-                                    :center="mapCenter"
-                                    @click="handleMapClick"
-                                    style="
-                                        height: 400px;
-                                        width: 600px;
-                                        z-index: 0;
-                                        position: relative;
-                                    "
-                                >
-                                    <l-tile-layer
-                                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                        layer-type="base"
-                                        name="OpenStreetMap"
-                                    ></l-tile-layer>
-                                    <l-marker
-                                        v-if="selectedLocation"
-                                        :lat-lng="selectedLocation"
-                                        :icon="markerIcon"
-                                        :z-index-offset="1000"
-                                    ></l-marker>
-                                </l-map>
-                                <div
-                                    class="selected-coordinates"
-                                    v-if="selectedLocation"
-                                >
-                                    <strong>Ausgewählte Koordinaten:</strong>
-                                    {{ selectedLocation.lat.toFixed(6) }},
-                                    {{ selectedLocation.lng.toFixed(6) }}
-                                </div>
-                                <div class="map-search">
-                                    <input
-                                        v-model="locationSearch"
-                                        type="text"
-                                        placeholder="Adresse oder Ort suchen..."
-                                        @keydown.enter.prevent="searchLocation"
-                                    />
-                                    <button
-                                        type="button"
-                                        @click="searchLocation"
-                                    >
-                                        Suchen
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="button-container">
-                                <button
-                                    class="button bg-secondary"
-                                    type="button"
-                                    @click="goToStep(1)"
-                                >
-                                    Zurück
-                                </button>
-                                <button
-                                    class="button"
-                                    type="button"
-                                    @click="resetForm"
-                                >
-                                    Eintrag anlegen
-                                </button>
-                            </div>
-                            <div v-if="error" class="bg-error">{{ error }}</div>
-                        </form>
-                    </div>
 
                     <!-- Fügen Sie hier weitere Formulare für andere Typen hinzu -->
                     <!-- Für andere Typen können ähnliche Formulare mit spezifischen Anforderungen erstellt werden -->
@@ -493,6 +369,7 @@ const lastSearchQuery = ref("");
 const perpetratorsSearchResults = ref([]);
 const selectedPerpetrators = ref([]);
 const showNewPerpetratorForm = ref(false);
+const eventsFormRef = ref(null);
 const newPerpetrator = ref({
     firstName: "",
     lastName: "",
@@ -1090,6 +967,11 @@ const resetForm = async () => {
     error.value = null;
     isSubmitting.value = true;
 
+    // Trigger validation in TimeSelector and other form components
+    if (eventsFormRef.value && typeof eventsFormRef.value.validateForm === 'function') {
+        eventsFormRef.value.validateForm();
+    }
+
     try {
         const missingFields = [];
 
@@ -1101,11 +983,18 @@ const resetForm = async () => {
             missingFields.push("Kurzbeschreibung");
         }
 
-        if (
-            ["Q6983405", "Q5003624"].includes(formsType.value) &&
-            !selectedLocation.value
-        ) {
+        if (formsType.value === "Q6983405" && !selectedLocation.value) {
             missingFields.push("Standort");
+        }
+
+        // Pru00fcfe, ob Zeitpunkt/Zeitraum angegeben wurde
+        if (
+            formsType.value === "Q6983405" &&
+            ((eventTimeType.value === "point" && !eventDate.value) ||
+                (eventTimeType.value === "range" &&
+                    (!eventStartDate.value || !eventEndDate.value)))
+        ) {
+            missingFields.push("Zeitpunkt / Zeitraum");
         }
 
         // Prüfe, ob mindestens ein Täter vorhanden ist
@@ -1181,7 +1070,7 @@ const resetForm = async () => {
                 deathCountQualifier: deathCountQualifier.value,
                 arrestCountQualifier: arrestCountQualifier.value,
             });
-            
+
             // Redirect to thank-you page with request ID
             router.push({
                 name: "thank-you",

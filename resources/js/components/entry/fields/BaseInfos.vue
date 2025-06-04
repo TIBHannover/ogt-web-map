@@ -22,6 +22,12 @@
             @focus="$emit('fieldFocus', 'title')"
         />
 
+        <ValidationError
+            :show="showValidationErrors && !isTitleValid"
+            message="Bitte geben Sie einen Titel ein."
+            showIcon
+        />
+
         <!-- Anzeige der Suchergebnisse -->
         <div v-if="wikidataResults.length > 0" class="search-results">
             <p class="search-info">
@@ -50,11 +56,21 @@
             placeholder="z.B. vom NS-Regime gelenkte Gewaltmaßnahmen gegen Juden in Osnabrück."
             @focus="$emit('fieldFocus', 'title')"
         ></textarea>
+
+        <ValidationError
+            :show="showValidationErrors && !isDescriptionValid"
+            message="Bitte geben Sie eine Kurzbeschreibung ein."
+            showIcon
+        />
     </div>
 </template>
 
 <script setup>
-defineProps({
+import { ref, computed } from "vue";
+import ValidationError from "../../helpers/ValidationError.vue";
+import { useValidation } from "../../../composables/useValidation";
+
+const props = defineProps({
     stepTitle: {
         type: String,
         default: "Schritt 2: Ereignis-Details eingeben",
@@ -73,14 +89,45 @@ defineProps({
     },
 });
 
-defineEmits([
+const emit = defineEmits([
     "update:title",
     "update:description",
     "fieldFocus",
     "focusin",
     "infoButtonClick",
     "selectExistingEntity",
+    "validation",
 ]);
+
+// Computed properties for validation
+const isTitleValid = computed(() => {
+    return props.title && props.title.trim().length > 0;
+});
+
+const isDescriptionValid = computed(() => {
+    return props.description && props.description.trim().length > 0;
+});
+
+// Validation function
+const validateBaseInfos = () => {
+    return isTitleValid.value && isDescriptionValid.value;
+};
+
+// Use the validation composable
+const { isValid, showValidationErrors, validate, showErrors } = useValidation(
+    validateBaseInfos,
+    {
+        emit,
+        watchCallback: () => [props.title, props.description],
+    },
+);
+
+// Export the validation status for parent components
+defineExpose({
+    isValid,
+    validate,
+    showValidationErrors: showErrors,
+});
 </script>
 
 <style scoped>

@@ -10,13 +10,25 @@
                 @click="onSelect(entity)"
                 class="suggestion-item"
             >
-                <v-list-item-title>{{ entity.label }}</v-list-item-title>
-                <v-list-item-subtitle v-if="entity.description">
-                    {{ entity.description }}
-                </v-list-item-subtitle>
-                <v-list-item-subtitle class="result-id">
-                    {{ entity.id }}
-                </v-list-item-subtitle>
+                <div>
+                    <v-list-item-title>{{ entity.label }}</v-list-item-title>
+                    <v-list-item-subtitle v-if="entity.description">
+                        {{ entity.description }}
+                    </v-list-item-subtitle>
+                    <v-list-item-subtitle class="result-id">
+                        {{ entity.id }}
+                    </v-list-item-subtitle>
+                </div>
+                <div>
+                    <a
+                        :href="`https://www.wikidata.org/wiki/${entity.id}`"
+                        target="_blank"
+                        class="source-link"
+                    >
+                        <v-icon size="x-small mr-1">mdi-open-in-new</v-icon>
+                        Wikidata
+                    </a>
+                </div>
             </v-list-item>
         </v-list>
     </div>

@@ -24,6 +24,13 @@
                 Suchen
             </button>
         </div>
+
+        <ValidationError
+            :show="showValidationErrors && !isValid"
+            message="Bitte wählen Sie einen Standort auf der Karte aus."
+            showIcon
+        />
+
         <div class="map-container">
             <l-map
                 ref="mapRef"
@@ -55,10 +62,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import * as L from "leaflet";
 import { LMap, LTileLayer, LMarker } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
+import ValidationError from "../../helpers/ValidationError.vue";
+import { useValidation } from "../../../composables/useValidation";
 
 const props = defineProps({
     mapZoom: {
@@ -88,11 +97,33 @@ const emit = defineEmits([
     "handleMapClick",
     "fieldFocus",
     "infoButtonClick",
+    "validation",
 ]);
 
 // Map reference und Initialisierung
 const mapRef = ref(null);
 const leafletMap = ref(null); // Referenz zur Leaflet-Map-Instance
+
+// Validation function
+const validateLocation = () => {
+    return !!props.selectedLocation;
+};
+
+// Use the validation composable
+const { isValid, showValidationErrors, validate, showErrors } = useValidation(
+    validateLocation,
+    {
+        emit,
+        watchCallback: () => [props.selectedLocation],
+    },
+);
+
+// Export validation methods
+defineExpose({
+    isValid,
+    validate,
+    showValidationErrors: showErrors,
+});
 
 // Benutzerdefiniertes Marker-Icon erstellen
 const createCustomIcon = () => {

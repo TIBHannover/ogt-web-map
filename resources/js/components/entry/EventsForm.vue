@@ -5,6 +5,7 @@
             <form class="forms">
                 <!-- Titel/Kurzbeschreibung -->
                 <BaseInfos
+                    ref="baseInfosRef"
                     :title="title"
                     :description="description"
                     :wikidata-results="wikidataResultsValue"
@@ -14,10 +15,12 @@
                     @focusin="setActiveSection('title')"
                     @info-button-click="openSectionInfo"
                     @select-existing-entity="onSelectExistingEntity"
+                    @validation="onBaseInfoValidation"
                 />
 
                 <!-- Zeitpunkt/Zeitraum -->
                 <TimeSelector
+                    ref="timeSelectorRef"
                     :event-time-type="eventTimeTypeValue"
                     :event-date="eventDateValue"
                     :event-start-date="eventStartDateValue"
@@ -28,6 +31,8 @@
                     @update:event-end-date="eventEndDateValue = $event"
                     @field-focus="setActiveField"
                     @info-button-click="openSectionInfo"
+                    @validation="onTimeValidation"
+                    required="true"
                 />
 
                 <!-- Opfer-Eingabefeld -->
@@ -54,6 +59,7 @@
 
                 <!-- Täter-Eingabefeld -->
                 <PersonsField
+                    ref="perpetratorsRef"
                     label="Täter*In *"
                     fieldId="perpetrators"
                     :peopleSearchResults="perpetratorsSearchResultsValue"
@@ -72,6 +78,7 @@
                     @removePerson="onRemovePerpetrator"
                     @focusin="setActiveField('perpetrators')"
                     @infoButtonClick="openSectionInfo('perpetrators')"
+                    @validation="onPerpetratorsValidation"
                 />
 
                 <!-- Opferzahlen -->
@@ -88,10 +95,18 @@
                     @update:survivor-count="survivorCountValue = $event"
                     @update:death-count="deathCountValue = $event"
                     @update:arrest-count="arrestCountValue = $event"
-                    @update:victim-count-qualifier="victimCountQualifierValue = $event"
-                    @update:survivor-count-qualifier="survivorCountQualifierValue = $event"
-                    @update:death-count-qualifier="deathCountQualifierValue = $event"
-                    @update:arrest-count-qualifier="arrestCountQualifierValue = $event"
+                    @update:victim-count-qualifier="
+                        victimCountQualifierValue = $event
+                    "
+                    @update:survivor-count-qualifier="
+                        survivorCountQualifierValue = $event
+                    "
+                    @update:death-count-qualifier="
+                        deathCountQualifierValue = $event
+                    "
+                    @update:arrest-count-qualifier="
+                        arrestCountQualifierValue = $event
+                    "
                     @field-focus="setActiveField"
                     @info-button-click="openSectionInfo"
                 />
@@ -110,6 +125,7 @@
 
                 <!-- Standort -->
                 <LocationSelector
+                    ref="locationSelectorRef"
                     :map-zoom="mapZoomValue"
                     :map-center="mapCenterValue"
                     :selected-location="selectedLocationValue"
@@ -128,6 +144,7 @@
                     @handle-map-click="onHandleMapClick"
                     @field-focus="setActiveField"
                     @info-button-click="openSectionInfo"
+                    @validation="onLocationValidation"
                 />
 
                 <!-- Bild aus Wikimedia Commons -->
@@ -142,10 +159,12 @@
 
                 <!-- Quellenangaben -->
                 <SourcesField
+                    ref="sourcesFieldRef"
                     :selected-sources="selectedSourcesValue"
                     @update:selected-sources="selectedSourcesValue = $event"
                     @field-focus="setActiveField"
                     @info-button-click="openSectionInfo"
+                    @validation="onSourcesValidation"
                     required="true"
                 />
                 <!-- Source items display is moved to SourcesField component -->
@@ -700,6 +719,7 @@ const getInfoTitle = (fieldName) => {
         image: "Bild",
         victims: "Geschädigte Personen",
         perpetrators: "Täter*Innen",
+        sources: "Quellenangaben",
     };
 
     if (sectionTitles[fieldName]) {
@@ -739,6 +759,7 @@ const getSectionInfoContent = (sectionName) => {
                <p>Beispiele für gute Titel: "Novemberpogrom 1938 in Osnabrück", "Deportation der jüdischen Bevölkerung aus Hamburg (1941)"</p>`,
 
         time: `<p>Hier erfassen Sie die zeitlichen Informationen zum Ereignis.</p>
+               <p><strong>Diese Angabe ist verpflichtend.</strong></p>
                <p>Sie können zwischen einem einzelnen Zeitpunkt oder einem Zeitraum wählen:</p>
                <ul>
                  <li><strong>Zeitpunkt:</strong> Für Ereignisse, die an einem bestimmten Datum stattfanden</li>
@@ -788,24 +809,25 @@ const getSectionInfoContent = (sectionName) => {
         sources: `<p>Hier können Sie Quellenangaben zum Ereignis hinzufügen.</p>
                 <p><strong>Diese Angabe ist verpflichtend:</strong> Jedes Ereignis muss mindestens eine Quelle enthalten.</p>
                 <p>Sie können verschiedene Arten von Quellen angeben:</p>
-                <ul>
+                <ul class="mb-3">
                   <li><strong>Bücher:</strong> Wissenschaftliche Werke, Monographien, Sammelbände etc.</li>
                   <li><strong>URLs:</strong> Vertrauenswürdige Webseiten, Online-Archive, Datenbanken</li>
                   <li><strong>Archive:</strong> Archivmaterial mit Inventarnummer</li>
                 </ul>
                 <p>Bei Buchquellen können Sie nach bereits in Wikidata erfassten Werken suchen oder neue Werke manuell hinzufügen. Geben Sie möglichst genaue Seitenangaben an.</p>
                 <p>Bei URLs ist das Zugriffsdatum wichtig, um die zeitliche Verfügbarkeit der Information zu dokumentieren.</p>
-                <p>Bei Archivquellen geben Sie das entsprechende Archiv und die Inventarnummer an.</p>`,
+                <p>Bei Archivquellen geben Sie das entsprechende Archiv und die Signatur oder Inventarnummer an. (Die meisten Archivalien haben eine Signatur. Seltener werden Inventarnummern genutzt, meist z. B. bei Gegenständen und manchmal auch bei Fotos).</p>`,
 
-        victims: `<p>Hier fügen Sie die Geschädigten oder Opfer des Ereignisses hinzu.</p>
+        victims: `<p>Hier fügen Sie die Geschädigten des Ereignisses hinzu.</p>
                 <p>Sie können nach bereits bekannten Personen suchen oder neue Personen manuell hinzufügen.</p>
                 <p>Bei neuen Personen achten Sie bitte auf korrekte Namensschreibweisen, Lebensdaten und eine kurze Beschreibung.</p>
-                <p>Dies hilft bei der Verknüpfung mit anderen Ereignissen und der Nachverfolgung von Schicksalen.</p>`,
+                <p>Dies hilft bei der Verknüpfung mit anderen Ereignissen und der Nachverfolgung von Biographien.</p>`,
 
         perpetrators: `<p>Hier dokumentieren Sie die für das Ereignis verantwortlichen Personen oder Gruppen.</p>
                      <p><strong>Diese Angabe ist verpflichtend:</strong> Jedes Ereignis muss mindestens einen Täter oder eine verantwortliche Organisation haben.</p>
-                     <p>Beachten Sie dabei die juristische und historische Genauigkeit, unterscheiden Sie zwischen direkten Tätern und Befehlsgebern und dokumentieren Sie auch institutionelle Verantwortlichkeiten.</p>
-                     <p>Eine präzise Dokumentation der Täter ist ein wichtiger Teil der historischen Aufarbeitung.</p>`,
+                     <p>Beachten Sie dabei die juristische und historische Genauigkeit, unterscheiden Sie zwischen direkten Tätern und Befehlsgebern und dokumentieren Sie auch institutionelle Verantwortlichkeiten." zu "Dokumentieren Sie auch institutionelle Verantwortlichkeiten.</p>
+                     <p>Zudem sind Befehlsgeber, organisatorisch Verantwortliche und direkt ausführende Täter gleichermaßen Täter.</p>
+                     <p>Wenn Sie natürliche Personen anlegen, ist besonders auf eine historisch präzise und sorgfältige Arbeitsweise zu achten.</p>`,
     };
 
     return (
@@ -949,7 +971,95 @@ const onHandleMapClick = (e) => {
 };
 const onGoToStep = (step) => emit("goToStep", step);
 
-const onSubmit = () => emit("submit");
+const onSubmit = () => {
+    // Trigger validation for all components
+    if (timeSelectorRef.value) {
+        timeSelectorRef.value.validate();
+    }
+
+    emit("submit");
+};
+
+// Refs for form components
+const timeSelectorRef = ref(null);
+const baseInfosRef = ref(null);
+const perpetratorsRef = ref(null);
+const sourcesFieldRef = ref(null);
+const locationSelectorRef = ref(null);
+
+// Validation states
+const isTimeValid = ref(true);
+const isBaseInfoValid = ref(true);
+const isPerpetratorsValid = ref(true);
+const isSourcesValid = ref(true);
+const isLocationValid = ref(true);
+
+const onTimeValidation = (isValid) => {
+    isTimeValid.value = isValid;
+};
+
+const onBaseInfoValidation = (isValid) => {
+    isBaseInfoValid.value = isValid;
+};
+
+const onPerpetratorsValidation = (isValid) => {
+    isPerpetratorsValid.value = isValid;
+};
+
+const onSourcesValidation = (isValid) => {
+    isSourcesValid.value = isValid;
+};
+
+const onLocationValidation = (isValid) => {
+    isLocationValid.value = isValid;
+};
+
+// Validate form before submission
+const validateForm = () => {
+    let isValid = true;
+
+    // Validate time fields
+    if (timeSelectorRef.value) {
+        if (!timeSelectorRef.value.validate()) {
+            isValid = false;
+        }
+    }
+
+    // Validate base info (title and description)
+    if (baseInfosRef.value) {
+        if (!baseInfosRef.value.validate()) {
+            isValid = false;
+        }
+    }
+
+    // Validate perpetrators
+    if (perpetratorsRef.value) {
+        if (!perpetratorsRef.value.validate()) {
+            isValid = false;
+        }
+    }
+
+    // Validate sources
+    if (sourcesFieldRef.value) {
+        if (!sourcesFieldRef.value.validate()) {
+            isValid = false;
+        }
+    }
+
+    // Validate location
+    if (locationSelectorRef.value) {
+        if (!locationSelectorRef.value.validate()) {
+            isValid = false;
+        }
+    }
+
+    return isValid;
+};
+
+// Export the validateForm method for parent component access
+defineExpose({
+    validateForm,
+});
 
 // Ladet den Ladezustand zurücksetzen, wenn Ergebnisse da sind oder wenn nichts gefunden wurde
 watch(

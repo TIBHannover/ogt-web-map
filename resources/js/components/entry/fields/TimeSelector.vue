@@ -1,14 +1,14 @@
 <template>
     <div class="time-section container-section">
         <div class="section-header">
-            <label class="section-label">Zeitpunkt / Zeitraum:</label>
-            <v-button
+            <label class="section-label">Zeitpunkt / Zeitraum</label>
+            <button
                 type="button"
                 class="info-icon"
                 @click="$emit('infoButtonClick', 'time')"
             >
                 <v-icon>mdi-information-variant</v-icon>
-            </v-button>
+            </button>
         </div>
         <div class="time-type-selection">
             <v-btn-toggle
@@ -42,7 +42,10 @@
                 density="comfortable"
                 class="date-field"
                 bg-color="white"
+                :rules="[(v) => !!v || 'Datum ist erforderlich']"
+                required
                 @focus="$emit('fieldFocus', 'time')"
+                @blur="onFieldBlur"
                 @update:model-value="$emit('update:eventDate', $event)"
             ></v-text-field>
         </div>
@@ -58,7 +61,10 @@
                     density="comfortable"
                     class="date-field"
                     bg-color="white"
+                    :rules="[(v) => !!v || 'Beginn-Datum ist erforderlich']"
+                    required
                     @focus="$emit('fieldFocus', 'time')"
+                    @blur="onFieldBlur"
                     @update:model-value="$emit('update:eventStartDate', $event)"
                 ></v-text-field>
             </div>
@@ -71,16 +77,34 @@
                     density="comfortable"
                     class="date-field"
                     bg-color="white"
+                    :rules="[(v) => !!v || 'End-Datum ist erforderlich']"
+                    required
                     @focus="$emit('fieldFocus', 'time')"
+                    @blur="onFieldBlur"
                     @update:model-value="$emit('update:eventEndDate', $event)"
                 ></v-text-field>
             </div>
         </div>
+        <ValidationError
+            v-if="localEventTimeType === 'point'"
+            :show="showValidationErrors && !isPointValid"
+            message="Bitte geben Sie ein Datum für das Ereignis ein."
+            showIcon
+        />
+
+        <ValidationError
+            v-if="localEventTimeType === 'range'"
+            :show="showValidationErrors && !isRangeValid"
+            message="Bitte geben Sie sowohl Beginn- als auch Enddatum für den Zeitraum ein."
+            showIcon
+        />
     </div>
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
+import { ref, computed, watch } from "vue";
+import ValidationError from "../../helpers/ValidationError.vue";
+import { useValidation } from "../../../composables/useValidation";
 
 const props = defineProps({
     eventTimeType: {
@@ -99,6 +123,10 @@ const props = defineProps({
         type: String,
         default: null,
     },
+    required: {
+        type: Boolean,
+        default: true,
+    },
 });
 
 const emit = defineEmits([
@@ -108,6 +136,7 @@ const emit = defineEmits([
     "update:eventEndDate",
     "fieldFocus",
     "infoButtonClick",
+    "validation",
 ]);
 
 // Local state for v-btn-toggle
@@ -118,9 +147,41 @@ const eventDate = ref(props.eventDate);
 const eventStartDate = ref(props.eventStartDate);
 const eventEndDate = ref(props.eventEndDate);
 
+// Computed helpers for validation
+const isPointValid = computed(() => !!eventDate.value);
+const isRangeValid = computed(
+    () => !!eventStartDate.value && !!eventEndDate.value,
+);
+
+// Validation function
+const validateFields = () => {
+    if (localEventTimeType.value === "point") {
+        return isPointValid.value;
+    } else {
+        // range mode
+        return isRangeValid.value;
+    }
+};
+
+// Use the validation composable
+const { isValid, showValidationErrors, validate, showErrors } = useValidation(
+    validateFields,
+    {
+        emit,
+        watchCallback: () => [
+            eventDate.value,
+            eventStartDate.value,
+            eventEndDate.value,
+            localEventTimeType.value,
+        ],
+    },
+);
+
 // Watch for changes to local state and emit events
 watch(localEventTimeType, (newValue) => {
     emit("update:eventTimeType", newValue);
+    // Reset validation errors when switching between time types
+    showValidationErrors.value = false;
 });
 
 watch(eventDate, (newValue) => {
@@ -163,6 +224,21 @@ watch(
         eventEndDate.value = newValue;
     },
 );
+
+// Methods to handle field interaction
+const onFieldBlur = () => {
+    // Show validation errors if fields are left empty
+    if (!isValid.value) {
+        showValidationErrors.value = true;
+    }
+};
+
+// Export the validation status for parent components
+defineExpose({
+    isValid,
+    validate,
+    showValidationErrors: showErrors,
+});
 </script>
 
 <style scoped>
@@ -187,6 +263,12 @@ watch(
     font-weight: 500;
     font-size: 1.1rem;
     margin-bottom: 0;
+}
+
+.section-label::after {
+    content: "*";
+    color: red;
+    margin-left: 3px;
 }
 
 .time-type-selection {
@@ -254,6 +336,13 @@ watch(
     font-family: inherit;
     font-size: 1rem;
     color: rgba(0, 0, 0, 0.87);
+}
+
+/* Visual indicator for required fields */
+.form-group label::after {
+    content: "*";
+    color: red;
+    margin-left: 3px;
 }
 
 /* Spezielle Stylings für den Zeitraum */

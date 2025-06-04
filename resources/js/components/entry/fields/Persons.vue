@@ -23,6 +23,12 @@
             </v-btn>
         </div>
 
+        <ValidationError
+            :show="showValidationErrors && !isValid"
+            :message="`Bitte fügen Sie mindestens einen Eintrag für ${label} hinzu.`"
+            showIcon
+        />
+
         <div v-if="selectedPersons.length > 0" class="selected-persons">
             <h4>Ausgewählte {{ label }}:</h4>
             <div
@@ -425,6 +431,8 @@ import { computed, ref } from "vue";
 import WikidataSelector from "./common/WikidataSelector.vue";
 import GenderSelector from "./GenderSelector.vue";
 import WikidataSuggestions from "./common/WikidataSuggestions.vue";
+import ValidationError from "../../helpers/ValidationError.vue";
+import { useValidation } from "../../../composables/useValidation";
 
 const props = defineProps({
     label: {
@@ -489,6 +497,7 @@ const emit = defineEmits([
     "removePerson",
     "infoButtonClick",
     "searchWikidata",
+    "validation",
 ]);
 
 // Local state
@@ -497,6 +506,27 @@ const searchQuery = ref("");
 const editMode = ref(false);
 const editingPersonId = ref(null);
 const newPersonLocal = computed(() => props.newPerson);
+
+// Computed property to check if selection is valid
+const isValid = computed(() => {
+    return props.selectedPersons && props.selectedPersons.length > 0;
+});
+
+// Validation function
+const validatePersons = () => {
+    return props.selectedPersons && props.selectedPersons.length > 0;
+};
+
+// Use the validation composable
+const { 
+    isValid: isValidResult, 
+    showValidationErrors, 
+    validate: validateForm, 
+    showErrors 
+} = useValidation(validatePersons, { 
+    emit,
+    watchCallback: () => [props.selectedPersons]
+});
 
 // Wikidata search state
 const wikidataSearchResults = ref({
@@ -703,6 +733,13 @@ const handleWikidataResults = (field, results) => {
     wikidataSearchResults.value[field] = results || [];
     isWikidataSearchLoading.value[field] = false;
 };
+
+// Export the validation status for parent components
+defineExpose({
+    isValid,
+    validate: validateForm,
+    showValidationErrors: showErrors
+});
 </script>
 
 <style scoped>

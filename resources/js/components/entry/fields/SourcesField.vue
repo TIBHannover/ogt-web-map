@@ -11,7 +11,7 @@
             </button>
         </div>
         <div class="sources-selection">
-            <v-button
+            <v-btn
                 type="button"
                 class="button bg-secondary"
                 @click="openSourcesSelector"
@@ -19,7 +19,13 @@
             >
                 <v-icon class="me-1">mdi-plus</v-icon>
                 Quellenangabe hinzufügen
-            </v-button>
+            </v-btn>
+
+            <ValidationError
+                :show="showValidationErrors && !isValid"
+                message="Bitte fügen Sie mindestens eine Quellenangabe hinzu."
+                showIcon
+            />
 
             <div
                 v-if="selectedSources.length > 0"
@@ -111,7 +117,7 @@
             </div>
         </div>
 
-        <!-- Dialog für Quellenauswahl -->
+        <!-- Dialog fu00fcr Quellenauswahl -->
         <v-dialog v-model="sourcesDialogVisible" max-width="900px">
             <SourcesSelector
                 @select="selectSource"
@@ -122,13 +128,19 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits } from "vue";
+import { ref, computed } from "vue";
 import SourcesSelector from "./SourcesSelector.vue";
+import ValidationError from "../../helpers/ValidationError.vue";
+import { useValidation } from "../../../composables/useValidation";
 
 const props = defineProps({
     selectedSources: {
         type: Array,
         default: () => [],
+    },
+    required: {
+        type: Boolean,
+        default: true,
     },
 });
 
@@ -136,9 +148,24 @@ const emit = defineEmits([
     "update:selectedSources",
     "fieldFocus",
     "infoButtonClick",
+    "validation",
 ]);
 
 const sourcesDialogVisible = ref(false);
+
+// Validation function
+const validateSources = () => {
+    return props.selectedSources && props.selectedSources.length > 0;
+};
+
+// Use the validation composable
+const { isValid, showValidationErrors, validate, showErrors } = useValidation(
+    validateSources,
+    {
+        emit,
+        watchCallback: () => [props.selectedSources],
+    },
+);
 
 // Formatiert ein Datum im deutschen Format
 const formatDate = (dateString) => {
@@ -167,6 +194,13 @@ const removeSource = (index) => {
     newSources.splice(index, 1);
     emit("update:selectedSources", newSources);
 };
+
+// Export the validation status for parent components
+defineExpose({
+    isValid,
+    validate,
+    showValidationErrors: showErrors,
+});
 </script>
 
 <style scoped>
