@@ -229,13 +229,6 @@ class WikidataFormatter
                     "rank" => "normal",
                 ],
             ];
-        } else {
-            // Warnung loggen, wenn keine Rolle gesetzt wurde
-            Log::warning("No P2868 (role) property set for person entity", [
-                "is_organization" => $isOrganization,
-                "role" => $role,
-                "person_name" => $personData["name"] ?? "Unnamed",
-            ]);
         }
 
         // Ursache der Verfolgung (causes array)
@@ -1500,17 +1493,15 @@ class WikidataFormatter
                 // Erstelle Namen aus firstName und lastName, falls vorhanden
                 $name = !empty($victim["name"])
                     ? $victim["name"]
-                    : (!empty($victim["label"])
-                        ? $victim["label"]
-                        : trim(
-                            (isset($victim["firstName"])
-                                ? $victim["firstName"]
-                                : "") .
-                                " " .
-                                (isset($victim["lastName"])
-                                    ? $victim["lastName"]
-                                    : "")
-                        ));
+                    : trim(
+                        (isset($victim["firstName"])
+                            ? $victim["firstName"]
+                            : "") .
+                            " " .
+                            (isset($victim["lastName"])
+                                ? $victim["lastName"]
+                                : "")
+                    );
 
                 // Konvertiere birthDate/deathDate zu date_of_birth/date_of_death
                 $dateOfBirth =
@@ -1594,17 +1585,15 @@ class WikidataFormatter
                 // Erstelle Namen aus firstName und lastName, falls vorhanden
                 $name = !empty($victim["name"])
                     ? $victim["name"]
-                    : (!empty($victim["label"])
-                        ? $victim["label"]
-                        : trim(
-                            (isset($victim["firstName"])
-                                ? $victim["firstName"]
-                                : "") .
-                                " " .
-                                (isset($victim["lastName"])
-                                    ? $victim["lastName"]
-                                    : "")
-                        ));
+                    : trim(
+                        (isset($victim["firstName"])
+                            ? $victim["firstName"]
+                            : "") .
+                            " " .
+                            (isset($victim["lastName"])
+                                ? $victim["lastName"]
+                                : "")
+                    );
 
                 // Konvertiere birthDate/deathDate zu date_of_birth/date_of_death
                 $dateOfBirth =
@@ -1795,13 +1784,6 @@ class WikidataFormatter
                     ? self::WIKIDATA_VICTIM_NAZI
                     : self::WIKIDATA_PERPETRATOR_NAZI;
 
-            // Explizit loggen, welche Rolle gesetzt wird
-            Log::info("Setting P2868 (role) property for new person entity", [
-                "role" => $role,
-                "role_value" => $roleValue,
-                "person_name" => $personData["name"] ?? "Unnamed",
-            ]);
-
             $formattedData["claims"][self::WIKIDATA_ROLE_PROPERTY] = [
                 [
                     "mainsnak" => [
@@ -1820,13 +1802,6 @@ class WikidataFormatter
                     "rank" => "normal",
                 ],
             ];
-        } elseif (!$isOrganization) {
-            // Warnung loggen, wenn keine Rolle gesetzt wurde, aber es sich um eine Person handelt
-            Log::warning("No P2868 (role) property set for person entity", [
-                "is_organization" => $isOrganization,
-                "role" => $role,
-                "person_name" => $personData["name"] ?? "Unnamed",
-            ]);
         }
 
         // Geburtsdatum (P569) - nur für Personen, nicht für Organisationen
