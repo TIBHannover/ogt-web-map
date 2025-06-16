@@ -84,36 +84,15 @@ interested parties.
 * [SPARQL](https://www.w3.org/TR/sparql11-query/), a RDF query language.
 
 # Getting Started
-Instructions for setting up project website on local system.
+Instructions for setting up the project website on local system using Docker.
 To get a local copy up and running follow these steps.
 
 ## Install requirements
-Software you need to run the OGT website and how to install them for **Ubuntu**.
-  ```sh 
-  sudo apt update && sudo apt upgrade
-  ```
+Software you need to run the OGT website:
 
-* Git (not required, if you download project zip package)
-  ```sh 
-  sudo apt install git
-  ```
-
-* PHP and required [PHP packages for Laravel](https://laravel.com/docs/8.x/deployment#server-requirements) and  for NGINX
-    ```sh
-    sudo apt install php7.4-fpm
-    sudo apt install php7.4-bcmath php7.4-mbstring php7.4-xml
-    ```
-
-* Composer
-    ```sh
-    sudo apt-get install composer
-    ``` 
-
-* npm
-  ```sh
-  sudo apt-get install npm
-  ```
-
+* [Docker](https://docs.docker.com/get-docker/)
+* [Docker Compose](https://docs.docker.com/compose/install/)
+* Git (optional, if you prefer downloading the project zip package)
 
 ## Setup on local system
 1. Clone the repository
@@ -122,18 +101,25 @@ Software you need to run the OGT website and how to install them for **Ubuntu**.
    ```
    or download zip package from [GitHub](https://github.com/TIBHannover/ogt-web-map/archive/refs/heads/master.zip) and unzip into a directory.
 
-
-2. Create env, generate key, install libs, compile files and start Laravel development server.  
+2. Build and start Docker containers
    ```sh
    cd ogt-api/
    cp .env.local .env
-   php artisan key:generate
-   composer install
-   npm install
-   npm run dev
-   php artisan serve
+   docker compose -f compose.local.yml build
+   docker compose -f compose.local.yml up -d
    ```
-   Open OGT-website in browser, default: http://127.0.0.1:8000
+
+3. Compile assets for development
+   ```sh
+   # To compile assets once
+   npm run dev
+   
+   # Or to watch for changes during development
+   npm run watch
+   ```
+   
+   Open OGT-website in browser, default: http://localhost:8000
+
 
 ## Config app env
 See [`.env.example`](.env.example) for more variables.
