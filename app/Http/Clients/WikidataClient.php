@@ -169,13 +169,7 @@ class WikidataClient
                 UNION
                 {
                     ?item wdt:P547 ?location.
-                    {
-                        ?location wdt:P31 wd:Q106996250.
-                    }
-                    UNION
-                    {
-                        ?location wdt:P31 wd:Q6983405.
-                    }
+                    ?location wdt:P31 wd:Q106996250.
                 }
                 UNION
                 {
