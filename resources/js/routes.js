@@ -10,6 +10,7 @@ const Entry = () => import("./components/Entry.vue");
 // const WikidataRequestDetail = () => import("./components/admin/WikidataRequestDetail.vue");
 const Bibliography = () => import("./components/Bibliography.vue");
 const Workshops = () => import("./components/Workshops.vue");
+const Materials = () => import("./components/Materials.vue");
 const ThankYou = () => import("./components/entry/ThankYou.vue");
 
 export const routes = [
@@ -87,6 +88,14 @@ export const routes = [
         component: Workshops,
         meta: {
             title: "Werkstätte für historische Daten: Gestapo. Terror. Orte",
+        },
+    },
+    {
+        name: "materials",
+        path: "/materialien",
+        component: Materials,
+        meta: {
+            title: "Materialien: Gestapo. Terror. Orte",
         },
     },
     {

@@ -67,25 +67,23 @@ const menuItems = ref([
         toMenu: 'mainMenu',
     }, */
     {
-        title: "Literatur",
-        icon: "mdi-book-multiple",
-        path: "/literatur",
-        show: true,
-        toMenu: "mainMenu",
-    },
-    /*
-    {
-        title: "Mitforschen",
-        icon: "mdi-at",
-        path: "/collaboration",
-        show: true,
-        toMenu: "mainMenu",
-    },
-    */
-    {
         title: "Mitforschen: Werkstätte",
         icon: "mdi-pencil-outline",
         path: "/werkstaette",
+        show: true,
+        toMenu: "mainMenu",
+    },
+    {
+        title: "Materialien",
+        icon: "mdi-note-multiple",
+        path: "/materialien",
+        show: true,
+        toMenu: "mainMenu",
+    },
+    {
+        title: "Literatur",
+        icon: "mdi-book-multiple",
+        path: "/literatur",
         show: true,
         toMenu: "mainMenu",
     },
