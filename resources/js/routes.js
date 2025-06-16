@@ -73,7 +73,7 @@ export const routes = [
         path: "/werkstaette",
         component: Workshops,
         meta: {
-            title: "Werkstätte für historische Daten: Gestapo. Terror. Orte",
+            title: "Werkstätten für historische Daten: Gestapo. Terror. Orte",
         },
     },
     {

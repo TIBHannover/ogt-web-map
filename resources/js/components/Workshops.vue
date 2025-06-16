@@ -14,7 +14,7 @@
                     class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-h4 text-md-h3"
                     lang="de"
                 >
-                    Mitforschen: Werkstätte
+                    Mitforschen: Werkstätten
                 </h1>
             </v-col>
         </v-row>
@@ -74,9 +74,10 @@
                         Du möchtest Daten zur Geschichte der Gestapo erfassen
                         und sie auf der digitalen Karte Gestapo.Terror.Orte
                         sichtbar machen?<br />
-                        Auf unserer Materialien-Seite findest du alle nötigen Anleitungen und Dokumentationen.
+                        Auf unserer Materialien-Seite findest du alle nötigen
+                        Anleitungen und Dokumentationen.
                     </p>
-                    
+
                     <v-btn
                         class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 text-transform-none"
                         color="black"
@@ -209,7 +210,7 @@
                         class="font-weight-medium text-h5 text-md-h4 mb-5"
                         :class="{ 'font-size-29': $vuetify.display.mdAndUp }"
                     >
-                        Die nächsten Werkstätte
+                        Die nächsten Werkstätten
                     </h2>
 
                     <p
@@ -324,7 +325,7 @@ const headings = ref([
     },
     {
         href: "#nextWorkshops",
-        label: "Die nächsten Werkstätte",
+        label: "Die nächsten Werkstätten",
     },
     {
         href: "#results",
