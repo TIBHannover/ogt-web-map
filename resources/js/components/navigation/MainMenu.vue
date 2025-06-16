@@ -67,7 +67,7 @@ const menuItems = ref([
         toMenu: 'mainMenu',
     }, */
     {
-        title: "Mitforschen: Werkstätte",
+        title: "Mitforschen: Werkstätten",
         icon: "mdi-pencil-outline",
         path: "/werkstaette",
         show: true,
