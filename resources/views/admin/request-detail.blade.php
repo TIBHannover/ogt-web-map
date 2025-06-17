@@ -1,5 +1,38 @@
 @extends('layouts.app')
 
+@php
+use App\Http\Controllers\WikidataPropertyController;
+
+// Helper-Funktion zur formatierten Anzeige von Wikidata-Eigenschaften
+function formatWikidataProperty($entity, $propertyId, $defaultLabel = null) {
+    $label = WikidataPropertyController::translatePropertyLabel($propertyId);
+
+    if (!isset($entity[$propertyId]) || empty($entity[$propertyId])) {
+        return null;
+    }
+
+    $property = $entity[$propertyId];
+
+    if (!is_array($property)) {
+        return [
+            'label' => $label ?: ucfirst(str_replace('_', ' ', $propertyId)),
+            'value' => $property,
+            'id' => null
+        ];
+    }
+
+    if (isset($property['id'])) {
+        return [
+            'label' => $label ?: ucfirst(str_replace('_', ' ', $propertyId)),
+            'value' => $property['label'] ?? $property['id'],
+            'id' => $property['id']
+        ];
+    }
+
+    return null;
+}
+@endphp
+
 @section('content')
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -286,123 +319,7 @@
                                         <strong>Täter*Innen:</strong>
                                         <div class="list-group mt-2">
                                             @foreach($request->perpetrators as $perpetrator)
-                                                <div class="list-group-item">
-                                                    @if(is_array($perpetrator))
-                                                        @if(isset($perpetrator['label']))
-                                                            <div class="fw-bold">{{ $perpetrator['label'] }}</div>
-                                                        @else
-                                                            <div class="fw-bold">{{ $perpetrator['firstName'] }} {{ $perpetrator['lastName'] }}</div>
-                                                        @endif
-
-                                                        @if(isset($perpetrator['id']))
-                                                            <div>
-                                                                <a href="https://www.wikidata.org/wiki/{{ $perpetrator['id'] }}" target="_blank" class="text-decoration-none">
-                                                                    <span class="badge bg-secondary">{{ $perpetrator['id'] }}</span>
-                                                                    <i class="bi bi-box-arrow-up-right ms-1 small"></i>
-                                                                </a>
-                                                            </div>
-                                                        @endif
-
-                                                        @if(isset($perpetrator['description']))
-                                                            <div class="text-muted small mt-1">{{ $perpetrator['description'] }}</div>
-                                                        @endif
-
-                                                        @foreach($perpetrator as $key => $value)
-                                                            @if(!in_array($key, ['id', 'label', 'description', 'tempId', 'isOrganization', 'birthDate', 'deathDate', 'date_of_birth', 'date_of_death']) && !is_array($value))
-                                                                <div class="small mt-1">
-                                                                    <strong>{{ ucfirst($key) }}:</strong> {{ $value }}
-                                                                </div>
-                                                            @endif
-                                                        @endforeach
-
-                                                        <!-- Formatierte Datumsanzeige -->
-                                                        @if(isset($perpetrator['birthDate']) && $perpetrator['birthDate'])
-                                                            <div class="small mt-1">
-                                                                <strong>Geburtsdatum:</strong>
-                                                                {{ \Carbon\Carbon::parse($perpetrator['birthDate'])->format('d.m.Y') ?? $perpetrator['birthDate'] }}
-                                                            </div>
-                                                        @elseif(isset($perpetrator['date_of_birth']) && $perpetrator['date_of_birth'])
-                                                            <div class="small mt-1">
-                                                                <strong>Geburtsdatum:</strong>
-                                                                {{ \Carbon\Carbon::parse($perpetrator['date_of_birth'])->format('d.m.Y') ?? $perpetrator['date_of_birth'] }}
-                                                            </div>
-                                                        @endif
-
-                                                        @if(isset($perpetrator['deathDate']) && $perpetrator['deathDate'])
-                                                            <div class="small mt-1">
-                                                                <strong>Sterbedatum:</strong>
-                                                                {{ \Carbon\Carbon::parse($perpetrator['deathDate'])->format('d.m.Y') ?? $perpetrator['deathDate'] }}
-                                                            </div>
-                                                        @elseif(isset($perpetrator['date_of_death']) && $perpetrator['date_of_death'])
-                                                            <div class="small mt-1">
-                                                                <strong>Sterbedatum:</strong>
-                                                                {{ \Carbon\Carbon::parse($perpetrator['date_of_death'])->format('d.m.Y') ?? $perpetrator['date_of_death'] }}
-                                                            </div>
-                                                        @endif
-
-                                                        <!-- Wikidata-Verknüpfungen anzeigen -->
-                                                        @if(!isset($perpetrator['isOrganization']) || !$perpetrator['isOrganization'])
-                                                            <!-- Nur für Personen anzeigen -->
-                                                            @if(isset($perpetrator['gender']) && is_array($perpetrator['gender']))
-                                                                <div class="small mt-1">
-                                                                    <strong>Geschlecht:</strong>
-                                                                    <a href="https://www.wikidata.org/wiki/{{ $perpetrator['gender']['id'] }}" target="_blank">
-                                                                        {{ $perpetrator['gender']['label'] ?? $perpetrator['gender']['id'] }}
-                                                                        @if(isset($perpetrator['gender']['id']))<span class="text-muted small"> ({{ $perpetrator['gender']['id'] }})</span>@endif
-                                                                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
-                                                                    </a>
-                                                                </div>
-                                                            @endif
-
-                                                            @if(isset($perpetrator['place_of_birth']) && is_array($perpetrator['place_of_birth']))
-                                                                <div class="small mt-1">
-                                                                    <strong>Geburtsort:</strong>
-                                                                    <a href="https://www.wikidata.org/wiki/{{ $perpetrator['place_of_birth']['id'] }}" target="_blank">
-                                                                        {{ $perpetrator['place_of_birth']['label'] ?? $perpetrator['place_of_birth']['id'] }}
-                                                                        @if(isset($perpetrator['place_of_birth']['id']))<span class="text-muted small"> ({{ $perpetrator['place_of_birth']['id'] }})</span>@endif
-                                                                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
-                                                                    </a>
-                                                                </div>
-                                                            @endif
-
-                                                            @if(isset($perpetrator['place_of_death']) && is_array($perpetrator['place_of_death']))
-                                                                <div class="small mt-1">
-                                                                    <strong>Sterbeort:</strong>
-                                                                    <a href="https://www.wikidata.org/wiki/{{ $perpetrator['place_of_death']['id'] }}" target="_blank">
-                                                                        {{ $perpetrator['place_of_death']['label'] ?? $perpetrator['place_of_death']['id'] }}
-                                                                        @if(isset($perpetrator['place_of_death']['id']))<span class="text-muted small"> ({{ $perpetrator['place_of_death']['id'] }})</span>@endif
-                                                                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
-                                                                    </a>
-                                                                </div>
-                                                            @endif
-
-                                                            @if(isset($perpetrator['place_of_detention']) && is_array($perpetrator['place_of_detention']))
-                                                                <div class="small mt-1">
-                                                                    <strong>Haftort:</strong>
-                                                                    <a href="https://www.wikidata.org/wiki/{{ $perpetrator['place_of_detention']['id'] }}" target="_blank">
-                                                                        {{ $perpetrator['place_of_detention']['label'] ?? $perpetrator['place_of_detention']['id'] }}
-                                                                        @if(isset($perpetrator['place_of_detention']['id']))<span class="text-muted small"> ({{ $perpetrator['place_of_detention']['id'] }})</span>@endif
-                                                                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
-                                                                    </a>
-                                                                </div>
-                                                            @endif
-                                                        @endif
-
-                                                        <!-- Für Personen und Organisationen anzeigen -->
-                                                        @if(isset($perpetrator['nationality']) && is_array($perpetrator['nationality']))
-                                                            <div class="small mt-1">
-                                                                <strong>{{ isset($perpetrator['isOrganization']) && $perpetrator['isOrganization'] ? 'Land' : 'Staatsangehörigkeit' }}:</strong>
-                                                                <a href="https://www.wikidata.org/wiki/{{ $perpetrator['nationality']['id'] }}" target="_blank">
-                                                                    {{ $perpetrator['nationality']['label'] ?? $perpetrator['nationality']['id'] }}
-                                                                    @if(isset($perpetrator['nationality']['id']))<span class="text-muted small"> ({{ $perpetrator['nationality']['id'] }})</span>@endif
-                                                                    <i class="bi bi-box-arrow-up-right ms-1 small"></i>
-                                                                </a>
-                                                            </div>
-                                                        @endif
-                                                    @elseif(is_string($perpetrator))
-                                                        {{ $perpetrator }}
-                                                    @endif
-                                                </div>
+                                                @include('admin.partials.person-entry', ['person' => $perpetrator, 'type' => 'perpetrator'])
                                             @endforeach
                                         </div>
                                     </div>
@@ -413,123 +330,7 @@
                                         <strong>Geschädigte:</strong>
                                         <div class="list-group mt-2">
                                             @foreach($request->victims as $victim)
-                                                <div class="list-group-item">
-                                                    @if(is_array($victim))
-                                                        @if(isset($victim['label']))
-                                                            <div class="fw-bold">{{ $victim['label'] }}</div>
-                                                        @else
-                                                            <div class="fw-bold">{{ $victim['firstName'] }} {{ $victim['lastName'] }}</div>
-                                                        @endif
-
-                                                        @if(isset($victim['id']))
-                                                            <div>
-                                                                <a href="https://www.wikidata.org/wiki/{{ $victim['id'] }}" target="_blank" class="text-decoration-none">
-                                                                    <span class="badge bg-secondary">{{ $victim['id'] }}</span>
-                                                                    <i class="bi bi-box-arrow-up-right ms-1 small"></i>
-                                                                </a>
-                                                            </div>
-                                                        @endif
-
-                                                        @if(isset($victim['description']))
-                                                            <div class="text-muted small mt-1">{{ $victim['description'] }}</div>
-                                                        @endif
-
-                                                        @foreach($victim as $key => $value)
-                                                            @if(!in_array($key, ['id', 'label', 'description', 'tempId', 'isOrganization', 'birthDate', 'deathDate', 'date_of_birth', 'date_of_death']) && !is_array($value))
-                                                                <div class="small mt-1">
-                                                                    <strong>{{ ucfirst($key) }}:</strong> {{ $value }}
-                                                                </div>
-                                                            @endif
-                                                        @endforeach
-
-                                                        <!-- Formatierte Datumsanzeige -->
-                                                        @if(isset($victim['birthDate']) && $victim['birthDate'])
-                                                            <div class="small mt-1">
-                                                                <strong>Geburtsdatum:</strong>
-                                                                {{ \Carbon\Carbon::parse($victim['birthDate'])->format('d.m.Y') ?? $victim['birthDate'] }}
-                                                            </div>
-                                                        @elseif(isset($victim['date_of_birth']) && $victim['date_of_birth'])
-                                                            <div class="small mt-1">
-                                                                <strong>Geburtsdatum:</strong>
-                                                                {{ \Carbon\Carbon::parse($victim['date_of_birth'])->format('d.m.Y') ?? $victim['date_of_birth'] }}
-                                                            </div>
-                                                        @endif
-
-                                                        @if(isset($victim['deathDate']) && $victim['deathDate'])
-                                                            <div class="small mt-1">
-                                                                <strong>Sterbedatum:</strong>
-                                                                {{ \Carbon\Carbon::parse($victim['deathDate'])->format('d.m.Y') ?? $victim['deathDate'] }}
-                                                            </div>
-                                                        @elseif(isset($victim['date_of_death']) && $victim['date_of_death'])
-                                                            <div class="small mt-1">
-                                                                <strong>Sterbedatum:</strong>
-                                                                {{ \Carbon\Carbon::parse($victim['date_of_death'])->format('d.m.Y') ?? $victim['date_of_death'] }}
-                                                            </div>
-                                                        @endif
-
-                                                        <!-- Wikidata-Verknu00fcpfungen anzeigen -->
-                                                        @if(!isset($victim['isOrganization']) || !$victim['isOrganization'])
-                                                            <!-- Nur für Personen anzeigen -->
-                                                            @if(isset($victim['gender']) && is_array($victim['gender']))
-                                                                <div class="small mt-1">
-                                                                    <strong>Geschlecht:</strong>
-                                                                    <a href="https://www.wikidata.org/wiki/{{ $victim['gender']['id'] }}" target="_blank">
-                                                                        {{ $victim['gender']['label'] ?? $victim['gender']['id'] }}
-                                                                        @if(isset($victim['gender']['id']))<span class="text-muted small"> ({{ $victim['gender']['id'] }})</span>@endif
-                                                                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
-                                                                    </a>
-                                                                </div>
-                                                            @endif
-
-                                                            @if(isset($victim['place_of_birth']) && is_array($victim['place_of_birth']))
-                                                                <div class="small mt-1">
-                                                                    <strong>Geburtsort:</strong>
-                                                                    <a href="https://www.wikidata.org/wiki/{{ $victim['place_of_birth']['id'] }}" target="_blank">
-                                                                        {{ $victim['place_of_birth']['label'] ?? $victim['place_of_birth']['id'] }}
-                                                                        @if(isset($victim['place_of_birth']['id']))<span class="text-muted small"> ({{ $victim['place_of_birth']['id'] }})</span>@endif
-                                                                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
-                                                                    </a>
-                                                                </div>
-                                                            @endif
-
-                                                            @if(isset($victim['place_of_death']) && is_array($victim['place_of_death']))
-                                                                <div class="small mt-1">
-                                                                    <strong>Sterbeort:</strong>
-                                                                    <a href="https://www.wikidata.org/wiki/{{ $victim['place_of_death']['id'] }}" target="_blank">
-                                                                        {{ $victim['place_of_death']['label'] ?? $victim['place_of_death']['id'] }}
-                                                                        @if(isset($victim['place_of_death']['id']))<span class="text-muted small"> ({{ $victim['place_of_death']['id'] }})</span>@endif
-                                                                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
-                                                                    </a>
-                                                                </div>
-                                                            @endif
-
-                                                            @if(isset($victim['place_of_detention']) && is_array($victim['place_of_detention']))
-                                                                <div class="small mt-1">
-                                                                    <strong>Haftort:</strong>
-                                                                    <a href="https://www.wikidata.org/wiki/{{ $victim['place_of_detention']['id'] }}" target="_blank">
-                                                                        {{ $victim['place_of_detention']['label'] ?? $victim['place_of_detention']['id'] }}
-                                                                        @if(isset($victim['place_of_detention']['id']))<span class="text-muted small"> ({{ $victim['place_of_detention']['id'] }})</span>@endif
-                                                                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
-                                                                    </a>
-                                                                </div>
-                                                            @endif
-                                                        @endif
-
-                                                        <!-- Fu00fcr Personen und Organisationen anzeigen -->
-                                                        @if(isset($victim['nationality']) && is_array($victim['nationality']))
-                                                            <div class="small mt-1">
-                                                                <strong>{{ isset($victim['isOrganization']) && $victim['isOrganization'] ? 'Land' : 'Staatsangehu00f6rigkeit' }}:</strong>
-                                                                <a href="https://www.wikidata.org/wiki/{{ $victim['nationality']['id'] }}" target="_blank">
-                                                                    {{ $victim['nationality']['label'] ?? $victim['nationality']['id'] }}
-                                                                    @if(isset($victim['nationality']['id']))<span class="text-muted small"> ({{ $victim['nationality']['id'] }})</span>@endif
-                                                                    <i class="bi bi-box-arrow-up-right ms-1 small"></i>
-                                                                </a>
-                                                            </div>
-                                                        @endif
-                                                    @elseif(is_string($victim))
-                                                        {{ $victim }}
-                                                    @endif
-                                                </div>
+                                                @include('admin.partials.person-entry', ['person' => $victim, 'type' => 'victim'])
                                             @endforeach
                                         </div>
                                     </div>
@@ -555,7 +356,7 @@
                                                 @if(is_array($cause))
                                                     <div class="fw-bold">
                                                         <a href="https://www.wikidata.org/wiki/{{ $cause['id'] }}" target="_blank" class="text-decoration-none">
-                                                            {{ $cause['label'] }}
+                                                            {{ WikidataPropertyController::getQLabel($cause['id']) }}
                                                             <i class="bi bi-box-arrow-up-right ms-1 small"></i>
                                                         </a>
                                                     </div>

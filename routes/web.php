@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\WikidataAuthController;
+use App\Http\Controllers\WikidataController;
+use App\Http\Controllers\WikidataPropertyController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -50,4 +52,9 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/requests', [DashboardController::class, 'requests'])->name('admin.requests');
     Route::get('/requests/{id}', [DashboardController::class, 'showRequest'])->name('admin.requests.show');
     Route::get('/users', [DashboardController::class, 'users'])->name('admin.users');
+});
+
+// Wikidata API routes
+Route::prefix('api/wikidata')->group(function () {
+    Route::get('/entity/{qNumber}', [WikidataPropertyController::class, 'getByQNumber'])->name('api.wikidata.entity');
 });
