@@ -108,7 +108,7 @@ class WikidataFormatter
         $domain = $parsedUrl["host"];
         $this->entityUrlBase = "https://{$domain}/entity/";
     }
-    /**
+    /*
      * Formatiert die Daten für Wikidata basierend auf dem Entity-Typ.
      *
      * @param array $data Die Ausgangsdaten aus dem Request
@@ -121,6 +121,22 @@ class WikidataFormatter
         string $type,
         bool $createEntities = false
     ): array {
+        // Debug input to formatEntityData only when needed
+        if (config("app.debug")) {
+            Log::debug("Processing entity data of type: " . $type);
+        }
+
+        // Check if data already contains formatted claims
+        // This is to preserve claims when data is passed through WikidataService::createEntity
+        $existingClaims = null;
+        if (
+            isset($data["claims"]) &&
+            is_array($data["claims"]) &&
+            !empty($data["claims"])
+        ) {
+            $existingClaims = $data["claims"];
+        }
+
         // Basis-Struktur gemäß Wikibase-Dokumentation
         $formattedData = [
             "type" => "item",
@@ -313,6 +329,24 @@ class WikidataFormatter
         // Quellenangaben hinzufügen, falls vorhanden
         if (!empty($data["sources"])) {
             $this->addSourcesAsClaims($formattedData, $data["sources"]);
+        }
+
+        // If we had existing claims, restore them all while preserving what we've added
+        if ($existingClaims !== null) {
+            // Add all claims from existingClaims that haven't been processed yet
+            foreach ($existingClaims as $property => $propertyValues) {
+                // If this is a new property we haven't processed yet, just add it
+                if (
+                    !in_array($property, array_keys($formattedData["claims"]))
+                ) {
+                    $formattedData["claims"][$property] = $propertyValues;
+                }
+                // If we already have this property (like P31), keep the existing claims
+                // which are assumed to be more complete
+                else {
+                    $formattedData["claims"][$property] = $propertyValues;
+                }
+            }
         }
 
         // Ergebnis mit formattierten Daten und den aktualisierten Tu00e4tern/Opfern zuru00fcckgeben
@@ -1778,11 +1812,14 @@ class WikidataFormatter
         }
 
         // Für Personen (nicht Organisationen), je nach Rolle als Opfer oder Täter kennzeichnen
+        //  Subjekt fungiert als (P2868)
         if (!$isOrganization && $role !== null) {
             $roleValue =
                 $role === self::ROLE_VICTIM
                     ? self::WIKIDATA_VICTIM_NAZI
                     : self::WIKIDATA_PERPETRATOR_NAZI;
+
+            // Set role property (P2868) to indicate victim or perpetrator status
 
             $formattedData["claims"][self::WIKIDATA_ROLE_PROPERTY] = [
                 [
@@ -2025,36 +2062,35 @@ class WikidataFormatter
         ?string $role = null
     ): ?string {
         try {
-            // Formatieren der Daten für die Wikidata-API
             $formattedData = $this->formatNewPersonEntity($personData, $role);
 
-            // Quellenangaben hinzufügen, falls vorhanden
             if (!empty($sources)) {
                 $this->addSourcesAsClaims($formattedData, $sources);
             }
 
-            // WikidataService aus dem Container holen
             $wikidataService = app(
                 \App\Services\Wikidata\WikidataService::class
             );
 
-            // Prüfen, ob es sich um eine Organisation handelt
             $entityType =
                 isset($personData["isOrganization"]) &&
                 $personData["isOrganization"] === true
                     ? self::ENTITY_TYPE_ORGANIZATION
                     : self::ENTITY_TYPE_PERSON;
 
-            // Daten für den Service vorbereiten
-            $entityData = $wikidataService->prepareEntityData(
-                $personData["name"] ?? "Unbenannte Person",
-                $personData["description"] ??
+            $entityData = [
+                "title" => $personData["name"] ?? "Unbenannte Person",
+                "description" =>
+                    $personData["description"] ??
                     "Person im Zusammenhang mit einem historischen Ereignis",
-                $entityType,
-                $personData
-            );
+                "type" => $entityType,
+                "claims" => $formattedData["claims"] ?? [],
+                "labels" => $formattedData["labels"] ?? [],
+                "descriptions" => $formattedData["descriptions"] ?? [],
+                "aliases" => $formattedData["aliases"] ?? [],
+                "sitelinks" => $formattedData["sitelinks"] ?? [],
+            ];
 
-            // Entität in Wikidata erstellen
             $response = $wikidataService->createEntity(
                 $entityData,
                 $entityType
@@ -2090,7 +2126,6 @@ class WikidataFormatter
     }
 
     /**
-     * Fu00fcgt Quellenangaben als Referenzen zu den Claims hinzu.
      *
      * @param array &$formattedData Referenz auf die formatierte Datenstruktur
      * @param array $sources Die Quellenangaben

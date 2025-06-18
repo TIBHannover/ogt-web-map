@@ -95,8 +95,14 @@ class CreateWikidataEntity implements ShouldQueue
             // Entität mit OAuth-Authentifizierung erstellen
             $response = $wikidataService->createEntity($entityData);
 
+            // Check for error response - we now return error responses with better messages
             if ($response === null) {
                 throw new \Exception("Failed to create Wikidata entity");
+            }
+            
+            // Check if response contains an error
+            if (isset($response["error"])) {
+                throw new \Exception(json_encode($response, JSON_UNESCAPED_UNICODE));
             }
 
             // Wikidata-ID in der Datenbank speichern
@@ -188,13 +194,31 @@ class CreateWikidataEntity implements ShouldQueue
                 "existing_ids" => $existingEntityIds
             ]);
         } catch (\Exception $e) {
+            // Get the error message - check if it's from our custom duplicate error
+            $errorMessage = $e->getMessage();
+            
+            // Check if the exception might contain a JSON payload with our better error message
+            if (strpos($errorMessage, '{') !== false && strpos($errorMessage, 'error') !== false) {
+                try {
+                    // Try to parse JSON from the error message
+                    $errorData = json_decode($errorMessage, true);
+                    
+                    // Check if this is our custom duplicate error
+                    if (isset($errorData['error']['better_message'])) {
+                        $errorMessage = $errorData['error']['better_message'];
+                    }
+                } catch (\Exception $jsonEx) {
+                    // If parsing fails, just use the original message
+                }
+            }
+            
             Log::error("Failed to create Wikidata entity", [
-                "error" => $e->getMessage(),
+                "error" => $errorMessage,
                 "request_id" => $this->entryRequest->id,
             ]);
 
             $this->entryRequest->status = "error";
-            $this->entryRequest->error_message = $e->getMessage();
+            $this->entryRequest->error_message = $errorMessage;
             $this->entryRequest->save();
 
             // Job erneut in die Warteschlange stellen (mit Verzögerung)

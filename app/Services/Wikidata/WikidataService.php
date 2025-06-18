@@ -250,7 +250,6 @@ class WikidataService
     public function createEntity(array $entityData, string $type = null)
     {
         try {
-            // Typ aus den Daten extrahieren, wenn nicht explizit angegeben
             if ($type === null) {
                 $type =
                     $entityData["type"] ??
@@ -260,10 +259,9 @@ class WikidataService
             $formattedData = $this->formatter->formatEntityData(
                 $entityData,
                 $type,
-                true // createEntities = true, weil wir hier tatsächlich eine Entity erstellen wollen
+                true // createEntities = true
             );
 
-            // Debug-Ausgabe der ursprüunglichen formatierten Daten
             Log::info("Original formatted entity data for Wikidata", [
                 "entity_data" => json_encode(
                     $formattedData,
@@ -271,18 +269,14 @@ class WikidataService
                 ),
             ]);
 
-            // Extrahiere die formattedData aus dem Ergebnis
-            $dataToUse = is_array($formattedData) && isset($formattedData['formattedData']) 
-                ? $formattedData['formattedData'] 
-                : $formattedData;
+            $dataToUse =
+                is_array($formattedData) &&
+                isset($formattedData["formattedData"])
+                    ? $formattedData["formattedData"]
+                    : $formattedData;
 
-            // Daten für die Erstellung optimieren (entferne ID, etc.)
-            $optimizedData = $this->optimizer->optimize(
-                $dataToUse,
-                "create"
-            );
+            $optimizedData = $this->optimizer->optimize($dataToUse, "create");
 
-            // Debug-Ausgabe der urspru00fcnglichen formatierten Daten
             Log::info("Optimized formatted entity data for Wikidata", [
                 "entity_data" => json_encode(
                     $optimizedData,
@@ -315,7 +309,6 @@ class WikidataService
                 return $simulatedResponse;
             }
 
-            // Authentifizierungsdaten abrufen oder neu anmelden
             $authData = Cache::get("wikidata_auth_data");
 
             if (!$authData || $authData["expires"] < now()->timestamp) {
@@ -330,7 +323,6 @@ class WikidataService
                 $authData = Cache::get("wikidata_auth_data");
             }
 
-            // Anfrage vorbereiten
             $formData = [
                 "action" => "wbeditentity",
                 "new" => "item",
@@ -393,12 +385,51 @@ class WikidataService
             }
 
             if (isset($jsonResponse["error"])) {
-                Log::error("Wikidata API error", [
-                    "error" =>
-                        $jsonResponse["error"]["info"] ?? "Unknown API error",
-                    "response" => $jsonResponse,
-                ]);
-                return null;
+                $errorInfo =
+                    $jsonResponse["error"]["info"] ?? "Unknown API error";
+                $errorCode = $jsonResponse["error"]["code"] ?? "unknown-error";
+
+                // Check for duplicate entity error (label with description conflict)
+                if (
+                    $errorCode === "modification-failed" &&
+                    strpos($errorInfo, "already has label") !== false &&
+                    strpos($errorInfo, "using the same description text") !==
+                        false
+                ) {
+                    // Extract entity ID from error message if possible
+                    preg_match("/\[\[(Q\d+)\|/", $errorInfo, $matches);
+                    $duplicateId = $matches[1] ?? "unknown";
+
+                    // Build a more helpful error message
+                    $label =
+                        $optimizedData["labels"]["de"]["value"] ??
+                        "(unknown label)";
+                    $betterErrorMessage =
+                        "Ein Eintrag mit dem Titel \"$label\" und derselben Beschreibung existiert bereits in Wikidata " .
+                        "(ID: $duplicateId). Bitte ändern Sie den Titel oder die Beschreibung, um einen eindeutigen Eintrag zu erstellen. " .
+                        "Für Testeinträge wird empfohlen, ein Datum/Uhrzeit oder eine eindeutige Kennung im Titel zu verwenden.";
+
+                    Log::error("Wikidata duplicate entity error", [
+                        "error" => $betterErrorMessage,
+                        "duplicate_id" => $duplicateId,
+                        "original_error" => $errorInfo,
+                        "label" => $label,
+                    ]);
+
+                    // Store better error message in the response
+                    $jsonResponse["error"][
+                        "better_message"
+                    ] = $betterErrorMessage;
+                    return $jsonResponse; // Return the response with the error instead of null
+                } else {
+                    // Handle other errors
+                    Log::error("Wikidata API error", [
+                        "error" => $errorInfo,
+                        "code" => $errorCode,
+                        "response" => $jsonResponse,
+                    ]);
+                    return null;
+                }
             }
 
             if (
@@ -452,9 +483,8 @@ class WikidataService
     }
 
     /**
-     * Aktualisiert eine bestehende Wikidata-Entitu00e4t mit Bot-Authentifizierung.
      *
-     * @param string $entityId Die ID der zu aktualisierenden Entitu00e4t (z.B. Q12345)
+     * @param string $entityId Die ID der zu aktualisierenden Entity (z.B. Q12345)
      * @param array $rawData Die Rohdaten aus dem Request
      * @param string $type Der Typ der Entity (Q5, Q6983405, usw.)
      * @return array|null
@@ -462,14 +492,12 @@ class WikidataService
     public function updateEntity(string $entityId, array $rawData, string $type)
     {
         try {
-            // Daten für Wikidata formatieren
             $entityData = $this->formatter->formatEntityData(
-                $rawData, 
+                $rawData,
                 $type,
-                true // createEntities = true, weil wir hier tatsächlich eine Entity aktualisieren
+                true // createEntities = true
             );
 
-            // Debug-Ausgabe der urspru00fcnglichen formatierten Daten
             Log::info("Original formatted entity data for update", [
                 "entity_id" => $entityId,
                 "entity_data" => json_encode(
@@ -478,12 +506,11 @@ class WikidataService
                 ),
             ]);
 
-            // Extrahiere die formattedData aus dem Ergebnis
-            $dataToUse = is_array($entityData) && isset($entityData['formattedData']) 
-                ? $entityData['formattedData'] 
-                : $entityData;
+            $dataToUse =
+                is_array($entityData) && isset($entityData["formattedData"])
+                    ? $entityData["formattedData"]
+                    : $entityData;
 
-            // Daten für die Aktualisierung optimieren
             $optimizedData = $this->optimizer->optimize($dataToUse, "update");
 
             // Wenn Simulationsmodus aktiv ist, beenden wir hier und geben eine simulierte Antwort zuru00fcck
