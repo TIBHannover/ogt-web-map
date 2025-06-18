@@ -10,12 +10,12 @@ use App\Services\Wikidata\WikidataOptimizer;
 class WikidataService
 {
     /**
-     * Bot Benutzername
+     * Bot Username
      */
     protected $username;
 
     /**
-     * Bot Passwort
+     * Bot Password
      */
     protected $password;
 
@@ -25,12 +25,12 @@ class WikidataService
     protected $apiUrl;
 
     /**
-     * Debug-Modus aktiviert?
+     * Debug mode enabled?
      */
     protected $debug;
 
     /**
-     * Simulationsmodus aktiviert?
+     * Simulation mode enabled?
      */
     protected $simulationMode;
 
@@ -69,13 +69,13 @@ class WikidataService
     }
 
     /**
-     * Pru00fcft, ob Bot-Anmeldedaten vorhanden sind.
+     * Checks if bot credentials are available.
      *
      * @return bool
      */
     public function hasValidCredentials()
     {
-        // Im Simulationsmodus immer true zuru00fcckgeben
+        // In simulation mode, always return true
         if ($this->simulationMode) {
             Log::info(
                 "Running in simulation mode - credentials check bypassed"
@@ -95,7 +95,7 @@ class WikidataService
     }
 
     /**
-     * Meldet den Bot bei der MediaWiki-API an und gibt das Login-Token zuru00fcck.
+     * Logs the bot into the MediaWiki API and returns the login token.
      *
      * @return string|null
      */
@@ -106,7 +106,7 @@ class WikidataService
                 "username" => $this->username,
             ]);
 
-            // HTTP-Client mit spezifischer Cookie-Jar initialisieren, damit Cookies nicht vermischt werden
+            // Initialize HTTP client with specific cookie jar to prevent cookie mixing
             $cookieJar = new \GuzzleHttp\Cookie\CookieJar();
             $client = new \GuzzleHttp\Client([
                 "cookies" => $cookieJar,
@@ -115,7 +115,7 @@ class WikidataService
                 ],
             ]);
 
-            // 1. CSRF-Token abrufen
+            // 1. Retrieve CSRF token
             $tokenResponse = $client->get($this->apiUrl, [
                 "query" => [
                     "action" => "query",
@@ -144,7 +144,7 @@ class WikidataService
             $loginToken = $tokenData["query"]["tokens"]["logintoken"];
             Log::info("Obtained login token from Wikidata API");
 
-            // 2. Einloggen mit dem Token
+            // 2. Login with the token
             $loginResponse = $client->post($this->apiUrl, [
                 "form_params" => [
                     "action" => "login",
@@ -176,7 +176,7 @@ class WikidataService
                 "result" => $loginData["login"]["result"],
             ]);
 
-            // 3. CSRF-Token für Bearbeitungen abrufen
+            // 3. Retrieve CSRF token for edits
             $csrfResponse = $client->get($this->apiUrl, [
                 "query" => [
                     "action" => "query",
@@ -203,7 +203,7 @@ class WikidataService
             $csrfToken = $csrfData["query"]["tokens"]["csrftoken"];
             Log::info("Obtained CSRF token for edit operations");
 
-            // 4. Extrahiere Cookies aus dem CookieJar
+            // 4. Extract cookies from CookieJar
             $cookies = [];
             foreach ($cookieJar->toArray() as $cookie) {
                 $cookies[] = [
@@ -218,14 +218,14 @@ class WikidataService
                 ];
             }
 
-            // 5. Cookies und CSRF-Token im Cache speichern
+            // 5. Store cookies and CSRF token in cache
             $authData = [
                 "cookies" => $cookies,
                 "csrftoken" => $csrfToken,
                 "expires" => now()->addHours(1)->timestamp,
             ];
 
-            Cache::put("wikidata_auth_data", $authData, 3600); // 1 Stunde
+            Cache::put("wikidata_auth_data", $authData, 3600); // 1 hour
             Log::info("Auth data saved to cache", [
                 "cookies_count" => count($cookies),
             ]);
@@ -241,10 +241,10 @@ class WikidataService
     }
 
     /**
-     * Erstellt eine neue Wikidata-Entitu00e4t mit Bot-Authentifizierung.
+     * Creates a new Wikidata entity with bot authentication.
      *
-     * @param array $entityData Die vorbereiteten Daten (aus prepareEntityData)
-     * @param string|null $type Der Typ der Entity (optional, wenn bereits in $entityData enthalten)
+     * @param array $entityData The prepared data (from prepareEntityData)
+     * @param string|null $type The type of the entity (optional, if already included in $entityData)
      * @return array|null
      */
     public function createEntity(array $entityData, string $type = null)
@@ -284,16 +284,16 @@ class WikidataService
                 ),
             ]);
 
-            // Wenn Simulationsmodus aktiv ist, beenden wir hier und geben eine simulierte Antwort zuru00fcck
+            // If simulation mode is active, we stop here and return a simulated response
             if ($this->simulationMode) {
                 Log::info(
                     "Running in simulation mode - no actual Wikidata entity will be created"
                 );
 
-                // Simulierte Antwort erstellen
+                // Create simulated response
                 $simulatedResponse = [
                     "entity" => [
-                        "id" => "Q" . rand(1000000, 9999999), // Zufu00e4llige Q-ID generieren
+                        "id" => "Q" . rand(1000000, 9999999), // Generate random Q-ID
                         "type" => "item",
                         "labels" => $optimizedData["labels"] ?? [],
                         "descriptions" => $optimizedData["descriptions"] ?? [],
@@ -329,7 +329,7 @@ class WikidataService
                 "data" => json_encode($optimizedData),
                 "token" => $authData["csrftoken"],
                 "format" => "json",
-                "bot" => "1", // Markiere als Bot-Bearbeitung
+                "bot" => "1", // Mark as bot edit
             ];
 
             Log::info("Sending request to create Wikidata entity", [
@@ -339,10 +339,10 @@ class WikidataService
                 ),
                 "data_length" => strlen(json_encode($optimizedData)),
                 "data_sample" =>
-                    mb_substr(json_encode($optimizedData), 0, 200) . "...", // Zeige die ersten 200 Zeichen
+                    mb_substr(json_encode($optimizedData), 0, 200) . "...", // Show the first 200 characters
             ]);
 
-            // Anfrage an die API senden
+            // Send request to the API
             $client = new \GuzzleHttp\Client([
                 "headers" => [
                     "User-Agent" => "Ontology Generator Toolkit Bot/1.0",
@@ -350,7 +350,7 @@ class WikidataService
                 "cookies" => true,
             ]);
 
-            // Cookie-Jar mit gespeicherten Cookies initialisieren
+            // Initialize cookie jar with saved cookies
             $cookieJar = new \GuzzleHttp\Cookie\CookieJar(false, []);
             foreach ($authData["cookies"] as $cookie) {
                 $cookieJar->setCookie(
@@ -372,7 +372,7 @@ class WikidataService
                 $responseBody = $response->getBody()->getContents();
                 $jsonResponse = json_decode($responseBody, true);
 
-                // Zur Debug-Zwecken die Antwort loggen
+                // Log the response for debugging purposes
                 Log::info("Wikidata API response", [
                     "response" => $responseBody,
                 ]);
@@ -457,13 +457,13 @@ class WikidataService
     }
 
     /**
-     * Bereitet Daten für eine Wikidata-Entity vor
+     * Prepares data for a Wikidata entity
      *
-     * @param string $title Der Titel der Entität
-     * @param string|null $description Die Beschreibung der Entität
-     * @param string $type Der Typ der Entität (Q5, Q6983405, usw.)
-     * @param array $additionalData Zusätzliche Daten für die Entität
-     * @return array Die vorbereiteten Daten
+     * @param string $title The title of the entity
+     * @param string|null $description The description of the entity
+     * @param string $type The type of the entity (Q5, Q6983405, etc.)
+     * @param array $additionalData Additional data for the entity
+     * @return array The prepared data
      */
     public function prepareEntityData(
         string $title,
@@ -471,22 +471,20 @@ class WikidataService
         string $type,
         array $additionalData = []
     ): array {
-        // Basisdaten zusammenstellen
         $entityData = [
             "title" => $title,
             "description" => $description ?? "",
             "type" => $type,
         ];
 
-        // Zusätzliche Daten hinzufügen
         return array_merge($entityData, $additionalData);
     }
 
     /**
      *
-     * @param string $entityId Die ID der zu aktualisierenden Entity (z.B. Q12345)
-     * @param array $rawData Die Rohdaten aus dem Request
-     * @param string $type Der Typ der Entity (Q5, Q6983405, usw.)
+     * @param string $entityId The ID of the entity to update (e.g. Q12345)
+     * @param array $rawData The raw data from the request
+     * @param string $type The type of the entity (Q5, Q6983405, etc.)
      * @return array|null
      */
     public function updateEntity(string $entityId, array $rawData, string $type)
@@ -513,13 +511,13 @@ class WikidataService
 
             $optimizedData = $this->optimizer->optimize($dataToUse, "update");
 
-            // Wenn Simulationsmodus aktiv ist, beenden wir hier und geben eine simulierte Antwort zuru00fcck
+            // If simulation mode is active, we stop here and return a simulated response
             if ($this->simulationMode) {
                 Log::info(
                     "Running in simulation mode - no actual Wikidata entity will be updated"
                 );
 
-                // Simulierte Antwort erstellen
+                // Create simulated response
                 $simulatedResponse = [
                     "entity" => [
                         "id" => $entityId,
@@ -538,7 +536,7 @@ class WikidataService
                 return $simulatedResponse;
             }
 
-            // Authentifizierungsdaten abrufen oder neu anmelden
+            // Retrieve authentication data or login again
             $authData = Cache::get("wikidata_auth_data");
 
             if (!$authData || $authData["expires"] < now()->timestamp) {
@@ -553,14 +551,14 @@ class WikidataService
                 $authData = Cache::get("wikidata_auth_data");
             }
 
-            // Anfrage vorbereiten
+            // Prepare request
             $formData = [
                 "action" => "wbeditentity",
                 "id" => $entityId,
                 "data" => json_encode($optimizedData),
                 "token" => $authData["csrftoken"],
                 "format" => "json",
-                "bot" => "1", // Markiere als Bot-Bearbeitung
+                "bot" => "1", // Mark as bot edit
             ];
 
             Log::info("Sending request to update Wikidata entity", [
@@ -568,7 +566,7 @@ class WikidataService
                 "form_data" => $formData,
             ]);
 
-            // Anfrage an die API senden
+            // Send request to the API
             $client = new \GuzzleHttp\Client([
                 "headers" => [
                     "User-Agent" => "Ontology Generator Toolkit Bot/1.0",
@@ -576,7 +574,7 @@ class WikidataService
                 "cookies" => true,
             ]);
 
-            // Cookie-Jar mit gespeicherten Cookies initialisieren
+            // Initialize cookie jar with saved cookies
             $cookieJar = new \GuzzleHttp\Cookie\CookieJar(false, []);
             foreach ($authData["cookies"] as $cookie) {
                 $cookieJar->setCookie(
@@ -598,7 +596,7 @@ class WikidataService
                 $responseBody = $response->getBody()->getContents();
                 $jsonResponse = json_decode($responseBody, true);
 
-                // Zur Debug-Zwecken die Antwort loggen
+                // Log the response for debugging purposes
                 Log::info("Wikidata API response", [
                     "response" => $responseBody,
                 ]);

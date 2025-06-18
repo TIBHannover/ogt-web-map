@@ -10,87 +10,87 @@ class WikidataFormatter
      * Entity Type Constants
      */
     public const ENTITY_TYPE_PERSON = "Q5"; // Person
-    public const ENTITY_TYPE_EVENT = "Q6983405"; // Ereignis
-    public const ENTITY_TYPE_ORGANIZATION = "Q43229"; // Organisation
-    public const ENTITY_TYPE_STRUCTURE = "Q811979"; // Architektonische Struktur
+    public const ENTITY_TYPE_EVENT = "Q6983405"; // Event
+    public const ENTITY_TYPE_ORGANIZATION = "Q43229"; // Organization
+    public const ENTITY_TYPE_STRUCTURE = "Q811979"; // Architectural Structure
 
     /*
      * Role and Type Constants
      */
     public const ROLE_VICTIM = "victim";
     public const ROLE_PERPETRATOR = "perpetrator";
-    public const WIKIDATA_ROLE_PROPERTY = "P2868"; // Subjekt fungiert als
-    public const WIKIDATA_VICTIM_NAZI = "Q2026714"; // Opfer des Nationalsozialismus
-    public const WIKIDATA_PERPETRATOR_NAZI = "Q111080573"; // Täter des Nationalsozialismus
-    public const WIKIDATA_GESTAPO_TERROR_PLACE = "Q106996250"; // Orte des Gestapo Terrors
+    public const WIKIDATA_ROLE_PROPERTY = "P2868"; // Subject has role
+    public const WIKIDATA_VICTIM_NAZI = "Q2026714"; // Victim of Nazism
+    public const WIKIDATA_PERPETRATOR_NAZI = "Q111080573"; // Perpetrator of Nazism
+    public const WIKIDATA_GESTAPO_TERROR_PLACE = "Q106996250"; // Places of Gestapo terror
 
     /*
      * Qualifier Property Constants
      */
-    public const WIKIDATA_SOURCING_CIRCUMSTANCES = "P1480"; // Nachweisumstände/sourcing circumstances
+    public const WIKIDATA_SOURCING_CIRCUMSTANCES = "P1480"; // Sourcing circumstances
     public const WIKIDATA_CIRCA = "Q5727902"; // Circa
-    public const WIKIDATA_LESS_THAN = "Q52834024"; // Weniger als
-    public const WIKIDATA_MORE_THAN = "Q47035128"; // Mehr als
+    public const WIKIDATA_LESS_THAN = "Q52834024"; // Less than
+    public const WIKIDATA_MORE_THAN = "Q47035128"; // More than
 
     /*
      * Common Property Constants
      */
-    public const WIKIDATA_INSTANCE_OF = "P31"; // Instanz von
-    public const WIKIDATA_COUNTRY = "P17"; // Staat
-    public const WIKIDATA_COORDINATES = "P625"; // Koordinaten
-    public const WIKIDATA_CAUSE = "P828"; // Ursache
-    public const WIKIDATA_DESCRIBED_BY_SOURCE = "P1343"; // Beschrieben durch Quelle
-    public const WIKIDATA_OFFICIAL_NAME = "P1448"; // Offizielle Bezeichnung
-    public const WIKIDATA_AUTHOR_STRING = "P2093"; // Autor als String
-    public const WIKIDATA_IMAGE = "P18"; // Bild
+    public const WIKIDATA_INSTANCE_OF = "P31"; // Instance of
+    public const WIKIDATA_COUNTRY = "P17"; // Country
+    public const WIKIDATA_COORDINATES = "P625"; // Coordinates
+    public const WIKIDATA_CAUSE = "P828"; // Cause
+    public const WIKIDATA_DESCRIBED_BY_SOURCE = "P1343"; // Described by source
+    public const WIKIDATA_OFFICIAL_NAME = "P1448"; // Official name
+    public const WIKIDATA_AUTHOR_STRING = "P2093"; // Author as string
+    public const WIKIDATA_IMAGE = "P18"; // Image
 
     /**
      * Perpetrator and Victim Property Constants
      */
-    public const WIKIDATA_PERPETRATOR = "P8031"; // hat Täter (Participant has role perpetrator)
-    public const WIKIDATA_VICTIM = "P8032"; // hat Opfer (Manner of death/victim of)
+    public const WIKIDATA_PERPETRATOR = "P8031"; // has perpetrator (Participant has role perpetrator)
+    public const WIKIDATA_VICTIM = "P8032"; // has victim (Manner of death/victim of)
 
     /**
      * Person Property Constants
      */
-    public const WIKIDATA_DATE_OF_BIRTH = "P569"; // Geburtsdatum
-    public const WIKIDATA_DATE_OF_DEATH = "P570"; // Sterbedatum
-    public const WIKIDATA_OCCUPATION = "P106"; // Tu00e4tigkeit
-    public const WIKIDATA_NATIONALITY = "P27"; // Staatsangehu00f6rigkeit
-    public const WIKIDATA_GENDER = "P21"; // Geschlecht
-    public const WIKIDATA_PLACE_OF_DETENTION = "P2632"; // Haftort
-    public const WIKIDATA_PLACE_OF_BIRTH = "P19"; // Geburtsort
-    public const WIKIDATA_PLACE_OF_DEATH = "P20"; // Sterbeort
+    public const WIKIDATA_DATE_OF_BIRTH = "P569"; // Date of birth
+    public const WIKIDATA_DATE_OF_DEATH = "P570"; // Date of death
+    public const WIKIDATA_OCCUPATION = "P106"; // Occupation
+    public const WIKIDATA_NATIONALITY = "P27"; // Nationality
+    public const WIKIDATA_GENDER = "P21"; // Gender
+    public const WIKIDATA_PLACE_OF_DETENTION = "P2632"; // Place of detention
+    public const WIKIDATA_PLACE_OF_BIRTH = "P19"; // Place of birth
+    public const WIKIDATA_PLACE_OF_DEATH = "P20"; // Place of death
 
     /**
      * Event Property Constants
      */
-    public const WIKIDATA_POINT_IN_TIME = "P585"; // Zeitpunkt
-    public const WIKIDATA_START_TIME = "P580"; // Anfangsdatum
-    public const WIKIDATA_END_TIME = "P582"; // Enddatum
-    public const WIKIDATA_VICTIMS_COUNT = "P1590"; // Anzahl der Opfer
-    public const WIKIDATA_SURVIVORS_COUNT = "P1561"; // Anzahl der Überlebenden
-    public const WIKIDATA_DEATHS_COUNT = "P1120"; // Anzahl der Todesfälle
-    public const WIKIDATA_ARRESTS_COUNT = "P5582"; // Anzahl der Festnahmen
+    public const WIKIDATA_POINT_IN_TIME = "P585"; // Point in time
+    public const WIKIDATA_START_TIME = "P580"; // Start date
+    public const WIKIDATA_END_TIME = "P582"; // End date
+    public const WIKIDATA_VICTIMS_COUNT = "P1590"; // Number of victims
+    public const WIKIDATA_SURVIVORS_COUNT = "P1561"; // Number of survivors
+    public const WIKIDATA_DEATHS_COUNT = "P1120"; // Number of deaths
+    public const WIKIDATA_ARRESTS_COUNT = "P5582"; // Number of arrests
 
     /**
      * Organization and Structure Property Constants
      */
-    public const WIKIDATA_INCEPTION = "P571"; // Gru00fcndungsdatum
-    public const WIKIDATA_DISSOLVED = "P576"; // Auflu00f6sungsdatum/Abriss
-    public const WIKIDATA_HEADQUARTERS = "P159"; // Hauptsitz
-    public const WIKIDATA_ARCHITECT = "P84"; // Architekt
-    public const WIKIDATA_HEIGHT = "P2048"; // Hu00f6he
+    public const WIKIDATA_INCEPTION = "P571"; // Foundation date
+    public const WIKIDATA_DISSOLVED = "P576"; // Dissolution date/Demolition
+    public const WIKIDATA_HEADQUARTERS = "P159"; // Headquarters
+    public const WIKIDATA_ARCHITECT = "P84"; // Architect
+    public const WIKIDATA_HEIGHT = "P2048"; // Height
 
     /**
      * Source/Reference Property Constants
      */
-    public const WIKIDATA_STATED_IN = "P1343"; // Beschrieben in
-    public const WIKIDATA_PAGE = "P304"; // Seite
-    public const WIKIDATA_STATED_IN_URL = "P973"; // Beschrieben in URL
-    public const WIKIDATA_RETRIEVED_DATE = "P813"; // Zugriffsdatum
-    public const WIKIDATA_ARCHIVE = "P485"; // Archiv
-    public const WIKIDATA_INVENTORY_NUMBER = "P217"; // Inventarnummer
+    public const WIKIDATA_STATED_IN = "P1343"; // Described in
+    public const WIKIDATA_PAGE = "P304"; // Page
+    public const WIKIDATA_STATED_IN_URL = "P973"; // Described in URL
+    public const WIKIDATA_RETRIEVED_DATE = "P813"; // Access date
+    public const WIKIDATA_ARCHIVE = "P485"; // Archive
+    public const WIKIDATA_INVENTORY_NUMBER = "P217"; // Inventory number
 
     /**
      * The base URL for entity references
@@ -109,12 +109,12 @@ class WikidataFormatter
         $this->entityUrlBase = "https://{$domain}/entity/";
     }
     /*
-     * Formatiert die Daten für Wikidata basierend auf dem Entity-Typ.
+     * Formats the data for Wikidata based on the entity type.
      *
-     * @param array $data Die Ausgangsdaten aus dem Request
-     * @param string $type Der Entity-Typ (Q5 = Person, Q6983405 = Ereignis, Q43229 = Organisation, Q811979 = Architektonische Struktur)
-     * @param bool $createEntities Flag, ob neue Entities erstellt werden sollen (nur im Job, nicht bei Vorschau)
-     * @return array Formatierte Daten für Wikidata
+     * @param array $data The source data from the request
+     * @param string $type The entity type (Q5 = Person, Q6983405 = Event, Q43229 = Organization, Q811979 = Architectural Structure)
+     * @param bool $createEntities Flag whether new entities should be created (only in jobs, not in preview)
+     * @return array Formatted data for Wikidata
      */
     public function formatEntityData(
         array $data,
@@ -137,7 +137,7 @@ class WikidataFormatter
             $existingClaims = $data["claims"];
         }
 
-        // Basis-Struktur gemäß Wikibase-Dokumentation
+        // Basic structure according to Wikibase documentation
         $formattedData = [
             "type" => "item",
             "labels" => [
@@ -157,7 +157,7 @@ class WikidataFormatter
             "sitelinks" => [],
         ];
 
-        // Instanz von (P31) - Claim erstellen
+        // Instance of (P31) - Create claim
         $formattedData["claims"][self::WIKIDATA_INSTANCE_OF] = [
             [
                 "mainsnak" => [
@@ -177,7 +177,7 @@ class WikidataFormatter
             ],
         ];
 
-        // Staat (P17) - Deutschland im Nazi-Regime (Q7318)
+        // Country (P17) - Germany under Nazi regime (Q7318)
         /*
         $formattedData["claims"][self::WIKIDATA_COUNTRY] = [
             [
@@ -199,7 +199,7 @@ class WikidataFormatter
         ];
         */
 
-        // Fu00fcge Koordinaten hinzu, wenn vorhanden
+        // Add coordinates if available
         if (!empty($data["coordinates"])) {
             $coordinates = $this->parseCoordinates($data["coordinates"]);
             if ($coordinates !== null) {
@@ -225,11 +225,11 @@ class WikidataFormatter
                 ];
             }
 
-            // Array fu00fcr aktualisierte Tu00e4ter/Tu00e4terinnen-Daten
+            // Array for updated perpetrator data
             $updatedPerpetrators = [];
         }
 
-        // Füge Bild hinzu, wenn vorhanden (P18 - Bild)
+        // Add image if available (P18 - Image)
         if (!empty($data["image_filename"])) {
             $formattedData["claims"][self::WIKIDATA_IMAGE] = [
                 [
@@ -247,7 +247,7 @@ class WikidataFormatter
             ];
         }
 
-        // Ursache der Verfolgung (causes array)
+        // Cause of persecution (causes array)
         if (!empty($data["selected_causes"])) {
             // Check if selected_causes contains JSON data of multiple causes
             $causes = is_string($data["selected_causes"])
@@ -292,7 +292,7 @@ class WikidataFormatter
             }
         }
 
-        // Täter/innen hinzufügen, wenn vorhanden
+        // Add perpetrators if available
         if (!empty($data["perpetrators"])) {
             $data["perpetrators"] = $this->addPerpetrators(
                 $formattedData,
@@ -301,7 +301,7 @@ class WikidataFormatter
             );
         }
 
-        // Opfer hinzufügen, wenn vorhanden
+        // Add victims if available
         if (!empty($data["victims"])) {
             $data["victims"] = $this->addVictims(
                 $formattedData,
@@ -310,23 +310,23 @@ class WikidataFormatter
             );
         }
 
-        // Typ-spezifische Formatierungen
+        // Type-specific formatting
         switch ($type) {
             case self::ENTITY_TYPE_PERSON: // Person
                 $this->formatPersonEntity($formattedData, $data);
                 break;
-            case self::ENTITY_TYPE_EVENT: // Ereignis
+            case self::ENTITY_TYPE_EVENT: // Event
                 $this->formatEventEntity($formattedData, $data);
                 break;
-            case self::ENTITY_TYPE_ORGANIZATION: // Organisation
+            case self::ENTITY_TYPE_ORGANIZATION: // Organization
                 $this->formatOrganizationEntity($formattedData, $data);
                 break;
-            case self::ENTITY_TYPE_STRUCTURE: // Architektonische Struktur
+            case self::ENTITY_TYPE_STRUCTURE: // Architectural Structure
                 $this->formatStructureEntity($formattedData, $data);
                 break;
         }
 
-        // Quellenangaben hinzufügen, falls vorhanden
+        // Add source information if available
         if (!empty($data["sources"])) {
             $this->addSourcesAsClaims($formattedData, $data["sources"]);
         }
@@ -349,7 +349,7 @@ class WikidataFormatter
             }
         }
 
-        // Ergebnis mit formattierten Daten und den aktualisierten Tu00e4tern/Opfern zuru00fcckgeben
+        // Return result with formatted data and updated perpetrators/victims
         return [
             "formattedData" => $formattedData,
             "updatedData" => $data,
@@ -368,7 +368,7 @@ class WikidataFormatter
             return null;
         }
 
-        // Wenn bereits ein Array im korrekten Format
+        // If already an array in the correct format
         if (
             is_array($coordinates) &&
             isset($coordinates["lat"]) &&
@@ -380,9 +380,7 @@ class WikidataFormatter
             ];
         }
 
-        // Wenn JSON-String
         if (is_string($coordinates)) {
-            // Versuche als JSON zu parsen
             if (strpos($coordinates, "{") === 0) {
                 $parsed = json_decode($coordinates, true);
                 if (
@@ -397,7 +395,7 @@ class WikidataFormatter
                 }
             }
 
-            // Versuche als Array zu parsen
+            // Try to parse as array
             if (strpos($coordinates, "[") === 0) {
                 $parsed = json_decode($coordinates, true);
                 if (
@@ -412,7 +410,7 @@ class WikidataFormatter
                 }
             }
 
-            // Versuche als Komma-getrennte Werte zu parsen
+            // Try to parse as comma-separated values
             $parts = explode(",", $coordinates);
             if (count($parts) >= 2) {
                 return [
@@ -422,25 +420,25 @@ class WikidataFormatter
             }
         }
 
-        // Fallback: Fehlermeldung loggen und null zuru00fcckgeben
-        Log::warning("Ungu00fcltiges Koordinatenformat", [
+        // Fallback: Log error message and return null
+        Log::warning("Invalid coordinate format", [
             "coordinates" => $coordinates,
         ]);
         return null;
     }
 
     /**
-     * Formatiert Personen-Entities (Q5).
+     * Formats Person entities (Q5).
      *
-     * @param array &$formattedData Referenz auf die formatierte Datenstruktur
-     * @param array $data Originaldaten
-     * @return array Die aktualisierten Daten
+     * @param array &$formattedData Reference to the formatted data structure
+     * @param array $data Original data
+     * @return array The updated data
      */
     protected function formatPersonEntity(
         array &$formattedData,
         array $data
     ): void {
-        // Geburtsdatum (P569)
+        // Date of birth (P569)
         if (!empty($data["date_of_birth"])) {
             $birthDate = $this->formatDate($data["date_of_birth"]);
             if ($birthDate !== null) {
@@ -461,7 +459,7 @@ class WikidataFormatter
             }
         }
 
-        // Sterbedatum (P570)
+        // Date of death (P570)
         if (!empty($data["date_of_death"])) {
             $deathDate = $this->formatDate($data["date_of_death"]);
             if ($deathDate !== null) {
@@ -482,10 +480,10 @@ class WikidataFormatter
             }
         }
 
-        // Beruf (P106) - Sollte ein Wikidata-Item sein, nicht ein String
+        // Occupation (P106) - Should be a Wikidata item, not a string
         if (!empty($data["occupation"])) {
-            // Wir nehmen hier an, dass occupation entweder eine Wikidata-ID ist oder als String behandelt werden sollte
-            // Wenn es eine Wikidata-ID ist (beginnt mit Q), dann als Entity behandeln
+            // We assume here that occupation is either a Wikidata ID or should be treated as a string
+            // If it's a Wikidata ID (starts with Q), then treat it as an entity
             if (
                 isset($data["occupation"]) &&
                 is_string($data["occupation"]) &&
@@ -512,15 +510,14 @@ class WikidataFormatter
                     ],
                 ];
             } else {
-                // Als Freitext-Qualifier hinzufu00fcgen (P1343 - beschrieben durch Quelle)
+                // Add as free text qualifier (P1343 - described by source)
                 $formattedData["claims"][self::WIKIDATA_DESCRIBED_BY_SOURCE] = [
                     [
                         "mainsnak" => [
                             "snaktype" => "value",
                             "property" => self::WIKIDATA_DESCRIBED_BY_SOURCE,
                             "datavalue" => [
-                                "value" =>
-                                    "Berufsbezeichnung: " . $data["occupation"],
+                                "value" => "Occupation: " . $data["occupation"],
                                 "type" => "string",
                             ],
                         ],
@@ -531,10 +528,10 @@ class WikidataFormatter
             }
         }
 
-        // Nationalitu00e4t (P27) - Sollte ein Wikidata-Item sein, nicht ein String
+        // Nationality (P27) - Should be a Wikidata item, not a string
         if (!empty($data["nationality"])) {
-            // Wir nehmen hier an, dass nationality entweder eine Wikidata-ID ist oder als String behandelt werden sollte
-            // Wenn es eine Wikidata-ID ist (beginnt mit Q), dann als Entity behandeln
+            // We assume here that nationality is either a Wikidata ID or should be treated as a string
+            // If it's a Wikidata ID (starts with Q), then treat it as an entity
             if (
                 isset($data["nationality"]) &&
                 is_string($data["nationality"]) &&
@@ -561,7 +558,7 @@ class WikidataFormatter
                     ],
                 ];
             } else {
-                // Als Freitext-Qualifier hinzufu00fcgen (P1343 - beschrieben durch Quelle)
+                // Add as free text qualifier (P1343 - described by source)
                 $formattedData["claims"]["P1343"] = [
                     [
                         "mainsnak" => [
@@ -569,7 +566,7 @@ class WikidataFormatter
                             "property" => "P1343",
                             "datavalue" => [
                                 "value" =>
-                                    "Nationalitu00e4t: " . $data["nationality"],
+                                    "Nationalität: " . $data["nationality"],
                                 "type" => "string",
                             ],
                         ],
@@ -582,16 +579,16 @@ class WikidataFormatter
     }
 
     /**
-     * Formatiert Ereignis-Entities (Q6983405).
+     * Formats Event entities (Q6983405).
      *
-     * @param array &$formattedData Referenz auf die formatierte Datenstruktur
-     * @param array $data Originaldaten
+     * @param array &$formattedData Reference to the formatted data structure
+     * @param array $data Original data
      */
     protected function formatEventEntity(
         array &$formattedData,
         array $data
     ): void {
-        // Zeitpunkt (P585) oder Anfangs- und Endzeitpunkt (P580, P582)
+        // Point in time (P585) or start and end time (P580, P582)
         if (!empty($data["time_point"])) {
             $timePoint = $this->formatDate($data["time_point"]);
             if ($timePoint !== null) {
@@ -611,7 +608,7 @@ class WikidataFormatter
                 ];
             }
         } else {
-            // Startzeit (P580)
+            // Start time (P580)
             if (!empty($data["time_period_start"])) {
                 $startTime = $this->formatDate($data["time_period_start"]);
                 if ($startTime !== null) {
@@ -632,7 +629,7 @@ class WikidataFormatter
                 }
             }
 
-            // Endzeit (P582)
+            // End time (P582)
             if (!empty($data["time_period_end"])) {
                 $endTime = $this->formatDate($data["time_period_end"]);
                 if ($endTime !== null) {
@@ -654,15 +651,15 @@ class WikidataFormatter
             }
         }
 
-        // Ursache (P828) - Sollte ein Wikidata-Item sein, nicht ein String
+        // Cause (P828) - Should be a Wikidata item, not a string
         if (!empty($data["cause"])) {
-            // Wir nehmen hier an, dass cause entweder eine Wikidata-ID ist oder als String behandelt werden sollte
+            // We assume here that cause is either a Wikidata ID or should be treated as a string
             if (
                 isset($data["cause"]) &&
                 is_string($data["cause"]) &&
                 substr($data["cause"], 0, 1) === "Q"
             ) {
-                // Als Wikidata-Item hinzufu00fcgen
+                // Add as Wikidata item
                 $formattedData["claims"]["P828"] = [
                     [
                         "mainsnak" => [
@@ -684,7 +681,7 @@ class WikidataFormatter
                     ],
                 ];
             } else {
-                // Als String in der Beschreibung hinzufu00fcgen (P2093 - "Autor" als freitext-Feld)
+                // Add as string in the description (P2093 - "Author" as free text field)
                 $formattedData["claims"]["P2093"] = [
                     [
                         "mainsnak" => [
@@ -702,7 +699,7 @@ class WikidataFormatter
             }
         }
 
-        // Opferzahl (P1590) - Quantity-Typ
+        // Victim count (P1590) - Quantity type
         if (!empty($data["victim_count"])) {
             $formattedData["claims"][self::WIKIDATA_VICTIMS_COUNT] = [
                 [
@@ -732,7 +729,7 @@ class WikidataFormatter
             }
         }
 
-        // u00dcberlebende (P1561)
+        // Survivors (P1561)
         if (!empty($data["survivor_count"])) {
             $formattedData["claims"][self::WIKIDATA_SURVIVORS_COUNT] = [
                 [
@@ -762,7 +759,7 @@ class WikidataFormatter
             }
         }
 
-        // Todesfälle (P1120)
+        // Deaths (P1120)
         if (!empty($data["death_count"])) {
             $formattedData["claims"][self::WIKIDATA_DEATHS_COUNT] = [
                 [
@@ -792,7 +789,7 @@ class WikidataFormatter
             }
         }
 
-        // Festnahmen (P5582)
+        // Arrests (P5582)
         if (!empty($data["arrest_count"])) {
             $formattedData["claims"][self::WIKIDATA_ARRESTS_COUNT] = [
                 [
@@ -824,16 +821,16 @@ class WikidataFormatter
     }
 
     /**
-     * Formatiert Organisations-Entities (Q43229).
+     * Formats Organization entities (Q43229).
      *
-     * @param array &$formattedData Referenz auf die formatierte Datenstruktur
-     * @param array $data Originaldaten
+     * @param array &$formattedData Reference to the formatted data structure
+     * @param array $data Original data
      */
     protected function formatOrganizationEntity(
         array &$formattedData,
         array $data
     ): void {
-        // Gru00fcndungsdatum (P571)
+        // Foundation date (P571)
         if (!empty($data["inception"])) {
             $inception = $this->formatDate($data["inception"]);
             if ($inception !== null) {
@@ -854,7 +851,7 @@ class WikidataFormatter
             }
         }
 
-        // Auflu00f6sungsdatum (P576)
+        // Dissolution date (P576)
         if (!empty($data["dissolved_date"])) {
             $dissolvedDate = $this->formatDate($data["dissolved_date"]);
             if ($dissolvedDate !== null) {
@@ -875,14 +872,14 @@ class WikidataFormatter
             }
         }
 
-        // Hauptsitz (P159) - Sollte ein Wikidata-Item sein
+        // Headquarters (P159) - Should be a Wikidata item
         if (!empty($data["headquarters_location"])) {
             if (
                 isset($data["headquarters_location"]) &&
                 is_string($data["headquarters_location"]) &&
                 substr($data["headquarters_location"], 0, 1) === "Q"
             ) {
-                // Als Wikidata-Item hinzufu00fcgen
+                // Add as Wikidata item
                 $formattedData["claims"]["P159"] = [
                     [
                         "mainsnak" => [
@@ -907,9 +904,9 @@ class WikidataFormatter
                     ],
                 ];
             } else {
-                // Wenn es ein String ist, dann als monolingualer Text (Bezeichnung des Standorts)
+                // If it's a string, add as monolingual text (location description)
                 $formattedData["claims"]["P1448"] = [
-                    // P1448 ist "offizielle Bezeichnung"
+                    // P1448 is "official name"
                     [
                         "mainsnak" => [
                             "snaktype" => "value",
@@ -931,16 +928,16 @@ class WikidataFormatter
     }
 
     /**
-     * Formatiert Architektonische-Struktur-Entities (Q811979).
+     * Formats Architectural-Structure entities (Q811979).
      *
-     * @param array &$formattedData Referenz auf die formatierte Datenstruktur
-     * @param array $data Originaldaten
+     * @param array &$formattedData Reference to the formatted data structure
+     * @param array $data Original data
      */
     protected function formatStructureEntity(
         array &$formattedData,
         array $data
     ): void {
-        // Errichtungsdatum (P571)
+        // Construction date (P571)
         if (!empty($data["inception"])) {
             $inception = $this->formatDate($data["inception"]);
             if ($inception !== null) {
@@ -961,7 +958,7 @@ class WikidataFormatter
             }
         }
 
-        // Abriss-/Zerstu00f6rungsdatum (P576)
+        // Demolition/Destruction date (P576)
         if (!empty($data["demolished_date"])) {
             $demolishedDate = $this->formatDate($data["demolished_date"]);
             if ($demolishedDate !== null) {
@@ -982,14 +979,14 @@ class WikidataFormatter
             }
         }
 
-        // Architekt (P84) - Sollte ein Wikidata-Item sein
+        // Architect (P84) - Should be a Wikidata item
         if (!empty($data["architect"])) {
             if (
                 isset($data["architect"]) &&
                 is_string($data["architect"]) &&
                 substr($data["architect"], 0, 1) === "Q"
             ) {
-                // Als Wikidata-Item hinzufu00fcgen
+                // Add as Wikidata item
                 $formattedData["claims"]["P84"] = [
                     [
                         "mainsnak" => [
@@ -1011,9 +1008,9 @@ class WikidataFormatter
                     ],
                 ];
             } else {
-                // Wenn es ein String ist, als Name des Architekten
+                // If it's a string, add as architect's name
                 $formattedData["claims"]["P2093"] = [
-                    // P2093 ist "Autor als Freitext"
+                    // P2093 is "Author as free text"
                     [
                         "mainsnak" => [
                             "snaktype" => "value",
@@ -1030,7 +1027,7 @@ class WikidataFormatter
             }
         }
 
-        // Hu00f6he (P2048) - Quantity-Typ
+        // Height (P2048) - Quantity type
         if (!empty($data["height"])) {
             $formattedData["claims"]["P2048"] = [
                 [
@@ -1054,10 +1051,10 @@ class WikidataFormatter
     }
 
     /**
-     * Formatiert ein Datum in das von Wikidata erwartete Format.
+     * Formats a date into the format expected by Wikidata.
      *
-     * @param string $date Das zu formatierende Datum
-     * @return array|null Ein formatiertes Datum für Wikidata oder null bei Fehler
+     * @param string $date The date to format
+     * @return array|null A formatted date for Wikidata or null in case of error
      */
     protected function formatDate(string $date): ?array
     {
@@ -1072,11 +1069,11 @@ class WikidataFormatter
                 "timezone" => 0,
                 "before" => 0,
                 "after" => 0,
-                "precision" => 11, // Tag-Genauigkeit
-                "calendarmodel" => "http://www.wikidata.org/entity/Q1985727", // Gregorianischer Kalender
+                "precision" => 11, // Day precision
+                "calendarmodel" => "http://www.wikidata.org/entity/Q1985727", // Gregorian calendar
             ];
         } catch (\Exception $e) {
-            Log::warning("Fehler beim Formatieren des Datums", [
+            Log::warning("Error formatting date", [
                 "date" => $date,
                 "error" => $e->getMessage(),
             ]);
@@ -1085,12 +1082,12 @@ class WikidataFormatter
     }
 
     /**
-     * Fügt Täter/Täterinnen zu einem Entity hinzu.
+     * Adds perpetrators to an entity.
      *
-     * @param array &$formattedData Referenz auf die formatierte Datenstruktur
-     * @param array $perpetrators Array mit Täter/Täterinnen-Daten
-     * @param bool $createEntities Flag, ob neue Entities erstellt werden sollen (nur im Job, nicht bei Vorschau)
-     * @return array Die aktualisierten Täter/Täterinnen-Daten
+     * @param array &$formattedData Reference to the formatted data structure
+     * @param array $perpetrators Array with perpetrator data
+     * @param bool $createEntities Flag whether new entities should be created (only in jobs, not in preview)
+     * @return array The updated perpetrator data
      */
     protected function addPerpetrators(
         array &$formattedData,
@@ -1101,22 +1098,19 @@ class WikidataFormatter
             return [];
         }
 
-        // Sicherstellen, dass $perpetrators ein Array ist
+        // Ensure that $perpetrators is an array
         if (is_string($perpetrators)) {
             $perpetrators = json_decode($perpetrators, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
-                Log::warning(
-                    "Fehler beim Parsen der Täter/Täterinnen als JSON",
-                    [
-                        "perpetrators" => $perpetrators,
-                        "error" => json_last_error_msg(),
-                    ]
-                );
+                Log::warning("Error parsing perpetrators as JSON", [
+                    "perpetrators" => $perpetrators,
+                    "error" => json_last_error_msg(),
+                ]);
                 return [];
             }
         }
 
-        // Initialisiere das Claims-Array für Täter/Täterinnen, falls es noch nicht existiert
+        // Initialize the claims array for perpetrators if it doesn't exist yet
         if (!isset($formattedData["claims"][self::WIKIDATA_PERPETRATOR])) {
             $formattedData["claims"][self::WIKIDATA_PERPETRATOR] = [];
         }
@@ -1133,7 +1127,7 @@ class WikidataFormatter
                 $updatedPerpetrator["name"] = $perpetrator["label"];
             }
 
-            // Wenn der/die Täter/in bereits eine Wikidata-ID hat (existierender Eintrag)
+            // If the perpetrator already has a Wikidata ID (existing entry)
             if (
                 isset($perpetrator["id"]) &&
                 is_string($perpetrator["id"]) &&
@@ -1141,7 +1135,7 @@ class WikidataFormatter
             ) {
                 $perpetratorId = $perpetrator["id"];
 
-                // Wenn wir eine gültige Wikidata-ID haben, den Täter/die Täterin hinzufügen
+                // If we have a valid Wikidata ID, add the perpetrator
                 if ($perpetratorId !== null) {
                     $formattedData["claims"][self::WIKIDATA_PERPETRATOR][] = [
                         "mainsnak" => [
@@ -1167,7 +1161,7 @@ class WikidataFormatter
                     continue; // Skip the rest of the processing for this perpetrator
                 }
             }
-            // Bei temporären IDs oder neuen Einträgen
+            // For temporary IDs or new entries
             elseif (
                 (!empty($perpetrator["temp_id"]) ||
                     !empty($perpetrator["tempId"])) &&
@@ -1175,7 +1169,7 @@ class WikidataFormatter
                     !empty($perpetrator["firstName"]) ||
                     !empty($perpetrator["lastName"]))
             ) {
-                // Erstelle Namen aus firstName und lastName, falls vorhanden
+                // Create name from firstName and lastName if available
                 $name = !empty($perpetrator["name"])
                     ? $perpetrator["name"]
                     : (!empty($perpetrator["label"])
@@ -1190,7 +1184,7 @@ class WikidataFormatter
                                     : "")
                         ));
 
-                // Konvertiere birthDate/deathDate zu date_of_birth/date_of_death
+                // Convert birthDate/deathDate to date_of_birth/date_of_death
                 $dateOfBirth =
                     $perpetrator["date_of_birth"] ??
                     ($perpetrator["birthDate"] ?? null);
@@ -1198,14 +1192,14 @@ class WikidataFormatter
                     $perpetrator["date_of_death"] ??
                     ($perpetrator["deathDate"] ?? null);
 
-                // Neue Person erstellen, wenn Daten vorhanden sind
+                // Create a new person if data is available
                 $personData = [
                     "name" => $name,
                     "description" =>
                         $perpetrator["description"] ??
-                        "Täter/in im Zusammenhang mit " .
+                        "Perpetrator in connection with " .
                             ($formattedData["labels"]["de"]["value"] ??
-                                "einem Ereignis"),
+                                "an event"),
                     "date_of_birth" => $dateOfBirth,
                     "date_of_death" => $dateOfDeath,
                     "occupation" => $perpetrator["occupation"] ?? null,
@@ -1220,10 +1214,10 @@ class WikidataFormatter
                         $perpetrator["place_of_detention"] ?? null,
                 ];
 
-                // Quellenangaben verwenden, wenn vorhanden
+                // Use source information if available
                 $sources = $perpetrator["sources"] ?? [];
 
-                // Person in Wikidata erstellen und ID erhalten - nur wenn $createEntities=true
+                // Create person in Wikidata and get ID - only if $createEntities=true
                 if ($createEntities) {
                     $perpetratorId = $this->createNewPersonEntity(
                         $personData,
@@ -1232,7 +1226,7 @@ class WikidataFormatter
                     );
 
                     if ($perpetratorId !== null) {
-                        // temp_id/tempId durch echte Wikidata-ID ersetzen
+                        // Replace temp_id/tempId with real Wikidata ID
                         if (isset($updatedPerpetrator["temp_id"])) {
                             unset($updatedPerpetrator["temp_id"]);
                         }
@@ -1240,14 +1234,14 @@ class WikidataFormatter
                             unset($updatedPerpetrator["tempId"]);
                         }
                         $updatedPerpetrator["id"] = $perpetratorId;
-                        $updatedPerpetrator["_wasCreated"] = true; // Flag, dass diese Entity neu erstellt wurde
+                        $updatedPerpetrator["_wasCreated"] = true; // Flag that this entity was newly created
 
                         Log::info(
-                            "Neue Person als Täter/in erstellt und verlinkt",
+                            "New person created and linked as perpetrator",
                             [
                                 "name" =>
                                     $name ??
-                                    ($perpetrator["name"] ?? "Unbekannt"),
+                                    ($perpetrator["name"] ?? "Unknown"),
                                 "temp_id/tempId" =>
                                     $perpetrator["temp_id"] ??
                                     ($perpetrator["tempId"] ?? "none"),
@@ -1255,10 +1249,10 @@ class WikidataFormatter
                             ]
                         );
 
-                        // Aktualisiere den originalen Täter im Array
+                        // Update the original perpetrator in the array
                         $perpetrators[$index] = $updatedPerpetrator;
 
-                        // Wenn wir eine gültige Wikidata-ID haben, den Täter/die Täterin hinzufügen
+                        // If we have a valid Wikidata ID, add the perpetrator
                         $formattedData["claims"][
                             self::WIKIDATA_PERPETRATOR
                         ][] = [
@@ -1281,25 +1275,24 @@ class WikidataFormatter
                         ];
                     }
                 } else {
-                    // Im Vorschau-Modus nur Platzhalter-ID erstellen
-                    Log::info("Nur Vorschau: Kein Täter erstellt für", [
-                        "name" =>
-                            $name ?? ($perpetrator["name"] ?? "Unbekannt"),
+                    // In preview mode, only create placeholder ID
+                    Log::info("Preview only: No perpetrator created for", [
+                        "name" => $name ?? ($perpetrator["name"] ?? "Unknown"),
                         "temp_id/tempId" =>
                             $perpetrator["temp_id"] ??
                             ($perpetrator["tempId"] ?? "none"),
                     ]);
 
-                    // Info zu temporären Personen als Freitext-Hinweis hinzufügen
+                    // Add information about temporary persons as free text reference
                     $formattedData["claims"][self::WIKIDATA_AUTHOR_STRING][] = [
                         "mainsnak" => [
                             "snaktype" => "value",
                             "property" => self::WIKIDATA_AUTHOR_STRING,
                             "datavalue" => [
                                 "value" =>
-                                    "Täter/in: " .
-                                    ($name ?: "Unbekannt") .
-                                    " (Wird bei Genehmigung erstellt)",
+                                    "Perpetrator: " .
+                                    ($name ?: "Unknown") .
+                                    " (Will be created upon approval)",
                                 "type" => "string",
                             ],
                         ],
@@ -1308,13 +1301,13 @@ class WikidataFormatter
                     ];
                 }
             }
-            // Sonstige Einträge ohne ID aber mit Namen
+            // Other entries without ID but with name
             elseif (
                 !empty($perpetrator["name"]) ||
                 !empty($perpetrator["firstName"]) ||
                 !empty($perpetrator["lastName"])
             ) {
-                // Info zu Personen als Freitext-Hinweis hinzufügen
+                // Add information about persons as free text reference
                 $name = !empty($perpetrator["name"])
                     ? $perpetrator["name"]
                     : (!empty($perpetrator["label"])
@@ -1329,7 +1322,7 @@ class WikidataFormatter
                                     : "")
                         ));
 
-                // Konvertiere birthDate/deathDate zu date_of_birth/date_of_death
+                // Convert birthDate/deathDate to date_of_birth/date_of_death
                 $dateOfBirth =
                     $perpetrator["date_of_birth"] ??
                     ($perpetrator["birthDate"] ?? null);
@@ -1337,14 +1330,14 @@ class WikidataFormatter
                     $perpetrator["date_of_death"] ??
                     ($perpetrator["deathDate"] ?? null);
 
-                // Neue Person erstellen, wenn Daten vorhanden sind
+                // Create new person if data is available
                 $personData = [
                     "name" => $name,
                     "description" =>
                         $perpetrator["description"] ??
-                        "Täter/in im Zusammenhang mit " .
+                        "Perpetrator in connection with " .
                             ($formattedData["labels"]["de"]["value"] ??
-                                "einem Ereignis"),
+                                "an event"),
                     "date_of_birth" => $dateOfBirth,
                     "date_of_death" => $dateOfDeath,
                     "occupation" => $perpetrator["occupation"] ?? null,
@@ -1359,10 +1352,10 @@ class WikidataFormatter
                         $perpetrator["place_of_detention"] ?? null,
                 ];
 
-                // Quellenangaben verwenden, wenn vorhanden
+                // Use source information if available
                 $sources = $perpetrator["sources"] ?? [];
 
-                // Person in Wikidata erstellen und ID erhalten - nur wenn $createEntities=true
+                // Create person in Wikidata and get ID - only if $createEntities=true
                 if ($createEntities) {
                     $perpetratorId = $this->createNewPersonEntity(
                         $personData,
@@ -1371,22 +1364,22 @@ class WikidataFormatter
                     );
 
                     if ($perpetratorId !== null) {
-                        // Neue ID dem Täter zuweisen
+                        // Assign new ID to the perpetrator
                         $updatedPerpetrator["id"] = $perpetratorId;
-                        $updatedPerpetrator["_wasCreated"] = true; // Flag, dass diese Entity neu erstellt wurde
+                        $updatedPerpetrator["_wasCreated"] = true; // Flag that this entity was newly created
 
                         Log::info(
-                            "Neue Person als Täter/in erstellt und verlinkt",
+                            "New person created and linked as perpetrator",
                             [
                                 "name" => $name,
                                 "wikidata_id" => $perpetratorId,
                             ]
                         );
 
-                        // Aktualisiere den originalen Täter im Array
+                        // Update the original perpetrator in the array
                         $perpetrators[$index] = $updatedPerpetrator;
 
-                        // Wenn wir eine gültige Wikidata-ID haben, den Täter/die Täterin hinzufügen
+                        // If we have a valid Wikidata ID, add the perpetrator
                         $formattedData["claims"][
                             self::WIKIDATA_PERPETRATOR
                         ][] = [
@@ -1409,14 +1402,13 @@ class WikidataFormatter
                         ];
                     }
                 } else {
-                    // Im Vorschau-Modus nur Platzhalter-ID erstellen
-                    Log::info("Nur Vorschau: Kein Täter erstellt für", [
-                        "name" =>
-                            $name ?? ($perpetrator["name"] ?? "Unbekannt"),
+                    // In preview mode, only create placeholder ID
+                    Log::info("Preview only: No perpetrator created for", [
+                        "name" => $name ?? ($perpetrator["name"] ?? "Unknown"),
                     ]);
                 }
 
-                // Falls kein Eintrag erstellt wurde oder wir im Vorschau-Modus sind, als Freitext-Hinweis hinzufügen
+                // If no entry was created or we are in preview mode, add as free text reference
                 if ($perpetratorId === null) {
                     $formattedData["claims"][self::WIKIDATA_AUTHOR_STRING][] = [
                         "mainsnak" => [
@@ -1441,12 +1433,12 @@ class WikidataFormatter
     }
 
     /**
-     * Fügt Opfer zu einem Entity hinzu.
+     * Adds victims to an entity.
      *
-     * @param array &$formattedData Referenz auf die formatierte Datenstruktur
-     * @param array $victims Array mit Opfer-Daten
-     * @param bool $createEntities Flag, ob neue Entities erstellt werden sollen (nur im Job, nicht bei Vorschau)
-     * @return array Die aktualisierten Opfer-Daten
+     * @param array &$formattedData Reference to the formatted data structure
+     * @param array $victims Array with victim data
+     * @param bool $createEntities Flag whether new entities should be created (only in jobs, not in preview)
+     * @return array The updated victim data
      */
     protected function addVictims(
         array &$formattedData,
@@ -1457,11 +1449,11 @@ class WikidataFormatter
             return [];
         }
 
-        // Sicherstellen, dass $victims ein Array ist
+        // Make sure that $victims is an array
         if (is_string($victims)) {
             $victims = json_decode($victims, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
-                Log::warning("Fehler beim Parsen der Opfer als JSON", [
+                Log::warning("Error parsing victims as JSON", [
                     "victims" => $victims,
                     "error" => json_last_error_msg(),
                 ]);
@@ -1469,7 +1461,7 @@ class WikidataFormatter
             }
         }
 
-        // Initialisiere das Claims-Array für Opfer, falls es noch nicht existiert
+        // Initialize the claims array for victims if it doesn't exist yet
         if (!isset($formattedData["claims"][self::WIKIDATA_VICTIM])) {
             $formattedData["claims"][self::WIKIDATA_VICTIM] = [];
         }
@@ -1483,7 +1475,7 @@ class WikidataFormatter
                 $updatedVictim["name"] = $victim["label"];
             }
 
-            // Wenn das Opfer bereits eine Wikidata-ID hat (existierender Eintrag)
+            // If the victim already has a Wikidata ID (existing entry)
             if (
                 isset($victim["id"]) &&
                 is_string($victim["id"]) &&
@@ -1491,7 +1483,7 @@ class WikidataFormatter
             ) {
                 $victimId = $victim["id"];
 
-                // Wenn wir eine gültige Wikidata-ID haben, das Opfer hinzufügen
+                // If we have a valid Wikidata ID, add the victim
                 if ($victimId !== null) {
                     $formattedData["claims"][self::WIKIDATA_VICTIM][] = [
                         "mainsnak" => [
@@ -1517,14 +1509,14 @@ class WikidataFormatter
                     continue; // Skip the rest of the processing for this victim
                 }
             }
-            // Wenn das Opfer eine temp_id oder tempId hat (neuer Eintrag)
+            // If the victim has a temp_id or tempId (new entry)
             elseif (
                 (!empty($victim["temp_id"]) || !empty($victim["tempId"])) &&
                 (!empty($victim["name"]) ||
                     !empty($victim["firstName"]) ||
                     !empty($victim["lastName"]))
             ) {
-                // Erstelle Namen aus firstName und lastName, falls vorhanden
+                // Create name from firstName and lastName if available
                 $name = !empty($victim["name"])
                     ? $victim["name"]
                     : trim(
@@ -1537,13 +1529,13 @@ class WikidataFormatter
                                 : "")
                     );
 
-                // Konvertiere birthDate/deathDate zu date_of_birth/date_of_death
+                // Convert birthDate/deathDate to date_of_birth/date_of_death
                 $dateOfBirth =
                     $victim["date_of_birth"] ?? ($victim["birthDate"] ?? null);
                 $dateOfDeath =
                     $victim["date_of_death"] ?? ($victim["deathDate"] ?? null);
 
-                // Neue Person erstellen, wenn Daten vorhanden sind
+                // Create new person if data is available
                 $personData = [
                     "name" => $name,
                     "description" =>
@@ -1562,10 +1554,10 @@ class WikidataFormatter
                         $victim["place_of_detention"] ?? null,
                 ];
 
-                // Quellenangaben verwenden, wenn vorhanden
+                // Use source information if available
                 $sources = $victim["sources"] ?? [];
 
-                // Person in Wikidata erstellen und ID erhalten - nur wenn $createEntities=true
+                // Create person in Wikidata and get ID - only if $createEntities=true
                 $victimId = null;
                 if ($createEntities) {
                     $victimId = $this->createNewPersonEntity(
@@ -1575,7 +1567,7 @@ class WikidataFormatter
                     );
 
                     if ($victimId !== null) {
-                        // temp_id/tempId durch echte Wikidata-ID ersetzen
+                        // Replace temp_id/tempId with real Wikidata ID
                         if (isset($updatedVictim["temp_id"])) {
                             unset($updatedVictim["temp_id"]);
                         }
@@ -1583,40 +1575,36 @@ class WikidataFormatter
                             unset($updatedVictim["tempId"]);
                         }
                         $updatedVictim["id"] = $victimId;
-                        $updatedVictim["_wasCreated"] = true; // Flag, dass diese Entity neu erstellt wurde
+                        $updatedVictim["_wasCreated"] = true; // Flag that this entity was newly created
 
-                        Log::info(
-                            "Neue Person als Opfer erstellt und verlinkt",
-                            [
-                                "name" =>
-                                    $name ?? ($victim["name"] ?? "Unbekannt"),
-                                "temp_id/tempId" =>
-                                    $victim["temp_id"] ??
-                                    ($victim["tempId"] ?? "none"),
-                                "wikidata_id" => $victimId,
-                            ]
-                        );
+                        Log::info("New person created and linked as victim", [
+                            "name" => $name ?? ($victim["name"] ?? "Unbekannt"),
+                            "temp_id/tempId" =>
+                                $victim["temp_id"] ??
+                                ($victim["tempId"] ?? "none"),
+                            "wikidata_id" => $victimId,
+                        ]);
 
-                        // Aktualisiere das originale Opfer im Array
+                        // Update the original victim in the array
                         $victims[$index] = $updatedVictim;
                     }
                 } else {
-                    // Im Vorschau-Modus nur Platzhalter-ID erstellen
-                    Log::info("Nur Vorschau: Kein Opfer erstellt für", [
-                        "name" => $name ?? ($victim["name"] ?? "Unbekannt"),
+                    // In preview mode, only create placeholder ID
+                    Log::info("Preview only: No victim created for", [
+                        "name" => $name ?? ($victim["name"] ?? "Unknown"),
                         "temp_id/tempId" =>
                             $victim["temp_id"] ?? ($victim["tempId"] ?? "none"),
                     ]);
                 }
             }
-            // Fallback für Einträge ohne ID aber mit Namen
-            // Fallback, wenn weder ID noch temp_id/tempId, aber Name oder firstName/lastName vorhanden ist
+            // Fallback for entries without ID but with name
+            // Fallback if neither ID nor temp_id/tempId exists, but name or firstName/lastName is available
             elseif (
                 !empty($victim["name"]) ||
                 !empty($victim["firstName"]) ||
                 !empty($victim["lastName"])
             ) {
-                // Erstelle Namen aus firstName und lastName, falls vorhanden
+                // Create name from firstName and lastName if available
                 $name = !empty($victim["name"])
                     ? $victim["name"]
                     : trim(
@@ -1635,7 +1623,7 @@ class WikidataFormatter
                 $dateOfDeath =
                     $victim["date_of_death"] ?? ($victim["deathDate"] ?? null);
 
-                // Neue Person erstellen, wenn Daten vorhanden sind
+                // Create new person if data is available
                 $personData = [
                     "name" => $name,
                     "description" =>
@@ -1654,10 +1642,10 @@ class WikidataFormatter
                         $victim["place_of_detention"] ?? null,
                 ];
 
-                // Quellenangaben aus dem Hauptereignis verwenden, wenn vorhanden
+                // Use source information from the main event if available
                 $sources = $victim["sources"] ?? [];
 
-                // Person in Wikidata erstellen und ID erhalten - nur wenn $createEntities=true
+                // Create person in Wikidata and get ID - only if $createEntities=true
                 $victimId = null;
                 if ($createEntities) {
                     $victimId = $this->createNewPersonEntity(
@@ -1667,30 +1655,26 @@ class WikidataFormatter
                     );
 
                     if ($victimId !== null) {
-                        // Neue ID dem Opfer zuweisen
+                        // Assign new ID to the victim
                         $updatedVictim["id"] = $victimId;
-                        $updatedVictim["_wasCreated"] = true; // Flag, dass diese Entity neu erstellt wurde
+                        $updatedVictim["_wasCreated"] = true; // Flag that this entity was newly created
 
-                        Log::info(
-                            "Neue Person als Opfer erstellt und verlinkt",
-                            [
-                                "name" => $name,
-                                "wikidata_id" => $victimId,
-                            ]
-                        );
+                        Log::info("New person created and linked as victim", [
+                            "name" => $name,
+                            "wikidata_id" => $victimId,
+                        ]);
 
-                        // Aktualisiere das originale Opfer im Array
+                        // Update the original victim in the array
                         $victims[$index] = $updatedVictim;
                     }
                 } else {
-                    // Im Vorschau-Modus nur Platzhalter-ID erstellen
-                    Log::info("Nur Vorschau: Kein Opfer erstellt für", [
-                        "name" => $name ?? ($victim["name"] ?? "Unbekannt"),
+                    Log::info("Preview only: No victim created for", [
+                        "name" => $name ?? ($victim["name"] ?? "Unknown"),
                     ]);
                 }
             }
 
-            // Wenn wir eine gültige Wikidata-ID haben, das Opfer hinzufügen
+            // If we have a valid Wikidata ID, add the victim
             if ($victimId !== null) {
                 $formattedData["claims"][self::WIKIDATA_VICTIM][] = [
                     "mainsnak" => [
@@ -1709,7 +1693,7 @@ class WikidataFormatter
                     "rank" => "normal",
                 ];
             } else {
-                // Wenn keine ID vorhanden und nicht erstellt werden konnte, als Freitext-Hinweis hinzufügen
+                // If no ID is available and could not be created, add as free text reference
                 $formattedData["claims"][self::WIKIDATA_AUTHOR_STRING][] = [
                     "mainsnak" => [
                         "snaktype" => "value",
@@ -1730,17 +1714,17 @@ class WikidataFormatter
     }
 
     /**
-     * Formatiert eine neue Person-Entity für Wikidata.
+     * Formats a new Person entity for Wikidata.
      *
-     * @param array $personData Die Daten der Person
-     * @param string|null $role Die Rolle (victim/perpetrator) oder null wenn keine spezifische Rolle
-     * @return array Formatierte Daten für die Wikidata-API
+     * @param array $personData The person's data
+     * @param string|null $role The role (victim/perpetrator) or null if no specific role
+     * @return array Formatted data for the Wikidata API
      */
     public function formatNewPersonEntity(
         array $personData,
         ?string $role = null
     ): array {
-        // Basis-Struktur gemäß Wikibase-Dokumentation
+        // Basic structure according to Wikibase documentation
         $formattedData = [
             "type" => "item",
             "labels" => [
@@ -1760,12 +1744,12 @@ class WikidataFormatter
             "sitelinks" => [],
         ];
 
-        // Prüfen, ob es sich um eine Organisation handelt
+        // Check if it's an organization
         $isOrganization =
             isset($personData["isOrganization"]) &&
             $personData["isOrganization"] === true;
 
-        // Instanz von (P31) - entweder Person (Q5) oder Organisation (Q43229)
+        // Instance of (P31) - either Person (Q5) or Organization (Q43229)
         $entityType = $isOrganization
             ? self::ENTITY_TYPE_ORGANIZATION
             : self::ENTITY_TYPE_PERSON;
@@ -1789,7 +1773,7 @@ class WikidataFormatter
             ],
         ];
 
-        // Für Täter-Organisationen zusätzlich als "Orte des Gestapo Terrors" kennzeichnen
+        // For perpetrator organizations, additionally mark as "Places of Gestapo terror"
         if ($isOrganization && $role === self::ROLE_PERPETRATOR) {
             $formattedData["claims"][self::WIKIDATA_INSTANCE_OF][] = [
                 "mainsnak" => [
@@ -1811,7 +1795,7 @@ class WikidataFormatter
             ];
         }
 
-        // Für Personen (nicht Organisationen), je nach Rolle als Opfer oder Täter kennzeichnen
+        // For persons (not organizations), mark as victim or perpetrator according to role
         //  Subjekt fungiert als (P2868)
         if (!$isOrganization && $role !== null) {
             $roleValue =
@@ -1841,7 +1825,7 @@ class WikidataFormatter
             ];
         }
 
-        // Geburtsdatum (P569) - nur für Personen, nicht für Organisationen
+        // Date of birth (P569) - only for persons, not for organizations
         if (!$isOrganization && !empty($personData["date_of_birth"])) {
             $birthDate = $this->formatDate($personData["date_of_birth"]);
             if ($birthDate !== null) {
@@ -1862,7 +1846,7 @@ class WikidataFormatter
             }
         }
 
-        // Sterbedatum (P570) - nur für Personen, nicht für Organisationen
+        // Date of death (P570) - only for persons, not for organizations
         if (!$isOrganization && !empty($personData["date_of_death"])) {
             $deathDate = $this->formatDate($personData["date_of_death"]);
             if ($deathDate !== null) {
@@ -1910,7 +1894,7 @@ class WikidataFormatter
             ];
         }
 
-        // Nationalität (P27)
+        // Nationality (P27)
         if (
             !empty($personData["nationality"]) &&
             substr($personData["nationality"], 0, 1) === "Q"
@@ -2018,7 +2002,7 @@ class WikidataFormatter
             ];
         }
 
-        // Sterbeort (P20)
+        // Place of death (P20)
         if (
             !empty($personData["place_of_death"]) &&
             substr($personData["place_of_death"], 0, 1) === "Q"
@@ -2049,12 +2033,12 @@ class WikidataFormatter
     }
 
     /**
-     * Erstellt eine neue Person-Entity in Wikidata und gibt die Wikidata-ID zurück.
+     * Creates a new Person entity in Wikidata and returns the Wikidata ID.
      *
-     * @param array $personData Die Daten der Person
-     * @param array $sources Optional: Quellenangaben für die Person
-     * @param string|null $role Optional: Die Rolle (victim/perpetrator) oder null wenn keine spezifische Rolle
-     * @return string|null Die Wikidata-ID der erstellten Person oder null bei Fehler
+     * @param array $personData The person's data
+     * @param array $sources Optional: Source information for the person
+     * @param string|null $role Optional: The role (victim/perpetrator) or null if no specific role
+     * @return string|null The Wikidata ID of the created person or null in case of error
      */
     public function createNewPersonEntity(
         array $personData,
@@ -2079,10 +2063,10 @@ class WikidataFormatter
                     : self::ENTITY_TYPE_PERSON;
 
             $entityData = [
-                "title" => $personData["name"] ?? "Unbenannte Person",
+                "title" => $personData["name"] ?? "Unnamed Person",
                 "description" =>
                     $personData["description"] ??
-                    "Person im Zusammenhang mit einem historischen Ereignis",
+                    "Person related to a historical event",
                 "type" => $entityType,
                 "claims" => $formattedData["claims"] ?? [],
                 "labels" => $formattedData["labels"] ?? [],
@@ -2097,27 +2081,24 @@ class WikidataFormatter
             );
 
             if ($response === null) {
-                Log::error(
-                    "Fehler beim Erstellen einer neuen Person in Wikidata",
-                    [
-                        "person" => $personData["name"] ?? "Unbekannt",
-                    ]
-                );
+                Log::error("Error creating a new person in Wikidata", [
+                    "person" => $personData["name"] ?? "Unknown",
+                ]);
                 return null;
             }
 
             // Wikidata-ID aus der Antwort extrahieren
             $wikidataId = $response["entity"]["id"] ?? null;
 
-            Log::info("Neue Person in Wikidata erstellt", [
-                "person" => $personData["name"] ?? "Unbekannt",
+            Log::info("New person created in Wikidata", [
+                "person" => $personData["name"] ?? "Unknown",
                 "wikidata_id" => $wikidataId,
             ]);
 
             return $wikidataId;
         } catch (\Exception $e) {
-            Log::error("Fehler beim Erstellen einer neuen Person in Wikidata", [
-                "person" => $personData["name"] ?? "Unbekannt",
+            Log::error("Error creating a new person in Wikidata", [
+                "person" => $personData["name"] ?? "Unknown",
                 "error" => $e->getMessage(),
                 "trace" => $e->getTraceAsString(),
             ]);
@@ -2126,9 +2107,10 @@ class WikidataFormatter
     }
 
     /**
+     * Adds sources to an entity.
      *
-     * @param array &$formattedData Referenz auf die formatierte Datenstruktur
-     * @param array $sources Die Quellenangaben
+     * @param array &$formattedData Reference to the formatted data structure
+     * @param array $sources The source information
      */
     protected function addSourcesToEntity(
         array &$formattedData,
@@ -2138,10 +2120,10 @@ class WikidataFormatter
             return;
         }
 
-        // Erstelle Referenzen für alle relevanten Claims
+        // Create references for all relevant claims
         foreach ($formattedData["claims"] as $propertyId => &$statements) {
-            // Ignoriere bestimmte Properties, die keine Quellen benu00f6tigen
-            // z.B. P31 (Instanz von) oder andere grundlegende Eigenschaften
+            // Ignore certain properties that don't need sources
+            // e.g., P31 (Instance of) or other basic properties
             if (in_array($propertyId, ["P31"])) {
                 continue;
             }
@@ -2149,9 +2131,9 @@ class WikidataFormatter
             foreach ($statements as &$statement) {
                 $statement["references"] = [];
 
-                // Jede Quelle als Referenz hinzufu00fcgen
+                // Add each source as a reference
                 foreach ($sources as $source) {
-                    // Referenz auf Basis des Quellentyps erstellen
+                    // Create reference based on the source type
                     $reference = $this->createReferenceFromSource($source);
                     if (!empty($reference)) {
                         $statement["references"][] = $reference;
@@ -2204,10 +2186,10 @@ class WikidataFormatter
     }
 
     /**
-     * Fu00fcgt Quellenangaben als eigenstu00e4ndige Claims hinzu.
+     * Adds source information as independent claims.
      *
-     * @param array &$formattedData Referenz auf die formatierte Datenstruktur
-     * @param array $sources Die Quellenangaben
+     * @param array &$formattedData Reference to the formatted data structure
+     * @param array $sources The source information
      */
     protected function addSourcesAsClaims(
         array &$formattedData,
@@ -2217,11 +2199,11 @@ class WikidataFormatter
             return;
         }
 
-        // Stellt sicher, dass $sources ein Array ist
+        // Ensure that $sources is an array
         if (is_string($sources)) {
             $sources = json_decode($sources, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
-                Log::warning("Fehler beim Parsen der Quellenangaben als JSON", [
+                Log::warning("Error parsing source information as JSON", [
                     "sources" => $sources,
                     "error" => json_last_error_msg(),
                 ]);
@@ -2236,7 +2218,7 @@ class WikidataFormatter
 
             switch ($source["type"]) {
                 case "url":
-                    // URL zur Property P973 (URL) hinzufühen
+                    // Add URL to property P973 (URL)
                     if (!empty($source["url"])) {
                         if (
                             !isset(
@@ -2271,7 +2253,7 @@ class WikidataFormatter
 
                 case "book":
                 case "archive":
-                    // Buch/Archiv zur Property P1343 (beschrieben durch Quelle) hinzufu00fcgen
+                    // Add book/archive to property P1343 (described by source)
                     if (
                         !empty($source["id"]) &&
                         substr($source["id"], 0, 1) === "Q"
@@ -2305,7 +2287,7 @@ class WikidataFormatter
                             ],
                             "type" => "statement",
                             "rank" => "normal",
-                            // Wenn Seitenangaben vorhanden sind, als Qualifier hinzufu00fcgen
+                            // If page information is available, add as qualifier
                             "qualifiers" => $this->createSourceQualifiers(
                                 $source
                             ),
@@ -2317,16 +2299,16 @@ class WikidataFormatter
     }
 
     /**
-     * Erstellt Qualifier fu00fcr Quellenangaben wie Seitenzahlen
+     * Creates qualifiers for source information like page numbers
      *
-     * @param array $source Die Quellenangabe
-     * @return array Die Qualifier fu00fcr die Quelle
+     * @param array $source The source information
+     * @return array The qualifiers for the source
      */
     protected function createSourceQualifiers(array $source): array
     {
         $qualifiers = [];
 
-        // Seitenangaben
+        // Page information
         if (!empty($source["pages"])) {
             $qualifiers[self::WIKIDATA_PAGE] = [
                 [
@@ -2353,36 +2335,36 @@ class WikidataFormatter
             ];
         }
 
-        // Weitere Qualifier ku00f6nnten hier hinzugefu00fcgt werden
+        // Additional qualifiers could be added here
 
         return $qualifiers;
     }
 
     /**
-     * Stellt sicher, dass eine URL ein gu00fcltiges Schema (http:// oder https://) hat.
+     * Ensures that a URL has a valid scheme (http:// or https://).
      *
-     * @param string $url Die zu pru00fcfende URL
-     * @return string Die URL mit Schema
+     * @param string $url The URL to check
+     * @return string The URL with scheme
      */
     protected function ensureUrlHasScheme(string $url): string
     {
-        // URL trimmen
+        // Trim URL
         $url = trim($url);
 
-        // Pru00fcfen, ob die URL bereits ein Schema hat
+        // Check if URL already has a scheme
         if (preg_match("#^https?://#i", $url)) {
             return $url;
         }
 
-        // Wenn kein Schema vorhanden ist, fu00fcge https:// hinzu
+        // If no scheme is present, add https://
         return "https://" . $url;
     }
 
     /**
-     * Erstellt eine Referenz basierend auf dem Quellentyp.
+     * Creates a reference based on the source type.
      *
-     * @param array $source Die Quellenangabe
-     * @return array Die formatierte Referenz oder leeres Array bei Fehler
+     * @param array $source The source information
+     * @return array The formatted reference or empty array in case of error
      */
     protected function createReferenceFromSource(array $source): array
     {
@@ -2399,7 +2381,7 @@ class WikidataFormatter
             "snaks" => [],
         ];
 
-        // Basisdaten für jede Referenz: Titel (P1476)
+        // Basic data for each reference: Titel (P1476)
         $reference["snaks"]["P1476"] = [
             [
                 "snaktype" => "value",
@@ -2414,12 +2396,12 @@ class WikidataFormatter
             ],
         ];
 
-        // Fu00fcge spezifische Daten je nach Quellentyp hinzu
+        // Add specific data depending on source type
         switch ($source["type"]) {
             case "book":
-                // für Buchquellen
+                // for book sources
                 if (isset($source["id"]) && $source["id"] !== "manual") {
-                    // Angabe der Wikidata-ID (P248)
+                    // Wikidata ID reference (P248)
                     $reference["snaks"]["P248"] = [
                         [
                             "snaktype" => "value",
@@ -2438,7 +2420,7 @@ class WikidataFormatter
                     ];
                 }
 
-                // Seitenangabe (P304)
+                // Page reference (P304)
                 if (isset($source["pages"])) {
                     $reference["snaks"]["P304"] = [
                         [
@@ -2454,9 +2436,9 @@ class WikidataFormatter
                 break;
 
             case "url":
-                // für URL-Quellen
+                // for URL sources
                 if (isset($source["url"])) {
-                    // URL der Referenz (P854)
+                    // URL of the reference (P854)
                     $reference["snaks"]["P854"] = [
                         [
                             "snaktype" => "value",
@@ -2471,7 +2453,7 @@ class WikidataFormatter
                     ];
                 }
 
-                // Zugriffsdatum (P813)
+                // Access date (P813)
                 if (isset($source["accessDate"])) {
                     $accessDate = $this->formatDate($source["accessDate"]);
                     if ($accessDate !== null) {
@@ -2490,9 +2472,9 @@ class WikidataFormatter
                 break;
 
             case "archive":
-                // für Archivquellen
+                // for archive sources
                 if (isset($source["id"]) && $source["id"] !== "manual") {
-                    // Angabe des Archivs (P485)
+                    // Archive reference (P485)
                     $reference["snaks"]["P485"] = [
                         [
                             "snaktype" => "value",
@@ -2511,7 +2493,7 @@ class WikidataFormatter
                     ];
                 }
 
-                // Inventarnummer (P217)
+                // Inventory number (P217)
                 if (isset($source["inventoryNumber"])) {
                     $reference["snaks"]["P217"] = [
                         [
@@ -2527,7 +2509,7 @@ class WikidataFormatter
                 break;
         }
 
-        // Beschreibung als Notiz hinzufu00fcgen (P2093)
+        // Add description as a note (P2093)
         if (isset($source["description"])) {
             $reference["snaks"]["P2093"] = [
                 [
