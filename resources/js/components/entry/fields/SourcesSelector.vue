@@ -380,8 +380,8 @@
                         <!-- Inventarnummer -->
                         <v-text-field
                             v-model="archiveForm.inventoryNumber"
-                            label="Inventarnummer *"
-                            hint="Geben Sie die Inventarnummer an"
+                            label="Inventarnummer (Signatur) *"
+                            hint="Geben Sie die Inventarnummer/Signatur an"
                             class="mt-4"
                             required
                             :rules="[
