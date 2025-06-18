@@ -1204,9 +1204,9 @@ class WikidataFormatter
                     "date_of_death" => $dateOfDeath,
                     "occupation" => $perpetrator["occupation"] ?? null,
                     "nationality" => $perpetrator["nationality"] ?? null,
-                    "isOrganization" => isset($perpetrator["isOrganization"])
-                        ? (bool) $perpetrator["isOrganization"]
-                        : false,
+                    "isOrganization" => $this->isOrganizationValue(
+                        $perpetrator["isOrganization"] ?? null
+                    ),
                     "gender" => $perpetrator["gender"] ?? null,
                     "place_of_birth" => $perpetrator["place_of_birth"] ?? null,
                     "place_of_death" => $perpetrator["place_of_death"] ?? null,
@@ -1342,9 +1342,9 @@ class WikidataFormatter
                     "date_of_death" => $dateOfDeath,
                     "occupation" => $perpetrator["occupation"] ?? null,
                     "nationality" => $perpetrator["nationality"] ?? null,
-                    "isOrganization" => isset($perpetrator["isOrganization"])
-                        ? (bool) $perpetrator["isOrganization"]
-                        : false,
+                    "isOrganization" => $this->isOrganizationValue(
+                        $perpetrator["isOrganization"] ?? null
+                    ),
                     "gender" => $perpetrator["gender"] ?? null,
                     "place_of_birth" => $perpetrator["place_of_birth"] ?? null,
                     "place_of_death" => $perpetrator["place_of_death"] ?? null,
@@ -1547,6 +1547,9 @@ class WikidataFormatter
                     "date_of_death" => $dateOfDeath,
                     "occupation" => $victim["occupation"] ?? null,
                     "nationality" => $victim["nationality"] ?? null,
+                    "isOrganization" => $this->isOrganizationValue(
+                        $victim["isOrganization"] ?? null
+                    ),
                     "gender" => $victim["gender"] ?? null,
                     "place_of_birth" => $victim["place_of_birth"] ?? null,
                     "place_of_death" => $victim["place_of_death"] ?? null,
@@ -1635,6 +1638,9 @@ class WikidataFormatter
                     "date_of_death" => $dateOfDeath,
                     "occupation" => $victim["occupation"] ?? null,
                     "nationality" => $victim["nationality"] ?? null,
+                    "isOrganization" => $this->isOrganizationValue(
+                        $victim["isOrganization"] ?? null
+                    ),
                     "gender" => $victim["gender"] ?? null,
                     "place_of_birth" => $victim["place_of_birth"] ?? null,
                     "place_of_death" => $victim["place_of_death"] ?? null,
@@ -1745,9 +1751,7 @@ class WikidataFormatter
         ];
 
         // Check if it's an organization
-        $isOrganization =
-            isset($personData["isOrganization"]) &&
-            $personData["isOrganization"] === true;
+        $isOrganization = $this->isOrganizationValue($personData["isOrganization"] ?? null);
 
         // Instance of (P31) - either Person (Q5) or Organization (Q43229)
         $entityType = $isOrganization
@@ -2057,8 +2061,7 @@ class WikidataFormatter
             );
 
             $entityType =
-                isset($personData["isOrganization"]) &&
-                $personData["isOrganization"] === true
+                $this->isOrganizationValue($personData["isOrganization"])
                     ? self::ENTITY_TYPE_ORGANIZATION
                     : self::ENTITY_TYPE_PERSON;
 
@@ -2183,6 +2186,37 @@ class WikidataFormatter
                 "type" => "wikibase-entityid",
             ],
         ];
+    }
+
+    /**
+     * Helper method to determine if a value indicates an organization
+     * 
+     * @param mixed $value The value to check
+     * @return bool True if the value indicates an organization
+     */
+    protected function isOrganizationValue($value): bool
+    {
+        if (!isset($value)) {
+            return false;
+        }
+        
+        // Boolean true
+        if ($value === true) {
+            return true;
+        }
+        
+        // String values like "true", "1", "yes"
+        if (is_string($value)) {
+            $lowerValue = strtolower(trim($value));
+            return $lowerValue === "true" || $lowerValue === "1" || $lowerValue === "yes";
+        }
+        
+        // Numeric value 1
+        if (is_numeric($value) && (int)$value === 1) {
+            return true;
+        }
+        
+        return false;
     }
 
     /**
