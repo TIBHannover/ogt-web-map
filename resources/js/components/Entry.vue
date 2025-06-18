@@ -1029,6 +1029,15 @@ const resetForm = async () => {
             .querySelector('meta[name="csrf-token"]')
             .getAttribute("content");
 
+        // Generate a secure random token for the entry (will be used for the status page URL)
+        const generateSecureToken = () => {
+            const array = new Uint8Array(24); // 24 bytes will generate a reasonably long string
+            window.crypto.getRandomValues(array);
+            return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+        };
+        
+        const secureToken = generateSecureToken();
+
         const response = await axios.post(
             "/api/wikidata/entities",
             {
@@ -1054,6 +1063,7 @@ const resetForm = async () => {
                 imageUrl: imageUrl.value,
                 imageFilename: imageFilename.value,
                 sources: selectedSources.value,
+                statusToken: secureToken // Include the secure token
             },
             {
                 headers: {
@@ -1071,10 +1081,20 @@ const resetForm = async () => {
                 arrestCountQualifier: arrestCountQualifier.value,
             });
 
+            // Use the token as the requestId for the thank-you page
+            const requestId = secureToken || response.data.requestId;
+            console.log('Sending to thank-you page with requestId:', requestId);
+            
+            // Store token in localStorage for better persistence
+            if (requestId) {
+                localStorage.setItem('entryStatusToken', requestId);
+            }
+
             // Redirect to thank-you page with request ID
             router.push({
                 name: "thank-you",
-                params: { requestId: response.data.requestId },
+                params: { requestId: requestId },
+                query: { token: requestId } // Add as query param for better compatibility
             });
         } else {
             error.value =

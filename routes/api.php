@@ -95,6 +95,12 @@ Route::get("/wikidata/search/cause", [
     "searchCauses",
 ]);
 
+// Route for checking entry status
+Route::get("/entry-status/{token}", [
+    App\Http\Controllers\EntryStatusController::class,
+    "getStatus",
+]);
+
 // Route for searching books in Wikidata
 Route::get("/wikidata/search/books", [
     WikidataSearchController::class,

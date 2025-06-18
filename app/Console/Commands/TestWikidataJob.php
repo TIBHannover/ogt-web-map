@@ -241,17 +241,26 @@ class TestWikidataJob extends Command
                     "Error creating entity: " .
                         ($jsonResponse["error"]["info"] ?? "Unknown error")
                 );
-                $entryRequest->status = "error";
-                $entryRequest->error_message = $jsonResponse["error"]["info"];
+                
+                // Update status with history tracking
+                \App\Http\Controllers\EntryStatusController::updateStatusHistoryStatic(
+                    $entryRequest, 
+                    "error", 
+                    "Fehler bei der Wikidata-Erstellung: " . ($jsonResponse["error"]["info"] ?? "Unbekannter Fehler")
+                );
                 $entryRequest->save();
                 return Command::FAILURE;
             }
 
             if (!isset($jsonResponse["entity"]["id"])) {
                 $this->error("Entity ID not found in response");
-                $entryRequest->status = "error";
-                $entryRequest->error_message =
-                    "Entity ID not found in response";
+                
+                // Update status with history tracking
+                \App\Http\Controllers\EntryStatusController::updateStatusHistoryStatic(
+                    $entryRequest, 
+                    "error", 
+                    "Entity ID wurde in der Antwort nicht gefunden."
+                );
                 $entryRequest->save();
                 return Command::FAILURE;
             }
@@ -259,9 +268,15 @@ class TestWikidataJob extends Command
             $entityId = $jsonResponse["entity"]["id"];
             $this->info("Successfully created entity with ID: {$entityId}");
 
-            // Update the entry request
+            // Update the entry request with status history tracking
             $entryRequest->wikidata_id = $entityId;
-            $entryRequest->status = "approved";
+            
+            // Update status with history tracking
+            \App\Http\Controllers\EntryStatusController::updateStatusHistoryStatic(
+                $entryRequest, 
+                "wikidata_published", 
+                "Eintrag erfolgreich erstellt mit Wikidata-ID: {$entityId}"
+            );
             $entryRequest->save();
 
             $this->info("Updated entry request with Wikidata ID");
@@ -271,8 +286,12 @@ class TestWikidataJob extends Command
             $this->error("Error: {$e->getMessage()}");
             $this->error("Stack trace: {$e->getTraceAsString()}");
 
-            $entryRequest->status = "error";
-            $entryRequest->error_message = $e->getMessage();
+            // Update status with history tracking
+            \App\Http\Controllers\EntryStatusController::updateStatusHistoryStatic(
+                $entryRequest, 
+                "error", 
+                "Fehler bei der Verarbeitung: {$e->getMessage()}"
+            );
             $entryRequest->save();
 
             return Command::FAILURE;

@@ -12,6 +12,7 @@ const Bibliography = () => import("./components/Bibliography.vue");
 const Workshops = () => import("./components/Workshops.vue");
 const Materials = () => import("./components/Materials.vue");
 const ThankYou = () => import("./components/entry/ThankYou.vue");
+const EntryStatus = () => import("./components/entry/EntryStatus.vue");
 
 export const routes = [
     {
@@ -105,6 +106,15 @@ export const routes = [
         props: true,
         meta: {
             title: "Vielen Dank: Gestapo. Terror. Orte",
+        },
+    },
+    {
+        name: "entry-status",
+        path: "/entry-status",
+        component: EntryStatus,
+        props: route => ({ tokenId: route.query.id }),
+        meta: {
+            title: "Eintragsstatus: Gestapo. Terror. Orte",
         },
     },
     {

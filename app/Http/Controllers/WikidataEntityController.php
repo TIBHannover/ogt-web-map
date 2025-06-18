@@ -50,6 +50,7 @@ class WikidataEntityController extends Controller
             "sources" => "nullable|array",
             "imageUrl" => "nullable|string",
             "imageFilename" => "nullable|string",
+            "statusToken" => "nullable|string",
             // Neue Felder für Personen und Organisationen
             "gender" => "nullable|array",
             "nationality" => "nullable|array",
@@ -126,6 +127,26 @@ class WikidataEntityController extends Controller
             $entryRequest->image_filename = $validated["imageFilename"] ?? null;
 
             $entryRequest->status = "pending";
+            
+            // Initialize status history
+            $statusHistory = [
+                [
+                    'status' => 'pending',
+                    'date' => now(),
+                    'comment' => 'Eintrag wurde eingereicht.'
+                ]
+            ];
+            $entryRequest->status_history = $statusHistory;
+            $entryRequest->status_updated_at = now();
+            
+            // Store the status token if provided
+            if (!empty($validated["statusToken"])) {
+                $entryRequest->status_token = $validated["statusToken"];
+            } else {
+                // Generate a random token if none is provided
+                $entryRequest->status_token = bin2hex(random_bytes(24));
+            }
+            
             $entryRequest->submitted_by = "anonymous";
             $entryRequest->save();
 
@@ -133,7 +154,7 @@ class WikidataEntityController extends Controller
             return response()->json(
                 [
                     "success" => true,
-                    "requestId" => $entryRequest->id,
+                    "requestId" => $entryRequest->status_token,
                     "message" =>
                         "Eintrag wurde zur Prüsfung eingereicht und wird nach Freigabe erstellt.",
                 ],
@@ -235,8 +256,16 @@ class WikidataEntityController extends Controller
                 );
             }
 
-            // Anfrage genehmigen
-            $entryRequest->status = "approved";
+            // Anfrage genehmigen und Status-History aktualisieren
+            $comment = $request->input('comment', 'Eintrag wurde genehmigt.');
+            
+            // Use the EntryStatusController to update status history
+            app(\App\Http\Controllers\EntryStatusController::class)->updateStatusHistory(
+                $entryRequest, 
+                "approved", 
+                $comment
+            );
+            
             $entryRequest->approved_by = "admin"; // Spu00e4ter durch authentifizierten Benutzer ersetzen
             $entryRequest->save();
 
@@ -354,8 +383,16 @@ class WikidataEntityController extends Controller
                 );
             }
 
-            // Anfrage ablehnen
-            $entryRequest->status = "rejected";
+            // Anfrage ablehnen und Status-History aktualisieren
+            $comment = $request->input('reason', 'Eintrag wurde abgelehnt.');
+            
+            // Use the EntryStatusController to update status history
+            app(\App\Http\Controllers\EntryStatusController::class)->updateStatusHistory(
+                $entryRequest, 
+                "rejected", 
+                $comment
+            );
+            
             $entryRequest->rejected_by = "admin"; // Spu00e4ter durch authentifizierten Benutzer ersetzen
             $entryRequest->rejection_reason = $request->input("reason");
             $entryRequest->save();
@@ -430,9 +467,17 @@ class WikidataEntityController extends Controller
                 );
             }
 
-            // Status aktualisieren
-            $entryRequest->status = "pending";
-            $entryRequest->error_message = null; // Fehler zuru00fccksetzen
+            // Status aktualisieren und Status-History aktualisieren
+            $comment = 'Eintrag wurde erneut zur Verarbeitung eingereicht.';
+            
+            // Use the EntryStatusController to update status history
+            app(\App\Http\Controllers\EntryStatusController::class)->updateStatusHistory(
+                $entryRequest, 
+                "pending", 
+                $comment
+            );
+            
+            $entryRequest->error_message = null; // Fehler zurücksetzen
             $entryRequest->save();
 
             return response()->json(

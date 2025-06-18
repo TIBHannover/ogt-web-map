@@ -117,7 +117,6 @@
             </div>
         </div>
 
-        <!-- Dialog fu00fcr Quellenauswahl -->
         <v-dialog v-model="sourcesDialogVisible" max-width="900px">
             <SourcesSelector
                 @select="selectSource"

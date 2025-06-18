@@ -17,6 +17,10 @@ class WikidataEntryRequest extends Model
         "type",
         "coordinates",
         "status",
+        "status_token",
+        "status_history",
+        "status_updated_at",
+        "comment",
         "wikidata_id",
         "created_entities",
         "submitted_by",
@@ -51,6 +55,7 @@ class WikidataEntryRequest extends Model
         'place_of_birth' => 'array',
         'place_of_death' => 'array',
         'place_of_detention' => 'array',
+        'status_history' => 'array',
     ];
 
 }
