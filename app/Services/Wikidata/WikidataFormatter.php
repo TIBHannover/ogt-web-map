@@ -29,6 +29,7 @@ class WikidataFormatter
      */
     public const WIKIDATA_SOURCING_CIRCUMSTANCES = "P1480"; // Sourcing circumstances
     public const WIKIDATA_CIRCA = "Q5727902"; // Circa
+    public const WIKIDATA_UNGEFAEHR = "Q60070514"; // Ungefähr
     public const WIKIDATA_LESS_THAN = "Q52834024"; // Less than
     public const WIKIDATA_MORE_THAN = "Q47035128"; // More than
 
@@ -614,6 +615,22 @@ class WikidataFormatter
                         "rank" => "normal",
                     ],
                 ];
+                
+                // Add qualifier if provided
+                if (!empty($data["time_point_qualifier"])) {
+                    // Debug qualifier value
+                    Log::debug("Adding time point qualifier", [
+                        'qualifier' => $data["time_point_qualifier"],
+                        'is_circa' => $data["time_point_qualifier"] === self::WIKIDATA_CIRCA,
+                        'is_ungefaehr' => $data["time_point_qualifier"] === self::WIKIDATA_UNGEFAEHR
+                    ]);
+                    
+                    $this->addQualifierToStatement(
+                        $formattedData["claims"][self::WIKIDATA_POINT_IN_TIME][0],
+                        self::WIKIDATA_SOURCING_CIRCUMSTANCES,
+                        $data["time_point_qualifier"]
+                    );
+                }
             }
         } else {
             // Start time (P580)
@@ -634,6 +651,22 @@ class WikidataFormatter
                             "rank" => "normal",
                         ],
                     ];
+                    
+                    // Add qualifier if provided
+                    if (!empty($data["time_period_start_qualifier"])) {
+                        // Debug qualifier value
+                        Log::debug("Adding time period start qualifier", [
+                            'qualifier' => $data["time_period_start_qualifier"],
+                            'is_circa' => $data["time_period_start_qualifier"] === self::WIKIDATA_CIRCA,
+                            'is_ungefaehr' => $data["time_period_start_qualifier"] === self::WIKIDATA_UNGEFAEHR
+                        ]);
+                        
+                        $this->addQualifierToStatement(
+                            $formattedData["claims"][self::WIKIDATA_START_TIME][0],
+                            self::WIKIDATA_SOURCING_CIRCUMSTANCES,
+                            $data["time_period_start_qualifier"]
+                        );
+                    }
                 }
             }
 
@@ -655,6 +688,22 @@ class WikidataFormatter
                             "rank" => "normal",
                         ],
                     ];
+                    
+                    // Add qualifier if provided
+                    if (!empty($data["time_period_end_qualifier"])) {
+                        // Debug qualifier value
+                        Log::debug("Adding time period end qualifier", [
+                            'qualifier' => $data["time_period_end_qualifier"],
+                            'is_circa' => $data["time_period_end_qualifier"] === self::WIKIDATA_CIRCA,
+                            'is_ungefaehr' => $data["time_period_end_qualifier"] === self::WIKIDATA_UNGEFAEHR
+                        ]);
+                        
+                        $this->addQualifierToStatement(
+                            $formattedData["claims"][self::WIKIDATA_END_TIME][0],
+                            self::WIKIDATA_SOURCING_CIRCUMSTANCES,
+                            $data["time_period_end_qualifier"]
+                        );
+                    }
                 }
             }
         }

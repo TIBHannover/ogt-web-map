@@ -35,8 +35,11 @@ class WikidataEntityController extends Controller
             "perpetrators" => "nullable|array",
             "eventTimeType" => "nullable|string|in:point,range",
             "eventDate" => "nullable|string",
+            "eventDateQualifier" => "nullable|string",
             "eventStartDate" => "nullable|string",
+            "eventStartDateQualifier" => "nullable|string",
             "eventEndDate" => "nullable|string",
+            "eventEndDateQualifier" => "nullable|string",
             "victimCount" => "nullable|integer",
             "survivorCount" => "nullable|integer",
             "deathCount" => "nullable|integer",
@@ -84,13 +87,25 @@ class WikidataEntityController extends Controller
             if (isset($validated["eventTimeType"])) {
                 if ($validated["eventTimeType"] === "point") {
                     $entryRequest->time_point = $validated["eventDate"] ?? null;
+                    $entryRequest->time_point_qualifier = $validated["eventDateQualifier"] ?? null;
                 } elseif ($validated["eventTimeType"] === "range") {
                     $entryRequest->time_period_start =
                         $validated["eventStartDate"] ?? null;
+                    $entryRequest->time_period_start_qualifier =
+                        $validated["eventStartDateQualifier"] ?? null;
                     $entryRequest->time_period_end =
                         $validated["eventEndDate"] ?? null;
+                    $entryRequest->time_period_end_qualifier =
+                        $validated["eventEndDateQualifier"] ?? null;
                 }
             }
+
+            // Debug-Ausgabe für Zeit-Qualifier
+            Log::debug("Zeit-Qualifier-Werte", [
+                'time_point_qualifier' => $validated["eventDateQualifier"] ?? 'nicht gesetzt',
+                'time_period_start_qualifier' => $validated["eventStartDateQualifier"] ?? 'nicht gesetzt',
+                'time_period_end_qualifier' => $validated["eventEndDateQualifier"] ?? 'nicht gesetzt',
+            ]);
 
             // Statistiken
             $entryRequest->victim_count = $validated["victimCount"] ?? null;

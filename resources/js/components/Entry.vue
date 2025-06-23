@@ -212,8 +212,11 @@
                         v-model:newPerpetrator="newPerpetrator"
                         v-model:eventTimeType="eventTimeType"
                         v-model:eventDate="eventDate"
+                        v-model:eventDateQualifier="eventDateQualifier"
                         v-model:eventStartDate="eventStartDate"
+                        v-model:eventStartDateQualifier="eventStartDateQualifier"
                         v-model:eventEndDate="eventEndDate"
+                        v-model:eventEndDateQualifier="eventEndDateQualifier"
                         v-model:victimCount="victimCount"
                         v-model:survivorCount="survivorCount"
                         v-model:deathCount="deathCount"
@@ -387,8 +390,11 @@ const lastPerpetratorSearchQuery = ref("");
 
 const eventTimeType = ref("point"); // 'point' oder 'range'
 const eventDate = ref(null);
+const eventDateQualifier = ref("");
 const eventStartDate = ref(null);
+const eventStartDateQualifier = ref("");
 const eventEndDate = ref(null);
+const eventEndDateQualifier = ref("");
 
 const victimCount = ref(0);
 const survivorCount = ref(0);
@@ -1049,8 +1055,11 @@ const resetForm = async () => {
                 perpetrators: selectedPerpetrators.value,
                 eventTimeType: eventTimeType.value,
                 eventDate: eventDate.value,
+                eventDateQualifier: eventDateQualifier.value,
                 eventStartDate: eventStartDate.value,
+                eventStartDateQualifier: eventStartDateQualifier.value,
                 eventEndDate: eventEndDate.value,
+                eventEndDateQualifier: eventEndDateQualifier.value,
                 victimCount: victimCount.value,
                 survivorCount: survivorCount.value,
                 deathCount: deathCount.value,

@@ -23,12 +23,18 @@
                     ref="timeSelectorRef"
                     :event-time-type="eventTimeTypeValue"
                     :event-date="eventDateValue"
+                    :event-date-qualifier="eventDateQualifierValue"
                     :event-start-date="eventStartDateValue"
+                    :event-start-date-qualifier="eventStartDateQualifierValue"
                     :event-end-date="eventEndDateValue"
+                    :event-end-date-qualifier="eventEndDateQualifierValue"
                     @update:event-time-type="eventTimeTypeValue = $event"
                     @update:event-date="eventDateValue = $event"
+                    @update:event-date-qualifier="eventDateQualifierValue = $event"
                     @update:event-start-date="eventStartDateValue = $event"
+                    @update:event-start-date-qualifier="eventStartDateQualifierValue = $event"
                     @update:event-end-date="eventEndDateValue = $event"
+                    @update:event-end-date-qualifier="eventEndDateQualifierValue = $event"
                     @field-focus="setActiveField"
                     @info-button-click="openSectionInfo"
                     @validation="onTimeValidation"
@@ -336,13 +342,25 @@ const props = defineProps({
         type: String,
         default: null,
     },
+    eventDateQualifier: {
+        type: String,
+        default: "",
+    },
     eventStartDate: {
         type: String,
         default: null,
     },
+    eventStartDateQualifier: {
+        type: String,
+        default: "",
+    },
     eventEndDate: {
         type: String,
         default: null,
+    },
+    eventEndDateQualifier: {
+        type: String,
+        default: "",
     },
     victimCount: {
         type: Number,
@@ -433,8 +451,11 @@ const emit = defineEmits([
     "update:newPerpetrator",
     "update:eventTimeType",
     "update:eventDate",
+    "update:eventDateQualifier",
     "update:eventStartDate",
+    "update:eventStartDateQualifier",
     "update:eventEndDate",
+    "update:eventEndDateQualifier",
     "update:victimCount",
     "update:survivorCount",
     "update:deathCount",
@@ -516,14 +537,29 @@ const eventDateValue = computed({
     set: (value) => emit("update:eventDate", value),
 });
 
+const eventDateQualifierValue = computed({
+    get: () => props.eventDateQualifier,
+    set: (value) => emit("update:eventDateQualifier", value),
+});
+
 const eventStartDateValue = computed({
     get: () => props.eventStartDate,
     set: (value) => emit("update:eventStartDate", value),
 });
 
+const eventStartDateQualifierValue = computed({
+    get: () => props.eventStartDateQualifier,
+    set: (value) => emit("update:eventStartDateQualifier", value),
+});
+
 const eventEndDateValue = computed({
     get: () => props.eventEndDate,
     set: (value) => emit("update:eventEndDate", value),
+});
+
+const eventEndDateQualifierValue = computed({
+    get: () => props.eventEndDateQualifier,
+    set: (value) => emit("update:eventEndDateQualifier", value),
 });
 
 // Opferzahlen computed properties

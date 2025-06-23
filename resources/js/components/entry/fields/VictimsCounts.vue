@@ -27,7 +27,7 @@
                         min="0"
                         @focus="$emit('fieldFocus', 'victim-count')"
                     />
-                    <WikidataQualifier
+                    <IntegerQualifier
                         id="victim-count-qualifier"
                         :model-value="victimCountQualifier"
                         @update:model-value="
@@ -52,7 +52,7 @@
                         min="0"
                         @focus="$emit('fieldFocus', 'victim-count')"
                     />
-                    <WikidataQualifier
+                    <IntegerQualifier
                         id="survivor-count-qualifier"
                         :model-value="survivorCountQualifier"
                         @update:model-value="
@@ -77,7 +77,7 @@
                         min="0"
                         @focus="$emit('fieldFocus', 'victim-count')"
                     />
-                    <WikidataQualifier
+                    <IntegerQualifier
                         id="death-count-qualifier"
                         :model-value="deathCountQualifier"
                         @update:model-value="
@@ -102,7 +102,7 @@
                         min="0"
                         @focus="$emit('fieldFocus', 'victim-count')"
                     />
-                    <WikidataQualifier
+                    <IntegerQualifier
                         id="arrest-count-qualifier"
                         :model-value="arrestCountQualifier"
                         @update:model-value="
@@ -116,7 +116,7 @@
 </template>
 
 <script setup>
-import WikidataQualifier from "./common/WikidataQualifier.vue";
+import IntegerQualifier from "./common/IntegerQualifier.vue";
 
 defineProps({
     victimCount: {

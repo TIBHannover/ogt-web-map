@@ -48,6 +48,13 @@
                 @blur="onFieldBlur"
                 @update:model-value="$emit('update:eventDate', $event)"
             ></v-text-field>
+            <DateQualifier
+                id="event-date-qualifier"
+                :model-value="eventDateQualifier"
+                @update:model-value="
+                    $emit('update:eventDateQualifier', $event)
+                "
+            />
         </div>
 
         <!-- Zeitraum-Eingabe -->
@@ -67,6 +74,13 @@
                     @blur="onFieldBlur"
                     @update:model-value="$emit('update:eventStartDate', $event)"
                 ></v-text-field>
+                <DateQualifier
+                    id="event-start-date-qualifier"
+                    :model-value="eventStartDateQualifier"
+                    @update:model-value="
+                        $emit('update:eventStartDateQualifier', $event)
+                    "
+                />
             </div>
             <div class="form-group">
                 <label>Ende des Ereignisses</label>
@@ -83,6 +97,13 @@
                     @blur="onFieldBlur"
                     @update:model-value="$emit('update:eventEndDate', $event)"
                 ></v-text-field>
+                <DateQualifier
+                    id="event-end-date-qualifier"
+                    :model-value="eventEndDateQualifier"
+                    @update:model-value="
+                        $emit('update:eventEndDateQualifier', $event)
+                    "
+                />
             </div>
         </div>
         <ValidationError
@@ -104,6 +125,7 @@
 <script setup>
 import { ref, computed, watch } from "vue";
 import ValidationError from "../../helpers/ValidationError.vue";
+import DateQualifier from "./common/DateQualifier.vue";
 import { useValidation } from "../../../composables/useValidation";
 
 const props = defineProps({
@@ -123,6 +145,18 @@ const props = defineProps({
         type: String,
         default: null,
     },
+    eventDateQualifier: {
+        type: String,
+        default: "",
+    },
+    eventStartDateQualifier: {
+        type: String,
+        default: "",
+    },
+    eventEndDateQualifier: {
+        type: String,
+        default: "",
+    },
     required: {
         type: Boolean,
         default: true,
@@ -134,6 +168,9 @@ const emit = defineEmits([
     "update:eventDate",
     "update:eventStartDate",
     "update:eventEndDate",
+    "update:eventDateQualifier",
+    "update:eventStartDateQualifier",
+    "update:eventEndDateQualifier",
     "fieldFocus",
     "infoButtonClick",
     "validation",
@@ -146,6 +183,9 @@ const localEventTimeType = ref(props.eventTimeType);
 const eventDate = ref(props.eventDate);
 const eventStartDate = ref(props.eventStartDate);
 const eventEndDate = ref(props.eventEndDate);
+const eventDateQualifier = ref(props.eventDateQualifier);
+const eventStartDateQualifier = ref(props.eventStartDateQualifier);
+const eventEndDateQualifier = ref(props.eventEndDateQualifier);
 
 // Computed helpers for validation
 const isPointValid = computed(() => !!eventDate.value);
@@ -196,6 +236,18 @@ watch(eventEndDate, (newValue) => {
     emit("update:eventEndDate", newValue);
 });
 
+watch(eventDateQualifier, (newValue) => {
+    emit("update:eventDateQualifier", newValue);
+});
+
+watch(eventStartDateQualifier, (newValue) => {
+    emit("update:eventStartDateQualifier", newValue);
+});
+
+watch(eventEndDateQualifier, (newValue) => {
+    emit("update:eventEndDateQualifier", newValue);
+});
+
 // Watch for prop changes to update local state
 watch(
     () => props.eventTimeType,
@@ -222,6 +274,27 @@ watch(
     () => props.eventEndDate,
     (newValue) => {
         eventEndDate.value = newValue;
+    },
+);
+
+watch(
+    () => props.eventDateQualifier,
+    (newValue) => {
+        eventDateQualifier.value = newValue;
+    },
+);
+
+watch(
+    () => props.eventStartDateQualifier,
+    (newValue) => {
+        eventStartDateQualifier.value = newValue;
+    },
+);
+
+watch(
+    () => props.eventEndDateQualifier,
+    (newValue) => {
+        eventEndDateQualifier.value = newValue;
     },
 );
 
