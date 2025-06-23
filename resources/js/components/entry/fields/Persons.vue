@@ -100,125 +100,130 @@
                     editMode ? `${label} bearbeiten` : `${label} hinzufügen`
                 }}</v-card-title>
                 <v-card-text class="overlay-content">
-                    <!-- Person suchen -->
-                    <div v-if="!showNewPersonForm" class="persons-search">
-                        <div class="search-input-container">
-                            <v-text-field
-                                :placeholder="`Namen der ${label} oder einer Organisation suchen...`"
-                                v-model="searchQuery"
-                                append-inner-icon="mdi-magnify"
-                                @click:append-inner="
-                                    onSearchPeople(searchQuery)
+                    <!-- Search UI Container - only shown when not adding a new person -->
+                    <div v-if="!showNewPersonForm">
+                        <!-- Person suchen -->
+                        <div class="persons-search">
+                            <div class="search-input-container">
+                                <v-text-field
+                                    :placeholder="`Namen der ${label} oder einer Organisation suchen...`"
+                                    v-model="searchQuery"
+                                    append-inner-icon="mdi-magnify"
+                                    @click:append-inner="
+                                        onSearchPeople(searchQuery)
+                                    "
+                                    @keydown.enter="onSearchPeople(searchQuery)"
+                                    clearable
+                                    :loading="isSearchLoading"
+                                ></v-text-field>
+                                <v-btn
+                                    color="primary"
+                                    class="ml-3 search-button"
+                                    @click="onSearchPeople(searchQuery)"
+                                    :disabled="!searchQuery.trim()"
+                                    :loading="isSearchLoading"
+                                >
+                                    Suchen
+                                </v-btn>
+                            </div>
+
+                            <!-- Ladeindikator -->
+                            <div
+                                v-if="
+                                    isSearchLoading &&
+                                    !(
+                                        searchPerformed &&
+                                        peopleSearchResults.length === 0
+                                    )
                                 "
-                                @keydown.enter="onSearchPeople(searchQuery)"
-                                clearable
-                                :loading="isSearchLoading"
-                            ></v-text-field>
-                            <v-btn
-                                color="primary"
-                                class="ml-3 search-button"
-                                @click="onSearchPeople(searchQuery)"
-                                :disabled="!searchQuery.trim()"
-                                :loading="isSearchLoading"
+                                class="search-loading"
                             >
-                                Suchen
-                            </v-btn>
-                        </div>
+                                <v-progress-circular
+                                    size="24"
+                                    indeterminate
+                                    color="primary"
+                                ></v-progress-circular>
+                                <span>Suche läuft...</span>
+                            </div>
 
-                        <!-- Ladeindikator -->
-                        <div
-                            v-if="
-                                isSearchLoading &&
-                                !(
+                            <!-- Keine Ergebnisse Meldung -->
+                            <div
+                                v-else-if="
                                     searchPerformed &&
+                                    !isSearchLoading &&
                                     peopleSearchResults.length === 0
-                                )
-                            "
-                            class="search-loading"
-                        >
-                            <v-progress-circular
-                                size="24"
-                                indeterminate
-                                color="primary"
-                            ></v-progress-circular>
-                            <span>Suche läuft...</span>
+                                "
+                                class="search-no-results"
+                            >
+                                Keine Ergebnisse gefunden
+                            </div>
+
+                            <wikidata-suggestions
+                                v-if="
+                                    !isSearchLoading &&
+                                    !searchQuery.trim() &&
+                                    label === 'Täter*In *'
+                                "
+                                :q-ids="['Q106625639']"
+                                endpoint="people"
+                                @select="onSelectPerson"
+                            />
                         </div>
 
-                        <!-- Keine Ergebnisse Meldung -->
+                        <!-- Suchergebnisse für Personen -->
+                        <v-list
+                            v-if="peopleSearchResults.length > 0"
+                            class="search-results mt-3"
+                            density="compact"
+                        >
+                            <v-list-item
+                                v-for="person in peopleSearchResults"
+                                :key="person.id"
+                                @click="onSelectPerson(person)"
+                                class="search-result-item"
+                            >
+                                <v-list-item-title>{{
+                                    person.label
+                                }}</v-list-item-title>
+                                <v-list-item-subtitle v-if="person.description">
+                                    {{ person.description }}
+                                </v-list-item-subtitle>
+                                <v-list-item-subtitle
+                                    v-if="person.birth || person.death"
+                                    class="result-metadata"
+                                >
+                                    <span v-if="person.birth"
+                                        >* {{ person.birth }}</span
+                                    >
+                                    <span v-if="person.death"
+                                        >† {{ person.death }}</span
+                                    >
+                                </v-list-item-subtitle>
+                                <v-list-item-subtitle class="result-id">{{
+                                    person.id
+                                }}</v-list-item-subtitle>
+                            </v-list-item>
+                        </v-list>
+
+                        <!-- Button für neue Person -->
                         <div
-                            v-else-if="
-                                searchPerformed &&
-                                !isSearchLoading &&
-                                peopleSearchResults.length === 0
-                            "
-                            class="search-no-results"
+                            v-if="searchPerformed"
+                            class="mt-4"
                         >
-                            Keine Ergebnisse gefunden
-                        </div>
-
-                        <wikidata-suggestions
-                            v-if="
-                                !isSearchLoading &&
-                                !searchQuery.trim() &&
-                                label === 'Täter*In *'
-                            "
-                            :q-ids="['Q106625639']"
-                            endpoint="people"
-                            @select="onSelectPerson"
-                        />
-                    </div>
-
-                    <!-- Suchergebnisse für Personen -->
-                    <v-list
-                        v-if="
-                            peopleSearchResults.length > 0 && !showNewPersonForm
-                        "
-                        class="search-results mt-3"
-                        density="compact"
-                    >
-                        <v-list-item
-                            v-for="person in peopleSearchResults"
-                            :key="person.id"
-                            @click="onSelectPerson(person)"
-                            class="search-result-item"
-                        >
-                            <v-list-item-title>{{
-                                person.label
-                            }}</v-list-item-title>
-                            <v-list-item-subtitle v-if="person.description">
-                                {{ person.description }}
-                            </v-list-item-subtitle>
-                            <v-list-item-subtitle
-                                v-if="person.birth || person.death"
-                                class="result-metadata"
-                            >
-                                <span v-if="person.birth"
-                                    >* {{ person.birth }}</span
+                            <v-divider class="mb-3"></v-divider>
+                            <div class="d-flex justify-center">
+                                <v-btn
+                                    color="secondary"
+                                    @click="onStartNewPersonForm"
+                                    prepend-icon="mdi-account-plus"
                                 >
-                                <span v-if="person.death"
-                                    >† {{ person.death }}</span
-                                >
-                            </v-list-item-subtitle>
-                            <v-list-item-subtitle class="result-id">{{
-                                person.id
-                            }}</v-list-item-subtitle>
-                        </v-list-item>
-                    </v-list>
-
-                    <!-- Button für neue Person -->
-                    <div
-                        v-if="!showNewPersonForm && searchPerformed"
-                        class="mt-4"
-                    >
-                        <v-divider class="mb-3"></v-divider>
-                        <div class="d-flex justify-center">
-                            <v-btn
-                                color="secondary"
-                                @click="onStartNewPersonForm"
-                                prepend-icon="mdi-account-plus"
-                            >
-                                Person/Organisation nicht gefunden? Neu anlegen
-                            </v-btn>
+                                    {{
+                                        isAuthorForm
+                                            ? "Autor nicht gefunden? Neu anlegen"
+                                            : "Person/Organisation nicht gefunden? Neu anlegen"
+                                    }}
+                                </v-btn>
+                            </div>
                         </div>
                     </div>
 
@@ -228,10 +233,12 @@
                             {{
                                 editMode
                                     ? "Eintrag bearbeiten"
-                                    : "Neuen Eintrag anlegen"
+                                    : isAuthorForm
+                                      ? "Neuen Autor anlegen"
+                                      : "Neuen Eintrag anlegen"
                             }}
                         </h4>
-                        <div class="form-group">
+                        <div class="form-group" v-if="!hideIsOrganisation">
                             <v-checkbox
                                 v-model="newPersonLocal.isOrganization"
                                 label="Dies ist eine Organisation/Institution"
@@ -272,8 +279,16 @@
                         <div class="form-group">
                             <v-textarea
                                 v-model="newPersonLocal.description"
-                                label="Kurze Beschreibung*"
-                                placeholder="Beispiel: deutscher Widerstandskämpfer... / Opfer des Nationalsozialismus"
+                                :label="
+                                    isAuthorForm
+                                        ? 'Kurze Beschreibung des Autors*'
+                                        : 'Kurze Beschreibung*'
+                                "
+                                :placeholder="
+                                    isAuthorForm
+                                        ? 'Beispiel: deutscher Schriftsteller...'
+                                        : 'Beispiel: deutscher Widerstandskämpfer... / Opfer des Nationalsozialismus'
+                                "
                                 rows="3"
                                 :rules="[rules.required]"
                                 required
@@ -360,6 +375,7 @@
 
                             <!-- Sterbeort / Place of death (P20) -->
                             <wikidata-selector
+                                v-if="!hidePlaceOfDeath"
                                 v-model="newPersonLocal.place_of_death"
                                 label="Sterbeort"
                                 dialog-title="Sterbeort auswählen"
@@ -384,6 +400,7 @@
 
                             <!-- Haftort / Place of detention (P2632) -->
                             <wikidata-selector
+                                v-if="!hidePlaceOfDetention"
                                 v-model="newPersonLocal.place_of_detention"
                                 label="Haftort"
                                 dialog-title="Haftort auswählen"
@@ -483,6 +500,22 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
+    hidePlaceOfDeath: {
+        type: Boolean,
+        default: false,
+    },
+    hidePlaceOfDetention: {
+        type: Boolean,
+        default: false,
+    },
+    hideIsOrganisation: {
+        type: Boolean,
+        default: false,
+    },
+    isAuthorForm: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 // Emits für Ereignisse
@@ -518,14 +551,14 @@ const validatePersons = () => {
 };
 
 // Use the validation composable
-const { 
-    isValid: isValidResult, 
-    showValidationErrors, 
-    validate: validateForm, 
-    showErrors 
-} = useValidation(validatePersons, { 
+const {
+    isValid: isValidResult,
+    showValidationErrors,
+    validate: validateForm,
+    showErrors,
+} = useValidation(validatePersons, {
     emit,
-    watchCallback: () => [props.selectedPersons]
+    watchCallback: () => [props.selectedPersons],
 });
 
 // Wikidata search state
@@ -738,7 +771,7 @@ const handleWikidataResults = (field, results) => {
 defineExpose({
     isValid,
     validate: validateForm,
-    showValidationErrors: showErrors
+    showValidationErrors: showErrors,
 });
 </script>
 

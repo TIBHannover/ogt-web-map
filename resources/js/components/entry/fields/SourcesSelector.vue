@@ -46,7 +46,8 @@
 
                 <!-- Buchquellenkomponente -->
                 <div v-if="sourceType === 'book'" class="book-source-selector">
-                    <div v-if="!selectedBook">
+                    <!-- Search Interface - only shown when not adding a manual book -->
+                    <div v-if="!selectedBook && !bookSearch.showManualForm">
                         <v-text-field
                             v-model="bookSearch.query"
                             label="Buchtitel suchen"
@@ -182,16 +183,40 @@
                             required
                         ></v-text-field>
 
-                        <v-text-field
-                            v-model="bookForm.manual.author"
-                            label="Autor *"
-                            required
-                        ></v-text-field>
+                        <!-- Author selection component -->
+                        <PersonsField
+                            label="Autor*In"
+                            fieldId="authors"
+                            :peopleSearchResults="authorSearchResults"
+                            :selectedPersons="selectedAuthors"
+                            :showNewPersonForm="showNewAuthorForm"
+                            :newPerson="newAuthor"
+                            :isSearchLoading="isAuthorSearchLoading"
+                            :searchPerformed="authorSearchPerformed"
+                            :showInfoButton="false"
+                            :hidePlaceOfDeath="true"
+                            :hidePlaceOfDetention="true"
+                            :hideIsOrganisation="true"
+                            :isAuthorForm="true"
+                            @searchPeople="onSearchAuthor"
+                            @selectPerson="onSelectAuthor"
+                            @startNewPersonForm="onStartNewAuthorForm"
+                            @cancelNewPersonForm="onCancelNewAuthorForm"
+                            @update:newPerson="newAuthor = $event"
+                            @addNewPerson="onAddNewAuthor"
+                            @removePerson="onRemoveAuthor"
+                        />
 
                         <v-text-field
                             v-model="bookForm.manual.year"
                             label="Erscheinungsjahr"
                             type="number"
+                        ></v-text-field>
+
+                        <v-text-field
+                            v-model="bookForm.manual.publishingDate"
+                            label="Veröffentlichungsdatum"
+                            type="date"
                         ></v-text-field>
 
                         <v-text-field
@@ -212,7 +237,7 @@
                                 @click="addManualBook"
                                 :disabled="
                                     !bookForm.manual.title ||
-                                    !bookForm.manual.author
+                                    selectedAuthors.length === 0
                                 "
                             >
                                 Hinzufügen
@@ -447,6 +472,7 @@
 <script setup>
 import { ref, computed } from "vue";
 import axios from "axios";
+import PersonsField from "./Persons.vue";
 
 const emit = defineEmits(["select", "close"]);
 
@@ -454,12 +480,150 @@ const emit = defineEmits(["select", "close"]);
 const sourceType = ref("book");
 const defaultDate = new Date().toISOString().substr(0, 10);
 
+// Author search and selection states
+const authorSearchResults = ref([]);
+const selectedAuthors = ref([]);
+const showNewAuthorForm = ref(false);
+const isAuthorSearchLoading = ref(false);
+const authorSearchPerformed = ref(false);
+const newAuthor = ref({
+    firstName: "",
+    lastName: "",
+    birthDate: null,
+    deathDate: null,
+    description: "",
+    isOrganization: false,
+    gender: null,
+    nationality: null,
+    place_of_birth: null,
+    place_of_death: null,
+    place_of_detention: null,
+});
+
 // Validierung
 const rules = {
     required: (v) => !!v || "Dieses Feld ist erforderlich",
     url: (v) =>
         /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/.test(v) ||
         "Bitte geben Sie eine gültige URL ein",
+};
+
+// Author search and selection methods
+const onSearchAuthor = async (query) => {
+    if (!query || query.trim() === "") {
+        authorSearchResults.value = [];
+        authorSearchPerformed.value = false;
+        return;
+    }
+
+    if (query && query.length >= 2) {
+        setTimeout(() => {
+            if (!authorSearchResults.value.length) {
+                isAuthorSearchLoading.value = true;
+            }
+        }, 300);
+        authorSearchPerformed.value = true;
+    } else {
+        isAuthorSearchLoading.value = false;
+        authorSearchPerformed.value = false;
+        return;
+    }
+
+    try {
+        const response = await axios.get("/api/wikidata/search/people", {
+            params: { query },
+        });
+
+        // Handle both response formats (direct array or results property)
+        if (Array.isArray(response.data)) {
+            authorSearchResults.value = response.data;
+        } else if (response.data && response.data.results) {
+            authorSearchResults.value = response.data.results;
+        } else {
+            authorSearchResults.value = [];
+        }
+
+        console.log("Author search results:", authorSearchResults.value);
+    } catch (err) {
+        console.error("Error searching for authors:", err);
+        authorSearchResults.value = [];
+    } finally {
+        isAuthorSearchLoading.value = false;
+    }
+};
+
+const onSelectAuthor = (person) => {
+    selectedAuthors.value = [person]; // Only allow one author for now
+};
+
+const onStartNewAuthorForm = () => {
+    showNewAuthorForm.value = true;
+};
+
+const onCancelNewAuthorForm = () => {
+    showNewAuthorForm.value = false;
+    newAuthor.value = {
+        firstName: "",
+        lastName: "",
+        birthDate: null,
+        deathDate: null,
+        description: "",
+        isOrganization: false,
+        gender: null,
+        nationality: null,
+        place_of_birth: null,
+        place_of_death: null,
+        place_of_detention: null,
+    };
+};
+
+const onAddNewAuthor = () => {
+    if (!newAuthor.value.firstName && !newAuthor.value.lastName) {
+        return; // Require at least first or last name
+    }
+
+    // Create a temporary ID for the new author
+    const tempId = "temp_" + Date.now();
+
+    // Add to selected authors
+    const authorToAdd = {
+        id: tempId,
+        temp_id: tempId,
+        firstName: newAuthor.value.firstName,
+        lastName: newAuthor.value.lastName,
+        label: `${newAuthor.value.firstName} ${newAuthor.value.lastName}`.trim(),
+        description: newAuthor.value.description || "Autor*In",
+        birthDate: newAuthor.value.birthDate,
+        deathDate: newAuthor.value.deathDate,
+        isOrganization: newAuthor.value.isOrganization,
+        gender: newAuthor.value.gender,
+        nationality: newAuthor.value.nationality,
+        place_of_birth: newAuthor.value.place_of_birth,
+        place_of_death: newAuthor.value.place_of_death,
+        place_of_detention: newAuthor.value.place_of_detention,
+    };
+
+    selectedAuthors.value = [authorToAdd]; // Only allow one author for now
+
+    // Reset form
+    showNewAuthorForm.value = false;
+    newAuthor.value = {
+        firstName: "",
+        lastName: "",
+        birthDate: null,
+        deathDate: null,
+        description: "",
+        isOrganization: false,
+        gender: null,
+        nationality: null,
+        place_of_birth: null,
+        place_of_death: null,
+        place_of_detention: null,
+    };
+};
+
+const onRemoveAuthor = (id) => {
+    selectedAuthors.value = [];
 };
 
 // ========== BUCH ==========
@@ -477,9 +641,9 @@ const bookForm = ref({
     pages: "",
     manual: {
         title: "",
-        author: "",
         year: "",
         pages: "",
+        publishingDate: null,
     },
 });
 
@@ -534,19 +698,26 @@ const clearSelectedBook = () => {
 
 const addManualBook = () => {
     const manual = bookForm.value.manual;
-    if (!manual.title || !manual.author) {
+    if (!manual.title || selectedAuthors.value.length === 0) {
         bookSearch.value.error =
-            "Bitte geben Sie mindestens Titel und Autor ein.";
+            "Bitte geben Sie mindestens Titel und einen Autor ein.";
         return;
     }
+
+    // Get author info from selected authors
+    const authorInfo = selectedAuthors.value[0];
+    const authorName =
+        authorInfo.label ||
+        `${authorInfo.firstName || ""} ${authorInfo.lastName || ""}`.trim();
 
     // Create a custom book object
     selectedBook.value = {
         id: "manual",
         label: manual.title,
-        description: `${manual.author}${manual.year ? `, ${manual.year}` : ""}`,
-        author: manual.author,
+        description: `${authorName}${manual.year ? `, ${manual.year}` : ""}`,
+        author: authorInfo, // Store the entire author object for Wikidata
         year: manual.year || null,
+        publishingDate: manual.publishingDate || null,
         isManual: true,
     };
 
@@ -652,6 +823,12 @@ const addManualArchive = () => {
 // ========== GEMEINSAME FUNKTIONEN ==========
 const canConfirm = computed(() => {
     if (sourceType.value === "book") {
+        // If it's a manual book, also check for author
+        if (selectedBook.value && selectedBook.value.isManual) {
+            return (
+                selectedBook.value !== null && selectedAuthors.value.length > 0
+            );
+        }
         return selectedBook.value !== null;
     } else if (sourceType.value === "url") {
         return (
@@ -683,7 +860,13 @@ const confirmSelection = () => {
             isManual: selectedBook.value.isManual || false,
             author: selectedBook.value.author || null,
             year: selectedBook.value.year || null,
+            publishingDate: selectedBook.value.publishingDate || null,
         };
+
+        // If we have a manual book, add the author information
+        if (source.isManual && selectedAuthors.value.length > 0) {
+            source.author = selectedAuthors.value[0];
+        }
     } else if (sourceType.value === "url") {
         source = {
             type: "url",

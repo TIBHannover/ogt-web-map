@@ -245,6 +245,7 @@ defineExpose({
 
 .button {
     padding: 12px 24px;
+    height: auto !important;
     background-color: #1976d2;
     color: white;
     border: none;

@@ -45,6 +45,14 @@ class WikidataFormatter
     public const WIKIDATA_IMAGE = "P18"; // Image
 
     /**
+     * Book and Author Property Constants
+     */
+    public const ENTITY_TYPE_BOOK = "Q7725634"; // Literary work
+    public const WIKIDATA_TITLE = "P1476"; // Title
+    public const WIKIDATA_AUTHOR = "P50"; // Author
+    public const WIKIDATA_PUBLISHING_DATE = "P577"; // Publication date
+
+    /**
      * Perpetrator and Victim Property Constants
      */
     public const WIKIDATA_PERPETRATOR = "P8031"; // has perpetrator (Participant has role perpetrator)
@@ -2147,6 +2155,299 @@ class WikidataFormatter
     }
 
     /**
+     * Formats a new Book entity for Wikidata.
+     *
+     * @param array $bookData The book's data
+     * @return array Formatted data for the Wikidata API
+     */
+    public function formatNewBookEntity(array $bookData): array
+    {
+        // Basic structure according to Wikibase documentation
+        $formattedData = [
+            "type" => "item",
+            "labels" => [
+                "de" => [
+                    "language" => "de",
+                    "value" => $bookData["title"] ?? "",
+                ],
+            ],
+            "descriptions" => [
+                "de" => [
+                    "language" => "de",
+                    "value" => $bookData["description"] ?? "",
+                ],
+            ],
+            "aliases" => [],
+            "claims" => [],
+            "sitelinks" => [],
+        ];
+
+        // Instance of (P31) - Literary work (Q7725634)
+        $formattedData["claims"][self::WIKIDATA_INSTANCE_OF] = [
+            [
+                "mainsnak" => [
+                    "snaktype" => "value",
+                    "property" => self::WIKIDATA_INSTANCE_OF,
+                    "datavalue" => [
+                        "value" => [
+                            "entity-type" => "item",
+                            "id" => self::ENTITY_TYPE_BOOK,
+                            "numeric-id" => intval(substr(self::ENTITY_TYPE_BOOK, 1)),
+                        ],
+                        "type" => "wikibase-entityid",
+                    ],
+                ],
+                "type" => "statement",
+                "rank" => "normal",
+            ],
+        ];
+
+        // Title (P1476)
+        if (!empty($bookData["title"])) {
+            $formattedData["claims"][self::WIKIDATA_TITLE] = [
+                [
+                    "mainsnak" => [
+                        "snaktype" => "value",
+                        "property" => self::WIKIDATA_TITLE,
+                        "datavalue" => [
+                            "value" => [
+                                "text" => $bookData["title"],
+                                "language" => "de",
+                            ],
+                            "type" => "monolingualtext",
+                        ],
+                    ],
+                    "type" => "statement",
+                    "rank" => "normal",
+                ],
+            ];
+        }
+
+        // Author (P50) - requires a Wikidata entity
+        if (!empty($bookData["author"]) && isset($bookData["author"]["id"])) {
+            $authorId = $bookData["author"]["id"];
+
+            // Only add if it's a valid Wikidata ID
+            if (substr($authorId, 0, 1) === "Q") {
+                $formattedData["claims"][self::WIKIDATA_AUTHOR] = [
+                    [
+                        "mainsnak" => [
+                            "snaktype" => "value",
+                            "property" => self::WIKIDATA_AUTHOR,
+                            "datavalue" => [
+                                "value" => [
+                                    "entity-type" => "item",
+                                    "id" => $authorId,
+                                    "numeric-id" => intval(substr($authorId, 1)),
+                                ],
+                                "type" => "wikibase-entityid",
+                            ],
+                        ],
+                        "type" => "statement",
+                        "rank" => "normal",
+                    ],
+                ];
+            }
+            // If author doesn't have a Wikidata ID but has a name, use author string property
+            else if (isset($bookData["author"]["label"]) || 
+                     (isset($bookData["author"]["firstName"]) || isset($bookData["author"]["lastName"]))) {
+                $authorName = $bookData["author"]["label"] ?? 
+                    trim((isset($bookData["author"]["firstName"]) ? $bookData["author"]["firstName"] : "") . " " .
+                         (isset($bookData["author"]["lastName"]) ? $bookData["author"]["lastName"] : ""));
+                
+                $formattedData["claims"][self::WIKIDATA_AUTHOR_STRING] = [
+                    [
+                        "mainsnak" => [
+                            "snaktype" => "value",
+                            "property" => self::WIKIDATA_AUTHOR_STRING,
+                            "datavalue" => [
+                                "value" => $authorName,
+                                "type" => "string",
+                            ],
+                        ],
+                        "type" => "statement",
+                        "rank" => "normal",
+                    ],
+                ];
+            }
+        }
+
+        // Publication date (P577) if available
+        if (!empty($bookData["publishingDate"])) {
+            $publishingDate = $this->formatDate($bookData["publishingDate"]);
+            if ($publishingDate !== null) {
+                $formattedData["claims"][self::WIKIDATA_PUBLISHING_DATE] = [
+                    [
+                        "mainsnak" => [
+                            "snaktype" => "value",
+                            "property" => self::WIKIDATA_PUBLISHING_DATE,
+                            "datavalue" => [
+                                "value" => $publishingDate,
+                                "type" => "time",
+                            ],
+                        ],
+                        "type" => "statement",
+                        "rank" => "normal",
+                    ],
+                ];
+            }
+        } else if (!empty($bookData["year"])) {
+            // If we only have the year, format it as a date
+            $year = $bookData["year"];
+            $publishingDate = $this->formatDate("{$year}-01-01");
+            if ($publishingDate !== null) {
+                // Adjust the precision to year
+                $publishingDate["precision"] = 9; // Year precision
+                
+                $formattedData["claims"][self::WIKIDATA_PUBLISHING_DATE] = [
+                    [
+                        "mainsnak" => [
+                            "snaktype" => "value",
+                            "property" => self::WIKIDATA_PUBLISHING_DATE,
+                            "datavalue" => [
+                                "value" => $publishingDate,
+                                "type" => "time",
+                            ],
+                        ],
+                        "type" => "statement",
+                        "rank" => "normal",
+                    ],
+                ];
+            }
+        }
+
+        return $formattedData;
+    }
+
+    /**
+     * Creates a new Book entity in Wikidata and returns the Wikidata ID.
+     * 
+     * @param array $bookData The book's data
+     * @param array $sources Optional: Source information for the book
+     * @return string|null The Wikidata ID of the created book or null in case of error
+     */
+    public function createNewBookEntity(array $bookData, array $sources = []): ?string
+    {
+        try {
+            $formattedData = $this->formatNewBookEntity($bookData);
+
+            if (!empty($sources)) {
+                $this->addSourcesAsClaims($formattedData, $sources);
+            }
+
+            $wikidataService = app(
+                \App\Services\Wikidata\WikidataService::class
+            );
+
+            $entityData = [
+                "title" => $bookData["title"] ?? "Unnamed Book",
+                "description" => $bookData["description"] ?? "Literary work",
+                "type" => self::ENTITY_TYPE_BOOK,
+                "claims" => $formattedData["claims"] ?? [],
+                "labels" => $formattedData["labels"] ?? [],
+                "descriptions" => $formattedData["descriptions"] ?? [],
+                "aliases" => $formattedData["aliases"] ?? [],
+                "sitelinks" => $formattedData["sitelinks"] ?? [],
+            ];
+
+            $response = $wikidataService->createEntity(
+                $entityData,
+                self::ENTITY_TYPE_BOOK
+            );
+
+            if ($response === null) {
+                Log::error("Error creating a new book in Wikidata", [
+                    "book" => $bookData["title"] ?? "Unknown",
+                ]);
+                return null;
+            }
+
+            // Extract Wikidata ID from the response
+            $wikidataId = $response["entity"]["id"] ?? null;
+
+            Log::info("New book created in Wikidata", [
+                "book" => $bookData["title"] ?? "Unknown",
+                "wikidata_id" => $wikidataId,
+            ]);
+
+            // If the author has a temp_id, create the author entity and link it to the book
+            if (!empty($bookData["author"]) && isset($bookData["author"]["temp_id"])) {
+                $this->createAndLinkAuthor($bookData["author"], $wikidataId, $sources);
+            }
+
+            return $wikidataId;
+        } catch (\Exception $e) {
+            Log::error("Error creating a new book in Wikidata", [
+                "book" => $bookData["title"] ?? "Unknown",
+                "error" => $e->getMessage(),
+                "trace" => $e->getTraceAsString(),
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Creates a new author entity and links it to a book.
+     * 
+     * @param array $authorData The author's data
+     * @param string $bookId The Wikidata ID of the book to link the author to
+     * @param array $sources Optional: Source information 
+     * @return string|null The Wikidata ID of the created author or null in case of error
+     */
+    protected function createAndLinkAuthor(array $authorData, string $bookId, array $sources = []): ?string
+    {
+        // We don't set any role for the author, just create the person entity
+        $authorId = $this->createNewPersonEntity($authorData, $sources);
+        
+        if ($authorId !== null && $bookId !== null) {
+            try {
+                // Create a claim to link the author to the book
+                $wikidataService = app(\App\Services\Wikidata\WikidataService::class);
+                
+                // Create a claim to add the author to the book
+                $claim = [
+                    "mainsnak" => [
+                        "snaktype" => "value",
+                        "property" => self::WIKIDATA_AUTHOR,
+                        "datavalue" => [
+                            "value" => [
+                                "entity-type" => "item",
+                                "id" => $authorId,
+                                "numeric-id" => intval(substr($authorId, 1)),
+                            ],
+                            "type" => "wikibase-entityid",
+                        ],
+                    ],
+                    "type" => "statement",
+                    "rank" => "normal",
+                ];
+                
+                $result = $wikidataService->addClaim($bookId, self::WIKIDATA_AUTHOR, $claim);
+                
+                if ($result) {
+                    Log::info("Successfully linked author to book", [
+                        "author_id" => $authorId,
+                        "book_id" => $bookId,
+                    ]);
+                } else {
+                    Log::error("Failed to link author to book", [
+                        "author_id" => $authorId,
+                        "book_id" => $bookId,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::error("Error linking author to book", [
+                    "author_id" => $authorId,
+                    "book_id" => $bookId,
+                    "error" => $e->getMessage(),
+                ]);
+            }
+        }
+        
+        return $authorId;
+    }
+    
+    /**
      * Adds a qualifier to a statement.
      *
      * @param array &$statement Reference to the statement array
@@ -2287,6 +2588,28 @@ class WikidataFormatter
 
                 case "book":
                 case "archive":
+                    // For manually created books with no Wikidata ID
+                    if ($source["type"] === "book" && !empty($source["isManual"]) && $source["id"] === "manual") {
+                        // Create a new book entity if it doesn't exist yet
+                        $bookData = [
+                            "title" => $source["title"] ?? "Unknown Book",
+                            "description" => $source["description"] ?? "Literary work",
+                            "author" => $source["author"] ?? null,
+                            "year" => $source["year"] ?? null,
+                            "publishingDate" => $source["publishingDate"] ?? null,
+                        ];
+                        
+                        $newBookId = $this->createNewBookEntity($bookData);
+                        if ($newBookId !== null) {
+                            // Update the source with the new ID
+                            $source["id"] = $newBookId;
+                            Log::info("Created new book for source", [
+                                "title" => $source["title"],
+                                "id" => $newBookId,
+                            ]);
+                        }
+                    }
+                    
                     // Add book/archive to property P1343 (described by source)
                     if (
                         !empty($source["id"]) &&
