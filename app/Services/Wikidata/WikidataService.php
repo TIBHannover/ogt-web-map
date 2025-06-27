@@ -6,9 +6,25 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Services\Wikidata\WikidataOptimizer;
+use App\Services\Wikidata\WikidataFormatterModels;
 
 class WikidataService
 {
+    /**
+     * Entity type constants
+     */
+    public const ENTITY_TYPE_BOOK = "Q7725634"; // Literary work
+
+    /**
+     * Maximum number of retries for rate-limited operations
+     */
+    protected $maxRetries = 3;
+
+    /**
+     * Initial delay in seconds before retry
+     */
+    protected $initialRetryDelay = 5;
+
     /**
      * Bot Username
      */
@@ -30,12 +46,7 @@ class WikidataService
     protected $debug;
 
     /**
-     * Simulation mode enabled?
-     */
-    protected $simulationMode;
-
-    /**
-     * @var WikidataFormatter
+     * @var WikidataFormatterModels
      */
     protected $formatter;
 
@@ -52,18 +63,20 @@ class WikidataService
         $this->username = config("wikidata.bot_username");
         $this->password = config("wikidata.bot_password");
         $this->apiUrl = config("wikidata.api_url");
-        $this->formatter = new WikidataFormatter();
+        $this->formatter = new WikidataFormatterModels();
         $this->optimizer = new WikidataOptimizer();
         $this->debug = config("wikidata.debug", false);
-        $this->simulationMode = config("wikidata.simulation_mode", false);
+
+        // Get retry configuration from config
+        $this->maxRetries = config("wikidata.max_retries", 3);
+        $this->initialRetryDelay = config("wikidata.initial_retry_delay", 5);
 
         if ($this->debug) {
             Log::info("WikidataService initialized", [
                 "username" => $this->username,
                 "api_url" => $this->apiUrl,
-                "simulation_mode" => $this->simulationMode
-                    ? "enabled"
-                    : "disabled",
+                "max_retries" => $this->maxRetries,
+                "initial_retry_delay" => $this->initialRetryDelay,
             ]);
         }
     }
@@ -75,14 +88,6 @@ class WikidataService
      */
     public function hasValidCredentials()
     {
-        // In simulation mode, always return true
-        if ($this->simulationMode) {
-            Log::info(
-                "Running in simulation mode - credentials check bypassed"
-            );
-            return true;
-        }
-
         $credentialsValid = !empty($this->username) && !empty($this->password);
 
         if ($this->debug) {
@@ -256,6 +261,13 @@ class WikidataService
                     throw new \InvalidArgumentException("Entity type missing");
             }
 
+            Log::info("Wikidata entity creation mode", [
+                "entity_type" => $type,
+            ]);
+
+            // Force debug mode off to ensure we get full data
+            $this->formatter->setDebugMode(false);
+
             $formattedData = $this->formatter->formatEntityData(
                 $entityData,
                 $type,
@@ -269,45 +281,62 @@ class WikidataService
                 ),
             ]);
 
-            $dataToUse =
+            // Check if we have both formattedData and updatedData and combine them
+            if (
+                is_array($formattedData) &&
+                isset($formattedData["formattedData"]) &&
+                isset($formattedData["updatedData"])
+            ) {
+                Log::info(
+                    "Combining formattedData and updatedData for complete entity"
+                );
+
+                // Start with formattedData structure
+                $combinedData = $formattedData["formattedData"];
+
+                // Add claims from updatedData
+                if (isset($formattedData["updatedData"]["claims"])) {
+                    foreach (
+                        $formattedData["updatedData"]["claims"]
+                        as $property => $claims
+                    ) {
+                        // Don't overwrite P31 from formattedData if it exists
+                        if (
+                            $property !== "P31" ||
+                            !isset($combinedData["claims"]["P31"])
+                        ) {
+                            $combinedData["claims"][$property] = $claims;
+                        }
+                    }
+                }
+
+                Log::info("Created combined entity data", [
+                    "claim_count" => count($combinedData["claims"]),
+                    "property_keys" => array_keys($combinedData["claims"]),
+                ]);
+
+                $formattedData = $combinedData;
+            } elseif (
                 is_array($formattedData) &&
                 isset($formattedData["formattedData"])
-                    ? $formattedData["formattedData"]
-                    : $formattedData;
+            ) {
+                $formattedData = $formattedData["formattedData"];
+                Log::info("Using formattedData only");
+            }
 
-            $optimizedData = $this->optimizer->optimize($dataToUse, "create");
+            // Apply minimal optimization - just remove ID if present for creation
+            $optimizedData = $formattedData;
+            if (isset($optimizedData["id"])) {
+                Log::info("Removing ID for create operation");
+                unset($optimizedData["id"]);
+            }
 
-            Log::info("Optimized formatted entity data for Wikidata", [
+            Log::info("Formatted entity data for Wikidata", [
                 "entity_data" => json_encode(
                     $optimizedData,
                     JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE
                 ),
             ]);
-
-            // If simulation mode is active, we stop here and return a simulated response
-            if ($this->simulationMode) {
-                Log::info(
-                    "Running in simulation mode - no actual Wikidata entity will be created"
-                );
-
-                // Create simulated response
-                $simulatedResponse = [
-                    "entity" => [
-                        "id" => "Q" . rand(1000000, 9999999), // Generate random Q-ID
-                        "type" => "item",
-                        "labels" => $optimizedData["labels"] ?? [],
-                        "descriptions" => $optimizedData["descriptions"] ?? [],
-                        "claims" => $optimizedData["claims"] ?? [],
-                    ],
-                    "success" => 1,
-                ];
-
-                Log::info("Simulated entity creation successful", [
-                    "entity_id" => $simulatedResponse["entity"]["id"],
-                ]);
-
-                return $simulatedResponse;
-            }
 
             $authData = Cache::get("wikidata_auth_data");
 
@@ -389,6 +418,45 @@ class WikidataService
                     $jsonResponse["error"]["info"] ?? "Unknown API error";
                 $errorCode = $jsonResponse["error"]["code"] ?? "unknown-error";
 
+                // Check for rate limiting error - 'no-automatic-entity-id'
+                if ($errorCode === "no-automatic-entity-id") {
+                    // Generate a unique cache key for this specific entity creation attempt
+                    $cacheKey =
+                        "wikidata_rate_limit_retry_" .
+                        md5(json_encode($optimizedData));
+                    $currentRetry = Cache::get($cacheKey, 0);
+
+                    // Only retry up to maxRetries times
+                    if ($currentRetry >= $this->maxRetries) {
+                        Log::error(
+                            "Rate limiting error after maximum retries",
+                            [
+                                "error" => $errorInfo,
+                                "retry_count" => $currentRetry,
+                            ]
+                        );
+                        return null;
+                    }
+
+                    // Increment the retry counter
+                    Cache::put($cacheKey, $currentRetry + 1, 600); // Cache for 10 minutes
+
+                    Log::warning("Rate limiting detected from Wikidata API", [
+                        "error" => $errorInfo,
+                        "code" => $errorCode,
+                        "retry" => $currentRetry + 1,
+                    ]);
+
+                    // Calculate exponential backoff wait time (5, 10, 20 seconds)
+                    $waitTime =
+                        $this->initialRetryDelay * pow(2, $currentRetry);
+                    Log::info("Waiting {$waitTime} seconds before retrying...");
+                    sleep($waitTime);
+
+                    // Retry creating the entity
+                    return $this->createEntity($entityData, $type);
+                }
+
                 // Check for duplicate entity error (label with description conflict)
                 if (
                     $errorCode === "modification-failed" &&
@@ -420,7 +488,17 @@ class WikidataService
                     $jsonResponse["error"][
                         "better_message"
                     ] = $betterErrorMessage;
-                    return $jsonResponse; // Return the response with the error instead of null
+
+                    // Return the duplicate ID as if we created it
+                    // This helps prevent further duplicate creation attempts
+                    return [
+                        "entity" => [
+                            "id" => $duplicateId,
+                            "type" => "item",
+                        ],
+                        "success" => 1,
+                        "warning" => "Used existing entity",
+                    ];
                 } else {
                     // Handle other errors
                     Log::error("Wikidata API error", [
@@ -490,11 +568,35 @@ class WikidataService
     public function updateEntity(string $entityId, array $rawData, string $type)
     {
         try {
+            // Force debug mode off to ensure we get full data
+            $this->formatter->setDebugMode(false);
+
+            // Special handling for relationship updates that only modify claims
+            $isRelationshipUpdate = false;
+            if (isset($rawData['claims']) && count($rawData) === 1) {
+                $isRelationshipUpdate = true;
+                Log::info("Detected relationship-only update - will preserve original labels and existing claims", [
+                    "entity_id" => $entityId,
+                    "properties" => array_keys($rawData['claims']),
+                ]);
+                
+                // Check if P31 is already in the entity before we format data
+                $shouldRemoveP31 = true;
+            }
+
             $entityData = $this->formatter->formatEntityData(
                 $rawData,
                 $type,
                 true // createEntities = true
             );
+            
+            // For relationship updates, remove the P31 claim to prevent duplication
+            if ($isRelationshipUpdate && isset($shouldRemoveP31) && $shouldRemoveP31) {
+                if (isset($entityData['formattedData']['claims']['P31'])) {
+                    unset($entityData['formattedData']['claims']['P31']);
+                    Log::info("Removed P31 claim from relationship update to prevent duplication");
+                }
+            }
 
             Log::info("Original formatted entity data for update", [
                 "entity_id" => $entityId,
@@ -504,36 +606,61 @@ class WikidataService
                 ),
             ]);
 
-            $dataToUse =
-                is_array($entityData) && isset($entityData["formattedData"])
-                    ? $entityData["formattedData"]
-                    : $entityData;
-
-            $optimizedData = $this->optimizer->optimize($dataToUse, "update");
-
-            // If simulation mode is active, we stop here and return a simulated response
-            if ($this->simulationMode) {
+            // Check if we have both formattedData and updatedData and combine them
+            if (
+                is_array($entityData) &&
+                isset($entityData["formattedData"]) &&
+                isset($entityData["updatedData"])
+            ) {
                 Log::info(
-                    "Running in simulation mode - no actual Wikidata entity will be updated"
+                    "Combining formattedData and updatedData for complete entity update"
                 );
 
-                // Create simulated response
-                $simulatedResponse = [
-                    "entity" => [
-                        "id" => $entityId,
-                        "type" => "item",
-                        "labels" => $optimizedData["labels"] ?? [],
-                        "descriptions" => $optimizedData["descriptions"] ?? [],
-                        "claims" => $optimizedData["claims"] ?? [],
-                    ],
-                    "success" => 1,
-                ];
+                // Start with formattedData structure
+                $combinedData = $entityData["formattedData"];
 
-                Log::info("Simulated entity update successful", [
-                    "entity_id" => $simulatedResponse["entity"]["id"],
+                // Add claims from updatedData
+                if (isset($entityData["updatedData"]["claims"])) {
+                    foreach (
+                        $entityData["updatedData"]["claims"]
+                        as $property => $claims
+                    ) {
+                        // Don't overwrite P31 from formattedData if it exists
+                        if (
+                            $property !== "P31" ||
+                            !isset($combinedData["claims"]["P31"])
+                        ) {
+                            $combinedData["claims"][$property] = $claims;
+                        }
+                    }
+                }
+
+                Log::info("Created combined entity data for update", [
+                    "claim_count" => count($combinedData["claims"]),
+                    "property_keys" => array_keys($combinedData["claims"]),
                 ]);
 
-                return $simulatedResponse;
+                $dataToUse = $combinedData;
+            } elseif (
+                is_array($entityData) &&
+                isset($entityData["formattedData"])
+            ) {
+                $dataToUse = $entityData["formattedData"];
+                Log::info("Using formattedData only for update");
+            } else {
+                $dataToUse = $entityData;
+                Log::info("Using direct formatter output for update");
+            }
+
+            // For relationship updates, only include the claims to avoid losing labels and descriptions
+            if ($isRelationshipUpdate && isset($dataToUse['claims'])) {
+                $optimizedData = [
+                    'claims' => $dataToUse['claims']
+                ];
+                Log::info("Optimized update to only include claims to preserve existing labels and descriptions");
+            } else {
+                // Use data directly with minimal processing
+                $optimizedData = $dataToUse;
             }
 
             // Retrieve authentication data or login again
@@ -638,6 +765,134 @@ class WikidataService
                 "trace" => $e->getTraceAsString(),
             ]);
             return null;
+        }
+    }
+    /**
+     * Process relationship information from entity data
+     * 
+     * @param array $data The entity data
+     * @param string|null $parentEntityId The parent entity ID parameter
+     * @param string|null $relationshipType The relationship type parameter
+     * @return array [processedData, parentEntityId, relationshipType]
+     */
+    protected function processRelationshipInfo(
+        array $data,
+        ?string $parentEntityId = null,
+        ?string $relationshipType = null
+    ): array {
+        $dataCopy = $data;
+        
+        // Check if relationship info is available in data but not in params
+        if ($parentEntityId === null && isset($dataCopy["parent_entity_id"])) {
+            $parentEntityId = $dataCopy["parent_entity_id"];
+            Log::debug("Using parent_entity_id from data", [
+                "parent_id" => $parentEntityId
+            ]);
+        }
+        
+        if ($relationshipType === null && isset($dataCopy["relationship_type"])) {
+            $relationshipType = $dataCopy["relationship_type"];
+            Log::debug("Using relationship_type from data", [
+                "relationship" => $relationshipType
+            ]);
+        }
+        
+        // Check if role is specified but relationship_type isn't
+        if ($relationshipType === null && isset($dataCopy["role"])) {
+            $relationshipType = $dataCopy["role"];
+            Log::debug("Using role as relationship_type", [
+                "role" => $dataCopy["role"]
+            ]);
+        }
+
+        // Store relation data in the entity data itself for reference
+        if ($parentEntityId !== null) {
+            $dataCopy["_relation"] = [
+                "parent_id" => $parentEntityId,
+                "type" => $relationshipType
+            ];
+        }
+        
+        return [$dataCopy, $parentEntityId, $relationshipType];
+    }
+
+    /**
+     * Queues a new entity for creation in Wikidata
+     *
+     * @param array $data The entity data
+     * @param string $type The entity type (Q code)
+     * @param string|null $callbackUrl Optional callback URL
+     * @param string|null $parentEntityId Optional parent entity ID to link to
+     * @param string|null $relationshipType Optional relationship type to parent (source, perpetrator, victim)
+     * @return bool Whether the job was successfully queued
+     */
+    public function queueEntityCreation(
+        array $data,
+        string $type,
+        ?string $callbackUrl = null,
+        ?string $parentEntityId = null,
+        ?string $relationshipType = null
+    ): bool {
+        try {
+            // Ensure entity name is properly included in the data
+            if (empty($data["title"]) && isset($data["name"])) {
+                $data["title"] = $data["name"];
+                Log::debug("Setting title from name field", [
+                    "name" => $data["name"],
+                    "type" => $type,
+                ]);
+            }
+            
+            // Process relationship information
+            list($data, $parentEntityId, $relationshipType) = $this->processRelationshipInfo(
+                $data,
+                $parentEntityId,
+                $relationshipType
+            );
+            
+            // If we still don't have a parent ID, but we should create a relationship,
+            // check the global variable as a last resort
+            if ($parentEntityId === null && $relationshipType !== null && isset($GLOBALS['last_created_entity_id'])) {
+                $parentEntityId = $GLOBALS['last_created_entity_id'];
+                $data['parent_entity_id'] = $parentEntityId;
+                $data['_relation'] = [
+                    'parent_id' => $parentEntityId,
+                    'type' => $relationshipType
+                ];
+                
+                Log::info("Using global variable as parent entity ID", [
+                    "parent_id" => $parentEntityId,
+                    "relationship" => $relationshipType
+                ]);
+            }
+
+            \App\Jobs\CreateWikidataEntity::dispatch(
+                $data,
+                $type,
+                $callbackUrl,
+                $parentEntityId,
+                $relationshipType
+            )->onQueue("wikidata");
+
+            Log::info("Queued Wikidata entity creation job", [
+                "type" => $type,
+                "title" => $data["title"] ?? "Unknown",
+                "name" => $data["name"] ?? null,
+                "parent_id" => $parentEntityId,
+                "relationship" => $relationshipType,
+            ]);
+
+            return true;
+        } catch (\Exception $e) {
+            Log::error("Failed to queue Wikidata entity creation job", [
+                "error" => $e->getMessage(),
+                "type" => $type,
+                "title" => $data["title"] ?? null,
+                "name" => $data["name"] ?? null,
+                "parent_id" => $parentEntityId,
+            ]);
+
+            return false;
         }
     }
 }

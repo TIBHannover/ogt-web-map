@@ -183,29 +183,34 @@
                             required
                         ></v-text-field>
 
-                        <!-- Author selection component -->
-                        <PersonsField
-                            label="Autor*In"
-                            fieldId="authors"
-                            :peopleSearchResults="authorSearchResults"
-                            :selectedPersons="selectedAuthors"
-                            :showNewPersonForm="showNewAuthorForm"
-                            :newPerson="newAuthor"
-                            :isSearchLoading="isAuthorSearchLoading"
-                            :searchPerformed="authorSearchPerformed"
-                            :showInfoButton="false"
-                            :hidePlaceOfDeath="true"
-                            :hidePlaceOfDetention="true"
-                            :hideIsOrganisation="true"
-                            :isAuthorForm="true"
-                            @searchPeople="onSearchAuthor"
-                            @selectPerson="onSelectAuthor"
-                            @startNewPersonForm="onStartNewAuthorForm"
-                            @cancelNewPersonForm="onCancelNewAuthorForm"
-                            @update:newPerson="newAuthor = $event"
-                            @addNewPerson="onAddNewAuthor"
-                            @removePerson="onRemoveAuthor"
-                        />
+                        <!-- Author selection and display -->
+                        <div class="authors-section mb-4">
+                            <label class="text-subtitle-1 mb-2 d-block">Autor*innen *</label>
+                            
+                            <!-- Display selected authors -->
+                            <div v-if="selectedAuthors.length > 0" class="selected-authors mb-3">
+                                <v-chip
+                                    v-for="(author, index) in selectedAuthors"
+                                    :key="index"
+                                    class="ma-1"
+                                    closable
+                                    @click:close="removeAuthor(index)"
+                                >
+                                    {{ author.label }}
+                                </v-chip>
+                            </div>
+                            
+                            <!-- Add author button -->
+                            <v-btn 
+                                color="primary" 
+                                variant="outlined" 
+                                @click="showAuthorDialog = true"
+                                class="mt-2"
+                            >
+                                <v-icon class="me-1">mdi-account-plus</v-icon>
+                                Autor*in hinzufügen
+                            </v-btn>
+                        </div>
 
                         <v-text-field
                             v-model="bookForm.manual.year"
@@ -244,6 +249,112 @@
                             </v-btn>
                         </div>
                     </div>
+                    
+                    <!-- Author search dialog -->
+                    <v-dialog
+                        v-model="showAuthorDialog"
+                        max-width="600px"
+                        persistent
+                    >
+                        <v-card>
+                            <v-card-title>Autor*in hinzufügen</v-card-title>
+                            <v-card-text>
+                                <!-- Author search -->
+                                <div v-if="!showNewAuthorForm">
+                                    <v-text-field
+                                        v-model="authorSearch.query"
+                                        label="Autor*in suchen"
+                                        append-inner-icon="mdi-magnify"
+                                        @click:append-inner="onSearchAuthor(authorSearch.query)"
+                                        @keydown.enter="onSearchAuthor(authorSearch.query)"
+                                        clearable
+                                        :loading="isAuthorSearchLoading"
+                                    ></v-text-field>
+                                    
+                                    <!-- Loading indicator -->
+                                    <div v-if="isAuthorSearchLoading" class="d-flex justify-center my-4">
+                                        <v-progress-circular indeterminate></v-progress-circular>
+                                    </div>
+                                    
+                                    <!-- Search results -->
+                                    <v-alert
+                                        v-if="authorSearchPerformed && !isAuthorSearchLoading && authorSearchResults.length === 0"
+                                        type="info"
+                                        class="mb-3"
+                                    >
+                                        Keine Autor*innen gefunden. Sie können eine*n neue*n Autor*in manuell hinzufügen.
+                                    </v-alert>
+                                    
+                                    <v-list v-if="authorSearchResults.length > 0" class="source-list mb-4">
+                                        <v-list-item
+                                            v-for="(person, index) in authorSearchResults"
+                                            :key="index"
+                                            @click="onSelectAuthor(person)"
+                                            class="source-item"
+                                        >
+                                            <v-list-item-title>{{ person.label }}</v-list-item-title>
+                                            <v-list-item-subtitle v-if="person.description">
+                                                {{ person.description }}
+                                            </v-list-item-subtitle>
+                                            <v-list-item-subtitle class="id-text" v-if="person.id">
+                                                {{ person.id }}
+                                            </v-list-item-subtitle>
+                                        </v-list-item>
+                                    </v-list>
+                                    
+                                    <!-- Option to add manually -->
+                                    <div class="d-flex justify-space-between align-center mt-4">
+                                        <div>Autor*in nicht gefunden?</div>
+                                        <v-btn
+                                            color="primary"
+                                            variant="text"
+                                            @click="onStartNewAuthorForm"
+                                        >
+                                            Manuell hinzufügen
+                                        </v-btn>
+                                    </div>
+                                </div>
+                                
+                                <!-- Manual author form -->
+                                <div v-if="showNewAuthorForm">
+                                    <h3 class="text-subtitle-1 mb-3">Neue*n Autor*in hinzufügen</h3>
+                                    
+                                    <v-text-field
+                                        v-model="newAuthor.firstName"
+                                        label="Vorname"
+                                    ></v-text-field>
+                                    
+                                    <v-text-field
+                                        v-model="newAuthor.lastName"
+                                        label="Nachname *"
+                                        :rules="[v => !!v || 'Nachname ist erforderlich']"
+                                        required
+                                    ></v-text-field>
+                                    
+                                    <div class="d-flex justify-end mt-4">
+                                        <v-btn
+                                            variant="text"
+                                            class="me-2"
+                                            @click="onCancelNewAuthorForm"
+                                        >
+                                            Abbrechen
+                                        </v-btn>
+                                        <v-btn
+                                            color="primary"
+                                            @click="onAddNewAuthor"
+                                            :disabled="!newAuthor.firstName && !newAuthor.lastName"
+                                        >
+                                            Hinzufügen
+                                        </v-btn>
+                                    </div>
+                                </div>
+                            </v-card-text>
+                            <v-card-actions>
+                                <v-spacer></v-spacer>
+                                <v-btn color="grey" @click="closeAuthorDialog">Schließen</v-btn>
+                            </v-card-actions>
+                        </v-card>
+                    </v-dialog>
                 </div>
 
                 <!-- URL-Quellenkomponente -->
@@ -472,7 +583,6 @@
 <script setup>
 import { ref, computed } from "vue";
 import axios from "axios";
-import PersonsField from "./Persons.vue";
 
 const emit = defineEmits(["select", "close"]);
 
@@ -480,12 +590,25 @@ const emit = defineEmits(["select", "close"]);
 const sourceType = ref("book");
 const defaultDate = new Date().toISOString().substr(0, 10);
 
-// Author search and selection states
+// Validierung
+const rules = {
+    required: (v) => !!v || "Dieses Feld ist erforderlich",
+    url: (v) =>
+        /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/.test(v) ||
+        "Bitte geben Sie eine gültige URL ein",
+};
+
+// Author search state
 const authorSearchResults = ref([]);
-const selectedAuthors = ref([]);
-const showNewAuthorForm = ref(false);
-const isAuthorSearchLoading = ref(false);
 const authorSearchPerformed = ref(false);
+const isAuthorSearchLoading = ref(false);
+const showAuthorDialog = ref(false);
+const showNewAuthorForm = ref(false);
+const selectedAuthors = ref([]); // Initialize as empty array
+const authorSearch = ref({
+    query: "",
+    loading: false,
+});
 const newAuthor = ref({
     firstName: "",
     lastName: "",
@@ -499,14 +622,6 @@ const newAuthor = ref({
     place_of_death: null,
     place_of_detention: null,
 });
-
-// Validierung
-const rules = {
-    required: (v) => !!v || "Dieses Feld ist erforderlich",
-    url: (v) =>
-        /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/.test(v) ||
-        "Bitte geben Sie eine gültige URL ein",
-};
 
 // Author search and selection methods
 const onSearchAuthor = async (query) => {
@@ -553,7 +668,24 @@ const onSearchAuthor = async (query) => {
 };
 
 const onSelectAuthor = (person) => {
-    selectedAuthors.value = [person]; // Only allow one author for now
+    // Add the person to the authors list if not already present
+    if (!selectedAuthors.value.some(author => author.id === person.id)) {
+        selectedAuthors.value.push(person);
+    }
+    // Close the author dialog after selection
+    closeAuthorDialog();
+};
+
+const removeAuthor = (index) => {
+    selectedAuthors.value.splice(index, 1);
+};
+
+const closeAuthorDialog = () => {
+    showAuthorDialog.value = false;
+    showNewAuthorForm.value = false;
+    authorSearch.value.query = "";
+    authorSearchResults.value = [];
+    authorSearchPerformed.value = false;
 };
 
 const onStartNewAuthorForm = () => {
@@ -603,7 +735,8 @@ const onAddNewAuthor = () => {
         place_of_detention: newAuthor.value.place_of_detention,
     };
 
-    selectedAuthors.value = [authorToAdd]; // Only allow one author for now
+    // Add the new author to the existing list
+    selectedAuthors.value.push(authorToAdd);
 
     // Reset form
     showNewAuthorForm.value = false;
@@ -620,10 +753,9 @@ const onAddNewAuthor = () => {
         place_of_death: null,
         place_of_detention: null,
     };
-};
-
-const onRemoveAuthor = (id) => {
-    selectedAuthors.value = [];
+    
+    // Close the author dialog
+    closeAuthorDialog();
 };
 
 // ========== BUCH ==========
@@ -641,6 +773,7 @@ const bookForm = ref({
     pages: "",
     manual: {
         title: "",
+        authorNames: "", // New field for comma-separated author names
         year: "",
         pages: "",
         publishingDate: null,
@@ -651,6 +784,17 @@ const showManualBookForm = () => {
     bookSearch.value.showManualForm = true;
     bookSearch.value.results = [];
     bookSearch.value.query = "";
+    
+    // Make sure selectedAuthors is initialized
+    if (!selectedAuthors.value) {
+        selectedAuthors.value = [];
+    }
+    
+    // Reset form fields
+    bookForm.value.manual.title = "";
+    bookForm.value.manual.year = "";
+    bookForm.value.manual.publishingDate = null;
+    bookForm.value.manual.pages = "";
 };
 
 const searchBooks = async () => {
@@ -704,18 +848,18 @@ const addManualBook = () => {
         return;
     }
 
-    // Get author info from selected authors
-    const authorInfo = selectedAuthors.value[0];
-    const authorName =
-        authorInfo.label ||
-        `${authorInfo.firstName || ""} ${authorInfo.lastName || ""}`.trim();
+    // Create author description by joining author labels
+    const authorDescription = selectedAuthors.value
+        .map(author => author.label)
+        .join(", ");
 
     // Create a custom book object
     selectedBook.value = {
         id: "manual",
         label: manual.title,
-        description: `${authorName}${manual.year ? `, ${manual.year}` : ""}`,
-        author: authorInfo, // Store the entire author object for Wikidata
+        description: `${authorDescription}${manual.year ? `, ${manual.year}` : ""}`,
+        // Use the selected authors array
+        authors: selectedAuthors.value,
         year: manual.year || null,
         publishingDate: manual.publishingDate || null,
         isManual: true,
@@ -728,6 +872,9 @@ const addManualBook = () => {
 
     // Hide the manual form
     bookSearch.value.showManualForm = false;
+    
+    // Clear selected authors after adding the book
+    selectedAuthors.value = [];
 };
 
 // ========== URL ==========
@@ -823,12 +970,11 @@ const addManualArchive = () => {
 // ========== GEMEINSAME FUNKTIONEN ==========
 const canConfirm = computed(() => {
     if (sourceType.value === "book") {
-        // If it's a manual book, also check for author
-        if (selectedBook.value && selectedBook.value.isManual) {
-            return (
-                selectedBook.value !== null && selectedAuthors.value.length > 0
-            );
+        // For manual books, check that we have a title and at least one author
+        if (bookSearch.value.showManualForm && !selectedBook.value) {
+            return !!bookForm.value.manual.title && (selectedAuthors.value && selectedAuthors.value.length > 0);
         }
+        // For selected books, just check that we have a book
         return selectedBook.value !== null;
     } else if (sourceType.value === "url") {
         return (
@@ -858,14 +1004,19 @@ const confirmSelection = () => {
             description: selectedBook.value.description,
             pages: bookForm.value.pages,
             isManual: selectedBook.value.isManual || false,
-            author: selectedBook.value.author || null,
             year: selectedBook.value.year || null,
             publishingDate: selectedBook.value.publishingDate || null,
         };
 
-        // If we have a manual book, add the author information
-        if (source.isManual && selectedAuthors.value.length > 0) {
-            source.author = selectedAuthors.value[0];
+        // Add authors information
+        if (selectedBook.value.authors) {
+            // Use authors array from book entry
+            source.authors = selectedBook.value.authors;
+        } else if (selectedBook.value.author) {
+            // Convert single author to array for backward compatibility
+            source.authors = [selectedBook.value.author];
+        } else {
+            source.authors = [];
         }
     } else if (sourceType.value === "url") {
         source = {
@@ -938,5 +1089,16 @@ const closeDialog = () => {
     background-color: #f5f5f5;
     border-radius: 4px;
     margin-bottom: 16px;
+}
+
+.authors-section {
+    margin-bottom: 20px;
+}
+
+.selected-authors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
 }
 </style>

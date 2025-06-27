@@ -114,6 +114,9 @@
                         <a href="{{ route('admin.users') }}" class="{{ request()->routeIs('admin.users') ? 'active' : '' }}">
                             Benutzer
                         </a>
+                        <a href="{{ route('admin.jobs.index') }}" class="{{ request()->routeIs('admin.jobs.index') ? 'active' : '' }}">
+                            Jobs
+                        </a>
                     </div>
                     <div class="col-md-10 main-content">
                         @yield('content')

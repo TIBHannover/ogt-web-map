@@ -35,7 +35,7 @@
                             <span class="label">Letzte Aktualisierung:</span>
                             <span class="value">{{ formatDate(entryData.status_updated_at) }}</span>
                         </div>
-                        <div class="status-detail" v-if="entryData.status === 'approved' && entryData.wikidata_id">
+                        <div class="status-detail" v-if="(entryData.status === 'approved' || entryData.status === 'wikidata_published') && entryData.wikidata_id">
                             <span class="label">Wikidata ID:</span>
                             <span class="value">
                                 <a :href="getWikidataUrl(entryData.wikidata_id)" target="_blank">
@@ -164,7 +164,8 @@ const getStatusLabel = (status) => {
         'approved': 'Genehmigt',
         'rejected': 'Abgelehnt',
         'wikidata_submitted': 'An Wikidata übermittelt',
-        'wikidata_published': 'In Wikidata veröffentlicht'
+        'wikidata_published': 'In Wikidata veröffentlicht',
+        'wikidata_failed': 'Fehler bei Wikidata-Erstellung'
     };
     return statusLabels[status] || status;
 };
@@ -177,7 +178,8 @@ const getStatusClass = (status) => {
         'approved': 'status-approved',
         'rejected': 'status-rejected',
         'wikidata_submitted': 'status-wikidata-submitted',
-        'wikidata_published': 'status-wikidata-published'
+        'wikidata_published': 'status-wikidata-published',
+        'wikidata_failed': 'status-failed'
     };
     return statusClasses[status] || '';
 };
@@ -293,6 +295,10 @@ const addAnother = () => {
 
 .status-wikidata-submitted {
     background-color: #7e57c2;
+}
+
+.status-failed {
+    background-color: #d32f2f;
 }
 
 .status-wikidata-published {

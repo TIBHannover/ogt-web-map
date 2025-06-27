@@ -2,35 +2,7 @@
 
 @php
 use App\Http\Controllers\WikidataPropertyController;
-
-// Helper-Funktion zur formatierten Anzeige von Wikidata-Eigenschaften
-function formatWikidataProperty($entity, $propertyId, $defaultLabel = null) {
-    $label = WikidataPropertyController::translatePropertyLabel($propertyId);
-
-    if (!isset($entity[$propertyId]) || empty($entity[$propertyId])) {
-        return null;
-    }
-
-    $property = $entity[$propertyId];
-
-    if (!is_array($property)) {
-        return [
-            'label' => $label ?: ucfirst(str_replace('_', ' ', $propertyId)),
-            'value' => $property,
-            'id' => null
-        ];
-    }
-
-    if (isset($property['id'])) {
-        return [
-            'label' => $label ?: ucfirst(str_replace('_', ' ', $propertyId)),
-            'value' => $property['label'] ?? $property['id'],
-            'id' => $property['id']
-        ];
-    }
-
-    return null;
-}
+use function App\Helpers\formatWikidataProperty;
 @endphp
 
 @section('content')
@@ -58,7 +30,8 @@ function formatWikidataProperty($entity, $propertyId, $defaultLabel = null) {
     <div class="alert alert-{{
         $request->status == 'approved' ? 'success' :
         ($request->status == 'rejected' ? 'danger' :
-        ($request->status == 'error' ? 'warning' : 'primary'))
+        ($request->status == 'error' || $request->status == 'wikidata_failed' ? 'warning' :
+        ($request->status == 'wikidata_published' ? 'info' : 'primary')))
     }} mb-4">
         <h5 class="alert-heading">Status:
             @if($request->status == 'pending')
@@ -69,36 +42,21 @@ function formatWikidataProperty($entity, $propertyId, $defaultLabel = null) {
                 Abgelehnt
             @elseif($request->status == 'error')
                 Fehler
+            @elseif($request->status == 'wikidata_failed')
+                Fehler bei Wikidata-Erstellung
+            @elseif($request->status == 'wikidata_submitted')
+                An Wikidata u00fcbermittelt
+            @elseif($request->status == 'wikidata_published')
+                In Wikidata veru00f6ffentlicht
             @endif
         </h5>
 
-        @if($request->status == 'approved' && $request->wikidata_id)
+        @if(($request->status == 'approved' || $request->status == 'wikidata_published') && $request->wikidata_id)
             <div class="mt-2 mb-3">
                 <a href="https://www.wikidata.org/wiki/{{ $request->wikidata_id }}"
                    target="_blank" class="btn btn-sm btn-light mb-2">
                     Haupt-Wikidata-Eintrag öffnen <i class="bi bi-box-arrow-up-right ms-1"></i>
                 </a>
-
-                @if(!empty($request->created_entities))
-                    <div class="mt-2">
-                        <h6>Zusätzlich erstellte Einträge:</h6>
-                        <div class="list-group">
-                            @foreach($request->created_entities as $entity)
-                                <a href="https://www.wikidata.org/wiki/{{ $entity['id'] }}"
-                                   target="_blank"
-                                   class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <span class="badge bg-{{ $entity['type'] == 'perpetrator' ? 'danger' : 'info' }} me-2">
-                                            {{ $entity['type'] == 'perpetrator' ? 'Täter/in' : 'Opfer' }}
-                                        </span>
-                                        {{ $entity['label'] ?? $entity['name'] ?? $entity['id'] }}
-                                    </div>
-                                    <i class="bi bi-box-arrow-up-right"></i>
-                                </a>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
             </div>
         @endif
 
@@ -108,11 +66,12 @@ function formatWikidataProperty($entity, $propertyId, $defaultLabel = null) {
             </div>
         @endif
 
-        @if($request->status == 'error' && $request->error_message)
+        @if(($request->status == 'error' || $request->status == 'wikidata_failed') && $request->error_message)
             <div class="mt-2">
                 <strong>Fehlermeldung:</strong> {{ $request->error_message }}
                 <form action="/api/wikidata/requests/{{ $request->id }}/retry" method="POST" class="d-inline ml-2">
                     @csrf
+                    <input type="hidden" name="redirect" value="{{ route('admin.requests.show', $request->id) }}">
                     <button type="submit" class="btn btn-sm btn-warning">
                         <i class="bi bi-arrow-repeat me-1"></i> Wiederholen
                     </button>
@@ -120,7 +79,10 @@ function formatWikidataProperty($entity, $propertyId, $defaultLabel = null) {
             </div>
         @endif
     </div>
-
+    
+    <!-- Detaillierte Entity-Status-Anzeige -->
+    @include('admin.partials.entity-status-detail')
+    
     <div class="row">
         <!-- Hauptinformationen -->
         <div class="col-md-8">
@@ -227,12 +189,41 @@ function formatWikidataProperty($entity, $propertyId, $defaultLabel = null) {
                                     @if($request->time_point) Zeitpunkt: @else Zeitraum: @endif
                                 </strong>
                                 @if($request->time_point)
-                                    <p>{{ \Carbon\Carbon::parse($request->time_point)->format('d.m.Y') }}</p>
+                                    <p>
+                                        {{ \Carbon\Carbon::parse($request->time_point)->format('d.m.Y') }}
+                                        @if($request->time_point_qualifier)
+                                            <span class="badge bg-info ms-2">
+                                                @if($request->time_point_qualifier == 'Q5727902')
+                                                    Circa
+                                                @elseif($request->time_point_qualifier == 'Q60070514')
+                                                    Ungefähr
+                                                @endif
+                                            </span>
+                                        @endif
+                                    </p>
                                 @else
                                     <p>
                                         Von: {{ \Carbon\Carbon::parse($request->time_period_start)->format('d.m.Y') }}
+                                        @if($request->time_period_start_qualifier)
+                                            <span class="badge bg-info ms-2">
+                                                @if($request->time_period_start_qualifier == 'Q5727902')
+                                                    Circa
+                                                @elseif($request->time_period_start_qualifier == 'Q60070514')
+                                                    Ungefähr
+                                                @endif
+                                            </span>
+                                        @endif
                                         @if($request->time_period_end)
                                             bis: {{ \Carbon\Carbon::parse($request->time_period_end)->format('d.m.Y') }}
+                                            @if($request->time_period_end_qualifier)
+                                                <span class="badge bg-info ms-2">
+                                                    @if($request->time_period_end_qualifier == 'Q5727902')
+                                                        Circa
+                                                    @elseif($request->time_period_end_qualifier == 'Q60070514')
+                                                        Ungefähr
+                                                    @endif
+                                                </span>
+                                            @endif
                                         @endif
                                     </p>
                                 @endif
@@ -472,9 +463,27 @@ function formatWikidataProperty($entity, $propertyId, $defaultLabel = null) {
                                 <p>
                                     @if($request->date_of_birth)
                                         Geboren: {{ \Carbon\Carbon::parse($request->date_of_birth)->format('d.m.Y') }}
+                                        @if($request->date_of_birth_qualifier)
+                                            <span class="badge bg-info ms-2">
+                                                @if($request->date_of_birth_qualifier == 'Q5727902')
+                                                    Circa
+                                                @elseif($request->date_of_birth_qualifier == 'Q60070514')
+                                                    Ungefähr
+                                                @endif
+                                            </span>
+                                        @endif
                                     @endif
                                     @if($request->date_of_death)
                                         {{ $request->date_of_birth ? ' | ' : '' }}Gestorben: {{ \Carbon\Carbon::parse($request->date_of_death)->format('d.m.Y') }}
+                                        @if($request->date_of_death_qualifier)
+                                            <span class="badge bg-info ms-2">
+                                                @if($request->date_of_death_qualifier == 'Q5727902')
+                                                    Circa
+                                                @elseif($request->date_of_death_qualifier == 'Q60070514')
+                                                    Ungefähr
+                                                @endif
+                                            </span>
+                                        @endif
                                     @endif
                                 </p>
                             </div>
@@ -503,9 +512,27 @@ function formatWikidataProperty($entity, $propertyId, $defaultLabel = null) {
                                 <p>
                                     @if($request->inception)
                                         Gründung: {{ \Carbon\Carbon::parse($request->inception)->format('d.m.Y') }}
+                                        @if($request->inception_qualifier)
+                                            <span class="badge bg-info ms-2">
+                                                @if($request->inception_qualifier == 'Q5727902')
+                                                    Circa
+                                                @elseif($request->inception_qualifier == 'Q60070514')
+                                                    Ungefähr
+                                                @endif
+                                            </span>
+                                        @endif
                                     @endif
                                     @if($request->dissolved_date)
                                         {{ $request->inception ? ' | ' : '' }}Auflösung: {{ \Carbon\Carbon::parse($request->dissolved_date)->format('d.m.Y') }}
+                                        @if($request->dissolved_date_qualifier)
+                                            <span class="badge bg-info ms-2">
+                                                @if($request->dissolved_date_qualifier == 'Q5727902')
+                                                    Circa
+                                                @elseif($request->dissolved_date_qualifier == 'Q60070514')
+                                                    Ungefähr
+                                                @endif
+                                            </span>
+                                        @endif
                                     @endif
                                 </p>
                             </div>
@@ -543,9 +570,12 @@ function formatWikidataProperty($entity, $propertyId, $defaultLabel = null) {
                 <div class="collapse" id="collapseWikidataDebug">
                     <div class="card-body">
                         @php
-                            // Wir benu00f6tigen den WikidataFormatter direkt
-                            $formatter = app(\App\Services\Wikidata\WikidataFormatter::class);
+                            // Wir benu00f6tigen den WikidataFormatterModels direkt
+                            $formatter = app(\App\Services\Wikidata\WikidataFormatterModels::class);
 
+                            // Aktiviere Debug-Modus für diesen Request
+                            $formatter->setDebugMode(true);
+                            
                             // Relevante Daten extrahieren
                             $requestData = [];
                             $requestArray = $request->toArray();
@@ -568,6 +598,9 @@ function formatWikidataProperty($entity, $propertyId, $defaultLabel = null) {
                                 $formattedData = $result; // Fallback für alte Struktur
                                 $updatedRequestData = $requestData;
                             }
+                            
+                            // Deaktiviere den Debug-Modus, nachdem wir fertig sind
+                            $formatter->setDebugMode(false);
                         @endphp
 
                         <div class="mb-4">
@@ -628,9 +661,26 @@ function formatWikidataProperty($entity, $propertyId, $defaultLabel = null) {
                         </div>
                     @endif
 
+                    @if($request->status == 'approved')
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-danger w-100 mb-2"
+                                    data-bs-toggle="modal" data-bs-target="#rejectApprovedModal">
+                                <i class="bi bi-x-circle me-1"></i> Genehmigung zurückziehen
+                            </button>
+                            
+                            @if($request->wikidata_id)
+                                <a href="https://www.wikidata.org/wiki/{{ $request->wikidata_id }}" 
+                                   target="_blank" class="btn btn-outline-primary w-100 mb-2">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i> Wikidata-Eintrag öffnen
+                                </a>
+                            @endif
+                        </div>
+                    @endif
+
                     @if($request->status == 'error')
                         <form action="/api/wikidata/requests/{{ $request->id }}/retry" method="POST">
                             @csrf
+                            <input type="hidden" name="redirect" value="{{ route('admin.requests.show', $request->id) }}">
                             <button type="submit" class="btn btn-warning w-100 mb-2">
                                 <i class="bi bi-arrow-repeat me-1"></i> Erneut versuchen
                             </button>
@@ -681,7 +731,7 @@ function formatWikidataProperty($entity, $propertyId, $defaultLabel = null) {
     </div>
 </div>
 
-<!-- Ablehnungs-Modal -->
+<!-- Ablehnungs-Modal für Pending-Anfragen -->
 @if($request->status == 'pending')
 <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -710,8 +760,45 @@ function formatWikidataProperty($entity, $propertyId, $defaultLabel = null) {
         </div>
     </div>
 </div>
+@endif
+
+<!-- Ablehnungs-Modal für bereits genehmigte Anfragen -->
+@if($request->status == 'approved')
+<div class="modal fade" id="rejectApprovedModal" tabindex="-1" aria-labelledby="rejectApprovedModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="/api/wikidata/requests/{{ $request->id }}/retract" method="POST">
+                @csrf
+                <input type="hidden" name="redirect" value="{{ route('admin.requests.show', $request->id) }}">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rejectApprovedModalLabel">Genehmigung zurückziehen</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <strong>Achtung:</strong> Diese Aktion kennzeichnet den Eintrag als abgelehnt, entfernt jedoch nicht den bereits erstellten Wikidata-Eintrag. Falls der Eintrag in Wikidata gelöscht werden soll, müssen Sie dies manuell tun.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="retract_reason" class="form-label">Grund für die Zurückziehung</label>
+                        <textarea class="form-control" id="retract_reason" name="reason"
+                                  rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-x-circle me-1"></i> Genehmigung zurückziehen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
 
 <!-- Genehmigungs-Modal -->
+@if($request->status == 'pending')
 <div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">

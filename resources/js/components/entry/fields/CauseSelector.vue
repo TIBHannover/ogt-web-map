@@ -110,11 +110,11 @@
                         >
                             Keine Ergebnisse gefunden
                         </div>
-                        
+
                         <!-- Vorschläge anzeigen -->
-                        <wikidata-suggestions 
+                        <wikidata-suggestions
                             v-if="!isSearchLoading && !searchQuery.trim()"
-                            :q-ids="['Q1899269']"
+                            :q-ids="['Q1899269', 'Q22649']"
                             endpoint="causes"
                             @select="onSelectCause"
                         />

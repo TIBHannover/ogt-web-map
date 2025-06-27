@@ -75,19 +75,25 @@ class WikidataEntityController extends Controller
             try {
                 $entryRequest->gender = $validated["gender"] ?? null;
                 $entryRequest->nationality = $validated["nationality"] ?? null;
-                $entryRequest->place_of_birth = $validated["place_of_birth"] ?? null;
-                $entryRequest->place_of_death = $validated["place_of_death"] ?? null;
-                $entryRequest->place_of_detention = $validated["place_of_detention"] ?? null;
+                $entryRequest->place_of_birth =
+                    $validated["place_of_birth"] ?? null;
+                $entryRequest->place_of_death =
+                    $validated["place_of_death"] ?? null;
+                $entryRequest->place_of_detention =
+                    $validated["place_of_detention"] ?? null;
             } catch (\Exception $e) {
                 // Temporärer Workaround, falls die Spalten noch nicht existieren
-                Log::warning("Wikidata fields could not be saved: " . $e->getMessage());
+                Log::warning(
+                    "Wikidata fields could not be saved: " . $e->getMessage()
+                );
             }
 
             // Zeitpunkt oder Zeitraum je nach Typ
             if (isset($validated["eventTimeType"])) {
                 if ($validated["eventTimeType"] === "point") {
                     $entryRequest->time_point = $validated["eventDate"] ?? null;
-                    $entryRequest->time_point_qualifier = $validated["eventDateQualifier"] ?? null;
+                    $entryRequest->time_point_qualifier =
+                        $validated["eventDateQualifier"] ?? null;
                 } elseif ($validated["eventTimeType"] === "range") {
                     $entryRequest->time_period_start =
                         $validated["eventStartDate"] ?? null;
@@ -102,9 +108,12 @@ class WikidataEntityController extends Controller
 
             // Debug-Ausgabe für Zeit-Qualifier
             Log::debug("Zeit-Qualifier-Werte", [
-                'time_point_qualifier' => $validated["eventDateQualifier"] ?? 'nicht gesetzt',
-                'time_period_start_qualifier' => $validated["eventStartDateQualifier"] ?? 'nicht gesetzt',
-                'time_period_end_qualifier' => $validated["eventEndDateQualifier"] ?? 'nicht gesetzt',
+                "time_point_qualifier" =>
+                    $validated["eventDateQualifier"] ?? "nicht gesetzt",
+                "time_period_start_qualifier" =>
+                    $validated["eventStartDateQualifier"] ?? "nicht gesetzt",
+                "time_period_end_qualifier" =>
+                    $validated["eventEndDateQualifier"] ?? "nicht gesetzt",
             ]);
 
             // Statistiken
@@ -112,29 +121,43 @@ class WikidataEntityController extends Controller
             $entryRequest->survivor_count = $validated["survivorCount"] ?? null;
             $entryRequest->death_count = $validated["deathCount"] ?? null;
             $entryRequest->arrest_count = $validated["arrestCount"] ?? null;
-            
+
             // Qualifier für Statistiken
-            $entryRequest->victim_count_qualifier = $validated["victimCountQualifier"] ?? null;
-            $entryRequest->survivor_count_qualifier = $validated["survivorCountQualifier"] ?? null;
-            $entryRequest->death_count_qualifier = $validated["deathCountQualifier"] ?? null;
-            $entryRequest->arrest_count_qualifier = $validated["arrestCountQualifier"] ?? null;
-            
+            $entryRequest->victim_count_qualifier =
+                $validated["victimCountQualifier"] ?? null;
+            $entryRequest->survivor_count_qualifier =
+                $validated["survivorCountQualifier"] ?? null;
+            $entryRequest->death_count_qualifier =
+                $validated["deathCountQualifier"] ?? null;
+            $entryRequest->arrest_count_qualifier =
+                $validated["arrestCountQualifier"] ?? null;
+
             // Debug-Ausgabe für Qualifier
             Log::debug("Qualifier-Werte", [
-                'victim_qualifier' => $validated["victimCountQualifier"] ?? 'nicht gesetzt',
-                'survivor_qualifier' => $validated["survivorCountQualifier"] ?? 'nicht gesetzt',
-                'death_qualifier' => $validated["deathCountQualifier"] ?? 'nicht gesetzt',
-                'arrest_qualifier' => $validated["arrestCountQualifier"] ?? 'nicht gesetzt',
+                "victim_qualifier" =>
+                    $validated["victimCountQualifier"] ?? "nicht gesetzt",
+                "survivor_qualifier" =>
+                    $validated["survivorCountQualifier"] ?? "nicht gesetzt",
+                "death_qualifier" =>
+                    $validated["deathCountQualifier"] ?? "nicht gesetzt",
+                "arrest_qualifier" =>
+                    $validated["arrestCountQualifier"] ?? "nicht gesetzt",
             ]);
 
             // Ursache
             $entryRequest->cause = $validated["cause"] ?? null;
             // Speichern der ausgewählten Ursachen
             if (!empty($validated["causes"])) {
-                $entryRequest->selected_causes = json_encode($validated["causes"]);
+                $entryRequest->selected_causes = json_encode(
+                    $validated["causes"]
+                );
             }
 
-            // Quellen
+            // Quellen - Clean up before storing
+            if (!empty($validated["sources"])) {
+                $formatter = app(\App\Services\Wikidata\WikidataFormatterModels::class);
+                $validated["sources"] = $formatter->cleanupSourceData($validated["sources"]);
+            }
             $entryRequest->sources = $validated["sources"] ?? null;
 
             // Bildinformationen
@@ -142,18 +165,18 @@ class WikidataEntityController extends Controller
             $entryRequest->image_filename = $validated["imageFilename"] ?? null;
 
             $entryRequest->status = "pending";
-            
+
             // Initialize status history
             $statusHistory = [
                 [
-                    'status' => 'pending',
-                    'date' => now(),
-                    'comment' => 'Eintrag wurde eingereicht.'
-                ]
+                    "status" => "pending",
+                    "date" => now(),
+                    "comment" => "Eintrag wurde eingereicht.",
+                ],
             ];
             $entryRequest->status_history = $statusHistory;
             $entryRequest->status_updated_at = now();
-            
+
             // Store the status token if provided
             if (!empty($validated["statusToken"])) {
                 $entryRequest->status_token = $validated["statusToken"];
@@ -161,7 +184,7 @@ class WikidataEntityController extends Controller
                 // Generate a random token if none is provided
                 $entryRequest->status_token = bin2hex(random_bytes(24));
             }
-            
+
             $entryRequest->submitted_by = "anonymous";
             $entryRequest->save();
 
@@ -251,17 +274,18 @@ class WikidataEntityController extends Controller
 
             // Pru00fcfen, ob die Anfrage bereits genehmigt wurde
             if ($entryRequest->status === "approved") {
-                if ($request->has('redirect')) {
+                if ($request->has("redirect")) {
                     return response()->json(
                         [
-                            "redirect" => $request->input('redirect'),
+                            "redirect" => $request->input("redirect"),
                             "success" => false,
-                            "message" => "Diese Anfrage wurde bereits genehmigt.",
+                            "message" =>
+                                "Diese Anfrage wurde bereits genehmigt.",
                         ],
                         Response::HTTP_BAD_REQUEST
                     );
                 }
-                
+
                 return response()->json(
                     [
                         "success" => false,
@@ -272,25 +296,37 @@ class WikidataEntityController extends Controller
             }
 
             // Anfrage genehmigen und Status-History aktualisieren
-            $comment = $request->input('comment', 'Eintrag wurde genehmigt.');
-            
+            $comment = $request->input("comment", "Eintrag wurde genehmigt.");
+
             // Use the EntryStatusController to update status history
-            app(\App\Http\Controllers\EntryStatusController::class)->updateStatusHistory(
-                $entryRequest, 
-                "approved", 
-                $comment
-            );
-            
+            app(
+                \App\Http\Controllers\EntryStatusController::class
+            )->updateStatusHistory($entryRequest, "approved", $comment);
+
             $entryRequest->approved_by = "admin"; // Spu00e4ter durch authentifizierten Benutzer ersetzen
             $entryRequest->save();
 
             // Job in die Queue stellen, um Wikidata-Eintrag asynchron zu erstellen
-            \App\Jobs\CreateWikidataEntity::dispatch($entryRequest);
+            // Add callback URL for updating status when the entity is created
+            $callbackUrl = url('/api/wikidata/entity-callback');
+            
+            // Make sure any formatter instance has debug mode disabled
+            $formatter = app(\App\Services\Wikidata\WikidataFormatterModels::class);
+            if (method_exists($formatter, 'setDebugMode')) {
+                $formatter->setDebugMode(false);
+                Log::info("Debug mode explicitly disabled before dispatching CreateWikidataEntity job");
+            }
+            
+            \App\Jobs\CreateWikidataEntity::dispatch(
+                $entryRequest->toArray(),
+                $entryRequest->type,
+                $callbackUrl
+            );
 
-            if ($request->has('redirect')) {
+            if ($request->has("redirect")) {
                 return response()->json(
                     [
-                        "redirect" => $request->input('redirect'),
+                        "redirect" => $request->input("redirect"),
                         "success" => true,
                         "message" =>
                             "Anfrage genehmigt und Wikidata-Eintrag zur Queue hinzugefügt.",
@@ -298,7 +334,7 @@ class WikidataEntityController extends Controller
                     Response::HTTP_OK
                 );
             }
-            
+
             return response()->json(
                 [
                     "success" => true,
@@ -310,10 +346,10 @@ class WikidataEntityController extends Controller
         } catch (\Exception $e) {
             Log::error("Error approving request: " . $e->getMessage());
 
-            if ($request->has('redirect')) {
+            if ($request->has("redirect")) {
                 return response()->json(
                     [
-                        "redirect" => $request->input('redirect'),
+                        "redirect" => $request->input("redirect"),
                         "success" => false,
                         "message" =>
                             "Fehler bei der Genehmigung der Anfrage: " .
@@ -322,7 +358,7 @@ class WikidataEntityController extends Controller
                     Response::HTTP_INTERNAL_SERVER_ERROR
                 );
             }
-            
+
             return response()->json(
                 [
                     "success" => false,
@@ -351,10 +387,10 @@ class WikidataEntityController extends Controller
         ]);
 
         if ($validator->fails()) {
-            if ($request->has('redirect')) {
+            if ($request->has("redirect")) {
                 return response()->json(
                     [
-                        "redirect" => $request->input('redirect'),
+                        "redirect" => $request->input("redirect"),
                         "success" => false,
                         "message" => "Ungültige Eingabe",
                         "errors" => $validator->errors(),
@@ -362,7 +398,7 @@ class WikidataEntityController extends Controller
                     Response::HTTP_BAD_REQUEST
                 );
             }
-            
+
             return response()->json(
                 [
                     "success" => false,
@@ -378,17 +414,18 @@ class WikidataEntityController extends Controller
 
             // Pru00fcfen, ob die Anfrage bereits abgelehnt wurde
             if ($entryRequest->status === "rejected") {
-                if ($request->has('redirect')) {
+                if ($request->has("redirect")) {
                     return response()->json(
                         [
-                            "redirect" => $request->input('redirect'),
+                            "redirect" => $request->input("redirect"),
                             "success" => false,
-                            "message" => "Diese Anfrage wurde bereits abgelehnt.",
+                            "message" =>
+                                "Diese Anfrage wurde bereits abgelehnt.",
                         ],
                         Response::HTTP_BAD_REQUEST
                     );
                 }
-                
+
                 return response()->json(
                     [
                         "success" => false,
@@ -399,30 +436,28 @@ class WikidataEntityController extends Controller
             }
 
             // Anfrage ablehnen und Status-History aktualisieren
-            $comment = $request->input('reason', 'Eintrag wurde abgelehnt.');
-            
+            $comment = $request->input("reason", "Eintrag wurde abgelehnt.");
+
             // Use the EntryStatusController to update status history
-            app(\App\Http\Controllers\EntryStatusController::class)->updateStatusHistory(
-                $entryRequest, 
-                "rejected", 
-                $comment
-            );
-            
+            app(
+                \App\Http\Controllers\EntryStatusController::class
+            )->updateStatusHistory($entryRequest, "rejected", $comment);
+
             $entryRequest->rejected_by = "admin"; // Spu00e4ter durch authentifizierten Benutzer ersetzen
             $entryRequest->rejection_reason = $request->input("reason");
             $entryRequest->save();
 
-            if ($request->has('redirect')) {
+            if ($request->has("redirect")) {
                 return response()->json(
                     [
-                        "redirect" => $request->input('redirect'),
+                        "redirect" => $request->input("redirect"),
                         "success" => true,
                         "message" => "Anfrage erfolgreich abgelehnt.",
                     ],
                     Response::HTTP_OK
                 );
             }
-            
+
             return response()->json(
                 [
                     "success" => true,
@@ -433,10 +468,10 @@ class WikidataEntityController extends Controller
         } catch (\Exception $e) {
             Log::error("Error rejecting request: " . $e->getMessage());
 
-            if ($request->has('redirect')) {
+            if ($request->has("redirect")) {
                 return response()->json(
                     [
-                        "redirect" => $request->input('redirect'),
+                        "redirect" => $request->input("redirect"),
                         "success" => false,
                         "message" =>
                             "Fehler bei der Ablehnung der Anfrage: " .
@@ -445,7 +480,7 @@ class WikidataEntityController extends Controller
                     Response::HTTP_INTERNAL_SERVER_ERROR
                 );
             }
-            
+
             return response()->json(
                 [
                     "success" => false,
@@ -461,17 +496,30 @@ class WikidataEntityController extends Controller
     /**
      * Fu00fchrt eine erneute Verarbeitung einer fehlgeschlagenen Anfrage durch.
      *
+     * @param  Request  $request
      * @param  int  $id
      *
      * @return JsonResponse
      */
-    public function retryRequest(int $id): JsonResponse
+    public function retryRequest(Request $request, int $id): JsonResponse
     {
         try {
             $entryRequest = WikidataEntryRequest::findOrFail($id);
 
             // Pru00fcfen, ob die Anfrage im Status "error" ist
             if ($entryRequest->status !== "error") {
+                if ($request->has("redirect")) {
+                    return response()->json(
+                        [
+                            "redirect" => $request->input("redirect"),
+                            "success" => false,
+                            "message" =>
+                                "Nur Anfragen mit dem Status 'error' ku00f6nnen erneut verarbeitet werden.",
+                        ],
+                        Response::HTTP_BAD_REQUEST
+                    );
+                }
+                
                 return response()->json(
                     [
                         "success" => false,
@@ -483,29 +531,63 @@ class WikidataEntityController extends Controller
             }
 
             // Status aktualisieren und Status-History aktualisieren
-            $comment = 'Eintrag wurde erneut zur Verarbeitung eingereicht.';
-            
+            $comment = "Eintrag wurde erneut zur Verarbeitung eingereicht.";
+
             // Use the EntryStatusController to update status history
-            app(\App\Http\Controllers\EntryStatusController::class)->updateStatusHistory(
-                $entryRequest, 
-                "pending", 
-                $comment
-            );
-            
+            app(
+                \App\Http\Controllers\EntryStatusController::class
+            )->updateStatusHistory($entryRequest, "pending", $comment);
+
             $entryRequest->error_message = null; // Fehler zurücksetzen
+            $entryRequest->status = "pending"; // Status auf pending setzen
             $entryRequest->save();
+            
+            // Job in die Queue stellen, um Wikidata-Eintrag asynchron zu erstellen
+            // Job in die Queue stellen
+            $callbackUrl = url('/api/wikidata/entity-callback');
+            
+            \App\Jobs\CreateWikidataEntity::dispatch(
+                $entryRequest->toArray(),
+                $entryRequest->type,
+                $callbackUrl
+            );
+
+            if ($request->has("redirect")) {
+                return response()->json(
+                    [
+                        "redirect" => $request->input("redirect"),
+                        "success" => true,
+                        "message" =>
+                            "Anfrage wurde zur erneuten Verarbeitung eingereicht und zur Queue hinzugefu00fcgt.",
+                    ],
+                    Response::HTTP_OK
+                );
+            }
 
             return response()->json(
                 [
                     "success" => true,
                     "message" =>
-                        "Anfrage wurde zur erneuten Verarbeitung markiert.",
+                        "Anfrage wurde zur erneuten Verarbeitung eingereicht und zur Queue hinzugefu00fcgt.",
                 ],
                 Response::HTTP_OK
             );
         } catch (\Exception $e) {
             Log::error("Error retrying request: " . $e->getMessage());
 
+            if ($request->has("redirect")) {
+                return response()->json(
+                    [
+                        "redirect" => $request->input("redirect"),
+                        "success" => false,
+                        "message" =>
+                            "Fehler bei der erneuten Verarbeitung: " .
+                            $e->getMessage(),
+                    ],
+                    Response::HTTP_INTERNAL_SERVER_ERROR
+                );
+            }
+            
             return response()->json(
                 [
                     "success" => false,
@@ -544,6 +626,144 @@ class WikidataEntityController extends Controller
                     "success" => false,
                     "message" =>
                         "Fehler beim Abrufen der Anfrage: " . $e->getMessage(),
+                ],
+                Response::HTTP_INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    /**
+     * Zieht die Genehmigung eines Eintrags zuru00fcck und markiert ihn als abgelehnt.
+     *
+     * @param Request $request
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function retractRequest(Request $request, int $id): JsonResponse
+    {
+        // Validieren Sie die Eingaben
+        $validator = Validator::make($request->all(), [
+            "reason" => "required|string|max:1000",
+        ]);
+
+        if ($validator->fails()) {
+            if ($request->has("redirect")) {
+                return response()->json(
+                    [
+                        "redirect" => $request->input("redirect"),
+                        "success" => false,
+                        "message" => "Ungu00fcltige Eingabe",
+                        "errors" => $validator->errors(),
+                    ],
+                    Response::HTTP_BAD_REQUEST
+                );
+            }
+
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" => "Ungu00fcltige Eingabe",
+                    "errors" => $validator->errors(),
+                ],
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        try {
+            $entryRequest = WikidataEntryRequest::findOrFail($id);
+
+            // Pru00fcfen, ob die Anfrage genehmigt wurde
+            if ($entryRequest->status !== "approved") {
+                if ($request->has("redirect")) {
+                    return response()->json(
+                        [
+                            "redirect" => $request->input("redirect"),
+                            "success" => false,
+                            "message" =>
+                                "Nur genehmigte Anfragen können zurückgezogen werden.",
+                        ],
+                        Response::HTTP_BAD_REQUEST
+                    );
+                }
+
+                return response()->json(
+                    [
+                        "success" => false,
+                        "message" =>
+                            "Nur genehmigte Anfragen können zurückgezogen werden.",
+                    ],
+                    Response::HTTP_BAD_REQUEST
+                );
+            }
+
+            // Anfrage zuru00fcckziehen und als abgelehnt markieren
+            $comment =
+                "Genehmigung zurückgezogen: " . $request->input("reason");
+
+            // Use the EntryStatusController to update status history
+            app(
+                \App\Http\Controllers\EntryStatusController::class
+            )->updateStatusHistory($entryRequest, "rejected", $comment);
+
+            // Aktualisiere den Status und setze den Ablehnungsgrund
+            $entryRequest->status = "rejected";
+            $entryRequest->rejected_by = auth()->check()
+                ? auth()->user()->name
+                : "admin";
+            $entryRequest->rejection_reason = $request->input("reason");
+            $entryRequest->save();
+
+            // Log the retraction
+            Log::info("Approval retracted for entry", [
+                "id" => $entryRequest->id,
+                "title" => $entryRequest->title,
+                "wikidata_id" => $entryRequest->wikidata_id,
+                "reason" => $request->input("reason"),
+                "user" => auth()->check() ? auth()->user()->name : "admin",
+            ]);
+
+            if ($request->has("redirect")) {
+                return response()->json(
+                    [
+                        "redirect" => $request->input("redirect"),
+                        "success" => true,
+                        "message" =>
+                            "Genehmigung erfolgreich zurückgezogen. Der Eintrag wurde als abgelehnt markiert.",
+                    ],
+                    Response::HTTP_OK
+                );
+            }
+
+            return response()->json(
+                [
+                    "success" => true,
+                    "message" =>
+                        "Genehmigung erfolgreich zurückgezogen. Der Eintrag wurde als abgelehnt markiert.",
+                ],
+                Response::HTTP_OK
+            );
+        } catch (\Exception $e) {
+            Log::error("Error retracting approval: " . $e->getMessage());
+
+            if ($request->has("redirect")) {
+                return response()->json(
+                    [
+                        "redirect" => $request->input("redirect"),
+                        "success" => false,
+                        "message" =>
+                            "Fehler beim Zuru00fcckziehen der Genehmigung: " .
+                            $e->getMessage(),
+                    ],
+                    Response::HTTP_INTERNAL_SERVER_ERROR
+                );
+            }
+
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" =>
+                        "Fehler beim Zuru00fcckziehen der Genehmigung: " .
+                        $e->getMessage(),
                 ],
                 Response::HTTP_INTERNAL_SERVER_ERROR
             );
@@ -820,5 +1040,138 @@ class WikidataEntityController extends Controller
         // Simuliert den Ru00fcckgabewert der Wikidata-API
         // In einer realen Anwendung wu00fcrde dies die tatsu00e4chliche ID von Wikidata sein
         return "Q" . rand(10000000, 99999999);
+    }
+    
+    /**
+     * Handles callback from the Wikidata entity creation job
+     * Updates the entity status and wikidata_id
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function handleEntityCallback(Request $request): JsonResponse
+    {
+        try {
+            // Validate the request contains original_data
+            $validator = Validator::make($request->all(), [
+                'original_data' => 'required|array',
+                'status' => 'required|string',
+            ]);
+
+            if ($validator->fails()) {
+                Log::error('Invalid entity callback data', [
+                    'errors' => $validator->errors(),
+                    'data' => $request->all()
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid callback data',
+                    'errors' => $validator->errors(),
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            // Extract data from the request
+            $status = $request->input('status');
+            $originalData = $request->input('original_data');
+            $entityId = $request->input('entity_id'); // May be null in case of failure
+            $createdEntities = $request->input('created_entities', []);
+            $error = $request->input('error');
+            
+            // Find the original entity request
+            $entryId = $originalData['id'] ?? null;
+            
+            if (!$entryId) {
+                Log::error('Missing ID in entity callback data', [
+                    'entity_id' => $entityId,
+                    'data' => $originalData
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Missing ID in original data',
+                ], Response::HTTP_BAD_REQUEST);
+            }
+            
+            $entryRequest = WikidataEntryRequest::find($entryId);
+            
+            if (!$entryRequest) {
+                Log::error('Entry request not found for callback', [
+                    'entry_id' => $entryId,
+                    'entity_id' => $entityId,
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Entry request not found',
+                ], Response::HTTP_NOT_FOUND);
+            }
+            // Update based on status
+            if ($status === 'success' && $entityId) {
+                // Update the entry with the Wikidata ID
+                $entryRequest->wikidata_id = $entityId;
+                $entryRequest->created_entities = $createdEntities;
+                
+                // Update status to wikidata_published
+                app(\App\Http\Controllers\EntryStatusController::class)
+                    ->updateStatusHistory(
+                        $entryRequest,
+                        'wikidata_published',
+                        "Eintrag erfolgreich erstellt mit Wikidata-ID: {$entityId}"
+                    );
+                
+                Log::info('Updated entry status after successful Wikidata creation', [
+                    'entry_id' => $entryId,
+                    'entity_id' => $entityId,
+                    'status' => 'wikidata_published',
+                    'created_entities_count' => count($createdEntities)
+                ]);
+            } 
+            else if ($status === 'failed') {
+                // Handle failed entity creation
+                $errorMessage = $error ?? 'Unbekannter Fehler bei der Erstellung des Wikidata-Eintrags';
+                
+                // Update status to indicate failure
+                app(\App\Http\Controllers\EntryStatusController::class)
+                    ->updateStatusHistory(
+                        $entryRequest,
+                        'wikidata_failed',
+                        "Fehler bei der Erstellung des Wikidata-Eintrags: {$errorMessage}"
+                    );
+                
+                Log::error('Entity creation failed', [
+                    'entry_id' => $entryId,
+                    'error' => $errorMessage
+                ]);
+            }
+            else {
+                Log::warning('Unexpected status in callback', [
+                    'status' => $status,
+                    'entry_id' => $entryId,
+                    'entity_id' => $entityId
+                ]);
+            }
+                
+            $entryRequest->save();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Entry status updated successfully',
+                'entry_id' => $entryId,
+                'entity_id' => $entityId,
+                'status' => $status
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error handling entity callback: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'data' => $request->all()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error processing callback: ' . $e->getMessage(),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }

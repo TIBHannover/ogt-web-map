@@ -132,7 +132,7 @@ class WikidataAuthController extends Controller
             // Benutzer anmelden
             Auth::login($user);
 
-            // Lu00f6schen Sie den State aus der Session
+            // Löschen Sie den State aus der Session
             $request->session()->forget("wikidata_auth_state");
 
             // Weiterleitung zum urspru00fcnglich angeforderten Pfad oder zur Standard-Seite

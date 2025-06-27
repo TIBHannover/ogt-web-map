@@ -90,6 +90,8 @@
                                                 <span class="badge bg-danger">Abgelehnt</span>
                                             @elseif($request->status == 'error')
                                                 <span class="badge bg-warning">Fehler</span>
+                                            @elseif($request->status == 'wikidata_published')
+                                                <span class="badge bg-info">In Wikidata veröffentlicht</span>
                                             @endif
                                         </td>
                                         <td>{{ $request->created_at->format('d.m.Y H:i') }}</td>

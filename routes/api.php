@@ -60,6 +60,10 @@ Route::post("/wikidata/requests/{id}/retry", [
     WikidataEntityController::class,
     "retryRequest",
 ]);
+Route::post("/wikidata/requests/{id}/retract", [
+    WikidataEntityController::class,
+    "retractRequest",
+]);
 
 // OAuth-Routen für Wikidata
 Route::get("/wikidata/oauth", [
@@ -123,4 +127,10 @@ Route::get("/wikidata/search/places", [
 Route::get("/wikidata/search", [
     App\Http\Controllers\Api\WikidataSearchController::class,
     "search",
+]);
+
+// Route for entity creation webhook callback
+Route::post("/wikidata/entity-callback", [
+    WikidataEntityController::class,
+    "handleEntityCallback",
 ]);

@@ -14,6 +14,14 @@ class WikidataOptimizer
      */
     public function optimize(array $data, string $operation): array
     {
+        // Log the input data before optimization
+        Log::debug("WikidataOptimizer: Input data before optimization", [
+            "operation" => $operation,
+            "claims_count" => isset($data["claims"]) ? count($data["claims"]) : 0,
+            "claim_keys" => isset($data["claims"]) ? array_keys($data["claims"]) : [],
+            "has_P31" => isset($data["claims"]["P31"]) ? "yes" : "no"
+        ]);
+        
         $optimizedData = match ($operation) {
             "create" => $this->optimizeForCreate($data),
             "update" => $this->optimizeForUpdate($data),
@@ -49,6 +57,14 @@ class WikidataOptimizer
                 );
             }
         }
+        
+        // Log the output data after optimization
+        Log::debug("WikidataOptimizer: Output data after optimization", [
+            "operation" => $operation,
+            "claims_count" => isset($optimizedData["claims"]) ? count($optimizedData["claims"]) : 0,
+            "claim_keys" => isset($optimizedData["claims"]) ? array_keys($optimizedData["claims"]) : [],
+            "has_P31" => isset($optimizedData["claims"]["P31"]) ? "yes" : "no"
+        ]);
 
         return $optimizedData;
     }

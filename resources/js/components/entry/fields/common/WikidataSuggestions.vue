@@ -65,6 +65,12 @@ const qIdData = {
         description:
             "Verfolgung aufgrund politischer Überzeugungen oder Aktivitäten",
     },
+    Q22649: {
+        id: "Q22649",
+        label: "Antisemitismus",
+        description:
+            "Judenfeindschaft im Kontext moderner Ideologien, insbesondere Nationalismus, Rassismus und Islamismus",
+    },
     // You can add more predefined entities as needed
 };
 

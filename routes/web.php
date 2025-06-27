@@ -52,6 +52,17 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/requests', [DashboardController::class, 'requests'])->name('admin.requests');
     Route::get('/requests/{id}', [DashboardController::class, 'showRequest'])->name('admin.requests.show');
     Route::get('/users', [DashboardController::class, 'users'])->name('admin.users');
+    
+    // Jobs management routes
+    Route::get('/jobs', [\App\Http\Controllers\Admin\JobsController::class, 'index'])->name('admin.jobs.index');
+    Route::delete('/jobs/{id}', [\App\Http\Controllers\Admin\JobsController::class, 'destroy'])->name('admin.jobs.destroy');
+    Route::delete('/jobs', [\App\Http\Controllers\Admin\JobsController::class, 'destroyAll'])->name('admin.jobs.destroy-all');
+    
+    // Failed jobs management routes
+    Route::delete('/jobs/failed/{id}', [\App\Http\Controllers\Admin\JobsController::class, 'destroyFailed'])->name('admin.jobs.destroy-failed');
+    Route::delete('/jobs/failed', [\App\Http\Controllers\Admin\JobsController::class, 'destroyAllFailed'])->name('admin.jobs.destroy-all-failed');
+    Route::post('/jobs/failed/{id}/retry', [\App\Http\Controllers\Admin\JobsController::class, 'retryFailed'])->name('admin.jobs.retry-failed');
+    Route::post('/jobs/failed/retry-all', [\App\Http\Controllers\Admin\JobsController::class, 'retryAllFailed'])->name('admin.jobs.retry-all-failed');
 });
 
 // Wikidata API routes
