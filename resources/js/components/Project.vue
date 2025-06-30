@@ -496,6 +496,29 @@
                             >
                         </a>
                     </p>
+                    <p>
+                        09.06.2025
+                        <br />
+                        Beitrag im Deutschlandfunk –
+                        <a
+                            href="https://soundcloud.com/user-1729749-220690678/gestapoterrororte-in-niedersachsen-1933-1945?si=5f09637bde0045a9a6021d777d621afa&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing"
+                            target="_blank"
+                        >
+                            Gestapo.Terror.Orte in Niedersachsen 1933 - 1945
+                            <v-icon size="small" class="vertical-align-top"
+                                >mdi-open-in-new</v-icon
+                            >
+                        </a>
+                        <br />
+                        Urheberin: Agnes Bührig für Deutschlandfunk. Den ganzen
+                        Bericht kann man
+                        <a
+                            href="https://www.deutschlandfunk.de/forschung-fuer-alle-wie-citizen-science-die-wissenschaft-staerkt-100.html"
+                            target="_blank"
+                            >hier</a
+                        >
+                        nachhören.
+                    </p>
                 </section>
             </v-col>
         </v-row>
