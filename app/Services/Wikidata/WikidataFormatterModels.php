@@ -64,6 +64,8 @@ class WikidataFormatterModels
     public const WIKIDATA_INVENTORY_NUMBER = "P217"; // Inventory number
     public const WIKIDATA_PAGE = "P304"; // Page
     public const WIKIDATA_STATED_IN_URL = "P973"; // Described in URL
+    public const WIKIDATA_LANGUAGE = "P407"; // Language
+    public const WIKIDATA_RETRIEVAL_DATE = "P813"; // Retrieved date
 
     /**
      * Constructor
@@ -968,6 +970,36 @@ class WikidataFormatterModels
                     $qualifierProperties = array_keys(
                         $sourceClaim["qualifiers"]
                     );
+                    
+                    Log::debug("Source claim contains qualifiers", [
+                        "property" => $propertyId,
+                        "qualifiers" => $qualifierProperties,
+                        "source_type" => $sourceType
+                    ]);
+                    
+                    // Check for specific qualifiers based on source type
+                    if ($sourceType === 'book' && !in_array(self::WIKIDATA_PAGE, $qualifierProperties)) {
+                        Log::debug("Book source without page qualifier", [
+                            "source_title" => $sourceTitle
+                        ]);
+                    }
+                    if ($sourceType === 'archive' && !in_array(self::WIKIDATA_INVENTORY_NUMBER, $qualifierProperties)) {
+                        Log::debug("Archive source without inventory number qualifier", [
+                            "source_title" => $sourceTitle
+                        ]);
+                    }
+                    if ($sourceType === 'url') {
+                        if (!in_array(self::WIKIDATA_LANGUAGE, $qualifierProperties)) {
+                            Log::debug("URL source without language qualifier", [
+                                "source_title" => $sourceTitle
+                            ]);
+                        }
+                        if (!in_array(self::WIKIDATA_RETRIEVAL_DATE, $qualifierProperties)) {
+                            Log::debug("URL source without retrieval date qualifier", [
+                                "source_title" => $sourceTitle
+                            ]);
+                        }
+                    }
                 }
 
                 // Add the source claim with all its qualifiers

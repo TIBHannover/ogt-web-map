@@ -65,10 +65,10 @@ class UrlSource extends BaseSource
         if (!empty($this->accessDate)) {
             $accessDate = $this->formatDate($this->accessDate);
             if ($accessDate !== null) {
-                $reference['snaks']['P813'] = [
+                $reference['snaks'][WikidataFormatterModels::WIKIDATA_RETRIEVAL_DATE] = [
                     [
                         'snaktype' => 'value',
-                        'property' => 'P813',
+                        'property' => WikidataFormatterModels::WIKIDATA_RETRIEVAL_DATE,
                         'datavalue' => [
                             'value' => $accessDate,
                             'type' => 'time'
@@ -113,7 +113,53 @@ class UrlSource extends BaseSource
             'rank' => 'normal'
         ];
         
+        // Add qualifiers for language and retrieval date
+        $claim['qualifiers'] = $this->createQualifiers();
+        
         return $claim;
+    }
+    
+    /**
+     * Create qualifiers for the claim
+     */
+    protected function createQualifiers(): array
+    {
+        $qualifiers = [];
+        
+        // Language qualifier (P407) - default to German (Q188)
+        $qualifiers[WikidataFormatterModels::WIKIDATA_LANGUAGE] = [
+            [
+                'snaktype' => 'value',
+                'property' => WikidataFormatterModels::WIKIDATA_LANGUAGE,
+                'datavalue' => [
+                    'value' => [
+                        'entity-type' => 'item',
+                        'id' => 'Q188', // German
+                        'numeric-id' => 188
+                    ],
+                    'type' => 'wikibase-entityid'
+                ]
+            ]
+        ];
+        
+        // Retrieval date qualifier (P813)
+        if (!empty($this->accessDate)) {
+            $accessDate = $this->formatDate($this->accessDate);
+            if ($accessDate !== null) {
+                $qualifiers[WikidataFormatterModels::WIKIDATA_RETRIEVAL_DATE] = [
+                    [
+                        'snaktype' => 'value',
+                        'property' => WikidataFormatterModels::WIKIDATA_RETRIEVAL_DATE,
+                        'datavalue' => [
+                            'value' => $accessDate,
+                            'type' => 'time'
+                        ]
+                    ]
+                ];
+            }
+        }
+        
+        return $qualifiers;
     }
     
     /**
