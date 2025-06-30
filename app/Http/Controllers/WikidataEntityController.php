@@ -308,7 +308,12 @@ class WikidataEntityController extends Controller
 
             // Job in die Queue stellen, um Wikidata-Eintrag asynchron zu erstellen
             // Add callback URL for updating status when the entity is created
-            $callbackUrl = url('/api/wikidata/entity-callback');
+            // Use the configured app URL instead of relying on url() helper which might use localhost
+            $appUrl = config('app.url', 'http://localhost');
+            $callbackUrl = rtrim($appUrl, '/') . '/api/wikidata/entity-callback';
+            
+            // Log the callback URL for debugging
+            \Illuminate\Support\Facades\Log::info('Using callback URL: ' . $callbackUrl);
             
             // Make sure any formatter instance has debug mode disabled
             $formatter = app(\App\Services\Wikidata\WikidataFormatterModels::class);

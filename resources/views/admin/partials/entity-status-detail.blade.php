@@ -1,17 +1,17 @@
 @php
     use App\Services\Wikidata\WikidataFormatterModels;
-    
+
     // Define status badge colors and labels
     $statusInfo = [
         'pending' => ['color' => 'primary', 'label' => 'In Bearbeitung'],
         'approved' => ['color' => 'success', 'label' => 'Genehmigt'],
         'rejected' => ['color' => 'danger', 'label' => 'Abgelehnt'],
         'wikidata_submitted' => ['color' => 'info', 'label' => 'An Wikidata u00fcbermittelt'],
-        'wikidata_published' => ['color' => 'success', 'label' => 'In Wikidata veru00f6ffentlicht'],
+        'wikidata_published' => ['color' => 'success', 'label' => 'In Wikidata veröffentlicht'],
         'wikidata_failed' => ['color' => 'danger', 'label' => 'Fehler bei Wikidata-Erstellung'],
         'error' => ['color' => 'warning', 'label' => 'Fehler']
     ];
-    
+
     // Helper function to get entity type label
     function getEntityTypeLabel($type) {
         $types = [
@@ -29,7 +29,7 @@
             \App\Services\Wikidata\WikidataFormatterModels::ROLE_PERPETRATOR => 'Täter*in',
             \App\Services\Wikidata\WikidataFormatterModels::ROLE_VICTIM => 'Opfer'
         ];
-        
+
         return $types[$type] ?? $type;
     }
 @endphp
@@ -50,33 +50,33 @@
                 </div>
                 <span class="badge bg-{{ $statusInfo[$request->status]['color'] }}">{{ $statusInfo[$request->status]['label'] }}</span>
             </div>
-            
+
             @if($request->wikidata_id)
                 <div class="mb-2">
-                    <strong>Wikidata-ID:</strong> 
+                    <strong>Wikidata-ID:</strong>
                     <a href="https://www.wikidata.org/wiki/{{ $request->wikidata_id }}" target="_blank" class="text-decoration-none">
                         {{ $request->wikidata_id }} <i class="bi bi-box-arrow-up-right"></i>
                     </a>
                 </div>
             @endif
-            
+
             @if($request->status_updated_at)
                 <div class="mb-2">
                     <strong>Letzte Aktualisierung:</strong> {{ \Carbon\Carbon::parse($request->status_updated_at)->format('d.m.Y H:i') }}
                 </div>
             @endif
-            
+
             @if($request->comment)
                 <div class="mb-2">
                     <strong>Kommentar:</strong> {{ $request->comment }}
                 </div>
             @endif
-            
+
             @if($request->status == 'wikidata_failed' || $request->status == 'error')
                 <div class="alert alert-danger mb-0">
                     <i class="bi bi-exclamation-triangle-fill me-2"></i>
                     <strong>Fehler:</strong> {{ $request->error_message ?? 'Ein Fehler ist bei der Verarbeitung aufgetreten.' }}
-                    
+
                     <div class="mt-2">
                         <form action="/api/wikidata/requests/{{ $request->id }}/retry" method="POST" class="d-inline">
                             @csrf
@@ -89,7 +89,7 @@
                 </div>
             @endif
         </div>
-        
+
         <!-- Status-Historie -->
         @if(!empty($request->status_history) && count($request->status_history) > 0)
             <div class="mb-4">
@@ -131,10 +131,10 @@
                             @foreach($request->created_entities as $entity)
                                 <tr>
                                     <td>
-                                        <span class="badge bg-{{ 
-                                            $entity['type'] == 'perpetrator' ? 'danger' : 
-                                            ($entity['type'] == 'victim' ? 'info' : 
-                                            ($entity['type'] == 'book' ? 'primary' : 'secondary')) 
+                                        <span class="badge bg-{{
+                                            $entity['type'] == 'perpetrator' ? 'danger' :
+                                            ($entity['type'] == 'victim' ? 'info' :
+                                            ($entity['type'] == 'book' ? 'primary' : 'secondary'))
                                         }}">
                                             {{ getEntityTypeLabel($entity['type']) }}
                                         </span>
@@ -150,7 +150,7 @@
                                     </td>
                                 </tr>
                             @endforeach
-                            
+
                             <!-- Verknüpfte existierende Entitäten -->
                             @if(isset($request->perpetrators) && is_array($request->perpetrators))
                                 @foreach($request->perpetrators as $perpetrator)
@@ -170,7 +170,7 @@
                                     @endif
                                 @endforeach
                             @endif
-                            
+
                             @if(isset($request->victims) && is_array($request->victims))
                                 @foreach($request->victims as $victim)
                                     @if(!empty($victim['id']) && substr($victim['id'], 0, 1) === 'Q' && empty($victim['_wasCreated']))
@@ -189,7 +189,7 @@
                                     @endif
                                 @endforeach
                             @endif
-                            
+
                             @if(isset($request->sources) && is_array($request->sources))
                                 @foreach($request->sources as $source)
                                     @if(is_array($source) && !empty($source['id']) && $source['id'] !== 'manual' && substr($source['id'], 0, 1) === 'Q')

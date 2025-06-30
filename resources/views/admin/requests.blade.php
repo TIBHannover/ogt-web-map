@@ -29,7 +29,7 @@
                         <option value="approved" {{ $currentStatus == 'approved' ? 'selected' : '' }}>Genehmigt</option>
                         <option value="rejected" {{ $currentStatus == 'rejected' ? 'selected' : '' }}>Abgelehnt</option>
                         <option value="error" {{ $currentStatus == 'error' ? 'selected' : '' }}>Fehler</option>
-                        <option value="wikidata_published" {{ $currentStatus == 'wikidata_published' ? 'selected' : '' }}>In Wikidata veru00f6ffentlicht</option>
+                        <option value="wikidata_published" {{ $currentStatus == 'wikidata_published' ? 'selected' : '' }}>In Wikidata veröffentlicht</option>
                     </select>
                     <button type="submit" class="btn btn-primary">Filtern</button>
                 </form>
@@ -69,7 +69,7 @@
                                     @elseif($request->status == 'error')
                                         <span class="badge bg-warning">Fehler</span>
                                     @elseif($request->status == 'wikidata_published')
-                                        <span class="badge bg-info">In Wikidata veru00f6ffentlicht</span>
+                                        <span class="badge bg-info">In Wikidata veröffentlicht</span>
                                     @endif
                                 </td>
                                 <td>{{ $request->created_at->format('d.m.Y H:i') }}</td>

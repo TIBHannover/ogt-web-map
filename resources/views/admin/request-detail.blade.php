@@ -47,7 +47,7 @@ use function App\Helpers\formatWikidataProperty;
             @elseif($request->status == 'wikidata_submitted')
                 An Wikidata u00fcbermittelt
             @elseif($request->status == 'wikidata_published')
-                In Wikidata veru00f6ffentlicht
+                In Wikidata veröffentlicht
             @endif
         </h5>
 
@@ -79,10 +79,10 @@ use function App\Helpers\formatWikidataProperty;
             </div>
         @endif
     </div>
-    
+
     <!-- Detaillierte Entity-Status-Anzeige -->
     @include('admin.partials.entity-status-detail')
-    
+
     <div class="row">
         <!-- Hauptinformationen -->
         <div class="col-md-8">
@@ -564,18 +564,18 @@ use function App\Helpers\formatWikidataProperty;
             <!-- Debug: Aufbereitete Wikidata-Daten -->
             <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Debug: Aufbereitete Wikidata-Daten</h5>
+                    <h5 class="card-title mb-0">Debug: Aufbereitete Wikidata-Daten (vollständige API-Daten)</h5>
                     <button class="btn btn-sm btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWikidataDebug" aria-expanded="false" aria-controls="collapseWikidataDebug">Anzeigen/Verbergen</button>
                 </div>
                 <div class="collapse" id="collapseWikidataDebug">
                     <div class="card-body">
                         @php
-                            // Wir benu00f6tigen den WikidataFormatterModels direkt
+                            // Wir benötigen den WikidataFormatterModels direkt
                             $formatter = app(\App\Services\Wikidata\WikidataFormatterModels::class);
 
-                            // Aktiviere Debug-Modus für diesen Request
-                            $formatter->setDebugMode(true);
-                            
+                            // Deaktiviere Debug-Modus für Formatierung (um vollständige Daten zu erhalten)
+                            $formatter->setDebugMode(false);
+
                             // Relevante Daten extrahieren
                             $requestData = [];
                             $requestArray = $request->toArray();
@@ -598,9 +598,6 @@ use function App\Helpers\formatWikidataProperty;
                                 $formattedData = $result; // Fallback für alte Struktur
                                 $updatedRequestData = $requestData;
                             }
-                            
-                            // Deaktiviere den Debug-Modus, nachdem wir fertig sind
-                            $formatter->setDebugMode(false);
                         @endphp
 
                         <div class="mb-4">
@@ -608,14 +605,9 @@ use function App\Helpers\formatWikidataProperty;
                             <pre class="bg-light p-3" style="max-height: 400px; overflow-y: auto;">{{ json_encode($formattedData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
                         </div>
 
-                        <div class="mb-4">
-                            <h6>Aktualisierte Eingabedaten (mit neuen IDs):</h6>
-                            <pre class="bg-light p-3" style="max-height: 400px; overflow-y: auto;">{{ json_encode($updatedRequestData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
-                        </div>
-
                         <div class="alert alert-info">
                             <i class="bi bi-info-circle me-2"></i>
-                            Diese Daten werden vom System aufbereitet und an die Wikidata API gesendet, wenn die Anfrage genehmigt wird. Die Struktur entspricht den Anforderungen der Wikidata API für die Erstellung neuer Entitäten.
+                            Diese Daten werden vom System aufbereitet und an die Wikidata API gesendet, wenn die Anfrage genehmigt wird. Die Struktur entspricht den Anforderungen der Wikidata API für die Erstellung neuer Entitäten. In diesem Debug-Modus werden die vollständigen, formatieren Daten angezeigt, inklusive aller Properties (P-Werte) und Claims, die erstellt werden.
                         </div>
                     </div>
                 </div>
@@ -667,9 +659,9 @@ use function App\Helpers\formatWikidataProperty;
                                     data-bs-toggle="modal" data-bs-target="#rejectApprovedModal">
                                 <i class="bi bi-x-circle me-1"></i> Genehmigung zurückziehen
                             </button>
-                            
+
                             @if($request->wikidata_id)
-                                <a href="https://www.wikidata.org/wiki/{{ $request->wikidata_id }}" 
+                                <a href="https://www.wikidata.org/wiki/{{ $request->wikidata_id }}"
                                    target="_blank" class="btn btn-outline-primary w-100 mb-2">
                                     <i class="bi bi-box-arrow-up-right me-1"></i> Wikidata-Eintrag öffnen
                                 </a>
@@ -778,7 +770,7 @@ use function App\Helpers\formatWikidataProperty;
                     <div class="alert alert-warning">
                         <strong>Achtung:</strong> Diese Aktion kennzeichnet den Eintrag als abgelehnt, entfernt jedoch nicht den bereits erstellten Wikidata-Eintrag. Falls der Eintrag in Wikidata gelöscht werden soll, müssen Sie dies manuell tun.
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="retract_reason" class="form-label">Grund für die Zurückziehung</label>
                         <textarea class="form-control" id="retract_reason" name="reason"

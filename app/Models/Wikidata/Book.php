@@ -25,6 +25,34 @@ class Book extends BaseEntity
     }
     
     /**
+     * Add a source to the entity, overriding the base method to handle book sources specially
+     * 
+     * @param mixed $source The source object or data
+     * @param string|null $parentEntityId Optional parent entity ID for linking sources
+     * @return void
+     */
+    public function addSource($source, ?string $parentEntityId = null): void
+    {
+        if (empty($source)) {
+            return;
+        }
+        
+        // Add source as reference using parent method
+        parent::addSource($source, $parentEntityId);
+        
+        // If it's a book source with an ID, also add it as a described-by-source claim
+        if ($source instanceof \App\Models\Wikidata\Source\BookSource) {
+            $sourceClaim = $source->toClaim();
+            if (!empty($sourceClaim)) {
+                if (!isset($this->data['claims']['P1343'])) {
+                    $this->data['claims']['P1343'] = [];
+                }
+                $this->data['claims']['P1343'][] = $sourceClaim;
+            }
+        }
+    }
+    
+    /**
      * Create a Book model from array data
      */
     public static function fromArray(array $data): self

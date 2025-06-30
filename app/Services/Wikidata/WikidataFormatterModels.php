@@ -23,7 +23,7 @@ class WikidataFormatterModels
 
     /**
      * Set debug mode on or off
-     * 
+     *
      * @param bool $mode True to enable debug mode, false to disable
      * @return self
      */
@@ -32,10 +32,10 @@ class WikidataFormatterModels
         $this->inDebugMode = $mode;
         return $this;
     }
-    
+
     /**
      * Check if debug mode is enabled
-     * 
+     *
      * @return bool
      */
     public function isDebugMode(): bool
@@ -68,27 +68,28 @@ class WikidataFormatterModels
     /**
      * Constructor
      */
-    public function __construct() {
+    public function __construct()
+    {
         Log::debug("Creating new WikidataFormatterModels instance");
-        
+
         // If running in queue worker, automatically disable debug mode
         if ($this->isRunningInQueue()) {
             $this->inDebugMode = false;
             Log::debug("Debug mode automatically disabled in queue worker");
             // Force the global config to match
-            config(['wikidata.debug_mode' => false]);
+            config(["wikidata.debug_mode" => false]);
             return;
         }
-        
+
         // Check if there's a global debug mode config setting and use it
-        if (config()->has('wikidata.debug_mode')) {
-            $this->inDebugMode = config('wikidata.debug_mode');
+        if (config()->has("wikidata.debug_mode")) {
+            $this->inDebugMode = config("wikidata.debug_mode");
             if (!$this->inDebugMode) {
                 Log::debug("Debug mode disabled via config setting");
             }
         }
     }
-    
+
     /**
      * Determines if code is running in a queue worker
      *
@@ -100,22 +101,25 @@ class WikidataFormatterModels
         if (!app()->runningInConsole()) {
             return false;
         }
-        
+
         // Check for queue-specific indicators
-        if (defined('LARAVEL_QUEUE_WORKER')) {
+        if (defined("LARAVEL_QUEUE_WORKER")) {
             return true;
         }
-        
+
         // Check for specific queue command in arguments
-        if (isset($_SERVER['argv'][1]) && in_array($_SERVER['argv'][1], ['queue:work', 'queue:listen'])) {
+        if (
+            isset($_SERVER["argv"][1]) &&
+            in_array($_SERVER["argv"][1], ["queue:work", "queue:listen"])
+        ) {
             return true;
         }
-        
+
         // Check if we're in the job context by checking for the current job
-        if (app()->bound('queue.worker') || app()->bound('queue.connection')) {
+        if (app()->bound("queue.worker") || app()->bound("queue.connection")) {
             return true;
         }
-        
+
         return false;
     }
 
@@ -135,19 +139,29 @@ class WikidataFormatterModels
         // If running in queue worker, automatically disable debug mode
         if ($this->isRunningInQueue()) {
             $this->inDebugMode = false;
-            config(['wikidata.debug_mode' => false]);
-            Log::debug("Debug mode automatically disabled in queue worker for formatEntityData");
-        } else if (config()->has('wikidata.debug_mode')) {
+            config(["wikidata.debug_mode" => false]);
+            Log::debug(
+                "Debug mode automatically disabled in queue worker for formatEntityData"
+            );
+        } elseif (config()->has("wikidata.debug_mode")) {
             // Only check global config if not running in queue worker
-            $this->inDebugMode = config('wikidata.debug_mode');
+            $this->inDebugMode = config("wikidata.debug_mode");
         }
-        
+
         // Debug input to formatEntityData only when needed
         if (config("app.debug")) {
             Log::debug("Processing entity data of type: " . $type);
-            Log::debug("Debug mode state: " . ($this->inDebugMode ? 'true' : 'false'));
-            Log::debug("CreateEntities parameter: " . ($createEntities ? 'true' : 'false'));
-            Log::debug("Running in queue: " . ($this->isRunningInQueue() ? 'true' : 'false'));
+            Log::debug(
+                "Debug mode state: " . ($this->inDebugMode ? "true" : "false")
+            );
+            Log::debug(
+                "CreateEntities parameter: " .
+                    ($createEntities ? "true" : "false")
+            );
+            Log::debug(
+                "Running in queue: " .
+                    ($this->isRunningInQueue() ? "true" : "false")
+            );
         }
 
         // Check if we're in debug mode
@@ -202,7 +216,6 @@ class WikidataFormatterModels
 
         // Create entity based on type using the EntityFactory
         $entity = EntityFactory::createFromArray($data, $type);
-
         // Get formatted data from the entity model
         $formattedData = $entity->getFormattedData();
 
@@ -232,7 +245,7 @@ class WikidataFormatterModels
             $sources = SourceFactory::createMultipleFromArray($data["sources"]);
 
             // Add sources to the entity
-            $this->addSourcesToEntity(
+            $this->addSourcesToEntityInternal(
                 $entity,
                 $sources,
                 $data["wikidata_id"] ?? null
@@ -267,21 +280,29 @@ class WikidataFormatterModels
         // If running in queue worker, automatically disable debug mode
         if ($this->isRunningInQueue()) {
             $this->inDebugMode = false;
-            config(['wikidata.debug_mode' => false]);
-            Log::debug("Debug mode automatically disabled in queue worker for entity relations");
-        } else if (config()->has('wikidata.debug_mode')) {
+            config(["wikidata.debug_mode" => false]);
+            Log::debug(
+                "Debug mode automatically disabled in queue worker for entity relations"
+            );
+        } elseif (config()->has("wikidata.debug_mode")) {
             // Only check config if not in queue worker
-            $this->inDebugMode = config('wikidata.debug_mode');
+            $this->inDebugMode = config("wikidata.debug_mode");
         }
-        
+
         // Log all relevant flags for better diagnostics
-        Log::debug("Processing entity relations with debug_mode=" . ($this->inDebugMode ? 'true' : 'false') . 
-                   ", createEntities=" . ($createEntities ? 'true' : 'false') . 
-                   ", inQueue=" . ($this->isRunningInQueue() ? 'true' : 'false'), [
-            "role" => $role,
-            "count" => count($relatedEntities),
-        ]);
-        
+        Log::debug(
+            "Processing entity relations with debug_mode=" .
+                ($this->inDebugMode ? "true" : "false") .
+                ", createEntities=" .
+                ($createEntities ? "true" : "false") .
+                ", inQueue=" .
+                ($this->isRunningInQueue() ? "true" : "false"),
+            [
+                "role" => $role,
+                "count" => count($relatedEntities),
+            ]
+        );
+
         // Skip if we're in debug mode
         if ($this->inDebugMode) {
             Log::debug("In debug mode - skipping entity relation processing", [
@@ -365,11 +386,17 @@ class WikidataFormatterModels
 
                 // If _debugMode key is explicitly set to false, override debug mode locally
                 $localDebugMode = $this->inDebugMode;
-                if (isset($relatedEntity["_debugMode"]) && $relatedEntity["_debugMode"] === false) {
+                if (
+                    isset($relatedEntity["_debugMode"]) &&
+                    $relatedEntity["_debugMode"] === false
+                ) {
                     $localDebugMode = false;
-                    Log::info("Debug mode overridden to false by _debugMode flag for: " . $name);
+                    Log::info(
+                        "Debug mode overridden to false by _debugMode flag for: " .
+                            $name
+                    );
                 }
-                
+
                 // Create person in Wikidata if:
                 // - createEntities is true, OR
                 // Only create entities if:
@@ -377,77 +404,106 @@ class WikidataFormatterModels
                 // - _forceCreate flag is set, OR
                 // - we're in a queue worker (which should always create entities)
                 // BUT don't create if _skipCreate flag is set (this takes precedence)
-                if ((!empty($relatedEntity["_skipCreate"])) === false && 
-                    ($createEntities || !empty($relatedEntity["_forceCreate"]) || $this->isRunningInQueue())) {
+                if (
+                    !empty($relatedEntity["_skipCreate"]) === false &&
+                    ($createEntities ||
+                        !empty($relatedEntity["_forceCreate"]) ||
+                        $this->isRunningInQueue())
+                ) {
                     // If force creating, log it
                     if (!empty($relatedEntity["_forceCreate"])) {
-                        Log::info("Force creating entity due to _forceCreate flag", [
-                            "name" => $name,
-                            "role" => $role,
-                        ]);
-                    } else if ($this->isRunningInQueue()) {
-                        Log::info("Creating entity because we're in queue worker", [
-                            "name" => $name,
-                            "role" => $role,
-                        ]);
+                        Log::info(
+                            "Force creating entity due to _forceCreate flag",
+                            [
+                                "name" => $name,
+                                "role" => $role,
+                            ]
+                        );
+                    } elseif ($this->isRunningInQueue()) {
+                        Log::info(
+                            "Creating entity because we're in queue worker",
+                            [
+                                "name" => $name,
+                                "role" => $role,
+                            ]
+                        );
                     }
-                    
+
                     // Create person entity model
                     $personModel = EntityFactory::createPersonWithRole(
                         $personData,
                         $role
                     );
-                    
+
                     // Option 1: Use queue system for person entity creation
                     $useQueue = config("wikidata.use_queue", true);
                     $wikidataService = app(WikidataService::class);
-                    
+
                     if ($useQueue && $wikidataService->hasValidCredentials()) {
                         // Add parent entity ID and role to the data for relationship tracking
                         // Get the parent ID - it could be in several places
                         $parentEntityId = null;
-                        
+
                         // 1. If this is being called from formatEntityData, $formattedData might have the ID
-                        if (isset($formattedData['id'])) {
-                            $parentEntityId = $formattedData['id'];
-                            Log::info("Using ID from formatted data as parent ID", [
-                                "parent_id" => $parentEntityId,
-                                "entity_type" => $entity->getEntityType()
-                            ]);
-                        } 
+                        if (isset($formattedData["id"])) {
+                            $parentEntityId = $formattedData["id"];
+                            Log::info(
+                                "Using ID from formatted data as parent ID",
+                                [
+                                    "parent_id" => $parentEntityId,
+                                    "entity_type" => $entity->getEntityType(),
+                                ]
+                            );
+                        }
                         // 2. Try to get it from entity data (which might be the original data array)
-                        else if (isset($this->entityData['id'])) {
-                            $parentEntityId = $this->entityData['id'];
-                            Log::info("Using ID from entity data as parent ID", [
-                                "parent_id" => $parentEntityId,
-                                "entity_type" => $entity->getEntityType()
-                            ]);
+                        elseif (isset($this->entityData["id"])) {
+                            $parentEntityId = $this->entityData["id"];
+                            Log::info(
+                                "Using ID from entity data as parent ID",
+                                [
+                                    "parent_id" => $parentEntityId,
+                                    "entity_type" => $entity->getEntityType(),
+                                ]
+                            );
                         }
                         // 3. Check if this is being called from CreateWikidataEntity job - response might have the entity ID
-                        else if (isset($GLOBALS['last_created_entity_id'])) {
-                            $parentEntityId = $GLOBALS['last_created_entity_id'];
-                            Log::info("Using ID from global variable as parent ID", [
-                                "parent_id" => $parentEntityId,
-                                "entity_type" => $entity->getEntityType()
-                            ]);
+                        elseif (isset($GLOBALS["last_created_entity_id"])) {
+                            $parentEntityId =
+                                $GLOBALS["last_created_entity_id"];
+                            Log::info(
+                                "Using ID from global variable as parent ID",
+                                [
+                                    "parent_id" => $parentEntityId,
+                                    "entity_type" => $entity->getEntityType(),
+                                ]
+                            );
                         }
                         // 4. Last resort - log the problem but continue
                         else {
-                            Log::warning("No parent ID found for victim/perpetrator creation", [
-                                "entity_type" => $entity->getEntityType(),
-                                "formatted_data_keys" => array_keys($formattedData),
-                                "entity_data_keys" => isset($this->entityData) ? array_keys($this->entityData) : [],
-                                "is_running_in_queue" => $this->isRunningInQueue()
-                            ]);
+                            Log::warning(
+                                "No parent ID found for victim/perpetrator creation",
+                                [
+                                    "entity_type" => $entity->getEntityType(),
+                                    "formatted_data_keys" => array_keys(
+                                        $formattedData
+                                    ),
+                                    "entity_data_keys" => isset(
+                                        $this->entityData
+                                    )
+                                        ? array_keys($this->entityData)
+                                        : [],
+                                    "is_running_in_queue" => $this->isRunningInQueue(),
+                                ]
+                            );
                         }
-                        
-                        $personData['parent_entity_id'] = $parentEntityId;
-                        $personData['relationship_type'] = $role;
-                        $personData['role'] = $role;
-                        
+
+                        $personData["parent_entity_id"] = $parentEntityId;
+                        $personData["relationship_type"] = $role;
+                        $personData["role"] = $role;
+
                         // Set force create flag
-                        $personData['_forceCreate'] = true;
-                        
+                        $personData["_forceCreate"] = true;
+
                         // Queue the person entity creation with parent relationship
                         $queued = $wikidataService->queueEntityCreation(
                             $personData,
@@ -456,26 +512,33 @@ class WikidataFormatterModels
                             $parentEntityId,
                             $role
                         );
-                        
+
                         if ($queued) {
-                            Log::info("Queued {$roleName} entity creation with parent relationship", [
-                                "name" => $name,
-                                "role" => $role,
-                                "parent_id" => $parentEntityId
-                            ]);
-                            
+                            Log::info(
+                                "Queued {$roleName} entity creation with parent relationship",
+                                [
+                                    "name" => $name,
+                                    "role" => $role,
+                                    "parent_id" => $parentEntityId,
+                                ]
+                            );
+
                             // We can't set the ID yet, but mark it as pending
                             $updatedEntity["_pending"] = true;
-                            $updatedEntity["parent_entity_id"] = $parentEntityId; // Ensure this is set
+                            $updatedEntity[
+                                "parent_entity_id"
+                            ] = $parentEntityId; // Ensure this is set
                             $updatedEntity["relationship_type"] = $role; // Ensure this is set
                             $relatedEntities[$index] = $updatedEntity;
                             continue;
                         }
-                        
+
                         // If queueing fails, fall back to direct creation
-                        Log::warning("Failed to queue {$roleName} entity creation, falling back to direct creation");
+                        Log::warning(
+                            "Failed to queue {$roleName} entity creation, falling back to direct creation"
+                        );
                     }
-                    
+
                     // Option 2 (fallback): Create the entity directly
                     $entityId = $this->createPersonEntity(
                         $personModel,
@@ -520,18 +583,6 @@ class WikidataFormatterModels
                             ($relatedEntity["tempId"] ?? "none"),
                         "reason" => "createEntities=false parameter",
                     ]);
-
-                    // Add placeholder text reference
-                    $entity->addStringClaim(
-                        self::WIKIDATA_AUTHOR_STRING,
-                        $roleName === "perpetrator"
-                            ? "Täter/in: " .
-                                ($name ?: "Unbekannt") .
-                                " (Wird bei Genehmigung erstellt)"
-                            : "Opfer: " .
-                                ($name ?: "Unbekannt") .
-                                " (Wird bei Genehmigung erstellt)"
-                    );
                 }
             }
             // Case 3: Other entities with just a name (no ID)
@@ -554,31 +605,47 @@ class WikidataFormatterModels
 
                 // If _debugMode key is explicitly set to false, override debug mode locally
                 $localDebugMode = $this->inDebugMode;
-                if (isset($relatedEntity["_debugMode"]) && $relatedEntity["_debugMode"] === false) {
+                if (
+                    isset($relatedEntity["_debugMode"]) &&
+                    $relatedEntity["_debugMode"] === false
+                ) {
                     $localDebugMode = false;
-                    Log::info("Debug mode overridden to false by _debugMode flag for: " . $name);
+                    Log::info(
+                        "Debug mode overridden to false by _debugMode flag for: " .
+                            $name
+                    );
                 }
-                
+
                 // Create person in Wikidata if:
                 // - createEntities is true, OR
                 // - _forceCreate flag is set, OR
                 // - we're in a queue worker (which should always create entities)
                 // BUT don't create if _skipCreate flag is set (this takes precedence)
-                if ((!empty($relatedEntity["_skipCreate"])) === false && 
-                    ($createEntities || !empty($relatedEntity["_forceCreate"]) || $this->isRunningInQueue())) {
+                if (
+                    !empty($relatedEntity["_skipCreate"]) === false &&
+                    ($createEntities ||
+                        !empty($relatedEntity["_forceCreate"]) ||
+                        $this->isRunningInQueue())
+                ) {
                     // If force creating, log it
                     if (!empty($relatedEntity["_forceCreate"])) {
-                        Log::info("Force creating entity due to _forceCreate flag", [
-                            "name" => $name,
-                            "role" => $role,
-                        ]);
-                    } else if ($this->isRunningInQueue()) {
-                        Log::info("Creating entity because we're in queue worker", [
-                            "name" => $name,
-                            "role" => $role,
-                        ]);
+                        Log::info(
+                            "Force creating entity due to _forceCreate flag",
+                            [
+                                "name" => $name,
+                                "role" => $role,
+                            ]
+                        );
+                    } elseif ($this->isRunningInQueue()) {
+                        Log::info(
+                            "Creating entity because we're in queue worker",
+                            [
+                                "name" => $name,
+                                "role" => $role,
+                            ]
+                        );
                     }
-                    
+
                     // Create person entity model
                     $personModel = EntityFactory::createPersonWithRole(
                         $personData,
@@ -615,18 +682,6 @@ class WikidataFormatterModels
                         "name" => $name,
                         "reason" => "createEntities=false parameter",
                     ]);
-
-                    // Add placeholder text reference if entity wasn't created
-                    $entity->addStringClaim(
-                        self::WIKIDATA_AUTHOR_STRING,
-                        $roleName === "perpetrator"
-                            ? "Täter/in: " .
-                                ($name ?: "Unbekannt") .
-                                " (Wird bei Genehmigung erstellt)"
-                            : "Opfer: " .
-                                ($name ?: "Unbekannt") .
-                                " (Wird bei Genehmigung erstellt)"
-                    );
                 }
             }
         }
@@ -683,7 +738,7 @@ class WikidataFormatterModels
 
         // Get name
         $name = $this->getEntityName($entity);
-        
+
         // Ensure we have a title field explicitly set
         $title = $name; // This ensures the title is always set to the name
 
@@ -725,19 +780,19 @@ class WikidataFormatterModels
         // This prevents debug mode from blocking actual entity creation
         $originalDebugMode = $this->inDebugMode;
         $this->inDebugMode = false;
-        
+
         // Ensure the global config is also set to false
         config(["wikidata.debug_mode" => false]);
-        
+
         Log::info("Debug mode explicitly disabled for person entity creation");
-        
+
         try {
             // Process sources and add them to the person entity
             if (!empty($sources)) {
                 $sourceModels = SourceFactory::createMultipleFromArray(
                     $sources
                 );
-                $this->addSourcesToEntity($person, $sourceModels);
+                $this->addSourcesToEntityInternal($person, $sourceModels);
             }
 
             // Get the formatted data for the WikidataService
@@ -749,7 +804,8 @@ class WikidataFormatterModels
             // Create entity data for the service
             $entityData = [
                 "title" =>
-                    $personData["labels"]["de"]["value"] ?? $person->getName() ?? "Unnamed Person",
+                    $personData["labels"]["de"]["value"] ??
+                    ($person->getName() ?? "Unnamed Person"),
                 "description" =>
                     $personData["descriptions"]["de"]["value"] ??
                     "Person related to a historical event",
@@ -765,8 +821,9 @@ class WikidataFormatterModels
                 "debug_data" => [
                     "has_labels" => !empty($personData["labels"]),
                     "has_de_label" => !empty($personData["labels"]["de"]),
-                    "label_value" => $personData["labels"]["de"]["value"] ?? "<missing>"
-                ]
+                    "label_value" =>
+                        $personData["labels"]["de"]["value"] ?? "<missing>",
+                ],
             ];
 
             // Check if we should use the queue system
@@ -823,13 +880,29 @@ class WikidataFormatterModels
     }
 
     /**
-     * Adds sources to an entity.
+     * Public wrapper to add sources to an entity.
+     * This allows direct access from controllers for testing purposes.
      *
      * @param BaseEntity $entity The entity to add sources to
      * @param array $sources Array of source models
      * @param string|null $parentEntityId Optional parent entity ID for linking sources
      */
-    protected function addSourcesToEntity(
+    public function addSourcesToEntity(
+        BaseEntity $entity,
+        array $sources,
+        ?string $parentEntityId = null
+    ): void {
+        $this->addSourcesToEntityInternal($entity, $sources, $parentEntityId);
+    }
+
+    /**
+     * Internal implementation to add sources to an entity.
+     *
+     * @param BaseEntity $entity The entity to add sources to
+     * @param array $sources Array of source models
+     * @param string|null $parentEntityId Optional parent entity ID for linking sources
+     */
+    protected function addSourcesToEntityInternal(
         BaseEntity $entity,
         array $sources,
         ?string $parentEntityId = null
@@ -839,8 +912,75 @@ class WikidataFormatterModels
         }
 
         foreach ($sources as $source) {
-            // Add the source to the entity
+            // Get source details for logging
+            $sourceType = method_exists($source, "getType")
+                ? $source->getType()
+                : "unknown";
+            $sourceTitle = method_exists($source, "getTitle")
+                ? $source->getTitle()
+                : "unknown";
+
+            // 1. Add the source as reference to specific claims
             $entity->addSource($source, $parentEntityId);
+
+            // 2. Add the source as a standalone claim to the entity
+            if (method_exists($source, "toClaim")) {
+                $sourceClaim = $source->toClaim();
+
+                // Skip if no claim data is provided
+                if (empty($sourceClaim) || empty($sourceClaim["mainsnak"])) {
+                    Log::warning(
+                        "Source toClaim() returned empty or invalid claim data",
+                        [
+                            "source_type" => $sourceType,
+                            "source_title" => $sourceTitle,
+                        ]
+                    );
+                    continue;
+                }
+
+                // Get the property ID from the claim
+                $propertyId = $sourceClaim["mainsnak"]["property"];
+
+                // Make sure correct property is used for the source type
+                if (
+                    $sourceType === "archive" &&
+                    $propertyId !== self::WIKIDATA_DESCRIBED_BY_SOURCE
+                ) {
+                    $propertyId = self::WIKIDATA_DESCRIBED_BY_SOURCE;
+                    $sourceClaim["mainsnak"]["property"] = $propertyId;
+                }
+
+                // Get entity data to update
+                $entityData = $entity->getData();
+
+                // Initialize the claims array for this property if it doesn't exist
+                if (!isset($entityData["claims"][$propertyId])) {
+                    $entityData["claims"][$propertyId] = [];
+                }
+
+                // Log qualifier information for debugging
+                $qualifierProperties = [];
+                if (
+                    isset($sourceClaim["qualifiers"]) &&
+                    !empty($sourceClaim["qualifiers"])
+                ) {
+                    $qualifierProperties = array_keys(
+                        $sourceClaim["qualifiers"]
+                    );
+                }
+
+                // Add the source claim with all its qualifiers
+                $entityData["claims"][$propertyId][] = $sourceClaim;
+
+                // Update the entity data
+                $entity->setData($entityData);
+            } else {
+                Log::warning("Source does not have toClaim method", [
+                    "source_type" => $sourceType,
+                    "source_title" => $sourceTitle,
+                ]);
+            }
         }
     }
 
@@ -879,27 +1019,29 @@ class WikidataFormatterModels
         // This prevents debug mode from blocking actual entity creation
         $originalDebugMode = $this->inDebugMode;
         $this->inDebugMode = false;
-        
+
         // Force the global config as well
         config(["wikidata.debug_mode" => false]);
-        
-        Log::info("Debug mode explicitly disabled for new person entity creation");
-        
+
+        Log::info(
+            "Debug mode explicitly disabled for new person entity creation"
+        );
+
         // Create a Person model with the appropriate role
         $person = EntityFactory::createPersonWithRole($personData, $role);
 
         // Add sources to the person entity
         if (!empty($sources)) {
             $sourceModels = SourceFactory::createMultipleFromArray($sources);
-            $this->addSourcesToEntity($person, $sourceModels);
+            $this->addSourcesToEntityInternal($person, $sourceModels);
         }
 
         // Create the entity in Wikidata
         $result = $this->createPersonEntity($person, []);
-        
+
         // Restore original debug mode
         $this->inDebugMode = $originalDebugMode;
-        
+
         return $result;
     }
 
@@ -933,22 +1075,27 @@ class WikidataFormatterModels
         // This prevents debug mode from blocking actual entity creation
         $originalDebugMode = $this->inDebugMode;
         $this->inDebugMode = false;
-        
+
         // Create a Book model
         $book = Book::fromArray($bookData);
 
+        // Clean up sources to ensure only appropriate ones are created
+        $cleanedSources = $this->cleanupSourceData($sources);
+
         // Add sources to the book entity
-        if (!empty($sources)) {
-            $sourceModels = SourceFactory::createMultipleFromArray($sources);
-            $this->addSourcesToEntity($book, $sourceModels);
+        if (!empty($cleanedSources)) {
+            $sourceModels = SourceFactory::createMultipleFromArray(
+                $cleanedSources
+            );
+            $this->addSourcesToEntityInternal($book, $sourceModels);
         }
 
         // Create the entity in Wikidata
         $result = $this->createBookEntity($book);
-        
+
         // Restore original debug mode
         $this->inDebugMode = $originalDebugMode;
-        
+
         return $result;
     }
 
@@ -966,10 +1113,10 @@ class WikidataFormatterModels
         ?string $parentEntityId = null
     ): bool {
         // Check if there's a global config setting for debug mode
-        if (config()->has('wikidata.debug_mode')) {
-            $this->inDebugMode = config('wikidata.debug_mode');
+        if (config()->has("wikidata.debug_mode")) {
+            $this->inDebugMode = config("wikidata.debug_mode");
         }
-        
+
         // Skip if we're in debug mode
         if ($this->inDebugMode) {
             Log::debug("In debug mode - skipping book entity queuing", [
@@ -977,14 +1124,23 @@ class WikidataFormatterModels
             ]);
             return true; // Pretend success in debug mode
         }
-        
+
         // Create a Book model
         $book = Book::fromArray($bookData);
 
+        // Clean up sources to ensure only appropriate ones are created
+        $cleanedSources = $this->cleanupSourceData($sources);
+
         // Add sources to the book entity
-        if (!empty($sources)) {
-            $sourceModels = SourceFactory::createMultipleFromArray($sources);
-            $this->addSourcesToEntity($book, $sourceModels, $parentEntityId);
+        if (!empty($cleanedSources)) {
+            $sourceModels = SourceFactory::createMultipleFromArray(
+                $cleanedSources
+            );
+            $this->addSourcesToEntityInternal(
+                $book,
+                $sourceModels,
+                $parentEntityId
+            );
         }
 
         // Get the WikidataService instance
@@ -1136,12 +1292,12 @@ class WikidataFormatterModels
         // This prevents debug mode from blocking actual entity creation
         $originalDebugMode = $this->inDebugMode;
         $this->inDebugMode = false;
-        
+
         // Ensure the global config is also set to false
         config(["wikidata.debug_mode" => false]);
-        
+
         Log::info("Debug mode explicitly disabled for book entity creation");
-        
+
         try {
             // Get the formatted data for the WikidataService
             $bookData = $book->getFormattedData();
@@ -1232,8 +1388,68 @@ class WikidataFormatterModels
                 continue;
             }
 
+            // Skip URL and archive sources - these should never be created as entities
+            if ($source["type"] === "url" || $source["type"] === "archive") {
+                // Set a flag to indicate this should never be created as an entity
+                $source["_skipCreate"] = true;
+                Log::debug(
+                    "Marked {$source["type"]} source to skip entity creation",
+                    [
+                        "title" => $source["title"] ?? "Unknown",
+                    ]
+                );
+                $cleanedSources[] = $source;
+                continue; // Skip further book-specific processing
+            }
+
+            // Skip URL and archive sources - these should never be created as entities
+            if ($source["type"] === "url" || $source["type"] === "archive") {
+                // Set a flag to indicate this should never be created as an entity
+                $source["_skipCreate"] = true;
+                Log::debug(
+                    "Marked {$source["type"]} source to skip entity creation",
+                    [
+                        "title" => $source["title"] ?? "Unknown",
+                    ]
+                );
+                $cleanedSources[] = $source;
+                continue; // Skip further book-specific processing
+            }
+
             // Process book sources specially
             if ($source["type"] === "book") {
+                // If book has a valid Wikidata ID, mark it to skip creation
+                if (
+                    isset($source["id"]) &&
+                    substr($source["id"], 0, 1) === "Q"
+                ) {
+                    // This is an existing book, just reference it, don't create
+                    $source["_skipCreate"] = true;
+                    Log::debug(
+                        "Book with Wikidata ID will be referenced but not created",
+                        [
+                            "title" => $source["title"] ?? "Unknown",
+                            "id" => $source["id"],
+                        ]
+                    );
+                }
+
+                // If book has a valid Wikidata ID, mark it to skip creation
+                if (
+                    isset($source["id"]) &&
+                    substr($source["id"], 0, 1) === "Q"
+                ) {
+                    // This is an existing book, just reference it, don't create
+                    $source["_skipCreate"] = true;
+                    Log::debug(
+                        "Book with Wikidata ID will be referenced but not created",
+                        [
+                            "title" => $source["title"] ?? "Unknown",
+                            "id" => $source["id"],
+                        ]
+                    );
+                }
+
                 // If it's a manual book, always convert to temp_id and remove id
                 if (isset($source["id"]) && $source["id"] === "manual") {
                     // If there's no temp_id, generate one

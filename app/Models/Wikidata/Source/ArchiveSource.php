@@ -54,11 +54,11 @@ class ArchiveSource extends BaseSource
         
         // For archive sources with a valid Wikidata ID
         if (!empty($this->id) && substr($this->id, 0, 1) === 'Q') {
-            // Archive reference (P485)
-            $reference['snaks']['P485'] = [
+            // Described by source (P1343)
+            $reference['snaks']['P1343'] = [
                 [
                     'snaktype' => 'value',
-                    'property' => 'P485',
+                    'property' => 'P1343',
                     'datavalue' => [
                         'value' => [
                             'entity-type' => 'item',
@@ -115,7 +115,7 @@ class ArchiveSource extends BaseSource
         $claim = [
             'mainsnak' => [
                 'snaktype' => 'value',
-                'property' => WikidataFormatterModels::WIKIDATA_ARCHIVE,
+                'property' => WikidataFormatterModels::WIKIDATA_DESCRIBED_BY_SOURCE,
                 'datavalue' => [
                     'value' => [
                         'entity-type' => 'item',

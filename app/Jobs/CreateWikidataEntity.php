@@ -183,9 +183,12 @@ class CreateWikidataEntity implements ShouldQueue
 
                 // Add flag to prevent recursive chain creation
                 $entity['_inChain'] = true;
+                
+                // Add flag to disable P2093 placeholder claims
+                $entity['_skipPlaceholderClaims'] = true;
 
                 // Create a job for this related entity that will run after the main entity
-                // Use the special placeholder '__MAIN_ENTITY_ID__' which will be replaced when the job runs
+                // Always use the main entity as parent, not a previous entity in the chain
                 $childJob = new self(
                     $entity,
                     $entityType,
@@ -209,8 +212,9 @@ class CreateWikidataEntity implements ShouldQueue
         // Create jobs for each type of related entity
         $createRelatedJobs($victims, self::ENTITY_TYPE_PERSON, 'victim');
         $createRelatedJobs($perpetrators, self::ENTITY_TYPE_PERSON, 'perpetrator');
+        
+        // Create jobs for sources - link to main entity, not to a victim or perpetrator
         $createRelatedJobs($sources, self::ENTITY_TYPE_BOOK, 'source');
-        $createRelatedJobs($books, self::ENTITY_TYPE_BOOK, 'book'); // For backward compatibility
         
         // If we have related entities, create a job chain
         if (!empty($chainedJobs)) {
@@ -484,6 +488,39 @@ class CreateWikidataEntity implements ShouldQueue
                             "entity_id" => $entityId,
                             "type" => $this->entityType
                         ]);
+                        
+                        // Directly update the status in the database
+                        // This serves as a fallback in case the callback fails
+                        try {
+                            if ($this->requestId) {
+                                $requestModel = config("wikidata.request_model", self::DEFAULT_REQUEST_MODEL);
+                                $entryRequest = $requestModel::find($this->requestId);
+                                
+                                if ($entryRequest) {
+                                    // Use EntryStatusController's static method to update status
+                                    \App\Http\Controllers\EntryStatusController::updateStatusHistoryStatic(
+                                        $entryRequest,
+                                        'wikidata_published',
+                                        "Eintrag erfolgreich erstellt mit Wikidata-ID: {$entityId}"
+                                    );
+                                    
+                                    // Also update the wikidata_id field
+                                    $entryRequest->wikidata_id = $entityId;
+                                    $entryRequest->created_entities = $createdEntities;
+                                    $entryRequest->save();
+                                    
+                                    Log::info("Direct database update successful", [
+                                        "entity_id" => $entityId,
+                                        "request_id" => $this->requestId
+                                    ]);
+                                }
+                            }
+                        } catch (\Exception $dbEx) {
+                            Log::warning("Direct database update failed: " . $dbEx->getMessage(), [
+                                "entity_id" => $entityId,
+                                "request_id" => $this->requestId
+                            ]);
+                        }
                     } else {
                         // This is a child entity in a chain
                         Log::info("Child entity in job chain created", [
@@ -1380,6 +1417,51 @@ class CreateWikidataEntity implements ShouldQueue
                         "parent_id" => $this->parentEntityId,
                         "relationship" => $this->relationshipType,
                     ]);
+                    
+                    // For victim or perpetrator entities, also add a significant event (P793) link back to the parent
+                    if ($this->relationshipType === "victim" || $this->relationshipType === "perpetrator") {
+                        // Create statement to add the main entity as a significant event (P793)
+                        $backLinkStatement = [
+                            "mainsnak" => [
+                                "snaktype" => "value",
+                                "property" => "P793", // Significant event (Schlüsselevent)
+                                "datavalue" => [
+                                    "value" => [
+                                        "entity-type" => "item",
+                                        "id" => $this->parentEntityId,
+                                        "numeric-id" => intval(substr($this->parentEntityId, 1)),
+                                    ],
+                                    "type" => "wikibase-entityid",
+                                ],
+                            ],
+                            "type" => "statement",
+                            "rank" => "normal",
+                        ];
+                        
+                        // Add the P793 back-link (child entity points to parent as significant event)
+                        $backLinkResult = $wikidataService->updateEntity(
+                            $entityId,
+                            [
+                                "claims" => [
+                                    "P793" => [$backLinkStatement],
+                                ],
+                            ],
+                            WikidataFormatterModels::ENTITY_TYPE_PERSON // Person entity type for victims/perpetrators
+                        );
+                        
+                        if ($backLinkResult) {
+                            Log::info("Successfully added P793 significant event back-link", [
+                                "person_id" => $entityId,
+                                "event_id" => $this->parentEntityId,
+                                "relationship" => $this->relationshipType,
+                            ]);
+                        } else {
+                            Log::error("Failed to add P793 significant event back-link", [
+                                "person_id" => $entityId,
+                                "event_id" => $this->parentEntityId,
+                            ]);
+                        }
+                    }
                 } else {
                     Log::error("Failed to link entity to its parent", [
                         "child_id" => $entityId,
