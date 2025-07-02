@@ -56,8 +56,11 @@
     <div class="row mt-4">
         <div class="col-md-12">
             <div class="card">
-                <div class="card-header">
-                    Neueste Anfragen
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Neueste Anfragen</span>
+                    <a href="{{ route('admin.export') }}" class="btn btn-success">
+                        <i class="bi bi-file-earmark-excel"></i> Daten exportieren
+                    </a>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">

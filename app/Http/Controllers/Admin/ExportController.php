@@ -1,0 +1,409 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Clients\WikidataClient;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response;
+
+class ExportController extends Controller
+{
+    protected $wikidataClient;
+
+    public function __construct(WikidataClient $wikidataClient)
+    {
+        $this->wikidataClient = $wikidataClient;
+    }
+
+    /**
+     * Export places data as CSV without Nazi crime events
+     *
+     * @param resource $output The output stream
+     * @return void
+     */
+    private function exportPlacesWithoutEvents($output)
+    {
+        // Write header row for places (same as regular places export)
+        fputcsv($output, [
+            "ID",
+            "Label",
+            "Description",
+            "Type",
+            "Coordinates",
+            "Street Address",
+            "Inception Date",
+            "Dissolution Date",
+            "Website",
+            "Operators",
+            "Victims",
+            "Perpetrators",
+            "Significant Events",
+        ]);
+
+        // Get places data from Wikidata
+        $placesData = $this->wikidataClient->queryPlaces();
+
+        if (!empty($placesData["results"]["bindings"])) {
+            $places = $this->wikidataClient->mergeItemsData(
+                $placesData["results"]["bindings"]
+            );
+
+            // Write data rows, filtering out Nazi crime events (Q6983405)
+            foreach ($places as $place) {
+                // Skip if this is a Nazi crime event
+                if (isset($place["instances"])) {
+                    $isNaziCrime = false;
+                    foreach ($place["instances"] as $instance) {
+                        if (isset($instance["id"]) && $instance["id"] === "Q6983405") {
+                            $isNaziCrime = true;
+                            break;
+                        }
+                    }
+                    if ($isNaziCrime) {
+                        continue; // Skip this place as it's a Nazi crime event
+                    }
+                }
+
+                $row = [
+                    $place["id"] ?? "",
+                    $place["label"] ?? "",
+                    $place["description"] ?? "",
+                    $this->extractFilteredTypes($place["instances"] ?? []),
+                    $this->combineCoordinates($place["coordinates"] ?? []),
+                    $this->extractMultipleValues(
+                        $place["streetAddresses"] ?? []
+                    ),
+                    $this->extractFirstDate($place["inceptionDates"] ?? []),
+                    $this->extractFirstDate($place["dissolvedDates"] ?? []),
+                    $this->extractFirstValue($place["officialWebsite"] ?? []),
+                    $this->extractMultipleValues($place["operators"] ?? []),
+                    $this->extractMultipleValues($place["victims"] ?? []),
+                    $this->extractMultipleValues($place["perpetrators"] ?? []),
+                    $this->extractMultipleValues(
+                        $place["significantEvents"] ?? []
+                    ),
+                ];
+
+                fputcsv($output, $row);
+            }
+
+            // Add a blank row between sections
+            fputcsv($output, [""]);
+        }
+    }
+
+    /**
+     * Show the export interface
+     *
+     * @return \Illuminate\View\View
+     */
+    public function index()
+    {
+        return view("admin.export.index");
+    }
+
+    /**
+     * Export data as CSV
+     *
+     * @param Request $request
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function export(Request $request)
+    {
+        $type = $request->input("type", "all");
+        $filename = "wikidata_export_" . date("Y-m-d_His") . ".csv";
+
+        $headers = [
+            "Content-Type" => "text/csv",
+            "Content-Disposition" => 'attachment; filename="' . $filename . '"',
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0",
+        ];
+
+        // Create the CSV with a callback that will write content
+        return Response::stream(
+            function () use ($type) {
+                $output = fopen("php://output", "w");
+
+                // Add UTF-8 BOM to fix Excel encoding issues
+                fputs($output, "\xEF\xBB\xBF");
+
+                if ($type == "places" || $type == "all") {
+                    $this->exportPlaces($output);
+                } elseif ($type == "places_no_events") {
+                    $this->exportPlacesWithoutEvents($output);
+                }
+
+                if ($type == "persons" || $type == "all") {
+                    $this->exportPersons($output);
+                }
+
+                fclose($output);
+            },
+            200,
+            $headers
+        );
+    }
+
+    /**
+     * Export places data as CSV
+     *
+     * @param resource $output The output stream
+     * @return void
+     */
+    private function exportPlaces($output)
+    {
+        // Write header row for places
+        fputcsv($output, [
+            "ID",
+            "Label",
+            "Description",
+            "Type",
+            "Coordinates",
+            "Street Address",
+            "Inception Date",
+            "Dissolution Date",
+            "Website",
+            "Operators",
+            "Victims",
+            "Perpetrators",
+            "Significant Events",
+        ]);
+
+        // Get places data from Wikidata
+        $placesData = $this->wikidataClient->queryPlaces();
+
+        if (!empty($placesData["results"]["bindings"])) {
+            $places = $this->wikidataClient->mergeItemsData(
+                $placesData["results"]["bindings"]
+            );
+
+            // Write data rows
+            foreach ($places as $place) {
+                $row = [
+                    $place["id"] ?? "",
+                    $place["label"] ?? "",
+                    $place["description"] ?? "",
+                    $this->extractFilteredTypes($place["instances"] ?? []),
+                    $this->combineCoordinates($place["coordinates"] ?? []),
+                    $this->extractMultipleValues(
+                        $place["streetAddresses"] ?? []
+                    ),
+                    $this->extractFirstDate($place["inceptionDates"] ?? []),
+                    $this->extractFirstDate($place["dissolvedDates"] ?? []),
+                    $this->extractFirstValue($place["officialWebsite"] ?? []),
+                    $this->extractMultipleValues($place["operators"] ?? []),
+                    $this->extractMultipleValues($place["victims"] ?? []),
+                    $this->extractMultipleValues($place["perpetrators"] ?? []),
+                    $this->extractMultipleValues(
+                        $place["significantEvents"] ?? []
+                    ),
+                ];
+
+                fputcsv($output, $row);
+            }
+
+            // Add a blank row between sections
+            fputcsv($output, [""]);
+        }
+    }
+
+    /**
+     * Combine lat and lng coordinates into a single string
+     *
+     * @param array $coordinatesData
+     * @return string
+     */
+    private function combineCoordinates(array $coordinatesData): string
+    {
+        if (empty($coordinatesData)) {
+            return "";
+        }
+
+        $coordinates = [];
+        foreach ($coordinatesData as $item) {
+            if (
+                isset($item["value"]) &&
+                is_array($item["value"]) &&
+                isset($item["value"]["lat"]) &&
+                isset($item["value"]["lng"])
+            ) {
+                // Format as latitude, longitude - more common for spreadsheet use
+                $coordinates[] =
+                    $item["value"]["lat"] . ", " . $item["value"]["lng"];
+            }
+        }
+
+        return implode("; ", $coordinates);
+    }
+
+    /**
+     * Export persons data as CSV
+     *
+     * @param resource $output The output stream
+     * @return void
+     */
+    private function exportPersons($output)
+    {
+        // Write header row for persons
+        fputcsv($output, [
+            "ID",
+            "Label",
+            "Description",
+            "Gender",
+            "First Name",
+            "Family Name",
+            "Date of Birth",
+            "Date of Death",
+            "Place of Birth",
+            "Place of Death",
+            "Citizenships",
+            "Subject Roles",
+            "Employers",
+            "Detention Places",
+        ]);
+
+        // Get persons data from Wikidata
+        $personsData = $this->wikidataClient->queryPersons();
+
+        if (!empty($personsData["results"]["bindings"])) {
+            $persons = $this->wikidataClient->mergeItemsData(
+                $personsData["results"]["bindings"]
+            );
+
+            // First, try to group persons by subject roles (P2868)
+            $processedPersons = [];
+
+            // Process each person directly without relying on grouping
+            foreach ($persons as $personId => $person) {
+                // Determine person type based on subjectRoles if available
+                $personType = "Unknown";
+                $subjectRoles = $this->extractMultipleValues(
+                    $person["subjectRoles"] ?? []
+                );
+
+                // Process every person regardless of grouping
+                $row = [
+                    $person["id"] ?? "",
+                    $person["label"] ?? "",
+                    $person["description"] ?? "",
+                    $this->extractFirstValue($person["gender"] ?? []),
+                    $this->extractFirstValue($person["givenName"] ?? []),
+                    $this->extractFirstValue($person["familyName"] ?? []),
+                    $this->extractFirstDate($person["dateOfBirth"] ?? []),
+                    $this->extractFirstDate($person["dateOfDeath"] ?? []),
+                    $this->extractFirstValue($person["placeOfBirth"] ?? []),
+                    $this->extractFirstValue($person["placeOfDeath"] ?? []),
+                    $this->extractMultipleValues($person["citizenships"] ?? []),
+                    $subjectRoles,
+                    $this->extractMultipleValues($person["employers"] ?? []),
+                    $this->extractMultipleValues(
+                        $person["detentionPlaces"] ?? []
+                    ),
+                ];
+
+                fputcsv($output, $row);
+                $processedPersons[] = $personId;
+            }
+        }
+    }
+
+    /**
+     * Extract multiple values from a property array and join them
+     *
+     * @param array $propertyData
+     * @return string
+     */
+    private function extractMultipleValues(array $propertyData): string
+    {
+        if (empty($propertyData)) {
+            return "";
+        }
+
+        $values = [];
+        foreach ($propertyData as $item) {
+            if (isset($item["value"]) && !empty($item["value"])) {
+                if (is_array($item["value"])) {
+                    // Handle special cases like coordinates
+                    if (
+                        isset($item["value"]["lat"]) &&
+                        isset($item["value"]["lng"])
+                    ) {
+                        $values[] =
+                            $item["value"]["lat"] . "," . $item["value"]["lng"];
+                    }
+                } else {
+                    $values[] = $item["value"];
+                }
+            }
+        }
+
+        return implode("; ", $values);
+    }
+
+    /**
+     * Extract the first value from a property array
+     *
+     * @param array $propertyData
+     * @return string
+     */
+    private function extractFirstValue(array $propertyData): string
+    {
+        if (empty($propertyData)) {
+            return "";
+        }
+
+        $firstItem = reset($propertyData);
+        return $firstItem["value"] ?? "";
+    }
+
+    /**
+     * Extract the first date value from a property array
+     *
+     * @param array $dateData
+     * @return string
+     */
+    private function extractFirstDate(array $dateData): string
+    {
+        if (empty($dateData)) {
+            return "";
+        }
+
+        $firstItem = reset($dateData);
+        $value = $firstItem["value"] ?? "";
+
+        // If it's a full ISO date, format it nicely
+        if (preg_match("/^\d{4}-\d{2}-\d{2}/", $value)) {
+            return date("d.m.Y", strtotime($value));
+        }
+
+        return $value;
+    }
+    
+    /**
+     * Extract type values with 'Ort des Gestapoterrors' filtered out
+     *
+     * @param array $instancesData
+     * @return string
+     */
+    private function extractFilteredTypes(array $instancesData): string
+    {
+        if (empty($instancesData)) {
+            return "";
+        }
+        
+        $values = [];
+        foreach ($instancesData as $item) {
+            if (isset($item["value"]) && !empty($item["value"])) {
+                // Skip "Ort des Gestapoterrors" type
+                if ($item["value"] !== "Ort des Gestapoterrors") {
+                    $values[] = $item["value"];
+                }
+            }
+        }
+        
+        return implode("; ", $values);
+    }
+}

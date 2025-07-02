@@ -58,6 +58,10 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
     Route::delete('/jobs/{id}', [\App\Http\Controllers\Admin\JobsController::class, 'destroy'])->name('admin.jobs.destroy');
     Route::delete('/jobs', [\App\Http\Controllers\Admin\JobsController::class, 'destroyAll'])->name('admin.jobs.destroy-all');
     
+    // Export routes
+    Route::get('/export', [\App\Http\Controllers\Admin\ExportController::class, 'index'])->name('admin.export');
+    Route::post('/export/download', [\App\Http\Controllers\Admin\ExportController::class, 'export'])->name('admin.export.download');
+    
     // Failed jobs management routes
     Route::delete('/jobs/failed/{id}', [\App\Http\Controllers\Admin\JobsController::class, 'destroyFailed'])->name('admin.jobs.destroy-failed');
     Route::delete('/jobs/failed', [\App\Http\Controllers\Admin\JobsController::class, 'destroyAllFailed'])->name('admin.jobs.destroy-all-failed');

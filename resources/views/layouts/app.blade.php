@@ -63,6 +63,16 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url('/entry') }}">Eintrag</a>
                     </li>
+                    @auth
+                        @if(Auth::user()->is_admin)
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('admin.dashboard') }}">Admin-Dashboard</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('admin.export') }}">Daten exportieren</a>
+                            </li>
+                        @endif
+                    @endauth
                 </ul>
                 <ul class="navbar-nav">
                     @guest
