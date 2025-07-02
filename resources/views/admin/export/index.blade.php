@@ -48,9 +48,27 @@
                                 </label>
                             </div>
                             <div class="form-check">
+                                <input class="form-check-input" type="radio" name="type" id="places_minimal" value="places_minimal">
+                                <label class="form-check-label" for="places_minimal">
+                                    Nur Orte (minimal: Arbeitserziehungslager, Gefängnis, Erweitertes Polizeigefängnis)
+                                </label>
+                            </div>
+                            <div class="form-check">
                                 <input class="form-check-input" type="radio" name="type" id="persons" value="persons">
                                 <label class="form-check-label" for="persons">
-                                    Nur Personen
+                                    Nur Personen (Alle)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="type" id="persons_perpetrators" value="persons_perpetrators">
+                                <label class="form-check-label" for="persons_perpetrators">
+                                    Nur Personen (Täter)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="type" id="persons_victims" value="persons_victims">
+                                <label class="form-check-label" for="persons_victims">
+                                    Nur Personen (Geschädigte)
                                 </label>
                             </div>
                         </div>
@@ -86,9 +104,15 @@
 
                     <h6>Für den Orte-Export ohne Ereignisse:</h6>
                     <p>Enthält die gleichen Daten wie der Orte-Export, filtert aber Einträge vom Typ "NS-Verbrechen" (Wikidata Q6983405) aus.</p>
+                    
+                    <h6>Für den Orte-Export (minimal):</h6>
+                    <p>Enthält nur Orte vom Typ Arbeitserziehungslager, Gefängnis oder Erweitertes Polizeigefängnis.</p>
 
                     <h6>Für den Personen-Export:</h6>
-                    <p>Enthält ID, Name, Beschreibung, Geschlecht, Geburts- und Sterbedaten, Geburts- und Sterbeorte, Staatsbürgerschaften und Personengruppe (Täter oder Opfer).</p>
+                    <p>Enthält ID, Name, Beschreibung, Geschlecht, Geburts- und Sterbedaten, Geburts- und Sterbeorte, Staatsbürgerschaften und Personengruppe.</p>
+                    
+                    <h6>Für den Täter/Geschädigte-Export:</h6>
+                    <p>Filtert die Personen nach ihrer Rolle (Täter oder Geschädigte) im NS-Regime.</p>
                 </div>
             </div>
         </div>

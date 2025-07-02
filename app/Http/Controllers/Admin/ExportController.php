@@ -17,6 +17,93 @@ class ExportController extends Controller
     }
 
     /**
+     * Export minimal places data as CSV (only specific types)
+     *
+     * @param resource $output The output stream
+     * @return void
+     */
+    private function exportPlacesMinimal($output)
+    {
+        // Write header row for places (same as regular places export)
+        fputcsv($output, [
+            "ID",
+            "Label",
+            "Description",
+            "Type",
+            "Coordinates",
+            "Street Address",
+            "Inception Date",
+            "Dissolution Date",
+            "Website",
+            "Operators",
+            "Victims",
+            "Perpetrators",
+            "Significant Events",
+        ]);
+
+        // Get places data from Wikidata
+        $placesData = $this->wikidataClient->queryPlaces();
+
+        if (!empty($placesData["results"]["bindings"])) {
+            $places = $this->wikidataClient->mergeItemsData(
+                $placesData["results"]["bindings"]
+            );
+
+            // Define allowed place types
+            $allowedTypes = [
+                "Arbeitserziehungslager",
+                "Gefängnis",
+                "Erweitertes Polizeigefängnis"
+            ];
+
+            // Write data rows, filtering by place type
+            foreach ($places as $place) {
+                if (!isset($place["instances"])) {
+                    continue; // Skip if no type information
+                }
+                
+                $isAllowedType = false;
+                foreach ($place["instances"] as $instance) {
+                    if (isset($instance["value"]) && in_array($instance["value"], $allowedTypes)) {
+                        $isAllowedType = true;
+                        break;
+                    }
+                }
+                
+                // Skip if not one of the allowed types
+                if (!$isAllowedType) {
+                    continue;
+                }
+
+                $row = [
+                    $place["id"] ?? "",
+                    $place["label"] ?? "",
+                    $place["description"] ?? "",
+                    $this->extractFilteredTypes($place["instances"] ?? []),
+                    $this->combineCoordinates($place["coordinates"] ?? []),
+                    $this->extractMultipleValues(
+                        $place["streetAddresses"] ?? []
+                    ),
+                    $this->extractFirstDate($place["inceptionDates"] ?? []),
+                    $this->extractFirstDate($place["dissolvedDates"] ?? []),
+                    $this->extractFirstValue($place["officialWebsite"] ?? []),
+                    $this->extractMultipleValues($place["operators"] ?? []),
+                    $this->extractMultipleValues($place["victims"] ?? []),
+                    $this->extractMultipleValues($place["perpetrators"] ?? []),
+                    $this->extractMultipleValues(
+                        $place["significantEvents"] ?? []
+                    ),
+                ];
+
+                fputcsv($output, $row);
+            }
+
+            // Add a blank row between sections
+            fputcsv($output, [""]);
+        }
+    }
+
+    /**
      * Export places data as CSV without Nazi crime events
      *
      * @param resource $output The output stream
@@ -134,10 +221,16 @@ class ExportController extends Controller
                     $this->exportPlaces($output);
                 } elseif ($type == "places_no_events") {
                     $this->exportPlacesWithoutEvents($output);
+                } elseif ($type == "places_minimal") {
+                    $this->exportPlacesMinimal($output);
                 }
 
                 if ($type == "persons" || $type == "all") {
                     $this->exportPersons($output);
+                } elseif ($type == "persons_perpetrators") {
+                    $this->exportPersonsPerpetrators($output);
+                } elseif ($type == "persons_victims") {
+                    $this->exportPersonsVictims($output);
                 }
 
                 fclose($output);
@@ -341,6 +434,194 @@ class ExportController extends Controller
         }
 
         return implode("; ", $values);
+    }
+    
+    /**
+     * Export perpetrator persons data as CSV
+     *
+     * @param resource $output The output stream
+     * @return void
+     */
+    private function exportPersonsPerpetrators($output)
+    {
+        // Write header row for persons (same as regular persons export)
+        fputcsv($output, [
+            "ID",
+            "Label",
+            "Description",
+            "Gender",
+            "First Name",
+            "Family Name",
+            "Date of Birth",
+            "Date of Death",
+            "Place of Birth",
+            "Place of Death",
+            "Citizenships",
+            "Subject Roles",
+            "Employers",
+            "Detention Places",
+        ]);
+
+        // Get persons data from Wikidata
+        $personsData = $this->wikidataClient->queryPersons();
+
+        if (!empty($personsData["results"]["bindings"])) {
+            $persons = $this->wikidataClient->mergeItemsData(
+                $personsData["results"]["bindings"]
+            );
+            
+            // Process each person and check if they are a perpetrator
+            foreach ($persons as $personId => $person) {
+                $isPerpetrator = false;
+                
+                // Check subject roles for perpetrator indicators
+                if (isset($person['subjectRoles'])) {
+                    foreach ($person['subjectRoles'] as $role) {
+                        // Check for perpetrator role ID (Q111080573)
+                        if (isset($role['id']) && $role['id'] === 'Q111080573') {
+                            $isPerpetrator = true;
+                            break;
+                        }
+                        
+                        // Check for perpetrator role in role description
+                        if (isset($role['value']) && 
+                            (stripos($role['value'], 'perpetrator') !== false || 
+                             stripos($role['value'], 'täter') !== false)) {
+                            $isPerpetrator = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // Skip if not a perpetrator
+                if (!$isPerpetrator) {
+                    continue;
+                }
+                
+                $row = [
+                    $person["id"] ?? "",
+                    $person["label"] ?? "",
+                    $person["description"] ?? "",
+                    $this->extractFirstValue($person["gender"] ?? []),
+                    $this->extractFirstValue($person["givenName"] ?? []),
+                    $this->extractFirstValue($person["familyName"] ?? []),
+                    $this->extractFirstDate($person["dateOfBirth"] ?? []),
+                    $this->extractFirstDate($person["dateOfDeath"] ?? []),
+                    $this->extractFirstValue($person["placeOfBirth"] ?? []),
+                    $this->extractFirstValue($person["placeOfDeath"] ?? []),
+                    $this->extractMultipleValues($person["citizenships"] ?? []),
+                    $this->extractMultipleValues($person["subjectRoles"] ?? []),
+                    $this->extractMultipleValues($person["employers"] ?? []),
+                    $this->extractMultipleValues($person["detentionPlaces"] ?? []),
+                ];
+
+                fputcsv($output, $row);
+            }
+            
+            // Add a blank row between sections
+            fputcsv($output, [""]);
+        }
+    }
+
+    /**
+     * Export victim persons data as CSV
+     *
+     * @param resource $output The output stream
+     * @return void
+     */
+    private function exportPersonsVictims($output)
+    {
+        // Write header row for persons (same as regular persons export)
+        fputcsv($output, [
+            "ID",
+            "Label",
+            "Description",
+            "Gender",
+            "First Name",
+            "Family Name",
+            "Date of Birth",
+            "Date of Death",
+            "Place of Birth",
+            "Place of Death",
+            "Citizenships",
+            "Subject Roles",
+            "Employers",
+            "Detention Places",
+        ]);
+
+        // Get persons data from Wikidata
+        $personsData = $this->wikidataClient->queryPersons();
+
+        if (!empty($personsData["results"]["bindings"])) {
+            $persons = $this->wikidataClient->mergeItemsData(
+                $personsData["results"]["bindings"]
+            );
+            
+            // Process each person and check if they are a victim
+            foreach ($persons as $personId => $person) {
+                $isVictim = false;
+                
+                // Check subject roles for victim indicators
+                if (isset($person['subjectRoles'])) {
+                    foreach ($person['subjectRoles'] as $role) {
+                        // Check for victim role IDs (any of the victim IDs)
+                        if (isset($role['id'])) {
+                            $victimIds = ['Q2026714', 'Q2744762', 'Q5883980', 'Q12409870', 'Q111510085', 'Q111510497', 'Q113980000'];
+                            if (in_array($role['id'], $victimIds)) {
+                                $isVictim = true;
+                                break;
+                            }
+                        }
+                        
+                        // Check for victim role in role description
+                        if (isset($role['value']) && 
+                            (stripos($role['value'], 'victim') !== false || 
+                             stripos($role['value'], 'survivor') !== false || 
+                             stripos($role['value'], 'opfer') !== false)) {
+                            $isVictim = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // Additional check: look for victim indicators in person description
+                if (!$isVictim && isset($person['description'])) {
+                    $description = strtolower($person['description']);
+                    if (strpos($description, 'victim') !== false || 
+                        strpos($description, 'survivor') !== false || 
+                        strpos($description, 'opfer') !== false) {
+                        $isVictim = true;
+                    }
+                }
+                
+                // Skip if not a victim
+                if (!$isVictim) {
+                    continue;
+                }
+                
+                $row = [
+                    $person["id"] ?? "",
+                    $person["label"] ?? "",
+                    $person["description"] ?? "",
+                    $this->extractFirstValue($person["gender"] ?? []),
+                    $this->extractFirstValue($person["givenName"] ?? []),
+                    $this->extractFirstValue($person["familyName"] ?? []),
+                    $this->extractFirstDate($person["dateOfBirth"] ?? []),
+                    $this->extractFirstDate($person["dateOfDeath"] ?? []),
+                    $this->extractFirstValue($person["placeOfBirth"] ?? []),
+                    $this->extractFirstValue($person["placeOfDeath"] ?? []),
+                    $this->extractMultipleValues($person["citizenships"] ?? []),
+                    $this->extractMultipleValues($person["subjectRoles"] ?? []),
+                    $this->extractMultipleValues($person["employers"] ?? []),
+                    $this->extractMultipleValues($person["detentionPlaces"] ?? []),
+                ];
+
+                fputcsv($output, $row);
+            }
+            
+            // Add a blank row between sections
+            fputcsv($output, [""]);
+        }
     }
 
     /**
