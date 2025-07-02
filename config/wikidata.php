@@ -13,6 +13,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Wikidata SPARQL URL
+    |--------------------------------------------------------------------------
+    |
+    | The URL of the Wikidata SPARQL endpoint.
+    |
+    */
+    'url' => env('WIKIDATA_URL', 'https://query.wikidata.org/sparql'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Wikidata Bot Username
     |--------------------------------------------------------------------------
     |
@@ -97,4 +107,14 @@ return [
     |
     */
    'callback_url' => env('WIKIDATA_CALLBACK_URL'),
+   
+   /*
+    |--------------------------------------------------------------------------
+    | Cached Persons File
+    |--------------------------------------------------------------------------
+    |
+    | The path to the file where the cached persons data is stored.
+    |
+    */
+   'cachedPersonsFile' => env('WIKIDATA_CACHED_PERSONS_FILE', 'wikidata/persons.json'),
 ];

@@ -2,77 +2,156 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Jobs\OrchestrateWikidataEntityCreation;
+use App\Http\Clients\WikidataClient;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class WikidataController extends Controller
 {
     /**
-     * Create a new Wikidata entity using the orchestrated job approach
+     * Get persons data from Wikidata for website map view, merge required data by person, group by person role, and
+     * cache data in file.
      *
-     * @param Request $request The HTTP request
-     * @return \Illuminate\Http\JsonResponse
+     * @param WikidataClient $wikidataClient
+     *
+     * @return Response
      */
-    public function createEntity(Request $request)
+    public function getPersons(WikidataClient $wikidataClient): Response
     {
-        // Validate the request
-        $validated = $request->validate([
-            'entity_data' => 'required|array',
-            'entity_type' => 'required|string',
-            'callback_url' => 'nullable|url',
+        $personsResponse = $wikidataClient->queryPersons();
+
+        $validator = Validator::make($personsResponse, [
+            "head" => "required|array:vars|size:1",
+            "head.vars" => [
+                "required",
+                "array",
+                "size:12",
+                Rule::in([
+                    "item",
+                    "itemLabel",
+                    "itemDescription",
+                    "property",
+                    "statement",
+                    "propertyValue",
+                    "propertyValueLabel",
+                    "propertyTimePrecision",
+                    "qualifier",
+                    "qualifierValue",
+                    "qualifierValueLabel",
+                    "qualifierTimePrecision",
+                ]),
+            ],
+            "results" => "required|array:bindings|size:1",
+            "results.bindings" => "required|array",
         ]);
 
-        try {
-            // Extract the data from the request
-            $entityData = $validated['entity_data'];
-            $entityType = $validated['entity_type'];
-            $callbackUrl = $validated['callback_url'] ?? null;
-
-            // Create a new request record in the database to track this entity creation
-            $requestModel = config(
-                "wikidata.request_model",
-                "\\App\\Models\\WikidataEntryRequest"
+        if ($validator->fails()) {
+            Log::warning(
+                "Validation of Wikidata persons response failed.",
+                $validator->errors()->all()
             );
-            
-            $request = new $requestModel();
-            $request->status = 'pending';
-            $request->entity_data = json_encode($entityData);
-            $request->entity_type = $entityType;
-            $request->callback_url = $callbackUrl;
-            $request->save();
 
-            // Dispatch the orchestration job
-            $job = new OrchestrateWikidataEntityCreation(
-                $entityData, 
-                $entityType, 
-                $callbackUrl,
-                $request->id // Pass the request ID for tracking
-            );
-            
-            dispatch($job);
-
-            Log::info("Dispatched orchestrated Wikidata entity creation job", [
-                "request_id" => $request->id,
-                "entity_type" => $entityType,
-            ]);
-
-            // Return a success response with the request ID
-            return response()->json([
-                'success' => true,
-                'message' => 'Entity creation job dispatched successfully',
-                'request_id' => $request->id,
-            ]);
-        } catch (\Exception $e) {
-            Log::error("Error dispatching entity creation job", [
-                "error" => $e->getMessage(),
-            ]);
-
-            // Return an error response
-            return response()->json([
-                'success' => false,
-                'message' => 'Error dispatching entity creation job: ' . $e->getMessage(),
-            ], 500);
+            return response([], Response::HTTP_NO_CONTENT);
         }
+
+        $persons = $wikidataClient->mergeItemsData(
+            $personsResponse["results"]["bindings"]
+        );
+        $groupedPersons = $wikidataClient->groupItemsByProperty(
+            $persons,
+            WikidataClient::PERSON_GROUPS_IDS,
+            "P2868"
+        );
+
+        Storage::disk("local")->put(
+            config("wikidata.cachedPersonsFile"),
+            json_encode($groupedPersons)
+        );
+
+        return response($groupedPersons, Response::HTTP_OK);
+    }
+
+    /**
+     * Get cached Wikidata persons data from file.
+     *
+     * @return Response
+     * @throws FileNotFoundException
+     */
+    public function getCachedPersons(): Response
+    {
+        $groupedPersons = array_fill_keys(
+            array_keys(WikidataClient::PERSON_GROUPS_IDS),
+            []
+        );
+
+        if (
+            Storage::disk("local")->exists(config("wikidata.cachedPersonsFile"))
+        ) {
+            $groupedPersons = Storage::disk("local")->get(
+                config("wikidata.cachedPersonsFile")
+            );
+        }
+
+        return response($groupedPersons, Response::HTTP_OK);
+    }
+
+    /**
+     * Get location data from Wikidata for website map view, merge required data by location and group by location type.
+     *
+     * @param WikidataClient $wikidataClient
+     *
+     * @return Response
+     */
+    public function getPlaces(WikidataClient $wikidataClient): Response
+    {
+        $placesResponse = $wikidataClient->queryPlaces();
+        $validator = Validator::make($placesResponse, [
+            "head" => "required|array:vars|size:1",
+            "head.vars" => [
+                "required",
+                "array",
+                "size:12",
+                Rule::in([
+                    "item",
+                    "itemLabel",
+                    "itemDescription",
+                    "property",
+                    "statement",
+                    "propertyValue",
+                    "propertyValueLabel",
+                    "propertyTimePrecision",
+                    "qualifier",
+                    "qualifierValue",
+                    "qualifierValueLabel",
+                    "qualifierTimePrecision",
+                ]),
+            ],
+            "results" => "required|array:bindings|size:1",
+            "results.bindings" => "required|array",
+        ]);
+
+        if ($validator->fails()) {
+            Log::warning(
+                "Validation of Wikidata places response failed.",
+                $validator->errors()->all()
+            );
+
+            return response([], Response::HTTP_NO_CONTENT);
+        }
+
+        $locations = $wikidataClient->mergeItemsData(
+            $placesResponse["results"]["bindings"]
+        );
+        $groupedLocations = $wikidataClient->groupItemsByProperty(
+            $locations,
+            WikidataClient::PLACE_GROUPS_IDS,
+            "P31"
+        );
+
+        return response($groupedLocations, Response::HTTP_OK);
     }
 }

@@ -1,6 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+    .pagination svg {
+        height: 30px;
+        width: auto;
+    }
+</style>
 <div class="container-fluid">
     <h1 class="mb-4">Anfragen-Verwaltung</h1>
 
@@ -99,7 +105,7 @@
                 </table>
             </div>
 
-            <div class="d-flex justify-content-center mt-4">
+            <div class="d-flex justify-content-center mt-4 pagination">
                 {{ $requests->links() }}
             </div>
         </div>

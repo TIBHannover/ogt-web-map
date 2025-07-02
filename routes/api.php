@@ -129,6 +129,12 @@ Route::get("/wikidata/search", [
     "search",
 ]);
 
+// Route for creating Wikidata entities programmatically
+Route::post("/wikidata/entity", [
+    WikidataEntityController::class,
+    "createEntity",
+]);
+
 // Route for entity creation webhook callback
 Route::post("/wikidata/entity-callback", [
     WikidataEntityController::class,

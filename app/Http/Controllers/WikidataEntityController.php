@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\WikidataEntryRequest;
+use App\Jobs\OrchestrateWikidataEntityCreation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -155,8 +156,12 @@ class WikidataEntityController extends Controller
 
             // Quellen - Clean up before storing
             if (!empty($validated["sources"])) {
-                $formatter = app(\App\Services\Wikidata\WikidataFormatterModels::class);
-                $validated["sources"] = $formatter->cleanupSourceData($validated["sources"]);
+                $formatter = app(
+                    \App\Services\Wikidata\WikidataFormatterModels::class
+                );
+                $validated["sources"] = $formatter->cleanupSourceData(
+                    $validated["sources"]
+                );
             }
             $entryRequest->sources = $validated["sources"] ?? null;
 
@@ -309,19 +314,26 @@ class WikidataEntityController extends Controller
             // Job in die Queue stellen, um Wikidata-Eintrag asynchron zu erstellen
             // Add callback URL for updating status when the entity is created
             // Use the configured app URL instead of relying on url() helper which might use localhost
-            $appUrl = config('app.url', 'http://localhost');
-            $callbackUrl = rtrim($appUrl, '/') . '/api/wikidata/entity-callback';
-            
+            $appUrl = config("app.url", "http://localhost");
+            $callbackUrl =
+                rtrim($appUrl, "/") . "/api/wikidata/entity-callback";
+
             // Log the callback URL for debugging
-            \Illuminate\Support\Facades\Log::info('Using callback URL: ' . $callbackUrl);
-            
+            \Illuminate\Support\Facades\Log::info(
+                "Using callback URL: " . $callbackUrl
+            );
+
             // Make sure any formatter instance has debug mode disabled
-            $formatter = app(\App\Services\Wikidata\WikidataFormatterModels::class);
-            if (method_exists($formatter, 'setDebugMode')) {
+            $formatter = app(
+                \App\Services\Wikidata\WikidataFormatterModels::class
+            );
+            if (method_exists($formatter, "setDebugMode")) {
                 $formatter->setDebugMode(false);
-                Log::info("Debug mode explicitly disabled before dispatching CreateWikidataEntity job");
+                Log::info(
+                    "Debug mode explicitly disabled before dispatching CreateWikidataEntity job"
+                );
             }
-            
+
             \App\Jobs\CreateWikidataEntity::dispatch(
                 $entryRequest->toArray(),
                 $entryRequest->type,
@@ -524,7 +536,7 @@ class WikidataEntityController extends Controller
                         Response::HTTP_BAD_REQUEST
                     );
                 }
-                
+
                 return response()->json(
                     [
                         "success" => false,
@@ -546,11 +558,11 @@ class WikidataEntityController extends Controller
             $entryRequest->error_message = null; // Fehler zurücksetzen
             $entryRequest->status = "pending"; // Status auf pending setzen
             $entryRequest->save();
-            
+
             // Job in die Queue stellen, um Wikidata-Eintrag asynchron zu erstellen
             // Job in die Queue stellen
-            $callbackUrl = url('/api/wikidata/entity-callback');
-            
+            $callbackUrl = url("/api/wikidata/entity-callback");
+
             \App\Jobs\CreateWikidataEntity::dispatch(
                 $entryRequest->toArray(),
                 $entryRequest->type,
@@ -592,7 +604,7 @@ class WikidataEntityController extends Controller
                     Response::HTTP_INTERNAL_SERVER_ERROR
                 );
             }
-            
+
             return response()->json(
                 [
                     "success" => false,
@@ -1030,23 +1042,78 @@ class WikidataEntityController extends Controller
     }
 
     /**
-     * Erstellt eine neue Wikidata-Entitu00e4t basierend auf der Anfrage.
+     * Create a new Wikidata entity using the orchestrated job approach
      *
-     * @param WikidataEntryRequest $entryRequest
-     * @return string Die ID der erstellten Wikidata-Entitu00e4t
-     * @throws \Exception wenn die Anfrage fehlschlu00e4gt
+     * @param Request $request The HTTP request
+     * @return \Illuminate\Http\JsonResponse
      */
-    private function createEntity(WikidataEntryRequest $entryRequest): string
+    public function createEntity(Request $request)
     {
-        // Warnung: Dies ist nur eine Simulation der API-Interaktion
-        // In einer realen Anwendung wu00fcrden Sie den Bot-Token verwenden
-        // und die tatsu00e4chliche Wikidata-API aufrufen
+        // Validate the request
+        $validated = $request->validate([
+            "entity_data" => "required|array",
+            "entity_type" => "required|string",
+            "callback_url" => "nullable|url",
+        ]);
 
-        // Simuliert den Ru00fcckgabewert der Wikidata-API
-        // In einer realen Anwendung wu00fcrde dies die tatsu00e4chliche ID von Wikidata sein
-        return "Q" . rand(10000000, 99999999);
+        try {
+            // Extract the data from the request
+            $entityData = $validated["entity_data"];
+            $entityType = $validated["entity_type"];
+            $callbackUrl = $validated["callback_url"] ?? null;
+
+            // Create a new request record in the database to track this entity creation
+            $requestModel = config(
+                "wikidata.request_model",
+                "\\App\\Models\\WikidataEntryRequest"
+            );
+
+            $request = new $requestModel();
+            $request->status = "pending";
+            $request->entity_data = json_encode($entityData);
+            $request->entity_type = $entityType;
+            $request->callback_url = $callbackUrl;
+            $request->save();
+
+            // Dispatch the orchestration job
+            $job = new OrchestrateWikidataEntityCreation(
+                $entityData,
+                $entityType,
+                $callbackUrl,
+                $request->id // Pass the request ID for tracking
+            );
+
+            dispatch($job);
+
+            Log::info("Dispatched orchestrated Wikidata entity creation job", [
+                "request_id" => $request->id,
+                "entity_type" => $entityType,
+            ]);
+
+            // Return a success response with the request ID
+            return response()->json([
+                "success" => true,
+                "message" => "Entity creation job dispatched successfully",
+                "request_id" => $request->id,
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error dispatching entity creation job", [
+                "error" => $e->getMessage(),
+            ]);
+
+            // Return an error response
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" =>
+                        "Error dispatching entity creation job: " .
+                        $e->getMessage(),
+                ],
+                500
+            );
+        }
     }
-    
+
     /**
      * Handles callback from the Wikidata entity creation job
      * Updates the entity status and wikidata_id
@@ -1059,124 +1126,141 @@ class WikidataEntityController extends Controller
         try {
             // Validate the request contains original_data
             $validator = Validator::make($request->all(), [
-                'original_data' => 'required|array',
-                'status' => 'required|string',
+                "original_data" => "required|array",
+                "status" => "required|string",
             ]);
 
             if ($validator->fails()) {
-                Log::error('Invalid entity callback data', [
-                    'errors' => $validator->errors(),
-                    'data' => $request->all()
+                Log::error("Invalid entity callback data", [
+                    "errors" => $validator->errors(),
+                    "data" => $request->all(),
                 ]);
 
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid callback data',
-                    'errors' => $validator->errors(),
-                ], Response::HTTP_BAD_REQUEST);
+                return response()->json(
+                    [
+                        "success" => false,
+                        "message" => "Invalid callback data",
+                        "errors" => $validator->errors(),
+                    ],
+                    Response::HTTP_BAD_REQUEST
+                );
             }
 
             // Extract data from the request
-            $status = $request->input('status');
-            $originalData = $request->input('original_data');
-            $entityId = $request->input('entity_id'); // May be null in case of failure
-            $createdEntities = $request->input('created_entities', []);
-            $error = $request->input('error');
-            
+            $status = $request->input("status");
+            $originalData = $request->input("original_data");
+            $entityId = $request->input("entity_id"); // May be null in case of failure
+            $createdEntities = $request->input("created_entities", []);
+            $error = $request->input("error");
+
             // Find the original entity request
-            $entryId = $originalData['id'] ?? null;
-            
+            $entryId = $originalData["id"] ?? null;
+
             if (!$entryId) {
-                Log::error('Missing ID in entity callback data', [
-                    'entity_id' => $entityId,
-                    'data' => $originalData
+                Log::error("Missing ID in entity callback data", [
+                    "entity_id" => $entityId,
+                    "data" => $originalData,
                 ]);
-                
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Missing ID in original data',
-                ], Response::HTTP_BAD_REQUEST);
+
+                return response()->json(
+                    [
+                        "success" => false,
+                        "message" => "Missing ID in original data",
+                    ],
+                    Response::HTTP_BAD_REQUEST
+                );
             }
-            
+
             $entryRequest = WikidataEntryRequest::find($entryId);
-            
+
             if (!$entryRequest) {
-                Log::error('Entry request not found for callback', [
-                    'entry_id' => $entryId,
-                    'entity_id' => $entityId,
+                Log::error("Entry request not found for callback", [
+                    "entry_id" => $entryId,
+                    "entity_id" => $entityId,
                 ]);
-                
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Entry request not found',
-                ], Response::HTTP_NOT_FOUND);
+
+                return response()->json(
+                    [
+                        "success" => false,
+                        "message" => "Entry request not found",
+                    ],
+                    Response::HTTP_NOT_FOUND
+                );
             }
             // Update based on status
-            if ($status === 'success' && $entityId) {
+            if ($status === "success" && $entityId) {
                 // Update the entry with the Wikidata ID
                 $entryRequest->wikidata_id = $entityId;
                 $entryRequest->created_entities = $createdEntities;
-                
+
                 // Update status to wikidata_published
-                app(\App\Http\Controllers\EntryStatusController::class)
-                    ->updateStatusHistory(
-                        $entryRequest,
-                        'wikidata_published',
-                        "Eintrag erfolgreich erstellt mit Wikidata-ID: {$entityId}"
-                    );
-                
-                Log::info('Updated entry status after successful Wikidata creation', [
-                    'entry_id' => $entryId,
-                    'entity_id' => $entityId,
-                    'status' => 'wikidata_published',
-                    'created_entities_count' => count($createdEntities)
-                ]);
-            } 
-            else if ($status === 'failed') {
+                app(
+                    \App\Http\Controllers\EntryStatusController::class
+                )->updateStatusHistory(
+                    $entryRequest,
+                    "wikidata_published",
+                    "Eintrag erfolgreich erstellt mit Wikidata-ID: {$entityId}"
+                );
+
+                Log::info(
+                    "Updated entry status after successful Wikidata creation",
+                    [
+                        "entry_id" => $entryId,
+                        "entity_id" => $entityId,
+                        "status" => "wikidata_published",
+                        "created_entities_count" => count($createdEntities),
+                    ]
+                );
+            } elseif ($status === "failed") {
                 // Handle failed entity creation
-                $errorMessage = $error ?? 'Unbekannter Fehler bei der Erstellung des Wikidata-Eintrags';
-                
+                $errorMessage =
+                    $error ??
+                    "Unbekannter Fehler bei der Erstellung des Wikidata-Eintrags";
+
                 // Update status to indicate failure
-                app(\App\Http\Controllers\EntryStatusController::class)
-                    ->updateStatusHistory(
-                        $entryRequest,
-                        'wikidata_failed',
-                        "Fehler bei der Erstellung des Wikidata-Eintrags: {$errorMessage}"
-                    );
-                
-                Log::error('Entity creation failed', [
-                    'entry_id' => $entryId,
-                    'error' => $errorMessage
+                app(
+                    \App\Http\Controllers\EntryStatusController::class
+                )->updateStatusHistory(
+                    $entryRequest,
+                    "wikidata_failed",
+                    "Fehler bei der Erstellung des Wikidata-Eintrags: {$errorMessage}"
+                );
+
+                Log::error("Entity creation failed", [
+                    "entry_id" => $entryId,
+                    "error" => $errorMessage,
+                ]);
+            } else {
+                Log::warning("Unexpected status in callback", [
+                    "status" => $status,
+                    "entry_id" => $entryId,
+                    "entity_id" => $entityId,
                 ]);
             }
-            else {
-                Log::warning('Unexpected status in callback', [
-                    'status' => $status,
-                    'entry_id' => $entryId,
-                    'entity_id' => $entityId
-                ]);
-            }
-                
+
             $entryRequest->save();
-            
+
             return response()->json([
-                'success' => true,
-                'message' => 'Entry status updated successfully',
-                'entry_id' => $entryId,
-                'entity_id' => $entityId,
-                'status' => $status
+                "success" => true,
+                "message" => "Entry status updated successfully",
+                "entry_id" => $entryId,
+                "entity_id" => $entityId,
+                "status" => $status,
             ]);
-            
         } catch (\Exception $e) {
-            Log::error('Error handling entity callback: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-                'data' => $request->all()
+            Log::error("Error handling entity callback: " . $e->getMessage(), [
+                "trace" => $e->getTraceAsString(),
+                "data" => $request->all(),
             ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Error processing callback: ' . $e->getMessage(),
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" =>
+                        "Error processing callback: " . $e->getMessage(),
+                ],
+                Response::HTTP_INTERNAL_SERVER_ERROR
+            );
         }
     }
 }
