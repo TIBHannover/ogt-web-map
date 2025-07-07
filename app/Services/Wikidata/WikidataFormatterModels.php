@@ -66,6 +66,7 @@ class WikidataFormatterModels
     public const WIKIDATA_STATED_IN_URL = "P973"; // Described in URL
     public const WIKIDATA_LANGUAGE = "P407"; // Language
     public const WIKIDATA_RETRIEVAL_DATE = "P813"; // Retrieved date
+    public const WIKIDATA_COORDINATE_LOCATION = "P625"; // Coordinate location
 
     /**
      * Constructor

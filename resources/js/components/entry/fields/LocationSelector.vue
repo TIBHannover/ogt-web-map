@@ -56,6 +56,15 @@
                 <strong>Ausgewählte Koordinaten:</strong>
                 {{ selectedLocation.lat.toFixed(6) }},
                 {{ selectedLocation.lng.toFixed(6) }}
+                
+                <div class="location-qualifier-container">
+                    <label for="locationQualifier">Koordinaten-Qualifizierer:</label>
+                    <LocationQualifier
+                        id="locationQualifier"
+                        :model-value="locationQualifier"
+                        @update:model-value="$emit('update:locationQualifier', $event)"
+                    />
+                </div>
             </div>
         </div>
     </div>
@@ -67,6 +76,7 @@ import * as L from "leaflet";
 import { LMap, LTileLayer, LMarker } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
 import ValidationError from "../../helpers/ValidationError.vue";
+import LocationQualifier from "./common/LocationQualifier.vue";
 import { useValidation } from "../../../composables/useValidation";
 
 const props = defineProps({
@@ -86,6 +96,10 @@ const props = defineProps({
         type: String,
         default: "",
     },
+    locationQualifier: {
+        type: String,
+        default: "",
+    },
 });
 
 const emit = defineEmits([
@@ -93,6 +107,7 @@ const emit = defineEmits([
     "update:mapCenter",
     "update:selectedLocation",
     "update:locationSearch",
+    "update:locationQualifier",
     "searchLocation",
     "handleMapClick",
     "fieldFocus",
@@ -246,6 +261,18 @@ onMounted(() => {
     background-color: #f5f5f5;
     padding: 8px;
     border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.location-qualifier-container {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #ddd;
+}
+
+.location-qualifier-container label {
+    display: block;
+    margin-bottom: 0.25rem;
     font-size: 0.9rem;
 }
 

@@ -27,6 +27,10 @@
                             <h2 class="step-title">
                                 Schritt 1: Wählen Sie den Eintragstyp
                             </h2>
+                            <p>
+                                Bitte wählen Sie den Eintragstyp aus welchen Sie
+                                anlegen möchten.
+                            </p>
                             <form class="forms">
                                 <fieldset>
                                     <legend for="type">Eintrag-Typ</legend>
@@ -214,7 +218,9 @@
                         v-model:eventDate="eventDate"
                         v-model:eventDateQualifier="eventDateQualifier"
                         v-model:eventStartDate="eventStartDate"
-                        v-model:eventStartDateQualifier="eventStartDateQualifier"
+                        v-model:eventStartDateQualifier="
+                            eventStartDateQualifier
+                        "
                         v-model:eventEndDate="eventEndDate"
                         v-model:eventEndDateQualifier="eventEndDateQualifier"
                         v-model:victimCount="victimCount"
@@ -974,7 +980,10 @@ const resetForm = async () => {
     isSubmitting.value = true;
 
     // Trigger validation in TimeSelector and other form components
-    if (eventsFormRef.value && typeof eventsFormRef.value.validateForm === 'function') {
+    if (
+        eventsFormRef.value &&
+        typeof eventsFormRef.value.validateForm === "function"
+    ) {
         eventsFormRef.value.validateForm();
     }
 
@@ -1039,9 +1048,11 @@ const resetForm = async () => {
         const generateSecureToken = () => {
             const array = new Uint8Array(24); // 24 bytes will generate a reasonably long string
             window.crypto.getRandomValues(array);
-            return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+            return Array.from(array, (byte) =>
+                byte.toString(16).padStart(2, "0"),
+            ).join("");
         };
-        
+
         const secureToken = generateSecureToken();
 
         const response = await axios.post(
@@ -1072,7 +1083,7 @@ const resetForm = async () => {
                 imageUrl: imageUrl.value,
                 imageFilename: imageFilename.value,
                 sources: selectedSources.value,
-                statusToken: secureToken // Include the secure token
+                statusToken: secureToken, // Include the secure token
             },
             {
                 headers: {
@@ -1092,18 +1103,18 @@ const resetForm = async () => {
 
             // Use the token as the requestId for the thank-you page
             const requestId = secureToken || response.data.requestId;
-            console.log('Sending to thank-you page with requestId:', requestId);
-            
+            console.log("Sending to thank-you page with requestId:", requestId);
+
             // Store token in localStorage for better persistence
             if (requestId) {
-                localStorage.setItem('entryStatusToken', requestId);
+                localStorage.setItem("entryStatusToken", requestId);
             }
 
             // Redirect to thank-you page with request ID
             router.push({
                 name: "thank-you",
                 params: { requestId: requestId },
-                query: { token: requestId } // Add as query param for better compatibility
+                query: { token: requestId }, // Add as query param for better compatibility
             });
         } else {
             error.value =

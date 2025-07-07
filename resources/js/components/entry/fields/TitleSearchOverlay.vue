@@ -7,123 +7,179 @@
                     &times;
                 </button>
             </div>
-            <div class="overlay-body">
-                <div class="input-group">
-                    <label for="entry-title">Titel des Eintrags</label>
-                    <div class="search-input-container">
-                        <input
-                            id="entry-title"
-                            type="text"
-                            v-model="localTitle"
-                            @input="onInput"
-                            @keydown.enter.prevent="performSearch"
-                            placeholder="Titel eingeben..."
-                            maxlength="250"
-                            autocomplete="off"
-                            autofocus
-                        />
-                        <button
-                            class="button search-button"
-                            @click="performSearch"
-                            :disabled="!localTitle || localTitle.length < 3"
-                        >
-                            <v-icon size="small" class="me-1"
-                                >mdi-magnify</v-icon
-                            >
-                            Suchen
-                        </button>
+            <div class="overlay-body-wrapper">
+                <div class="overlay-body">
+                    <div class="entry-banner">
+                        <h2>Welchen Eintrag wollen Sie anlegen?</h2>
                     </div>
-                </div>
-                <p class="search-info">
-                    Bitte prüfen Sie, ob dieser Eintrag bereits existiert.
-                </p>
-
-                <!-- Suchergebnisse anzeigen -->
-                <div
-                    v-if="searchResults && searchResults.length > 0"
-                    class="search-results"
-                >
-                    <h4>Suchergebnisse:</h4>
-                    <div
-                        v-for="result in searchResults"
-                        :key="result.id"
-                        class="search-result-item"
-                    >
-                        <div class="result-title">{{ result.label }}</div>
-                        <div
-                            class="result-description"
-                            v-if="result.description"
-                        >
-                            {{ result.description }}
-                        </div>
-                        <div class="result-actions">
-                            <div class="result-id">{{ result.id }}</div>
+                    <div class="input-group">
+                        <label for="entry-title">Titel des Eintrags</label>
+                        <div class="search-input-container">
+                            <input
+                                id="entry-title"
+                                type="text"
+                                v-model="localTitle"
+                                @input="onInput"
+                                @keydown.enter.prevent="performSearch"
+                                placeholder="Titel eingeben..."
+                                maxlength="250"
+                                autocomplete="off"
+                                autofocus
+                            />
                             <button
-                                class="open-wikidata-button"
-                                @click="openWikidata(result.id)"
+                                class="button search-button"
+                                @click="performSearch"
+                                :disabled="!localTitle || localTitle.length < 3"
                             >
-                                <v-icon size="small">mdi-open-in-new</v-icon>
-                                Auf Wikidata öffnen
+                                <v-icon size="small" class="me-1"
+                                    >mdi-magnify</v-icon
+                                >
+                                Suchen
                             </button>
                         </div>
                     </div>
-                </div>
+                    <div class="search-info-box">
+                        <div class="info-icon-wrapper">
+                            <v-icon>mdi-information-outline</v-icon>
+                        </div>
+                        <p>
+                            Bitte prüfen Sie, ob dieser Eintrag bereits
+                            existiert und bestätigen dies mit der Checkbox unter
+                            der Suche.
+                        </p>
+                    </div>
 
-                <!-- Loading Indikator -->
-                <div v-if="isLoading" class="loading">
-                    <v-progress-circular
-                        indeterminate
-                        color="primary"
-                    ></v-progress-circular>
-                    <span>Suche läuft...</span>
-                </div>
-
-                <!-- Keine Ergebnisse -->
-                <div
-                    v-if="
-                        searchPerformed &&
-                        searchResults.length === 0 &&
-                        !isLoading
-                    "
-                    class="no-results"
-                >
-                    Keine Einträge gefunden.
-                </div>
-
-                <!-- Checkbox - erscheint nur nach durchgeführter Suche -->
-                <div
-                    v-if="searchPerformed && !isLoading"
-                    class="confirmation-checkbox"
-                >
-                    <input
-                        type="checkbox"
-                        id="no-existing-entry"
-                        v-model="noExistingEntry"
-                    />
-                    <label for="no-existing-entry"
-                        >Es gibt keinen vorhandenen Eintrag mit diesem
-                        Titel</label
+                    <!-- Suchergebnisse anzeigen -->
+                    <div
+                        v-if="searchResults && searchResults.length > 0"
+                        class="search-results"
                     >
-                </div>
+                        <h4>Suchergebnisse:</h4>
+                        <div
+                            v-for="result in searchResults"
+                            :key="result.id"
+                            class="search-result-item"
+                        >
+                            <div class="result-title">{{ result.label }}</div>
+                            <div
+                                class="result-description"
+                                v-if="result.description"
+                            >
+                                {{ result.description }}
+                            </div>
+                            <div class="result-actions">
+                                <div class="result-id">{{ result.id }}</div>
+                                <button
+                                    class="open-wikidata-button"
+                                    @click="openWikidata(result.id)"
+                                >
+                                    <v-icon size="small"
+                                        >mdi-open-in-new</v-icon
+                                    >
+                                    Auf Wikidata öffnen
+                                </button>
+                            </div>
+                        </div>
+                    </div>
 
-                <div class="button-group">
-                    <button class="button bg-secondary" @click="$emit('close')">
-                        Abbrechen
-                    </button>
-                    <button
-                        class="button create-button"
-                        :disabled="
-                            !localTitle ||
-                            localTitle.length < 3 ||
-                            isLoading ||
-                            !searchPerformed ||
-                            !noExistingEntry
+                    <!-- Loading Indikator -->
+                    <div v-if="isLoading" class="loading">
+                        <v-progress-circular
+                            indeterminate
+                            color="primary"
+                        ></v-progress-circular>
+                        <span>Suche läuft...</span>
+                    </div>
+
+                    <!-- Keine Ergebnisse -->
+                    <div
+                        v-if="
+                            searchPerformed &&
+                            searchResults.length === 0 &&
+                            !isLoading
                         "
-                        @click="createEntry"
+                        class="no-results"
                     >
-                        <v-icon size="small" class="me-1">mdi-plus</v-icon>
-                        {{ getCreateButtonText() }}
-                    </button>
+                        Keine Einträge gefunden.
+                    </div>
+
+                    <!-- Checkbox - erscheint nur nach durchgeführter Suche -->
+                    <div
+                        v-if="searchPerformed && !isLoading"
+                        class="confirmation-checkbox"
+                    >
+                        <input
+                            type="checkbox"
+                            id="no-existing-entry"
+                            v-model="noExistingEntry"
+                        />
+                        <label for="no-existing-entry"
+                            >Es gibt keinen vorhandenen Eintrag mit diesem
+                            Titel</label
+                        >
+                    </div>
+
+                    <div class="button-group">
+                        <button
+                            class="button bg-secondary"
+                            @click="$emit('close')"
+                        >
+                            Abbrechen
+                        </button>
+                        <button
+                            class="button create-button"
+                            :disabled="
+                                !localTitle ||
+                                localTitle.length < 3 ||
+                                isLoading ||
+                                !searchPerformed ||
+                                !noExistingEntry
+                            "
+                            @click="createEntry"
+                        >
+                            <v-icon size="small" class="me-1">mdi-plus</v-icon>
+                            {{ getCreateButtonText() }}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Info Box -->
+                <div class="info-box" v-if="!isMobileView">
+                    <div class="info-box-header">
+                        <h3>Hinweise zur Titeleingabe</h3>
+                    </div>
+                    <div class="info-box-content">
+                        <p>
+                            <strong>Wichtig:</strong> Bevor Sie einen neuen
+                            Eintrag erstellen, suchen Sie bitte zuerst, ob
+                            dieser bereits existiert.
+                        </p>
+                        <p>Folgen Sie diesen Schritten:</p>
+                        <ol>
+                            <li>
+                                Geben Sie den gewünschten Titel in das Suchfeld
+                                ein
+                            </li>
+                            <li>Klicken Sie auf "Suchen"</li>
+                            <li>
+                                Prüfen Sie die angezeigten Suchergebnisse
+                                sorgfältig
+                            </li>
+                            <li>
+                                Falls kein passender Eintrag existiert,
+                                aktivieren Sie die Checkbox
+                            </li>
+                            <li>
+                                Klicken Sie auf "{{ getTypeInfoTitle() }}
+                                erstellen"
+                            </li>
+                        </ol>
+                        <p>
+                            Falls Sie einen ähnlichen Eintrag finden, können Sie
+                            diesen auf Wikidata öffnen, um mehr Informationen zu
+                            erhalten.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -131,7 +187,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
+import { ref, onMounted, onUnmounted, watch } from "vue";
 import { debounce } from "lodash";
 import axios from "axios";
 
@@ -148,6 +204,11 @@ const props = defineProps({
         type: String,
         default: "Neuen Eintrag erstellen",
     },
+    context: {
+        type: String,
+        default: "create", // 'create' or 'update'
+        validator: (value) => ['create', 'update'].includes(value)
+    },
 });
 
 const emit = defineEmits(["update:title", "close", "create"]);
@@ -157,6 +218,22 @@ const searchResults = ref([]);
 const isLoading = ref(false);
 const searchPerformed = ref(false);
 const noExistingEntry = ref(false);
+const isMobileView = ref(false);
+
+// Check screen size for responsive design
+const checkScreenSize = () => {
+    isMobileView.value = window.innerWidth < 1200;
+};
+
+// Add and remove event listener for screen resize
+onMounted(() => {
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+});
+
+onUnmounted(() => {
+    window.removeEventListener("resize", checkScreenSize);
+});
 
 // Search function
 const performSearch = async () => {
@@ -202,19 +279,26 @@ const openWikidata = (id) => {
     window.open(`https://www.wikidata.org/wiki/${id}`, "_blank");
 };
 
-// Get the create button text based on entry type
-const getCreateButtonText = () => {
-    const typeNames = {
+// Get the type info title based on entry type
+const getTypeInfoTitle = () => {
+    const typeTitles = {
         Q6983405: "Ereignis",
         Q5003624: "Erinnerungsort",
         Q108047567: "Staatspolizeistelle",
-        Q108047541: "Staatspolizeiauu00dfenstelle",
+        Q108047541: "Staatspolizeiaußenstelle",
         Q277565: "Arbeitserziehungslager",
         Q40357: "Gefängnis",
     };
 
-    const typeName = typeNames[props.entryType] || "Eintrag";
-    return `${typeName} erstellen`;
+    return typeTitles[props.entryType] || "Eintragstyp";
+};
+
+// Get the create button text based on entry type and context
+const getCreateButtonText = () => {
+    if (props.context === 'update') {
+        return 'Titel anpassen';
+    }
+    return `${getTypeInfoTitle()} erstellen`;
 };
 
 // Create the entry and proceed to the next step
@@ -253,7 +337,7 @@ watch(
 
 .overlay-content {
     width: 90%;
-    max-width: 600px;
+    max-width: 1000px; /* Increased to accommodate the info box */
     max-height: 90vh;
     background-color: white;
     border-radius: 8px;
@@ -277,10 +361,31 @@ watch(
     font-size: 1.2rem;
 }
 
+.overlay-body-wrapper {
+    display: flex;
+    flex-direction: row;
+    max-height: calc(90vh - 3.5rem);
+}
+
 .overlay-body {
     padding: 1.5rem;
     overflow-y: auto;
-    max-height: calc(90vh - 3.5rem);
+    flex: 1;
+    max-width: 65%;
+}
+
+.entry-banner {
+    background-color: #f5f5f5;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 4px;
+    border-left: 4px solid #1976d2;
+}
+
+.entry-banner h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: #333;
 }
 
 .input-group {
@@ -314,6 +419,31 @@ watch(
     outline: none;
     border-color: #1976d2;
     box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
+}
+
+.search-info-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background-color: #fff9c4; /* Light yellow background */
+    border-radius: 4px;
+    border-left: 4px solid #fbc02d; /* Darker yellow border */
+}
+
+.search-info-box .info-icon-wrapper {
+    color: #f57f17; /* Amber color for icon */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.search-info-box p {
+    margin: 0;
+    color: #5d4037;
+    font-size: 0.95rem;
 }
 
 .search-info {
@@ -353,6 +483,8 @@ watch(
     border: 1px solid #e0e0e0;
     border-radius: 4px;
     overflow: hidden;
+    overflow-y: scroll;
+    max-height: 400px;
 }
 
 .search-results h4 {
@@ -514,5 +646,67 @@ watch(
 
 .close-overlay:hover {
     background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Info Box Styles */
+.info-box {
+    width: 35%;
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-left: 1px solid #e0e0e0;
+    overflow-y: auto;
+}
+
+.info-box-header {
+    border-bottom: 1px solid #e9ecef;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+}
+
+.info-box-header h3 {
+    font-size: 1.2rem;
+    color: #1976d2;
+    margin: 0;
+}
+
+.info-box-content {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #495057;
+}
+
+.info-box-content p {
+    margin-bottom: 1rem;
+}
+
+.info-box-content ol {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.info-box-content li {
+    margin-bottom: 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .overlay-content {
+        max-width: 600px;
+    }
+
+    .overlay-body-wrapper {
+        flex-direction: column;
+    }
+
+    .overlay-body {
+        max-width: 100%;
+    }
+
+    .info-box {
+        display: none; /* Hide info box on mobile */
+        width: 100%;
+        border-left: none;
+        border-top: 1px solid #e0e0e0;
+    }
 }
 </style>

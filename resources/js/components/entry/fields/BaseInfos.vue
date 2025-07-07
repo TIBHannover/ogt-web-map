@@ -12,15 +12,25 @@
         </div>
 
         <label for="title" class="">Titel *</label>
-        <input
-            :value="title"
-            @input="$emit('update:title', $event.target.value)"
-            name="title"
-            type="text"
-            maxlength="250"
-            placeholder="z.B. Novemberpogrom 1938 in Osnabrück"
-            @focus="$emit('fieldFocus', 'title')"
-        />
+        <div class="title-input-container">
+            <input
+                :value="title"
+                @input="$emit('update:title', $event.target.value)"
+                name="title"
+                type="text"
+                maxlength="250"
+                placeholder="z.B. Novemberpogrom 1938 in Osnabrück"
+                @focus="openTitleOverlay"
+                @focus.once="$emit('fieldFocus', 'title')"
+            />
+            <button 
+                type="button" 
+                class="search-button"
+                @click="openTitleOverlay"
+                title="Titel überprüfen">
+                <v-icon>mdi-magnify</v-icon>
+            </button>
+        </div>
 
         <ValidationError
             :show="showValidationErrors && !isTitleValid"
@@ -28,11 +38,28 @@
             showIcon
         />
 
+        <!-- Title Search Overlay -->
+        <TitleSearchOverlay
+            v-if="showTitleOverlay"
+            :initial-title="title"
+            :entry-type="entryType"
+            :title="'Titel überprüfen'"
+            :context="'update'"
+            @update:title="updateTitleFromOverlay"
+            @close="closeTitleOverlay"
+            @create="createFromOverlay"
+        />
+
         <!-- Anzeige der Suchergebnisse -->
         <div v-if="wikidataResults.length > 0" class="search-results">
-            <p class="search-info">
-                Möglicherweise existiert dieser Eintrag bereits:
-            </p>
+            <div class="search-info-box">
+                <div class="info-icon-wrapper">
+                    <v-icon>mdi-information-outline</v-icon>
+                </div>
+                <p>
+                    Möglicherweise existiert dieser Eintrag bereits:
+                </p>
+            </div>
             <div
                 v-for="result in wikidataResults"
                 :key="result.id"
@@ -69,6 +96,7 @@
 import { ref, computed } from "vue";
 import ValidationError from "../../helpers/ValidationError.vue";
 import { useValidation } from "../../../composables/useValidation";
+import TitleSearchOverlay from "./TitleSearchOverlay.vue";
 
 const props = defineProps({
     stepTitle: {
@@ -87,6 +115,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    entryType: {
+        type: String,
+        required: true,
+    },
 });
 
 const emit = defineEmits([
@@ -97,7 +129,31 @@ const emit = defineEmits([
     "infoButtonClick",
     "selectExistingEntity",
     "validation",
+    "searchWikidataEntities",
 ]);
+
+// Title search overlay state
+const showTitleOverlay = ref(false);
+
+// Open and close title search overlay
+const openTitleOverlay = () => {
+    showTitleOverlay.value = true;
+};
+
+const closeTitleOverlay = () => {
+    showTitleOverlay.value = false;
+};
+
+// Handle title update from overlay
+const updateTitleFromOverlay = (newTitle) => {
+    emit("update:title", newTitle);
+};
+
+// Handle create from overlay
+const createFromOverlay = (title) => {
+    emit("update:title", title);
+    closeTitleOverlay();
+};
 
 // Computed properties for validation
 const isTitleValid = computed(() => {
@@ -184,6 +240,34 @@ defineExpose({
     background-color: #1565c0;
 }
 
+.title-input-container {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.title-input-container input {
+    flex: 1;
+}
+
+.search-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.search-button:hover {
+    background-color: #1565c0;
+}
+
 input,
 textarea {
     padding: 0.75rem 1rem;
@@ -208,6 +292,32 @@ textarea:focus {
 textarea {
     min-height: 8.5rem;
     resize: none;
+}
+
+/* Search Info Box */
+.search-info-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 0.5rem;
+    padding: 0.75rem;
+    background-color: #fff9c4; /* Light yellow background */
+    border-radius: 4px;
+    border-left: 4px solid #fbc02d; /* Darker yellow border */
+}
+
+.search-info-box .info-icon-wrapper {
+    color: #f57f17; /* Amber color for icon */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.search-info-box p {
+    margin: 0;
+    color: #5d4037;
+    font-size: 0.95rem;
 }
 
 /* Wikidata search results */
