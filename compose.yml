@@ -1,6 +1,7 @@
 services:
   app:
     image: hub.docker.tib.eu/nfdi4culture/ogt/ogt-api:${DOCKER_VERSION}
+    restart: unless-stopped
     ports:
       - "80:80"
     volumes:
