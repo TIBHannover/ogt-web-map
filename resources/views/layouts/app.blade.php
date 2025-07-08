@@ -149,7 +149,7 @@
 
     <!-- Admin edit script -->
     @if(request()->routeIs('admin.requests.edit'))
-        <script src="{{ asset('js/admin-edit.js') }}"></script>
+        <script src="{{ asset('js/components/entry/admin-edit.js') }}"></script>
     @endif
 
     <!-- Custom scripts -->

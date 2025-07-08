@@ -45,7 +45,7 @@ mix.js("resources/js/app.js", "public/js")
             },
         },
     })
-    .js("resources/js/admin-edit.js", "public/js")
+    .js("resources/js/components/entry/admin-edit.js", "public/js")
     .vue()
     .postCss("resources/css/app.css", "public/css", [
         //
