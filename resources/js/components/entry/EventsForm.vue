@@ -183,7 +183,7 @@
                 />
                 <!-- Source items display is moved to SourcesField component -->
 
-                <div class="button-container">
+                <div class="button-container" v-if="!props.isAdminView">
                     <button
                         class="button bg-secondary"
                         type="button"
@@ -195,7 +195,7 @@
                         Eintrag anlegen
                     </button>
                 </div>
-                <div class="required-fields-note">
+                <div v-if="!props.isAdminView" class="required-fields-note">
                     * Pflichtfelder müssen ausgefüllt werden
                 </div>
                 <div v-if="errorValue" class="bg-error">{{ errorValue }}</div>
@@ -274,6 +274,10 @@ import SourcesField from "./fields/SourcesField.vue";
 
 // Props von der übergeordneten Komponente
 const props = defineProps({
+    isAdminView: {
+        type: Boolean,
+        default: false,
+    },
     formsTitle: {
         type: String,
         default: null,
@@ -575,7 +579,9 @@ const eventEndDateQualifierValue = computed({
 // Opferzahlen computed properties
 const victimCountValue = computed({
     get: () => props.victimCount,
-    set: (value) => emit("update:victimCount", value),
+    set: (value) => {
+        emit("update:victimCount", value);
+    },
 });
 
 const survivorCountValue = computed({
@@ -595,8 +601,17 @@ const arrestCountValue = computed({
 
 // Qualifier computed properties
 const victimCountQualifierValue = computed({
-    get: () => props.victimCountQualifier,
-    set: (value) => emit("update:victimCountQualifier", value),
+    get: () => {
+        console.log(
+            "Getting victim count qualifier:",
+            props.victimCountQualifier,
+        );
+        return props.victimCountQualifier;
+    },
+    set: (value) => {
+        console.log("Setting victim count qualifier to:", value);
+        emit("update:victimCountQualifier", value);
+    },
 });
 
 const survivorCountQualifierValue = computed({
@@ -1103,9 +1118,110 @@ const validateForm = () => {
     return isValid;
 };
 
+// Method to get all form data in a properly formatted object
+const getData = () => {
+    // Validate the form first
+    const isValid = validateForm();
+    
+    // Log validation results
+    console.log('Form validation result:', isValid);
+    
+    // Prepare the data in the correct format for the database
+    const formData = {
+        // Basic information
+        title: title.value,
+        description: description.value,
+        
+        // Victims and perpetrators
+        victims: JSON.stringify(selectedVictimsValue.value || []),
+        perpetrators: JSON.stringify(selectedPerpetratorsValue.value || []),
+        
+        // Time information
+        time_point: eventTimeTypeValue.value === 'point' ? eventDateValue.value : '',
+        time_point_qualifier: eventTimeTypeValue.value === 'point' ? eventDateQualifierValue.value : '',
+        time_period_start: eventTimeTypeValue.value === 'range' ? eventStartDateValue.value : '',
+        time_period_start_qualifier: eventTimeTypeValue.value === 'range' ? eventStartDateQualifierValue.value : '',
+        time_period_end: eventTimeTypeValue.value === 'range' ? eventEndDateValue.value : '',
+        time_period_end_qualifier: eventTimeTypeValue.value === 'range' ? eventEndDateQualifierValue.value : '',
+        
+        // Counts - convert to numbers (safe conversion handling)
+        victim_count: Number(victimCountValue.value) || 0,
+        survivor_count: Number(survivorCountValue.value) || 0,
+        death_count: Number(deathCountValue.value) || 0,
+        arrest_count: Number(arrestCountValue.value) || 0,
+        
+        // Qualifiers
+        victim_count_qualifier: victimCountQualifierValue.value || '',
+        survivor_count_qualifier: survivorCountQualifierValue.value || '',
+        death_count_qualifier: deathCountQualifierValue.value || '',
+        arrest_count_qualifier: arrestCountQualifierValue.value || '',
+        
+        // Causes
+        selected_causes: JSON.stringify(selectedCausesValue.value || []),
+        
+        // Location
+        coordinates: selectedLocationValue.value ? 
+            JSON.stringify({
+                lat: parseFloat(selectedLocationValue.value.lat || 0),
+                lng: parseFloat(selectedLocationValue.value.lng || 0)
+            }) : '',
+        
+        // Image
+        image_url: imageUrlValue.value || '',
+        image_filename: imageFilenameValue.value || '',
+        
+        // Sources
+        sources: JSON.stringify(selectedSourcesValue.value || [])
+    };
+    
+    // Convert any NaN values to 0 for numerical fields
+    ['victim_count', 'survivor_count', 'death_count', 'arrest_count'].forEach(field => {
+        if (isNaN(formData[field])) {
+            formData[field] = 0;
+        }
+    });
+    
+    // Log victim counts to help with debugging
+    console.log('Victim counts in getData:', {
+        victim_count: formData.victim_count,
+        survivor_count: formData.survivor_count,
+        death_count: formData.death_count,
+        arrest_count: formData.arrest_count,
+        victim_count_qualifier: formData.victim_count_qualifier,
+        survivor_count_qualifier: formData.survivor_count_qualifier,
+        death_count_qualifier: formData.death_count_qualifier,
+        arrest_count_qualifier: formData.arrest_count_qualifier
+    });
+    
+    // Ensure all arrays are properly stringified
+    ['victims', 'perpetrators', 'selected_causes', 'sources'].forEach(field => {
+        // If the field is already a string, try to parse and re-stringify it to ensure proper format
+        if (typeof formData[field] === 'string') {
+            try {
+                const parsed = JSON.parse(formData[field]);
+                formData[field] = JSON.stringify(parsed);
+            } catch (e) {
+                // If parsing fails, set to empty array string
+                console.warn(`Failed to parse ${field}, setting to empty array`, e);
+                formData[field] = '[]';
+            }
+        }
+    });
+    
+    console.log('EventsForm getData() returning:', formData);
+    return formData;
+};
+
+// Method to check if data is valid
+const isFormValid = () => {
+    return validateForm();
+};
+
 // Export the validateForm method for parent component access
 defineExpose({
     validateForm,
+    getData,
+    isFormValid
 });
 
 // Ladet den Ladezustand zurücksetzen, wenn Ergebnisse da sind oder wenn nichts gefunden wurde

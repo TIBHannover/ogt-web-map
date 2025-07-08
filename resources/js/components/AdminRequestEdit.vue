@@ -21,7 +21,7 @@
                 :newPerpetrator="newPerpetrator"
                 @update:newVictim="newVictim = $event"
                 @update:newPerpetrator="newPerpetrator = $event"
-                @submit="saveRequest"
+                @submit="saveRequest($event)"
                 @updateVictim="updateVictim"
                 @updatePerpetrator="updatePerpetrator"
                 @searchPeople="searchPeople"
@@ -40,6 +40,7 @@
                 @addNewPerpetrator="addNewPerpetrator"
                 @selectCause="selectCause"
                 @removeCause="removeCause"
+                ref="eventsForm"
             />
             <!-- Weitere Formulartypen ku00f6nnen hier hinzugefu00fcgt werden -->
             <div v-else class="alert alert-warning">
@@ -54,8 +55,8 @@
                 >
                     <i class="bi bi-x-circle me-1"></i> Abbrechen
                 </a>
-                <button @click="saveRequest" class="btn btn-primary">
-                    <i class="bi bi-save me-1"></i> u00c4nderungen speichern
+                <button @click="getEventFormData" class="btn btn-primary">
+                    <i class="bi bi-save me-1"></i> Änderungen speichern
                 </button>
             </div>
         </div>
@@ -132,48 +133,62 @@ export default {
                 if (this.formData.victims) {
                     if (Array.isArray(this.formData.victims)) {
                         victims = this.formData.victims;
-                    } else if (typeof this.formData.victims === 'string') {
+                    } else if (typeof this.formData.victims === "string") {
                         try {
                             victims = JSON.parse(this.formData.victims) || [];
                         } catch (e) {
-                            console.error('Error parsing victims in computed prop:', e);
+                            console.error(
+                                "Error parsing victims in computed prop:",
+                                e,
+                            );
                             victims = [];
                         }
                     }
                 }
-                
+
                 let perpetrators = [];
                 if (this.formData.perpetrators) {
                     if (Array.isArray(this.formData.perpetrators)) {
                         perpetrators = this.formData.perpetrators;
-                    } else if (typeof this.formData.perpetrators === 'string') {
+                    } else if (typeof this.formData.perpetrators === "string") {
                         try {
-                            perpetrators = JSON.parse(this.formData.perpetrators) || [];
+                            perpetrators =
+                                JSON.parse(this.formData.perpetrators) || [];
                         } catch (e) {
-                            console.error('Error parsing perpetrators in computed prop:', e);
+                            console.error(
+                                "Error parsing perpetrators in computed prop:",
+                                e,
+                            );
                             perpetrators = [];
                         }
                     }
                 }
-                
+
                 // Handle selected causes
                 let selectedCauses = [];
                 if (this.formData.selected_causes) {
                     if (Array.isArray(this.formData.selected_causes)) {
                         selectedCauses = this.formData.selected_causes;
-                    } else if (typeof this.formData.selected_causes === 'string') {
+                    } else if (
+                        typeof this.formData.selected_causes === "string"
+                    ) {
                         try {
-                            selectedCauses = JSON.parse(this.formData.selected_causes) || [];
+                            selectedCauses =
+                                JSON.parse(this.formData.selected_causes) || [];
                         } catch (e) {
-                            console.error('Error parsing selected_causes in computed prop:', e);
+                            console.error(
+                                "Error parsing selected_causes in computed prop:",
+                                e,
+                            );
                             selectedCauses = [];
                         }
                     }
                 }
-                
+
                 return {
                     formsTitle: this.formData.title || "",
                     formsDescription: this.formData.description || "",
+                    isAdminView: true,
                     selectedVictims: victims,
                     selectedPerpetrators: perpetrators,
                     eventTimeType: this.formData.time_point ? "point" : "range",
@@ -205,14 +220,17 @@ export default {
                     selectedSources: (() => {
                         // Make sure sources is an array
                         if (!this.formData.sources) return [];
-                        
+
                         if (Array.isArray(this.formData.sources)) {
                             return this.formData.sources;
-                        } else if (typeof this.formData.sources === 'string') {
+                        } else if (typeof this.formData.sources === "string") {
                             try {
                                 return JSON.parse(this.formData.sources) || [];
                             } catch (e) {
-                                console.error('Error parsing sources in computed prop:', e);
+                                console.error(
+                                    "Error parsing sources in computed prop:",
+                                    e,
+                                );
                                 return [];
                             }
                         }
@@ -232,62 +250,81 @@ export default {
             this.loading = true;
             // Use the passed initialData directly
             this.formData = { ...this.initialData };
-            
+
             // Handle arrays that might be strings
-            if (this.formData.victims && typeof this.formData.victims === 'string') {
+            if (
+                this.formData.victims &&
+                typeof this.formData.victims === "string"
+            ) {
                 try {
-                    this.formData.victims = JSON.parse(this.formData.victims) || [];
-                    console.log('Parsed victims from string to array');
+                    this.formData.victims =
+                        JSON.parse(this.formData.victims) || [];
+                    console.log("Parsed victims from string to array");
                 } catch (e) {
-                    console.error('Failed to parse victims as JSON:', e);
+                    console.error("Failed to parse victims as JSON:", e);
                     this.formData.victims = [];
                 }
             } else if (!this.formData.victims) {
                 this.formData.victims = [];
             }
-            
-            if (this.formData.perpetrators && typeof this.formData.perpetrators === 'string') {
+
+            if (
+                this.formData.perpetrators &&
+                typeof this.formData.perpetrators === "string"
+            ) {
                 try {
-                    this.formData.perpetrators = JSON.parse(this.formData.perpetrators) || [];
-                    console.log('Parsed perpetrators from string to array');
+                    this.formData.perpetrators =
+                        JSON.parse(this.formData.perpetrators) || [];
+                    console.log("Parsed perpetrators from string to array");
                 } catch (e) {
-                    console.error('Failed to parse perpetrators as JSON:', e);
+                    console.error("Failed to parse perpetrators as JSON:", e);
                     this.formData.perpetrators = [];
                 }
             } else if (!this.formData.perpetrators) {
                 this.formData.perpetrators = [];
             }
 
-            if (this.formData.selected_causes && typeof this.formData.selected_causes === 'string') {
+            if (
+                this.formData.selected_causes &&
+                typeof this.formData.selected_causes === "string"
+            ) {
                 try {
-                    this.formData.selected_causes = JSON.parse(this.formData.selected_causes) || [];
-                    console.log('Parsed selected_causes from string to array');
+                    this.formData.selected_causes =
+                        JSON.parse(this.formData.selected_causes) || [];
+                    console.log("Parsed selected_causes from string to array");
                 } catch (e) {
-                    console.error('Failed to parse selected_causes as JSON:', e);
+                    console.error(
+                        "Failed to parse selected_causes as JSON:",
+                        e,
+                    );
                     this.formData.selected_causes = [];
                 }
             } else if (!this.formData.selected_causes) {
                 this.formData.selected_causes = [];
             }
-            
-            if (this.formData.sources && typeof this.formData.sources === 'string') {
+
+            if (
+                this.formData.sources &&
+                typeof this.formData.sources === "string"
+            ) {
                 try {
-                    this.formData.sources = JSON.parse(this.formData.sources) || [];
-                    console.log('Parsed sources from string to array');
+                    this.formData.sources =
+                        JSON.parse(this.formData.sources) || [];
+                    console.log("Parsed sources from string to array");
                 } catch (e) {
-                    console.error('Failed to parse sources as JSON:', e);
+                    console.error("Failed to parse sources as JSON:", e);
                     this.formData.sources = [];
                 }
             } else if (!this.formData.sources) {
                 this.formData.sources = [];
             }
 
-            console.log('Initialized data:', {
+            console.log("Initialized data:", {
                 victims: this.formData.victims,
                 perpetrators: this.formData.perpetrators,
-                selected_causes: this.formData.selected_causes
+                selected_causes: this.formData.selected_causes,
             });
-            
+
             this.loading = false;
         },
 
@@ -337,7 +374,8 @@ export default {
 
         getLocationFromCoordinates() {
             // Parse coordinates and return a location object
-            if (!this.formData.coordinates || this.formData.coordinates === '') return null;
+            if (!this.formData.coordinates || this.formData.coordinates === "")
+                return null;
 
             try {
                 // Try to parse as JSON object
@@ -366,244 +404,289 @@ export default {
                             };
                         }
                     }
-                } else if (typeof this.formData.coordinates === 'object') {
+                } else if (typeof this.formData.coordinates === "object") {
                     // Already an object
                     return {
-                        lat: this.formData.coordinates.lat || this.formData.coordinates.latitude || 0,
-                        lng: this.formData.coordinates.lng || this.formData.coordinates.longitude || 0,
+                        lat:
+                            this.formData.coordinates.lat ||
+                            this.formData.coordinates.latitude ||
+                            0,
+                        lng:
+                            this.formData.coordinates.lng ||
+                            this.formData.coordinates.longitude ||
+                            0,
                     };
                 }
-                
-                console.warn("Could not parse coordinates format:", this.formData.coordinates);
+
+                console.warn(
+                    "Could not parse coordinates format:",
+                    this.formData.coordinates,
+                );
             } catch (e) {
-                console.error("Error parsing coordinates:", e, this.formData.coordinates);
+                console.error(
+                    "Error parsing coordinates:",
+                    e,
+                    this.formData.coordinates,
+                );
             }
 
             return null;
         },
 
         // Save the updated request
-        saveRequest() {
-            // Prepare data based on form type
-            let formData = new FormData();
-
-            if (this.requestType === "Q6983405") {
-                // Gather data from event form
-                formData.append("title", this.eventFormProps.formsTitle || "");
-                formData.append(
-                    "description",
-                    this.eventFormProps.formsDescription || "",
-                );
+        saveRequest(formData) {
+            // If formData is provided directly (from EventsForm's getData method), use it
+            // Otherwise fall back to using data from eventFormProps
+            let requestData;
+            
+            if (formData) {
+                // Use the data provided directly from the EventsForm component
+                console.log('Using data from EventsForm.getData():', formData);
+                // The data from getData is already properly formatted for the database
+                requestData = formData;
                 
-                // Handle victims data - make sure it's valid JSON
-                try {
-                    formData.append(
-                        "victims",
-                        JSON.stringify(this.eventFormProps.selectedVictims || []),
-                    );
-                } catch (e) {
-                    console.error("Error stringifying victims:", e);
-                    formData.append("victims", JSON.stringify([]));
-                }
-                
-                // Handle perpetrators data - make sure it's valid JSON
-                try {
-                    formData.append(
-                        "perpetrators",
-                        JSON.stringify(this.eventFormProps.selectedPerpetrators || []),
-                    );
-                } catch (e) {
-                    console.error("Error stringifying perpetrators:", e);
-                    formData.append("perpetrators", JSON.stringify([]));
-                }
-
-                // Time information
-                if (this.eventFormProps.eventTimeType === "point") {
-                    formData.append(
-                        "time_point",
-                        this.eventFormProps.eventDate || "",
-                    );
-                    formData.append(
-                        "time_point_qualifier",
-                        this.eventFormProps.eventDateQualifier || "",
-                    );
-                    // Clear period fields
-                    formData.append("time_period_start", "");
-                    formData.append("time_period_end", "");
-                    formData.append("time_period_start_qualifier", "");
-                    formData.append("time_period_end_qualifier", "");
-                } else {
-                    formData.append(
-                        "time_period_start",
-                        this.eventFormProps.eventStartDate || "",
-                    );
-                    formData.append(
-                        "time_period_start_qualifier",
-                        this.eventFormProps.eventStartDateQualifier || "",
-                    );
-                    formData.append(
-                        "time_period_end",
-                        this.eventFormProps.eventEndDate || "",
-                    );
-                    formData.append(
-                        "time_period_end_qualifier",
-                        this.eventFormProps.eventEndDateQualifier || "",
-                    );
-                    // Clear point field
-                    formData.append("time_point", "");
-                    formData.append("time_point_qualifier", "");
-                }
-
-                // Counts - ensure they are numbers or empty strings
-                formData.append(
-                    "victim_count",
-                    this.eventFormProps.victimCount || 0,
-                );
-                formData.append(
-                    "victim_count_qualifier",
-                    this.eventFormProps.victimCountQualifier || "",
-                );
-                formData.append(
-                    "survivor_count",
-                    this.eventFormProps.survivorCount || 0,
-                );
-                formData.append(
-                    "survivor_count_qualifier",
-                    this.eventFormProps.survivorCountQualifier || "",
-                );
-                formData.append("death_count", this.eventFormProps.deathCount || 0);
-                formData.append(
-                    "death_count_qualifier",
-                    this.eventFormProps.deathCountQualifier || "",
-                );
-                formData.append(
-                    "arrest_count",
-                    this.eventFormProps.arrestCount || 0,
-                );
-                formData.append(
-                    "arrest_count_qualifier",
-                    this.eventFormProps.arrestCountQualifier || "",
-                );
-
-                // Causes - ensure it's valid JSON
-                try {
-                    const causesData = Array.isArray(this.eventFormProps.selectedCauses) 
-                        ? this.eventFormProps.selectedCauses 
-                        : (typeof this.eventFormProps.selectedCauses === 'string' 
-                            ? JSON.parse(this.eventFormProps.selectedCauses) 
-                            : []);
-                            
-                    formData.append(
-                        "selected_causes",
-                        JSON.stringify(causesData),
-                    );
-                } catch (e) {
-                    console.error("Error handling causes data:", e);
-                    formData.append("selected_causes", JSON.stringify([]));
-                }
-
-                // Location
-                if (this.eventFormProps.selectedLocation) {
-                    try {
-                        // Make sure the location object has lat and lng properties
-                        const locationObj = {
-                            lat: parseFloat(this.eventFormProps.selectedLocation.lat || this.eventFormProps.selectedLocation.latitude || 0),
-                            lng: parseFloat(this.eventFormProps.selectedLocation.lng || this.eventFormProps.selectedLocation.longitude || 0)
-                        };
-                        
-                        // Only append if we have valid coordinates
-                        if (!isNaN(locationObj.lat) && !isNaN(locationObj.lng)) {
-                            formData.append("coordinates", JSON.stringify(locationObj));
-                            console.log("Sending coordinates:", locationObj);
-                        } else {
-                            console.warn("Invalid location coordinates:", this.eventFormProps.selectedLocation);
-                            formData.append("coordinates", "");
+                // Ensure all array fields are properly stringified
+                ['victims', 'perpetrators', 'selected_causes', 'sources'].forEach(field => {
+                    if (requestData[field] && typeof requestData[field] !== 'string') {
+                        requestData[field] = JSON.stringify(requestData[field]);
+                    } else if (requestData[field] && typeof requestData[field] === 'string') {
+                        // Make sure it's valid JSON by parsing and re-stringifying
+                        try {
+                            const parsed = JSON.parse(requestData[field]);
+                            requestData[field] = JSON.stringify(parsed);
+                        } catch (e) {
+                            console.warn(`Field ${field} contains invalid JSON, setting to empty array`);
+                            requestData[field] = '[]';
                         }
-                    } catch (e) {
-                        console.error("Error processing coordinates:", e, this.eventFormProps.selectedLocation);
-                        formData.append("coordinates", "");
+                    } else {
+                        requestData[field] = '[]';
                     }
-                } else {
-                    formData.append("coordinates", "");
+                });
+                
+                // Ensure all number fields are actual numbers
+                ['victim_count', 'survivor_count', 'death_count', 'arrest_count'].forEach(field => {
+                    requestData[field] = Number(requestData[field]) || 0;
+                    if (isNaN(requestData[field])) {
+                        requestData[field] = 0;
+                    }
+                });
+                
+                // Log victim counts after processing to help with debugging
+                console.log('Processed victim counts in saveRequest:', {
+                    victim_count: requestData.victim_count,
+                    survivor_count: requestData.survivor_count,
+                    death_count: requestData.death_count,
+                    arrest_count: requestData.arrest_count,
+                    victim_count_qualifier: requestData.victim_count_qualifier,
+                    survivor_count_qualifier: requestData.survivor_count_qualifier,
+                    death_count_qualifier: requestData.death_count_qualifier,
+                    arrest_count_qualifier: requestData.arrest_count_qualifier
+                });
+                
+                // Ensure coordinates is properly formatted
+                if (requestData.coordinates && typeof requestData.coordinates !== 'string') {
+                    requestData.coordinates = JSON.stringify(requestData.coordinates);
+                } else if (!requestData.coordinates) {
+                    requestData.coordinates = '';
                 }
-
-                // Image
-                formData.append(
-                    "image_url",
-                    this.eventFormProps.imageUrl || "",
-                );
-                formData.append(
-                    "image_filename",
-                    this.eventFormProps.imageFilename || "",
-                );
-
-                // Sources - ensure it's valid JSON
-                try {
-                    formData.append(
-                        "sources",
-                        JSON.stringify(this.eventFormProps.selectedSources || []),
-                    );
-                } catch (e) {
-                    console.error("Error stringifying sources:", e);
-                    formData.append("sources", JSON.stringify([]));
+                
+            } else if (this.requestType === "Q6983405") {
+                // Fallback to using data from eventFormProps
+                console.warn('No form data provided, using eventFormProps as fallback');
+                // Create a data object with the correct field names for the database
+                requestData = {
+                    title: this.eventFormProps.formsTitle || "",
+                    description: this.eventFormProps.formsDescription || "",
+                    victims: JSON.stringify(this.eventFormProps.selectedVictims || []),
+                    perpetrators: JSON.stringify(this.eventFormProps.selectedPerpetrators || []),
+                    selected_causes: JSON.stringify(this.eventFormProps.selectedCauses || []),
+                    sources: JSON.stringify(this.eventFormProps.selectedSources || []),
+                    image_url: this.eventFormProps.imageUrl || '',
+                    image_filename: this.eventFormProps.imageFilename || '',
+                    // Prepare victim count values
+                    victim_count: Number(this.eventFormProps.victimCount) || 0,
+                    survivor_count: Number(this.eventFormProps.survivorCount) || 0,
+                    death_count: Number(this.eventFormProps.deathCount) || 0,
+                    arrest_count: Number(this.eventFormProps.arrestCount) || 0,
+                    victim_count_qualifier: this.eventFormProps.victimCountQualifier || '',
+                    survivor_count_qualifier: this.eventFormProps.survivorCountQualifier || '',
+                    death_count_qualifier: this.eventFormProps.deathCountQualifier || '',
+                    arrest_count_qualifier: this.eventFormProps.arrestCountQualifier || '',
+                    coordinates: this.eventFormProps.selectedLocation ? 
+                        JSON.stringify({
+                            lat: parseFloat(this.eventFormProps.selectedLocation.lat || 
+                                        this.eventFormProps.selectedLocation.latitude || 0),
+                            lng: parseFloat(this.eventFormProps.selectedLocation.lng || 
+                                        this.eventFormProps.selectedLocation.longitude || 0)
+                        }) : ''
+                };
+                
+                // Time information - based on the time type (point or range)
+                if (this.eventFormProps.eventTimeType === 'point') {
+                    requestData.time_point = this.eventFormProps.eventDate || '';
+                    requestData.time_point_qualifier = this.eventFormProps.eventDateQualifier || '';
+                    requestData.time_period_start = '';
+                    requestData.time_period_end = '';
+                    requestData.time_period_start_qualifier = '';
+                    requestData.time_period_end_qualifier = '';
+                } else {
+                    requestData.time_period_start = this.eventFormProps.eventStartDate || '';
+                    requestData.time_period_start_qualifier = this.eventFormProps.eventStartDateQualifier || '';
+                    requestData.time_period_end = this.eventFormProps.eventEndDate || '';
+                    requestData.time_period_end_qualifier = this.eventFormProps.eventEndDateQualifier || '';
+                    requestData.time_point = '';
+                    requestData.time_point_qualifier = '';
                 }
             }
-
-            // Log form data for debugging
-            console.log('Form data being sent:', {
-                title: this.eventFormProps.formsTitle,
-                description: this.eventFormProps.formsDescription,
-                victims: this.eventFormProps.selectedVictims,
-                perpetrators: this.eventFormProps.selectedPerpetrators,
-                time_type: this.eventFormProps.eventTimeType,
-                time_point: this.eventFormProps.eventTimeType === 'point' ? this.eventFormProps.eventDate : null,
-                time_period_start: this.eventFormProps.eventTimeType === 'range' ? this.eventFormProps.eventStartDate : null,
-                time_period_end: this.eventFormProps.eventTimeType === 'range' ? this.eventFormProps.eventEndDate : null,
-                selected_causes: this.eventFormProps.selectedCauses,
-                location: this.eventFormProps.selectedLocation,
-                sources: this.eventFormProps.selectedSources
-            });
             
-            // Send the update request
-            axios
-                .post(`/admin/requests/${this.requestId}/update`, formData)
-                .then((response) => {
-                    console.log('Update successful:', response.data);
-                    // Redirect to the detail view
-                    window.location.href = `/admin/requests/${this.requestId}?success=1`;
-                })
-                .catch((error) => {
-                    console.error("Error updating request:", error);
-                    
-                    // Log more details about the error
-                    if (error.response) {
-                        console.error('Error response data:', error.response.data);
-                        console.error('Error response status:', error.response.status);
-                        console.error('Error response headers:', error.response.headers);
-                    } else if (error.request) {
-                        console.error('Error request:', error.request);
+            if (!requestData) {
+                console.error('No valid request data available');
+                alert('Ein Fehler ist aufgetreten: Keine gu00fcltigen Daten verfu00fcgbar.');
+                return;
+            }
+            
+            // Final validation of critical fields
+            if (!requestData.title) {
+                console.error('Missing title in request data');
+                alert('Der Titel darf nicht leer sein.');
+                return;
+            }
+            
+            if (!requestData.time_point && !requestData.time_period_start) {
+                console.error('Missing time information in request data');
+                alert('Es muss ein Zeitpunkt oder ein Zeitraum angegeben werden.');
+                return;
+            }
+            
+            if (!requestData.perpetrators || requestData.perpetrators === '[]') {
+                console.error('Missing perpetrators in request data');
+                alert('Es muss mindestens ein Tu00e4ter angegeben werden.');
+                return;
+            }
+            
+            if (!requestData.sources || requestData.sources === '[]') {
+                console.error('Missing sources in request data');
+                alert('Es muss mindestens eine Quelle angegeben werden.');
+                return;
+            }
+            
+            console.log('Sending request data:', requestData);
+            console.log('Victim counts being sent:', {
+                victim_count: requestData.victim_count,
+                survivor_count: requestData.survivor_count,
+                death_count: requestData.death_count,
+                arrest_count: requestData.arrest_count,
+                victim_count_qualifier: requestData.victim_count_qualifier,
+                survivor_count_qualifier: requestData.survivor_count_qualifier,
+                death_count_qualifier: requestData.death_count_qualifier,
+                arrest_count_qualifier: requestData.arrest_count_qualifier
+            });
+            console.log('Description being sent:', requestData.description);
+            
+            // Use Axios with JSON data
+            axios.post(`/admin/requests/${this.requestId}/update`, requestData, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then((response) => {
+                console.log("Update successful:", response.data);
+                // Force a page reload to ensure we get fresh data
+                window.location.href = `/admin/requests/${this.requestId}?success=1&t=${new Date().getTime()}`;
+            })
+            .catch((error) => {
+                console.error("Error updating request:", error);
+
+                // Log more details about the error
+                if (error.response) {
+                    console.error(
+                        "Error response data:",
+                        error.response.data,
+                    );
+                    console.error(
+                        "Error response status:",
+                        error.response.status,
+                    );
+                    console.error(
+                        "Error response headers:",
+                        error.response.headers,
+                    );
+                } else if (error.request) {
+                    console.error("Error request:", error.request);
+                } else {
+                    console.error("Error message:", error.message);
+                }
+
+                let errorMessage =
+                    "Ein Fehler ist beim Speichern aufgetreten. Bitte versuchen Sie es erneut.";
+
+                // Extract more detailed error message if available
+                if (error.response && error.response.data) {
+                    if (error.response.data.error) {
+                        errorMessage +=
+                            "\n\nDetails: " + error.response.data.error;
+                    } else if (error.response.data.message) {
+                        errorMessage +=
+                            "\n\nDetails: " + error.response.data.message;
+                    } else if (typeof error.response.data === "string") {
+                        errorMessage +=
+                            "\n\nDetails: " + error.response.data;
                     } else {
-                        console.error('Error message:', error.message);
+                        errorMessage +=
+                            "\n\nStatus-Code: " + error.response.status;
                     }
-                    
-                    let errorMessage = "Ein Fehler ist beim Speichern aufgetreten. Bitte versuchen Sie es erneut.";
-                    
-                    // Extract more detailed error message if available
-                    if (error.response && error.response.data) {
-                        if (error.response.data.error) {
-                            errorMessage += "\n\nDetails: " + error.response.data.error;
-                        } else if (error.response.data.message) {
-                            errorMessage += "\n\nDetails: " + error.response.data.message;
-                        } else if (typeof error.response.data === 'string') {
-                            errorMessage += "\n\nDetails: " + error.response.data;
-                        } else {
-                            errorMessage += "\n\nStatus-Code: " + error.response.status;
+                }
+
+                alert(errorMessage);
+            });
+        },
+
+        // Get data from EventsForm and submit it
+        getEventFormData() {
+            if (this.requestType === 'Q6983405' && this.$refs.eventsForm) {
+                try {
+                    // First check if the form is valid
+                    if (typeof this.$refs.eventsForm.isFormValid === 'function') {
+                        const isValid = this.$refs.eventsForm.isFormValid();
+                        console.log('Form validation result:', isValid);
+                        
+                        if (!isValid) {
+                            alert('Bitte füllen Sie alle Pflichtfelder aus bevor Sie speichern.');
+                            return;
                         }
                     }
                     
-                    alert(errorMessage);
-                });
+                    // Use the EventsForm's getData method to get properly formatted data
+                    if (typeof this.$refs.eventsForm.getData === 'function') {
+                        const formData = this.$refs.eventsForm.getData();
+                        console.log('Got form data from EventsForm.getData():', formData);
+                        
+                        // Verify we have required data before proceeding
+                        if (!formData.title || (!formData.time_point && !formData.time_period_start)) {
+                            console.warn('Missing required data in form:', formData);
+                            alert('Es fehlen Pflichtfelder. Bitte überprüfen Sie Ihre Eingaben.');
+                            return;
+                        }
+                        
+                        this.saveRequest(formData);
+                        return;
+                    } else {
+                        console.warn('EventsForm does not have a getData method');
+                    }
+                } catch (e) {
+                    console.error('Error getting data from EventsForm:', e);
+                    alert('Ein Fehler ist aufgetreten: ' + e.message);
+                    return;
+                }
+            }
+            
+            // If we can't use getData, fall back to the original method
+            console.warn('Falling back to original saveRequest method without form data');
+            this.saveRequest();
         },
+
 
         // Search people functionality
         searchPeople(query) {
@@ -782,10 +865,10 @@ export default {
         // Select a cause
         selectCause(cause) {
             if (!cause || !cause.id) {
-                console.warn('Attempted to select invalid cause:', cause);
+                console.warn("Attempted to select invalid cause:", cause);
                 return;
             }
-            
+
             // Initialize if needed
             if (!this.formData.selected_causes) {
                 this.formData.selected_causes = [];
@@ -794,16 +877,22 @@ export default {
             // Ensure it's an array
             let causes;
             try {
-                if (typeof this.formData.selected_causes === 'string') {
+                if (typeof this.formData.selected_causes === "string") {
                     causes = JSON.parse(this.formData.selected_causes);
                 } else if (Array.isArray(this.formData.selected_causes)) {
                     causes = [...this.formData.selected_causes];
                 } else {
-                    console.warn('selected_causes is not in expected format:', this.formData.selected_causes);
+                    console.warn(
+                        "selected_causes is not in expected format:",
+                        this.formData.selected_causes,
+                    );
                     causes = [];
                 }
             } catch (e) {
-                console.error("Error parsing selected_causes in selectCause:", e);
+                console.error(
+                    "Error parsing selected_causes in selectCause:",
+                    e,
+                );
                 causes = [];
             }
 
@@ -811,9 +900,14 @@ export default {
             if (!causes.some((c) => c.id === cause.id)) {
                 causes.push(cause);
                 this.formData.selected_causes = [...causes]; // Create a new array reference for reactivity
-                console.log('Added cause:', cause, 'Current causes:', this.formData.selected_causes);
+                console.log(
+                    "Added cause:",
+                    cause,
+                    "Current causes:",
+                    this.formData.selected_causes,
+                );
             } else {
-                console.log('Cause already exists:', cause.id);
+                console.log("Cause already exists:", cause.id);
             }
         },
 
@@ -829,16 +923,22 @@ export default {
             // Ensure it's an array
             let causes;
             try {
-                if (typeof this.formData.selected_causes === 'string') {
+                if (typeof this.formData.selected_causes === "string") {
                     causes = JSON.parse(this.formData.selected_causes);
                 } else if (Array.isArray(this.formData.selected_causes)) {
                     causes = [...this.formData.selected_causes];
                 } else {
-                    console.warn('selected_causes is not in expected format:', this.formData.selected_causes);
+                    console.warn(
+                        "selected_causes is not in expected format:",
+                        this.formData.selected_causes,
+                    );
                     causes = [];
                 }
             } catch (e) {
-                console.error("Error parsing selected_causes in removeCause:", e);
+                console.error(
+                    "Error parsing selected_causes in removeCause:",
+                    e,
+                );
                 causes = [];
             }
 

@@ -5,6 +5,8 @@ import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 import VueAxios from "vue-axios";
 import axios from "axios";
+import 'leaflet/dist/leaflet.css';
+import 'vuetify/styles';
 
 // Function to initialize the edit form
 window.initRequestEditForm = function(requestData, requestType, requestId) {
