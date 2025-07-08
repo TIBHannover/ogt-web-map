@@ -303,24 +303,62 @@ use function App\Helpers\formatWikidataProperty;
                         @endif
 
                         <!-- Beteiligte Personen (Täter und Geschädigte) -->
-                        @if($request->perpetrators || $request->victims)
+                        <!-- --
+                        <div class="mb-3">
+                            <strong>Debug Information:</strong>
+                            <pre class="mt-2 bg-light p-3" style="max-height: 200px; overflow: auto;">Perpetrators: {{ var_export($request->perpetrators, true) }}
+Victims: {{ var_export($request->victims, true) }}</pre>
+                        </div>
+                        -->
+
+                        @php
+                            // Parse JSON strings to arrays
+                            $parsedPerpetrators = [];
+                            $parsedVictims = [];
+
+                            if ($request->perpetrators) {
+                                if (is_string($request->perpetrators)) {
+                                    try {
+                                        $parsedPerpetrators = json_decode($request->perpetrators, true) ?: [];
+                                    } catch (\Exception $e) {
+                                        // Log error or handle it
+                                    }
+                                } elseif (is_array($request->perpetrators)) {
+                                    $parsedPerpetrators = $request->perpetrators;
+                                }
+                            }
+
+                            if ($request->victims) {
+                                if (is_string($request->victims)) {
+                                    try {
+                                        $parsedVictims = json_decode($request->victims, true) ?: [];
+                                    } catch (\Exception $e) {
+                                        // Log error or handle it
+                                    }
+                                } elseif (is_array($request->victims)) {
+                                    $parsedVictims = $request->victims;
+                                }
+                            }
+                        @endphp
+
+                        @if($parsedPerpetrators || $parsedVictims)
                             <div class="mb-5">
-                                @if($request->perpetrators && count($request->perpetrators) > 0)
+                                @if(!empty($parsedPerpetrators))
                                     <div class="mb-3">
                                         <strong>Täter*Innen:</strong>
                                         <div class="list-group mt-2">
-                                            @foreach($request->perpetrators as $perpetrator)
+                                            @foreach($parsedPerpetrators as $perpetrator)
                                                 @include('admin.partials.person-entry', ['person' => $perpetrator, 'type' => 'perpetrator'])
                                             @endforeach
                                         </div>
                                     </div>
                                 @endif
 
-                                @if($request->victims && count($request->victims) > 0)
+                                @if(!empty($parsedVictims))
                                     <div>
                                         <strong>Geschädigte:</strong>
                                         <div class="list-group mt-2">
-                                            @foreach($request->victims as $victim)
+                                            @foreach($parsedVictims as $victim)
                                                 @include('admin.partials.person-entry', ['person' => $victim, 'type' => 'victim'])
                                             @endforeach
                                         </div>
@@ -368,7 +406,7 @@ use function App\Helpers\formatWikidataProperty;
 
 
                         <!-- Quellenangaben -->
-                        @if($request->sources && count($request->sources) > 0)
+                        @if($request->sources && is_array($request->sources) && count($request->sources) > 0)
                             <div class="mb-3">
                                 <h6>Quellenangaben:</h6>
                                 <div class="list-group mt-2">
@@ -642,6 +680,10 @@ use function App\Helpers\formatWikidataProperty;
                 <div class="card-body">
                     @if($request->status == 'pending')
                         <div class="d-grid gap-2">
+                            <a href="{{ route('admin.requests.edit', $request->id) }}" class="btn btn-primary w-100 mb-2">
+                                <i class="bi bi-pencil-square me-1"></i> Bearbeiten
+                            </a>
+
                             <button type="button" class="btn btn-success w-100 mb-2" data-bs-toggle="modal" data-bs-target="#approveModal">
                                 <i class="bi bi-check-circle me-1"></i> Genehmigen
                             </button>

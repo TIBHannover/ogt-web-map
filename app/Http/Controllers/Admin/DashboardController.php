@@ -116,4 +116,56 @@ class DashboardController extends Controller
             "request" => $request,
         ]);
     }
+
+    /**
+     * Zeigt das Formular zum Bearbeiten einer Anfrage.
+     *
+     * @param int $id Die ID der Anfrage
+     * @return \Illuminate\View\View
+     */
+    public function editRequest($id)
+    {
+        $request = WikidataEntryRequest::findOrFail($id);
+
+        return view("admin.request-edit", [
+            "request" => $request,
+        ]);
+    }
+
+    /**
+     * Aktualisiert eine Anfrage mit den neuen Daten.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param int $id Die ID der Anfrage
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updateRequest(Request $request, $id)
+    {
+        try {
+            $entryRequest = WikidataEntryRequest::findOrFail($id);
+            
+            // Debug information
+            \Log::info('Update request data', [
+                'request_data' => $request->except(['_token']),
+                'id' => $id
+            ]);
+            
+            // Daten aus dem Formular übernehmen
+            $entryRequest->fill($request->except(['_token']));
+            $entryRequest->save();
+
+            return redirect()
+                ->route('admin.requests.show', $id)
+                ->with('success', 'Die Anfrage wurde erfolgreich aktualisiert.');
+        } catch (\Exception $e) {
+            \Log::error('Error updating request', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->except(['_token']),
+                'id' => $id
+            ]);
+            
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
 }

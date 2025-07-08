@@ -75,9 +75,8 @@
                     <button
                         type="button"
                         class="edit-person"
-                        @click="onEditPerson(person)"
+                        @click="onEditPerson(person); console.log('Edit button clicked for person:', person);"
                         title="Person bearbeiten"
-                        v-if="!person.id"
                     >
                         <v-icon size="small">mdi-pencil</v-icon>
                     </button>
@@ -219,7 +218,7 @@
                                 >
                                     {{
                                         isAuthorForm
-                                            ? "Autor nicht gefunden? Neu anlegen"
+                                            ? "Autor*In nicht gefunden? Neu anlegen"
                                             : "Person/Organisation nicht gefunden? Neu anlegen"
                                     }}
                                 </v-btn>
@@ -234,7 +233,7 @@
                                 editMode
                                     ? "Eintrag bearbeiten"
                                     : isAuthorForm
-                                      ? "Neuen Autor anlegen"
+                                      ? "Neue/n Autor*In anlegen"
                                       : "Neuen Eintrag anlegen"
                             }}
                         </h4>
@@ -686,6 +685,9 @@ const onUpdatePerson = () => {
     dialogOpen.value = false;
     editMode.value = false;
     editingPersonId.value = null;
+    
+    // Formular zurücksetzen
+    emit("cancelNewPersonForm");
 };
 
 const onRemovePerson = (id) => {
@@ -932,7 +934,7 @@ label.section-label {
 
 .edit-person {
     background: none;
-    border: none;
+    border: 1px solid #1976d2;
     color: #1976d2;
     cursor: pointer;
     font-size: 1rem;

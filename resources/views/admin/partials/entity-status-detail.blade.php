@@ -1,5 +1,6 @@
 @php
     use App\Services\Wikidata\WikidataFormatterModels;
+    use App\Helpers\EntityTypeHelper;
 
     // Define status badge colors and labels
     $statusInfo = [
@@ -11,27 +12,6 @@
         'wikidata_failed' => ['color' => 'danger', 'label' => 'Fehler bei Wikidata-Erstellung'],
         'error' => ['color' => 'warning', 'label' => 'Fehler']
     ];
-
-    // Helper function to get entity type label
-    function getEntityTypeLabel($type) {
-        $types = [
-            \App\Services\Wikidata\WikidataFormatterModels::ENTITY_TYPE_BOOK => 'Literarisches Werk',
-            \App\Services\Wikidata\WikidataFormatterModels::ENTITY_TYPE_PERSON => 'Person',
-            \App\Services\Wikidata\WikidataFormatterModels::ENTITY_TYPE_EVENT => 'Ereignis',
-            \App\Services\Wikidata\WikidataFormatterModels::ENTITY_TYPE_ORGANIZATION => 'Organisation',
-            \App\Services\Wikidata\WikidataFormatterModels::ENTITY_TYPE_STRUCTURE => 'Architektonisches Struktur',
-            'Q5003624' => 'Erinnerungsort',
-            'Q108047567' => 'Staatspolizeistelle',
-            'Q108047541' => 'Staatspolizeiaußenstelle',
-            'Q277565' => 'Arbeitserziehungslager',
-            'Q40357' => 'Gefängnis',
-            'book' => 'Buch',
-            \App\Services\Wikidata\WikidataFormatterModels::ROLE_PERPETRATOR => 'Täter*in',
-            \App\Services\Wikidata\WikidataFormatterModels::ROLE_VICTIM => 'Opfer'
-        ];
-
-        return $types[$type] ?? $type;
-    }
 @endphp
 
 <!-- Detaillierte Entity-Status-Anzeige -->
@@ -46,7 +26,7 @@
             <div class="d-flex justify-content-between align-items-start mb-3">
                 <div>
                     <span class="fw-bold">{{ $request->title }}</span>
-                    <span class="badge bg-secondary ms-2">{{ getEntityTypeLabel($request->type) }}</span>
+                    <span class="badge bg-secondary ms-2">{{ EntityTypeHelper::getEntityTypeLabel($request->type) }}</span>
                 </div>
                 <span class="badge bg-{{ $statusInfo[$request->status]['color'] }}">{{ $statusInfo[$request->status]['label'] }}</span>
             </div>
@@ -136,7 +116,7 @@
                                             ($entity['type'] == 'victim' ? 'info' :
                                             ($entity['type'] == 'book' ? 'primary' : 'secondary'))
                                         }}">
-                                            {{ getEntityTypeLabel($entity['type']) }}
+                                            {{ EntityTypeHelper::getEntityTypeLabel($entity['type']) }}
                                         </span>
                                     </td>
                                     <td>{{ $entity['name'] ?? $entity['label'] ?? 'Unbenannt' }}</td>
@@ -156,7 +136,7 @@
                                 @foreach($request->perpetrators as $perpetrator)
                                     @if(!empty($perpetrator['id']) && substr($perpetrator['id'], 0, 1) === 'Q' && empty($perpetrator['_wasCreated']))
                                         <tr>
-                                            <td><span class="badge bg-danger">{{ getEntityTypeLabel('perpetrator') }}</span></td>
+                                            <td><span class="badge bg-danger">{{ EntityTypeHelper::getEntityTypeLabel('perpetrator') }}</span></td>
                                             <td>{{ $perpetrator['firstName'] ?? '' }} {{ $perpetrator['lastName'] ?? '' }}</td>
                                             <td>
                                                 <a href="https://www.wikidata.org/wiki/{{ $perpetrator['id'] }}" target="_blank" class="text-decoration-none">
@@ -175,7 +155,7 @@
                                 @foreach($request->victims as $victim)
                                     @if(!empty($victim['id']) && substr($victim['id'], 0, 1) === 'Q' && empty($victim['_wasCreated']))
                                         <tr>
-                                            <td><span class="badge bg-info">{{ getEntityTypeLabel('victim') }}</span></td>
+                                            <td><span class="badge bg-info">{{ EntityTypeHelper::getEntityTypeLabel('victim') }}</span></td>
                                             <td>{{ $victim['firstName'] ?? '' }} {{ $victim['lastName'] ?? '' }}</td>
                                             <td>
                                                 <a href="https://www.wikidata.org/wiki/{{ $victim['id'] }}" target="_blank" class="text-decoration-none">
@@ -194,7 +174,7 @@
                                 @foreach($request->sources as $source)
                                     @if(is_array($source) && !empty($source['id']) && $source['id'] !== 'manual' && substr($source['id'], 0, 1) === 'Q')
                                         <tr>
-                                            <td><span class="badge bg-primary">{{ getEntityTypeLabel('book') }}</span></td>
+                                            <td><span class="badge bg-primary">{{ EntityTypeHelper::getEntityTypeLabel('book') }}</span></td>
                                             <td>{{ $source['title'] ?? 'Quelle' }}</td>
                                             <td>
                                                 <a href="https://www.wikidata.org/wiki/{{ $source['id'] }}" target="_blank" class="text-decoration-none">

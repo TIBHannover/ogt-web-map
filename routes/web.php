@@ -51,6 +51,8 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/wikidata-settings', [DashboardController::class, 'wikidataSettings'])->name('admin.wikidata.settings');
     Route::get('/requests', [DashboardController::class, 'requests'])->name('admin.requests');
     Route::get('/requests/{id}', [DashboardController::class, 'showRequest'])->name('admin.requests.show');
+    Route::get('/requests/{id}/edit', [DashboardController::class, 'editRequest'])->name('admin.requests.edit');
+    Route::post('/requests/{id}/update', [DashboardController::class, 'updateRequest'])->name('admin.requests.update');
     Route::get('/users', [DashboardController::class, 'users'])->name('admin.users');
     
     // Jobs management routes

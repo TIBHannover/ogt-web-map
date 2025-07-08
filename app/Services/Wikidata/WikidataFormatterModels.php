@@ -224,6 +224,11 @@ class WikidataFormatterModels
 
         // Add perpetrators if available
         if (!empty($data["perpetrators"])) {
+            // Ensure perpetrators is an array
+            if (is_string($data["perpetrators"])) {
+                $data["perpetrators"] = json_decode($data["perpetrators"], true) ?? [];
+            }
+            
             $data["perpetrators"] = $this->processEntityRelations(
                 $entity,
                 $data["perpetrators"],
@@ -234,6 +239,11 @@ class WikidataFormatterModels
 
         // Add victims if available
         if (!empty($data["victims"])) {
+            // Ensure victims is an array
+            if (is_string($data["victims"])) {
+                $data["victims"] = json_decode($data["victims"], true) ?? [];
+            }
+            
             $data["victims"] = $this->processEntityRelations(
                 $entity,
                 $data["victims"],
@@ -244,6 +254,11 @@ class WikidataFormatterModels
 
         // Add source information if available
         if (!empty($data["sources"])) {
+            // Ensure sources is an array
+            if (is_string($data["sources"])) {
+                $data["sources"] = json_decode($data["sources"], true) ?? [];
+            }
+            
             // Create source models
             $sources = SourceFactory::createMultipleFromArray($data["sources"]);
 

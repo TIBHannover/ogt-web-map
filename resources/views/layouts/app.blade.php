@@ -147,6 +147,11 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
+    <!-- Admin edit script -->
+    @if(request()->routeIs('admin.requests.edit'))
+        <script src="{{ asset('js/admin-edit.js') }}"></script>
+    @endif
+
     <!-- Custom scripts -->
     @stack('scripts')
 </body>

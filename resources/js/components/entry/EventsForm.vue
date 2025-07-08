@@ -30,11 +30,17 @@
                     :event-end-date-qualifier="eventEndDateQualifierValue"
                     @update:event-time-type="eventTimeTypeValue = $event"
                     @update:event-date="eventDateValue = $event"
-                    @update:event-date-qualifier="eventDateQualifierValue = $event"
+                    @update:event-date-qualifier="
+                        eventDateQualifierValue = $event
+                    "
                     @update:event-start-date="eventStartDateValue = $event"
-                    @update:event-start-date-qualifier="eventStartDateQualifierValue = $event"
+                    @update:event-start-date-qualifier="
+                        eventStartDateQualifierValue = $event
+                    "
                     @update:event-end-date="eventEndDateValue = $event"
-                    @update:event-end-date-qualifier="eventEndDateQualifierValue = $event"
+                    @update:event-end-date-qualifier="
+                        eventEndDateQualifierValue = $event
+                    "
                     @field-focus="setActiveField"
                     @info-button-click="openSectionInfo"
                     @validation="onTimeValidation"
@@ -58,6 +64,7 @@
                     @cancelNewPersonForm="onCancelNewVictimForm"
                     @update:newPerson="newVictimLocal = $event"
                     @addNewPerson="onAddNewVictim"
+                    @updatePerson="onUpdateVictim"
                     @removePerson="onRemoveVictim"
                     @focusin="setActiveField('victims')"
                     @infoButtonClick="openSectionInfo('victims')"
@@ -81,6 +88,7 @@
                     @cancelNewPersonForm="onCancelNewPerpetratorForm"
                     @update:newPerson="newPerpetratorLocal = $event"
                     @addNewPerson="onAddNewPerpetrator"
+                    @updatePerson="onUpdatePerpetrator"
                     @removePerson="onRemovePerpetrator"
                     @focusin="setActiveField('perpetrators')"
                     @infoButtonClick="openSectionInfo('perpetrators')"
@@ -489,7 +497,9 @@ const emit = defineEmits([
     "startNewPerpetratorForm",
     "cancelNewPerpetratorForm",
     "addNewPerpetrator",
+    "updatePerpetrator",
     "removePerpetrator",
+    "updateVictim",
     "startAddingAnotherPerpetrator",
     "searchCause",
     "selectCause",
@@ -710,41 +720,34 @@ const showMobileInfoOverlay = ref(false);
 const isMobileView = ref(false);
 const lastActiveField = ref(null);
 
-// Funktion zum Setzen des aktiven Feldes
 const setActiveField = (fieldName) => {
     activeField.value = fieldName;
-    lastActiveField.value = fieldName; // Speichern des Feldnamens für mobile Anzeige
+    lastActiveField.value = fieldName;
 };
 
-// Funktion zum U00dcberpru00fcfen der Bildschirmgro00dfe
 const checkScreenSize = () => {
     isMobileView.value = window.innerWidth < 1200;
 };
 
-// Funktion zum Öffnen des Info-Bereichs (Desktop) oder Overlays (Mobil) für eine Sektion
 const openSectionInfo = (sectionName) => {
     lastActiveField.value = sectionName;
-    activeField.value = sectionName; // Set activeField for desktop view
-    showMobileInfoOverlay.value = isMobileView.value; // Only show overlay on mobile
+    activeField.value = sectionName;
+    showMobileInfoOverlay.value = isMobileView.value;
 };
 
-// Funktion zum Schlieu00dfen des mobilen Info-Overlays
 const closeMobileInfoOverlay = () => {
     showMobileInfoOverlay.value = false;
 };
 
-// Bildschirmgru00f6u00dfe beim Laden und bei Gro00dfena00e4nderungüberpru00fcfen
 onMounted(() => {
     checkScreenSize();
     window.addEventListener("resize", checkScreenSize);
 });
 
-// Funktion zum Setzen der aktiven Sektion
 const setActiveSection = (sectionName) => {
     activeSection.value = sectionName;
 };
 
-// Info-Box-Titel basierend auf dem aktiven Bereich
 const getInfoTitle = (fieldName) => {
     const sectionTitles = {
         title: "Basis-Informationen",
@@ -956,6 +959,10 @@ const onAddNewVictim = () => {
     emit("addNewVictim");
 };
 
+const onUpdateVictim = (person) => {
+    emit("updateVictim", person);
+};
+
 const onRemoveVictim = (id) => emit("removeVictim", id);
 const onStartAddingAnotherVictim = () => emit("startAddingAnotherVictim");
 
@@ -982,6 +989,10 @@ const onCancelNewPerpetratorForm = () => emit("cancelNewPerpetratorForm");
 const onAddNewPerpetrator = () => {
     emit("update:newPerpetrator", newPerpetratorLocal.value);
     emit("addNewPerpetrator");
+};
+
+const onUpdatePerpetrator = (person) => {
+    emit("updatePerpetrator", person);
 };
 
 const onRemovePerpetrator = (id) => emit("removePerpetrator", id);

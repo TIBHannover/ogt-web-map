@@ -18,7 +18,15 @@ class AppServiceProvider extends ServiceProvider
     ];
 
     /**
-     * Register any authentication / authorization services.
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        // Register helper classes if needed
+    }
+
+    /**
+     * Bootstrap any application services.
      */
     public function boot(): void {}
 }
