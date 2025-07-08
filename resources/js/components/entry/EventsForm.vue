@@ -28,7 +28,7 @@
                     :event-start-date-qualifier="eventStartDateQualifierValue"
                     :event-end-date="eventEndDateValue"
                     :event-end-date-qualifier="eventEndDateQualifierValue"
-                    @update:event-time-type="eventTimeTypeValue = $event"
+                    @update:event-time-type="updateEventTimeType($event)"
                     @update:event-date="eventDateValue = $event"
                     @update:event-date-qualifier="
                         eventDateQualifierValue = $event
@@ -934,6 +934,28 @@ const onMapReady = (map) => {
     }, 200);
 };
 
+// Update event time type and emit to parent
+const updateEventTimeType = (type) => {
+    // Update local value
+    eventTimeTypeValue.value = type;
+    
+    // Clear the opposite time values based on type
+    if (type === 'point') {
+        // Clear range values
+        eventStartDateValue.value = null;
+        eventStartDateQualifierValue.value = '';
+        eventEndDateValue.value = null;
+        eventEndDateQualifierValue.value = '';
+    } else {
+        // Clear point values
+        eventDateValue.value = null;
+        eventDateQualifierValue.value = '';
+    }
+    
+    // Emit to parent
+    emit('update:eventTimeType', type);
+};
+
 // Computed für die Prüfung, ob ein neues Opfer hinzugefügt werden kann
 const canAddNewVictim = computed(() => {
     return newVictimLocal.value.firstName && newVictimLocal.value.lastName;
@@ -1126,15 +1148,23 @@ const getData = () => {
     // Log validation results
     console.log('Form validation result:', isValid);
     
+    // Log raw form values before processing
+    console.log('Raw form values in getData():', {
+        title: title.value,
+        description: description.value,
+        victims: selectedVictimsValue.value || [],
+        perpetrators: selectedPerpetratorsValue.value || []
+    });
+    
     // Prepare the data in the correct format for the database
     const formData = {
         // Basic information
         title: title.value,
         description: description.value,
         
-        // Victims and perpetrators
-        victims: JSON.stringify(selectedVictimsValue.value || []),
-        perpetrators: JSON.stringify(selectedPerpetratorsValue.value || []),
+        // Victims and perpetrators - already arrays, no need to stringify here
+        victims: selectedVictimsValue.value || [],
+        perpetrators: selectedPerpetratorsValue.value || [],
         
         // Time information
         time_point: eventTimeTypeValue.value === 'point' ? eventDateValue.value : '',
@@ -1156,22 +1186,22 @@ const getData = () => {
         death_count_qualifier: deathCountQualifierValue.value || '',
         arrest_count_qualifier: arrestCountQualifierValue.value || '',
         
-        // Causes
-        selected_causes: JSON.stringify(selectedCausesValue.value || []),
+        // Causes - already an array, no need to stringify here
+        selected_causes: selectedCausesValue.value || [],
         
         // Location
         coordinates: selectedLocationValue.value ? 
-            JSON.stringify({
+            {
                 lat: parseFloat(selectedLocationValue.value.lat || 0),
                 lng: parseFloat(selectedLocationValue.value.lng || 0)
-            }) : '',
+            } : null,
         
         // Image
         image_url: imageUrlValue.value || '',
         image_filename: imageFilenameValue.value || '',
         
-        // Sources
-        sources: JSON.stringify(selectedSourcesValue.value || [])
+        // Sources - already an array, no need to stringify here
+        sources: selectedSourcesValue.value || []
     };
     
     // Convert any NaN values to 0 for numerical fields
@@ -1193,21 +1223,6 @@ const getData = () => {
         arrest_count_qualifier: formData.arrest_count_qualifier
     });
     
-    // Ensure all arrays are properly stringified
-    ['victims', 'perpetrators', 'selected_causes', 'sources'].forEach(field => {
-        // If the field is already a string, try to parse and re-stringify it to ensure proper format
-        if (typeof formData[field] === 'string') {
-            try {
-                const parsed = JSON.parse(formData[field]);
-                formData[field] = JSON.stringify(parsed);
-            } catch (e) {
-                // If parsing fails, set to empty array string
-                console.warn(`Failed to parse ${field}, setting to empty array`, e);
-                formData[field] = '[]';
-            }
-        }
-    });
-    
     console.log('EventsForm getData() returning:', formData);
     return formData;
 };
@@ -1221,7 +1236,33 @@ const isFormValid = () => {
 defineExpose({
     validateForm,
     getData,
-    isFormValid
+    isFormValid,
+    refreshFormData: () => {
+        // This ensures all computed values reflect their current bindings
+        // Force Vue to update computed properties by triggering reactivity
+        nextTick(() => {
+            // For key form components, explicitly force updates if available
+            if (baseInfosRef.value && typeof baseInfosRef.value.updateBindings === 'function') {
+                baseInfosRef.value.updateBindings();
+            }
+            
+            if (timeSelectorRef.value && typeof timeSelectorRef.value.updateBindings === 'function') {
+                timeSelectorRef.value.updateBindings();
+            }
+            
+            // Log current values to verify data is current
+            console.log('Refreshed form data with current values:', {
+                title: title.value,
+                description: description.value,
+                eventTimeType: eventTimeTypeValue.value,
+                victimCount: victimCountValue.value,
+                perpetrators: selectedPerpetratorsValue.value?.length || 0,
+                victims: selectedVictimsValue.value?.length || 0,
+                causes: selectedCausesValue.value?.length || 0,
+                sources: selectedSourcesValue.value?.length || 0
+            });
+        });
+    }
 });
 
 // Ladet den Ladezustand zurücksetzen, wenn Ergebnisse da sind oder wenn nichts gefunden wurde

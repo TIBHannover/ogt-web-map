@@ -586,6 +586,11 @@ defineExpose({
     isValid,
     validate,
     showValidationErrors: showErrors,
+    updateBindings: () => {
+        // This method can be called by the parent to ensure form values are current
+        console.log('TimeSelector: Updating bindings with current values');
+        // If there are internal updates needed, they can happen here
+    }
 });
 </script>
 

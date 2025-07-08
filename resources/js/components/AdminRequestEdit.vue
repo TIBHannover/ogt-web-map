@@ -11,7 +11,32 @@
             <!-- Ereignisformular (wenn Typ Q6983405) -->
             <EventsForm
                 v-if="requestType === 'Q6983405'"
-                v-bind="eventFormProps"
+                v-model:formsTitle="formData.title"
+                v-model:formsDescription="formData.description"
+                :eventTimeType="getEventTimeType()"
+                @update:eventTimeType="handleEventTimeTypeChange($event)"
+                v-model:eventDate="formData.time_point"
+                v-model:eventDateQualifier="formData.time_point_qualifier"
+                v-model:eventStartDate="formData.time_period_start"
+                v-model:eventStartDateQualifier="formData.time_period_start_qualifier"
+                v-model:eventEndDate="formData.time_period_end"
+                v-model:eventEndDateQualifier="formData.time_period_end_qualifier"
+                v-model:victimCount="formData.victim_count"
+                v-model:survivorCount="formData.survivor_count"
+                v-model:deathCount="formData.death_count"
+                v-model:arrestCount="formData.arrest_count"
+                v-model:victimCountQualifier="formData.victim_count_qualifier"
+                v-model:survivorCountQualifier="formData.survivor_count_qualifier"
+                v-model:deathCountQualifier="formData.death_count_qualifier"
+                v-model:arrestCountQualifier="formData.arrest_count_qualifier"
+                v-model:selectedVictims="formData.victims"
+                v-model:selectedPerpetrators="formData.perpetrators"
+                v-model:selectedCauses="formData.selected_causes"
+                :selectedLocation="getLocationObject()"
+                @update:selectedLocation="updateLocationObject($event)"
+                v-model:imageUrl="formData.image_url"
+                v-model:imageFilename="formData.image_filename"
+                v-model:selectedSources="formData.sources"
                 :peopleSearchResults="peopleSearchResults"
                 :perpetratorsSearchResults="perpetratorsSearchResults"
                 :causeSearchResults="causeSearchResults"
@@ -19,6 +44,7 @@
                 :showNewPerpetratorForm="showNewPerpetratorForm"
                 :newVictim="newVictim"
                 :newPerpetrator="newPerpetrator"
+                :isAdminView="true"
                 @update:newVictim="newVictim = $event"
                 @update:newPerpetrator="newPerpetrator = $event"
                 @submit="saveRequest($event)"
@@ -55,6 +81,13 @@
                 >
                     <i class="bi bi-x-circle me-1"></i> Abbrechen
                 </a>
+                <button
+                    @click="debugFormFields"
+                    class="btn btn-warning me-2"
+                    type="button"
+                >
+                    <i class="bi bi-bug me-1"></i> Debug Felder
+                </button>
                 <button @click="getEventFormData" class="btn btn-primary">
                     <i class="bi bi-save me-1"></i> Änderungen speichern
                 </button>
@@ -124,9 +157,10 @@ export default {
         };
     },
     computed: {
-        // Prepare props for EventsForm component
+// Prepare props for EventsForm component
         eventFormProps() {
-            // For events (Q6983405)
+            // This computed property is now less important as we're using v-model directives directly
+            // We keep it for backward compatibility and debugging
             if (this.requestType === "Q6983405") {
                 // Make sure victims and perpetrators are arrays
                 let victims = [];
@@ -184,6 +218,17 @@ export default {
                         }
                     }
                 }
+
+                // For debugging purposes - log the computed props
+                console.log("EventFormProps computed values:", {
+                    title: this.formData.title,
+                    description: this.formData.description,
+                    victims: victims.length,
+                    perpetrators: perpetrators.length,
+                    selectedCauses: selectedCauses.length,
+                    time_point: this.formData.time_point,
+                    time_period_start: this.formData.time_period_start
+                });
 
                 return {
                     formsTitle: this.formData.title || "",
@@ -319,10 +364,44 @@ export default {
                 this.formData.sources = [];
             }
 
+            // Parse coordinates if they're stored as a string
+            if (
+                this.formData.coordinates && 
+                typeof this.formData.coordinates === "string"
+            ) {
+                try {
+                    this.formData.coordinates = JSON.parse(this.formData.coordinates);
+                    console.log("Parsed coordinates from string to object");
+                } catch (e) {
+                    console.error("Failed to parse coordinates as JSON:", e);
+                    this.formData.coordinates = null;
+                }
+            }
+
+            // Ensure the time type is correctly set
+            if (this.formData.time_point && this.formData.time_point.trim() !== "") {
+                this.formData.eventTimeType = "point";
+            } else if (this.formData.time_period_start && this.formData.time_period_start.trim() !== "") {
+                this.formData.eventTimeType = "range";
+            } else {
+                this.formData.eventTimeType = "point"; // Default to point
+            }
+
+            // Convert numeric strings to numbers
+            ["victim_count", "survivor_count", "death_count", "arrest_count"].forEach(field => {
+                if (this.formData[field] && typeof this.formData[field] === "string") {
+                    this.formData[field] = Number(this.formData[field]) || 0;
+                }
+            });
+
             console.log("Initialized data:", {
                 victims: this.formData.victims,
                 perpetrators: this.formData.perpetrators,
                 selected_causes: this.formData.selected_causes,
+                coordinates: this.formData.coordinates,
+                time_point: this.formData.time_point,
+                time_period_start: this.formData.time_period_start,
+                eventTimeType: this.formData.eventTimeType
             });
 
             this.loading = false;
@@ -345,6 +424,47 @@ export default {
             if (personIndex !== -1) {
                 // Vue 3 doesn't have Vue.set, so use array splice which is reactive
                 this.formData.victims.splice(personIndex, 1, updatedPerson);
+            }
+        },
+        
+        // For debugging form fields
+        debugFormFields() {
+            console.log('=== FORM DATA DEBUGGING ===');
+            console.log('Current formData state:', {
+                title: this.formData.title,
+                description: this.formData.description,
+                victims: this.formData.victims,
+                perpetrators: this.formData.perpetrators,
+                selected_causes: this.formData.selected_causes,
+                coordinates: this.formData.coordinates,
+                time_point: this.formData.time_point,
+                time_period_start: this.formData.time_period_start,
+                victim_count: this.formData.victim_count,
+                survivor_count: this.formData.survivor_count,
+                death_count: this.formData.death_count,
+                arrest_count: this.formData.arrest_count,
+                sources: this.formData.sources,
+            });
+            
+            // Get current form values from EventsForm component if available
+            if (this.$refs.eventsForm && typeof this.$refs.eventsForm.getData === 'function') {
+                const formData = this.$refs.eventsForm.getData();
+                console.log('EventsForm component data:', formData);
+                
+                // Compare values between formData and EventsForm
+                console.log('=== Data Comparison ===');
+                console.log('Title matches:', this.formData.title === formData.title);
+                console.log('Description matches:', this.formData.description === formData.description);
+                console.log('Victim count matches:', this.formData.victim_count === formData.victim_count);
+                console.log('Perpetrator count (arrays):', 
+                    this.formData.perpetrators ? this.formData.perpetrators.length : 0, 
+                    'vs', 
+                    formData.perpetrators ? formData.perpetrators.length : 0);
+                
+                alert('Debug information logged to console. Please check your browser developer tools.');
+            } else {
+                console.log('Cannot access EventsForm component methods.');
+                alert('Debug information for formData logged to console. EventsForm component is not accessible.');
             }
         },
 
@@ -433,214 +553,167 @@ export default {
             return null;
         },
 
+        // Helper method to get event time type
+        getEventTimeType() {
+            return this.formData.time_point ? 'point' : 'range';
+        },
+        
+        // Handle event time type changes
+        handleEventTimeTypeChange(type) {
+            if (type === 'point') {
+                // Set time_point if it's empty but there's a time_period_start
+                if (!this.formData.time_point && this.formData.time_period_start) {
+                    this.formData.time_point = this.formData.time_period_start;
+                    this.formData.time_point_qualifier = this.formData.time_period_start_qualifier || '';
+                } else if (!this.formData.time_point) {
+                    // Set a default date if no date is set
+                    this.formData.time_point = new Date().toISOString().split('T')[0];
+                }
+                
+                // Clear period fields
+                this.formData.time_period_start = '';
+                this.formData.time_period_start_qualifier = '';
+                this.formData.time_period_end = '';
+                this.formData.time_period_end_qualifier = '';
+            } else { // type === 'range'
+                // Set time_period_start if it's empty but there's a time_point
+                if (!this.formData.time_period_start && this.formData.time_point) {
+                    this.formData.time_period_start = this.formData.time_point;
+                    this.formData.time_period_start_qualifier = this.formData.time_point_qualifier || '';
+                } else if (!this.formData.time_period_start) {
+                    // Set default start date if no date is set
+                    this.formData.time_period_start = new Date().toISOString().split('T')[0];
+                }
+                
+                // Clear point fields
+                this.formData.time_point = '';
+                this.formData.time_point_qualifier = '';
+            }
+            
+            console.log('Event time type changed to:', type, 'Current time values:', {
+                time_point: this.formData.time_point,
+                time_period_start: this.formData.time_period_start,
+                time_period_end: this.formData.time_period_end
+            });
+        },
+        
+        // Helper method to get location object
+        getLocationObject() {
+            if (!this.formData.coordinates) return null;
+            
+            try {
+                if (typeof this.formData.coordinates === 'string') {
+                    return JSON.parse(this.formData.coordinates);
+                } else {
+                    return this.formData.coordinates;
+                }
+            } catch (e) {
+                console.error('Failed to parse coordinates', e);
+                return null;
+            }
+        },
+        
+        // Helper method to update location object
+        updateLocationObject(location) {
+            if (!location) {
+                this.formData.coordinates = null;
+                return;
+            }
+            
+            // Store as object directly, will be stringified when saving
+            this.formData.coordinates = {
+                lat: parseFloat(location.lat || 0),
+                lng: parseFloat(location.lng || 0)
+            };
+        },
+
         // Save the updated request
         saveRequest(formData) {
-            // If formData is provided directly (from EventsForm's getData method), use it
-            // Otherwise fall back to using data from eventFormProps
-            let requestData;
-            
-            if (formData) {
-                // Use the data provided directly from the EventsForm component
-                console.log('Using data from EventsForm.getData():', formData);
-                // The data from getData is already properly formatted for the database
-                requestData = formData;
-                
-                // Ensure all array fields are properly stringified
-                ['victims', 'perpetrators', 'selected_causes', 'sources'].forEach(field => {
-                    if (requestData[field] && typeof requestData[field] !== 'string') {
+            // If no valid form data is provided, we can't proceed
+            if (!formData) {
+                console.error("No valid request data available");
+                alert(
+                    "Ein Fehler ist aufgetreten: Keine gu00fcltigen Daten verfu00fcgbar.",
+                );
+                return;
+            }
+
+            console.log("Sending request data to server:", formData);
+
+            // Create a clone of the data to avoid mutations
+            const requestData = JSON.parse(JSON.stringify(formData));
+
+            // Ensure all array fields are properly stringified
+            ["victims", "perpetrators", "selected_causes", "sources"].forEach(
+                (field) => {
+                    if (
+                        requestData[field] &&
+                        typeof requestData[field] !== "string"
+                    ) {
                         requestData[field] = JSON.stringify(requestData[field]);
-                    } else if (requestData[field] && typeof requestData[field] === 'string') {
-                        // Make sure it's valid JSON by parsing and re-stringifying
-                        try {
-                            const parsed = JSON.parse(requestData[field]);
-                            requestData[field] = JSON.stringify(parsed);
-                        } catch (e) {
-                            console.warn(`Field ${field} contains invalid JSON, setting to empty array`);
-                            requestData[field] = '[]';
+                    }
+                },
+            );
+
+            // Use Axios to submit the data
+            axios
+                .post(`/admin/requests/${this.requestId}/update`, requestData, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Requested-With": "XMLHttpRequest",
+                        Accept: "application/json",
+                    },
+                })
+                .then((response) => {
+                    console.log("Update successful:", response.data);
+                    // Force a page reload to ensure we get fresh data
+                    window.location.href = `/admin/requests/${this.requestId}?success=1&t=${new Date().getTime()}`;
+                })
+                .catch((error) => {
+                    console.error("Error updating request:", error);
+
+                    // Log more details about the error
+                    if (error.response) {
+                        console.error(
+                            "Error response data:",
+                            error.response.data,
+                        );
+                        console.error(
+                            "Error response status:",
+                            error.response.status,
+                        );
+                        console.error(
+                            "Error response headers:",
+                            error.response.headers,
+                        );
+                    } else if (error.request) {
+                        console.error("Error request:", error.request);
+                    } else {
+                        console.error("Error message:", error.message);
+                    }
+
+                    let errorMessage =
+                        "Ein Fehler ist beim Speichern aufgetreten. Bitte versuchen Sie es erneut.";
+
+                    // Extract more detailed error message if available
+                    if (error.response && error.response.data) {
+                        if (error.response.data.error) {
+                            errorMessage +=
+                                "\n\nDetails: " + error.response.data.error;
+                        } else if (error.response.data.message) {
+                            errorMessage +=
+                                "\n\nDetails: " + error.response.data.message;
+                        } else if (typeof error.response.data === "string") {
+                            errorMessage +=
+                                "\n\nDetails: " + error.response.data;
+                        } else {
+                            errorMessage +=
+                                "\n\nStatus-Code: " + error.response.status;
                         }
-                    } else {
-                        requestData[field] = '[]';
                     }
+
+                    alert(errorMessage);
                 });
-                
-                // Ensure all number fields are actual numbers
-                ['victim_count', 'survivor_count', 'death_count', 'arrest_count'].forEach(field => {
-                    requestData[field] = Number(requestData[field]) || 0;
-                    if (isNaN(requestData[field])) {
-                        requestData[field] = 0;
-                    }
-                });
-                
-                // Log victim counts after processing to help with debugging
-                console.log('Processed victim counts in saveRequest:', {
-                    victim_count: requestData.victim_count,
-                    survivor_count: requestData.survivor_count,
-                    death_count: requestData.death_count,
-                    arrest_count: requestData.arrest_count,
-                    victim_count_qualifier: requestData.victim_count_qualifier,
-                    survivor_count_qualifier: requestData.survivor_count_qualifier,
-                    death_count_qualifier: requestData.death_count_qualifier,
-                    arrest_count_qualifier: requestData.arrest_count_qualifier
-                });
-                
-                // Ensure coordinates is properly formatted
-                if (requestData.coordinates && typeof requestData.coordinates !== 'string') {
-                    requestData.coordinates = JSON.stringify(requestData.coordinates);
-                } else if (!requestData.coordinates) {
-                    requestData.coordinates = '';
-                }
-                
-            } else if (this.requestType === "Q6983405") {
-                // Fallback to using data from eventFormProps
-                console.warn('No form data provided, using eventFormProps as fallback');
-                // Create a data object with the correct field names for the database
-                requestData = {
-                    title: this.eventFormProps.formsTitle || "",
-                    description: this.eventFormProps.formsDescription || "",
-                    victims: JSON.stringify(this.eventFormProps.selectedVictims || []),
-                    perpetrators: JSON.stringify(this.eventFormProps.selectedPerpetrators || []),
-                    selected_causes: JSON.stringify(this.eventFormProps.selectedCauses || []),
-                    sources: JSON.stringify(this.eventFormProps.selectedSources || []),
-                    image_url: this.eventFormProps.imageUrl || '',
-                    image_filename: this.eventFormProps.imageFilename || '',
-                    // Prepare victim count values
-                    victim_count: Number(this.eventFormProps.victimCount) || 0,
-                    survivor_count: Number(this.eventFormProps.survivorCount) || 0,
-                    death_count: Number(this.eventFormProps.deathCount) || 0,
-                    arrest_count: Number(this.eventFormProps.arrestCount) || 0,
-                    victim_count_qualifier: this.eventFormProps.victimCountQualifier || '',
-                    survivor_count_qualifier: this.eventFormProps.survivorCountQualifier || '',
-                    death_count_qualifier: this.eventFormProps.deathCountQualifier || '',
-                    arrest_count_qualifier: this.eventFormProps.arrestCountQualifier || '',
-                    coordinates: this.eventFormProps.selectedLocation ? 
-                        JSON.stringify({
-                            lat: parseFloat(this.eventFormProps.selectedLocation.lat || 
-                                        this.eventFormProps.selectedLocation.latitude || 0),
-                            lng: parseFloat(this.eventFormProps.selectedLocation.lng || 
-                                        this.eventFormProps.selectedLocation.longitude || 0)
-                        }) : ''
-                };
-                
-                // Time information - based on the time type (point or range)
-                if (this.eventFormProps.eventTimeType === 'point') {
-                    requestData.time_point = this.eventFormProps.eventDate || '';
-                    requestData.time_point_qualifier = this.eventFormProps.eventDateQualifier || '';
-                    requestData.time_period_start = '';
-                    requestData.time_period_end = '';
-                    requestData.time_period_start_qualifier = '';
-                    requestData.time_period_end_qualifier = '';
-                } else {
-                    requestData.time_period_start = this.eventFormProps.eventStartDate || '';
-                    requestData.time_period_start_qualifier = this.eventFormProps.eventStartDateQualifier || '';
-                    requestData.time_period_end = this.eventFormProps.eventEndDate || '';
-                    requestData.time_period_end_qualifier = this.eventFormProps.eventEndDateQualifier || '';
-                    requestData.time_point = '';
-                    requestData.time_point_qualifier = '';
-                }
-            }
-            
-            if (!requestData) {
-                console.error('No valid request data available');
-                alert('Ein Fehler ist aufgetreten: Keine gu00fcltigen Daten verfu00fcgbar.');
-                return;
-            }
-            
-            // Final validation of critical fields
-            if (!requestData.title) {
-                console.error('Missing title in request data');
-                alert('Der Titel darf nicht leer sein.');
-                return;
-            }
-            
-            if (!requestData.time_point && !requestData.time_period_start) {
-                console.error('Missing time information in request data');
-                alert('Es muss ein Zeitpunkt oder ein Zeitraum angegeben werden.');
-                return;
-            }
-            
-            if (!requestData.perpetrators || requestData.perpetrators === '[]') {
-                console.error('Missing perpetrators in request data');
-                alert('Es muss mindestens ein Tu00e4ter angegeben werden.');
-                return;
-            }
-            
-            if (!requestData.sources || requestData.sources === '[]') {
-                console.error('Missing sources in request data');
-                alert('Es muss mindestens eine Quelle angegeben werden.');
-                return;
-            }
-            
-            console.log('Sending request data:', requestData);
-            console.log('Victim counts being sent:', {
-                victim_count: requestData.victim_count,
-                survivor_count: requestData.survivor_count,
-                death_count: requestData.death_count,
-                arrest_count: requestData.arrest_count,
-                victim_count_qualifier: requestData.victim_count_qualifier,
-                survivor_count_qualifier: requestData.survivor_count_qualifier,
-                death_count_qualifier: requestData.death_count_qualifier,
-                arrest_count_qualifier: requestData.arrest_count_qualifier
-            });
-            console.log('Description being sent:', requestData.description);
-            
-            // Use Axios with JSON data
-            axios.post(`/admin/requests/${this.requestId}/update`, requestData, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            })
-            .then((response) => {
-                console.log("Update successful:", response.data);
-                // Force a page reload to ensure we get fresh data
-                window.location.href = `/admin/requests/${this.requestId}?success=1&t=${new Date().getTime()}`;
-            })
-            .catch((error) => {
-                console.error("Error updating request:", error);
-
-                // Log more details about the error
-                if (error.response) {
-                    console.error(
-                        "Error response data:",
-                        error.response.data,
-                    );
-                    console.error(
-                        "Error response status:",
-                        error.response.status,
-                    );
-                    console.error(
-                        "Error response headers:",
-                        error.response.headers,
-                    );
-                } else if (error.request) {
-                    console.error("Error request:", error.request);
-                } else {
-                    console.error("Error message:", error.message);
-                }
-
-                let errorMessage =
-                    "Ein Fehler ist beim Speichern aufgetreten. Bitte versuchen Sie es erneut.";
-
-                // Extract more detailed error message if available
-                if (error.response && error.response.data) {
-                    if (error.response.data.error) {
-                        errorMessage +=
-                            "\n\nDetails: " + error.response.data.error;
-                    } else if (error.response.data.message) {
-                        errorMessage +=
-                            "\n\nDetails: " + error.response.data.message;
-                    } else if (typeof error.response.data === "string") {
-                        errorMessage +=
-                            "\n\nDetails: " + error.response.data;
-                    } else {
-                        errorMessage +=
-                            "\n\nStatus-Code: " + error.response.status;
-                    }
-                }
-
-                alert(errorMessage);
-            });
         },
 
         // Get data from EventsForm and submit it
@@ -648,45 +721,104 @@ export default {
             if (this.requestType === 'Q6983405' && this.$refs.eventsForm) {
                 try {
                     // First check if the form is valid
-                    if (typeof this.$refs.eventsForm.isFormValid === 'function') {
+                    if (typeof this.$refs.eventsForm.isFormValid === "function") {
                         const isValid = this.$refs.eventsForm.isFormValid();
-                        console.log('Form validation result:', isValid);
-                        
-                        if (!isValid) {
-                            alert('Bitte füllen Sie alle Pflichtfelder aus bevor Sie speichern.');
-                            return;
-                        }
-                    }
-                    
-                    // Use the EventsForm's getData method to get properly formatted data
-                    if (typeof this.$refs.eventsForm.getData === 'function') {
-                        const formData = this.$refs.eventsForm.getData();
-                        console.log('Got form data from EventsForm.getData():', formData);
-                        
-                        // Verify we have required data before proceeding
-                        if (!formData.title || (!formData.time_point && !formData.time_period_start)) {
-                            console.warn('Missing required data in form:', formData);
-                            alert('Es fehlen Pflichtfelder. Bitte überprüfen Sie Ihre Eingaben.');
-                            return;
-                        }
-                        
-                        this.saveRequest(formData);
-                        return;
-                    } else {
-                        console.warn('EventsForm does not have a getData method');
-                    }
-                } catch (e) {
-                    console.error('Error getting data from EventsForm:', e);
-                    alert('Ein Fehler ist aufgetreten: ' + e.message);
-                    return;
-                }
-            }
-            
-            // If we can't use getData, fall back to the original method
-            console.warn('Falling back to original saveRequest method without form data');
-            this.saveRequest();
-        },
+                        console.log("Form validation result:", isValid);
 
+                        if (!isValid) {
+                            alert("Bitte fu00fcllen Sie alle Pflichtfelder aus bevor Sie speichern.");
+                            return;
+                        }
+                    }
+
+                    // Get form data directly from the component
+                    let formData;
+                    if (typeof this.$refs.eventsForm.getData === "function") {
+                        formData = this.$refs.eventsForm.getData();
+                        console.log("Retrieved form data from component:", formData);
+                    } else {
+                        // Fallback to the current data in formData
+                        formData = {
+                            title: this.formData.title,
+                            description: this.formData.description,
+                            victims: JSON.stringify(this.formData.victims || []),
+                            perpetrators: JSON.stringify(this.formData.perpetrators || []),
+                            selected_causes: JSON.stringify(this.formData.selected_causes || []),
+                            sources: JSON.stringify(this.formData.sources || []),
+                            
+                            // Time information
+                            time_point: this.formData.time_point || '',
+                            time_point_qualifier: this.formData.time_point_qualifier || '',
+                            time_period_start: this.formData.time_period_start || '',
+                            time_period_start_qualifier: this.formData.time_period_start_qualifier || '',
+                            time_period_end: this.formData.time_period_end || '',
+                            time_period_end_qualifier: this.formData.time_period_end_qualifier || '',
+                            
+                            // Counts
+                            victim_count: Number(this.formData.victim_count) || 0,
+                            survivor_count: Number(this.formData.survivor_count) || 0,
+                            death_count: Number(this.formData.death_count) || 0,
+                            arrest_count: Number(this.formData.arrest_count) || 0,
+                            
+                            // Qualifiers
+                            victim_count_qualifier: this.formData.victim_count_qualifier || '',
+                            survivor_count_qualifier: this.formData.survivor_count_qualifier || '',
+                            death_count_qualifier: this.formData.death_count_qualifier || '',
+                            arrest_count_qualifier: this.formData.arrest_count_qualifier || '',
+                            
+                            // Image
+                            image_url: this.formData.image_url || '',
+                            image_filename: this.formData.image_filename || '',
+                        };
+                        
+                        // Handle coordinates
+                        if (this.formData.coordinates) {
+                            if (typeof this.formData.coordinates === 'string') {
+                                formData.coordinates = this.formData.coordinates;
+                            } else {
+                                formData.coordinates = JSON.stringify(this.formData.coordinates);
+                            }
+                        } else {
+                            formData.coordinates = '';
+                        }
+                        
+                        console.log("Using fallback data from formData:", formData);
+                    }
+
+                    // Check required fields
+                    if (!formData.title) {
+                        alert("Bitte geben Sie einen Titel ein.");
+                        return;
+                    }
+
+                    if (!formData.perpetrators || formData.perpetrators === "[]") {
+                        alert("Bitte geben Sie mindestens einen Tu00e4ter an.");
+                        return;
+                    }
+
+                    if ((!formData.time_point || formData.time_point === "") && 
+                        (!formData.time_period_start || formData.time_period_start === "")) {
+                        alert("Bitte geben Sie einen Zeitpunkt oder Zeitraum an.");
+                        return;
+                    }
+
+                    if (!formData.sources || formData.sources === "[]") {
+                        alert("Bitte geben Sie mindestens eine Quelle an.");
+                        return;
+                    }
+
+                    // Submit the form data
+                    this.saveRequest(formData);
+                    return;
+                } catch (e) {
+                    console.error("Error preparing form data:", e);
+                    alert("Ein Fehler ist aufgetreten: " + e.message);
+                }
+                return;
+            }
+
+            alert("Dieser Formulartyp wird noch nicht unterstu00fctzt.");
+        },
 
         // Search people functionality
         searchPeople(query) {
