@@ -309,6 +309,14 @@ const createEntry = () => {
         !noExistingEntry.value
     )
         return;
+    
+    console.log('TitleSearchOverlay: Creating entry with title:', localTitle.value);
+    console.log('TitleSearchOverlay: Context:', props.context);
+    
+    // Make sure the title gets emitted properly
+    emit("update:title", localTitle.value);
+    
+    // Also emit the create event which is what BaseInfos.vue listens for
     emit("create", localTitle.value);
 };
 

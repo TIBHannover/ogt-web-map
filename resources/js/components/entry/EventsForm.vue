@@ -1,5 +1,8 @@
 <template>
-    <div class="event-form-wrapper">
+    <div
+        class="event-form-wrapper"
+        :class="{ 'admin-view': props.isAdminView }"
+    >
         <div class="step-container">
             <h2 class="step-title">Schritt 2: Ereignis-Details eingeben</h2>
             <form class="forms">
@@ -203,7 +206,10 @@
         </div>
 
         <!-- Info-Box (Desktop) -->
-        <div class="info-box desktop-info" v-if="activeField && !isMobileView">
+        <div
+            class="info-box desktop-info"
+            v-if="activeField && !isMobileView && !isAdminView"
+        >
             <div class="info-box-header">
                 <h3>{{ getInfoTitle(activeField) }}</h3>
             </div>
@@ -216,7 +222,7 @@
     <!-- Mobile Info-Overlay -->
     <div
         class="mobile-info-overlay"
-        v-if="showMobileInfoOverlay && isMobileView"
+        v-if="showMobileInfoOverlay && (isMobileView || props.isAdminView)"
         @click="closeMobileInfoOverlay"
     >
         <div class="overlay-content" @click.stop>
@@ -517,7 +523,10 @@ const emit = defineEmits([
 // Lokale Zustandsverwaltung durch Computed Properties
 const title = computed({
     get: () => props.formsTitle,
-    set: (value) => emit("update:formsTitle", value),
+    set: (value) => {
+        console.log('EventsForm: Updating title to:', value);
+        emit("update:formsTitle", value);
+    },
 });
 
 const description = computed({
@@ -747,7 +756,7 @@ const checkScreenSize = () => {
 const openSectionInfo = (sectionName) => {
     lastActiveField.value = sectionName;
     activeField.value = sectionName;
-    showMobileInfoOverlay.value = isMobileView.value;
+    showMobileInfoOverlay.value = isMobileView.value || props.isAdminView;
 };
 
 const closeMobileInfoOverlay = () => {
@@ -938,22 +947,22 @@ const onMapReady = (map) => {
 const updateEventTimeType = (type) => {
     // Update local value
     eventTimeTypeValue.value = type;
-    
+
     // Clear the opposite time values based on type
-    if (type === 'point') {
+    if (type === "point") {
         // Clear range values
         eventStartDateValue.value = null;
-        eventStartDateQualifierValue.value = '';
+        eventStartDateQualifierValue.value = "";
         eventEndDateValue.value = null;
-        eventEndDateQualifierValue.value = '';
+        eventEndDateQualifierValue.value = "";
     } else {
         // Clear point values
         eventDateValue.value = null;
-        eventDateQualifierValue.value = '';
+        eventDateQualifierValue.value = "";
     }
-    
+
     // Emit to parent
-    emit('update:eventTimeType', type);
+    emit("update:eventTimeType", type);
 };
 
 // Computed für die Prüfung, ob ein neues Opfer hinzugefügt werden kann
@@ -1144,75 +1153,92 @@ const validateForm = () => {
 const getData = () => {
     // Validate the form first
     const isValid = validateForm();
-    
+
     // Log validation results
-    console.log('Form validation result:', isValid);
-    
+    console.log("Form validation result:", isValid);
+
     // Log raw form values before processing
-    console.log('Raw form values in getData():', {
+    console.log("Raw form values in getData():", {
         title: title.value,
         description: description.value,
         victims: selectedVictimsValue.value || [],
-        perpetrators: selectedPerpetratorsValue.value || []
+        perpetrators: selectedPerpetratorsValue.value || [],
     });
-    
+
     // Prepare the data in the correct format for the database
     const formData = {
         // Basic information
         title: title.value,
         description: description.value,
-        
+
         // Victims and perpetrators - already arrays, no need to stringify here
         victims: selectedVictimsValue.value || [],
         perpetrators: selectedPerpetratorsValue.value || [],
-        
+
         // Time information
-        time_point: eventTimeTypeValue.value === 'point' ? eventDateValue.value : '',
-        time_point_qualifier: eventTimeTypeValue.value === 'point' ? eventDateQualifierValue.value : '',
-        time_period_start: eventTimeTypeValue.value === 'range' ? eventStartDateValue.value : '',
-        time_period_start_qualifier: eventTimeTypeValue.value === 'range' ? eventStartDateQualifierValue.value : '',
-        time_period_end: eventTimeTypeValue.value === 'range' ? eventEndDateValue.value : '',
-        time_period_end_qualifier: eventTimeTypeValue.value === 'range' ? eventEndDateQualifierValue.value : '',
-        
+        time_point:
+            eventTimeTypeValue.value === "point" ? eventDateValue.value : "",
+        time_point_qualifier:
+            eventTimeTypeValue.value === "point"
+                ? eventDateQualifierValue.value
+                : "",
+        time_period_start:
+            eventTimeTypeValue.value === "range"
+                ? eventStartDateValue.value
+                : "",
+        time_period_start_qualifier:
+            eventTimeTypeValue.value === "range"
+                ? eventStartDateQualifierValue.value
+                : "",
+        time_period_end:
+            eventTimeTypeValue.value === "range" ? eventEndDateValue.value : "",
+        time_period_end_qualifier:
+            eventTimeTypeValue.value === "range"
+                ? eventEndDateQualifierValue.value
+                : "",
+
         // Counts - convert to numbers (safe conversion handling)
         victim_count: Number(victimCountValue.value) || 0,
         survivor_count: Number(survivorCountValue.value) || 0,
         death_count: Number(deathCountValue.value) || 0,
         arrest_count: Number(arrestCountValue.value) || 0,
-        
+
         // Qualifiers
-        victim_count_qualifier: victimCountQualifierValue.value || '',
-        survivor_count_qualifier: survivorCountQualifierValue.value || '',
-        death_count_qualifier: deathCountQualifierValue.value || '',
-        arrest_count_qualifier: arrestCountQualifierValue.value || '',
-        
+        victim_count_qualifier: victimCountQualifierValue.value || "",
+        survivor_count_qualifier: survivorCountQualifierValue.value || "",
+        death_count_qualifier: deathCountQualifierValue.value || "",
+        arrest_count_qualifier: arrestCountQualifierValue.value || "",
+
         // Causes - already an array, no need to stringify here
         selected_causes: selectedCausesValue.value || [],
-        
+
         // Location
-        coordinates: selectedLocationValue.value ? 
-            {
-                lat: parseFloat(selectedLocationValue.value.lat || 0),
-                lng: parseFloat(selectedLocationValue.value.lng || 0)
-            } : null,
-        
+        coordinates: selectedLocationValue.value
+            ? {
+                  lat: parseFloat(selectedLocationValue.value.lat || 0),
+                  lng: parseFloat(selectedLocationValue.value.lng || 0),
+              }
+            : null,
+
         // Image
-        image_url: imageUrlValue.value || '',
-        image_filename: imageFilenameValue.value || '',
-        
+        image_url: imageUrlValue.value || "",
+        image_filename: imageFilenameValue.value || "",
+
         // Sources - already an array, no need to stringify here
-        sources: selectedSourcesValue.value || []
+        sources: selectedSourcesValue.value || [],
     };
-    
+
     // Convert any NaN values to 0 for numerical fields
-    ['victim_count', 'survivor_count', 'death_count', 'arrest_count'].forEach(field => {
-        if (isNaN(formData[field])) {
-            formData[field] = 0;
-        }
-    });
-    
+    ["victim_count", "survivor_count", "death_count", "arrest_count"].forEach(
+        (field) => {
+            if (isNaN(formData[field])) {
+                formData[field] = 0;
+            }
+        },
+    );
+
     // Log victim counts to help with debugging
-    console.log('Victim counts in getData:', {
+    console.log("Victim counts in getData:", {
         victim_count: formData.victim_count,
         survivor_count: formData.survivor_count,
         death_count: formData.death_count,
@@ -1220,10 +1246,10 @@ const getData = () => {
         victim_count_qualifier: formData.victim_count_qualifier,
         survivor_count_qualifier: formData.survivor_count_qualifier,
         death_count_qualifier: formData.death_count_qualifier,
-        arrest_count_qualifier: formData.arrest_count_qualifier
+        arrest_count_qualifier: formData.arrest_count_qualifier,
     });
-    
-    console.log('EventsForm getData() returning:', formData);
+
+    console.log("EventsForm getData() returning:", formData);
     return formData;
 };
 
@@ -1242,16 +1268,22 @@ defineExpose({
         // Force Vue to update computed properties by triggering reactivity
         nextTick(() => {
             // For key form components, explicitly force updates if available
-            if (baseInfosRef.value && typeof baseInfosRef.value.updateBindings === 'function') {
+            if (
+                baseInfosRef.value &&
+                typeof baseInfosRef.value.updateBindings === "function"
+            ) {
                 baseInfosRef.value.updateBindings();
             }
-            
-            if (timeSelectorRef.value && typeof timeSelectorRef.value.updateBindings === 'function') {
+
+            if (
+                timeSelectorRef.value &&
+                typeof timeSelectorRef.value.updateBindings === "function"
+            ) {
                 timeSelectorRef.value.updateBindings();
             }
-            
+
             // Log current values to verify data is current
-            console.log('Refreshed form data with current values:', {
+            console.log("Refreshed form data with current values:", {
                 title: title.value,
                 description: description.value,
                 eventTimeType: eventTimeTypeValue.value,
@@ -1259,10 +1291,10 @@ defineExpose({
                 perpetrators: selectedPerpetratorsValue.value?.length || 0,
                 victims: selectedVictimsValue.value?.length || 0,
                 causes: selectedCausesValue.value?.length || 0,
-                sources: selectedSourcesValue.value?.length || 0
+                sources: selectedSourcesValue.value?.length || 0,
             });
         });
-    }
+    },
 });
 
 // Ladet den Ladezustand zurücksetzen, wenn Ergebnisse da sind oder wenn nichts gefunden wurde
@@ -1341,412 +1373,12 @@ const openLightbox = () => {
 };
 </script>
 
+<!-- Global form styles -->
+<style>
+@import "./styles/form-styles.css";
+</style>
+
 <style scoped>
-.font-family-special-elite {
-    font-family: "Special Elite" !important;
-}
-
-.forms-container {
-    width: 100%;
-}
-
-.step-container {
-    background-color: rgba(255, 255, 255, 0.9);
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-}
-
-.step-title {
-    margin-bottom: 20px;
-    font-size: 1.5rem;
-    color: #333;
-}
-
-/* Layout für Formular mit Info-Box */
-.event-form-wrapper {
-    display: flex;
-    flex-direction: row;
-    gap: 2rem;
-    width: 100%;
-}
-
-.step-container {
-    background-color: rgba(255, 255, 255, 0.9);
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-    width: 65%; /* Reduzierte Breite, um Platz für die Info-Box zu lassen */
-}
-
-.info-box {
-    width: 30%;
-    padding: 1.5rem;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    position: sticky;
-    top: 2rem;
-    align-self: flex-start;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    margin-top: 2.7rem; /* Align with first input field */
-    max-height: calc(100vh - 4rem);
-    overflow-y: auto;
-}
-
-.info-box-header {
-    border-bottom: 1px solid #e9ecef;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-}
-
-.info-box-header h3 {
-    font-size: 1.2rem;
-    color: #1976d2;
-    margin: 0;
-}
-
-.info-box-content {
-    font-size: 0.95rem;
-    line-height: 1.5;
-    color: #495057;
-}
-
-.info-box-content p {
-    margin-bottom: 1rem;
-}
-
-.info-box-content ul {
-    padding-left: 1.5rem;
-    margin-bottom: 1rem;
-}
-
-.info-box-content li {
-    margin-bottom: 0.5rem;
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-}
-
-.info-icon {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background-color: #1976d2;
-    color: white;
-    border: none;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.info-icon:hover {
-    background-color: #1565c0;
-}
-
-/* Mobile Info Overlay */
-.mobile-info-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.overlay-content {
-    width: 90%;
-    max-width: 500px;
-    max-height: 80vh;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-.overlay-header {
-    padding: 1rem;
-    background-color: #1976d2;
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.overlay-header h3 {
-    margin: 0;
-    font-size: 1.2rem;
-}
-
-.overlay-body {
-    padding: 1rem;
-    overflow-y: auto;
-    max-height: 60vh;
-}
-
-.close-overlay {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 1.5rem;
-    cursor: pointer;
-    padding: 0;
-    margin: 0;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: background-color 0.3s ease;
-}
-
-.close-overlay:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-}
-
-@media (max-width: 1200px) {
-    .event-form-wrapper {
-        flex-direction: column;
-    }
-
-    .step-container {
-        width: 100%;
-    }
-
-    .info-box {
-        display: none; /* Desktop-Infobox auf mobilen Geräten ausblenden */
-    }
-}
-
-@media (min-width: 1200px) {
-    .info-icon {
-        display: none !important;
-    }
-}
-
-.forms > *:not(:last-child) {
-    margin-bottom: 1rem;
-}
-
-.forms input,
-.forms textarea {
-    padding: 0.75rem 1rem;
-    width: 100%;
-    background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition:
-        border-color 0.2s,
-        box-shadow 0.2s;
-}
-
-.forms input:focus,
-.forms textarea:focus {
-    outline: none;
-    border-color: #1976d2;
-    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
-}
-
-.forms textarea {
-    min-height: 8.5rem;
-    resize: none;
-}
-
-.forms fieldset {
-    display: block;
-    width: 100%;
-    border-color: transparent;
-}
-
-.forms fieldset div {
-    margin-top: 0.75rem;
-}
-
-.forms fieldset div {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-}
-
-.forms fieldset div input {
-    margin-right: 0.75rem;
-    width: 1rem;
-    height: 1rem;
-    box-shadow: none;
-}
-
-.forms fieldset div label {
-    flex: 1 0 0;
-}
-
-.button-container {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    margin-top: 2.5rem;
-}
-
-.button {
-    padding: 12px 24px;
-    background-color: #1976d2;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s;
-}
-
-.button:hover {
-    background-color: #1565c0;
-}
-
-.button:disabled {
-    background-color: #bbdefb;
-    cursor: not-allowed;
-}
-
-.button.bg-secondary {
-    background-color: #757575;
-}
-
-.button.bg-secondary:hover {
-    background-color: #616161;
-}
-
-.required-fields-note {
-    margin-top: 1rem;
-    font-size: 0.9rem;
-    color: #666;
-    font-style: italic;
-}
-
-.bg-error {
-    color: #d32f2f;
-    margin-top: 1rem;
-    font-weight: bold;
-}
-
-/* Leaflet map specific fixes */
-.leaflet-pane {
-    z-index: 1;
-}
-
-.leaflet-tile-pane {
-    z-index: 0;
-}
-
-.leaflet-tile {
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-.leaflet-tile-container img {
-    width: 256px !important;
-    height: 256px !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    left: 0 !important;
-    top: 0 !important;
-    border: none !important;
-}
-
-.leaflet-control {
-    z-index: 10;
-}
-
-.leaflet-top,
-.leaflet-bottom {
-    z-index: 10;
-}
-
-.map-container {
-    width: 800px;
-    margin-bottom: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    overflow: visible; /* Geändert von hidden zu visible, damit Suchfeld sichtbar bleibt */
-    position: relative;
-    max-width: 100%;
-}
-
-.map-container .leaflet-container {
-    width: 100% !important;
-    height: 400px !important;
-    background-color: #f8f8f8;
-    overflow: hidden;
-}
-
-.map-container::after {
-    content: "";
-    display: block;
-    clear: both;
-}
-
-.selected-coordinates {
-    margin-top: 0.5rem;
-    background-color: #f5f5f5;
-    padding: 8px;
-    border-radius: 4px;
-    font-size: 0.9rem;
-}
-
-.map-search {
-    margin: 0.5rem 0;
-    display: flex;
-    width: 100%;
-    position: relative;
-    z-index: 10;
-}
-
-.map-search input {
-    flex-grow: 1;
-    margin-right: 0.5rem;
-    padding: 0.75rem 1rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition:
-        border-color 0.2s,
-        box-shadow 0.2s;
-}
-
-.map-search input:focus {
-    outline: none;
-    border-color: #1976d2;
-    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
-}
-
-.map-search button {
-    padding: 0.5rem 1rem;
-    background-color: #1976d2;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    min-width: 100px;
-    transition: background-color 0.2s;
-}
-
-.map-search button:hover {
-    background-color: #1565c0;
-}
-
 /* Wikidata search results */
 .search-results {
     width: 100%;

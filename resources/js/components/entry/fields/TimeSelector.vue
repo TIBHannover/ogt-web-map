@@ -57,7 +57,7 @@
                     </v-btn>
                 </v-btn-toggle>
             </div>
-            
+
             <!-- Tag-Präzision -->
             <v-text-field
                 v-if="eventDatePrecision === 'day'"
@@ -73,7 +73,7 @@
                 @blur="onFieldBlur"
                 @update:model-value="$emit('update:eventDate', $event)"
             ></v-text-field>
-            
+
             <!-- Monat-Präzision -->
             <v-text-field
                 v-if="eventDatePrecision === 'month'"
@@ -89,7 +89,7 @@
                 @blur="onFieldBlur"
                 @update:model-value="$emit('update:eventDate', $event)"
             ></v-text-field>
-            
+
             <!-- Jahr-Präzision -->
             <v-text-field
                 v-if="eventDatePrecision === 'year'"
@@ -101,7 +101,9 @@
                 bg-color="white"
                 :rules="[
                     (v) => !!v || 'Jahr ist erforderlich',
-                    (v) => (v && v.toString().length === 4) || 'Bitte geben Sie ein gültiges Jahr ein'
+                    (v) =>
+                        (v && v.toString().length === 4) ||
+                        'Bitte geben Sie ein gültiges Jahr ein',
                 ]"
                 required
                 min="1000"
@@ -111,13 +113,11 @@
                 @blur="onFieldBlur"
                 @update:model-value="handleYearInput($event, 'eventDate')"
             ></v-text-field>
-            
+
             <DateQualifier
                 id="event-date-qualifier"
                 :model-value="eventDateQualifier"
-                @update:model-value="
-                    $emit('update:eventDateQualifier', $event)
-                "
+                @update:model-value="$emit('update:eventDateQualifier', $event)"
             />
         </div>
 
@@ -147,7 +147,7 @@
                         </v-btn>
                     </v-btn-toggle>
                 </div>
-                
+
                 <!-- Tag-Präzision -->
                 <v-text-field
                     v-if="eventStartDatePrecision === 'day'"
@@ -163,7 +163,7 @@
                     @blur="onFieldBlur"
                     @update:model-value="$emit('update:eventStartDate', $event)"
                 ></v-text-field>
-                
+
                 <!-- Monat-Präzision -->
                 <v-text-field
                     v-if="eventStartDatePrecision === 'month'"
@@ -179,7 +179,7 @@
                     @blur="onFieldBlur"
                     @update:model-value="$emit('update:eventStartDate', $event)"
                 ></v-text-field>
-                
+
                 <!-- Jahr-Präzision -->
                 <v-text-field
                     v-if="eventStartDatePrecision === 'year'"
@@ -191,7 +191,9 @@
                     bg-color="white"
                     :rules="[
                         (v) => !!v || 'Beginn-Jahr ist erforderlich',
-                        (v) => (v && v.toString().length === 4) || 'Bitte geben Sie ein gültiges Jahr ein'
+                        (v) =>
+                            (v && v.toString().length === 4) ||
+                            'Bitte geben Sie ein gültiges Jahr ein',
                     ]"
                     required
                     min="1000"
@@ -199,9 +201,11 @@
                     placeholder="JJJJ"
                     @focus="$emit('fieldFocus', 'time')"
                     @blur="onFieldBlur"
-                    @update:model-value="handleYearInput($event, 'eventStartDate')"
+                    @update:model-value="
+                        handleYearInput($event, 'eventStartDate')
+                    "
                 ></v-text-field>
-                
+
                 <DateQualifier
                     id="event-start-date-qualifier"
                     :model-value="eventStartDateQualifier"
@@ -234,7 +238,7 @@
                         </v-btn>
                     </v-btn-toggle>
                 </div>
-                
+
                 <!-- Tag-Präzision -->
                 <v-text-field
                     v-if="eventEndDatePrecision === 'day'"
@@ -250,7 +254,7 @@
                     @blur="onFieldBlur"
                     @update:model-value="$emit('update:eventEndDate', $event)"
                 ></v-text-field>
-                
+
                 <!-- Monat-Präzision -->
                 <v-text-field
                     v-if="eventEndDatePrecision === 'month'"
@@ -266,7 +270,7 @@
                     @blur="onFieldBlur"
                     @update:model-value="$emit('update:eventEndDate', $event)"
                 ></v-text-field>
-                
+
                 <!-- Jahr-Präzision -->
                 <v-text-field
                     v-if="eventEndDatePrecision === 'year'"
@@ -278,7 +282,9 @@
                     bg-color="white"
                     :rules="[
                         (v) => !!v || 'End-Jahr ist erforderlich',
-                        (v) => (v && v.toString().length === 4) || 'Bitte geben Sie ein gültiges Jahr ein'
+                        (v) =>
+                            (v && v.toString().length === 4) ||
+                            'Bitte geben Sie ein gültiges Jahr ein',
                     ]"
                     required
                     min="1000"
@@ -286,9 +292,11 @@
                     placeholder="JJJJ"
                     @focus="$emit('fieldFocus', 'time')"
                     @blur="onFieldBlur"
-                    @update:model-value="handleYearInput($event, 'eventEndDate')"
+                    @update:model-value="
+                        handleYearInput($event, 'eventEndDate')
+                    "
                 ></v-text-field>
-                
+
                 <DateQualifier
                     id="event-end-date-qualifier"
                     :model-value="eventEndDateQualifier"
@@ -298,7 +306,7 @@
                 />
             </div>
         </div>
-        
+
         <ValidationError
             v-if="localEventTimeType === 'point'"
             :show="showValidationErrors && !isPointValid"
@@ -475,7 +483,11 @@ watch(eventEndDateQualifier, (newValue) => {
 watch(eventDatePrecision, (newValue) => {
     emit("update:eventDatePrecision", newValue);
     // Clear the date value when changing precision to prevent format issues
-    if (newValue === "year" && eventDate.value && eventDate.value.includes("-")) {
+    if (
+        newValue === "year" &&
+        eventDate.value &&
+        eventDate.value.includes("-")
+    ) {
         const year = eventDate.value.split("-")[0];
         eventDate.value = year;
         emit("update:eventDate", year);
@@ -485,7 +497,11 @@ watch(eventDatePrecision, (newValue) => {
 watch(eventStartDatePrecision, (newValue) => {
     emit("update:eventStartDatePrecision", newValue);
     // Clear the date value when changing precision to prevent format issues
-    if (newValue === "year" && eventStartDate.value && eventStartDate.value.includes("-")) {
+    if (
+        newValue === "year" &&
+        eventStartDate.value &&
+        eventStartDate.value.includes("-")
+    ) {
         const year = eventStartDate.value.split("-")[0];
         eventStartDate.value = year;
         emit("update:eventStartDate", year);
@@ -495,7 +511,11 @@ watch(eventStartDatePrecision, (newValue) => {
 watch(eventEndDatePrecision, (newValue) => {
     emit("update:eventEndDatePrecision", newValue);
     // Clear the date value when changing precision to prevent format issues
-    if (newValue === "year" && eventEndDate.value && eventEndDate.value.includes("-")) {
+    if (
+        newValue === "year" &&
+        eventEndDate.value &&
+        eventEndDate.value.includes("-")
+    ) {
         const year = eventEndDate.value.split("-")[0];
         eventEndDate.value = year;
         emit("update:eventEndDate", year);
@@ -588,9 +608,9 @@ defineExpose({
     showValidationErrors: showErrors,
     updateBindings: () => {
         // This method can be called by the parent to ensure form values are current
-        console.log('TimeSelector: Updating bindings with current values');
+        console.log("TimeSelector: Updating bindings with current values");
         // If there are internal updates needed, they can happen here
-    }
+    },
 });
 </script>
 
@@ -685,8 +705,8 @@ defineExpose({
     color: var(--v-primary-base, #1976d2);
 }
 
-.date-field :deep(input[type="date"]), 
-.date-field :deep(input[type="month"]), 
+.date-field :deep(input[type="date"]),
+.date-field :deep(input[type="month"]),
 .date-field :deep(input[type="number"]) {
     font-family: inherit;
     font-size: 1rem;

@@ -1189,3 +1189,8 @@ export default {
     },
 };
 </script>
+
+<!-- Global form styles -->
+<style>
+@import '../entry/styles/form-styles.css';
+</style>

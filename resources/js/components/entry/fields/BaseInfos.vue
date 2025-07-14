@@ -23,11 +23,12 @@
                 @focus="openTitleOverlay"
                 @focus.once="$emit('fieldFocus', 'title')"
             />
-            <button 
-                type="button" 
+            <button
+                type="button"
                 class="search-button"
                 @click="openTitleOverlay"
-                title="Titel überprüfen">
+                title="Titel überprüfen"
+            >
                 <v-icon>mdi-magnify</v-icon>
             </button>
         </div>
@@ -56,9 +57,7 @@
                 <div class="info-icon-wrapper">
                     <v-icon>mdi-information-outline</v-icon>
                 </div>
-                <p>
-                    Möglicherweise existiert dieser Eintrag bereits:
-                </p>
+                <p>Möglicherweise existiert dieser Eintrag bereits:</p>
             </div>
             <div
                 v-for="result in wikidataResults"
@@ -146,12 +145,40 @@ const closeTitleOverlay = () => {
 
 // Handle title update from overlay
 const updateTitleFromOverlay = (newTitle) => {
+    console.log("BaseInfos: Title updated from overlay:", newTitle);
+    // Do not mutate props directly
     emit("update:title", newTitle);
+
+    // Force immediate update on the input field
+    setTimeout(() => {
+        const titleInput = document.querySelector(
+            ".title-input-container input",
+        );
+        if (titleInput) {
+            titleInput.value = newTitle;
+            // Trigger an input event to ensure Vue's reactivity catches this
+            titleInput.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+    }, 0);
 };
 
 // Handle create from overlay
 const createFromOverlay = (title) => {
+    console.log("BaseInfos: Title created from overlay:", title);
     emit("update:title", title);
+
+    // Force immediate update on the input field
+    setTimeout(() => {
+        const titleInput = document.querySelector(
+            ".title-input-container input",
+        );
+        if (titleInput) {
+            titleInput.value = title;
+            // Trigger an input event to ensure Vue's reactivity catches this
+            titleInput.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+    }, 0);
+
     closeTitleOverlay();
 };
 
@@ -185,66 +212,18 @@ defineExpose({
     showValidationErrors: showErrors,
     updateBindings: () => {
         // This method can be called by the parent to ensure form values are current
-        console.log('BaseInfos: Updating bindings with current values');
+        console.log("BaseInfos: Updating bindings with current values");
         // If there are internal updates needed, they can happen here
-    }
+    },
 });
 </script>
 
+<!-- Global form styles -->
+<style>
+@import "../styles/form-styles.css";
+</style>
+
 <style scoped>
-.step-container {
-    background-color: rgba(255, 255, 255, 0.9);
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-}
-
-.step-title {
-    margin-bottom: 20px;
-    font-size: 1.5rem;
-    color: #333;
-}
-
-.main-section {
-    width: 100%;
-    margin-bottom: 1.5rem;
-    background-color: #f5f5f5;
-    padding: 1rem;
-    border-radius: 4px;
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-}
-
-.section-label {
-    display: block;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-}
-
-.info-icon {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background-color: #1976d2;
-    color: white;
-    border: none;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.info-icon:hover {
-    background-color: #1565c0;
-}
-
 .title-input-container {
     display: flex;
     gap: 0.5rem;
@@ -273,32 +252,6 @@ defineExpose({
     background-color: #1565c0;
 }
 
-input,
-textarea {
-    padding: 0.75rem 1rem;
-    width: 100%;
-    background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition:
-        border-color 0.2s,
-        box-shadow 0.2s;
-}
-
-input:focus,
-textarea:focus {
-    outline: none;
-    border-color: #1976d2;
-    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
-}
-
-textarea {
-    min-height: 8.5rem;
-    resize: none;
-}
-
 /* Search Info Box */
 .search-info-box {
     display: flex;
@@ -323,58 +276,5 @@ textarea {
     margin: 0;
     color: #5d4037;
     font-size: 0.95rem;
-}
-
-/* Wikidata search results */
-.search-results {
-    width: 100%;
-    max-height: 300px;
-    overflow-y: auto;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    margin-top: -0.5rem;
-    background-color: #fff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    z-index: 20;
-    position: relative;
-}
-
-.search-info {
-    padding: 10px 15px;
-    font-size: 0.9rem;
-    color: #666;
-    border-bottom: 1px solid #eee;
-    margin: 0;
-}
-
-.search-result-item {
-    padding: 10px 12px;
-    border-bottom: 1px solid #eee;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.search-result-item:hover {
-    background-color: #f5f5f5;
-}
-
-.search-result-item:last-child {
-    border-bottom: none;
-}
-
-.result-title {
-    font-weight: bold;
-    margin-bottom: 3px;
-}
-
-.result-description {
-    font-size: 0.9rem;
-    color: #555;
-    margin-bottom: 3px;
-}
-
-.result-id {
-    font-size: 0.8rem;
-    color: #888;
 }
 </style>

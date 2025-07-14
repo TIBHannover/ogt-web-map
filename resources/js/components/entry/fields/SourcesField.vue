@@ -202,6 +202,11 @@ defineExpose({
 });
 </script>
 
+<!-- Global form styles -->
+<style>
+@import '../styles/form-styles.css';
+</style>
+
 <style scoped>
 .container-section {
     width: 100%;

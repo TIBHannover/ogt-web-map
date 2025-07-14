@@ -56,13 +56,17 @@
                 <strong>Ausgewählte Koordinaten:</strong>
                 {{ selectedLocation.lat.toFixed(6) }},
                 {{ selectedLocation.lng.toFixed(6) }}
-                
+
                 <div class="location-qualifier-container">
-                    <label for="locationQualifier">Koordinaten-Qualifizierer:</label>
+                    <label for="locationQualifier"
+                        >Koordinaten-Qualifizierer:</label
+                    >
                     <LocationQualifier
                         id="locationQualifier"
                         :model-value="locationQualifier"
-                        @update:model-value="$emit('update:locationQualifier', $event)"
+                        @update:model-value="
+                            $emit('update:locationQualifier', $event)
+                        "
                     />
                 </div>
             </div>
@@ -158,6 +162,7 @@ const markerIcon = createCustomIcon();
 // Wird aufgerufen, wenn die Leaflet-Karte bereit ist
 const onMapReady = (map) => {
     leafletMap.value = map;
+    applyLeafletCSS();
 
     setTimeout(() => {
         if (leafletMap.value) {
@@ -174,6 +179,69 @@ const onMapReady = (map) => {
     }, 200);
 };
 
+// Function to apply critical Leaflet CSS fixes
+const applyLeafletCSS = () => {
+    const styleId = "leaflet-tile-fix";
+
+    const existingStyle = document.getElementById(styleId);
+    if (existingStyle) {
+        existingStyle.remove();
+    }
+
+    const style = document.createElement("style");
+    style.id = styleId;
+    style.textContent = `
+        /* Grundlegende Map-Fixes */
+        .leaflet-container {
+            height: 400px !important;
+            width: 100% !important;
+            z-index: 0 !important;
+        }
+
+        /* Container-Fixes */
+        .leaflet-tile-container {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            transform-origin: 0 0 !important;
+        }
+
+        /* Tile-Fixes */
+        .leaflet-tile {
+            position: absolute !important;
+            box-shadow: none !important;
+            border: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        /* Korrektur für Tile-Bilder */
+        .leaflet-tile-container img {
+            display: block !important;
+            width: 256px !important;
+            height: 256px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Marker-Fixes */
+        .leaflet-marker-pane {
+            position: absolute;
+            z-index: 100 !important;
+        }
+
+        .leaflet-marker-icon {
+            position: absolute;
+            z-index: 1000 !important;
+        }
+    `;
+    document.head.appendChild(style);
+};
+
 const onMapClick = (e) => {
     emit("handleMapClick", e);
 
@@ -186,168 +254,24 @@ const onMapClick = (e) => {
 };
 
 onMounted(() => {
+    applyLeafletCSS();
+
     if (leafletMap.value) {
         leafletMap.value.invalidateSize();
     }
+
+    // Fix für Leaflet-Icons in Vue
+    // Dies ist notwendig, da Leaflet Standard-Icon-Pfade erwartet
+    delete L.Icon.Default.prototype._getIconUrl;
+    L.Icon.Default.mergeOptions({
+        iconRetinaUrl:
+            "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png",
+        iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
+        shadowUrl:
+            "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
+    });
 });
 </script>
-
-<style scoped>
-.container-section {
-    width: 100%;
-    margin-bottom: 1.5rem;
-    background-color: #f5f5f5;
-    padding: 1rem;
-    border-radius: 4px;
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-}
-
-.section-label {
-    display: block;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-}
-
-.info-icon {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background-color: #1976d2;
-    color: white;
-    border: none;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.info-icon:hover {
-    background-color: #1565c0;
-}
-
-.map-container {
-    width: 800px;
-    margin-bottom: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    overflow: visible; /* Geändert von hidden zu visible, damit Suchfeld sichtbar bleibt */
-    position: relative;
-    max-width: 100%;
-}
-
-.map-container .leaflet-container {
-    width: 100% !important;
-    height: 400px !important;
-    background-color: #f8f8f8;
-    overflow: hidden;
-}
-
-.map-container::after {
-    content: "";
-    display: block;
-    clear: both;
-}
-
-.selected-coordinates {
-    margin-top: 0.5rem;
-    background-color: #f5f5f5;
-    padding: 8px;
-    border-radius: 4px;
-    font-size: 0.9rem;
-}
-
-.location-qualifier-container {
-    margin-top: 0.5rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid #ddd;
-}
-
-.location-qualifier-container label {
-    display: block;
-    margin-bottom: 0.25rem;
-    font-size: 0.9rem;
-}
-
-.map-search {
-    margin: 0.5rem 0;
-    display: flex;
-    width: 100%;
-    position: relative;
-    z-index: 10;
-}
-
-.map-search input {
-    flex-grow: 1;
-    margin-right: 0.5rem;
-    padding: 0.75rem 1rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background-color: #fff;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition:
-        border-color 0.2s,
-        box-shadow 0.2s;
-}
-
-.map-search input:focus {
-    outline: none;
-    border-color: #1976d2;
-    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
-}
-
-.map-search button {
-    padding: 0.5rem 1rem;
-    background-color: #1976d2;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    min-width: 100px;
-    transition: background-color 0.2s;
-}
-
-.map-search button:hover {
-    background-color: #1565c0;
-}
-
-/* Leaflet map specific fixes */
-.leaflet-pane {
-    z-index: 1;
-}
-
-.leaflet-tile-pane {
-    z-index: 0;
-}
-
-.leaflet-tile {
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-.leaflet-tile-container img {
-    width: 256px !important;
-    height: 256px !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    left: 0 !important;
-    top: 0 !important;
-    border: none !important;
-}
-
-.leaflet-control {
-    z-index: 10;
-}
-
-.leaflet-top,
-.leaflet-bottom {
-    z-index: 10;
-}
+<style>
+@import "../styles/form-styles.css";
 </style>

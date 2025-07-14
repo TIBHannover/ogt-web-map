@@ -55,11 +55,11 @@
         cursor: pointer;
         transition: background-color 0.3s ease;
     }
-    
+
     .info-icon:hover {
         background-color: #1565c0;
     }
-    
+
     /* Additional styles for other components */
     .button-container {
         display: flex;
@@ -67,7 +67,7 @@
         width: 100%;
         margin-top: 2.5rem;
     }
-    
+
     .button {
         padding: 12px 24px;
         background-color: #1976d2;
@@ -78,30 +78,30 @@
         font-weight: bold;
         transition: background-color 0.2s;
     }
-    
+
     .button:hover {
         background-color: #1565c0;
     }
-    
+
     .button:disabled {
         background-color: #bbdefb;
         cursor: not-allowed;
     }
-    
+
     .button.bg-secondary {
         background-color: #757575;
     }
-    
+
     .button.bg-secondary:hover {
         background-color: #616161;
     }
-    
+
     /* Icon styling for source and other components */
     .source-type-icon {
         margin-right: 1rem;
         color: #555;
     }
-    
+
     /* Search result styling */
     .search-loading {
         display: flex;
@@ -109,13 +109,13 @@
         margin-top: 0.5rem;
         color: #666;
     }
-    
+
     /* Form field styling */
     .form-group {
         margin-bottom: 1rem;
         width: 100%;
     }
-    
+
     /* Person item styling */
     .selected-victim, .selected-perpetrator {
         display: flex;
@@ -126,7 +126,7 @@
         border-radius: 4px;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
-    
+
     /* Action buttons styling */
     .remove-victim, .remove-perpetrator, .remove-cause, .remove-source, .remove-image {
         background: none;
@@ -137,21 +137,21 @@
         font-weight: bold;
         padding: 0.25rem 0.5rem;
     }
-    
+
     /* Leaflet map specific styles */
     .leaflet-pane {
         z-index: 1;
     }
-    
+
     .leaflet-tile-pane {
         z-index: 0;
     }
-    
+
     .leaflet-tile {
         margin: 0 !important;
         padding: 0 !important;
     }
-    
+
     .leaflet-tile-container img {
         width: 256px !important;
         height: 256px !important;
@@ -161,16 +161,16 @@
         top: 0 !important;
         border: none !important;
     }
-    
+
     .leaflet-control {
         z-index: 10;
     }
-    
+
     .leaflet-top,
     .leaflet-bottom {
         z-index: 10;
     }
-    
+
     .map-container {
         width: 800px;
         margin-bottom: 1rem;
@@ -180,14 +180,14 @@
         position: relative;
         max-width: 100%;
     }
-    
+
     .map-container .leaflet-container {
         width: 100% !important;
         height: 400px !important;
         background-color: #f8f8f8;
         overflow: hidden;
     }
-    
+
     /* Info box styles */
     .info-box {
         width: 30%;
@@ -202,25 +202,25 @@
         max-height: calc(100vh - 4rem);
         overflow-y: auto;
     }
-    
+
     .info-box-header {
         border-bottom: 1px solid #e9ecef;
         margin-bottom: 1rem;
         padding-bottom: 0.5rem;
     }
-    
+
     .info-box-header h3 {
         font-size: 1.2rem;
         color: #1976d2;
         margin: 0;
     }
-    
+
     .info-box-content {
         font-size: 0.95rem;
         line-height: 1.5;
         color: #495057;
     }
-    
+
     /* Mobile Info Overlay */
     .mobile-info-overlay {
         position: fixed;
@@ -234,19 +234,7 @@
         justify-content: center;
         align-items: center;
     }
-    
-    .overlay-content {
-        width: 90%;
-        max-width: 500px;
-        max-height: 80vh;
-        background-color: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-    }
-    
+
     .overlay-header {
         padding: 1rem;
         background-color: #1976d2;
@@ -255,7 +243,7 @@
         justify-content: space-between;
         align-items: center;
     }
-    
+
     .close-overlay {
         background: none;
         border: none;
@@ -272,7 +260,7 @@
         border-radius: 50%;
         transition: background-color 0.3s ease;
     }
-    
+
     /* EventsForm layout styles */
     .event-form-wrapper {
         display: flex;
@@ -280,7 +268,7 @@
         gap: 2rem;
         width: 100%;
     }
-    
+
     .step-container {
         background-color: rgba(255, 255, 255, 0.9);
         border-radius: 8px;
@@ -288,17 +276,17 @@
         margin-bottom: 20px;
         width: 65%;
     }
-    
+
     .step-title {
         margin-bottom: 20px;
         font-size: 1.5rem;
         color: #333;
     }
-    
+
     .forms > *:not(:last-child) {
         margin-bottom: 1rem;
     }
-    
+
     .forms input,
     .forms textarea {
         padding: 0.75rem 1rem;
@@ -310,19 +298,19 @@
         box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
         transition: border-color 0.2s, box-shadow 0.2s;
     }
-    
+
     .forms input:focus,
     .forms textarea:focus {
         outline: none;
         border-color: #1976d2;
         box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
     }
-    
+
     .forms textarea {
         min-height: 8.5rem;
         resize: none;
     }
-    
+
     .container-section {
         width: 100%;
         margin-bottom: 1.5rem;
@@ -330,13 +318,13 @@
         padding: 1rem;
         border-radius: 4px;
     }
-    
+
     /* Make sure icons are properly displayed */
     .bi {
         display: inline-block;
         vertical-align: -0.125em;
     }
-    
+
     /* Material Design Icons */
     .mdi {
         display: inline-block;
@@ -346,7 +334,7 @@
         line-height: inherit;
         -webkit-font-smoothing: antialiased;
     }
-    
+
     /* Material Icons */
     .material-icons {
         font-family: 'Material Icons';
@@ -362,17 +350,17 @@
         direction: ltr;
         -webkit-font-smoothing: antialiased;
     }
-    
+
     /* Responsive styles */
     @media (max-width: 1200px) {
         .event-form-wrapper {
             flex-direction: column;
         }
-        
+
         .step-container {
             width: 100%;
         }
-        
+
         .info-box {
             display: none; /* Desktop-Infobox auf mobilen Geräten ausblenden */
         }
@@ -384,7 +372,7 @@
         const requestData = JSON.parse(document.getElementById('edit-request-form').getAttribute('data-request-data'));
         const requestType = document.getElementById('edit-request-form').getAttribute('data-request-type');
         const requestId = document.getElementById('edit-request-form').getAttribute('data-request-id');
-        
+
         // Initialisiere Vue-Anwendung mit Anfragedaten
         window.initRequestEditForm(requestData, requestType, requestId);
     });
