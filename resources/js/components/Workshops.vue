@@ -14,23 +14,20 @@
                     class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-h4 text-md-h3"
                     lang="de"
                 >
-                    Mitforschen: Werkstätte
+                    Mitforschen: Werkstätten
                 </h1>
             </v-col>
         </v-row>
 
         <v-row>
-            <v-col
-                class="col-12 col-sm-2 order-sm-last"
-                style="max-width: 310px; min-width: 310px"
-            >
+            <v-col cols="12" md="4" class="order-md-last">
                 <table-of-contents-sidebar
                     :headings="headings"
                 ></table-of-contents-sidebar>
             </v-col>
 
             <!-- scrollable content -->
-            <v-col class="hyphens-auto" lang="de">
+            <v-col cols="12" md="8" class="hyphens-auto" lang="de">
                 <section id="citizenScience">
                     <h1
                         class="font-weight-medium text-h5 text-md-h4 mb-5"
@@ -53,7 +50,7 @@
                     </p>
                     <p>
                         Nur durch die Mithilfe vieler können Daten zu diesen
-                        Forschungsfrage erhoben werden. „Gestapo.Terror.Orte“
+                        Forschungsfrage erhoben werden. „Gestapo.Terror.Orte"
                         ist aus diesem Grund ein Citizen Science Projekt. Alle
                         Interessierten können sich am Forschungs- und
                         Datenerhebungsprozess beteiligen und so dazu beitragen,
@@ -73,6 +70,13 @@
                     >
                         Anleitungen zur Werkstatt historische Daten
                     </h2>
+                    <p>
+                        Du möchtest Daten zur Geschichte der Gestapo erfassen
+                        und sie auf der digitalen Karte Gestapo.Terror.Orte
+                        sichtbar machen?<br />
+                        Auf unserer Materialien-Seite findest du alle nötigen
+                        Anleitungen und Dokumentationen.
+                    </p>
 
                     <v-btn
                         class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 text-transform-none"
@@ -83,68 +87,17 @@
                         variant="outlined"
                         rounded
                         size="x-large"
-                        href="./resources/Wikidata_Basics_compressed.pdf"
-                        target="_blank"
+                        :to="{ name: 'materials' }"
                     >
-                        <v-icon start class="ml-3"> mdi-download </v-icon>
-                        <span class="whitespace-normal"
-                            >Anleitung Wikidata Basics</span
-                        >
-                    </v-btn>
-                    <br />
-                    <v-btn
-                        class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 text-transform-none"
-                        color="black"
-                        background="grey"
-                        elevation="24"
-                        min-width="200px"
-                        variant="outlined"
-                        rounded
-                        size="x-large"
-                        href="./resources/Anleitung_seite_compressed.pdf"
-                        target="_blank"
-                    >
-                        <v-icon start class="ml-3"> mdi-download </v-icon>
-                        <span class="whitespace-normal"
-                            >Wikidata Anleitung
+                        <v-icon start class="ml-3">
+                            mdi-arrow-right-thick
+                        </v-icon>
+                        <span class="whitespace-normal">
+                            Zu den Materialien
                         </span>
                     </v-btn>
+
                     <br />
-                    <v-btn
-                        class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 text-transform-none"
-                        color="black"
-                        background="grey"
-                        elevation="24"
-                        min-width="200px"
-                        variant="outlined"
-                        rounded
-                        size="x-large"
-                        href="./resources/Datenmodelle_final_compressed.pdf"
-                        target="_blank"
-                    >
-                        <v-icon start class="ml-3"> mdi-download </v-icon>
-                        <span class="whitespace-normal"
-                            >Beschreibung der Datenmodelle
-                        </span>
-                    </v-btn>
-                    <br />
-                    <v-btn
-                        class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 text-transform-none"
-                        color="black"
-                        background="grey"
-                        elevation="24"
-                        min-width="200px"
-                        variant="outlined"
-                        rounded
-                        size="x-large"
-                        href="./resources/Beispiel_Quellenanalyse_compressed.pdf"
-                        target="_blank"
-                    >
-                        <v-icon start class="ml-3"> mdi-download </v-icon>
-                        <span class="whitespace-normal"
-                            >Beispiel einer Quellenanalyse
-                        </span>
-                    </v-btn>
                 </section>
 
                 <v-divider class="my-6"></v-divider>
@@ -257,7 +210,7 @@
                         class="font-weight-medium text-h5 text-md-h4 mb-5"
                         :class="{ 'font-size-29': $vuetify.display.mdAndUp }"
                     >
-                        Die nächsten Werkstätte
+                        Die nächsten Werkstätten
                     </h2>
 
                     <p
@@ -372,7 +325,7 @@ const headings = ref([
     },
     {
         href: "#nextWorkshops",
-        label: "Die nächsten Werkstätte",
+        label: "Die nächsten Werkstätten",
     },
     {
         href: "#results",

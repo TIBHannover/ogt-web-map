@@ -14,6 +14,10 @@
                         }}<span v-if="source.pages"
                             >, S. {{ source.pages }}</span
                         >
+                        <span v-if="source.inventoryNumber"
+                            >, Inventarnummer:
+                            {{ source.inventoryNumber }}</span
+                        >
                     </li>
                 </ul>
                 <ul v-if="selectedPlace.urlSources.length > 0">

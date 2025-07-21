@@ -13,6 +13,7 @@
             :class="{
                 'mobile-drawer': isMobile,
                 'timeline-active': adjustPlaceInfoPosition,
+                'v-navigation-drawer--closed': !drawerModel && isMobile,
             }"
             :style="sidebarStyles"
             :scrim="false"
@@ -298,6 +299,9 @@ const handleResize = () => {
 
 onMounted(() => {
     window.addEventListener("resize", handleResize);
+    if (!props.showPlaceInfoSidebar) {
+        closePlaceInfo();
+    }
 });
 
 onUnmounted(() => {
@@ -365,6 +369,11 @@ onUnmounted(() => {
 }
 .timeline-active.mobile-drawer {
     transition: bottom 0.3s ease;
+}
+
+.v-navigation-drawer--closed {
+    transform: translateY(100%) !important;
+    visibility: hidden !important;
 }
 
 @media (max-width: 600px) {

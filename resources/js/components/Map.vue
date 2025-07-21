@@ -54,7 +54,15 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted, nextTick, inject, toRaw } from "vue";
+import {
+    ref,
+    onMounted,
+    onUnmounted,
+    nextTick,
+    inject,
+    toRaw,
+    watch,
+} from "vue";
 import { useRouter, useRoute } from "vue-router";
 import axios from "axios";
 import Leaflet from "leaflet/dist/leaflet";
@@ -73,6 +81,8 @@ const sourceCircumstances = ref({
     Q47035128: ">",
     Q52834024: "<",
 });
+import mockPlacesData from "../data/mock-places.json";
+import mockPersonsData from "../data/mock-persons.json";
 
 // Constants
 const WIKIDATA_ID_CLASSES = {
@@ -481,6 +491,7 @@ export default {
                 {
                     label: "",
                     pages: "",
+                    inventoryNumber: "",
                 },
             ],
             urlSources: [
@@ -614,13 +625,32 @@ export default {
 
         const handleTimelineFilterChange = (enabled) => {
             isTimelineFilterEnabled.value = enabled;
-            // Du kannst hier auch sofort die Filter anwenden, wenn nötig
             debouncedApplyFilters(null, null, null);
         };
+
+        const forceConsistentUIState = () => {
+            closeMapOptions();
+            closePlaceInfo();
+            showPlaceInfoSidebar.value = false;
+
+            const searchParams = new URLSearchParams(window.location.search);
+            if (searchParams.get("id") || searchParams.get("pid")) {
+                closeMapOptions();
+            }
+
+            return true;
+        };
+
+        watch(isPlaceInfoOpen, (newValue) => {
+            if (showPlaceInfoSidebar.value !== newValue) {
+                showPlaceInfoSidebar.value = newValue;
+            }
+        });
 
         onMounted(async () => {
             try {
                 isLoading.value = true;
+                forceConsistentUIState();
                 await nextTick();
 
                 patchLeafletForNullChecks();
@@ -768,14 +798,19 @@ export default {
             try {
                 let groupedPlaces = {};
 
-                await axios
-                    .get("/api/wikidata/places")
-                    .then((response) => {
-                        groupedPlaces = response.data;
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                    });
+                try {
+                    // Versuche zuerst die API-Anfrage
+                    const response = await axios.get("/api/wikidata/places");
+                    groupedPlaces = response.data;
+                } catch (error) {
+                    // Bei Fehler zu Mock-Daten greifen
+                    console.warn(
+                        "Fehler beim Laden der Wikidata Places-Daten, verwende Mock-Daten:",
+                        error,
+                    );
+                    groupedPlaces = mockPlacesData;
+                }
+
                 await nextTick();
                 await visualizePlaces(groupedPlaces);
                 setCurrentValues();
@@ -800,8 +835,20 @@ export default {
          */
         const getPersons = async () => {
             try {
-                const response = await axios.get("/api/wikidata/persons/cache");
-                persons.value = response.data;
+                try {
+                    // Versuche zuerst die API-Anfrage
+                    const response = await axios.get(
+                        "/api/wikidata/persons/cache",
+                    );
+                    persons.value = response.data;
+                } catch (error) {
+                    // Bei Fehler zu Mock-Daten greifen
+                    console.warn(
+                        "Fehler beim Laden der Wikidata Persons-Daten, verwende Mock-Daten:",
+                        error,
+                    );
+                    persons.value = mockPersonsData;
+                }
 
                 processPersonsData();
 
@@ -819,6 +866,15 @@ export default {
         };
 
         const updatePersonsCache = () => {
+            if (
+                Object.keys(persons.value.victims).length === 0 &&
+                Object.keys(persons.value.perpetrators).length === 0
+            ) {
+                console.log(
+                    "Kein Cache-Update durchgeführt, da keine Personendaten vorliegen",
+                );
+                return;
+            }
             setTimeout(() => {
                 const worker = createAdvancedWorker();
 
@@ -850,18 +906,32 @@ export default {
                     try {
                         // Lade die Daten
                         const url = self.location.origin + '/api/wikidata/persons';
-                        const response = await fetch(url);
-                        const rawData = await response.json();
 
-                        // Verarbeite die Daten - optional
-                        const processedData = processData(rawData);
+                        try {
+                            const response = await fetch(url);
 
-                        // Sende die verarbeiteten Daten zurück
-                        self.postMessage({
-                            type: 'success',
-                            data: processedData
-                        });
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok: ' + response.status);
+                            }
 
+                            const rawData = await response.json();
+
+                            // Verarbeite die Daten - optional
+                            const processedData = processData(rawData);
+
+                            // Sende die verarbeiteten Daten zurück
+                            self.postMessage({
+                                type: 'success',
+                                data: processedData
+                            });
+                        } catch (fetchError) {
+                            // Wenn der API-Aufruf fehlschlägt, geben wir den Fehler weiter
+                            // Die Komponente wird dann weiterhin die Mock-Daten verwenden
+                            self.postMessage({
+                                type: 'error',
+                                error: 'API request failed: ' + fetchError.message
+                            });
+                        }
                     } catch (error) {
                         self.postMessage({
                             type: 'error',
@@ -1218,6 +1288,16 @@ export default {
                             return true;
                         }
                     });
+                }
+                if (
+                    selectedPlace.value.mainImageUrl &&
+                    selectedPlace.value.mainImageUrl.startsWith("http:")
+                ) {
+                    selectedPlace.value.mainImageUrl =
+                        selectedPlace.value.mainImageUrl.replace(
+                            "http:",
+                            "https:",
+                        );
                 }
 
                 selectedPlace.value.inceptionDate = {
@@ -1652,6 +1732,9 @@ export default {
                             pages: describedBySource.pages
                                 ? describedBySource.pages.value
                                 : "",
+                            inventoryNumber: describedBySource.inventoryNumber
+                                ? describedBySource.inventoryNumber.value
+                                : "",
                         });
                     }
                 }
@@ -1845,9 +1928,30 @@ export default {
                         statementId,
                         numberOfCasualties,
                     ] of Object.entries(place.numberOfCasualties)) {
-                        selectedPlace.value.numberOfCasualties.push(
-                            numberOfCasualties.value,
-                        );
+                        let pointInTime = numberOfCasualties.pointInTime
+                            ? getDate(
+                                  numberOfCasualties.pointInTime.value,
+                                  numberOfCasualties.pointInTime.datePrecision,
+                              )
+                            : null;
+
+                        let sourcingCircumstance = "";
+                        if (
+                            numberOfCasualties.sourcingCircumstance &&
+                            numberOfCasualties.sourcingCircumstance.id in
+                                sourceCircumstances.value
+                        ) {
+                            sourcingCircumstance =
+                                sourceCircumstances.value[
+                                    numberOfCasualties.sourcingCircumstance.id
+                                ];
+                        }
+
+                        selectedPlace.value.numberOfCasualties.push({
+                            pointInTime: pointInTime,
+                            sourcingCircumstance: sourcingCircumstance,
+                            value: numberOfCasualties.value,
+                        });
                     }
                 }
 
@@ -1856,9 +1960,30 @@ export default {
                     for (const [statementId, numberOfDeaths] of Object.entries(
                         place.numberOfDeaths,
                     )) {
-                        selectedPlace.value.numberOfDeaths.push(
-                            numberOfDeaths.value,
-                        );
+                        let pointInTime = numberOfDeaths.pointInTime
+                            ? getDate(
+                                  numberOfDeaths.pointInTime.value,
+                                  numberOfDeaths.pointInTime.datePrecision,
+                              )
+                            : null;
+
+                        let sourcingCircumstance = "";
+                        if (
+                            numberOfDeaths.sourcingCircumstance &&
+                            numberOfDeaths.sourcingCircumstance.id in
+                                sourceCircumstances.value
+                        ) {
+                            sourcingCircumstance =
+                                sourceCircumstances.value[
+                                    numberOfDeaths.sourcingCircumstance.id
+                                ];
+                        }
+
+                        selectedPlace.value.numberOfDeaths.push({
+                            pointInTime: pointInTime,
+                            sourcingCircumstance: sourcingCircumstance,
+                            value: numberOfDeaths.value,
+                        });
                     }
                 }
 
@@ -1868,9 +1993,30 @@ export default {
                         statementId,
                         numberOfSurvivors,
                     ] of Object.entries(place.numberOfSurvivors)) {
-                        selectedPlace.value.numberOfSurvivors.push(
-                            numberOfSurvivors.value,
-                        );
+                        let pointInTime = numberOfSurvivors.pointInTime
+                            ? getDate(
+                                  numberOfSurvivors.pointInTime.value,
+                                  numberOfSurvivors.pointInTime.datePrecision,
+                              )
+                            : null;
+
+                        let sourcingCircumstance = "";
+                        if (
+                            numberOfSurvivors.sourcingCircumstance &&
+                            numberOfSurvivors.sourcingCircumstance.id in
+                                sourceCircumstances.value
+                        ) {
+                            sourcingCircumstance =
+                                sourceCircumstances.value[
+                                    numberOfSurvivors.sourcingCircumstance.id
+                                ];
+                        }
+
+                        selectedPlace.value.numberOfSurvivors.push({
+                            pointInTime: pointInTime,
+                            sourcingCircumstance: sourcingCircumstance,
+                            value: numberOfSurvivors.value,
+                        });
                     }
                 }
 
@@ -1980,6 +2126,7 @@ export default {
                         selectedPlace.value.victims.push(victim);
                     }
                 }
+                //console.log("selectedPlace", selectedPlace);
             } catch (error) {
                 console.error("Error in setSelectedPlace:", error);
             }
@@ -2408,10 +2555,10 @@ export default {
                 const qId = searchParams.get("id");
 
                 if (qId && locationMarkers.value[qId]) {
-                    // Stelle sicher, dass alle Daten verarbeitet wurden, bevor das Popup geöffnet wird
                     await ensureDataProcessed();
 
-                    // Dann zum Standort wechseln
+                    forceConsistentUIState();
+
                     switchLocation({
                         locationId: qId,
                         zoom: 14,
@@ -2432,8 +2579,9 @@ export default {
                 const qId = searchParams.get("pid");
 
                 if (qId) {
-                    // Stelle sicher, dass alle Daten verarbeitet wurden
                     await ensureDataProcessed();
+
+                    forceConsistentUIState();
 
                     let personGroup = "";
                     if (persons.value.victims[qId]) {
@@ -2518,6 +2666,8 @@ export default {
                 // workaround to bring a marker icon to foreground when multiple markers overlap on same coordinates
                 locationMarker.remove();
                 locationMarker.addTo(rawMap);
+
+                forceConsistentUIState();
 
                 rawMap.flyTo(latLng, zoom);
 
@@ -2827,6 +2977,16 @@ export default {
                         Object.entries(person.images)[0] || [];
                     if (firstImage) {
                         selectedPlace.value.mainImageUrl = firstImage.value;
+                        if (
+                            selectedPlace.value.mainImageUrl &&
+                            selectedPlace.value.mainImageUrl.startsWith("http:")
+                        ) {
+                            selectedPlace.value.mainImageUrl =
+                                selectedPlace.value.mainImageUrl.replace(
+                                    "http:",
+                                    "https:",
+                                );
+                        }
                         selectedPlace.value.mainImageLegend =
                             firstImage.mediaLegend?.value || "";
                     }
@@ -2912,6 +3072,8 @@ export default {
                         selectedPlace.value.sources.push({
                             label: source.value,
                             pages: source.pages?.value || "",
+                            inventoryNumber:
+                                source.inventoryNumber?.value || "",
                         });
                     }
                 }
@@ -2969,6 +3131,7 @@ export default {
 
             if (status) {
                 openPlaceInfo();
+                closeMapOptions();
                 document.getElementById("closeNavigationSidebar")?.click();
             } else {
                 closePlaceInfo();

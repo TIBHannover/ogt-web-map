@@ -13,17 +13,14 @@
         </v-row>
 
         <v-row>
-            <v-col
-                class="col-12 col-sm-2 order-sm-last"
-                style="min-width: 310px"
-            >
+            <v-col cols="12" md="4" class="order-md-last">
                 <table-of-contents-sidebar
                     :headings="headings"
                 ></table-of-contents-sidebar>
             </v-col>
 
             <!-- scrollable content -->
-            <v-col class="hyphens-auto" lang="de">
+            <v-col cols="12" md="8" class="hyphens-auto" lang="de">
                 <section id="researchObjectives">
                     <h1
                         class="font-weight-medium text-h5 text-md-h4 mb-5"
@@ -498,6 +495,29 @@
                                 >mdi-open-in-new</v-icon
                             >
                         </a>
+                    </p>
+                    <p>
+                        09.06.2025
+                        <br />
+                        Beitrag im Deutschlandfunk –
+                        <a
+                            href="https://soundcloud.com/user-1729749-220690678/gestapoterrororte-in-niedersachsen-1933-1945?si=5f09637bde0045a9a6021d777d621afa&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing"
+                            target="_blank"
+                        >
+                            Gestapo.Terror.Orte in Niedersachsen 1933 - 1945
+                            <v-icon size="small" class="vertical-align-top"
+                                >mdi-open-in-new</v-icon
+                            >
+                        </a>
+                        <br />
+                        Urheberin: Agnes Bührig für Deutschlandfunk. Den ganzen
+                        Bericht kann man
+                        <a
+                            href="https://www.deutschlandfunk.de/forschung-fuer-alle-wie-citizen-science-die-wissenschaft-staerkt-100.html"
+                            target="_blank"
+                            >hier</a
+                        >
+                        nachhören.
                     </p>
                 </section>
             </v-col>

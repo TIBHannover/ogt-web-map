@@ -213,9 +213,12 @@
                         Anzahl
                         <ul>
                             <li
-                                v-for="numberOfCasualties in selectedPlace.numberOfCasualties"
+                                v-for="casualty in selectedPlace.numberOfCasualties"
                             >
-                                {{ numberOfCasualties }}
+                                {{ casualty.sourcingCircumstance }} {{ casualty.value }}
+                                <template v-if="casualty.pointInTime && casualty.pointInTime.locale">
+                                    ({{ casualty.pointInTime.locale }})
+                                </template>
                             </li>
                         </ul>
                     </div>
@@ -269,9 +272,12 @@
                 <v-list-item-subtitle>
                     <ul>
                         <li
-                            v-for="numberOfSurvivors in selectedPlace.numberOfSurvivors"
+                            v-for="survivor in selectedPlace.numberOfSurvivors"
                         >
-                            {{ numberOfSurvivors }}
+                            {{ survivor.sourcingCircumstance }} {{ survivor.value }}
+                            <template v-if="survivor.pointInTime && survivor.pointInTime.locale">
+                                ({{ survivor.pointInTime.locale }})
+                            </template>
                         </li>
                     </ul>
                 </v-list-item-subtitle>
@@ -286,9 +292,12 @@
                 <v-list-item-subtitle>
                     <ul>
                         <li
-                            v-for="numberOfDeaths in selectedPlace.numberOfDeaths"
+                            v-for="death in selectedPlace.numberOfDeaths"
                         >
-                            {{ numberOfDeaths }}
+                            {{ death.sourcingCircumstance }} {{ death.value }}
+                            <template v-if="death.pointInTime && death.pointInTime.locale">
+                                ({{ death.pointInTime.locale }})
+                            </template>
                         </li>
                     </ul>
                 </v-list-item-subtitle>
@@ -303,9 +312,12 @@
                 <v-list-item-subtitle>
                     <ul>
                         <li
-                            v-for="numberOfArrests in selectedPlace.numberOfArrests"
+                            v-for="arrest in selectedPlace.numberOfArrests"
                         >
-                            {{ numberOfArrests }}
+                            {{ arrest.sourcingCircumstance }} {{ arrest.value }}
+                            <template v-if="arrest.pointInTime && arrest.pointInTime.locale">
+                                ({{ arrest.pointInTime.locale }})
+                            </template>
                         </li>
                     </ul>
                 </v-list-item-subtitle>
