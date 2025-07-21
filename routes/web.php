@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\WikidataAuthController;
 use App\Http\Controllers\WikidataController;
 use App\Http\Controllers\WikidataPropertyController;
+use App\Http\Controllers\ExportController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -61,8 +62,8 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
     Route::delete('/jobs', [\App\Http\Controllers\Admin\JobsController::class, 'destroyAll'])->name('admin.jobs.destroy-all');
     
     // Export routes
-    Route::get('/export', [\App\Http\Controllers\Admin\ExportController::class, 'index'])->name('admin.export');
-    Route::post('/export/download', [\App\Http\Controllers\Admin\ExportController::class, 'export'])->name('admin.export.download');
+    Route::get('/export', [\App\Http\Controllers\ExportController::class, 'index'])->name('admin.export');
+    Route::post('/export/download', [\App\Http\Controllers\ExportController::class, 'export'])->name('admin.export.download');
     
     // Failed jobs management routes
     Route::delete('/jobs/failed/{id}', [\App\Http\Controllers\Admin\JobsController::class, 'destroyFailed'])->name('admin.jobs.destroy-failed');
@@ -70,6 +71,9 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
     Route::post('/jobs/failed/{id}/retry', [\App\Http\Controllers\Admin\JobsController::class, 'retryFailed'])->name('admin.jobs.retry-failed');
     Route::post('/jobs/failed/retry-all', [\App\Http\Controllers\Admin\JobsController::class, 'retryAllFailed'])->name('admin.jobs.retry-all-failed');
 });
+
+// Public export route
+Route::post('/export/download', [\App\Http\Controllers\ExportController::class, 'export'])->name('public.export.download');
 
 // Wikidata API routes
 Route::prefix('api/wikidata')->group(function () {
