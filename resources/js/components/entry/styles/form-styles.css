@@ -1031,6 +1031,8 @@ label.section-label {
     font-size: 0.8rem;
     display: inline-flex;
     align-items: center;
+    line-height: 12px;
+    gap: 5px;
 }
 
 .remove-source {
@@ -1203,6 +1205,7 @@ label.section-label {
     justify-content: center;
     width: 28px;
     height: 28px;
+    line-height: 15px;
 }
 
 .edit-person:hover {

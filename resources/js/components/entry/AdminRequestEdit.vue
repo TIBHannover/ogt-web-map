@@ -13,6 +13,7 @@
                 v-if="requestType === 'Q6983405'"
                 v-model:formsTitle="formData.title"
                 v-model:formsDescription="formData.description"
+                :entry-type="requestType"
                 :eventTimeType="getEventTimeType()"
                 @update:eventTimeType="handleEventTimeTypeChange($event)"
                 v-model:eventDate="formData.time_point"
@@ -927,7 +928,7 @@ export default {
 
             axios
                 .get(
-                    `/api/wikidata/search/people?q=${encodeURIComponent(query)}`,
+                    `/api/wikidata/search/people?query=${encodeURIComponent(query)}`,
                 )
                 .then((response) => {
                     this.peopleSearchResults = response.data;
@@ -943,7 +944,7 @@ export default {
 
             axios
                 .get(
-                    `/api/wikidata/search/people?q=${encodeURIComponent(query)}`,
+                    `/api/wikidata/search/people?query=${encodeURIComponent(query)}`,
                 )
                 .then((response) => {
                     this.perpetratorsSearchResults = response.data;
@@ -959,7 +960,7 @@ export default {
 
             axios
                 .get(
-                    `/api/wikidata/search/causes?q=${encodeURIComponent(query)}`,
+                    `/api/wikidata/search/causes?query=${encodeURIComponent(query)}`,
                 )
                 .then((response) => {
                     this.causeSearchResults = response.data;
@@ -975,7 +976,7 @@ export default {
 
             axios
                 .get(
-                    `/api/wikidata/search/places?q=${encodeURIComponent(query)}`,
+                    `/api/wikidata/search/places?query=${encodeURIComponent(query)}`,
                 )
                 .then((response) => {
                     this.locationSearchResults = response.data;

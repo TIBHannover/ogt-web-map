@@ -237,6 +237,7 @@
                         v-model:mapCenter="mapCenter"
                         v-model:selectedLocation="selectedLocation"
                         v-model:locationSearch="locationSearch"
+                        v-model:locationQualifier="locationQualifier"
                         v-model:error="error"
                         v-model:imageUrl="imageUrl"
                         v-model:imageFilename="imageFilename"
@@ -420,6 +421,7 @@ const mapZoom = ref(8);
 const mapCenter = ref([52.8, 9.0]); // Zentrum von Niedersachsen
 const selectedLocation = ref(null);
 const locationSearch = ref("");
+const locationQualifier = ref("");
 
 const imageUrl = ref(null);
 const imageFilename = ref(null);
@@ -1055,6 +1057,28 @@ const resetForm = async () => {
 
         const secureToken = generateSecureToken();
 
+        // Debug log for location qualifier
+        console.log('Submitting location qualifier:', {
+            locationQualifierRef: locationQualifier,
+            locationQualifierValue: locationQualifier.value,
+            rawValue: typeof locationQualifier === 'object' ? JSON.stringify(locationQualifier) : locationQualifier
+        });
+
+        // Complete log of submission data
+        console.log('Full submission data:', {
+            title: formsTitle.value.trim(),
+            description: formsDescription.value.trim(),
+            type: formsType.value,
+            coordinates: coordinates,
+            coordinates_qualifier: locationQualifier,
+            // Include other key fields
+            victims: selectedVictims.value.length,
+            perpetrators: selectedPerpetrators.value.length,
+            eventTimeType: eventTimeType.value,
+            selectedCauses: selectedCauses.value.length,
+            sources: selectedSources.value.length
+        });
+
         const response = await axios.post(
             "/api/wikidata/entities",
             {
@@ -1062,6 +1086,7 @@ const resetForm = async () => {
                 description: formsDescription.value.trim(),
                 type: formsType.value,
                 coordinates: coordinates,
+                coordinates_qualifier: locationQualifier,
                 victims: selectedVictims.value,
                 perpetrators: selectedPerpetrators.value,
                 eventTimeType: eventTimeType.value,
@@ -1079,6 +1104,7 @@ const resetForm = async () => {
                 survivorCountQualifier: survivorCountQualifier.value,
                 deathCountQualifier: deathCountQualifier.value,
                 arrestCountQualifier: arrestCountQualifier.value,
+                coordinates_qualifier: locationQualifier,
                 causes: selectedCauses.value,
                 imageUrl: imageUrl.value,
                 imageFilename: imageFilename.value,
@@ -1094,6 +1120,7 @@ const resetForm = async () => {
 
         if (response.data.success) {
             // Debug logging
+            console.log("Response data:", response.data);
             console.log("Submitted qualifier values:", {
                 victimCountQualifier: victimCountQualifier.value,
                 survivorCountQualifier: survivorCountQualifier.value,
@@ -1181,6 +1208,7 @@ const clearForm = () => {
     causeSearchResults.value = [];
     selectedCauses.value = [];
     lastCauseSearchQuery.value = "";
+    locationQualifier.value = "";
 
     mapZoom.value = 8;
     mapCenter.value = [52.8, 9.0];

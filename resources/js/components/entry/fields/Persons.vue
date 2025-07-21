@@ -73,6 +73,7 @@
                         Wikidata
                     </a>
                     <button
+                        v-if="!person.id || (person.id && !person.id.startsWith('Q'))"
                         type="button"
                         class="edit-person"
                         @click="

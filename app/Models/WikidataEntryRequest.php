@@ -16,6 +16,7 @@ class WikidataEntryRequest extends Model
         "image_filename",
         "type",
         "coordinates",
+        "coordinates_qualifier",
         "status",
         "status_token",
         "status_history",

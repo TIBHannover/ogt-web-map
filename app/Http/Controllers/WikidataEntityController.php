@@ -32,6 +32,7 @@ class WikidataEntityController extends Controller
             "description" => "required|string|max:750",
             "type" => 'required|string|regex:/^Q\d+$/',
             "coordinates" => "nullable|string",
+            "coordinates_qualifier" => "nullable|string",
             "victims" => "nullable|array",
             "perpetrators" => "nullable|array",
             "eventTimeType" => "nullable|string|in:point,range",
@@ -69,6 +70,7 @@ class WikidataEntityController extends Controller
             $entryRequest->description = $validated["description"];
             $entryRequest->type = $validated["type"];
             $entryRequest->coordinates = $validated["coordinates"] ?? null;
+            $entryRequest->coordinates_qualifier = $validated["coordinates_qualifier"] ?? null;
             $entryRequest->victims = $validated["victims"] ?? null;
             $entryRequest->perpetrators = $validated["perpetrators"] ?? null;
 
@@ -135,6 +137,8 @@ class WikidataEntityController extends Controller
 
             // Debug-Ausgabe für Qualifier
             Log::debug("Qualifier-Werte", [
+                "coordinates_qualifier" => 
+                    $validated["coordinates_qualifier"] ?? "nicht gesetzt",
                 "victim_qualifier" =>
                     $validated["victimCountQualifier"] ?? "nicht gesetzt",
                 "survivor_qualifier" =>

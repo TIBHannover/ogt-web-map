@@ -163,7 +163,12 @@ use function App\Helpers\formatWikidataProperty;
                                 }
                             @endphp
                             @if($lat && $lng)
-                                <div class="mb-2">{{ number_format((float)$lat, 6, '.', '') }}, {{ number_format((float)$lng, 6, '.', '') }}</div>
+                                <div class="mb-2">
+                                    {{ number_format((float)$lat, 6, '.', '') }}, {{ number_format((float)$lng, 6, '.', '') }}
+                                    @if(isset($request->coordinates_qualifier) && !empty($request->coordinates_qualifier))
+                                        @include('admin.partials.qualifier', ['qualifier' => $request->coordinates_qualifier])
+                                    @endif
+                                </div>
                                 <div style="height: 300px; width: 100%" id="map-container">
                                     <!-- Die Karte wird per JavaScript gerendert -->
                                 </div>
@@ -192,37 +197,19 @@ use function App\Helpers\formatWikidataProperty;
                                     <p>
                                         {{ \Carbon\Carbon::parse($request->time_point)->format('d.m.Y') }}
                                         @if($request->time_point_qualifier)
-                                            <span class="badge bg-info ms-2">
-                                                @if($request->time_point_qualifier == 'Q5727902')
-                                                    Circa
-                                                @elseif($request->time_point_qualifier == 'Q60070514')
-                                                    Ungefähr
-                                                @endif
-                                            </span>
+                                            @include('admin.partials.qualifier', ['qualifier' => $request->time_point_qualifier])
                                         @endif
                                     </p>
                                 @else
                                     <p>
                                         Von: {{ \Carbon\Carbon::parse($request->time_period_start)->format('d.m.Y') }}
                                         @if($request->time_period_start_qualifier)
-                                            <span class="badge bg-info ms-2">
-                                                @if($request->time_period_start_qualifier == 'Q5727902')
-                                                    Circa
-                                                @elseif($request->time_period_start_qualifier == 'Q60070514')
-                                                    Ungefähr
-                                                @endif
-                                            </span>
+                                            @include('admin.partials.qualifier', ['qualifier' => $request->time_period_start_qualifier])
                                         @endif
                                         @if($request->time_period_end)
                                             bis: {{ \Carbon\Carbon::parse($request->time_period_end)->format('d.m.Y') }}
                                             @if($request->time_period_end_qualifier)
-                                                <span class="badge bg-info ms-2">
-                                                    @if($request->time_period_end_qualifier == 'Q5727902')
-                                                        Circa
-                                                    @elseif($request->time_period_end_qualifier == 'Q60070514')
-                                                        Ungefähr
-                                                    @endif
-                                                </span>
+                                                @include('admin.partials.qualifier', ['qualifier' => $request->time_period_end_qualifier])
                                             @endif
                                         @endif
                                     </p>
@@ -238,15 +225,7 @@ use function App\Helpers\formatWikidataProperty;
                                         <li>
                                             Opfer: {{ $request->victim_count }}
                                             @if($request->victim_count_qualifier)
-                                                <span class="badge bg-info ms-2">
-                                                    @if($request->victim_count_qualifier == 'Q5727902')
-                                                        Circa
-                                                    @elseif($request->victim_count_qualifier == 'Q52834024')
-                                                        Weniger als
-                                                    @elseif($request->victim_count_qualifier == 'Q47035128')
-                                                        Mehr als
-                                                    @endif
-                                                </span>
+                                                @include('admin.partials.qualifier', ['qualifier' => $request->victim_count_qualifier])
                                             @endif
                                         </li>
                                     @endif
@@ -254,15 +233,7 @@ use function App\Helpers\formatWikidataProperty;
                                         <li>
                                             Überlebende: {{ $request->survivor_count }}
                                             @if($request->survivor_count_qualifier)
-                                                <span class="badge bg-info ms-2">
-                                                    @if($request->survivor_count_qualifier == 'Q5727902')
-                                                        Circa
-                                                    @elseif($request->survivor_count_qualifier == 'Q52834024')
-                                                        Weniger als
-                                                    @elseif($request->survivor_count_qualifier == 'Q47035128')
-                                                        Mehr als
-                                                    @endif
-                                                </span>
+                                                @include('admin.partials.qualifier', ['qualifier' => $request->survivor_count_qualifier])
                                             @endif
                                         </li>
                                     @endif
@@ -270,15 +241,7 @@ use function App\Helpers\formatWikidataProperty;
                                         <li>
                                             Todesfälle: {{ $request->death_count }}
                                             @if($request->death_count_qualifier)
-                                                <span class="badge bg-info ms-2">
-                                                    @if($request->death_count_qualifier == 'Q5727902')
-                                                        Circa
-                                                    @elseif($request->death_count_qualifier == 'Q52834024')
-                                                        Weniger als
-                                                    @elseif($request->death_count_qualifier == 'Q47035128')
-                                                        Mehr als
-                                                    @endif
-                                                </span>
+                                                @include('admin.partials.qualifier', ['qualifier' => $request->death_count_qualifier])
                                             @endif
                                         </li>
                                     @endif
@@ -286,15 +249,7 @@ use function App\Helpers\formatWikidataProperty;
                                         <li>
                                             Verhaftungen: {{ $request->arrest_count }}
                                             @if($request->arrest_count_qualifier)
-                                                <span class="badge bg-info ms-2">
-                                                    @if($request->arrest_count_qualifier == 'Q5727902')
-                                                        Circa
-                                                    @elseif($request->arrest_count_qualifier == 'Q52834024')
-                                                        Weniger als
-                                                    @elseif($request->arrest_count_qualifier == 'Q47035128')
-                                                        Mehr als
-                                                    @endif
-                                                </span>
+                                                @include('admin.partials.qualifier', ['qualifier' => $request->arrest_count_qualifier])
                                             @endif
                                         </li>
                                     @endif
@@ -502,25 +457,13 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                                     @if($request->date_of_birth)
                                         Geboren: {{ \Carbon\Carbon::parse($request->date_of_birth)->format('d.m.Y') }}
                                         @if($request->date_of_birth_qualifier)
-                                            <span class="badge bg-info ms-2">
-                                                @if($request->date_of_birth_qualifier == 'Q5727902')
-                                                    Circa
-                                                @elseif($request->date_of_birth_qualifier == 'Q60070514')
-                                                    Ungefähr
-                                                @endif
-                                            </span>
+                                            @include('admin.partials.qualifier', ['qualifier' => $request->date_of_birth_qualifier])
                                         @endif
                                     @endif
                                     @if($request->date_of_death)
                                         {{ $request->date_of_birth ? ' | ' : '' }}Gestorben: {{ \Carbon\Carbon::parse($request->date_of_death)->format('d.m.Y') }}
                                         @if($request->date_of_death_qualifier)
-                                            <span class="badge bg-info ms-2">
-                                                @if($request->date_of_death_qualifier == 'Q5727902')
-                                                    Circa
-                                                @elseif($request->date_of_death_qualifier == 'Q60070514')
-                                                    Ungefähr
-                                                @endif
-                                            </span>
+                                            @include('admin.partials.qualifier', ['qualifier' => $request->date_of_death_qualifier])
                                         @endif
                                     @endif
                                 </p>

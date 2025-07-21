@@ -5,12 +5,13 @@
     >
         <div class="step-container">
             <h2 class="step-title">Schritt 2: Ereignis-Details eingeben</h2>
-            <form class="forms">
+            <form class="forms" @submit.prevent>
                 <!-- Titel/Kurzbeschreibung -->
                 <BaseInfos
                     ref="baseInfosRef"
                     :title="title"
                     :description="description"
+                    :entry-type="props.entryType"
                     :wikidata-results="wikidataResultsValue"
                     @update:title="title = $event"
                     @update:description="description = $event"
@@ -147,6 +148,7 @@
                     :map-center="mapCenterValue"
                     :selected-location="selectedLocationValue"
                     :location-search="locationSearchValue"
+                    :location-qualifier="locationQualifierValue"
                     @update:map-zoom="
                         ($event) => emit('update:mapZoom', $event)
                     "
@@ -157,6 +159,7 @@
                         ($event) => emit('update:selectedLocation', $event)
                     "
                     @update:location-search="locationSearchValue = $event"
+                    @update:location-qualifier="locationQualifierValue = $event"
                     @search-location="onSearchLocation"
                     @handle-map-click="onHandleMapClick"
                     @field-focus="setActiveField"
@@ -291,6 +294,10 @@ const props = defineProps({
     formsDescription: {
         type: String,
         default: null,
+    },
+    entryType: {
+        type: String,
+        default: "Q6983405", // Default to Ereignis type
     },
     wikidataResults: {
         type: Array,
@@ -436,6 +443,10 @@ const props = defineProps({
         type: String,
         default: "",
     },
+    locationQualifier: {
+        type: String,
+        default: "",
+    },
     error: {
         type: String,
         default: null,
@@ -489,6 +500,7 @@ const emit = defineEmits([
     "update:mapCenter",
     "update:selectedLocation",
     "update:locationSearch",
+    "update:locationQualifier",
     "update:error",
     "update:imageUrl",
     "update:imageFilename",
@@ -657,6 +669,11 @@ const selectedLocationValue = computed(() => props.selectedLocation);
 const locationSearchValue = computed({
     get: () => props.locationSearch,
     set: (value) => emit("update:locationSearch", value),
+});
+
+const locationQualifierValue = computed({
+    get: () => props.locationQualifier,
+    set: (value) => emit("update:locationQualifier", value),
 });
 const errorValue = computed(() => props.error);
 
@@ -1219,6 +1236,7 @@ const getData = () => {
                   lng: parseFloat(selectedLocationValue.value.lng || 0),
               }
             : null,
+        coordinates_qualifier: locationQualifierValue.value || "",
 
         // Image
         image_url: imageUrlValue.value || "",
