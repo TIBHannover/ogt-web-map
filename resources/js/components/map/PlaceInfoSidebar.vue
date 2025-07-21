@@ -146,7 +146,7 @@
             <event
                 v-if="selectedPlace.groupName == 'events'"
                 :selectedPlace="selectedPlace"
-                @showPerson="$emit('showPerson', $event)"
+                @showPerson="navigateToPerson"
                 @switchLocation="$emit('switchLocation', $event)"
                 @undoZoomIntoPlace="$emit('undoZoomIntoPlace')"
                 @zoomIntoPlace="$emit('zoomIntoPlace')"
@@ -155,7 +155,7 @@
             <gestapo-place
                 v-else-if="gestapoPlaceGroups.includes(selectedPlace.groupName)"
                 :selectedPlace="selectedPlace"
-                @showPerson="$emit('showPerson', $event)"
+                @showPerson="navigateToPerson"
                 @switchLocation="$emit('switchLocation', $event)"
                 @undoZoomIntoPlace="$emit('undoZoomIntoPlace')"
                 @zoomIntoPlace="$emit('zoomIntoPlace')"
@@ -176,7 +176,9 @@
                     )
                 "
                 :selectedPerson="selectedPlace"
+                :hasPreviousLocation="hasHistory"
                 @switchLocation="$emit('switchLocation', $event)"
+                @goBack="goBack"
             ></person>
         </v-navigation-drawer>
     </div>
@@ -188,6 +190,14 @@ import Event from "./info/Event";
 import GestapoPlace from "./info/GestapoPlace";
 import MemorialPlace from "./info/MemorialPlace";
 import Person from "./info/Person";
+
+// Navigation history stack - stores previous location IDs
+const navigationHistory = ref([]);
+
+// Check if history is available
+const hasHistory = computed(() => {
+    return navigationHistory.value && navigationHistory.value.length > 0;
+});
 const ogtGlobals = inject("ogtGlobals");
 
 const {
@@ -204,7 +214,29 @@ const emits = defineEmits([
     "switchLocation",
     "undoZoomIntoPlace",
     "zoomIntoPlace",
+    "goBack",
 ]);
+
+// Function to handle navigation to a person
+const navigateToPerson = (person) => {
+    // Save current place ID to history before navigating
+    if (props.selectedPlace && props.selectedPlace.id && navigationHistory.value) {
+        navigationHistory.value.push(props.selectedPlace.id);
+    }
+    emits("showPerson", person);
+};
+
+// Function to handle back navigation
+const goBack = () => {
+    if (navigationHistory.value && navigationHistory.value.length > 0) {
+        // Get the last place ID from history
+        const previousPlaceId = navigationHistory.value.pop();
+        // Navigate back to it using the same format as other location links
+        if (previousPlaceId) {
+            emits("switchLocation", { locationId: previousPlaceId });
+        }
+    }
+};
 
 const sidebarStyles = computed(() => {
     if (isMobile.value && adjustPlaceInfoPosition.value) {
@@ -273,6 +305,10 @@ watch(
             openPlaceInfo();
         } else {
             closePlaceInfo();
+            // Clear navigation history when sidebar is closed
+            if (navigationHistory.value) {
+                navigationHistory.value = [];
+            }
         }
     },
     { immediate: true },
