@@ -204,7 +204,10 @@
                         Wikidata Daten exportieren
                     </h2>
                     <p>
-                        Hier kannst du die Wikidata-Daten zur Geschichte der Gestapo als CSV-Datei herunterladen, die du in Excel oder anderen Tabellenkalkulationsprogrammen öffnen kannst.
+                        Hier kannst du die Wikidata-Daten zur Geschichte der
+                        Gestapo als CSV-Datei herunterladen, die du in Excel
+                        oder anderen Tabellenkalkulationsprogrammen öffnen
+                        kannst.
                     </p>
 
                     <v-form @submit.prevent="submitExportForm" ref="exportForm">
@@ -219,13 +222,20 @@
                             class="mb-6"
                         ></v-select>
 
-                        <v-alert type="info" class="mb-4" color="info" icon="mdi-information">
-                            Der Export großer Datenmengen kann einige Momente dauern. Bitte warten Sie, bis der Download abgeschlossen ist.
+                        <v-alert
+                            type="info"
+                            class="mb-4"
+                            color="info"
+                            icon="mdi-information"
+                        >
+                            Der Export großer Datenmengen kann einige Momente
+                            dauern. Bitte warten Sie, bis der Download
+                            abgeschlossen ist.
                         </v-alert>
 
-                        <v-btn 
-                            type="submit" 
-                            color="primary" 
+                        <v-btn
+                            type="submit"
+                            color="primary"
                             class="mb-4"
                             :loading="isExporting"
                         >
@@ -237,24 +247,50 @@
                     <h3 class="mt-6 mb-3">Über die exportierten Daten:</h3>
                     <ul>
                         <li>Die Daten werden direkt von Wikidata abgerufen</li>
-                        <li>CSV-Dateien können in Excel oder ähnlichen Tabellenkalkulationsprogrammen geöffnet werden</li>
-                        <li>Die Datei enthält eine UTF-8 BOM-Markierung für korrekte Zeichendarstellung in Excel</li>
+                        <li>
+                            CSV-Dateien können in Excel oder ähnlichen
+                            Tabellenkalkulationsprogrammen geöffnet werden
+                        </li>
+                        <li>
+                            Die Datei enthält eine UTF-8 BOM-Markierung für
+                            korrekte Zeichendarstellung in Excel
+                        </li>
                     </ul>
 
                     <h3 class="mt-4 mb-3">Für den Orte-Export:</h3>
-                    <p>Enthält ID, Label, Beschreibung, Typ, Koordinaten, Adresse, Gründungs- und Auflösungsdaten sowie Website-Links.</p>
+                    <p>
+                        Enthält ID, Label, Beschreibung, Typ, Koordinaten,
+                        Adresse, Gründungs- und Auflösungsdaten sowie
+                        Website-Links.
+                    </p>
 
-                    <h3 class="mt-4 mb-3">Für den Orte-Export ohne Ereignisse:</h3>
-                    <p>Enthält die gleichen Daten wie der Orte-Export, filtert aber Einträge vom Typ "NS-Verbrechen" (Wikidata Q6983405) aus.</p>
-                    
+                    <h3 class="mt-4 mb-3">
+                        Für den Orte-Export ohne Ereignisse:
+                    </h3>
+                    <p>
+                        Enthält die gleichen Daten wie der Orte-Export, filtert
+                        aber Einträge vom Typ "NS-Verbrechen" (Wikidata
+                        Q6983405) aus.
+                    </p>
+
                     <h3 class="mt-4 mb-3">Für den Orte-Export (minimal):</h3>
-                    <p>Enthält nur Orte vom Typ Arbeitserziehungslager, Gefängnis oder Erweitertes Polizeigefängnis.</p>
+                    <p>
+                        Enthält nur Orte vom Typ Arbeitserziehungslager,
+                        Gefängnis oder Erweitertes Polizeigefängnis.
+                    </p>
 
                     <h3 class="mt-4 mb-3">Für den Personen-Export:</h3>
-                    <p>Enthält ID, Name, Beschreibung, Geschlecht, Geburts- und Sterbedaten, Geburts- und Sterbeorte, Staatsbürgerschaften und Personengruppe.</p>
-                    
+                    <p>
+                        Enthält ID, Name, Beschreibung, Geschlecht, Geburts- und
+                        Sterbedaten, Geburts- und Sterbeorte,
+                        Staatsbürgerschaften und Personengruppe.
+                    </p>
+
                     <h3 class="mt-4 mb-3">Für den Täter/Geschädigte-Export:</h3>
-                    <p>Filtert die Personen nach ihrer Rolle (Täter oder Geschädigte) im NS-Regime.</p>
+                    <p>
+                        Filtert die Personen nach ihrer Rolle (Täter oder
+                        Geschädigte) im NS-Regime.
+                    </p>
                 </section>
             </v-col>
         </v-row>
@@ -293,7 +329,10 @@ const exportOptions = [
     { text: "Alle Daten (Orte und Personen)", value: "all" },
     { text: "Nur Orte (Mit Ereignissen)", value: "places" },
     { text: "Nur Orte (ohne Ereignisse)", value: "places_no_events" },
-    { text: "Nur Orte (minimal: Arbeitserziehungslager, Gefängnis, Erweitertes Polizeigefängnis)", value: "places_minimal" },
+    {
+        text: "Nur Orte (minimal: Arbeitserziehungslager, Gefängnis, Erweitertes Polizeigefängnis)",
+        value: "places_minimal",
+    },
     { text: "Nur Personen (Alle)", value: "persons" },
     { text: "Nur Personen (Täter)", value: "persons_perpetrators" },
     { text: "Nur Personen (Geschädigte)", value: "persons_victims" },
@@ -304,36 +343,25 @@ const submitExportForm = async () => {
     isExporting.value = true;
     
     try {
-        // Create a form element
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '/export/download';
-        form.style.display = 'none';
+        // Create a link element for direct download
+        const downloadLink = document.createElement('a');
         
-        // Add CSRF token
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        if (csrfToken) {
-            const csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = '_token';
-            csrfInput.value = csrfToken;
-            form.appendChild(csrfInput);
-        }
+        // Set the href with the export type as a query parameter
+        downloadLink.href = `/export/download?type=${encodeURIComponent(exportType.value)}`;
         
-        // Add export type
-        const typeInput = document.createElement('input');
-        typeInput.type = 'hidden';
-        typeInput.name = 'type';
-        typeInput.value = exportType.value;
-        form.appendChild(typeInput);
+        // Set download attribute to force download
+        downloadLink.setAttribute('download', '');
         
-        // Add the form to the document and submit it
-        document.body.appendChild(form);
-        form.submit();
+        // Hide the link
+        downloadLink.style.display = 'none';
         
-        // Remove the form after submission
+        // Add to document, click it, and remove it
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        
+        // Reset loading state after a short delay
         setTimeout(() => {
-            document.body.removeChild(form);
             isExporting.value = false;
         }, 2000);
     } catch (error) {
@@ -374,10 +402,6 @@ const headings = ref([
     {
         href: "#materials",
         label: "Anleitungen zur Werkstatt historische Daten",
-    },
-    {
-        href: "#export",
-        label: "Wikidata Daten exportieren",
     },
 ]);
 </script>
