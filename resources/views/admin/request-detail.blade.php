@@ -324,16 +324,15 @@ Victims: {{ var_export($request->victims, true) }}</pre>
 
 
                         @if($request->selected_causes)
-                            <div class="mb-3">
-                                <strong>Ursachen der Verfolgung:</strong>
-                                @php
-                                    // Versuche JSON zu parsen
-                                    $causes = json_decode($request->selected_causes, true);
-                                    // Wenn es kein gu00fcltiges JSON ist, als Text behandeln
-                                    $isJson = json_last_error() === JSON_ERROR_NONE && is_array($causes);
-                                @endphp
-
-                                @if($isJson && count($causes) > 0)
+                            @php
+                                // Versuche JSON zu parsen
+                                $causes = json_decode($request->selected_causes, true);
+                                // Wenn es kein gu00fcltiges JSON ist, als Text behandeln
+                                $isJson = json_last_error() === JSON_ERROR_NONE && is_array($causes);
+                            @endphp
+                            @if($isJson && count($causes) > 0)
+                                <div class="mb-3">
+                                    <strong>Ursachen der Verfolgung:</strong>
                                     <div class="list-group mt-2">
                                         @foreach($causes as $cause)
                                             <div class="list-group-item">
@@ -353,10 +352,8 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                                             </div>
                                         @endforeach
                                     </div>
-                                @else
-                                    <p>{{ $request->selected_causes }}</p>
-                                @endif
-                            </div>
+                                </div>
+                            @endif
                         @endif
 
 

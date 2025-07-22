@@ -142,30 +142,32 @@
                 />
 
                 <!-- Standort -->
-                <LocationSelector
-                    ref="locationSelectorRef"
-                    :map-zoom="mapZoomValue"
-                    :map-center="mapCenterValue"
-                    :selected-location="selectedLocationValue"
-                    :location-search="locationSearchValue"
-                    :location-qualifier="locationQualifierValue"
-                    @update:map-zoom="
-                        ($event) => emit('update:mapZoom', $event)
-                    "
-                    @update:map-center="
-                        ($event) => emit('update:mapCenter', $event)
-                    "
-                    @update:selected-location="
-                        ($event) => emit('update:selectedLocation', $event)
-                    "
-                    @update:location-search="locationSearchValue = $event"
-                    @update:location-qualifier="locationQualifierValue = $event"
-                    @search-location="onSearchLocation"
-                    @handle-map-click="onHandleMapClick"
-                    @field-focus="setActiveField"
-                    @info-button-click="openSectionInfo"
-                    @validation="onLocationValidation"
-                />
+                <slot name="location-selector">
+                    <LocationSelector
+                        ref="locationSelectorRef"
+                        :map-zoom="mapZoomValue"
+                        :map-center="mapCenterValue"
+                        :selected-location="selectedLocationValue"
+                        :location-search="locationSearchValue"
+                        :location-qualifier="locationQualifierValue"
+                        @update:map-zoom="
+                            ($event) => emit('update:mapZoom', $event)
+                        "
+                        @update:map-center="
+                            ($event) => emit('update:mapCenter', $event)
+                        "
+                        @update:selected-location="
+                            ($event) => emit('update:selectedLocation', $event)
+                        "
+                        @update:location-search="locationSearchValue = $event"
+                        @update:location-qualifier="locationQualifierValue = $event"
+                        @search-location="onSearchLocation"
+                        @handle-map-click="onHandleMapClick"
+                        @field-focus="setActiveField"
+                        @info-button-click="openSectionInfo"
+                        @validation="onLocationValidation"
+                    />
+                </slot>
 
                 <!-- Bild aus Wikimedia Commons -->
                 <ImageSelector
