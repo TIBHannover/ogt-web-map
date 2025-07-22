@@ -8,6 +8,7 @@ const Counts = () => import("./components/Counts.vue");
 const Bibliography = () => import("./components/Bibliography.vue");
 const Workshops = () => import("./components/Workshops.vue");
 const Materials = () => import("./components/Materials.vue");
+const Forschungsdaten = () => import("./components/ResearchData.vue");
 
 export const routes = [
     {
@@ -82,6 +83,14 @@ export const routes = [
         component: Materials,
         meta: {
             title: "Materialien: Gestapo. Terror. Orte",
+        },
+    },
+    {
+        name: "forschungsdaten",
+        path: "/forschungsdaten",
+        component: Forschungsdaten,
+        meta: {
+            title: "Forschungsdaten: Gestapo. Terror. Orte",
         },
     },
     {

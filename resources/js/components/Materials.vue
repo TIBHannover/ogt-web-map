@@ -38,11 +38,11 @@
                         Anleitungen zur Werkstatt historische Daten
                     </h2>
                     <p>
-                        Du möchtest Daten zur Geschichte der Gestapo erfassen
+                        Du mu00f6chtest Daten zur Geschichte der Gestapo erfassen
                         und sie auf der digitalen Karte Gestapo.Terror.Orte
                         sichtbar machen?<br />
                         Hier findest du Materialien, die dich dabei
-                        unterstützen.
+                        unterstu00fctzen.
                     </p>
 
                     <v-grid>
@@ -50,7 +50,7 @@
                             <v-col cols="12" md="7" class="pb-0 pb-md-2">
                                 <h3>Wikidata Basics</h3>
                                 <p class="mb-0">
-                                    Diese PDF erklärt zentrale Grundbegriffe
+                                    Diese PDF erklu00e4rt zentrale Grundbegriffe
                                     rund um Wikidata. <br />Sie beantwortet
                                     Fragen wie:<br />
                                     Was ist Wikidata und was sind strukturierte
@@ -86,9 +86,9 @@
                             <v-col cols="12" md="7" class="pb-0 pb-md-2">
                                 <h3>Wikidata-Anleitung</h3>
                                 <p class="mb-0">
-                                    Diese Schritt-für-Schritt-Anleitung zeigt,
+                                    Diese Schritt-fu00fcr-Schritt-Anleitung zeigt,
                                     wie du neue Datenobjekte in Wikidata anlegst
-                                    oder bestehende ergänzt.
+                                    oder bestehende ergu00e4nzt.
                                 </p>
                             </v-col>
                             <v-col cols="12" md="5" class="pt-0 pt-md-2">
@@ -117,19 +117,19 @@
                             <v-col cols="12" md="7" class="pb-0 pb-md-2">
                                 <h3>Datenmodelle</h3>
                                 <p class="mb-0">
-                                    In Wikidata können Informationen auf
+                                    In Wikidata ku00f6nnen Informationen auf
                                     unterschiedliche Weise erfasst werden. Diese
-                                    Übersicht zeigt, wie Daten zu Gestapoorten,
-                                    Erinnerungsorten, Geschädigten, Täter*innen
-                                    und Ereignissen erfasst werden müssen, damit
+                                    u00dcbersicht zeigt, wie Daten zu Gestapoorten,
+                                    Erinnerungsorten, Geschu00e4digten, Tu00e4ter*innen
+                                    und Ereignissen erfasst werden mu00fcssen, damit
                                     sie auf Gestapo.Terror.Orte angezeigt
                                     werden. Wichtig: Nur wenn du dich an die
-                                    Datenmodelle hältst, erscheinen deine
-                                    Einträge auf der Karte. Nicht alle Daten
-                                    müssen ausgefüllt werden – verpflichtend
+                                    Datenmodelle hu00e4ltst, erscheinen deine
+                                    Eintru00e4ge auf der Karte. Nicht alle Daten
+                                    mu00fcssen ausgefu00fcllt werden u2013 verpflichtend
                                     sind nur die farbig markierten Angaben.
-                                    Zusätzliche Informationen können ebenfalls
-                                    ergänzt werden, auch wenn sie nicht explizit
+                                    Zusu00e4tzliche Informationen ku00f6nnen ebenfalls
+                                    ergu00e4nzt werden, auch wenn sie nicht explizit
                                     im Modell vorgesehen sind.
                                 </p>
                             </v-col>
@@ -164,7 +164,7 @@
                                     einem Eintrag auf Gestapo.Terror.Orte
                                     aussieht: Welche Informationen lassen sich
                                     aus historischen Quellen gewinnen? Wie sehen
-                                    die entsprechenden Einträge in Wikidata und
+                                    die entsprechenden Eintru00e4ge in Wikidata und
                                     auf der Karte aus?
                                 </p>
                             </v-col>
@@ -195,103 +195,6 @@
 
                     <br />
                 </section>
-
-                <section id="export">
-                    <h2
-                        class="font-weight-medium text-h5 text-md-h4 mb-5"
-                        :class="{ 'font-size-29': $vuetify.display.mdAndUp }"
-                    >
-                        Wikidata Daten exportieren
-                    </h2>
-                    <p>
-                        Hier kannst du die Wikidata-Daten zur Geschichte der
-                        Gestapo als CSV-Datei herunterladen, die du in Excel
-                        oder anderen Tabellenkalkulationsprogrammen öffnen
-                        kannst.
-                    </p>
-
-                    <v-form @submit.prevent="submitExportForm" ref="exportForm">
-                        <h3 class="mt-4 mb-3">Datentyp wählen:</h3>
-                        <v-select
-                            v-model="exportType"
-                            :items="exportOptions"
-                            item-title="text"
-                            item-value="value"
-                            return-object="false"
-                            label="Wähle einen Datentyp"
-                            class="mb-6"
-                        ></v-select>
-
-                        <v-alert
-                            type="info"
-                            class="mb-4"
-                            color="info"
-                            icon="mdi-information"
-                        >
-                            Der Export großer Datenmengen kann einige Momente
-                            dauern. Bitte warten Sie, bis der Download
-                            abgeschlossen ist.
-                        </v-alert>
-
-                        <v-btn
-                            type="submit"
-                            color="primary"
-                            class="mb-4"
-                            :loading="isExporting"
-                        >
-                            <v-icon start>mdi-download</v-icon>
-                            CSV-Datei herunterladen
-                        </v-btn>
-                    </v-form>
-
-                    <h3 class="mt-6 mb-3">Über die exportierten Daten:</h3>
-                    <ul>
-                        <li>Die Daten werden direkt von Wikidata abgerufen</li>
-                        <li>
-                            CSV-Dateien können in Excel oder ähnlichen
-                            Tabellenkalkulationsprogrammen geöffnet werden
-                        </li>
-                        <li>
-                            Die Datei enthält eine UTF-8 BOM-Markierung für
-                            korrekte Zeichendarstellung in Excel
-                        </li>
-                    </ul>
-
-                    <h3 class="mt-4 mb-3">Für den Orte-Export:</h3>
-                    <p>
-                        Enthält ID, Label, Beschreibung, Typ, Koordinaten,
-                        Adresse, Gründungs- und Auflösungsdaten sowie
-                        Website-Links.
-                    </p>
-
-                    <h3 class="mt-4 mb-3">
-                        Für den Orte-Export ohne Ereignisse:
-                    </h3>
-                    <p>
-                        Enthält die gleichen Daten wie der Orte-Export, filtert
-                        aber Einträge vom Typ "NS-Verbrechen" (Wikidata
-                        Q6983405) aus.
-                    </p>
-
-                    <h3 class="mt-4 mb-3">Für den Orte-Export (minimal):</h3>
-                    <p>
-                        Enthält nur Orte vom Typ Arbeitserziehungslager,
-                        Gefängnis oder Erweitertes Polizeigefängnis.
-                    </p>
-
-                    <h3 class="mt-4 mb-3">Für den Personen-Export:</h3>
-                    <p>
-                        Enthält ID, Name, Beschreibung, Geschlecht, Geburts- und
-                        Sterbedaten, Geburts- und Sterbeorte,
-                        Staatsbürgerschaften und Personengruppe.
-                    </p>
-
-                    <h3 class="mt-4 mb-3">Für den Täter/Geschädigte-Export:</h3>
-                    <p>
-                        Filtert die Personen nach ihrer Rolle (Täter oder
-                        Geschädigte) im NS-Regime.
-                    </p>
-                </section>
             </v-col>
         </v-row>
     </v-container>
@@ -319,56 +222,6 @@ const ogtGlobals = inject("ogtGlobals");
 const props = defineProps({
     isMenuDisplayed: Boolean,
 });
-
-// Export functionality
-const exportType = ref("all");
-const isExporting = ref(false);
-
-// Export options for the dropdown
-const exportOptions = [
-    { text: "Alle Daten (Orte und Personen)", value: "all" },
-    { text: "Nur Orte (Mit Ereignissen)", value: "places" },
-    { text: "Nur Orte (ohne Ereignisse)", value: "places_no_events" },
-    {
-        text: "Nur Orte (minimal: Arbeitserziehungslager, Gefängnis, Erweitertes Polizeigefängnis)",
-        value: "places_minimal",
-    },
-    { text: "Nur Personen (Alle)", value: "persons" },
-    { text: "Nur Personen (Täter)", value: "persons_perpetrators" },
-    { text: "Nur Personen (Geschädigte)", value: "persons_victims" },
-];
-
-// Submit the export form
-const submitExportForm = async () => {
-    isExporting.value = true;
-    
-    try {
-        // Create a link element for direct download
-        const downloadLink = document.createElement('a');
-        
-        // Set the href with the export type as a query parameter
-        downloadLink.href = `/export/download?type=${encodeURIComponent(exportType.value)}`;
-        
-        // Set download attribute to force download
-        downloadLink.setAttribute('download', '');
-        
-        // Hide the link
-        downloadLink.style.display = 'none';
-        
-        // Add to document, click it, and remove it
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
-        
-        // Reset loading state after a short delay
-        setTimeout(() => {
-            isExporting.value = false;
-        }, 2000);
-    } catch (error) {
-        console.error('Export error:', error);
-        isExporting.value = false;
-    }
-};
 
 // Reactive references
 const freeClientWidth = ref(document.documentElement.clientWidth);
@@ -402,10 +255,6 @@ const headings = ref([
     {
         href: "#materials",
         label: "Anleitungen zur Werkstatt historische Daten",
-    },
-    {
-        href: "#export",
-        label: "Wikidata Daten exportieren",
     },
 ]);
 </script>
