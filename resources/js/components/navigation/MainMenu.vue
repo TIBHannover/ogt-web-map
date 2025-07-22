@@ -59,6 +59,13 @@ const menuItems = ref([
         show: true,
         toMenu: "mainMenu",
     },
+    {
+        title: "Forschungsdaten",
+        icon: "mdi-database",
+        path: "/forschungsdaten",
+        show: true,
+        toMenu: "mainMenu",
+    },
     /* {
         title: 'Eintrag anlegen',
         icon: 'mdi-plus',

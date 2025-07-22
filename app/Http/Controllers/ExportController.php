@@ -46,7 +46,7 @@ class ExportController extends Controller
 
         if (!empty($placesData["results"]["bindings"])) {
             $places = $this->wikidataClient->mergeItemsData(
-                $placesData["results"]["bindings"]
+                $placesData["results"]["bindings"],
             );
 
             // Define allowed place types
@@ -85,7 +85,7 @@ class ExportController extends Controller
                     $this->extractFilteredTypes($place["instances"] ?? []),
                     $this->combineCoordinates($place["coordinates"] ?? []),
                     $this->extractMultipleValues(
-                        $place["streetAddresses"] ?? []
+                        $place["streetAddresses"] ?? [],
                     ),
                     $this->extractFirstDate($place["inceptionDates"] ?? []),
                     $this->extractFirstDate($place["dissolvedDates"] ?? []),
@@ -94,7 +94,7 @@ class ExportController extends Controller
                     $this->extractMultipleValues($place["victims"] ?? []),
                     $this->extractMultipleValues($place["perpetrators"] ?? []),
                     $this->extractMultipleValues(
-                        $place["significantEvents"] ?? []
+                        $place["significantEvents"] ?? [],
                     ),
                 ];
 
@@ -136,7 +136,7 @@ class ExportController extends Controller
 
         if (!empty($placesData["results"]["bindings"])) {
             $places = $this->wikidataClient->mergeItemsData(
-                $placesData["results"]["bindings"]
+                $placesData["results"]["bindings"],
             );
 
             // Write data rows, filtering out Nazi crime events (Q6983405)
@@ -165,7 +165,7 @@ class ExportController extends Controller
                     $this->extractFilteredTypes($place["instances"] ?? []),
                     $this->combineCoordinates($place["coordinates"] ?? []),
                     $this->extractMultipleValues(
-                        $place["streetAddresses"] ?? []
+                        $place["streetAddresses"] ?? [],
                     ),
                     $this->extractFirstDate($place["inceptionDates"] ?? []),
                     $this->extractFirstDate($place["dissolvedDates"] ?? []),
@@ -174,7 +174,7 @@ class ExportController extends Controller
                     $this->extractMultipleValues($place["victims"] ?? []),
                     $this->extractMultipleValues($place["perpetrators"] ?? []),
                     $this->extractMultipleValues(
-                        $place["significantEvents"] ?? []
+                        $place["significantEvents"] ?? [],
                     ),
                 ];
 
@@ -184,6 +184,304 @@ class ExportController extends Controller
             // Add a blank row between sections
             fputcsv($output, [""]);
         }
+    }
+
+    /**
+     * Export places data as CSV filtered by specific place type
+     *
+     * @param resource $output The output stream
+     * @param string $placeType The type of place to filter by
+     * @return void
+     */
+    private function exportPlacesByType($output, $placeType)
+    {
+        // Write header row for places (same as regular places export)
+        fputcsv($output, [
+            "ID",
+            "Label",
+            "Description",
+            "Type",
+            "Coordinates",
+            "Street Address",
+            "Inception Date",
+            "Dissolution Date",
+            "Website",
+            "Operators",
+            "Victims",
+            "Perpetrators",
+            "Significant Events",
+        ]);
+
+        // Debug info row for diagnosing issues
+        if ($placeType === "Erinnerungsort") {
+            fputcsv($output, [
+                "DEBUG INFO",
+                "Searching for type: " . $placeType,
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+            ]);
+        }
+
+        // Get places data from Wikidata
+        $placesData = $this->wikidataClient->queryPlaces();
+
+        if (!empty($placesData["results"]["bindings"])) {
+            $places = $this->wikidataClient->mergeItemsData(
+                $placesData["results"]["bindings"],
+            );
+
+            // Track if we found any matches
+            $foundMatch = false;
+
+            // Track all place types for debugging
+            $allTypes = [];
+
+            // Write data rows, filtering by place type
+            foreach ($places as $place) {
+                if (!isset($place["instances"])) {
+                    continue; // Skip if no type information
+                }
+
+                // For Erinnerungsorte debugging, collect all types
+                if ($placeType === "Erinnerungsort") {
+                    foreach ($place["instances"] as $instance) {
+                        if (
+                            isset($instance["value"]) &&
+                            !in_array($instance["value"], $allTypes)
+                        ) {
+                            $allTypes[] = $instance["value"];
+                        }
+                    }
+                }
+
+                $isTargetType = false;
+                foreach ($place["instances"] as $instance) {
+                    if (
+                        isset($instance["value"]) &&
+                        $instance["value"] === $placeType
+                    ) {
+                        $isTargetType = true;
+                        $foundMatch = true;
+                        break;
+                    }
+                }
+
+                // Skip if not the target type
+                if (!$isTargetType) {
+                    continue;
+                }
+
+                $row = [
+                    $place["id"] ?? "",
+                    $place["label"] ?? "",
+                    $place["description"] ?? "",
+                    $this->extractFilteredTypes($place["instances"] ?? []),
+                    $this->combineCoordinates($place["coordinates"] ?? []),
+                    $this->extractMultipleValues(
+                        $place["streetAddresses"] ?? [],
+                    ),
+                    $this->extractFirstDate($place["inceptionDates"] ?? []),
+                    $this->extractFirstDate($place["dissolvedDates"] ?? []),
+                    $this->extractFirstValue($place["officialWebsite"] ?? []),
+                    $this->extractMultipleValues($place["operators"] ?? []),
+                    $this->extractMultipleValues($place["victims"] ?? []),
+                    $this->extractMultipleValues($place["perpetrators"] ?? []),
+                    $this->extractMultipleValues(
+                        $place["significantEvents"] ?? [],
+                    ),
+                ];
+
+                fputcsv($output, $row);
+            }
+
+            // Add debug info if no matches found
+            if ($placeType === "Erinnerungsort" && !$foundMatch) {
+                fputcsv($output, [
+                    "DEBUG INFO",
+                    "No matches found for type: " . $placeType,
+                    "Available types: " . implode(", ", $allTypes),
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                ]);
+            }
+
+            // Add a blank row between sections
+            fputcsv($output, [""]);
+        }
+    }
+
+    /**
+     * Export Ereignisse (events) data as CSV
+     *
+     * @param resource $output The output stream
+     * @return void
+     */
+    private function exportEvents($output)
+    {
+        fputcsv($output, [
+            "ID",
+            "Label",
+            "Description",
+            "Type",
+            "Coordinates",
+            "Street Address",
+            "Inception Date",
+            "Dissolution Date",
+            "Website",
+            "Operators",
+            "Victims",
+            "Perpetrators",
+            "Significant Events",
+        ]);
+
+        // Get places data from Wikidata
+        $placesData = $this->wikidataClient->queryPlaces();
+
+        if (!empty($placesData["results"]["bindings"])) {
+            $places = $this->wikidataClient->mergeItemsData(
+                $placesData["results"]["bindings"],
+            );
+
+            foreach ($places as $place) {
+                if (isset($place["instances"])) {
+                    $isNaziCrime = false;
+                    foreach ($place["instances"] as $instance) {
+                        if (
+                            isset($instance["id"]) &&
+                            $instance["id"] === "Q6983405"
+                        ) {
+                            $isNaziCrime = true;
+                            break;
+                        }
+                    }
+                    if (!$isNaziCrime) {
+                        continue;
+                    }
+                } else {
+                    continue;
+                }
+
+                $row = [
+                    $place["id"] ?? "",
+                    $place["label"] ?? "",
+                    $place["description"] ?? "",
+                    $this->extractFilteredTypes($place["instances"] ?? []),
+                    $this->combineCoordinates($place["coordinates"] ?? []),
+                    $this->extractMultipleValues(
+                        $place["streetAddresses"] ?? [],
+                    ),
+                    $this->extractFirstDate($place["inceptionDates"] ?? []),
+                    $this->extractFirstDate($place["dissolvedDates"] ?? []),
+                    $this->extractFirstValue($place["officialWebsite"] ?? []),
+                    $this->extractMultipleValues($place["operators"] ?? []),
+                    $this->extractMultipleValues($place["victims"] ?? []),
+                    $this->extractMultipleValues($place["perpetrators"] ?? []),
+                    $this->extractMultipleValues(
+                        $place["significantEvents"] ?? [],
+                    ),
+                ];
+
+                fputcsv($output, $row);
+            }
+
+            // Add a blank row between sections
+            fputcsv($output, [""]);
+        }
+    }
+
+    /**
+     * Export Staatspolizeileitstellen data as CSV
+     *
+     * @param resource $output The output stream
+     * @return void
+     */
+    private function exportStaatspolizeileitstellen($output)
+    {
+        $this->exportPlacesByType($output, "Staatspolizeileitstelle");
+    }
+
+    /**
+     * Export Staatspolizeistellen data as CSV
+     *
+     * @param resource $output The output stream
+     * @return void
+     */
+    private function exportStaatspolizeistellen($output)
+    {
+        $this->exportPlacesByType($output, "Staatspolizeistelle");
+    }
+
+    /**
+     * Export Auu00dfendienststellen data as CSV
+     *
+     * @param resource $output The output stream
+     * @return void
+     */
+    private function exportAussendienststellen($output)
+    {
+        $this->exportPlacesByType($output, "Außendienststelle");
+    }
+
+    /**
+     * Export Gefängnisse data as CSV
+     *
+     * @param resource $output The output stream
+     * @return void
+     */
+    private function exportGefaengnisse($output)
+    {
+        $this->exportPlacesByType($output, "Gefängnis");
+    }
+
+    /**
+     * Export Erweiterte Polizeigefu00e4ngnisse data as CSV
+     *
+     * @param resource $output The output stream
+     * @return void
+     */
+    private function exportErweitertesPolizeigefaengnis($output)
+    {
+        $this->exportPlacesByType($output, "Erweitertes Polizeigefängnis");
+    }
+
+    /**
+     * Export Arbeitserziehungslager data as CSV
+     *
+     * @param resource $output The output stream
+     * @return void
+     */
+    private function exportArbeitserziehungslager($output)
+    {
+        $this->exportPlacesByType($output, "Arbeitserziehungslager");
+    }
+
+    /**
+     * Export Erinnerungsorte data as CSV
+     *
+     * @param resource $output The output stream
+     * @return void
+     */
+    private function exportErinnerungsorte($output)
+    {
+        // Try with an alternative spelling that might be in the data
+        $this->exportPlacesByType($output, "Gedenkstätte");
     }
 
     /**
@@ -229,6 +527,22 @@ class ExportController extends Controller
                     $this->exportPlacesWithoutEvents($output);
                 } elseif ($type == "places_minimal") {
                     $this->exportPlacesMinimal($output);
+                } elseif ($type == "staatspolizeileitstellen") {
+                    $this->exportStaatspolizeileitstellen($output);
+                } elseif ($type == "staatspolizeistellen") {
+                    $this->exportStaatspolizeistellen($output);
+                } elseif ($type == "aussendienststellen") {
+                    $this->exportAussendienststellen($output);
+                } elseif ($type == "gefaengnisse") {
+                    $this->exportGefaengnisse($output);
+                } elseif ($type == "erweitertes_polizeigefaengnis") {
+                    $this->exportErweitertesPolizeigefaengnis($output);
+                } elseif ($type == "arbeitserziehungslager") {
+                    $this->exportArbeitserziehungslager($output);
+                } elseif ($type == "ereignisse") {
+                    $this->exportEvents($output);
+                } elseif ($type == "erinnerungsorte") {
+                    $this->exportErinnerungsorte($output);
                 }
 
                 if ($type == "persons" || $type == "all") {
@@ -242,7 +556,7 @@ class ExportController extends Controller
                 fclose($output);
             },
             200,
-            $headers
+            $headers,
         );
     }
 
@@ -276,7 +590,7 @@ class ExportController extends Controller
 
         if (!empty($placesData["results"]["bindings"])) {
             $places = $this->wikidataClient->mergeItemsData(
-                $placesData["results"]["bindings"]
+                $placesData["results"]["bindings"],
             );
 
             // Write data rows
@@ -288,7 +602,7 @@ class ExportController extends Controller
                     $this->extractFilteredTypes($place["instances"] ?? []),
                     $this->combineCoordinates($place["coordinates"] ?? []),
                     $this->extractMultipleValues(
-                        $place["streetAddresses"] ?? []
+                        $place["streetAddresses"] ?? [],
                     ),
                     $this->extractFirstDate($place["inceptionDates"] ?? []),
                     $this->extractFirstDate($place["dissolvedDates"] ?? []),
@@ -297,7 +611,7 @@ class ExportController extends Controller
                     $this->extractMultipleValues($place["victims"] ?? []),
                     $this->extractMultipleValues($place["perpetrators"] ?? []),
                     $this->extractMultipleValues(
-                        $place["significantEvents"] ?? []
+                        $place["significantEvents"] ?? [],
                     ),
                 ];
 
@@ -369,7 +683,7 @@ class ExportController extends Controller
 
         if (!empty($personsData["results"]["bindings"])) {
             $persons = $this->wikidataClient->mergeItemsData(
-                $personsData["results"]["bindings"]
+                $personsData["results"]["bindings"],
             );
 
             // First, try to group persons by subject roles (P2868)
@@ -380,7 +694,7 @@ class ExportController extends Controller
                 // Determine person type based on subjectRoles if available
                 $personType = "Unknown";
                 $subjectRoles = $this->extractMultipleValues(
-                    $person["subjectRoles"] ?? []
+                    $person["subjectRoles"] ?? [],
                 );
 
                 // Process every person regardless of grouping
@@ -399,7 +713,7 @@ class ExportController extends Controller
                     $subjectRoles,
                     $this->extractMultipleValues($person["employers"] ?? []),
                     $this->extractMultipleValues(
-                        $person["detentionPlaces"] ?? []
+                        $person["detentionPlaces"] ?? [],
                     ),
                 ];
 
@@ -473,7 +787,7 @@ class ExportController extends Controller
 
         if (!empty($personsData["results"]["bindings"])) {
             $persons = $this->wikidataClient->mergeItemsData(
-                $personsData["results"]["bindings"]
+                $personsData["results"]["bindings"],
             );
 
             // Process each person and check if they are a perpetrator
@@ -524,7 +838,7 @@ class ExportController extends Controller
                     $this->extractMultipleValues($person["subjectRoles"] ?? []),
                     $this->extractMultipleValues($person["employers"] ?? []),
                     $this->extractMultipleValues(
-                        $person["detentionPlaces"] ?? []
+                        $person["detentionPlaces"] ?? [],
                     ),
                 ];
 
@@ -567,7 +881,7 @@ class ExportController extends Controller
 
         if (!empty($personsData["results"]["bindings"])) {
             $persons = $this->wikidataClient->mergeItemsData(
-                $personsData["results"]["bindings"]
+                $personsData["results"]["bindings"],
             );
 
             // Process each person and check if they are a victim
@@ -639,7 +953,7 @@ class ExportController extends Controller
                     $this->extractMultipleValues($person["subjectRoles"] ?? []),
                     $this->extractMultipleValues($person["employers"] ?? []),
                     $this->extractMultipleValues(
-                        $person["detentionPlaces"] ?? []
+                        $person["detentionPlaces"] ?? [],
                     ),
                 ];
 
