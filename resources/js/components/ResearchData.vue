@@ -42,6 +42,17 @@
                         die du in Excel oder anderen
                         Tabellenkalkulationsprogrammen öffnen kannst.
                     </p>
+                    <p>
+                        Die hier bereitgestellten Daten spiegeln den aktuellen
+                        Stand der Recherchen auf Wikidata wider und erheben
+                        keinen Anspruch auf Vollständigkeit. Die Erfassung von
+                        Orten, Ereignissen und Akteur*innen im Zusammenhang mit
+                        dem Gestapo-Terror ist ein fortlaufender Prozess. Je
+                        mehr Menschen ihr Wissen einbringen, desto dichter und
+                        genauer wird der gemeinsame Forschungsstand. Du kannst
+                        dich gerne beteiligen und zur Weiterentwicklung der
+                        offenen Daten beitragen.
+                    </p>
 
                     <h3 class="mt-6 mb-3">Über die exportierten Daten:</h3>
                     <ul>
@@ -56,14 +67,15 @@
                         </li>
                     </ul>
 
-                    <!-- Orte (Strukturen der Gestapo) -->
                     <h2 class="font-weight-medium text-h5 text-md-h4 mt-8 mb-4">
-                        Strukturen der Gestapo
+                        Dienstsitze der Gestapo
                     </h2>
 
                     <!-- Staatspolizeileitstellen -->
                     <v-card class="mb-6 pa-4">
-                        <h3 class="text-h6 mb-2">Staatspolizeileitstellen</h3>
+                        <h3 class="text-h6 mb-2">
+                            Staatspolizeileitstellen in Niedersachsen
+                        </h3>
                         <p>
                             Enthält Daten zu den Staatspolizeileitstellen, die
                             regional zuständige Dienststellen der Geheimen
@@ -84,7 +96,9 @@
 
                     <!-- Staatspolizeistellen -->
                     <v-card class="mb-6 pa-4">
-                        <h3 class="text-h6 mb-2">Staatspolizeistellen</h3>
+                        <h3 class="text-h6 mb-2">
+                            Staatspolizeistellen in Niedersachsen
+                        </h3>
                         <p>
                             Enthält Daten zu den Staatspolizeistellen, die den
                             Staatspolizeileitstellen untergeordnet waren.
@@ -102,7 +116,9 @@
 
                     <!-- Außendienststellen -->
                     <v-card class="mb-6 pa-4">
-                        <h3 class="text-h6 mb-2">Außendienststellen</h3>
+                        <h3 class="text-h6 mb-2">
+                            Außendienststellen in Niedersachsen
+                        </h3>
                         <p>
                             Enthält Daten zu den Außendienststellen der Gestapo,
                             die für kleinere Städte und Regionen zuständig
@@ -126,7 +142,9 @@
 
                     <!-- Gefängnisse -->
                     <v-card class="mb-6 pa-4">
-                        <h3 class="text-h6 mb-2">Gefängnisse</h3>
+                        <h3 class="text-h6 mb-2">
+                            Gefängnisse in Niedersachsen
+                        </h3>
                         <p>
                             Enthält Daten zu Gefängnissen, die von der Gestapo
                             genutzt wurden.
@@ -145,7 +163,7 @@
                     <!-- Erweiterte Polizeigefängnisse -->
                     <v-card class="mb-6 pa-4">
                         <h3 class="text-h6 mb-2">
-                            Erweiterte Polizeigefängnisse
+                            Erweiterte Polizeigefängnisse in Niedersachsen
                         </h3>
                         <p>
                             Enthält Daten zu Erweiterten Polizeigefängnissen,
@@ -168,7 +186,9 @@
 
                     <!-- Arbeitserziehungslager -->
                     <v-card class="mb-6 pa-4">
-                        <h3 class="text-h6 mb-2">Arbeitserziehungslager</h3>
+                        <h3 class="text-h6 mb-2">
+                            Arbeitserziehungslager in Niedersachsen
+                        </h3>
                         <p>
                             Enthält Daten zu Arbeitserziehungslagern, die von
                             der Gestapo verwaltet wurden.
@@ -184,12 +204,18 @@
                         </v-btn>
                     </v-card>
 
+                    <h2 class="font-weight-medium text-h5 text-md-h4 mt-8 mb-4">
+                        Ereignisse
+                    </h2>
+
                     <!-- Ereignisse -->
                     <v-card class="mb-6 pa-4">
-                        <h3 class="text-h6 mb-2">Ereignisse</h3>
+                        <h3 class="text-h6 mb-2">
+                            Ereignisse in Niedersachsen
+                        </h3>
                         <p>
-                            Enthält Daten zu NS-Verbrechen und anderen
-                            relevanten historischen Ereignissen.
+                            Enthält Daten zu den Verbrechen der Gestapo in
+                            Niedersachsen.
                         </p>
                         <v-btn
                             @click="downloadExport('ereignisse')"
@@ -202,9 +228,15 @@
                         </v-btn>
                     </v-card>
 
+                    <h2 class="font-weight-medium text-h5 text-md-h4 mt-8 mb-4">
+                        Erinnerungsorte
+                    </h2>
+
                     <!-- Erinnerungsorte -->
                     <v-card class="mb-6 pa-4">
-                        <h3 class="text-h6 mb-2">Erinnerungsorte</h3>
+                        <h3 class="text-h6 mb-2">
+                            Erinnerungsorte in Niedersachsen
+                        </h3>
                         <p>
                             Enthält Daten zu Gedenkstätten und anderen Orten des
                             Erinnerns.
@@ -227,10 +259,10 @@
 
                     <!-- Täter -->
                     <v-card class="mb-6 pa-4">
-                        <h3 class="text-h6 mb-2">Täter</h3>
+                        <h3 class="text-h6 mb-2">Täter*innen</h3>
                         <p>
-                            Filtert die Personen und zeigt nur diejenigen an,
-                            die als Täter im NS-Regime identifiziert wurden.
+                            Enthält Daten zu Personen, die in den Strukturen der
+                            Gestapo in Niedersachsen tätig waren.
                         </p>
                         <v-btn
                             @click="downloadExport('persons_perpetrators')"
@@ -247,9 +279,9 @@
                     <v-card class="mb-6 pa-4">
                         <h3 class="text-h6 mb-2">Geschädigte</h3>
                         <p>
-                            Filtert die Personen und zeigt nur diejenigen an,
-                            die als Opfer oder Geschädigte im NS-Regime
-                            identifiziert wurden.
+                            Enthält Daten zu Personen, die im Zusammenhang mit
+                            Maßnahmen, Überwachung oder Verfolgung durch die
+                            Gestapo in Niedersachsen geschädigt wurden.
                         </p>
                         <v-btn
                             @click="downloadExport('persons_victims')"
