@@ -96,12 +96,13 @@
 
                     <!-- Staatspolizeistellen -->
                     <v-card class="mb-6 pa-4">
-                        <h3 class="text-h6 mb-2">
-                            Staatspolizeistellen in Niedersachsen
-                        </h3>
+                        <h3 class="text-h6 mb-2">Staatspolizeistellen</h3>
                         <p>
-                            Enthält Daten zu den Staatspolizeistellen, die den
-                            Staatspolizeileitstellen untergeordnet waren.
+                            Enthält Daten zu Staatspolizeileitstellen, die
+                            entweder in Niedersachsen lagen oder als
+                            übergeordnete Dienststellen für die in Niedersachsen
+                            zuständigen Stellen der Geheimen Staatspolizei
+                            fungierten.
                         </p>
                         <v-btn
                             @click="downloadExport('staatspolizeistellen')"
