@@ -66,37 +66,77 @@
                             korrekte Zeichendarstellung in Excel
                         </li>
                     </ul>
+                    <!--
+                    <v-card class="mb-6 pa-4 bg-grey-lighten-4">
+                        <h3 class="text-h6 mb-2">
+                            Hilfe: So öffnen Sie die Dateien
+                        </h3>
 
+                        <p class="mb-4">
+                            <strong>Excel-Button:</strong> Erstellt eine echte Excel-Datei (.xlsx), die sich direkt in Microsoft Excel und anderen Tabellenkalkulationsprogrammen öffnen lässt, ohne dass zusätzliche Schritte erforderlich sind.
+                        </p>
+
+                        <p class="mb-4">
+                            <strong>CSV-Button:</strong> Erstellt eine Standard-CSV-Datei mit Komma als Trennzeichen, die für die meisten internationalen Tabellenkalkulationsprogramme geeignet ist.
+                        </p>
+
+                        <h4 class="font-weight-medium mb-2">Falls die Datei nicht automatisch korrekt geöffnet wird:</h4>
+
+                        <h5 class="font-weight-medium mb-2">In Microsoft Excel:</h5>
+                        <ol>
+                            <li>
+                                Öffnen Sie Excel und wählen Sie <strong>Datei → Öffnen</strong>
+                            </li>
+                            <li>
+                                Wählen Sie die heruntergeladene CSV-Datei aus (Sie müssen eventuell bei "Dateityp" auf "Alle Dateien" umstellen)
+                            </li>
+                            <li>
+                                Der Text-Import-Assistent sollte erscheinen. Falls nicht, klicken Sie auf <strong>Daten → Aus Text</strong>
+                            </li>
+                            <li>
+                                Im ersten Schritt wählen Sie <strong>Getrennt</strong> und <strong>UTF-8</strong> als Dateiursprung
+                            </li>
+                            <li>
+                                Im zweiten Schritt aktivieren Sie als Trennzeichen das <strong>Komma</strong> (für CSV) oder <strong>Semikolon</strong> (für Excel-Format)
+                            </li>
+                            <li>
+                                Klicken Sie auf <strong>Fertig stellen</strong>, um die Daten zu importieren
+                            </li>
+                        </ol>
+
+                        <h5 class="font-weight-medium mt-4 mb-2">In LibreOffice Calc:</h5>
+                        <ol>
+                            <li>
+                                Öffnen Sie LibreOffice Calc und wählen Sie <strong>Datei → Öffnen</strong>
+                            </li>
+                            <li>
+                                Wählen Sie die heruntergeladene CSV-Datei aus
+                            </li>
+                            <li>
+                                Im Textimport-Dialog stellen Sie folgendes ein:
+                                <ul>
+                                    <li>Zeichensatz: <strong>Unicode (UTF-8)</strong></li>
+                                    <li>Sprache: <strong>Deutsch</strong></li>
+                                    <li>Trennoptionen: <strong>Komma</strong> (für CSV) oder <strong>Semikolon</strong> (für Excel-Format) aktivieren</li>
+                                </ul>
+                            </li>
+                            <li>
+                                Klicken Sie auf <strong>OK</strong>, um die Daten zu importieren
+                            </li>
+                        </ol>
+
+                        <p class="mt-4">
+                            <strong>Tipp:</strong> Falls die Spalten nicht richtig angezeigt werden, können Sie in Excel oder LibreOffice Calc die Breite der Spalten anpassen, indem Sie auf die Trennlinie zwischen den Spaltenüberschriften doppelklicken.
+                        </p>
+                    </v-card>
+-->
                     <h2 class="font-weight-medium text-h5 text-md-h4 mt-8 mb-4">
                         Dienstsitze der Gestapo
                     </h2>
 
                     <!-- Staatspolizeileitstellen -->
                     <v-card class="mb-6 pa-4">
-                        <h3 class="text-h6 mb-2">
-                            Staatspolizeileitstellen in Niedersachsen
-                        </h3>
-                        <p>
-                            Enthält Daten zu den Staatspolizeileitstellen, die
-                            regional zuständige Dienststellen der Geheimen
-                            Staatspolizei waren.
-                        </p>
-                        <v-btn
-                            @click="downloadExport('staatspolizeileitstellen')"
-                            color="primary"
-                            class="mt-2"
-                            :loading="
-                                isExporting === 'staatspolizeileitstellen'
-                            "
-                        >
-                            <v-icon start>mdi-download</v-icon>
-                            Staatspolizeileitstellen exportieren
-                        </v-btn>
-                    </v-card>
-
-                    <!-- Staatspolizeistellen -->
-                    <v-card class="mb-6 pa-4">
-                        <h3 class="text-h6 mb-2">Staatspolizeistellen</h3>
+                        <h3 class="text-h6 mb-2">Staatspolizeileitstellen</h3>
                         <p>
                             Enthält Daten zu Staatspolizeileitstellen, die
                             entweder in Niedersachsen lagen oder als
@@ -104,15 +144,85 @@
                             zuständigen Stellen der Geheimen Staatspolizei
                             fungierten.
                         </p>
-                        <v-btn
-                            @click="downloadExport('staatspolizeistellen')"
-                            color="primary"
-                            class="mt-2"
-                            :loading="isExporting === 'staatspolizeistellen'"
-                        >
-                            <v-icon start>mdi-download</v-icon>
-                            Staatspolizeistellen exportieren
-                        </v-btn>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <v-btn
+                                @click="
+                                    downloadExport(
+                                        'staatspolizeileitstellen',
+                                        'csv',
+                                    )
+                                "
+                                color="primary"
+                                variant="outlined"
+                                :loading="
+                                    isExporting ===
+                                    'staatspolizeileitstellen_csv'
+                                "
+                            >
+                                <v-icon start>mdi-download</v-icon>
+                                CSV exportieren
+                            </v-btn>
+                            <v-btn
+                                @click="
+                                    downloadExport(
+                                        'staatspolizeileitstellen',
+                                        'excel',
+                                    )
+                                "
+                                color="success"
+                                :loading="
+                                    isExporting ===
+                                    'staatspolizeileitstellen_excel'
+                                "
+                            >
+                                <v-icon start>mdi-microsoft-excel</v-icon>
+                                Excel exportieren
+                            </v-btn>
+                        </div>
+                    </v-card>
+
+                    <!-- Staatspolizeistellen -->
+                    <v-card class="mb-6 pa-4">
+                        <h3 class="text-h6 mb-2">
+                            Staatspolizeistellen in Niedersachsen
+                        </h3>
+                        <p>
+                            Enthält Daten zu den Staatspolizeistellen, die den
+                            Staatspolizeileitstellen untergeordnet waren.
+                        </p>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <v-btn
+                                @click="
+                                    downloadExport(
+                                        'staatspolizeistellen',
+                                        'csv',
+                                    )
+                                "
+                                color="primary"
+                                variant="outlined"
+                                :loading="
+                                    isExporting === 'staatspolizeistellen_csv'
+                                "
+                            >
+                                <v-icon start>mdi-download</v-icon>
+                                CSV exportieren
+                            </v-btn>
+                            <v-btn
+                                @click="
+                                    downloadExport(
+                                        'staatspolizeistellen',
+                                        'excel',
+                                    )
+                                "
+                                color="success"
+                                :loading="
+                                    isExporting === 'staatspolizeistellen_excel'
+                                "
+                            >
+                                <v-icon start>mdi-microsoft-excel</v-icon>
+                                Excel exportieren
+                            </v-btn>
+                        </div>
                     </v-card>
 
                     <!-- Außendienststellen -->
@@ -125,15 +235,36 @@
                             die für kleinere Städte und Regionen zuständig
                             waren.
                         </p>
-                        <v-btn
-                            @click="downloadExport('aussendienststellen')"
-                            color="primary"
-                            class="mt-2"
-                            :loading="isExporting === 'aussendienststellen'"
-                        >
-                            <v-icon start>mdi-download</v-icon>
-                            Außendienststellen exportieren
-                        </v-btn>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <v-btn
+                                @click="
+                                    downloadExport('aussendienststellen', 'csv')
+                                "
+                                color="primary"
+                                variant="outlined"
+                                :loading="
+                                    isExporting === 'aussendienststellen_csv'
+                                "
+                            >
+                                <v-icon start>mdi-download</v-icon>
+                                CSV exportieren
+                            </v-btn>
+                            <v-btn
+                                @click="
+                                    downloadExport(
+                                        'aussendienststellen',
+                                        'excel',
+                                    )
+                                "
+                                color="success"
+                                :loading="
+                                    isExporting === 'aussendienststellen_excel'
+                                "
+                            >
+                                <v-icon start>mdi-microsoft-excel</v-icon>
+                                Excel exportieren
+                            </v-btn>
+                        </div>
                     </v-card>
 
                     <!-- Haftstätten -->
@@ -150,15 +281,25 @@
                             Enthält Daten zu Gefängnissen, die von der Gestapo
                             genutzt wurden.
                         </p>
-                        <v-btn
-                            @click="downloadExport('gefaengnisse')"
-                            color="primary"
-                            class="mt-2"
-                            :loading="isExporting === 'gefaengnisse'"
-                        >
-                            <v-icon start>mdi-download</v-icon>
-                            Gefängnisse exportieren
-                        </v-btn>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <v-btn
+                                @click="downloadExport('gefaengnisse', 'csv')"
+                                color="primary"
+                                variant="outlined"
+                                :loading="isExporting === 'gefaengnisse_csv'"
+                            >
+                                <v-icon start>mdi-download</v-icon>
+                                CSV exportieren
+                            </v-btn>
+                            <v-btn
+                                @click="downloadExport('gefaengnisse', 'excel')"
+                                color="success"
+                                :loading="isExporting === 'gefaengnisse_excel'"
+                            >
+                                <v-icon start>mdi-microsoft-excel</v-icon>
+                                Excel exportieren
+                            </v-btn>
+                        </div>
                     </v-card>
 
                     <!-- Erweiterte Polizeigefängnisse -->
@@ -170,19 +311,41 @@
                             Enthält Daten zu Erweiterten Polizeigefängnissen,
                             die spezielle Hafteinrichtungen der Gestapo waren.
                         </p>
-                        <v-btn
-                            @click="
-                                downloadExport('erweitertes_polizeigefaengnis')
-                            "
-                            color="primary"
-                            class="mt-2"
-                            :loading="
-                                isExporting === 'erweitertes_polizeigefaengnis'
-                            "
-                        >
-                            <v-icon start>mdi-download</v-icon>
-                            Erweiterte Polizeigefängnisse exportieren
-                        </v-btn>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <v-btn
+                                @click="
+                                    downloadExport(
+                                        'erweitertes_polizeigefaengnis',
+                                        'csv',
+                                    )
+                                "
+                                color="primary"
+                                variant="outlined"
+                                :loading="
+                                    isExporting ===
+                                    'erweitertes_polizeigefaengnis_csv'
+                                "
+                            >
+                                <v-icon start>mdi-download</v-icon>
+                                CSV exportieren
+                            </v-btn>
+                            <v-btn
+                                @click="
+                                    downloadExport(
+                                        'erweitertes_polizeigefaengnis',
+                                        'excel',
+                                    )
+                                "
+                                color="success"
+                                :loading="
+                                    isExporting ===
+                                    'erweitertes_polizeigefaengnis_excel'
+                                "
+                            >
+                                <v-icon start>mdi-microsoft-excel</v-icon>
+                                Excel exportieren
+                            </v-btn>
+                        </div>
                     </v-card>
 
                     <!-- Arbeitserziehungslager -->
@@ -194,15 +357,40 @@
                             Enthält Daten zu Arbeitserziehungslagern, die von
                             der Gestapo verwaltet wurden.
                         </p>
-                        <v-btn
-                            @click="downloadExport('arbeitserziehungslager')"
-                            color="primary"
-                            class="mt-2"
-                            :loading="isExporting === 'arbeitserziehungslager'"
-                        >
-                            <v-icon start>mdi-download</v-icon>
-                            Arbeitserziehungslager exportieren
-                        </v-btn>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <v-btn
+                                @click="
+                                    downloadExport(
+                                        'arbeitserziehungslager',
+                                        'csv',
+                                    )
+                                "
+                                color="primary"
+                                variant="outlined"
+                                :loading="
+                                    isExporting === 'arbeitserziehungslager_csv'
+                                "
+                            >
+                                <v-icon start>mdi-download</v-icon>
+                                CSV exportieren
+                            </v-btn>
+                            <v-btn
+                                @click="
+                                    downloadExport(
+                                        'arbeitserziehungslager',
+                                        'excel',
+                                    )
+                                "
+                                color="success"
+                                :loading="
+                                    isExporting ===
+                                    'arbeitserziehungslager_excel'
+                                "
+                            >
+                                <v-icon start>mdi-microsoft-excel</v-icon>
+                                Excel exportieren
+                            </v-btn>
+                        </div>
                     </v-card>
 
                     <h2 class="font-weight-medium text-h5 text-md-h4 mt-8 mb-4">
@@ -218,15 +406,25 @@
                             Enthält Daten zu den Verbrechen der Gestapo in
                             Niedersachsen.
                         </p>
-                        <v-btn
-                            @click="downloadExport('ereignisse')"
-                            color="primary"
-                            class="mt-2"
-                            :loading="isExporting === 'ereignisse'"
-                        >
-                            <v-icon start>mdi-download</v-icon>
-                            Ereignisse exportieren
-                        </v-btn>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <v-btn
+                                @click="downloadExport('ereignisse', 'csv')"
+                                color="primary"
+                                variant="outlined"
+                                :loading="isExporting === 'ereignisse_csv'"
+                            >
+                                <v-icon start>mdi-download</v-icon>
+                                CSV exportieren
+                            </v-btn>
+                            <v-btn
+                                @click="downloadExport('ereignisse', 'excel')"
+                                color="success"
+                                :loading="isExporting === 'ereignisse_excel'"
+                            >
+                                <v-icon start>mdi-microsoft-excel</v-icon>
+                                Excel exportieren
+                            </v-btn>
+                        </div>
                     </v-card>
 
                     <h2 class="font-weight-medium text-h5 text-md-h4 mt-8 mb-4">
@@ -242,15 +440,31 @@
                             Enthält Daten zu Gedenkstätten und anderen Orten des
                             Erinnerns.
                         </p>
-                        <v-btn
-                            @click="downloadExport('erinnerungsorte')"
-                            color="primary"
-                            class="mt-2"
-                            :loading="isExporting === 'erinnerungsorte'"
-                        >
-                            <v-icon start>mdi-download</v-icon>
-                            Erinnerungsorte exportieren
-                        </v-btn>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <v-btn
+                                @click="
+                                    downloadExport('erinnerungsorte', 'csv')
+                                "
+                                color="primary"
+                                variant="outlined"
+                                :loading="isExporting === 'erinnerungsorte_csv'"
+                            >
+                                <v-icon start>mdi-download</v-icon>
+                                CSV exportieren
+                            </v-btn>
+                            <v-btn
+                                @click="
+                                    downloadExport('erinnerungsorte', 'excel')
+                                "
+                                color="success"
+                                :loading="
+                                    isExporting === 'erinnerungsorte_excel'
+                                "
+                            >
+                                <v-icon start>mdi-microsoft-excel</v-icon>
+                                Excel exportieren
+                            </v-btn>
+                        </div>
                     </v-card>
 
                     <!-- Personen -->
@@ -265,15 +479,39 @@
                             Enthält Daten zu Personen, die in den Strukturen der
                             Gestapo in Niedersachsen tätig waren.
                         </p>
-                        <v-btn
-                            @click="downloadExport('persons_perpetrators')"
-                            color="primary"
-                            class="mt-2"
-                            :loading="isExporting === 'persons_perpetrators'"
-                        >
-                            <v-icon start>mdi-download</v-icon>
-                            Täter exportieren
-                        </v-btn>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <v-btn
+                                @click="
+                                    downloadExport(
+                                        'persons_perpetrators',
+                                        'csv',
+                                    )
+                                "
+                                color="primary"
+                                variant="outlined"
+                                :loading="
+                                    isExporting === 'persons_perpetrators_csv'
+                                "
+                            >
+                                <v-icon start>mdi-download</v-icon>
+                                CSV exportieren
+                            </v-btn>
+                            <v-btn
+                                @click="
+                                    downloadExport(
+                                        'persons_perpetrators',
+                                        'excel',
+                                    )
+                                "
+                                color="success"
+                                :loading="
+                                    isExporting === 'persons_perpetrators_excel'
+                                "
+                            >
+                                <v-icon start>mdi-microsoft-excel</v-icon>
+                                Excel exportieren
+                            </v-btn>
+                        </div>
                     </v-card>
 
                     <!-- Geschädigte -->
@@ -284,15 +522,31 @@
                             Maßnahmen, Überwachung oder Verfolgung durch die
                             Gestapo in Niedersachsen geschädigt wurden.
                         </p>
-                        <v-btn
-                            @click="downloadExport('persons_victims')"
-                            color="primary"
-                            class="mt-2"
-                            :loading="isExporting === 'persons_victims'"
-                        >
-                            <v-icon start>mdi-download</v-icon>
-                            Geschädigte exportieren
-                        </v-btn>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <v-btn
+                                @click="
+                                    downloadExport('persons_victims', 'csv')
+                                "
+                                color="primary"
+                                variant="outlined"
+                                :loading="isExporting === 'persons_victims_csv'"
+                            >
+                                <v-icon start>mdi-download</v-icon>
+                                CSV exportieren
+                            </v-btn>
+                            <v-btn
+                                @click="
+                                    downloadExport('persons_victims', 'excel')
+                                "
+                                color="success"
+                                :loading="
+                                    isExporting === 'persons_victims_excel'
+                                "
+                            >
+                                <v-icon start>mdi-microsoft-excel</v-icon>
+                                Excel exportieren
+                            </v-btn>
+                        </div>
                     </v-card>
                 </section>
             </v-col>
@@ -324,18 +578,20 @@ const props = defineProps({
 });
 
 // Export functionality
-const isExporting = ref(false);
+const isExporting = ref(null);
 
 // Function to download export by type
-const downloadExport = async (type) => {
-    isExporting.value = type;
+const downloadExport = async (type, format = "csv") => {
+    // Create a unique key for this specific export with format
+    const exportKey = `${type}_${format}`;
+    isExporting.value = exportKey;
 
     try {
         // Create a link element for direct download
         const downloadLink = document.createElement("a");
 
-        // Set the href with the export type as a query parameter
-        downloadLink.href = `/export/download?type=${encodeURIComponent(type)}`;
+        // Set the href with the export type and format as query parameters
+        downloadLink.href = `/export/download?type=${encodeURIComponent(type)}&format=${format}`;
 
         // Set download attribute to force download
         downloadLink.setAttribute("download", "");
@@ -350,11 +606,11 @@ const downloadExport = async (type) => {
 
         // Reset loading state after a short delay
         setTimeout(() => {
-            isExporting.value = false;
+            isExporting.value = null;
         }, 2000);
     } catch (error) {
         console.error("Export error:", error);
-        isExporting.value = false;
+        isExporting.value = null;
     }
 };
 
