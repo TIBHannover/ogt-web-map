@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y \
     nodejs \
     npm
 
-# PHP-Erweiterungen installieren
+# Install PHP extensions and verify they're working
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
     pdo \
@@ -28,7 +28,13 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     pcntl \
     bcmath \
     gd \
-    zip
+    zip \
+    && docker-php-ext-enable iconv \
+    # Verify extensions are installed
+    && php -m | grep -E 'gd|iconv|zip' \
+    # Configure Composer to recognize extensions
+    && mkdir -p /root/.composer \
+    && echo '{"config":{"platform":{"php":"8.3.0", "ext-gd":"*", "ext-iconv":"*", "ext-zip":"*"}}}' > /root/.composer/composer.json
 
 # Apache-Konfiguration
 RUN a2enmod rewrite headers
@@ -92,6 +98,15 @@ fi\n\
 \n\
 if [ ! -d node_modules ]; then\n\
     npm install\n\
+fi\n\
+\n\
+# Install PhpSpreadsheet with ignore-platform-reqs\n\
+echo "Installing PhpSpreadsheet..."\n\
+if ! composer show | grep -q "phpoffice/phpspreadsheet"; then\n\
+    # Create a custom platform config to make Composer recognize extensions\n\
+    mkdir -p ~/.composer\n\
+    echo '{"config":{"platform":{"php":"8.3.0", "ext-gd":"*", "ext-iconv":"*", "ext-zip":"*"}}}' > ~/.composer/config.json\n\
+    composer require phpoffice/phpspreadsheet "^1.28.0" --no-interaction\n\
 fi\n\
 \n\
 # Berechtigungen für Storage und Cache Verzeichnisse setzen\n\

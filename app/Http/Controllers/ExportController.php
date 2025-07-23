@@ -22,7 +22,7 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    private function exportPlacesMinimal($output)
+    protected function exportPlacesMinimal($output, $separator = ',')
     {
         // Write header row for places (same as regular places export)
         fputcsv($output, [
@@ -39,7 +39,7 @@ class ExportController extends Controller
             "Victims",
             "Perpetrators",
             "Significant Events",
-        ]);
+        ], $separator, $separator);
 
         // Get places data from Wikidata
         $placesData = $this->wikidataClient->queryPlaces();
@@ -98,11 +98,11 @@ class ExportController extends Controller
                     ),
                 ];
 
-                fputcsv($output, $row);
+                fputcsv($output, $row, $separator, $separator);
             }
 
             // Add a blank row between sections
-            fputcsv($output, [""]);
+            fputcsv($output, [""], $separator, $separator);
         }
     }
 
@@ -112,7 +112,7 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    private function exportPlacesWithoutEvents($output)
+    protected function exportPlacesWithoutEvents($output, $separator = ',')
     {
         // Write header row for places (same as regular places export)
         fputcsv($output, [
@@ -129,7 +129,7 @@ class ExportController extends Controller
             "Victims",
             "Perpetrators",
             "Significant Events",
-        ]);
+        ], $separator);
 
         // Get places data from Wikidata
         $placesData = $this->wikidataClient->queryPlaces();
@@ -178,11 +178,11 @@ class ExportController extends Controller
                     ),
                 ];
 
-                fputcsv($output, $row);
+                fputcsv($output, $row, $separator);
             }
 
             // Add a blank row between sections
-            fputcsv($output, [""]);
+            fputcsv($output, [""], $separator);
         }
     }
 
@@ -193,7 +193,7 @@ class ExportController extends Controller
      * @param string $placeType The type of place to filter by
      * @return void
      */
-    private function exportPlacesByType($output, $placeType)
+    protected function exportPlacesByType($output, $placeType, $separator = ',')
     {
         // Write header row for places (same as regular places export)
         fputcsv($output, [
@@ -210,7 +210,7 @@ class ExportController extends Controller
             "Victims",
             "Perpetrators",
             "Significant Events",
-        ]);
+        ], $separator, $separator);
 
         // Debug info row for diagnosing issues
         if ($placeType === "Erinnerungsort") {
@@ -228,7 +228,7 @@ class ExportController extends Controller
                 "",
                 "",
                 "",
-            ]);
+            ], $separator);
         }
 
         // Get places data from Wikidata
@@ -300,7 +300,7 @@ class ExportController extends Controller
                     ),
                 ];
 
-                fputcsv($output, $row);
+                fputcsv($output, $row, $separator);
             }
 
             // Add debug info if no matches found
@@ -319,11 +319,11 @@ class ExportController extends Controller
                     "",
                     "",
                     "",
-                ]);
+                ], $separator);
             }
 
             // Add a blank row between sections
-            fputcsv($output, [""]);
+            fputcsv($output, [""], $separator);
         }
     }
 
@@ -333,7 +333,7 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    private function exportEvents($output)
+    protected function exportEvents($output, $separator = ",")
     {
         fputcsv($output, [
             "ID",
@@ -349,7 +349,7 @@ class ExportController extends Controller
             "Victims",
             "Perpetrators",
             "Significant Events",
-        ]);
+        ], $separator);
 
         // Get places data from Wikidata
         $placesData = $this->wikidataClient->queryPlaces();
@@ -398,11 +398,11 @@ class ExportController extends Controller
                     ),
                 ];
 
-                fputcsv($output, $row);
+                fputcsv($output, $row, $separator);
             }
 
             // Add a blank row between sections
-            fputcsv($output, [""]);
+            fputcsv($output, [""], $separator);
         }
     }
 
@@ -412,9 +412,9 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    private function exportStaatspolizeileitstellen($output)
+    protected function exportStaatspolizeileitstellen($output, $separator = ',')
     {
-        $this->exportPlacesByType($output, "Staatspolizeileitstelle");
+        $this->exportPlacesByType($output, "Staatspolizeileitstelle", $separator, $separator);
     }
 
     /**
@@ -423,20 +423,20 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    private function exportStaatspolizeistellen($output)
+    protected function exportStaatspolizeistellen($output, $separator = ',')
     {
-        $this->exportPlacesByType($output, "Staatspolizeistelle");
+        $this->exportPlacesByType($output, "Staatspolizeistelle", $separator, $separator);
     }
 
     /**
-     * Export Auu00dfendienststellen data as CSV
+     * Export Außendienstellen data as CSV
      *
      * @param resource $output The output stream
      * @return void
      */
-    private function exportAussendienststellen($output)
+    protected function exportAussendienststellen($output, $separator = ',')
     {
-        $this->exportPlacesByType($output, "Außendienststelle");
+        $this->exportPlacesByType($output, "Außendienststelle", $separator, $separator);
     }
 
     /**
@@ -445,9 +445,9 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    private function exportGefaengnisse($output)
+    protected function exportGefaengnisse($output, $separator = ",")
     {
-        $this->exportPlacesByType($output, "Gefängnis");
+        $this->exportPlacesByType($output, "Gefängnis", $separator);
     }
 
     /**
@@ -456,9 +456,9 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    private function exportErweitertesPolizeigefaengnis($output)
+    protected function exportErweitertesPolizeigefaengnis($output, $separator = ",")
     {
-        $this->exportPlacesByType($output, "Erweitertes Polizeigefängnis");
+        $this->exportPlacesByType($output, "Erweitertes Polizeigefängnis", $separator);
     }
 
     /**
@@ -467,9 +467,9 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    private function exportArbeitserziehungslager($output)
+    protected function exportArbeitserziehungslager($output, $separator = ",")
     {
-        $this->exportPlacesByType($output, "Arbeitserziehungslager");
+        $this->exportPlacesByType($output, "Arbeitserziehungslager", $separator);
     }
 
     /**
@@ -478,10 +478,10 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    private function exportErinnerungsorte($output)
+    protected function exportErinnerungsorte($output, $separator = ",")
     {
         // Try with an alternative spelling that might be in the data
-        $this->exportPlacesByType($output, "Gedenkstätte");
+        $this->exportPlacesByType($output, "Gedenkstätte", $separator);
     }
 
     /**
@@ -503,7 +503,16 @@ class ExportController extends Controller
     public function export(Request $request)
     {
         $type = $request->input("type", "all");
+        $format = $request->input("format", "csv");
+        
+        // If Excel format is requested, use the ExcelExportController
+        if ($format === 'excel') {
+            return app(ExcelExportController::class)->exportExcel($request);
+        }
+        
+        // For CSV format, continue with the current implementation
         $filename = "wikidata_export_" . date("Y-m-d_His") . ".csv";
+        $separator = ',';
 
         $headers = [
             "Content-Type" => "text/csv",
@@ -515,42 +524,42 @@ class ExportController extends Controller
 
         // Create the CSV with a callback that will write content
         return Response::stream(
-            function () use ($type) {
+            function () use ($type, $separator) {
                 $output = fopen("php://output", "w");
 
                 // Add UTF-8 BOM to fix Excel encoding issues
                 fputs($output, "\xEF\xBB\xBF");
 
                 if ($type == "places" || $type == "all") {
-                    $this->exportPlaces($output);
+                    $this->exportPlaces($output, $separator);
                 } elseif ($type == "places_no_events") {
-                    $this->exportPlacesWithoutEvents($output);
+                    $this->exportPlacesWithoutEvents($output, $separator);
                 } elseif ($type == "places_minimal") {
-                    $this->exportPlacesMinimal($output);
+                    $this->exportPlacesMinimal($output, $separator);
                 } elseif ($type == "staatspolizeileitstellen") {
-                    $this->exportStaatspolizeileitstellen($output);
+                    $this->exportStaatspolizeileitstellen($output, $separator);
                 } elseif ($type == "staatspolizeistellen") {
-                    $this->exportStaatspolizeistellen($output);
+                    $this->exportStaatspolizeistellen($output, $separator);
                 } elseif ($type == "aussendienststellen") {
-                    $this->exportAussendienststellen($output);
+                    $this->exportAussendienststellen($output, $separator);
                 } elseif ($type == "gefaengnisse") {
-                    $this->exportGefaengnisse($output);
+                    $this->exportGefaengnisse($output, $separator);
                 } elseif ($type == "erweitertes_polizeigefaengnis") {
-                    $this->exportErweitertesPolizeigefaengnis($output);
+                    $this->exportErweitertesPolizeigefaengnis($output, $separator);
                 } elseif ($type == "arbeitserziehungslager") {
-                    $this->exportArbeitserziehungslager($output);
+                    $this->exportArbeitserziehungslager($output, $separator);
                 } elseif ($type == "ereignisse") {
-                    $this->exportEvents($output);
+                    $this->exportEvents($output, $separator);
                 } elseif ($type == "erinnerungsorte") {
-                    $this->exportErinnerungsorte($output);
+                    $this->exportErinnerungsorte($output, $separator);
                 }
 
                 if ($type == "persons" || $type == "all") {
-                    $this->exportPersons($output);
+                    $this->exportPersons($output, $separator);
                 } elseif ($type == "persons_perpetrators") {
-                    $this->exportPersonsPerpetrators($output);
+                    $this->exportPersonsPerpetrators($output, $separator);
                 } elseif ($type == "persons_victims") {
-                    $this->exportPersonsVictims($output);
+                    $this->exportPersonsVictims($output, $separator);
                 }
 
                 fclose($output);
@@ -566,7 +575,7 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    private function exportPlaces($output)
+    protected function exportPlaces($output, $separator = ',')
     {
         // Write header row for places
         fputcsv($output, [
@@ -583,7 +592,7 @@ class ExportController extends Controller
             "Victims",
             "Perpetrators",
             "Significant Events",
-        ]);
+        ], $separator);
 
         // Get places data from Wikidata
         $placesData = $this->wikidataClient->queryPlaces();
@@ -615,11 +624,11 @@ class ExportController extends Controller
                     ),
                 ];
 
-                fputcsv($output, $row);
+                fputcsv($output, $row, $separator);
             }
 
             // Add a blank row between sections
-            fputcsv($output, [""]);
+            fputcsv($output, [""], $separator);
         }
     }
 
@@ -629,7 +638,7 @@ class ExportController extends Controller
      * @param array $coordinatesData
      * @return string
      */
-    private function combineCoordinates(array $coordinatesData): string
+    protected function combineCoordinates(array $coordinatesData): string
     {
         if (empty($coordinatesData)) {
             return "";
@@ -658,7 +667,7 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    private function exportPersons($output)
+    protected function exportPersons($output, $separator = ",")
     {
         // Write header row for persons
         fputcsv($output, [
@@ -676,7 +685,7 @@ class ExportController extends Controller
             "Subject Roles",
             "Employers",
             "Detention Places",
-        ]);
+        ], $separator);
 
         // Get persons data from Wikidata
         $personsData = $this->wikidataClient->queryPersons();
@@ -717,7 +726,7 @@ class ExportController extends Controller
                     ),
                 ];
 
-                fputcsv($output, $row);
+                fputcsv($output, $row, $separator);
                 $processedPersons[] = $personId;
             }
         }
@@ -729,7 +738,7 @@ class ExportController extends Controller
      * @param array $propertyData
      * @return string
      */
-    private function extractMultipleValues(array $propertyData): string
+    protected function extractMultipleValues(array $propertyData): string
     {
         if (empty($propertyData)) {
             return "";
@@ -762,7 +771,7 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    private function exportPersonsPerpetrators($output)
+    protected function exportPersonsPerpetrators($output, $separator = ",")
     {
         // Write header row for persons (same as regular persons export)
         fputcsv($output, [
@@ -780,7 +789,7 @@ class ExportController extends Controller
             "Subject Roles",
             "Employers",
             "Detention Places",
-        ]);
+        ], $separator);
 
         // Get persons data from Wikidata
         $personsData = $this->wikidataClient->queryPersons();
@@ -842,11 +851,11 @@ class ExportController extends Controller
                     ),
                 ];
 
-                fputcsv($output, $row);
+                fputcsv($output, $row, $separator);
             }
 
             // Add a blank row between sections
-            fputcsv($output, [""]);
+            fputcsv($output, [""], $separator);
         }
     }
 
@@ -856,7 +865,7 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    private function exportPersonsVictims($output)
+    protected function exportPersonsVictims($output, $separator = ",")
     {
         // Write header row for persons (same as regular persons export)
         fputcsv($output, [
@@ -874,7 +883,7 @@ class ExportController extends Controller
             "Subject Roles",
             "Employers",
             "Detention Places",
-        ]);
+        ], $separator);
 
         // Get persons data from Wikidata
         $personsData = $this->wikidataClient->queryPersons();
@@ -957,11 +966,11 @@ class ExportController extends Controller
                     ),
                 ];
 
-                fputcsv($output, $row);
+                fputcsv($output, $row, $separator);
             }
 
             // Add a blank row between sections
-            fputcsv($output, [""]);
+            fputcsv($output, [""], $separator);
         }
     }
 
@@ -971,7 +980,7 @@ class ExportController extends Controller
      * @param array $propertyData
      * @return string
      */
-    private function extractFirstValue(array $propertyData): string
+    protected function extractFirstValue(array $propertyData): string
     {
         if (empty($propertyData)) {
             return "";
@@ -987,7 +996,7 @@ class ExportController extends Controller
      * @param array $dateData
      * @return string
      */
-    private function extractFirstDate(array $dateData): string
+    protected function extractFirstDate(array $dateData): string
     {
         if (empty($dateData)) {
             return "";
@@ -1010,7 +1019,7 @@ class ExportController extends Controller
      * @param array $instancesData
      * @return string
      */
-    private function extractFilteredTypes(array $instancesData): string
+    protected function extractFilteredTypes(array $instancesData): string
     {
         if (empty($instancesData)) {
             return "";
