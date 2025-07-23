@@ -82,12 +82,9 @@ RUN chmod +x /start.sh
 COPY docker/init.sh /init.sh
 RUN chmod +x /init.sh
 
-COPY docker/ensure-phpspreadsheet.sh /ensure-phpspreadsheet.sh
-RUN chmod +x /ensure-phpspreadsheet.sh
-
 EXPOSE 80
 
 # Switch to non-root user for running the container
 USER nginx
 
-CMD ["/bin/sh", "-c", "/ensure-phpspreadsheet.sh && /init.sh && /start.sh"]
+CMD ["/bin/sh", "-c", "/init.sh && /start.sh"]
