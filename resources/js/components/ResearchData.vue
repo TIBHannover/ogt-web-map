@@ -54,23 +54,17 @@
                         offenen Daten beitragen.
                     </p>
 
-                    <h3 class="mt-6 mb-3">Über die exportierten Daten:</h3>
-                    <ul>
-                        <li>Die Daten werden direkt von Wikidata abgerufen</li>
-                        <li>
-                            CSV-Dateien können in Excel oder ähnlichen
-                            Tabellenkalkulationsprogrammen geöffnet werden
-                        </li>
-                        <li>
-                            Die Datei enthält eine UTF-8 BOM-Markierung für
-                            korrekte Zeichendarstellung in Excel
-                        </li>
-                    </ul>
-                    <v-card class="mb-6 pa-4 bg-grey-lighten-4">
+                    <v-card class="mb-6 pa-4" style="background-color: #FFF9C4;"> <!-- Light yellow background -->
                         <h3 class="text-h6 mb-2">
-                            Hinweis: Bitte klicken Sie nur einmal auf "Download" und warten Sie bis die Datei heruntergeladen wurde.
+                            <v-icon color="warning" class="mr-2">mdi-alert</v-icon>
+                            Wichtiger Hinweis zum Download
                         </h3>
-
+                        <p class="font-weight-medium">
+                            Bitte klicken Sie nur einmal auf "Excel exportieren" und warten Sie bis die Datei heruntergeladen wurde. Mehrfaches Klicken kann zu Fehlern führen.
+                        </p>
+                        <p class="mt-2">
+                            Sie können maximal 5 Downloads pro Minute durchführen. Bei zu häufigen Anfragen wird der Download-Button vorübergehend deaktiviert.
+                        </p>
                     </v-card>
                     <h2 class="font-weight-medium text-h5 text-md-h4 mt-8 mb-4">
                         Dienstsitze der Gestapo
@@ -531,9 +525,49 @@ const props = defineProps({
 
 // Export functionality
 const isExporting = ref(null);
+const cooldownActive = ref(false);
+const cooldownTimer = ref(null);
 
 // Function to download export by type
 const downloadExport = async (type, format = "csv") => {
+    // If cooldown is active, prevent download
+    if (cooldownActive.value) {
+        // Show cooldown message
+        const cooldownNotification = document.createElement("div");
+        cooldownNotification.textContent = "Bitte warten Sie einige Sekunden zwischen den Downloads.";
+        cooldownNotification.style.position = "fixed";
+        cooldownNotification.style.bottom = "20px";
+        cooldownNotification.style.right = "20px";
+        cooldownNotification.style.backgroundColor = "#FFA726"; // Orange
+        cooldownNotification.style.color = "white";
+        cooldownNotification.style.padding = "15px";
+        cooldownNotification.style.borderRadius = "5px";
+        cooldownNotification.style.zIndex = "1000";
+        cooldownNotification.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
+        document.body.appendChild(cooldownNotification);
+
+        setTimeout(() => {
+            if (document.body.contains(cooldownNotification)) {
+                document.body.removeChild(cooldownNotification);
+            }
+        }, 3000);
+
+        return;
+    }
+
+    // Set cooldown for 3 seconds to prevent rapid clicking
+    cooldownActive.value = true;
+
+    // Clear any existing cooldown timer
+    if (cooldownTimer.value) {
+        clearTimeout(cooldownTimer.value);
+    }
+
+    // Set a cooldown timer
+    cooldownTimer.value = setTimeout(() => {
+        cooldownActive.value = false;
+    }, 3000);
+
     // Create a unique key for this specific export with format
     const exportKey = `${type}_${format}`;
     isExporting.value = exportKey;
@@ -584,6 +618,7 @@ const downloadExport = async (type, format = "csv") => {
     } catch (error) {
         console.error("Export error:", error);
         isExporting.value = null;
+        cooldownActive.value = false;
     }
 };
 

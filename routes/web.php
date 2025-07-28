@@ -23,12 +23,12 @@ use Illuminate\Support\Facades\Route;
 Route::post("/export/download", [
     \App\Http\Controllers\ExportController::class,
     "export",
-])->name("public.export.download");
+])->name("public.export.download")->middleware('throttle:5,1');
 
 Route::get("/export/download", [
     \App\Http\Controllers\ExportController::class,
     "export",
-])->name("public.export.download.get");
+])->name("public.export.download.get")->middleware('throttle:5,1');
 // Public frontend routes - let Vue.js router handle them
 Route::get("/{vue_capture?}", function () {
     return view("app");
@@ -126,7 +126,7 @@ Route::prefix("admin")
         Route::post("/export/download", [
             \App\Http\Controllers\ExportController::class,
             "export",
-        ])->name("admin.export.download");
+        ])->name("admin.export.download")->middleware('throttle:5,1');
 
         // Failed jobs management routes
         Route::delete("/jobs/failed/{id}", [
