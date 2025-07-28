@@ -38,7 +38,7 @@
                     </h2>
                     <p>
                         Hier kannst du die Wikidata-Daten zur Geschichte der
-                        Gestapo in Niedersachsen als CSV-Datei herunterladen,
+                        Gestapo in Niedersachsen als Excel-Datei herunterladen,
                         die du in Excel oder anderen
                         Tabellenkalkulationsprogrammen öffnen kannst.
                     </p>
@@ -66,70 +66,12 @@
                             korrekte Zeichendarstellung in Excel
                         </li>
                     </ul>
-                    <!--
                     <v-card class="mb-6 pa-4 bg-grey-lighten-4">
                         <h3 class="text-h6 mb-2">
-                            Hilfe: So öffnen Sie die Dateien
+                            Hinweis: Bitte klicken Sie nur einmal auf "Download" und warten Sie bis die Datei heruntergeladen wurde.
                         </h3>
 
-                        <p class="mb-4">
-                            <strong>Excel-Button:</strong> Erstellt eine echte Excel-Datei (.xlsx), die sich direkt in Microsoft Excel und anderen Tabellenkalkulationsprogrammen öffnen lässt, ohne dass zusätzliche Schritte erforderlich sind.
-                        </p>
-
-                        <p class="mb-4">
-                            <strong>CSV-Button:</strong> Erstellt eine Standard-CSV-Datei mit Komma als Trennzeichen, die für die meisten internationalen Tabellenkalkulationsprogramme geeignet ist.
-                        </p>
-
-                        <h4 class="font-weight-medium mb-2">Falls die Datei nicht automatisch korrekt geöffnet wird:</h4>
-
-                        <h5 class="font-weight-medium mb-2">In Microsoft Excel:</h5>
-                        <ol>
-                            <li>
-                                Öffnen Sie Excel und wählen Sie <strong>Datei → Öffnen</strong>
-                            </li>
-                            <li>
-                                Wählen Sie die heruntergeladene CSV-Datei aus (Sie müssen eventuell bei "Dateityp" auf "Alle Dateien" umstellen)
-                            </li>
-                            <li>
-                                Der Text-Import-Assistent sollte erscheinen. Falls nicht, klicken Sie auf <strong>Daten → Aus Text</strong>
-                            </li>
-                            <li>
-                                Im ersten Schritt wählen Sie <strong>Getrennt</strong> und <strong>UTF-8</strong> als Dateiursprung
-                            </li>
-                            <li>
-                                Im zweiten Schritt aktivieren Sie als Trennzeichen das <strong>Komma</strong> (für CSV) oder <strong>Semikolon</strong> (für Excel-Format)
-                            </li>
-                            <li>
-                                Klicken Sie auf <strong>Fertig stellen</strong>, um die Daten zu importieren
-                            </li>
-                        </ol>
-
-                        <h5 class="font-weight-medium mt-4 mb-2">In LibreOffice Calc:</h5>
-                        <ol>
-                            <li>
-                                Öffnen Sie LibreOffice Calc und wählen Sie <strong>Datei → Öffnen</strong>
-                            </li>
-                            <li>
-                                Wählen Sie die heruntergeladene CSV-Datei aus
-                            </li>
-                            <li>
-                                Im Textimport-Dialog stellen Sie folgendes ein:
-                                <ul>
-                                    <li>Zeichensatz: <strong>Unicode (UTF-8)</strong></li>
-                                    <li>Sprache: <strong>Deutsch</strong></li>
-                                    <li>Trennoptionen: <strong>Komma</strong> (für CSV) oder <strong>Semikolon</strong> (für Excel-Format) aktivieren</li>
-                                </ul>
-                            </li>
-                            <li>
-                                Klicken Sie auf <strong>OK</strong>, um die Daten zu importieren
-                            </li>
-                        </ol>
-
-                        <p class="mt-4">
-                            <strong>Tipp:</strong> Falls die Spalten nicht richtig angezeigt werden, können Sie in Excel oder LibreOffice Calc die Breite der Spalten anpassen, indem Sie auf die Trennlinie zwischen den Spaltenüberschriften doppelklicken.
-                        </p>
                     </v-card>
--->
                     <h2 class="font-weight-medium text-h5 text-md-h4 mt-8 mb-4">
                         Dienstsitze der Gestapo
                     </h2>

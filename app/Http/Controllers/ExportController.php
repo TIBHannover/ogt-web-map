@@ -175,8 +175,13 @@ class ExportController extends Controller
                     $this->extractMultipleValues(
                         $place["streetAddresses"] ?? [],
                     ),
-                    $this->extractFirstDate($place["inceptionDates"] ?? []),
-                    $this->extractFirstDate($place["dissolvedDates"] ?? []),
+                    $this->extractDateFromMultipleProperties(
+                        $place["inceptionDates"] ?? [],  // P571 (inception)
+                        $place["startTime"] ?? [],      // P580 (start time)
+                        $place["pointInTime"] ?? [],    // P585 (point in time)
+                        $place["openingDate"] ?? []     // P1619 (time period)
+                    ),
+                    // $this->extractFirstDate($place["dissolvedDates"] ?? []),  // Excluded as requested
                     $this->extractFirstValue($place["officialWebsite"] ?? []),
                     $this->extractDirectors($place["directors"] ?? []),
                     $this->getStaffForPlace($placeId),
@@ -213,7 +218,7 @@ class ExportController extends Controller
             "Koordinaten",
             "Adresse",
             "Gründungsdatum",
-            "Auflösungsdatum",
+            // "Auflösungsdatum",   // Excluded as requested
             "Webseite",
             "Leiter",
             "Personal",
@@ -264,7 +269,12 @@ class ExportController extends Controller
                     $this->extractMultipleValues(
                         $place["streetAddresses"] ?? [],
                     ),
-                    $this->extractFirstDate($place["inceptionDates"] ?? []),
+                    $this->extractDateFromMultipleProperties(
+                        $place["inceptionDates"] ?? [],  // P571 (inception)
+                        $place["startTime"] ?? [],      // P580 (start time)
+                        $place["pointInTime"] ?? [],    // P585 (point in time)
+                        $place["openingDate"] ?? []     // P1619 (time period)
+                    ),
                     $this->extractFirstDate($place["dissolvedDates"] ?? []),
                     $this->extractFirstValue($place["officialWebsite"] ?? []),
                     $this->extractDirectors($place["directors"] ?? []),
@@ -473,35 +483,34 @@ class ExportController extends Controller
      */
     protected function exportEvents($output, $separator = ",", $csvWriter = null)
     {
-        fputcsv(
-            $output,
-            [
-                "ID",
-                "Bezeichnung",
-                "Beschreibung",
-                "Typ",
-                "Koordinaten",
-                "Adresse",
-                "Gründungsdatum",
-                "Auflösungsdatum",
-                "Webseite",
-                "Leiter",
-                "Personal",
-                "Geschädigte",
-                "Inhaftierte",
-                "Erinnerungsorte",
-                "nachgeordnete Organisationen",
-            ],
-            $separator,
-        );
+        // Define header row with only the specified columns
+        $headerRow = [
+            "ID",
+            "Bezeichnung",
+            "Beschreibung",
+            "Typ",
+            "Koordinaten",
+            "Adresse",
+            "Startdatum",   // P571 (inception)
+            "Enddatum",     // Renamed from Auflösungsdatum
+            "Geschädigte",  // P8032
+            "Täter*Innen",  // P8031
+        ];
+        
+        // Write header using appropriate writer
+        if ($csvWriter) {
+            $csvWriter($output, $headerRow, $separator);
+        } else {
+            fputcsv($output, $headerRow, $separator);
+        }
 
         // Get places data from cache
         $this->preprocessData();
         $places = $this->placesCache;
 
         if (!empty($places)) {
-
             foreach ($places as $place) {
+                // Filter for Nazi crimes (Q6983405)
                 if (isset($place["instances"])) {
                     $isNaziCrime = false;
                     foreach ($place["instances"] as $instance) {
@@ -521,6 +530,16 @@ class ExportController extends Controller
                 }
 
                 $placeId = $place["id"] ?? "";
+                
+                // Get direct victims and perpetrators from Wikidata properties
+                $victims = isset($place["victims"]) 
+                    ? $this->extractDirectVictims($place["victims"]) 
+                    : "";
+                    
+                $perpetrators = isset($place["perpetrators"]) 
+                    ? $this->extractDirectPerpetrators($place["perpetrators"]) 
+                    : "";
+                
                 $row = [
                     $placeId,
                     $place["label"] ?? "",
@@ -530,24 +549,31 @@ class ExportController extends Controller
                     $this->extractMultipleValues(
                         $place["streetAddresses"] ?? [],
                     ),
-                    $this->extractFirstDate($place["inceptionDates"] ?? []),
-                    $this->extractFirstDate($place["dissolvedDates"] ?? []),
-                    $this->extractFirstValue($place["officialWebsite"] ?? []),
-                    $this->extractDirectors($place["directors"] ?? []),
-                    $this->getStaffForPlace($placeId),
-                    $this->getVictimsForPlace($placeId),
-                    $this->getPrisonersForPlace($placeId),
-                    $this->getMemorialsForPlace($placeId),
-                    $this->extractMultipleValues(
-                        $place["subsidiaries"] ?? [],
-                    ),
+                    $this->extractDateFromMultipleProperties(
+                        $place["inceptionDates"] ?? [],  // P571 (inception)
+                        $place["startTime"] ?? [],      // P580 (start time)
+                        $place["pointInTime"] ?? [],    // P585 (point in time)
+                        $place["openingDate"] ?? []     // P1619 (time period)
+                    ),  // Startdatum
+                    $this->extractFirstDate($place["endTime"] ?? []),  // Enddatum (P582)
+                    $victims,       // Direct victims from P8032
+                    $perpetrators,  // Direct perpetrators from P8031
                 ];
 
-                fputcsv($output, $row, $separator);
+                // Write row using appropriate writer
+                if ($csvWriter) {
+                    $csvWriter($output, $row, $separator);
+                } else {
+                    fputcsv($output, $row, $separator);
+                }
             }
 
             // Add a blank row between sections
-            fputcsv($output, [""], $separator);
+            if ($csvWriter) {
+                $csvWriter($output, [""], $separator);
+            } else {
+                fputcsv($output, [""], $separator);
+            }
         }
     }
 
@@ -653,8 +679,136 @@ class ExportController extends Controller
      */
     protected function exportErinnerungsorte($output, $separator = ",", $csvWriter = null)
     {
-        // Try with an alternative spelling that might be in the data
-        $this->exportPlacesByType($output, "Gedenkstätte", $separator, $csvWriter);
+        // Write header row for places - exclude unwanted columns
+        $headerRow = [
+            "ID",
+            "Bezeichnung",
+            "Beschreibung",
+            "Typ",
+            "Koordinaten",
+            "Adresse",
+            "Gründungsdatum",
+            // "Auflösungsdatum",   // Excluded as requested
+            "Webseite",
+            // "Leiter",           // Excluded as requested
+            // "Personal",         // Excluded as requested
+            // "Geschädigte",      // Excluded as requested
+            // "Inhaftierte",      // Excluded as requested
+            // "Erinnerungsorte",  // Excluded as requested
+            // "nachgeordnete Organisationen", // Excluded as requested
+        ];
+        
+        if ($csvWriter) {
+            $csvWriter($output, $headerRow, $separator);
+        } else {
+            $this->writeUtf8CsvLine($output, $headerRow, $separator);
+        }
+
+        // Get places data from cache
+        $this->preprocessData();
+        $places = $this->placesCache;
+
+        if (!empty($places)) {
+            // Track all place types for debugging
+            $allTypes = [];
+            $foundMatch = false;
+
+            // Write data rows, filtering for memorial places
+            foreach ($places as $place) {
+                if (!isset($place["instances"])) {
+                    continue; // Skip if no type information
+                }
+
+                // Collect all types for debugging
+                foreach ($place["instances"] as $instance) {
+                    if (
+                        isset($instance["value"]) &&
+                        !in_array($instance["value"], $allTypes)
+                    ) {
+                        $allTypes[] = $instance["value"];
+                    }
+                }
+
+                // Check if this is a memorial (Gedenkstätte) 
+                $isMemorial = false;
+                foreach ($place["instances"] as $instance) {
+                    if (
+                        isset($instance["value"]) &&
+                        $instance["value"] === "Gedenkstätte"
+                    ) {
+                        $isMemorial = true;
+                        $foundMatch = true;
+                        break;
+                    }
+                }
+
+                // Skip if not a memorial
+                if (!$isMemorial) {
+                    continue;
+                }
+
+                $placeId = $place["id"] ?? "";
+                $row = [
+                    $placeId,
+                    $place["label"] ?? "",
+                    $place["description"] ?? "",
+                    $this->extractFilteredTypes($place["instances"] ?? []),
+                    $this->combineCoordinates($place["coordinates"] ?? []),
+                    $this->extractMultipleValues(
+                        $place["streetAddresses"] ?? [],
+                    ),
+                    $this->extractDateFromMultipleProperties(
+                        $place["inceptionDates"] ?? [],  // P571 (inception)
+                        $place["startTime"] ?? [],      // P580 (start time)
+                        $place["pointInTime"] ?? [],    // P585 (point in time)
+                        $place["openingDate"] ?? []     // P1619 (time period)
+                    ),
+                    // $this->extractFirstDate($place["dissolvedDates"] ?? []), // Excluded as requested
+                    $this->extractFirstValue($place["officialWebsite"] ?? []),
+                    // $this->extractDirectors($place["directors"] ?? []),       // Excluded as requested
+                    // $this->getStaffForPlace($placeId),                       // Excluded as requested
+                    // $this->getVictimsForPlace($placeId),                     // Excluded as requested
+                    // $this->getPrisonersForPlace($placeId),                   // Excluded as requested
+                    // $this->getMemorialsForPlace($placeId),                   // Excluded as requested
+                    // $this->extractMultipleValues($place["subsidiaries"] ?? []), // Excluded as requested
+                ];
+
+                // Write the data row using the appropriate writer
+                if ($csvWriter) {
+                    $csvWriter($output, $row, $separator);
+                } else {
+                    $this->writeUtf8CsvLine($output, $row, $separator);
+                }
+            }
+
+            // Add debug info if no matches found
+            if (!$foundMatch) {
+                fputcsv(
+                    $output,
+                    [
+                        "DEBUG INFO",
+                        "No matches found for type: Gedenkstätte",
+                        "Available types: " . implode(", ", $allTypes),
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                    ],
+                    $separator,
+                );
+            }
+
+            // Add a blank row between sections
+            if ($csvWriter) {
+                $csvWriter($output, [""], $separator);
+            } else {
+                $this->writeBlankLine($output, $separator);
+            }
+        }
     }
 
     /**
@@ -1445,5 +1599,95 @@ class ExportController extends Controller
         }
         
         return implode("; ", $memorials);
+    }
+
+    /**
+     * Extract perpetrators directly from P8031 property for events
+     *
+     * @param array $perpetratorsData The P8031 property data
+     * @return string Formatted list of perpetrators
+     */
+    protected function extractDirectPerpetrators(array $perpetratorsData): string
+    {
+        $perpetrators = [];
+        
+        // Extract value from each statement
+        foreach ($perpetratorsData as $statementId => $statement) {
+            if (isset($statement['value'])) {
+                $perpetrators[] = $statement['value'];
+            }
+        }
+        
+        return implode("; ", array_unique($perpetrators));
+    }
+
+    /**
+     * Extract victims directly from P8032 property for events
+     *
+     * @param array $victimsData The P8032 property data
+     * @return string Formatted list of victims
+     */
+    protected function extractDirectVictims(array $victimsData): string
+    {
+        $victims = [];
+        
+        // Extract value from each statement
+        foreach ($victimsData as $statementId => $statement) {
+            if (isset($statement['value'])) {
+                $victims[] = $statement['value'];
+            }
+        }
+        
+        return implode("; ", array_unique($victims));
+    }
+
+    /**
+     * Extract date from multiple possible date properties
+     * 
+     * @param array $inceptionDates P571 (inception) dates if available
+     * @param array $startTimeDates P580 (start time) dates if available
+     * @param array $pointInTimeDates P585 (point in time) dates if available
+     * @param array $openingDates P1619 (time period/opening date) dates if available
+     * @return string The earliest date from any of these properties
+     */
+    protected function extractDateFromMultipleProperties(
+        array $inceptionDates = [], 
+        array $startTimeDates = [], 
+        array $pointInTimeDates = [],
+        array $openingDates = []
+    ): string
+    {
+        $allDates = [];
+        
+        // Extract dates from each property array
+        if (!empty($inceptionDates)) {
+            $allDates[] = $this->extractFirstDate($inceptionDates);
+        }
+        
+        if (!empty($startTimeDates)) {
+            $allDates[] = $this->extractFirstDate($startTimeDates);
+        }
+        
+        if (!empty($pointInTimeDates)) {
+            $allDates[] = $this->extractFirstDate($pointInTimeDates);
+        }
+        
+        if (!empty($openingDates)) {
+            $allDates[] = $this->extractFirstDate($openingDates);
+        }
+        
+        // Filter out empty strings
+        $allDates = array_filter($allDates, function($date) {
+            return !empty($date);
+        });
+        
+        // If no valid dates found, return empty string
+        if (empty($allDates)) {
+            return "";
+        }
+        
+        // Sort dates chronologically and return the earliest one
+        sort($allDates);
+        return $allDates[0];
     }
 }
