@@ -60,6 +60,13 @@ const menuItems = ref([
         toMenu: "mainMenu",
     },
     {
+        title: "Touren",
+        icon: "mdi-routes",
+        path: "/touren",
+        show: true,
+        toMenu: "mainMenu",
+    },
+    {
         title: "Forschungsdaten",
         icon: "mdi-database",
         path: "/forschungsdaten",

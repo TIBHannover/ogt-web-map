@@ -60,10 +60,10 @@
                             Wichtiger Hinweis zum Download
                         </h3>
                         <p class="font-weight-medium">
-                            Bitte klicken Sie nur einmal auf "Excel exportieren" und warten Sie bis die Datei heruntergeladen wurde. Mehrfaches Klicken kann zu Fehlern führen.
+                            Bitte klicke nur einmal auf "Excel exportieren" und warte bis die Datei heruntergeladen wurde. Mehrfaches Klicken kann zu Fehlern führen.
                         </p>
                         <p class="mt-2">
-                            Sie können maximal 5 Downloads pro Minute durchführen. Bei zu häufigen Anfragen wird der Download-Button vorübergehend deaktiviert.
+                            Du kannst maximal 5 Downloads pro Minute durchführen. Bei zu häufigen Anfragen wird der Download-Button vorübergehend deaktiviert.
                         </p>
                     </v-card>
                     <h2 class="font-weight-medium text-h5 text-md-h4 mt-8 mb-4">
