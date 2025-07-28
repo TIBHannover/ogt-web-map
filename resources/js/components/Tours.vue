@@ -21,7 +21,7 @@
                 <div class="tour-section">
                     <h2>Leitfaden für Touren</h2>
                     <p>
-                        Hier finden Sie Informationen, wie Sie selbst eine
+                        Hier findest du Informationen, wie du selbst eine
                         thematische Stadtführung zu historischen Orten der
                         Gestapo-Verfolgung planen und durchführen können.
                     </p>
