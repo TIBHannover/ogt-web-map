@@ -146,6 +146,7 @@
                         </p>
                         <div class="d-flex flex-wrap gap-2 mt-2">
                             <v-btn
+                                v-if="false" <!-- Temporarily hidden due to umlaut issues -->
                                 @click="
                                     downloadExport(
                                         'staatspolizeileitstellen',
@@ -192,6 +193,7 @@
                         </p>
                         <div class="d-flex flex-wrap gap-2 mt-2">
                             <v-btn
+                                v-if="false" <!-- Temporarily hidden due to umlaut issues -->
                                 @click="
                                     downloadExport(
                                         'staatspolizeistellen',
@@ -237,6 +239,7 @@
                         </p>
                         <div class="d-flex flex-wrap gap-2 mt-2">
                             <v-btn
+                                v-if="false" <!-- Temporarily hidden due to umlaut issues -->
                                 @click="
                                     downloadExport('aussendienststellen', 'csv')
                                 "
@@ -283,6 +286,7 @@
                         </p>
                         <div class="d-flex flex-wrap gap-2 mt-2">
                             <v-btn
+                                v-if="false" <!-- Temporarily hidden due to umlaut issues -->
                                 @click="downloadExport('gefaengnisse', 'csv')"
                                 color="primary"
                                 variant="outlined"
@@ -313,6 +317,7 @@
                         </p>
                         <div class="d-flex flex-wrap gap-2 mt-2">
                             <v-btn
+                                v-if="false" <!-- Temporarily hidden due to umlaut issues -->
                                 @click="
                                     downloadExport(
                                         'erweitertes_polizeigefaengnis',
@@ -359,6 +364,7 @@
                         </p>
                         <div class="d-flex flex-wrap gap-2 mt-2">
                             <v-btn
+                                v-if="false" <!-- Temporarily hidden due to umlaut issues -->
                                 @click="
                                     downloadExport(
                                         'arbeitserziehungslager',
@@ -408,6 +414,7 @@
                         </p>
                         <div class="d-flex flex-wrap gap-2 mt-2">
                             <v-btn
+                                v-if="false" <!-- Temporarily hidden due to umlaut issues -->
                                 @click="downloadExport('ereignisse', 'csv')"
                                 color="primary"
                                 variant="outlined"
@@ -442,6 +449,7 @@
                         </p>
                         <div class="d-flex flex-wrap gap-2 mt-2">
                             <v-btn
+                                v-if="false" <!-- Temporarily hidden due to umlaut issues -->
                                 @click="
                                     downloadExport('erinnerungsorte', 'csv')
                                 "
@@ -481,6 +489,7 @@
                         </p>
                         <div class="d-flex flex-wrap gap-2 mt-2">
                             <v-btn
+                                v-if="false" <!-- Temporarily hidden due to umlaut issues -->
                                 @click="
                                     downloadExport(
                                         'persons_perpetrators',
@@ -524,6 +533,7 @@
                         </p>
                         <div class="d-flex flex-wrap gap-2 mt-2">
                             <v-btn
+                                v-if="false" <!-- Temporarily hidden due to umlaut issues -->
                                 @click="
                                     downloadExport('persons_victims', 'csv')
                                 "
@@ -604,10 +614,31 @@ const downloadExport = async (type, format = "csv") => {
         downloadLink.click();
         document.body.removeChild(downloadLink);
 
-        // Reset loading state after a short delay
+        // Show a notification that download has started
+        const notification = document.createElement("div");
+        notification.textContent = "Der Download wurde gestartet. Die Datei sollte in Kürze heruntergeladen werden.";
+        notification.style.position = "fixed";
+        notification.style.bottom = "20px";
+        notification.style.right = "20px";
+        notification.style.backgroundColor = "#4CAF50";
+        notification.style.color = "white";
+        notification.style.padding = "15px";
+        notification.style.borderRadius = "5px";
+        notification.style.zIndex = "1000";
+        notification.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
+        document.body.appendChild(notification);
+
+        // Remove notification after 5 seconds
+        setTimeout(() => {
+            if (document.body.contains(notification)) {
+                document.body.removeChild(notification);
+            }
+        }, 5000);
+
+        // Reset loading state after 10 seconds
         setTimeout(() => {
             isExporting.value = null;
-        }, 2000);
+        }, 10000);
     } catch (error) {
         console.error("Export error:", error);
         isExporting.value = null;
