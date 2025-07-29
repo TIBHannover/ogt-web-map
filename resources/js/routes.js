@@ -5,6 +5,7 @@ const Glossary = () => import("./components/Glossary.vue");
 const Charts = () => import("./components/Charts.vue");
 const Counts = () => import("./components/Counts.vue");
 const Entry = () => import("./components/Entry.vue");
+const Tours = () => import("./components/Tours.vue");
 // Admin-Komponenten werden nicht mehr verwendet - jetzt über PHP implementiert
 // const Admin = () => import("./components/admin/WikidataRequestsAdmin.vue");
 // const WikidataRequestDetail = () => import("./components/admin/WikidataRequestDetail.vue");
@@ -106,6 +107,14 @@ export const routes = [
         component: Forschungsdaten,
         meta: {
             title: "Forschungsdaten: Gestapo. Terror. Orte",
+        },
+    },
+    {
+        name: "tours",
+        path: "/touren",
+        component: Tours,
+        meta: {
+            title: "Touren: Gestapo. Terror. Orte",
         },
     },
     {
