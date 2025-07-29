@@ -1,5 +1,5 @@
 <template>
-    <v-container id="container" class="mb-110" :class="{ 'pa-md-4': mdAndUp }">
+    <v-container id="container" class="mb-110" :class="{ 'pa-lg-4': mdAndUp }">
         <!-- header -->
         <v-row
             :style="{
@@ -17,10 +17,19 @@
                 >
                     Touren
                 </h1>
+            </v-col>
+        </v-row>
 
+        <v-row>
+            <v-col cols="12" lg="4" class="order-lg-last">
+                <table-of-contents-sidebar
+                    :headings="headings"
+                ></table-of-contents-sidebar>
+            </v-col>
+            <v-col cols="12" lg="8" class="hyphens-auto" lang="de">
                 <v-grid>
                     <v-row class="tour-section align-center">
-                        <v-col cols="12" md="5" class="pt-0 pt-md-2">
+                        <v-col cols="12" lg="5" class="pt-0 pt-lg-2">
                             <v-img
                                 alt="Leitfaden für erinnerungskulturelle Touren"
                                 contain
@@ -31,69 +40,76 @@
                                 "
                             ></v-img>
                         </v-col>
-                        <v-col cols="12" md="7" class="pb-0 pb-md-2">
-                            <h2>Leitfaden für erinnerungskulturelle Touren</h2>
-                            <p>
-                                Wie lässt sich Geschichte an konkreten Orten
-                                sichtbar und zugänglich machen – ohne zu
-                                vereinfachen oder zu überfordern? Unser
-                                Leitfaden unterstützt alle, die eigene Touren im
-                                Rahmen von Gestapo.Terror.Orte planen oder
-                                durchführen möchten. Ob Stadtspaziergang,
-                                Fahrradtour oder Route mit öffentlichen
-                                Verkehrsmitteln – der Leitfaden bietet
-                                praktische Hinweise zur Konzeption, Methodik und
-                                Umsetzung erinnerungskultureller
-                                Bildungsformate.
-                            </p>
-                            <p>
-                                Geeignet für verschiedene Zielgruppen – auch für
-                                Schulklassen. Modular nutzbar, erweiterbar und
-                                offen für vielfältige Kontexte.
-                            </p>
-                            <div class="download-section">
-                                <a
-                                    href="./resources/Leitfaden_Touren_Gestapo_Terror_Orte_compressed.pdf"
-                                    class="download-button"
-                                    download
-                                >
-                                    <v-icon start> mdi-download </v-icon>
+                        <v-col cols="12" lg="7" class="pb-0 pb-lg-2">
+                            <section id="leitfaden">
+                                <h2>
                                     Leitfaden für erinnerungskulturelle Touren
-                                    herunterladen
-                                </a>
-                            </div>
+                                </h2>
+                                <p>
+                                    Wie lässt sich Geschichte an konkreten Orten
+                                    sichtbar und zugänglich machen – ohne zu
+                                    vereinfachen oder zu überfordern? Unser
+                                    Leitfaden unterstützt alle, die eigene
+                                    Touren im Rahmen von Gestapo.Terror.Orte
+                                    planen oder durchführen möchten. Ob
+                                    Stadtspaziergang, Fahrradtour oder Route mit
+                                    öffentlichen Verkehrsmitteln – der Leitfaden
+                                    bietet praktische Hinweise zur Konzeption,
+                                    Methodik und Umsetzung
+                                    erinnerungskultureller Bildungsformate.
+                                </p>
+                                <p>
+                                    Geeignet für verschiedene Zielgruppen – auch
+                                    für Schulklassen. Modular nutzbar,
+                                    erweiterbar und offen für vielfältige
+                                    Kontexte.
+                                </p>
+                                <div class="download-section">
+                                    <a
+                                        href="./resources/Leitfaden_Touren_Gestapo_Terror_Orte_compressed.pdf"
+                                        class="download-button"
+                                        download
+                                    >
+                                        <v-icon start> mdi-download </v-icon>
+                                        Leitfaden für erinnerungskulturelle
+                                        Touren herunterladen
+                                    </a>
+                                </div>
+                            </section>
                         </v-col>
                     </v-row>
                     <v-row
                         class="tour-section align-center flex-column-reverse flex-md-row"
                     >
-                        <v-col cols="12" md="7" class="pb-0 pb-md-2">
-                            <h2>Fragekarten</h2>
-                            <p>
-                                Hier kannst du ein Set mit 12 Fragekarten
-                                herunterladen, das für den Einsatz während
-                                erinnerungskultureller Touren entwickelt
-                                wurde.<br />
-                                Die Karten regen zur Beobachtung, Reflexion und
-                                zum Gespräch an. <br />
-                                Sie sind als Fragepaare gestaltet und farblich
-                                gekennzeichnet, können aber auch einzeln
-                                verwendet werden. Das Design darf gerne als
-                                Vorlage für eigene Karten weitergenutzt und
-                                angepasst werde
-                            </p>
-                            <div class="download-section">
-                                <a
-                                    href="./resources/Frage_Karten_compressed.pdf"
-                                    class="download-button"
-                                    download
-                                >
-                                    <v-icon start> mdi-download </v-icon>
-                                    Fragekarten herunterladen
-                                </a>
-                            </div>
+                        <v-col cols="12" lg="7" class="pb-0 pb-md-2">
+                            <section id="fragekarten">
+                                <h2>Fragekarten</h2>
+                                <p>
+                                    Hier kannst du ein Set mit 12 Fragekarten
+                                    herunterladen, das für den Einsatz während
+                                    erinnerungskultureller Touren entwickelt
+                                    wurde.<br />
+                                    Die Karten regen zur Beobachtung, Reflexion
+                                    und zum Gespräch an. <br />
+                                    Sie sind als Fragepaare gestaltet und
+                                    farblich gekennzeichnet, können aber auch
+                                    einzeln verwendet werden. Das Design darf
+                                    gerne als Vorlage für eigene Karten
+                                    weitergenutzt und angepasst werde
+                                </p>
+                                <div class="download-section">
+                                    <a
+                                        href="./resources/Frage_Karten_compressed.pdf"
+                                        class="download-button"
+                                        download
+                                    >
+                                        <v-icon start> mdi-download </v-icon>
+                                        Fragekarten herunterladen
+                                    </a>
+                                </div>
+                            </section>
                         </v-col>
-                        <v-col cols="12" md="5" class="pt-0 pt-md-2">
+                        <v-col cols="12" lg="5" class="pt-0 pt-lg-2">
                             <v-img
                                 alt="Leitfaden für erinnerungskulturelle Touren"
                                 contain
@@ -106,14 +122,6 @@
                         </v-col>
                     </v-row>
                 </v-grid>
-                <!--
-            <div class="tour-section">
-              <h2>Verfügbare Touren</h2>
-              <p>
-                Entdecken Sie unsere thematischen Stadtführungen zu historischen Orten der Gestapo-Verfolgung.
-                Die Touren bieten eine einzigartige Möglichkeit, die Geschichte vor Ort zu erfahren und zu verstehen.
-              </p>
-              </div>-->
             </v-col>
         </v-row>
     </v-container>
@@ -168,6 +176,17 @@ onMounted(() => {
 onUnmounted(() => {
     window.removeEventListener("resize", setFreeClientWidth);
 });
+
+const headings = ref([
+    {
+        href: "#leitfaden",
+        label: "Leitfaden für erinnerungskulturelle Touren",
+    },
+    {
+        href: "#fragekarten",
+        label: "Fragekarten",
+    },
+]);
 </script>
 
 <style scoped>
