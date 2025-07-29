@@ -56,7 +56,6 @@ class WikidataEntityController extends Controller
             "imageUrl" => "nullable|string",
             "imageFilename" => "nullable|string",
             "statusToken" => "nullable|string",
-            // Neue Felder für Personen und Organisationen
             "gender" => "nullable|array",
             "nationality" => "nullable|array",
             "place_of_birth" => "nullable|array",
@@ -73,23 +72,11 @@ class WikidataEntityController extends Controller
             $entryRequest->coordinates_qualifier = $validated["coordinates_qualifier"] ?? null;
             $entryRequest->victims = $validated["victims"] ?? null;
             $entryRequest->perpetrators = $validated["perpetrators"] ?? null;
-
-            // Neue Wikidata-Felder
-            try {
-                $entryRequest->gender = $validated["gender"] ?? null;
-                $entryRequest->nationality = $validated["nationality"] ?? null;
-                $entryRequest->place_of_birth =
-                    $validated["place_of_birth"] ?? null;
-                $entryRequest->place_of_death =
-                    $validated["place_of_death"] ?? null;
-                $entryRequest->place_of_detention =
-                    $validated["place_of_detention"] ?? null;
-            } catch (\Exception $e) {
-                // Temporärer Workaround, falls die Spalten noch nicht existieren
-                Log::warning(
-                    "Wikidata fields could not be saved: " . $e->getMessage()
-                );
-            }
+            $entryRequest->gender = $validated["gender"] ?? null;
+            $entryRequest->nationality = $validated["nationality"] ?? null;
+            $entryRequest->place_of_birth = $validated["place_of_birth"] ?? null;
+            $entryRequest->place_of_death = $validated["place_of_death"] ?? null;
+            $entryRequest->place_of_detention = $validated["place_of_detention"] ?? null;
 
             // Zeitpunkt oder Zeitraum je nach Typ
             if (isset($validated["eventTimeType"])) {
@@ -108,16 +95,6 @@ class WikidataEntityController extends Controller
                         $validated["eventEndDateQualifier"] ?? null;
                 }
             }
-
-            // Debug-Ausgabe für Zeit-Qualifier
-            Log::debug("Zeit-Qualifier-Werte", [
-                "time_point_qualifier" =>
-                    $validated["eventDateQualifier"] ?? "nicht gesetzt",
-                "time_period_start_qualifier" =>
-                    $validated["eventStartDateQualifier"] ?? "nicht gesetzt",
-                "time_period_end_qualifier" =>
-                    $validated["eventEndDateQualifier"] ?? "nicht gesetzt",
-            ]);
 
             // Statistiken
             $entryRequest->victim_count = $validated["victimCount"] ?? null;
