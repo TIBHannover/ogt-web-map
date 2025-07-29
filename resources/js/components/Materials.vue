@@ -38,11 +38,11 @@
                         Anleitungen zur Werkstatt historische Daten
                     </h2>
                     <p>
-                        Du mu00f6chtest Daten zur Geschichte der Gestapo erfassen
+                        Du möchtest Daten zur Geschichte der Gestapo erfassen
                         und sie auf der digitalen Karte Gestapo.Terror.Orte
                         sichtbar machen?<br />
                         Hier findest du Materialien, die dich dabei
-                        unterstu00fctzen.
+                        unterstützen.
                     </p>
 
                     <v-grid>
@@ -50,7 +50,7 @@
                             <v-col cols="12" md="7" class="pb-0 pb-md-2">
                                 <h3>Wikidata Basics</h3>
                                 <p class="mb-0">
-                                    Diese PDF erklu00e4rt zentrale Grundbegriffe
+                                    Diese PDF erklärt zentrale Grundbegriffe
                                     rund um Wikidata. <br />Sie beantwortet
                                     Fragen wie:<br />
                                     Was ist Wikidata und was sind strukturierte
@@ -86,9 +86,9 @@
                             <v-col cols="12" md="7" class="pb-0 pb-md-2">
                                 <h3>Wikidata-Anleitung</h3>
                                 <p class="mb-0">
-                                    Diese Schritt-fu00fcr-Schritt-Anleitung zeigt,
+                                    Diese Schritt-für-Schritt-Anleitung zeigt,
                                     wie du neue Datenobjekte in Wikidata anlegst
-                                    oder bestehende ergu00e4nzt.
+                                    oder bestehende ergänzt.
                                 </p>
                             </v-col>
                             <v-col cols="12" md="5" class="pt-0 pt-md-2">
@@ -117,19 +117,19 @@
                             <v-col cols="12" md="7" class="pb-0 pb-md-2">
                                 <h3>Datenmodelle</h3>
                                 <p class="mb-0">
-                                    In Wikidata ku00f6nnen Informationen auf
+                                    In Wikidata können Informationen auf
                                     unterschiedliche Weise erfasst werden. Diese
-                                    u00dcbersicht zeigt, wie Daten zu Gestapoorten,
-                                    Erinnerungsorten, Geschu00e4digten, Tu00e4ter*innen
-                                    und Ereignissen erfasst werden mu00fcssen, damit
+                                    Übersicht zeigt, wie Daten zu Gestapoorten,
+                                    Erinnerungsorten, Geschädigten, Täter*innen
+                                    und Ereignissen erfasst werden müssen, damit
                                     sie auf Gestapo.Terror.Orte angezeigt
                                     werden. Wichtig: Nur wenn du dich an die
-                                    Datenmodelle hu00e4ltst, erscheinen deine
-                                    Eintru00e4ge auf der Karte. Nicht alle Daten
-                                    mu00fcssen ausgefu00fcllt werden u2013 verpflichtend
+                                    Datenmodelle hältst, erscheinen deine
+                                    Einträge auf der Karte. Nicht alle Daten
+                                    müssen ausgefüllt werden – verpflichtend
                                     sind nur die farbig markierten Angaben.
-                                    Zusu00e4tzliche Informationen ku00f6nnen ebenfalls
-                                    ergu00e4nzt werden, auch wenn sie nicht explizit
+                                    Zusätzliche Informationen können ebenfalls
+                                    ergänzt werden, auch wenn sie nicht explizit
                                     im Modell vorgesehen sind.
                                 </p>
                             </v-col>
@@ -164,7 +164,7 @@
                                     einem Eintrag auf Gestapo.Terror.Orte
                                     aussieht: Welche Informationen lassen sich
                                     aus historischen Quellen gewinnen? Wie sehen
-                                    die entsprechenden Eintru00e4ge in Wikidata und
+                                    die entsprechenden Einträge in Wikidata und
                                     auf der Karte aus?
                                 </p>
                             </v-col>
