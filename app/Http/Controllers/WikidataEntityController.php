@@ -138,7 +138,7 @@ class WikidataEntityController extends Controller
             // Quellen - Clean up before storing
             if (!empty($validated["sources"])) {
                 $formatter = app(
-                    \App\Services\Wikidata\WikidataFormatterModels::class
+                    \App\Services\Wikibase\WikibaseFormatterModels::class
                 );
                 $validated["sources"] = $formatter->cleanupSourceData(
                     $validated["sources"]
@@ -306,7 +306,7 @@ class WikidataEntityController extends Controller
 
             // Make sure any formatter instance has debug mode disabled
             $formatter = app(
-                \App\Services\Wikidata\WikidataFormatterModels::class
+                \App\Services\Wikibase\WikibaseFormatterModels::class
             );
             if (method_exists($formatter, "setDebugMode")) {
                 $formatter->setDebugMode(false);

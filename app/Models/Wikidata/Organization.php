@@ -2,13 +2,11 @@
 
 namespace App\Models\Wikidata;
 
+use App\Services\EntityMapping\EntityMappingProviderInterface;
 use Illuminate\Support\Facades\Log;
 
 class Organization extends BaseEntity
 {
-    // Wikidata entity type for Organization (Q43229 = organization)
-    protected $entityType = 'Q43229';
-    
     // Additional organization properties
     protected $inception;
     protected $dissolvedDate;
@@ -16,10 +14,14 @@ class Organization extends BaseEntity
     
     /**
      * Constructor
+     * 
+     * @param string $title The organization name/title
+     * @param string $description The organization description
+     * @param EntityMappingProviderInterface|null $mappingProvider Optional mapping provider
      */
-    public function __construct(string $title, string $description = '')
+    public function __construct(string $title, string $description = '', ?EntityMappingProviderInterface $mappingProvider = null)
     {
-        parent::__construct($title, $description);
+        parent::__construct($title, $description, $mappingProvider);
     }
     
     /**
@@ -68,11 +70,13 @@ class Organization extends BaseEntity
         $formattedDate = $this->formatDate($date);
         
         if ($formattedDate) {
-            $this->data['claims']['P571'] = [
+            $inceptionProperty = $this->mappingProvider->getPropertyId('INCEPTION');
+            
+            $this->data['claims'][$inceptionProperty] = [
                 [
                     'mainsnak' => [
                         'snaktype' => 'value',
-                        'property' => 'P571', // Inception
+                        'property' => $inceptionProperty, // Inception
                         'datavalue' => [
                             'value' => $formattedDate,
                             'type' => 'time'
@@ -94,11 +98,13 @@ class Organization extends BaseEntity
         $formattedDate = $this->formatDate($date);
         
         if ($formattedDate) {
-            $this->data['claims']['P576'] = [
+            $dissolvedProperty = $this->mappingProvider->getPropertyId('DISSOLVED');
+            
+            $this->data['claims'][$dissolvedProperty] = [
                 [
                     'mainsnak' => [
                         'snaktype' => 'value',
-                        'property' => 'P576', // Dissolved, abolished or demolished
+                        'property' => $dissolvedProperty, // Dissolved, abolished or demolished
                         'datavalue' => [
                             'value' => $formattedDate,
                             'type' => 'time'
@@ -122,11 +128,13 @@ class Organization extends BaseEntity
             return;
         }
         
-        $this->data['claims']['P159'] = [
+        $headquartersProperty = $this->mappingProvider->getPropertyId('HEADQUARTERS_LOCATION');
+        
+        $this->data['claims'][$headquartersProperty] = [
             [
                 'mainsnak' => [
                     'snaktype' => 'value',
-                    'property' => 'P159', // Headquarters location
+                    'property' => $headquartersProperty, // Headquarters location
                     'datavalue' => [
                         'value' => [
                             'entity-type' => 'item',
@@ -151,11 +159,13 @@ class Organization extends BaseEntity
             return;
         }
         
-        $this->data['claims']['P1448'] = [
+        $officialNameProperty = $this->mappingProvider->getPropertyId('OFFICIAL_NAME');
+        
+        $this->data['claims'][$officialNameProperty] = [
             [
                 'mainsnak' => [
                     'snaktype' => 'value',
-                    'property' => 'P1448', // Official name
+                    'property' => $officialNameProperty, // Official name
                     'datavalue' => [
                         'value' => [
                             'text' => $locationName,

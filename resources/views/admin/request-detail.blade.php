@@ -548,8 +548,8 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                 <div class="collapse" id="collapseWikidataDebug">
                     <div class="card-body">
                         @php
-                            // Wir benötigen den WikidataFormatterModels direkt
-                            $formatter = app(\App\Services\Wikidata\WikidataFormatterModels::class);
+                            // Wir benötigen den WikibaseFormatterModels direkt
+                            $formatter = app(\App\Services\Wikibase\WikibaseFormatterModels::class);
 
                             // Deaktiviere Debug-Modus für Formatierung (um vollständige Daten zu erhalten)
                             $formatter->setDebugMode(false);

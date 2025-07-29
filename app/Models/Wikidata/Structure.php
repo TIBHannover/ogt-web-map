@@ -2,13 +2,11 @@
 
 namespace App\Models\Wikidata;
 
+use App\Services\EntityMapping\EntityMappingProviderInterface;
 use Illuminate\Support\Facades\Log;
 
 class Structure extends BaseEntity
 {
-    // Wikidata entity type for Structure (Q811979 = architectural structure)
-    protected $entityType = 'Q811979';
-    
     // Additional structure properties
     protected $inception;
     protected $demolishedDate;
@@ -17,10 +15,14 @@ class Structure extends BaseEntity
     
     /**
      * Constructor
+     * 
+     * @param string $title The structure name/title
+     * @param string $description The structure description
+     * @param EntityMappingProviderInterface|null $mappingProvider Optional mapping provider
      */
-    public function __construct(string $title, string $description = '')
+    public function __construct(string $title, string $description = '', ?EntityMappingProviderInterface $mappingProvider = null)
     {
-        parent::__construct($title, $description);
+        parent::__construct($title, $description, $mappingProvider);
     }
     
     /**
@@ -74,11 +76,13 @@ class Structure extends BaseEntity
         $formattedDate = $this->formatDate($date);
         
         if ($formattedDate) {
-            $this->data['claims']['P571'] = [
+            $inceptionProperty = $this->mappingProvider->getPropertyId('INCEPTION');
+            
+            $this->data['claims'][$inceptionProperty] = [
                 [
                     'mainsnak' => [
                         'snaktype' => 'value',
-                        'property' => 'P571', // Inception
+                        'property' => $inceptionProperty, // Inception
                         'datavalue' => [
                             'value' => $formattedDate,
                             'type' => 'time'
@@ -100,11 +104,13 @@ class Structure extends BaseEntity
         $formattedDate = $this->formatDate($date);
         
         if ($formattedDate) {
-            $this->data['claims']['P576'] = [
+            $dissolvedProperty = $this->mappingProvider->getPropertyId('DISSOLVED');
+            
+            $this->data['claims'][$dissolvedProperty] = [
                 [
                     'mainsnak' => [
                         'snaktype' => 'value',
-                        'property' => 'P576', // Dissolved, abolished or demolished
+                        'property' => $dissolvedProperty, // Dissolved, abolished or demolished
                         'datavalue' => [
                             'value' => $formattedDate,
                             'type' => 'time'
@@ -128,11 +134,13 @@ class Structure extends BaseEntity
             return;
         }
         
-        $this->data['claims']['P84'] = [
+        $architectProperty = $this->mappingProvider->getPropertyId('ARCHITECT');
+        
+        $this->data['claims'][$architectProperty] = [
             [
                 'mainsnak' => [
                     'snaktype' => 'value',
-                    'property' => 'P84', // Architect
+                    'property' => $architectProperty, // Architect
                     'datavalue' => [
                         'value' => [
                             'entity-type' => 'item',
@@ -157,11 +165,13 @@ class Structure extends BaseEntity
             return;
         }
         
-        $this->data['claims']['P2093'] = [
+        $authorStringProperty = $this->mappingProvider->getPropertyId('AUTHOR_STRING');
+        
+        $this->data['claims'][$authorStringProperty] = [
             [
                 'mainsnak' => [
                     'snaktype' => 'value',
-                    'property' => 'P2093', // Author string
+                    'property' => $authorStringProperty, // Author string
                     'datavalue' => [
                         'value' => $architectName,
                         'type' => 'string'
@@ -180,11 +190,13 @@ class Structure extends BaseEntity
     {
         $this->height = $height;
         
-        $this->data['claims']['P2048'] = [
+        $heightProperty = $this->mappingProvider->getPropertyId('HEIGHT');
+        
+        $this->data['claims'][$heightProperty] = [
             [
                 'mainsnak' => [
                     'snaktype' => 'value',
-                    'property' => 'P2048', // Height
+                    'property' => $heightProperty, // Height
                     'datavalue' => [
                         'value' => [
                             'amount' => '+' . (float)$height,

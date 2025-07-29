@@ -2,23 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Wikidata\WikidataService;
+use App\Services\Wikibase\WikibaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class WikidataOAuthController extends Controller
 {
     /**
-     * @var WikidataService
+     * @var WikibaseService
      */
     protected $wikidataService;
 
     /**
      * WikidataOAuthController constructor.
      *
-     * @param WikidataService $wikidataService
+     * @param WikibaseService $wikidataService
      */
-    public function __construct(WikidataService $wikidataService)
+    public function __construct(WikibaseService $wikidataService)
     {
         $this->wikidataService = $wikidataService;
     }

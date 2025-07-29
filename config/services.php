@@ -30,4 +30,10 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'wikibase' => [
+        'key' => env('WIKIBASE_CONSUMER_KEY'),
+        'secret' => env('WIKIBASE_CONSUMER_SECRET'),
+        'api_url' => env('WIKIBASE_API_URL', 'https://test.wikidata.org/w/api.php'),
+    ],
+
 ];

@@ -2,6 +2,7 @@
 
 namespace App\Models\Wikidata;
 
+use App\Services\EntityMapping\EntityMappingProviderInterface;
 use Illuminate\Support\Facades\Log;
 
 abstract class BaseEntity
@@ -25,7 +26,7 @@ abstract class BaseEntity
         "sitelinks" => [],
     ];
 
-    // Wikidata entity type (Q-code)
+    // Entity type ID (e.g., Q-code in Wikidata)
     protected $entityType;
 
     // Entity label/title
@@ -34,13 +35,28 @@ abstract class BaseEntity
     // Entity description
     protected $description;
 
+    // Entity mapping provider - making this property accessible to child classes
+    protected $mappingProvider;
+
     /**
      * Constructor
+     *
+     * @param string $title The entity title
+     * @param string $description The entity description
+     * @param EntityMappingProviderInterface|null $mappingProvider Optional mapping provider (will resolve from container if not provided)
      */
-    public function __construct(string $title, string $description = "")
-    {
+    public function __construct(
+        string $title,
+        string $description = "",
+        ?EntityMappingProviderInterface $mappingProvider = null,
+    ) {
         $this->title = $title;
         $this->description = $description;
+        $this->mappingProvider =
+            $mappingProvider ?? app(EntityMappingProviderInterface::class);
+        $this->entityType = $this->mappingProvider->getEntityTypeId(
+            get_class($this),
+        );
         $this->initializeLabels();
     }
 
@@ -102,17 +118,21 @@ abstract class BaseEntity
      */
     protected function addInstanceOfClaim(): void
     {
-        $this->data["claims"]["P31"] = [
+        $instanceOfProperty = $this->mappingProvider->getPropertyId(
+            "INSTANCE_OF",
+        );
+
+        $this->data["claims"][$instanceOfProperty] = [
             [
                 "mainsnak" => [
                     "snaktype" => "value",
-                    "property" => "P31",
+                    "property" => $instanceOfProperty,
                     "datavalue" => [
                         "value" => [
                             "entity-type" => "item",
                             "id" => $this->entityType,
                             "numeric-id" => intval(
-                                substr($this->entityType, 1)
+                                substr($this->entityType, 1),
                             ),
                         ],
                         "type" => "wikibase-entityid",
@@ -138,11 +158,15 @@ abstract class BaseEntity
             return;
         }
 
-        $this->data["claims"]["P625"] = [
+        $coordinateProperty = $this->mappingProvider->getPropertyId(
+            "COORDINATE_LOCATION",
+        );
+
+        $this->data["claims"][$coordinateProperty] = [
             [
                 "mainsnak" => [
                     "snaktype" => "value",
-                    "property" => "P625",
+                    "property" => $coordinateProperty,
                     "datavalue" => [
                         "value" => [
                             "latitude" => $parsedCoordinates["lat"],
@@ -168,11 +192,13 @@ abstract class BaseEntity
             return;
         }
 
-        $this->data["claims"]["P18"] = [
+        $imageProperty = $this->mappingProvider->getPropertyId("IMAGE");
+
+        $this->data["claims"][$imageProperty] = [
             [
                 "mainsnak" => [
                     "snaktype" => "value",
-                    "property" => "P18",
+                    "property" => $imageProperty,
                     "datavalue" => [
                         "value" => $imageFilename,
                         "type" => "string",
@@ -315,7 +341,7 @@ abstract class BaseEntity
     protected function addQualifierToStatement(
         array &$statement,
         string $property,
-        string $value
+        string $value,
     ): void {
         if (empty($value)) {
             return;
@@ -532,7 +558,7 @@ abstract class BaseEntity
                         "source_title" => $source->getTitle(),
                         "targeted_properties" => implode(
                             ", ",
-                            self::SOURCE_REFERENCE_PROPERTIES
+                            self::SOURCE_REFERENCE_PROPERTIES,
                         ),
                     ]);
                 }

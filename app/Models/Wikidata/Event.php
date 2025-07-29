@@ -2,13 +2,11 @@
 
 namespace App\Models\Wikidata;
 
+use App\Services\EntityMapping\EntityMappingProviderInterface;
 use Illuminate\Support\Facades\Log;
 
 class Event extends BaseEntity
 {
-    // Wikidata entity type for Event (Q6983405 = event)
-    protected $entityType = 'Q6983405';
-    
     // Additional event properties
     protected $startTime;
     protected $endTime;
@@ -21,10 +19,14 @@ class Event extends BaseEntity
     
     /**
      * Constructor
+     * 
+     * @param string $title The event title
+     * @param string $description The event description
+     * @param EntityMappingProviderInterface|null $mappingProvider Optional mapping provider
      */
-    public function __construct(string $title, string $description = '')
+    public function __construct(string $title, string $description = '', ?EntityMappingProviderInterface $mappingProvider = null)
     {
-        parent::__construct($title, $description);
+        parent::__construct($title, $description, $mappingProvider);
     }
     
     /**
@@ -109,10 +111,13 @@ class Event extends BaseEntity
         $formattedDate = $this->formatDate($date);
         
         if ($formattedDate) {
+            $pointInTimeProperty = $this->mappingProvider->getPropertyId('POINT_IN_TIME');
+            $qualifierProperty = $this->mappingProvider->getPropertyId('SOURCING_CIRCUMSTANCES');
+            
             $statement = [
                 'mainsnak' => [
                     'snaktype' => 'value',
-                    'property' => 'P585', // Point in time
+                    'property' => $pointInTimeProperty, // Point in time
                     'datavalue' => [
                         'value' => $formattedDate,
                         'type' => 'time'
@@ -124,10 +129,10 @@ class Event extends BaseEntity
             
             // Add qualifier if provided
             if (!empty($qualifier)) {
-                $this->addQualifierToStatement($statement, 'P1480', $qualifier);
+                $this->addQualifierToStatement($statement, $qualifierProperty, $qualifier);
             }
             
-            $this->data['claims']['P585'] = [$statement];
+            $this->data['claims'][$pointInTimeProperty] = [$statement];
         }
     }
     
@@ -140,10 +145,13 @@ class Event extends BaseEntity
         $formattedDate = $this->formatDate($date);
         
         if ($formattedDate) {
+            $startTimeProperty = $this->mappingProvider->getPropertyId('START_TIME');
+            $qualifierProperty = $this->mappingProvider->getPropertyId('SOURCING_CIRCUMSTANCES');
+            
             $statement = [
                 'mainsnak' => [
                     'snaktype' => 'value',
-                    'property' => 'P580', // Start time
+                    'property' => $startTimeProperty, // Start time
                     'datavalue' => [
                         'value' => $formattedDate,
                         'type' => 'time'
@@ -155,10 +163,10 @@ class Event extends BaseEntity
             
             // Add qualifier if provided
             if (!empty($qualifier)) {
-                $this->addQualifierToStatement($statement, 'P1480', $qualifier);
+                $this->addQualifierToStatement($statement, $qualifierProperty, $qualifier);
             }
             
-            $this->data['claims']['P580'] = [$statement];
+            $this->data['claims'][$startTimeProperty] = [$statement];
         }
     }
     
@@ -171,10 +179,13 @@ class Event extends BaseEntity
         $formattedDate = $this->formatDate($date);
         
         if ($formattedDate) {
+            $endTimeProperty = $this->mappingProvider->getPropertyId('END_TIME');
+            $qualifierProperty = $this->mappingProvider->getPropertyId('SOURCING_CIRCUMSTANCES');
+            
             $statement = [
                 'mainsnak' => [
                     'snaktype' => 'value',
-                    'property' => 'P582', // End time
+                    'property' => $endTimeProperty, // End time
                     'datavalue' => [
                         'value' => $formattedDate,
                         'type' => 'time'
@@ -186,10 +197,10 @@ class Event extends BaseEntity
             
             // Add qualifier if provided
             if (!empty($qualifier)) {
-                $this->addQualifierToStatement($statement, 'P1480', $qualifier);
+                $this->addQualifierToStatement($statement, $qualifierProperty, $qualifier);
             }
             
-            $this->data['claims']['P582'] = [$statement];
+            $this->data['claims'][$endTimeProperty] = [$statement];
         }
     }
     
@@ -204,11 +215,13 @@ class Event extends BaseEntity
             return;
         }
         
-        $this->data['claims']['P276'] = [
+        $locationProperty = $this->mappingProvider->getPropertyId('LOCATION');
+        
+        $this->data['claims'][$locationProperty] = [
             [
                 'mainsnak' => [
                     'snaktype' => 'value',
-                    'property' => 'P276', // Location
+                    'property' => $locationProperty, // Location
                     'datavalue' => [
                         'value' => [
                             'entity-type' => 'item',
@@ -233,11 +246,13 @@ class Event extends BaseEntity
             return;
         }
         
-        $this->data['claims']['P828'] = [
+        $causeProperty = $this->mappingProvider->getPropertyId('HAS_CAUSE');
+        
+        $this->data['claims'][$causeProperty] = [
             [
                 'mainsnak' => [
                     'snaktype' => 'value',
-                    'property' => 'P828', // Cause
+                    'property' => $causeProperty, // Cause
                     'datavalue' => [
                         'value' => [
                             'entity-type' => 'item',
@@ -262,11 +277,13 @@ class Event extends BaseEntity
             return;
         }
         
-        $this->data['claims']['P2093'] = [
+        $authorStringProperty = $this->mappingProvider->getPropertyId('AUTHOR_STRING');
+        
+        $this->data['claims'][$authorStringProperty] = [
             [
                 'mainsnak' => [
                     'snaktype' => 'value',
-                    'property' => 'P2093', // Author string
+                    'property' => $authorStringProperty, // Author string
                     'datavalue' => [
                         'value' => 'Ursache: ' . $causeText,
                         'type' => 'string'
@@ -285,10 +302,13 @@ class Event extends BaseEntity
     {
         $this->victimCount = $count;
         
+        $victimCountProperty = $this->mappingProvider->getPropertyId('VICTIM_COUNT');
+        $qualifierProperty = $this->mappingProvider->getPropertyId('SOURCING_CIRCUMSTANCES');
+        
         $statement = [
             'mainsnak' => [
                 'snaktype' => 'value',
-                'property' => 'P1590', // Number of victims
+                'property' => $victimCountProperty, // Number of victims
                 'datavalue' => [
                     'value' => [
                         'amount' => '+' . $count,
@@ -303,10 +323,10 @@ class Event extends BaseEntity
         
         // Add qualifier if provided
         if (!empty($qualifier)) {
-            $this->addQualifierToStatement($statement, 'P1480', $qualifier);
+            $this->addQualifierToStatement($statement, $qualifierProperty, $qualifier);
         }
         
-        $this->data['claims']['P1590'] = [$statement];
+        $this->data['claims'][$victimCountProperty] = [$statement];
     }
     
     /**
@@ -316,10 +336,13 @@ class Event extends BaseEntity
     {
         $this->survivorCount = $count;
         
+        $survivorCountProperty = $this->mappingProvider->getPropertyId('SURVIVOR_COUNT');
+        $qualifierProperty = $this->mappingProvider->getPropertyId('SOURCING_CIRCUMSTANCES');
+        
         $statement = [
             'mainsnak' => [
                 'snaktype' => 'value',
-                'property' => 'P1561', // Number of survivors
+                'property' => $survivorCountProperty, // Number of survivors
                 'datavalue' => [
                     'value' => [
                         'amount' => '+' . $count,
@@ -334,10 +357,10 @@ class Event extends BaseEntity
         
         // Add qualifier if provided
         if (!empty($qualifier)) {
-            $this->addQualifierToStatement($statement, 'P1480', $qualifier);
+            $this->addQualifierToStatement($statement, $qualifierProperty, $qualifier);
         }
         
-        $this->data['claims']['P1561'] = [$statement];
+        $this->data['claims'][$survivorCountProperty] = [$statement];
     }
     
     /**
@@ -347,10 +370,13 @@ class Event extends BaseEntity
     {
         $this->deathCount = $count;
         
+        $deathCountProperty = $this->mappingProvider->getPropertyId('DEATH_COUNT');
+        $qualifierProperty = $this->mappingProvider->getPropertyId('SOURCING_CIRCUMSTANCES');
+        
         $statement = [
             'mainsnak' => [
                 'snaktype' => 'value',
-                'property' => 'P1120', // Number of deaths
+                'property' => $deathCountProperty, // Number of deaths
                 'datavalue' => [
                     'value' => [
                         'amount' => '+' . $count,
@@ -365,10 +391,10 @@ class Event extends BaseEntity
         
         // Add qualifier if provided
         if (!empty($qualifier)) {
-            $this->addQualifierToStatement($statement, 'P1480', $qualifier);
+            $this->addQualifierToStatement($statement, $qualifierProperty, $qualifier);
         }
         
-        $this->data['claims']['P1120'] = [$statement];
+        $this->data['claims'][$deathCountProperty] = [$statement];
     }
     
     /**
@@ -378,10 +404,13 @@ class Event extends BaseEntity
     {
         $this->arrestCount = $count;
         
+        $arrestCountProperty = $this->mappingProvider->getPropertyId('ARREST_COUNT');
+        $qualifierProperty = $this->mappingProvider->getPropertyId('SOURCING_CIRCUMSTANCES');
+        
         $statement = [
             'mainsnak' => [
                 'snaktype' => 'value',
-                'property' => 'P5582', // Number of arrests
+                'property' => $arrestCountProperty, // Number of arrests
                 'datavalue' => [
                     'value' => [
                         'amount' => '+' . $count,
@@ -396,9 +425,9 @@ class Event extends BaseEntity
         
         // Add qualifier if provided
         if (!empty($qualifier)) {
-            $this->addQualifierToStatement($statement, 'P1480', $qualifier);
+            $this->addQualifierToStatement($statement, $qualifierProperty, $qualifier);
         }
         
-        $this->data['claims']['P5582'] = [$statement];
+        $this->data['claims'][$arrestCountProperty] = [$statement];
     }
 }

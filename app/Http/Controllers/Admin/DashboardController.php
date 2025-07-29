@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\WikidataEntryRequest;
-use App\Services\Wikidata\WikidataService;
+use App\Services\Wikibase\WikibaseService;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -50,10 +50,10 @@ class DashboardController extends Controller
     /**
      * Zeigt die Wikidata-Verbindungs-Einstellungen an.
      *
-     * @param WikidataService $wikidataService
+     * @param WikibaseService $wikidataService
      * @return \Illuminate\View\View
      */
-    public function wikidataSettings(WikidataService $wikidataService)
+    public function wikidataSettings(WikibaseService $wikidataService)
     {
         $hasCredentials = $wikidataService->hasValidCredentials();
 

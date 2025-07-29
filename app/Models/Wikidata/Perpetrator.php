@@ -2,16 +2,21 @@
 
 namespace App\Models\Wikidata;
 
+use App\Services\EntityMapping\EntityMappingProviderInterface;
 use Illuminate\Support\Facades\Log;
 
 class Perpetrator extends Person
 {
     /**
      * Constructor
+     * 
+     * @param string $title The perpetrator's name/title
+     * @param string $description The perpetrator's description
+     * @param EntityMappingProviderInterface|null $mappingProvider Optional mapping provider
      */
-    public function __construct(string $title, string $description = '')
+    public function __construct(string $title, string $description = '', ?EntityMappingProviderInterface $mappingProvider = null)
     {
-        parent::__construct($title, $description);
+        parent::__construct($title, $description, $mappingProvider);
         
         // Explicitly set the role property 
         $this->role = self::ROLE_PERPETRATOR;
@@ -39,7 +44,11 @@ class Perpetrator extends Person
         $person = parent::fromArray($data);
         
         // Now convert it to a perpetrator by creating a new perpetrator with the same data
-        $perpetrator = new Perpetrator($data['title'] ?? $data['name'] ?? '', $data['description'] ?? '');
+        $perpetrator = new Perpetrator(
+            $data['title'] ?? $data['name'] ?? '', 
+            $data['description'] ?? '',
+            $person->mappingProvider // Pass along the mapping provider
+        );
         
         // Copy ALL data from the person object to ensure no properties are lost
         $perpetrator->data = $person->getData();
@@ -59,7 +68,7 @@ class Perpetrator extends Person
         Log::info("Completed Perpetrator entity creation", [
             "title" => $perpetrator->title,
             "has_label" => !empty($perpetrator->data['labels']),
-            "has_role_claim" => !empty($perpetrator->data['claims']['P2868']),
+            "has_role_claim" => !empty($perpetrator->data['claims'][$perpetrator->mappingProvider->getPropertyId('SUBJECT_HAS_ROLE')]),
             "claim_count" => count($perpetrator->data['claims'])
         ]);
         
@@ -71,17 +80,20 @@ class Perpetrator extends Person
      */
     protected function addPerpetratorRole(): void
     {
-        // Add "perpetrator of Nazism" (Q111080573) to subject has role (P2868)
-        $this->data['claims']['P2868'] = [
+        $subjectHasRoleProperty = $this->mappingProvider->getPropertyId('SUBJECT_HAS_ROLE');
+        $perpetratorId = $this->mappingProvider->getEntityId('PERPETRATOR');
+        
+        // Add "perpetrator of Nazism" to subject has role
+        $this->data['claims'][$subjectHasRoleProperty] = [
             [
                 'mainsnak' => [
                     'snaktype' => 'value',
-                    'property' => 'P2868', // Subject has role
+                    'property' => $subjectHasRoleProperty, // Subject has role
                     'datavalue' => [
                         'value' => [
                             'entity-type' => 'item',
-                            'id' => 'Q111080573', // Perpetrator of Nazism
-                            'numeric-id' => 111080573
+                            'id' => $perpetratorId, // Perpetrator of Nazism
+                            'numeric-id' => intval(substr($perpetratorId, 1))
                         ],
                         'type' => 'wikibase-entityid'
                     ]

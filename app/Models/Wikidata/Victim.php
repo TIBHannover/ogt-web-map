@@ -2,16 +2,21 @@
 
 namespace App\Models\Wikidata;
 
+use App\Services\EntityMapping\EntityMappingProviderInterface;
 use Illuminate\Support\Facades\Log;
 
 class Victim extends Person
 {
     /**
      * Constructor
+     * 
+     * @param string $title The victim's name/title
+     * @param string $description The victim's description
+     * @param EntityMappingProviderInterface|null $mappingProvider Optional mapping provider
      */
-    public function __construct(string $title, string $description = '')
+    public function __construct(string $title, string $description = '', ?EntityMappingProviderInterface $mappingProvider = null)
     {
-        parent::__construct($title, $description);
+        parent::__construct($title, $description, $mappingProvider);
         
         // Explicitly set the role property 
         $this->role = self::ROLE_VICTIM;
@@ -39,7 +44,11 @@ class Victim extends Person
         $person = parent::fromArray($data);
         
         // Now convert it to a victim by creating a new victim with the same data
-        $victim = new Victim($data['title'] ?? $data['name'] ?? '', $data['description'] ?? '');
+        $victim = new Victim(
+            $data['title'] ?? $data['name'] ?? '', 
+            $data['description'] ?? '',
+            $person->mappingProvider // Pass along the mapping provider
+        );
         
         // Copy ALL data from the person object to ensure no properties are lost
         $victim->data = $person->getData();
@@ -59,7 +68,7 @@ class Victim extends Person
         Log::info("Completed Victim entity creation", [
             "title" => $victim->title,
             "has_label" => !empty($victim->data['labels']),
-            "has_role_claim" => !empty($victim->data['claims']['P2868']),
+            "has_role_claim" => !empty($victim->data['claims'][$victim->mappingProvider->getPropertyId('SUBJECT_HAS_ROLE')]),
             "claim_count" => count($victim->data['claims'])
         ]);
         
@@ -71,17 +80,20 @@ class Victim extends Person
      */
     protected function addVictimRole(): void
     {
-        // Add "victim of Nazism" (Q2026714) to subject has role (P2868)
-        $this->data['claims']['P2868'] = [
+        $subjectHasRoleProperty = $this->mappingProvider->getPropertyId('SUBJECT_HAS_ROLE');
+        $victimId = $this->mappingProvider->getEntityId('VICTIM');
+        
+        // Add "victim of Nazism" to subject has role
+        $this->data['claims'][$subjectHasRoleProperty] = [
             [
                 'mainsnak' => [
                     'snaktype' => 'value',
-                    'property' => 'P2868', // Subject has role
+                    'property' => $subjectHasRoleProperty, // Subject has role
                     'datavalue' => [
                         'value' => [
                             'entity-type' => 'item',
-                            'id' => 'Q2026714', // Victim of Nazism
-                            'numeric-id' => 2026714
+                            'id' => $victimId, // Victim of Nazism
+                            'numeric-id' => intval(substr($victimId, 1))
                         ],
                         'type' => 'wikibase-entityid'
                     ]

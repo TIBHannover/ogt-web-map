@@ -2,13 +2,11 @@
 
 namespace App\Models\Wikidata;
 
+use App\Services\EntityMapping\EntityMappingProviderInterface;
 use Illuminate\Support\Facades\Log;
 
 class Book extends BaseEntity
 {
-    // Wikidata entity type for Book (Q7725634 = literary work)
-    protected $entityType = 'Q7725634';
-    
     // Additional book properties
     protected $title;
     protected $authors = [];
@@ -17,10 +15,14 @@ class Book extends BaseEntity
     
     /**
      * Constructor
+     * 
+     * @param string $title The book title
+     * @param string $description The book description
+     * @param EntityMappingProviderInterface|null $mappingProvider Optional mapping provider
      */
-    public function __construct(string $title, string $description = '')
+    public function __construct(string $title, string $description = '', ?EntityMappingProviderInterface $mappingProvider = null)
     {
-        parent::__construct($title, $description);
+        parent::__construct($title, $description, $mappingProvider);
         $this->title = $title;
     }
     
@@ -44,10 +46,12 @@ class Book extends BaseEntity
         if ($source instanceof \App\Models\Wikidata\Source\BookSource) {
             $sourceClaim = $source->toClaim();
             if (!empty($sourceClaim)) {
-                if (!isset($this->data['claims']['P1343'])) {
-                    $this->data['claims']['P1343'] = [];
+                $describedBySourceProperty = $this->mappingProvider->getPropertyId('DESCRIBED_BY_SOURCE');
+                
+                if (!isset($this->data['claims'][$describedBySourceProperty])) {
+                    $this->data['claims'][$describedBySourceProperty] = [];
                 }
-                $this->data['claims']['P1343'][] = $sourceClaim;
+                $this->data['claims'][$describedBySourceProperty][] = $sourceClaim;
             }
         }
     }
@@ -90,11 +94,13 @@ class Book extends BaseEntity
     {
         $this->title = $title;
         
-        $this->data['claims']['P1476'] = [
+        $titleProperty = $this->mappingProvider->getPropertyId('TITLE');
+        
+        $this->data['claims'][$titleProperty] = [
             [
                 'mainsnak' => [
                     'snaktype' => 'value',
-                    'property' => 'P1476', // Title
+                    'property' => $titleProperty, // Title
                     'datavalue' => [
                         'value' => [
                             'text' => $title,
@@ -117,18 +123,22 @@ class Book extends BaseEntity
         // Add to internal authors list
         $this->authors[] = $author;
         
+        // Get property IDs from mapping provider
+        $authorProperty = $this->mappingProvider->getPropertyId('AUTHOR');
+        $authorStringProperty = $this->mappingProvider->getPropertyId('AUTHOR_STRING');
+        
         // For authors with a valid Wikidata ID
         if (isset($author['id']) && is_string($author['id']) && substr($author['id'], 0, 1) === 'Q') {
-            // Initialize P50 claim array if it doesn't exist yet
-            if (!isset($this->data['claims']['P50'])) {
-                $this->data['claims']['P50'] = [];
+            // Initialize author claim array if it doesn't exist yet
+            if (!isset($this->data['claims'][$authorProperty])) {
+                $this->data['claims'][$authorProperty] = [];
             }
             
             // Add as Wikidata entity reference
-            $this->data['claims']['P50'][] = [
+            $this->data['claims'][$authorProperty][] = [
                 'mainsnak' => [
                     'snaktype' => 'value',
-                    'property' => 'P50', // Author
+                    'property' => $authorProperty, // Author
                     'datavalue' => [
                         'value' => [
                             'entity-type' => 'item',
@@ -150,15 +160,15 @@ class Book extends BaseEntity
             
             // Only add if we have a valid name
             if (!empty($authorName)) {
-                // Initialize P2093 claim array if it doesn't exist yet
-                if (!isset($this->data['claims']['P2093'])) {
-                    $this->data['claims']['P2093'] = [];
+                // Initialize author string claim array if it doesn't exist yet
+                if (!isset($this->data['claims'][$authorStringProperty])) {
+                    $this->data['claims'][$authorStringProperty] = [];
                 }
                 
-                $this->data['claims']['P2093'][] = [
+                $this->data['claims'][$authorStringProperty][] = [
                     'mainsnak' => [
                         'snaktype' => 'value',
-                        'property' => 'P2093', // Author string
+                        'property' => $authorStringProperty, // Author string
                         'datavalue' => [
                             'value' => $authorName,
                             'type' => 'string'
@@ -180,11 +190,13 @@ class Book extends BaseEntity
         $formattedDate = $this->formatDate($date);
         
         if ($formattedDate) {
-            $this->data['claims']['P577'] = [
+            $publicationDateProperty = $this->mappingProvider->getPropertyId('PUBLICATION_DATE');
+            
+            $this->data['claims'][$publicationDateProperty] = [
                 [
                     'mainsnak' => [
                         'snaktype' => 'value',
-                        'property' => 'P577', // Publication date
+                        'property' => $publicationDateProperty, // Publication date
                         'datavalue' => [
                             'value' => $formattedDate,
                             'type' => 'time'
@@ -216,11 +228,13 @@ class Book extends BaseEntity
                 'calendarmodel' => 'http://www.wikidata.org/entity/Q1985727' // Gregorian calendar
             ];
             
-            $this->data['claims']['P577'] = [
+            $publicationDateProperty = $this->mappingProvider->getPropertyId('PUBLICATION_DATE');
+            
+            $this->data['claims'][$publicationDateProperty] = [
                 [
                     'mainsnak' => [
                         'snaktype' => 'value',
-                        'property' => 'P577', // Publication date
+                        'property' => $publicationDateProperty, // Publication date
                         'datavalue' => [
                             'value' => $formattedDate,
                             'type' => 'time'

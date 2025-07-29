@@ -174,7 +174,8 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         App\Providers\UrlServiceProvider::class,
-        App\Providers\WikidataServiceProvider::class,
+        App\Providers\WikibaseServiceProvider::class,
+        App\Providers\EntityMappingServiceProvider::class,
     ],
 
     /*

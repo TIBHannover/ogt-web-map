@@ -8,8 +8,8 @@ use App\Models\Wikidata\Person;
 use App\Models\Wikidata\Victim;
 use App\Models\Wikidata\Perpetrator;
 use App\Models\Wikidata\Source\SourceFactory;
-use App\Services\Wikidata\WikidataFormatterModels;
-use App\Services\Wikidata\WikidataService;
+use App\Services\Wikibase\WikibaseFormatterModels;
+use App\Services\Wikibase\WikibaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -77,8 +77,8 @@ class WikidataModelExampleController extends Controller
             // Get the formatted data for Wikidata
             $formattedData = $event->getFormattedData();
             
-            // In a real implementation, we would now create the entity in Wikidata
-            // using WikidataService::createEntity()
+            // In a real implementation, we would now create the entity in Wikibase
+            // using WikibaseService::createEntity()
             
             return response()->json([
                 'success' => true,
@@ -104,7 +104,7 @@ class WikidataModelExampleController extends Controller
     }
     
     /**
-     * Example of how to use the WikidataFormatterModels service
+     * Example of how to use the WikibaseFormatterModels service
      */
     public function createEventWithFormatterModels(Request $request)
     {
@@ -113,12 +113,12 @@ class WikidataModelExampleController extends Controller
             $data = $request->all();
             
             // Use the new formatter model implementation
-            $formatter = app(WikidataFormatterModels::class);
+            $formatter = app(WikibaseFormatterModels::class);
             
             // Format the entity data using our new implementation
             $result = $formatter->formatEntityData(
                 $data,
-                WikidataFormatterModels::ENTITY_TYPE_EVENT,
+                WikibaseFormatterModels::ENTITY_TYPE_EVENT,
                 false // Don't create entities yet (preview mode)
             );
             
