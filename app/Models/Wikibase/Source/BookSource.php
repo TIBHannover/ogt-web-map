@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Models\Wikidata\Source;
+namespace App\Models\Wikibase\Source;
 
-use App\Services\Wikidata\WikidataFormatterModels;
+use App\Services\Wikibase\WikibaseFormatterModels;
 
 class BookSource extends BaseSource
 {
@@ -19,7 +19,7 @@ class BookSource extends BaseSource
     public function __construct(
         string $title,
         string $description = "",
-        array $data = []
+        array $data = [],
     ) {
         parent::__construct($title, $description);
 
@@ -134,7 +134,7 @@ class BookSource extends BaseSource
             "mainsnak" => [
                 "snaktype" => "value",
                 "property" =>
-                    WikidataFormatterModels::WIKIDATA_DESCRIBED_BY_SOURCE,
+                    WikibaseFormatterModels::WIKIDATA_DESCRIBED_BY_SOURCE,
                 "datavalue" => [
                     "value" => [
                         "entity-type" => "item",
@@ -163,10 +163,10 @@ class BookSource extends BaseSource
 
         // Page information
         if (!empty($this->pages)) {
-            $qualifiers[WikidataFormatterModels::WIKIDATA_PAGE] = [
+            $qualifiers[WikibaseFormatterModels::WIKIDATA_PAGE] = [
                 [
                     "snaktype" => "value",
-                    "property" => WikidataFormatterModels::WIKIDATA_PAGE,
+                    "property" => WikibaseFormatterModels::WIKIDATA_PAGE,
                     "datavalue" => [
                         "value" => $this->pages,
                         "type" => "string",
@@ -186,7 +186,7 @@ class BookSource extends BaseSource
         return new self(
             $data["title"] ?? "",
             $data["description"] ?? "",
-            $data
+            $data,
         );
     }
 }

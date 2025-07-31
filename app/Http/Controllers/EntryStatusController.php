@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\WikidataEntryRequest;
+use App\Models\WikibaseEntryRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -20,7 +20,7 @@ class EntryStatusController extends Controller
     {
         try {
             // Find the entry request by token
-            $entryRequest = WikidataEntryRequest::where('status_token', $token)->first();
+            $entryRequest = WikibaseEntryRequest::where('status_token', $token)->first();
             
             if (!$entryRequest) {
                 return response()->json([
@@ -70,12 +70,12 @@ class EntryStatusController extends Controller
      * Update the status history when a status changes.
      * This is an internal method to be called from other controllers.
      * 
-     * @param WikidataEntryRequest $entryRequest The entry request to update
+     * @param WikibaseEntryRequest $entryRequest The entry request to update
      * @param string $newStatus The new status
      * @param string|null $comment Optional comment about the status change
      * @return void
      */
-    public function updateStatusHistory(WikidataEntryRequest $entryRequest, string $newStatus, ?string $comment = null): void
+    public function updateStatusHistory(WikibaseEntryRequest $entryRequest, string $newStatus, ?string $comment = null): void
     {
         // Get current status history or initialize if empty
         $history = $entryRequest->status_history ?? [];
@@ -98,12 +98,12 @@ class EntryStatusController extends Controller
     /**
      * Static method to update status history from anywhere in the application
      * 
-     * @param WikidataEntryRequest $entryRequest The entry request to update
+     * @param WikibaseEntryRequest $entryRequest The entry request to update
      * @param string $newStatus The new status
      * @param string|null $comment Optional comment about the status change
      * @return void
      */
-    public static function updateStatusHistoryStatic(WikidataEntryRequest $entryRequest, string $newStatus, ?string $comment = null): void
+    public static function updateStatusHistoryStatic(WikibaseEntryRequest $entryRequest, string $newStatus, ?string $comment = null): void
     {
         // Get current status history or initialize if empty
         $history = $entryRequest->status_history ?? [];

@@ -1,29 +1,29 @@
 <?php
 
-namespace App\Models\Wikidata\Source;
+namespace App\Models\Wikibase\Source;
 
 abstract class BaseSource
 {
     protected $title;
     protected $description;
     protected $type;
-    
-    public function __construct(string $title, string $description = '')
+
+    public function __construct(string $title, string $description = "")
     {
         $this->title = $title;
         $this->description = $description;
     }
-    
+
     /**
      * Generate formatted reference data
      */
     abstract public function toReference(): array;
-    
+
     /**
      * Generate source claim for entity
      */
     abstract public function toClaim(): array;
-    
+
     /**
      * Get the title
      */
@@ -31,7 +31,7 @@ abstract class BaseSource
     {
         return $this->title;
     }
-    
+
     /**
      * Get the description
      */
@@ -39,7 +39,7 @@ abstract class BaseSource
     {
         return $this->description;
     }
-    
+
     /**
      * Get the source type
      */
@@ -47,7 +47,7 @@ abstract class BaseSource
     {
         return $this->type;
     }
-    
+
     /**
      * Ensures that a URL has a valid scheme (http:// or https://).
      *
@@ -67,10 +67,10 @@ abstract class BaseSource
         // If no scheme is present, add https://
         return "https://" . $url;
     }
-    
+
     /**
      * Get formatted reference data with optional parent entity ID
-     * 
+     *
      * @param string|null $parentEntityId Optional parent entity ID for linking references
      * @return array Formatted reference data
      */
@@ -78,31 +78,31 @@ abstract class BaseSource
     {
         // Get base reference data
         $reference = $this->toReference();
-        
+
         // If parent entity ID is provided and it's a valid Wikidata ID,
         // add a reference to it
-        if (!empty($parentEntityId) && substr($parentEntityId, 0, 1) === 'Q') {
-            if (!isset($reference['snaks']['P248'])) {
-                $reference['snaks']['P248'] = [];
+        if (!empty($parentEntityId) && substr($parentEntityId, 0, 1) === "Q") {
+            if (!isset($reference["snaks"]["P248"])) {
+                $reference["snaks"]["P248"] = [];
             }
-            
-            $reference['snaks']['P248'][] = [
-                'snaktype' => 'value',
-                'property' => 'P248',  // Stated in
-                'datavalue' => [
-                    'value' => [
-                        'entity-type' => 'item',
-                        'id' => $parentEntityId,
-                        'numeric-id' => intval(substr($parentEntityId, 1))
+
+            $reference["snaks"]["P248"][] = [
+                "snaktype" => "value",
+                "property" => "P248", // Stated in
+                "datavalue" => [
+                    "value" => [
+                        "entity-type" => "item",
+                        "id" => $parentEntityId,
+                        "numeric-id" => intval(substr($parentEntityId, 1)),
                     ],
-                    'type' => 'wikibase-entityid'
-                ]
+                    "type" => "wikibase-entityid",
+                ],
             ];
         }
-        
+
         return $reference;
     }
-    
+
     /**
      * Formats a date into the format expected by Wikidata.
      *
@@ -113,17 +113,17 @@ abstract class BaseSource
     {
         try {
             $dateTime = new \DateTime($date);
-            $year = $dateTime->format('Y');
-            $month = $dateTime->format('m');
-            $day = $dateTime->format('d');
+            $year = $dateTime->format("Y");
+            $month = $dateTime->format("m");
+            $day = $dateTime->format("d");
 
             return [
-                'time' => "+{$year}-{$month}-{$day}T00:00:00Z",
-                'timezone' => 0,
-                'before' => 0,
-                'after' => 0,
-                'precision' => 11, // Day precision
-                'calendarmodel' => 'http://www.wikidata.org/entity/Q1985727' // Gregorian calendar
+                "time" => "+{$year}-{$month}-{$day}T00:00:00Z",
+                "timezone" => 0,
+                "before" => 0,
+                "after" => 0,
+                "precision" => 11, // Day precision
+                "calendarmodel" => "http://www.wikidata.org/entity/Q1985727", // Gregorian calendar
             ];
         } catch (\Exception $e) {
             return null;

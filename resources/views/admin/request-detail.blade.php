@@ -553,6 +553,9 @@ Victims: {{ var_export($request->victims, true) }}</pre>
 
                             // Deaktiviere Debug-Modus für Formatierung (um vollständige Daten zu erhalten)
                             $formatter->setDebugMode(false);
+                            
+                            // Stelle sicher, dass auch der globale Wikibase Debug-Modus deaktiviert ist
+                            config(['wikibase.debug_mode' => false]);
 
                             // Relevante Daten extrahieren
                             $requestData = [];
@@ -564,23 +567,101 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                                     $requestData[$key] = $value;
                                 }
                             }
+                            
+                            // JSON-codierte Felder dekodieren
+                            $jsonFields = ['coordinates', 'selected_causes', 'victims', 'perpetrators', 'sources', 'status_history', 'created_entities'];
+                            foreach ($jsonFields as $field) {
+                                if (isset($requestData[$field]) && is_string($requestData[$field])) {
+                                    try {
+                                        // Nur dekodieren, wenn es wie JSON aussieht
+                                        if (str_starts_with(trim($requestData[$field]), '[') || str_starts_with(trim($requestData[$field]), '{')) {
+                                            $decoded = json_decode($requestData[$field], true);
+                                            if ($decoded !== null) {
+                                                $requestData[$field] = $decoded;
+                                                // Log für Debug-Zwecke
+                                                error_log("Decoded JSON field {$field}: " . json_encode($decoded));
+                                            }
+                                        }
+                                    } catch (\Exception $e) {
+                                        // Bei Fehler beim Dekodieren einfach den Original-String behalten
+                                        error_log("Error decoding JSON field {$field}: " . $e->getMessage());
+                                    }
+                                }
+                            }
+                            
+                            // Koordinaten speziell behandeln, falls als String im Format "lat, lng" angegeben
+                            if (isset($requestData['coordinates']) && is_string($requestData['coordinates'])) {
+                                if (preg_match('/^\s*([0-9.\-]+)\s*,\s*([0-9.\-]+)\s*$/', $requestData['coordinates'], $matches)) {
+                                    $requestData['coordinates'] = [
+                                        'lat' => (float)$matches[1],
+                                        'lng' => (float)$matches[2]
+                                    ];
+                                    error_log("Parsed coordinates: " . json_encode($requestData['coordinates']));
+                                }
+                            }
+                            
+                            // Spezialfall: Die causes bereinigen, falls als Array von JSON-Strings vorhanden
+                            if (isset($requestData['selected_causes']) && is_array($requestData['selected_causes'])) {
+                                foreach ($requestData['selected_causes'] as $index => $cause) {
+                                    if (is_string($cause) && (str_starts_with(trim($cause), '{') || str_starts_with(trim($cause), '['))) {
+                                        $requestData['selected_causes'][$index] = json_decode($cause, true) ?: $cause;
+                                    }
+                                }
+                            }
 
                             // Formatierte Daten für Wikibase vorbereiten
+                            // Debug-Ausgabe der Eingabedaten
+                            error_log("Data sent to formatter: " . json_encode(array_keys($requestData)));
+                            error_log("Type sent to formatter: " . $request->type);
+                            
                             $result = $formatter->formatEntityData($requestData, $request->type, false); // false = keine Entities erstellen
 
                             // Nach unseren Änderungen gibt formatEntityData ein Array mit zwei Schlüsseln zurück
                             if (is_array($result) && isset($result['formattedData'])) {
                                 $formattedData = $result['formattedData'];
                                 $updatedRequestData = $result['updatedData'];
+                                error_log("Formatted data claims count: " . (isset($formattedData['claims']) ? count($formattedData['claims']) : 0));
                             } else {
                                 $formattedData = $result; // Fallback für alte Struktur
                                 $updatedRequestData = $requestData;
+                                error_log("Using fallback result structure");
                             }
                         @endphp
 
                         <div class="mb-4">
                             <h6>Aufbereitete Daten für Wikidata API:</h6>
                             <pre class="bg-light p-3" style="max-height: 400px; overflow-y: auto;">{{ json_encode($formattedData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h6>Verarbeitete Eingangsdaten:</h6>
+                            <pre class="bg-light p-3" style="max-height: 200px; overflow-y: auto;">{{ json_encode($requestData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h6>Debug-Informationen:</h6>
+                            <table class="table table-sm table-bordered">
+                                <tr>
+                                    <th>Formatter Debug-Modus</th>
+                                    <td>{{ $formatter->isDebugMode() ? 'Ein' : 'Aus' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Wikibase Debug-Modus (Config)</th>
+                                    <td>{{ config('wikibase.debug_mode') ? 'Ein' : 'Aus' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Entity-Typ</th>
+                                    <td>{{ $request->type }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Anzahl der Claims</th>
+                                    <td>{{ count($formattedData['claims'] ?? []) }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Erkannte Properties</th>
+                                    <td>{{ implode(', ', array_keys($formattedData['claims'] ?? [])) }}</td>
+                                </tr>
+                            </table>
                         </div>
 
                         <div class="alert alert-info">

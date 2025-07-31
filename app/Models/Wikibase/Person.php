@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Wikidata;
+namespace App\Models\Wikibase;
 
 use App\Services\EntityMapping\EntityMappingProviderInterface;
 use Illuminate\Support\Facades\Log;
@@ -22,13 +22,16 @@ class Person extends BaseEntity
 
     /**
      * Constructor
-     * 
+     *
      * @param string $title The person's name/title
      * @param string $description The person's description
      * @param EntityMappingProviderInterface|null $mappingProvider Optional mapping provider
      */
-    public function __construct(string $title, string $description = "", ?EntityMappingProviderInterface $mappingProvider = null)
-    {
+    public function __construct(
+        string $title,
+        string $description = "",
+        ?EntityMappingProviderInterface $mappingProvider = null,
+    ) {
         parent::__construct($title, $description, $mappingProvider);
     }
 
@@ -170,8 +173,8 @@ class Person extends BaseEntity
             return;
         }
 
-        $genderProperty = $this->mappingProvider->getPropertyId('GENDER');
-        
+        $genderProperty = $this->mappingProvider->getPropertyId("GENDER");
+
         $this->data["claims"][$genderProperty] = [
             [
                 "mainsnak" => [
@@ -201,8 +204,10 @@ class Person extends BaseEntity
         $formattedDate = $this->formatDate($date);
 
         if ($formattedDate) {
-            $birthDateProperty = $this->mappingProvider->getPropertyId('BIRTH_DATE');
-            
+            $birthDateProperty = $this->mappingProvider->getPropertyId(
+                "BIRTH_DATE",
+            );
+
             $this->data["claims"][$birthDateProperty] = [
                 [
                     "mainsnak" => [
@@ -229,8 +234,10 @@ class Person extends BaseEntity
         $formattedDate = $this->formatDate($date);
 
         if ($formattedDate) {
-            $deathDateProperty = $this->mappingProvider->getPropertyId('DEATH_DATE');
-            
+            $deathDateProperty = $this->mappingProvider->getPropertyId(
+                "DEATH_DATE",
+            );
+
             $this->data["claims"][$deathDateProperty] = [
                 [
                     "mainsnak" => [
@@ -259,8 +266,10 @@ class Person extends BaseEntity
             return;
         }
 
-        $placeOfBirthProperty = $this->mappingProvider->getPropertyId('PLACE_OF_BIRTH');
-        
+        $placeOfBirthProperty = $this->mappingProvider->getPropertyId(
+            "PLACE_OF_BIRTH",
+        );
+
         $this->data["claims"][$placeOfBirthProperty] = [
             [
                 "mainsnak" => [
@@ -292,8 +301,10 @@ class Person extends BaseEntity
             return;
         }
 
-        $placeOfDeathProperty = $this->mappingProvider->getPropertyId('PLACE_OF_DEATH');
-        
+        $placeOfDeathProperty = $this->mappingProvider->getPropertyId(
+            "PLACE_OF_DEATH",
+        );
+
         $this->data["claims"][$placeOfDeathProperty] = [
             [
                 "mainsnak" => [
@@ -325,8 +336,10 @@ class Person extends BaseEntity
             return;
         }
 
-        $occupationProperty = $this->mappingProvider->getPropertyId('OCCUPATION');
-        
+        $occupationProperty = $this->mappingProvider->getPropertyId(
+            "OCCUPATION",
+        );
+
         $this->data["claims"][$occupationProperty] = [
             [
                 "mainsnak" => [
@@ -361,10 +374,10 @@ class Person extends BaseEntity
         $roleId = null;
         switch (strtolower($role)) {
             case self::ROLE_VICTIM:
-                $roleId = $this->mappingProvider->getEntityId('VICTIM');
+                $roleId = $this->mappingProvider->getEntityId("VICTIM");
                 break;
             case self::ROLE_PERPETRATOR:
-                $roleId = $this->mappingProvider->getEntityId('PERPETRATOR');
+                $roleId = $this->mappingProvider->getEntityId("PERPETRATOR");
                 break;
             default:
                 Log::warning("Unknown role provided to Person::setRole", [
@@ -374,8 +387,10 @@ class Person extends BaseEntity
         }
 
         // Add the "subject has role" claim using the mapping provider
-        $subjectHasRoleProperty = $this->mappingProvider->getPropertyId('SUBJECT_HAS_ROLE');
-        
+        $subjectHasRoleProperty = $this->mappingProvider->getPropertyId(
+            "SUBJECT_HAS_ROLE",
+        );
+
         $this->data["claims"][$subjectHasRoleProperty] = [
             [
                 "mainsnak" => [
@@ -411,8 +426,10 @@ class Person extends BaseEntity
             return;
         }
 
-        $significantEventProperty = $this->mappingProvider->getPropertyId('SIGNIFICANT_EVENT');
-        
+        $significantEventProperty = $this->mappingProvider->getPropertyId(
+            "SIGNIFICANT_EVENT",
+        );
+
         // If we don't already have significant event claims, initialize the array
         if (!isset($this->data["claims"][$significantEventProperty])) {
             $this->data["claims"][$significantEventProperty] = [];
@@ -458,13 +475,15 @@ class Person extends BaseEntity
         if (!empty($this->role)) {
             return $this->role;
         }
-        
+
         // Get the property ID for subject has role
-        $subjectHasRoleProperty = $this->mappingProvider->getPropertyId('SUBJECT_HAS_ROLE');
-        
+        $subjectHasRoleProperty = $this->mappingProvider->getPropertyId(
+            "SUBJECT_HAS_ROLE",
+        );
+
         // Get entity IDs for victim and perpetrator roles
-        $victimId = $this->mappingProvider->getEntityId('VICTIM');
-        $perpetratorId = $this->mappingProvider->getEntityId('PERPETRATOR');
+        $victimId = $this->mappingProvider->getEntityId("VICTIM");
+        $perpetratorId = $this->mappingProvider->getEntityId("PERPETRATOR");
 
         // Check for subject has role claims
         if (isset($this->data["claims"][$subjectHasRoleProperty])) {

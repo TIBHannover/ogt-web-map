@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\WikidataEntryRequest;
+use App\Models\WikibaseEntryRequest;
 use App\Services\Wikibase\WikibaseService;
 use Illuminate\Http\Request;
 
@@ -18,26 +18,26 @@ class DashboardController extends Controller
     {
         // Statistiken für das Dashboard abrufen
         $stats = [
-            "pending_requests" => WikidataEntryRequest::where(
+            "pending_requests" => WikibaseEntryRequest::where(
                 "status",
                 "pending"
             )->count(),
-            "approved_requests" => WikidataEntryRequest::where(
+            "approved_requests" => WikibaseEntryRequest::where(
                 "status",
                 "approved"
             )->count(),
-            "rejected_requests" => WikidataEntryRequest::where(
+            "rejected_requests" => WikibaseEntryRequest::where(
                 "status",
                 "rejected"
             )->count(),
-            "error_requests" => WikidataEntryRequest::where(
+            "error_requests" => WikibaseEntryRequest::where(
                 "status",
                 "error"
             )->count(),
         ];
 
         // Letzte Anfragen abrufen
-        $latestRequests = WikidataEntryRequest::orderBy("created_at", "desc")
+        $latestRequests = WikibaseEntryRequest::orderBy("created_at", "desc")
             ->limit(5)
             ->get();
 
@@ -71,7 +71,7 @@ class DashboardController extends Controller
     public function requests(Request $request)
     {
         $status = $request->input("status", "all");
-        $query = WikidataEntryRequest::query();
+        $query = WikibaseEntryRequest::query();
 
         if ($status !== "all") {
             $query->where("status", $status);
@@ -110,7 +110,7 @@ class DashboardController extends Controller
      */
     public function showRequest($id)
     {
-        $request = WikidataEntryRequest::findOrFail($id);
+        $request = WikibaseEntryRequest::findOrFail($id);
 
         return view("admin.request-detail", [
             "request" => $request,
@@ -125,7 +125,7 @@ class DashboardController extends Controller
      */
     public function editRequest($id)
     {
-        $request = WikidataEntryRequest::findOrFail($id);
+        $request = WikibaseEntryRequest::findOrFail($id);
 
         return view("admin.request-edit", [
             "request" => $request,
@@ -142,7 +142,7 @@ class DashboardController extends Controller
     public function updateRequest(Request $request, $id)
     {
         try {
-            $entryRequest = WikidataEntryRequest::findOrFail($id);
+            $entryRequest = WikibaseEntryRequest::findOrFail($id);
             
             // Debug information
             \Log::info('Update request data', [
@@ -252,7 +252,7 @@ class DashboardController extends Controller
             \Log::info('Update result via direct DB query', ['result' => $updateResult]);
             
             // Refresh the model from the database to ensure we have the latest data
-            $entryRequest = WikidataEntryRequest::findOrFail($id);
+            $entryRequest = WikibaseEntryRequest::findOrFail($id);
             
             // Log some fields to verify they were updated
             \Log::info('Field values after update', [

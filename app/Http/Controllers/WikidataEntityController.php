@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\WikidataEntryRequest;
+use App\Models\WikibaseEntryRequest;
 use App\Jobs\OrchestrateWikidataEntityCreation;
+use App\Services\Wikibase\WikibaseFormatterModels;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -64,7 +65,7 @@ class WikidataEntityController extends Controller
         ]);
 
         try {
-            $entryRequest = new WikidataEntryRequest();
+            $entryRequest = new WikibaseEntryRequest();
             $entryRequest->title = $validated["title"];
             $entryRequest->description = $validated["description"];
             $entryRequest->type = $validated["type"];
@@ -212,7 +213,7 @@ class WikidataEntityController extends Controller
             $page = $request->input("page", 1);
 
             // Filtere nach Status
-            $query = WikidataEntryRequest::where("status", $status);
+            $query = WikibaseEntryRequest::where("status", $status);
 
             // Sortiere nach Erstellungsdatum (neueste zuerst)
             $query->orderBy("created_at", "desc");
@@ -256,7 +257,7 @@ class WikidataEntityController extends Controller
     public function approveRequest(Request $request, int $id): JsonResponse
     {
         try {
-            $entryRequest = WikidataEntryRequest::findOrFail($id);
+            $entryRequest = WikibaseEntryRequest::findOrFail($id);
 
             // Pru00fcfen, ob die Anfrage bereits genehmigt wurde
             if ($entryRequest->status === "approved") {
@@ -408,7 +409,7 @@ class WikidataEntityController extends Controller
         }
 
         try {
-            $entryRequest = WikidataEntryRequest::findOrFail($id);
+            $entryRequest = WikibaseEntryRequest::findOrFail($id);
 
             // Pru00fcfen, ob die Anfrage bereits abgelehnt wurde
             if ($entryRequest->status === "rejected") {
@@ -502,7 +503,7 @@ class WikidataEntityController extends Controller
     public function retryRequest(Request $request, int $id): JsonResponse
     {
         try {
-            $entryRequest = WikidataEntryRequest::findOrFail($id);
+            $entryRequest = WikibaseEntryRequest::findOrFail($id);
 
             // Pru00fcfen, ob die Anfrage im Status "error" ist
             if ($entryRequest->status !== "error") {
@@ -607,7 +608,7 @@ class WikidataEntityController extends Controller
     public function getRequest(int $id): JsonResponse
     {
         try {
-            $entryRequest = WikidataEntryRequest::findOrFail($id);
+            $entryRequest = WikibaseEntryRequest::findOrFail($id);
 
             return response()->json(
                 [
@@ -668,7 +669,7 @@ class WikidataEntityController extends Controller
         }
 
         try {
-            $entryRequest = WikidataEntryRequest::findOrFail($id);
+            $entryRequest = WikibaseEntryRequest::findOrFail($id);
 
             // Pru00fcfen, ob die Anfrage genehmigt wurde
             if ($entryRequest->status !== "approved") {
@@ -794,7 +795,7 @@ class WikidataEntityController extends Controller
         }
 
         try {
-            $entryRequest = WikidataEntryRequest::findOrFail($id);
+            $entryRequest = WikibaseEntryRequest::findOrFail($id);
 
             // Bild aktualisieren
             $entryRequest->image_url = $request->input("image_url");
@@ -910,11 +911,11 @@ class WikidataEntityController extends Controller
     /**
      * Bereitet die Daten für die Erstellung einer Wikidata-Entitu00e4t vor.
      *
-     * @param WikidataEntryRequest $entryRequest
+     * @param WikibaseEntryRequest $entryRequest
      * @return array
      */
     private function prepareEntityData(
-        WikidataEntryRequest $entryRequest
+        WikibaseEntryRequest $entryRequest
     ): array {
         // Wir erstellen ein Label und eine Beschreibung in Deutsch
         $label = [
@@ -1046,7 +1047,7 @@ class WikidataEntityController extends Controller
             // Create a new request record in the database to track this entity creation
             $requestModel = config(
                 "wikidata.request_model",
-                "\\App\\Models\\WikidataEntryRequest"
+                "\\App\\Models\\WikibaseEntryRequest"
             );
 
             $request = new $requestModel();
@@ -1152,7 +1153,7 @@ class WikidataEntityController extends Controller
                 );
             }
 
-            $entryRequest = WikidataEntryRequest::find($entryId);
+            $entryRequest = WikibaseEntryRequest::find($entryId);
 
             if (!$entryRequest) {
                 Log::error("Entry request not found for callback", [

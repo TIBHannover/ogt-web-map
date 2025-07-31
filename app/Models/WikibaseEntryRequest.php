@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class WikidataEntryRequest extends Model
+class WikibaseEntryRequest extends Model
 {
     use HasFactory;
 
@@ -67,4 +67,5 @@ class WikidataEntryRequest extends Model
         'status_history' => 'array',
     ];
 
+    protected $table = 'wikidata_entry_requests';
 }

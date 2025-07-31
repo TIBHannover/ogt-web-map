@@ -10,20 +10,11 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
-use App\Services\Wikidata\WikidataFormatterModels;
+use App\Services\EntityMapping\EntityMappingProviderInterface;
 
 class OrchestrateWikidataEntityCreation implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
-    /**
-     * Entity type constants - use constants from WikidataFormatterModels
-     */
-    const ENTITY_TYPE_BOOK = WikidataFormatterModels::ENTITY_TYPE_BOOK;
-    const ENTITY_TYPE_EVENT = WikidataFormatterModels::ENTITY_TYPE_EVENT;
-    const ENTITY_TYPE_PERSON = WikidataFormatterModels::ENTITY_TYPE_PERSON;
-    const ENTITY_TYPE_ORGANIZATION = WikidataFormatterModels::ENTITY_TYPE_ORGANIZATION;
-    const ENTITY_TYPE_STRUCTURE = WikidataFormatterModels::ENTITY_TYPE_STRUCTURE;
 
     /**
      * Number of attempts for this job
@@ -198,12 +189,16 @@ class OrchestrateWikidataEntityCreation implements ShouldQueue
                 // Validate and enrich the person data
                 $enrichedPersonData = $this->enrichPersonData($personData, $type);
                 
+                // Get entity type ID from mapping provider
+                $mappingProvider = app(EntityMappingProviderInterface::class);
+                $personEntityTypeId = $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Person');
+                
                 // Create a CreateWikidataEntity job for this person
                 // We're setting the MainEntityIdPlaceholder which will be replaced with the actual
                 // entity ID in the CreateWikidataEntity job after the main entity is created
                 $personJob = new CreateWikidataEntity(
                     $enrichedPersonData,
-                    self::ENTITY_TYPE_PERSON, // Always use PERSON type for victims/perpetrators
+                    $personEntityTypeId, // Always use Person type for victims/perpetrators
                     null, // No callback for child entities
                     '__MAIN_ENTITY_ID__', // This is a placeholder that will be replaced with the actual ID
                     $type === 'victims' ? 'victim' : 'perpetrator', // Relationship type
@@ -261,10 +256,14 @@ class OrchestrateWikidataEntityCreation implements ShouldQueue
                 if ($needsCreation) {
                     // Enrich the book data
                     $enrichedBook = $this->enrichSourceData($book, 'book');
+                    
+                    // Get book entity type ID
+                    $mappingProvider = app(EntityMappingProviderInterface::class);
+                    $bookEntityTypeId = $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Book');
 
                     $bookJob = new CreateWikidataEntity(
                         $enrichedBook,
-                        self::ENTITY_TYPE_BOOK,
+                        $bookEntityTypeId,
                         null, // No callback for child entities
                         '__MAIN_ENTITY_ID__', // Placeholder for the main entity ID
                         'source', // Relationship type
@@ -312,10 +311,14 @@ class OrchestrateWikidataEntityCreation implements ShouldQueue
                     if ($needsCreation) {
                         // Enrich the book data
                         $enrichedSource = $this->enrichSourceData($source, 'book');
+                        
+                        // Get book entity type ID
+                        $mappingProvider = app(EntityMappingProviderInterface::class);
+                        $bookEntityTypeId = $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Book');
 
                         $sourceJob = new CreateWikidataEntity(
                             $enrichedSource,
-                            self::ENTITY_TYPE_BOOK,
+                            $bookEntityTypeId,
                             null, // No callback for child entities
                             '__MAIN_ENTITY_ID__', // Placeholder for the main entity ID
                             'source', // Relationship type
@@ -395,8 +398,11 @@ class OrchestrateWikidataEntityCreation implements ShouldQueue
             }
         }
         
-        // Always set entity type to PERSON - don't inherit parent entity type
-        $enriched['type'] = self::ENTITY_TYPE_PERSON;
+        // Get person entity type from mapping provider
+        $mappingProvider = app(EntityMappingProviderInterface::class);
+        
+        // Always set entity type to Person - don't inherit parent entity type
+        $enriched['type'] = $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Person');
         
         // Set proper role based on the relationship type
         $enriched['role'] = $type === 'victims' ? 'victim' : 'perpetrator';

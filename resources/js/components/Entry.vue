@@ -1057,36 +1057,14 @@ const resetForm = async () => {
 
         const secureToken = generateSecureToken();
 
-        // Debug log for location qualifier
-        console.log('Submitting location qualifier:', {
-            locationQualifierRef: locationQualifier,
-            locationQualifierValue: locationQualifier.value,
-            rawValue: typeof locationQualifier === 'object' ? JSON.stringify(locationQualifier) : locationQualifier
-        });
-
-        // Complete log of submission data
-        console.log('Full submission data:', {
-            title: formsTitle.value.trim(),
-            description: formsDescription.value.trim(),
-            type: formsType.value,
-            coordinates: coordinates,
-            coordinates_qualifier: locationQualifier,
-            // Include other key fields
-            victims: selectedVictims.value.length,
-            perpetrators: selectedPerpetrators.value.length,
-            eventTimeType: eventTimeType.value,
-            selectedCauses: selectedCauses.value.length,
-            sources: selectedSources.value.length
-        });
-
-        const response = await axios.post(
-            "/api/wikidata/entities",
-            {
-                title: formsTitle.value.trim(),
-                description: formsDescription.value.trim(),
+        // Function to prepare form data for submission - helps avoid circular references
+        const prepareFormData = () => {
+            return {
+                title: formsTitle.value?.trim() || "",
+                description: formsDescription.value?.trim() || "",
                 type: formsType.value,
                 coordinates: coordinates,
-                coordinates_qualifier: locationQualifier,
+                coordinates_qualifier: locationQualifier.value, // Use .value to avoid circular references
                 victims: selectedVictims.value,
                 perpetrators: selectedPerpetrators.value,
                 eventTimeType: eventTimeType.value,
@@ -1104,13 +1082,29 @@ const resetForm = async () => {
                 survivorCountQualifier: survivorCountQualifier.value,
                 deathCountQualifier: deathCountQualifier.value,
                 arrestCountQualifier: arrestCountQualifier.value,
-                coordinates_qualifier: locationQualifier,
                 causes: selectedCauses.value,
                 imageUrl: imageUrl.value,
                 imageFilename: imageFilename.value,
                 sources: selectedSources.value,
-                statusToken: secureToken, // Include the secure token
-            },
+                statusToken: secureToken
+            };
+        };
+        
+        // Debug log for location qualifier
+        console.log('Submitting location qualifier:', {
+            locationQualifierValue: locationQualifier.value,
+            rawValue: typeof locationQualifier.value === 'object' ? JSON.stringify(locationQualifier.value) : locationQualifier.value
+        });
+
+        // Get prepared form data
+        const formData = prepareFormData();
+        
+        // Complete log of submission data
+        console.log('Full submission data:', formData);
+
+        const response = await axios.post(
+            "/api/wikidata/entities",
+            formData,
             {
                 headers: {
                     "X-CSRF-TOKEN": csrfToken,

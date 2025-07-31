@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Wikidata;
+namespace App\Models\Wikibase;
 
 use App\Services\EntityMapping\EntityMappingProviderInterface;
 use Illuminate\Support\Facades\Log;
@@ -81,7 +81,25 @@ class Event extends BaseEntity
         
         // Set coordinates
         if (!empty($data['coordinates'])) {
-            $event->addCoordinates($data['coordinates']);
+            // Handle different coordinate formats
+            if (is_string($data['coordinates'])) {
+                // Try to parse coordinate string in format "lat, lng"
+                if (preg_match('/^\s*([0-9.\-]+)\s*,\s*([0-9.\-]+)\s*$/', $data['coordinates'], $matches)) {
+                    $event->addCoordinates([
+                        'lat' => (float)$matches[1],
+                        'lng' => (float)$matches[2]
+                    ]);
+                } else {
+                    // Try to decode JSON string
+                    $decoded = json_decode($data['coordinates'], true);
+                    if ($decoded) {
+                        $event->addCoordinates($decoded);
+                    }
+                }
+            } else {
+                // Already an array
+                $event->addCoordinates($data['coordinates']);
+            }
         }
         
         // Set image
@@ -96,7 +114,47 @@ class Event extends BaseEntity
             if (is_string($causes)) {
                 $causes = json_decode($causes, true) ?: [];
             }
+            Log::debug('Processing selected causes', [
+                'count' => count($causes),
+                'first_cause' => $causes[0] ?? null
+            ]);
             $event->addCauses($causes);
+        }
+        
+        // Also try with selected_causes key if available
+        if (empty($data['selected_causes']) && !empty($data['cause'])) {
+            if (substr($data['cause'], 0, 1) === 'Q') {
+                // If it's a Q-ID, add it directly
+                $event->setCause($data['cause']);
+            }
+        }
+        
+        // Add victims directly to claims if available
+        if (!empty($data['victims'])) {
+            $victims = $data['victims'];
+            if (is_string($victims)) {
+                $victims = json_decode($victims, true) ?: [];
+            }
+            foreach ($victims as $victim) {
+                if (!empty($victim['id']) && substr($victim['id'], 0, 1) === 'Q') {
+                    $victimProperty = $event->mappingProvider->getPropertyId('VICTIM');
+                    $event->addRelation($victimProperty, $victim['id']);
+                }
+            }
+        }
+        
+        // Add perpetrators directly to claims if available
+        if (!empty($data['perpetrators'])) {
+            $perpetrators = $data['perpetrators'];
+            if (is_string($perpetrators)) {
+                $perpetrators = json_decode($perpetrators, true) ?: [];
+            }
+            foreach ($perpetrators as $perpetrator) {
+                if (!empty($perpetrator['id']) && substr($perpetrator['id'], 0, 1) === 'Q') {
+                    $perpetratorProperty = $event->mappingProvider->getPropertyId('PERPETRATOR');
+                    $event->addRelation($perpetratorProperty, $perpetrator['id']);
+                }
+            }
         }
         
         return $event;
@@ -238,6 +296,75 @@ class Event extends BaseEntity
     }
     
     /**
+     * Add coordinates to the event
+     * 
+     * @param array|string $coordinates Coordinates in format [lat, lng] or "lat, lng"
+     */
+    public function addCoordinates($coordinates): void
+    {
+        if (empty($coordinates)) {
+            return;
+        }
+        
+        // Handle different coordinate formats
+        $lat = null;
+        $lng = null;
+        
+        if (is_string($coordinates)) {
+            // Format: "52.3744779, 9.7385532"
+            $parts = explode(',', $coordinates);
+            if (count($parts) === 2) {
+                $lat = (float)trim($parts[0]);
+                $lng = (float)trim($parts[1]);
+            }
+        } elseif (is_array($coordinates)) {
+            if (isset($coordinates[0]) && isset($coordinates[1])) {
+                // Format: [lat, lng]
+                $lat = (float)$coordinates[0];
+                $lng = (float)$coordinates[1];
+            } elseif (isset($coordinates['lat']) && isset($coordinates['lng'])) {
+                // Format: {lat: x, lng: y}
+                $lat = (float)$coordinates['lat'];
+                $lng = (float)$coordinates['lng'];
+            }
+        }
+        
+        if ($lat === null || $lng === null) {
+            Log::warning("Invalid coordinates format", ['coordinates' => $coordinates]);
+            return;
+        }
+        
+        $coordinatesProperty = $this->mappingProvider->getPropertyId('COORDINATES');
+        if (empty($coordinatesProperty)) {
+            Log::warning("Coordinates property ID is empty, using P625 as fallback");
+            $coordinatesProperty = 'P625'; // Fallback to standard Wikidata coordinates property
+        }
+        
+        $this->data['claims'][$coordinatesProperty] = [
+            [
+                'mainsnak' => [
+                    'snaktype' => 'value',
+                    'property' => $coordinatesProperty,
+                    'datavalue' => [
+                        'value' => [
+                            'latitude' => $lat,
+                            'longitude' => $lng,
+                            'altitude' => null,
+                            'precision' => 0.000001,
+                            'globe' => 'http://www.wikidata.org/entity/Q2'
+                        ],
+                        'type' => 'globecoordinate'
+                    ]
+                ],
+                'type' => 'statement',
+                'rank' => 'normal'
+            ]
+        ];
+        
+        Log::debug("Added coordinates to event", ['lat' => $lat, 'lng' => $lng]);
+    }
+    
+    /**
      * Set the cause
      */
     public function setCause(string $causeId): void
@@ -293,6 +420,48 @@ class Event extends BaseEntity
                 'rank' => 'normal'
             ]
         ];
+    }
+    
+    /**
+     * Add multiple causes to the event
+     * 
+     * @param array $causes Array of cause entities (with at least 'id' field)
+     */
+    public function addCauses(array $causes): void
+    {
+        if (empty($causes)) {
+            return;
+        }
+        
+        $causeProperty = $this->mappingProvider->getPropertyId('HAS_CAUSE');
+        
+        // Initialize claims array for this property if it doesn't exist
+        if (!isset($this->data['claims'][$causeProperty])) {
+            $this->data['claims'][$causeProperty] = [];
+        }
+        
+        foreach ($causes as $cause) {
+            if (!empty($cause['id']) && substr($cause['id'], 0, 1) === 'Q') {
+                $this->data['claims'][$causeProperty][] = [
+                    'mainsnak' => [
+                        'snaktype' => 'value',
+                        'property' => $causeProperty,
+                        'datavalue' => [
+                            'value' => [
+                                'entity-type' => 'item',
+                                'id' => $cause['id'],
+                                'numeric-id' => intval(substr($cause['id'], 1))
+                            ],
+                            'type' => 'wikibase-entityid'
+                        ]
+                    ],
+                    'type' => 'statement',
+                    'rank' => 'normal'
+                ];
+                
+                Log::debug("Added cause to event: {$cause['id']}");
+            }
+        }
     }
     
     /**

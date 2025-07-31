@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Wikidata\Source;
+namespace App\Models\Wikibase\Source;
 
 class SourceFactory
 {
@@ -12,25 +12,25 @@ class SourceFactory
      */
     public static function createFromArray(array $sourceData): ?BaseSource
     {
-        if (empty($sourceData['type'])) {
+        if (empty($sourceData["type"])) {
             return null;
         }
-        
-        switch ($sourceData['type']) {
-            case 'book':
+
+        switch ($sourceData["type"]) {
+            case "book":
                 return BookSource::fromArray($sourceData);
-                
-            case 'url':
+
+            case "url":
                 return UrlSource::fromArray($sourceData);
-                
-            case 'archive':
+
+            case "archive":
                 return ArchiveSource::fromArray($sourceData);
-                
+
             default:
                 return null;
         }
     }
-    
+
     /**
      * Create source models from array of source data
      *
@@ -40,14 +40,14 @@ class SourceFactory
     public static function createMultipleFromArray(array $sourcesData): array
     {
         $sources = [];
-        
+
         foreach ($sourcesData as $sourceData) {
             $source = self::createFromArray($sourceData);
             if ($source !== null) {
                 $sources[] = $source;
             }
         }
-        
+
         return $sources;
     }
 }

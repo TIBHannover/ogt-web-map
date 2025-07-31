@@ -7,8 +7,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use App\Services\Wikidata\WikidataService;
-use App\Services\Wikidata\WikidataFormatterModels;
+use App\Services\Wikibase\WikibaseService;
+use App\Services\Wikibase\WikibaseFormatterModels;
+use App\Services\EntityMapping\EntityMappingProviderInterface;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Bus; // Add this for job chaining
 
@@ -17,18 +18,9 @@ class CreateWikidataEntity implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
-     * Entity type constants - use constants from WikidataFormatterModels
-     */
-    const ENTITY_TYPE_BOOK = WikidataFormatterModels::ENTITY_TYPE_BOOK;
-    const ENTITY_TYPE_EVENT = WikidataFormatterModels::ENTITY_TYPE_EVENT;
-    const ENTITY_TYPE_PERSON = WikidataFormatterModels::ENTITY_TYPE_PERSON;
-    const ENTITY_TYPE_ORGANIZATION = WikidataFormatterModels::ENTITY_TYPE_ORGANIZATION;
-    const ENTITY_TYPE_STRUCTURE = WikidataFormatterModels::ENTITY_TYPE_STRUCTURE;
-
-    /**
      * Default model class for request tracking
      */
-    const DEFAULT_REQUEST_MODEL = "\\App\\Models\\WikidataEntryRequest";
+    const DEFAULT_REQUEST_MODEL = "\\App\\Models\\WikibaseEntryRequest";
 
     /**
      * Number of attempts for this job
@@ -208,13 +200,15 @@ class CreateWikidataEntity implements ShouldQueue
                 $chainedJobs[] = $childJob;
             }
         };
+        // Get mapping provider for entity types
+        $mappingProvider = app(EntityMappingProviderInterface::class);
         
         // Create jobs for each type of related entity
-        $createRelatedJobs($victims, self::ENTITY_TYPE_PERSON, 'victim');
-        $createRelatedJobs($perpetrators, self::ENTITY_TYPE_PERSON, 'perpetrator');
+        $createRelatedJobs($victims, $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Person'), 'victim');
+        $createRelatedJobs($perpetrators, $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Person'), 'perpetrator');
         
         // Create jobs for sources - link to main entity, not to a victim or perpetrator
-        $createRelatedJobs($sources, self::ENTITY_TYPE_BOOK, 'source');
+        $createRelatedJobs($sources, $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Book'), 'source');
         
         // If we have related entities, create a job chain
         if (!empty($chainedJobs)) {
@@ -304,13 +298,13 @@ class CreateWikidataEntity implements ShouldQueue
     /**
      * Execute the job.
      *
-     * @param WikidataService $wikidataService
-     * @param WikidataFormatterModels $formatterModels
+     * @param WikibaseService $wikidataService
+     * @param WikibaseFormatterModels $formatterModels
      * @return void
      */
     public function handle(
-        WikidataService $wikidataService,
-        WikidataFormatterModels $formatterModels
+        WikibaseService $wikidataService,
+        WikibaseFormatterModels $formatterModels
     ) {
         try {
             // Define a global constant to mark that we're in a queue worker
@@ -446,7 +440,7 @@ class CreateWikidataEntity implements ShouldQueue
                     false // Never try to create related entities
                 );
 
-                // Get the formatted data for the WikidataService
+                // Get the formatted data for the WikibaseService
                 $formattedData = $formattedResult["formattedData"];
 
                 // Create the entity using the formatted data
@@ -578,7 +572,7 @@ class CreateWikidataEntity implements ShouldQueue
 
                     // For events, link this entity to any victims or perpetrators that were created
                     if (
-                        $this->entityType === self::ENTITY_TYPE_EVENT &&
+                        $this->entityType === app(EntityMappingProviderInterface::class)->getEntityTypeId('App\\Models\\Wikibase\\Event') &&
                         !empty($createdEntities)
                     ) {
                         $this->linkMainEntityToChildren(
@@ -743,7 +737,7 @@ class CreateWikidataEntity implements ShouldQueue
                     if (!in_array($perpetrator["id"], $newlyCreatedEntityIds)) {
                         $newlyCreatedEntityIds[] = $perpetrator["id"];
 
-                        // Get name using helper method from WikidataFormatterModels
+                        // Get name using helper method from WikibaseFormatterModels
                         $name = $this->getEntityName($perpetrator);
 
                         $createdEntities[] = [
@@ -768,7 +762,7 @@ class CreateWikidataEntity implements ShouldQueue
 
     /**
      * Extract or create a name from a related entity array
-     * (Borrowed from WikidataFormatterModels for consistency)
+     * (Originally from WikibaseFormatterModels for consistency)
      *
      * @param array $entity The entity data
      * @return string The entity name
@@ -895,7 +889,7 @@ class CreateWikidataEntity implements ShouldQueue
     /**
      * Handle entity creation failure
      *
-     * @param mixed $response The response from WikidataService
+     * @param mixed $response The response from WikibaseService
      * @return void
      * @throws \Exception
      */
@@ -1068,8 +1062,8 @@ class CreateWikidataEntity implements ShouldQueue
         // If the error is specifically about model not found,
         // we can log it but not treat it as truly fatal
         $isModelNotFoundError = (
-            strpos($e->getMessage(), "WikidataEntryRequest") !== false ||
-            strpos($e->getMessage(), "WikidataRequest") !== false
+            strpos($e->getMessage(), "WikibaseEntryRequest") !== false ||
+            strpos($e->getMessage(), "WikibaseRequest") !== false
         ) && strpos($e->getMessage(), "not found") !== false;
         
         if ($isModelNotFoundError) {
@@ -1272,12 +1266,12 @@ class CreateWikidataEntity implements ShouldQueue
     /**
      * Link this entity to its parent entity
      *
-     * @param WikidataService $wikidataService
+     * @param WikibaseService $wikidataService
      * @param string $entityId The newly created entity ID
      * @return void
      */
     protected function linkEntityToParent(
-        WikidataService $wikidataService,
+        WikibaseService $wikidataService,
         string $entityId
     ) {
         try {
@@ -1306,22 +1300,20 @@ class CreateWikidataEntity implements ShouldQueue
             
             // Different linking properties based on relationship type
             $linkProperty = null;
+            $mappingProvider = app(\App\Services\EntityMapping\EntityMappingProviderInterface::class);
 
             switch ($this->relationshipType) {
                 case "source":
-                    $linkProperty =
-                        WikidataFormatterModels::WIKIDATA_DESCRIBED_BY_SOURCE; // Described by source
+                    $linkProperty = $mappingProvider->getPropertyId('DESCRIBED_BY_SOURCE'); // Described by source
                     break;
                 case "perpetrator":
-                    $linkProperty =
-                        WikidataFormatterModels::WIKIDATA_PERPETRATOR; // Has perpetrator
+                    $linkProperty = $mappingProvider->getPropertyId('PERPETRATOR'); // Has perpetrator
                     break;
                 case "victim":
-                    $linkProperty = WikidataFormatterModels::WIKIDATA_VICTIM; // Has victim
+                    $linkProperty = $mappingProvider->getPropertyId('VICTIM'); // Has victim
                     break;
                 case "book": // For backwards compatibility
-                    $linkProperty =
-                        WikidataFormatterModels::WIKIDATA_DESCRIBED_BY_SOURCE; // Treat books as sources
+                    $linkProperty = $mappingProvider->getPropertyId('DESCRIBED_BY_SOURCE'); // Treat books as sources
                     break;
                 default:
                     Log::warning(
@@ -1374,7 +1366,7 @@ class CreateWikidataEntity implements ShouldQueue
                     }
                 }
 
-                // Call the WikidataService to add this statement to the parent
+                // Call the WikibaseService to add this statement to the parent
                 // For the update, we need the parent entity type, not the child entity type
                 // We'll use the main event entity type for simplicity (most common case)
                 $parentEntityType = null;
@@ -1384,21 +1376,21 @@ class CreateWikidataEntity implements ShouldQueue
                     case "victim":
                     case "perpetrator":
                         // Parent is likely an event/incident
-                        $parentEntityType = WikidataFormatterModels::ENTITY_TYPE_EVENT;
+                        $parentEntityType = $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Event');
                         break;
                     case "source":
                     case "book":
                         // Parent could be any entity type, default to event but check ID
                         if (substr($this->parentEntityId, 0, 1) === 'Q') {
                             // If we can't determine it, use a generic type that can accept sources
-                            $parentEntityType = WikidataFormatterModels::ENTITY_TYPE_EVENT;
+                            $parentEntityType = $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Event');
                         }
                         break;
                 }
                 
                 // Fallback if we couldn't determine the type
                 if (!$parentEntityType) {
-                    $parentEntityType = WikidataFormatterModels::ENTITY_TYPE_EVENT; // Default to event
+                    $parentEntityType = $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Event'); // Default to event
                 }
                 
                 $result = $wikidataService->updateEntity(
@@ -1446,7 +1438,7 @@ class CreateWikidataEntity implements ShouldQueue
                                     "P793" => [$backLinkStatement],
                                 ],
                             ],
-                            WikidataFormatterModels::ENTITY_TYPE_PERSON // Person entity type for victims/perpetrators
+                            $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Person') // Person entity type for victims/perpetrators
                         );
                         
                         if ($backLinkResult) {
@@ -1483,19 +1475,20 @@ class CreateWikidataEntity implements ShouldQueue
      * Link this main entity to any newly created child entities
      * Establishes bidirectional relationships between events and persons
      *
-     * @param WikidataService $wikidataService
+     * @param WikibaseService $wikidataService
      * @param string $mainEntityId The main entity ID
      * @param array $createdEntities List of created related entities
      * @return void
      */
     protected function linkMainEntityToChildren(
-        WikidataService $wikidataService,
+        WikibaseService $wikidataService,
         string $mainEntityId,
         array $createdEntities
     ) {
         try {
+            $mappingProvider = app(EntityMappingProviderInterface::class);
             // Only perform this operation for event entities
-            if ($this->entityType !== self::ENTITY_TYPE_EVENT) {
+            if ($this->entityType !== $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Event')) {
                 return;
             }
 
@@ -1527,7 +1520,7 @@ class CreateWikidataEntity implements ShouldQueue
                     "rank" => "normal",
                 ];
 
-                // Call the WikidataService to add this statement to the person entity
+                // Call the WikibaseService to add this statement to the person entity
                 $result = $wikidataService->updateEntity($entity["id"], [
                     "claims" => [
                         "P793" => [$statement],
@@ -1571,14 +1564,14 @@ class CreateWikidataEntity implements ShouldQueue
     }
 
     /**
-     * Update entity data using the WikidataFormatterModels
+     * Update entity data using the WikibaseFormatterModels
      *
-     * @param WikidataFormatterModels $formatterModels The formatter models instance
+     * @param WikibaseFormatterModels $formatterModels The formatter models instance
      * @param string $entityId The newly created entity ID
      * @return void
      */
     protected function updateEntityWithFormattedData(
-        WikidataFormatterModels $formatterModels,
+        WikibaseFormatterModels $formatterModels,
         string $entityId
     ): void {
         try {
@@ -1592,7 +1585,7 @@ class CreateWikidataEntity implements ShouldQueue
             $this->entityData = $formattedResult["updatedData"];
 
             Log::info(
-                "Updated entity data with formatted data using WikidataFormatterModels",
+                "Updated entity data with formatted data using WikibaseFormatterModels",
                 [
                     "entity_id" => $entityId,
                     "type" => $this->entityType,

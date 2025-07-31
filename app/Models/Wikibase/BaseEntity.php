@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Wikidata;
+namespace App\Models\Wikibase;
 
 use App\Services\EntityMapping\EntityMappingProviderInterface;
 use Illuminate\Support\Facades\Log;
