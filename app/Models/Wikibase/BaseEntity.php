@@ -335,7 +335,7 @@ abstract class BaseEntity
      *
      * @param array &$statement Reference to the statement array
      * @param string $property The qualifier property ID
-     * @param string $value The qualifier value (entity ID)
+     * @param string $value The qualifier value (entity ID or text string)
      * @return void
      */
     protected function addQualifierToStatement(
@@ -357,19 +357,42 @@ abstract class BaseEntity
             $statement["qualifiers"][$property] = [];
         }
 
-        // Add the qualifier
-        $statement["qualifiers"][$property][] = [
-            "snaktype" => "value",
-            "property" => $property,
-            "datavalue" => [
-                "value" => [
-                    "entity-type" => "item",
-                    "id" => $value,
-                    "numeric-id" => intval(substr($value, 1)),
+        // Determine if value is a Wikidata entity ID (starts with Q)
+        $isEntityId = substr($value, 0, 1) === 'Q';
+        
+        // Log the qualifier for debugging
+        \Illuminate\Support\Facades\Log::info("Adding qualifier to statement", [
+            'property' => $property,
+            'value' => $value,
+            'is_entity_id' => $isEntityId
+        ]);
+        
+        // Add the qualifier based on type
+        if ($isEntityId) {
+            // Entity ID qualifier (like Q12345)
+            $statement["qualifiers"][$property][] = [
+                "snaktype" => "value",
+                "property" => $property,
+                "datavalue" => [
+                    "value" => [
+                        "entity-type" => "item",
+                        "id" => $value,
+                        "numeric-id" => intval(substr($value, 1)),
+                    ],
+                    "type" => "wikibase-entityid",
                 ],
-                "type" => "wikibase-entityid",
-            ],
-        ];
+            ];
+        } else {
+            // Text value qualifier
+            $statement["qualifiers"][$property][] = [
+                "snaktype" => "value",
+                "property" => $property,
+                "datavalue" => [
+                    "value" => $value,
+                    "type" => "string",
+                ],
+            ];
+        }
     }
 
     /**
@@ -586,7 +609,23 @@ abstract class BaseEntity
                     if (!isset($statement["references"])) {
                         $statement["references"] = [];
                     }
-                    $statement["references"][] = $reference;
+                    
+                    // Check if this reference already exists for this statement
+                    $referenceExists = false;
+                    foreach ($statement["references"] as $existingRef) {
+                        if ($existingRef == $reference) {  // Using == for array comparison
+                            $referenceExists = true;
+                            Log::debug("Skipping duplicate reference for property", [
+                                "property" => $propertyId,
+                                "source_type" => $source->getType()
+                            ]);
+                            break;
+                        }
+                    }
+                    
+                    if (!$referenceExists) {
+                        $statement["references"][] = $reference;
+                    }
                 }
             }
         }

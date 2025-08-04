@@ -144,8 +144,17 @@ class WikibaseOptimizer
      */
     private function optimizeForUpdate(array $data): array
     {
-        if (!isset($data["id"])) {
-            Log::warning("WikibaseOptimizer: Missing ID for update operation");
+        // For update operations, we should NOT include the ID in the data
+        // The ID is sent separately in the API request parameters
+        if (isset($data["id"])) {
+            Log::info("WikibaseOptimizer: Removing ID from data payload for update operation, it will be sent as a separate parameter");
+            unset($data["id"]);
+        }
+        
+        // Remove 'type' field which causes API errors
+        if (isset($data["type"])) {
+            Log::info("WikibaseOptimizer: Removing 'type' field for API compatibility");
+            unset($data["type"]);
         }
 
         return $data;

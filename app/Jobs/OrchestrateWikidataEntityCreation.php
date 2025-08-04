@@ -413,6 +413,17 @@ class OrchestrateWikidataEntityCreation implements ShouldQueue
         $enriched['_add_role_claim'] = true;       // Ensure role claim is created
         $enriched['_add_significant_event'] = true; // Ensure significant event claim is created
         
+        // Pass sources from the main entity to person entities
+        if (!empty($this->entityData['sources'])) {
+            $enriched['sources'] = $this->entityData['sources'];
+            Log::info("Passing sources from main entity to person entity", [
+                "person_name" => $enriched['name'],
+                "sources_count" => count($this->entityData['sources']),
+                "first_source" => !empty($this->entityData['sources'][0]) ? 
+                    ($this->entityData['sources'][0]['title'] ?? 'Unknown') : 'None'
+            ]);
+        }
+        
         // When the main entity is created, add it as a significant event for this person
         $enriched['significant_event_id'] = '__MAIN_ENTITY_ID__';
         

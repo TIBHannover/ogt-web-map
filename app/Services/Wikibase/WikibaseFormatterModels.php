@@ -59,7 +59,7 @@ class WikibaseFormatterModels
     public const ENTITY_TYPE_PERSON = "Q5";
     public const ENTITY_TYPE_ORGANIZATION = "Q43229";
     public const ENTITY_TYPE_STRUCTURE = "Q41176";
-    
+
     // Wikidata Property Constants
     public const WIKIDATA_DESCRIBED_BY_SOURCE = "P1343";
     public const WIKIDATA_PERPETRATOR = "P1399";
@@ -68,7 +68,7 @@ class WikibaseFormatterModels
     public const WIKIDATA_PAGE = "P304";
     public const WIKIDATA_LANGUAGE = "P407";
     public const WIKIDATA_RETRIEVAL_DATE = "P813";
-    public const WIKIDATA_STATED_IN_URL = "P854";
+    public const WIKIDATA_STATED_IN_URL = "P973";
 
     /**
      * Constructor
@@ -176,17 +176,20 @@ class WikibaseFormatterModels
         $instanceOfProperty = $this->mappingProvider->getPropertyId(
             "INSTANCE_OF",
         );
-        
+
         // Force debug mode to false in admin view to ensure we always get full formatted data
         // This ensures all data fields are processed even when viewing debug information
-        if (request()->is('*/admin/*') || request()->is('*/admin')) {
+        if (request()->is("*/admin/*") || request()->is("*/admin")) {
             $originalDebugMode = $this->inDebugMode;
             $this->inDebugMode = false;
             Log::debug("Debug mode temporarily disabled for admin view");
         }
 
         // Only return placeholder data if in debug mode AND not in admin view
-        if ($this->inDebugMode && !(isset($originalDebugMode) && $originalDebugMode)) {
+        if (
+            $this->inDebugMode &&
+            !(isset($originalDebugMode) && $originalDebugMode)
+        ) {
             Log::debug("In debug mode - creating placeholder formatted data", [
                 "type" => $type,
             ]);
@@ -242,17 +245,21 @@ class WikibaseFormatterModels
 
         // Ensure all JSON fields are properly decoded
         $jsonFields = [
-            'perpetrators', 'victims', 'sources', 'selected_causes', 
-            'status_history', 'created_entities'
+            "perpetrators",
+            "victims",
+            "sources",
+            "selected_causes",
+            "status_history",
+            "created_entities",
         ];
-        
+
         foreach ($jsonFields as $field) {
             if (!empty($data[$field]) && is_string($data[$field])) {
                 $data[$field] = json_decode($data[$field], true) ?? [];
                 Log::debug("Decoded JSON field: {$field}");
             }
         }
-        
+
         // Process coordinates if available
         if (!empty($data["coordinates"]) && is_string($data["coordinates"])) {
             $data["coordinates"] = explode(", ", $data["coordinates"]);
@@ -261,32 +268,56 @@ class WikibaseFormatterModels
             }
         }
 
+        // Extract sources for related entities
+        $sources = [];
+        if (!empty($data["sources"])) {
+            $sources = $data["sources"];
+            Log::info("Found sources for related entities", [
+                "count" => count($sources),
+                "first_source" => !empty($sources[0])
+                    ? $sources[0]["title"] ?? "Unknown"
+                    : "None",
+            ]);
+        }
+
         // Add perpetrators if available
         if (!empty($data["perpetrators"])) {
+            // Pass the sources from the main entity to related entities
+            $sourcesToPass = !empty($data["sources"])
+                ? $data["sources"]
+                : $sources;
             $data["perpetrators"] = $this->processEntityRelations(
                 $entity,
                 $data["perpetrators"],
                 self::ROLE_PERPETRATOR,
                 $createEntities,
+                $sourcesToPass,
             );
         }
 
         // Add victims if available
         if (!empty($data["victims"])) {
+            // Pass the sources from the main entity to related entities
+            $sourcesToPass = !empty($data["sources"])
+                ? $data["sources"]
+                : $sources;
             $data["victims"] = $this->processEntityRelations(
                 $entity,
                 $data["victims"],
                 self::ROLE_VICTIM,
                 $createEntities,
+                $sourcesToPass,
             );
         }
-        
+
         // Process selected causes if available
         if (!empty($data["selected_causes"])) {
             // Make sure entity has the causes set
-            if (method_exists($entity, 'setCauses')) {
+            if (method_exists($entity, "setCauses")) {
                 $entity->setCauses($data["selected_causes"]);
-                Log::debug("Set causes on entity", [count($data["selected_causes"])]);
+                Log::debug("Set causes on entity", [
+                    count($data["selected_causes"]),
+                ]);
             }
             // Get updated formatted data after setting causes
             $formattedData = $entity->getFormattedData();
@@ -311,15 +342,20 @@ class WikibaseFormatterModels
         // Restore original debug mode if it was temporarily changed
         if (isset($originalDebugMode)) {
             $this->inDebugMode = $originalDebugMode;
-            Log::debug("Debug mode restored to original state: " . ($this->inDebugMode ? "true" : "false"));
+            Log::debug(
+                "Debug mode restored to original state: " .
+                    ($this->inDebugMode ? "true" : "false"),
+            );
         }
-        
+
         // Remove type field from formatted data as it causes API errors
-        if (isset($formattedData['type'])) {
-            Log::info("WikibaseFormatterModels: Removing 'type' field from formatted data for API compatibility");
-            unset($formattedData['type']);
+        if (isset($formattedData["type"])) {
+            Log::info(
+                "WikibaseFormatterModels: Removing 'type' field from formatted data for API compatibility",
+            );
+            unset($formattedData["type"]);
         }
-        
+
         // Return result with formatted data and updated data
         return [
             "formattedData" => $formattedData,
@@ -341,6 +377,7 @@ class WikibaseFormatterModels
         array $relatedEntities,
         string $role,
         bool $createEntities = false,
+        array $sources = [],
     ): array {
         // If running in queue worker, automatically disable debug mode
         if ($this->isRunningInQueue()) {
@@ -445,6 +482,17 @@ class WikibaseFormatterModels
                     $entity,
                     $role,
                 );
+
+                // Include sources for the person entity
+                $personData["sources"] = $sources;
+
+                Log::info("Added sources to person entity data", [
+                    "person" => $personData["name"] ?? "Unknown",
+                    "sources_count" => count($sources),
+                    "first_source" => !empty($sources[0])
+                        ? $sources[0]["title"] ?? "Unknown"
+                        : "None",
+                ]);
 
                 // Get sources if available
                 $sources = $relatedEntity["sources"] ?? [];
@@ -825,6 +873,9 @@ class WikibaseFormatterModels
             "place_of_birth" => $entity["place_of_birth"] ?? null,
             "place_of_death" => $entity["place_of_death"] ?? null,
             "place_of_detention" => $entity["place_of_detention"] ?? null,
+            "role" => $role,
+            "_add_role_claim" => true,
+            "relationship" => $role,
         ];
     }
 
@@ -856,6 +907,18 @@ class WikibaseFormatterModels
                     $sources,
                 );
                 $this->addSourcesToEntityInternal($person, $sourceModels);
+
+                Log::info("Added source information to person entity", [
+                    "person" => $person->getName() ?? "Unknown",
+                    "sources_count" => count($sources),
+                    "first_source" => !empty($sources[0])
+                        ? $sources[0]["title"] ?? "Unknown"
+                        : "None",
+                ]);
+            } else {
+                Log::warning("No sources provided for person entity", [
+                    "person" => $person->getName() ?? "Unknown",
+                ]);
             }
 
             // Get the formatted data for the WikibaseService
@@ -1658,12 +1721,12 @@ class WikibaseFormatterModels
                                 "Removed non-Wikibase single author ID in favor of temp_id",
                                 [
                                     "author" =>
-                                        ($author["label"] ??
-                                        (($author["firstName"] ?? "") .
+                                        $author["label"] ??
+                                        ($author["firstName"] ?? "") .
                                             " " .
-                                            ($author["lastName"] ?? ""))),
-                                    "temp_id" => $author["temp_id"]
-                                ]
+                                            ($author["lastName"] ?? ""),
+                                    "temp_id" => $author["temp_id"],
+                                ],
                             );
                         }
                     }

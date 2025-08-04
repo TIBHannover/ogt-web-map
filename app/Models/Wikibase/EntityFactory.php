@@ -3,6 +3,7 @@
 namespace App\Models\Wikibase;
 
 use App\Services\EntityMapping\EntityMappingProviderInterface;
+use Illuminate\Support\Facades\Log;
 
 class EntityFactory
 {
@@ -51,14 +52,25 @@ class EntityFactory
     {
         $mappingProvider = app(EntityMappingProviderInterface::class);
         
+        Log::info("Creating person with role via EntityFactory", [
+            "role" => $role ?? 'null',
+            "has_title" => !empty($data['title']),
+            "has_name" => !empty($data['name']),
+            "has_temp_id" => !empty($data['tempId']) ? $data['tempId'] : 'none',
+            "has_role_in_data" => !empty($data['role']),
+        ]);
+        
         switch ($role) {
             case 'victim':
+                Log::info("Creating specialized Victim entity");
                 return Victim::fromArray($data);
                 
             case 'perpetrator':
+                Log::info("Creating specialized Perpetrator entity");
                 return Perpetrator::fromArray($data);
                 
             default:
+                Log::info("Creating generic Person entity (role not specified or recognized)");
                 return Person::fromArray($data);
         }
     }

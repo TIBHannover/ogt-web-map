@@ -91,6 +91,15 @@ class Victim extends Person
             "SUBJECT_HAS_ROLE",
         );
         $victimId = $this->mappingProvider->getEntityId("VICTIM");
+        
+        // Log detailed information about the property IDs
+        Log::info("Adding victim role to person entity", [
+            "property_id" => $subjectHasRoleProperty,
+            "expected_property" => "P2868",
+            "victim_entity_id" => $victimId,
+            "expected_victim_entity" => "Q2026714",
+            "mapping_provider_class" => get_class($this->mappingProvider)
+        ]);
 
         // Add "victim of Nazism" to subject has role
         $this->data["claims"][$subjectHasRoleProperty] = [
@@ -111,5 +120,13 @@ class Victim extends Person
                 "rank" => "normal",
             ],
         ];
+        
+        // Verify the claim was added
+        Log::info("Verified victim role claim was added", [
+            "has_role_claim" => isset($this->data["claims"][$subjectHasRoleProperty]),
+            "claim_count" => isset($this->data["claims"][$subjectHasRoleProperty]) ? 
+                             count($this->data["claims"][$subjectHasRoleProperty]) : 0,
+            "all_claim_keys" => array_keys($this->data["claims"] ?? [])
+        ]);
     }
 }

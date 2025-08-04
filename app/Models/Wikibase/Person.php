@@ -40,7 +40,7 @@ class Person extends BaseEntity
      */
     public static function fromArray(array $data): self
     {
-        // Log what data we received
+        // Log what data we received with more details
         Log::info("Creating Person model from array data", [
             "title" => $data["title"] ?? "Unknown",
             "name" => $data["name"] ?? "Not set",
@@ -53,7 +53,23 @@ class Person extends BaseEntity
             "has_birth_date" => isset($data["birthDate"]),
             "death_date" => $data["deathDate"] ?? "Not set",
             "has_death_date" => isset($data["deathDate"]),
+            "gender" => isset($data["gender"])
+                ? json_encode($data["gender"])
+                : "Not set",
+            "place_of_birth" => isset($data["place_of_birth"])
+                ? json_encode($data["place_of_birth"])
+                : "Not set",
+            "has_place_of_birth" => isset($data["place_of_birth"]),
+            "place_of_death" => isset($data["place_of_death"])
+                ? json_encode($data["place_of_death"])
+                : "Not set",
+            "has_place_of_death" => isset($data["place_of_death"]),
+            "occupation" => isset($data["occupation"])
+                ? json_encode($data["occupation"])
+                : "Not set",
+            "has_occupation" => isset($data["occupation"]),
             "data_keys" => array_keys($data),
+            "all_data" => $data,
         ]);
 
         // IMPORTANT: Title must be set here to ensure labels are created
@@ -88,40 +104,81 @@ class Person extends BaseEntity
 
         $person = new self($title, $description);
 
-        // Set gender
-        if (!empty($data["gender"]) && !empty($data["gender"]["id"])) {
-            $person->setGender($data["gender"]["id"]);
+        // Set gender - handle both string and object formats
+        if (!empty($data["gender"])) {
+            if (is_string($data["gender"]) && substr($data["gender"], 0, 1) === 'Q') {
+                // Direct Q-ID string
+                $person->setGender($data["gender"]);
+                Log::info("Set gender from string value", ["gender_id" => $data["gender"]]);
+            } elseif (is_array($data["gender"]) && !empty($data["gender"]["id"])) {
+                // Object with id field
+                $person->setGender($data["gender"]["id"]);
+                Log::info("Set gender from object value", ["gender_id" => $data["gender"]["id"]]);
+            }
         }
 
         // Set birth date
         if (!empty($data["birthDate"])) {
             $person->setBirthDate($data["birthDate"]);
+            Log::info("Set birth date", ["date" => $data["birthDate"]]);
         }
 
         // Set death date
         if (!empty($data["deathDate"])) {
             $person->setDeathDate($data["deathDate"]);
+            Log::info("Set death date", ["date" => $data["deathDate"]]);
         }
 
-        // Set place of birth
-        if (
-            !empty($data["place_of_birth"]) &&
-            !empty($data["place_of_birth"]["id"])
-        ) {
-            $person->setPlaceOfBirth($data["place_of_birth"]["id"]);
+        // Set place of birth - handle both string and object formats
+        if (!empty($data["place_of_birth"])) {
+            if (is_string($data["place_of_birth"]) && substr($data["place_of_birth"], 0, 1) === 'Q') {
+                // Direct Q-ID string
+                $person->setPlaceOfBirth($data["place_of_birth"]);
+                Log::info("Set place of birth from string value", ["place_id" => $data["place_of_birth"]]);
+            } elseif (is_array($data["place_of_birth"]) && !empty($data["place_of_birth"]["id"])) {
+                // Object with id field
+                $person->setPlaceOfBirth($data["place_of_birth"]["id"]);
+                Log::info("Set place of birth from object value", ["place_id" => $data["place_of_birth"]["id"]]);
+            }
         }
 
-        // Set place of death
-        if (
-            !empty($data["place_of_death"]) &&
-            !empty($data["place_of_death"]["id"])
-        ) {
-            $person->setPlaceOfDeath($data["place_of_death"]["id"]);
+        // Set place of death - handle both string and object formats
+        if (!empty($data["place_of_death"])) {
+            if (is_string($data["place_of_death"]) && substr($data["place_of_death"], 0, 1) === 'Q') {
+                // Direct Q-ID string
+                $person->setPlaceOfDeath($data["place_of_death"]);
+                Log::info("Set place of death from string value", ["place_id" => $data["place_of_death"]]);
+            } elseif (is_array($data["place_of_death"]) && !empty($data["place_of_death"]["id"])) {
+                // Object with id field
+                $person->setPlaceOfDeath($data["place_of_death"]["id"]);
+                Log::info("Set place of death from object value", ["place_id" => $data["place_of_death"]["id"]]);
+            }
         }
 
-        // Set occupation
-        if (!empty($data["occupation"]) && !empty($data["occupation"]["id"])) {
-            $person->setOccupation($data["occupation"]["id"]);
+        // Set nationality - handle both string and object formats
+        if (!empty($data["nationality"])) {
+            if (is_string($data["nationality"]) && substr($data["nationality"], 0, 1) === 'Q') {
+                // Direct Q-ID string
+                $person->setNationality($data["nationality"]);
+                Log::info("Set nationality from string value", ["nationality_id" => $data["nationality"]]);
+            } elseif (is_array($data["nationality"]) && !empty($data["nationality"]["id"])) {
+                // Object with id field
+                $person->setNationality($data["nationality"]["id"]);
+                Log::info("Set nationality from object value", ["nationality_id" => $data["nationality"]["id"]]);
+            }
+        }
+
+        // Set occupation - handle both string and object formats
+        if (!empty($data["occupation"])) {
+            if (is_string($data["occupation"]) && substr($data["occupation"], 0, 1) === 'Q') {
+                // Direct Q-ID string
+                $person->setOccupation($data["occupation"]);
+                Log::info("Set occupation from string value", ["occupation_id" => $data["occupation"]]);
+            } elseif (is_array($data["occupation"]) && !empty($data["occupation"]["id"])) {
+                // Object with id field
+                $person->setOccupation($data["occupation"]["id"]);
+                Log::info("Set occupation from object value", ["occupation_id" => $data["occupation"]["id"]]);
+            }
         }
 
         // Set image
@@ -131,15 +188,77 @@ class Person extends BaseEntity
 
         // Set role (victim/perpetrator) for all persons in the victim/perpetrator flow
         // This ensures victims always get the victim role claim and perpetrators always get the perpetrator role claim
-        if (
-            !empty($data["role"]) ||
-            !empty($data["_add_role_claim"]) ||
-            (!empty($data["tempId"]) && $data["tempId"] === "new") ||
-            (!empty($data["id"]) && $data["id"] === "new")
-        ) {
-            $role = $data["role"] ?? "victim";
+        // Always set role for child entities - especially important for victims and perpetrators
+        
+        // Extract flags and data relevant for role setting
+        $hasRoleInData = !empty($data["role"]);
+        $hasAddRoleFlag = !empty($data["_add_role_claim"]);
+        // Check if it's a new entity with either "new" exactly or "new_" prefix
+        $isNewEntity = (!empty($data["tempId"]) && ($data["tempId"] === "new" || substr($data["tempId"], 0, 4) === "new_")) || 
+                     (!empty($data["id"]) && ($data["id"] === "new" || substr($data["id"], 0, 4) === "new_"));
+        $hasSignificantEvent = !empty($data["significant_event_id"]);
+        $hasRelationshipFlag = !empty($data["relationship"]) || !empty($data["relationshipType"]);
+        
+        Log::info("Evaluating person role setting conditions", [
+            "has_role_in_data" => $hasRoleInData,
+            "has_add_role_flag" => $hasAddRoleFlag,
+            "is_new_entity" => $isNewEntity,
+            "has_significant_event" => $hasSignificantEvent,
+            "has_relationship_flag" => $hasRelationshipFlag,
+            "role_value" => $data["role"] ?? "not set",
+            "relationship_value" => $data["relationship"] ?? $data["relationshipType"] ?? "not set",
+            "person_name" => $person->getName()
+        ]);
+        
+        // Determine role from multiple possible sources
+        $role = null;
+        
+        // 1. Explicit role in data
+        if ($hasRoleInData) {
+            $role = $data["role"];
+            Log::info("Using explicit role from data", ["role" => $role]);
+        }
+        // 2. Relationship type (from job chain)
+        elseif (!empty($data["relationship"])) {
+            $role = $data["relationship"];  // 'victim' or 'perpetrator'
+            Log::info("Using role from relationship field", ["role" => $role]);
+        }
+        elseif (!empty($data["relationshipType"])) {
+            $role = $data["relationshipType"];  // 'victim' or 'perpetrator'
+            Log::info("Using role from relationshipType field", ["role" => $role]);
+        }
+        // 3. Default to 'victim' if no explicit role
+        else {
+            $role = "victim";
+            Log::info("Using default role", ["role" => $role]);
+        }
+        
+        // Always set the role for new person entities (victims/perpetrators)
+        if ($hasRoleInData || $hasAddRoleFlag || $isNewEntity || $hasSignificantEvent || $hasRelationshipFlag) {
+            Log::info("Setting role for person entity", [
+                "role" => $role,
+                "person_name" => $person->getName(),
+                "entity_data" => json_encode(array_keys($data)),
+                "has_significant_event" => $hasSignificantEvent,
+                "significant_event_id" => $data["significant_event_id"] ?? 'None',
+                "reason" => $hasRoleInData ? "explicit_role" : 
+                           ($hasAddRoleFlag ? "add_role_flag" : 
+                           ($isNewEntity ? "new_entity" : 
+                           ($hasSignificantEvent ? "has_significant_event" : "has_relationship")))
+            ]);
+            
+            // Set the role on the person entity
             $person->setRole($role);
-            Log::info("Set role for person", ["role" => $role]);
+        } else {
+            Log::warning("No role set for person - missing required data", [
+                "has_role" => $hasRoleInData,
+                "has_add_role_flag" => $hasAddRoleFlag,
+                "is_new_entity" => $isNewEntity,
+                "has_significant_event" => $hasSignificantEvent,
+                "has_relationship_flag" => $hasRelationshipFlag,
+                "person_name" => $person->getName(),
+                "data_keys" => array_keys($data)
+            ]);
         }
 
         // If a significant event is provided, add that claim
@@ -165,9 +284,25 @@ class Person extends BaseEntity
     /**
      * Set the gender
      */
-    public function setGender(string $genderId): void
+    public function setGender($gender): void
     {
+        // Handle different formats of gender input
+        $genderId = "";
+
+        if (is_string($gender)) {
+            $genderId = $gender;
+        } elseif (is_array($gender) && isset($gender["id"])) {
+            $genderId = $gender["id"];
+        } elseif (is_object($gender) && isset($gender->id)) {
+            $genderId = $gender->id;
+        }
+
         $this->gender = $genderId;
+
+        Log::info("Setting gender for person", [
+            "input" => $gender,
+            "processed_id" => $genderId,
+        ]);
 
         if (empty($genderId) || substr($genderId, 0, 1) !== "Q") {
             return;
@@ -359,6 +494,52 @@ class Person extends BaseEntity
             ],
         ];
     }
+    
+    /**
+     * Set the nationality (country of citizenship)
+     * 
+     * @param string $nationalityId The Wikidata Q-number for the nationality
+     * @return void
+     */
+    public function setNationality(string $nationalityId): void
+    {
+        if (empty($nationalityId) || substr($nationalityId, 0, 1) !== "Q") {
+            Log::warning("Invalid nationality ID provided to setNationality", [
+                "id" => $nationalityId,
+            ]);
+            return;
+        }
+        
+        $nationalityProperty = $this->mappingProvider->getPropertyId("COUNTRY_OF_CITIZENSHIP"); // Should map to P27
+        
+        // If we don't already have nationality claims, initialize the array
+        if (!isset($this->data["claims"][$nationalityProperty])) {
+            $this->data["claims"][$nationalityProperty] = [];
+        }
+        
+        // Add the nationality claim
+        $this->data["claims"][$nationalityProperty][] = [
+            "mainsnak" => [
+                "snaktype" => "value",
+                "property" => $nationalityProperty,
+                "datavalue" => [
+                    "value" => [
+                        "entity-type" => "item",
+                        "id" => $nationalityId,
+                        "numeric-id" => intval(substr($nationalityId, 1)),
+                    ],
+                    "type" => "wikibase-entityid",
+                ],
+            ],
+            "type" => "statement",
+            "rank" => "normal",
+        ];
+        
+        Log::info("Added nationality to person", [
+            "property" => $nationalityProperty,
+            "nationality_id" => $nationalityId,
+        ]);
+    }
 
     /**
      * Set the person's role (victim or perpetrator)
@@ -374,10 +555,10 @@ class Person extends BaseEntity
         $roleId = null;
         switch (strtolower($role)) {
             case self::ROLE_VICTIM:
-                $roleId = $this->mappingProvider->getEntityId("VICTIM");
+                $roleId = $this->mappingProvider->getEntityId("VICTIM"); // Should map to Q2026714 - Victim of Nazism
                 break;
             case self::ROLE_PERPETRATOR:
-                $roleId = $this->mappingProvider->getEntityId("PERPETRATOR");
+                $roleId = $this->mappingProvider->getEntityId("PERPETRATOR"); // Should map to Q111080573 - Perpetrator of Nazism
                 break;
             default:
                 Log::warning("Unknown role provided to Person::setRole", [
@@ -385,11 +566,17 @@ class Person extends BaseEntity
                 ]);
                 return;
         }
+        
+        // Log the role ID being used
+        Log::info("Setting person role with entity ID", [
+            "role" => $role,
+            "roleId" => $roleId,
+            "expected_victim_id" => "Q2026714",
+            "expected_perpetrator_id" => "Q111080573"
+        ]);
 
         // Add the "subject has role" claim using the mapping provider
-        $subjectHasRoleProperty = $this->mappingProvider->getPropertyId(
-            "SUBJECT_HAS_ROLE",
-        );
+        $subjectHasRoleProperty = $this->mappingProvider->getPropertyId("SUBJECT_HAS_ROLE"); // Should map to P2868
 
         $this->data["claims"][$subjectHasRoleProperty] = [
             [
@@ -409,6 +596,15 @@ class Person extends BaseEntity
                 "rank" => "normal",
             ],
         ];
+        
+        // Log what's being set
+        Log::info("Role property added to person", [
+            "property" => $subjectHasRoleProperty,
+            "value" => $roleId,
+            "role" => $role,
+            "mapping_provider_class" => get_class($this->mappingProvider),
+            "claims" => json_encode($this->data["claims"][$subjectHasRoleProperty])
+        ]);
     }
 
     /**
@@ -426,9 +622,17 @@ class Person extends BaseEntity
             return;
         }
 
-        $significantEventProperty = $this->mappingProvider->getPropertyId(
-            "SIGNIFICANT_EVENT",
-        );
+        // Get the significant event property from the mapping provider
+        $significantEventProperty = $this->mappingProvider->getPropertyId("SIGNIFICANT_EVENT"); // Should map to P793
+        
+        // Log what we're about to do
+        Log::info("Adding significant event link to person", [
+            "person_name" => $this->getName(),
+            "event_id" => $eventId,
+            "property" => $significantEventProperty,
+            "person_role" => $this->role ?? "unknown",
+            "mapping_provider_class" => get_class($this->mappingProvider)
+        ]);
 
         // If we don't already have significant event claims, initialize the array
         if (!isset($this->data["claims"][$significantEventProperty])) {
@@ -452,6 +656,14 @@ class Person extends BaseEntity
             "type" => "statement",
             "rank" => "normal",
         ];
+        
+        // Log the claim structure that was added
+        Log::info("Added significant event claim to person", [
+            "person_name" => $this->getName(),
+            "event_id" => $eventId,
+            "property" => $significantEventProperty,
+            "claim_data" => json_encode($this->data["claims"][$significantEventProperty])
+        ]);
     }
 
     /**

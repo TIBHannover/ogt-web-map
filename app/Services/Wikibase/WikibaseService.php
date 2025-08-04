@@ -461,21 +461,79 @@ class WikibaseService
                 ];
             }
 
+            // Log data before optimization
+            Log::info("WikibaseService: Entity data before update", [
+                "entity_id" => $entityId,
+                "type" => $type,
+                "claims_count" => isset($rawData["claims"]) ? count($rawData["claims"]) : 0,
+                "claim_keys" => isset($rawData["claims"]) ? array_keys($rawData["claims"]) : [],
+            ]);
+            
+            // Make sure the entity ID is not in the data (it will be passed separately)
+            if (isset($rawData["id"])) {
+                Log::info("WikibaseService: Entity ID will be passed separately in API params, removing from data payload");
+                unset($rawData["id"]);
+            }
+            
             // Optimize data for update operation
             $optimizedData = $this->optimizer->optimize($rawData, "update");
 
-            // Implement the actual API call to update an entity
-            // This would call the Wikibase API
+            // First, get CSRF token for editing
+            $csrfToken = $this->getCSRFToken();
+            if (!$csrfToken) {
+                throw new \Exception("Failed to get CSRF token for entity update");
+            }
 
-            // Return mock data for now
-            return [
-                "success" => 1,
-                "entity" => [
-                    "id" => $entityId,
-                    "type" => $type,
-                    "labels" => $rawData["labels"] ?? [],
-                ],
+            // Prepare the data for the API call
+            $apiParams = [
+                "action" => "wbeditentity",
+                "id" => $entityId,  // This is critical - include the entity ID
+                "token" => $csrfToken,
+                "format" => "json",
+                "data" => json_encode($optimizedData),
+                "summary" => config("wikidata.edit_summary", "Updating data via OGT API"),
+                "bot" => 1, // Mark as bot edit
             ];
+            
+            // Log a specific warning if the entity ID is empty or invalid
+            if (empty($entityId) || !preg_match('/^Q\d+$/', $entityId)) {
+                Log::error("WikibaseService: Invalid entity ID for update", [
+                    "entity_id" => $entityId,
+                    "data" => $optimizedData,
+                ]);
+            }
+
+            // Log the API request
+            Log::info("WikibaseService: Updating entity with API request", [
+                "api_url" => $this->baseUrl,
+                "entity_id" => $entityId,
+                "request_params" => array_merge($apiParams, ["token" => "[REDACTED]"])  
+            ]);
+
+            // Make the API call to update the entity
+            $response = $this->client->post($this->baseUrl, [
+                "form_params" => $apiParams,
+                "cookies" => $this->getCookieJar(),
+            ]);
+
+            // Parse and return the response
+            $result = json_decode($response->getBody(), true);
+            
+            // Log the API response
+            Log::info("WikibaseService: Entity update API response", [
+                "response" => $result,
+                "entity_id" => $entityId,
+            ]);
+
+            // Check for errors in the response
+            if (isset($result["error"])) {
+                throw new \Exception(
+                    "Wikibase API error: " . json_encode($result["error"]),
+                    $result["error"]["code"] ?? 0
+                );
+            }
+
+            return $result;
         } catch (\Exception $e) {
             Log::error("WikibaseService: Error updating entity", [
                 "message" => $e->getMessage(),

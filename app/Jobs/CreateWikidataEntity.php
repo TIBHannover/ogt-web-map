@@ -370,6 +370,19 @@ class CreateWikidataEntity implements ShouldQueue
                     "entity_type" => $this->entityType,
                     "relationship" => $this->relationshipType
                 ]);
+                
+                // Also replace significant_event_id placeholder with the actual entity ID
+                // This is needed for person entities to link back to the main event
+                if (isset($this->entityData['significant_event_id']) && 
+                    $this->entityData['significant_event_id'] === '__MAIN_ENTITY_ID__') {
+                    
+                    $this->entityData['significant_event_id'] = $GLOBALS['last_created_entity_id'];
+                    Log::info("Replaced significant_event_id placeholder with actual ID", [
+                        "significant_event_id" => $this->entityData['significant_event_id'],
+                        "entity_type" => $this->entityType,
+                        "relationship" => $this->relationshipType
+                    ]);
+                }
             }
 
             // ***** AUTO-DETECT RELATED ENTITIES *****
@@ -483,10 +496,20 @@ class CreateWikidataEntity implements ShouldQueue
                 ]);
                 
                 // Format the entity data with relationships but prevent entity creation
+                // First, make sure sources are properly included in the entity data
+                if (!empty($this->entityData['sources'])) {
+                    $entityDataForFormatter['sources'] = $this->entityData['sources'];
+                    Log::info("Including sources in entity data for formatting", [
+                        "sources_count" => count($this->entityData['sources']),
+                        "first_source" => !empty($this->entityData['sources'][0]) ? 
+                            ($this->entityData['sources'][0]['title'] ?? 'Unknown') : 'None'
+                    ]);
+                }
+                
                 $formattedResult = $formatterModels->formatEntityData(
                     $entityDataForFormatter,
                     $this->entityType,
-                    false // Never try to create related entities
+                    false // Never try to create related entities directly
                 );
 
                 // Get the formatted data for the WikibaseService
@@ -605,7 +628,19 @@ class CreateWikidataEntity implements ShouldQueue
 
                     // If this entity has a parent entity it should be linked to
                     if ($this->parentEntityId && $this->relationshipType) {
+                        Log::info("About to link entity to parent", [
+                            "entity_id" => $entityId,
+                            "parent_id" => $this->parentEntityId,
+                            "relationship" => $this->relationshipType,
+                            "parent_is_placeholder" => $this->parentEntityId === "__MAIN_ENTITY_ID__"
+                        ]);
                         $this->linkEntityToParent($wikidataService, $entityId);
+                    } else {
+                        Log::warning("Skipping linking entity to parent - missing parent ID or relationship", [
+                            "has_parent_id" => !empty($this->parentEntityId),
+                            "has_relationship" => !empty($this->relationshipType),
+                            "entity_id" => $entityId
+                        ]);
                     }
 
                     // For events, link this entity to any victims or perpetrators that were created
@@ -1330,10 +1365,21 @@ class CreateWikidataEntity implements ShouldQueue
                 return;
             }
             
+            // Double check that we're not using a placeholder parent ID
+            if ($this->parentEntityId === "__MAIN_ENTITY_ID__") {
+                Log::error("Cannot link to parent - parent ID is still a placeholder", [
+                    "entity_id" => $entityId,
+                    "parent_id" => $this->parentEntityId,
+                    "relationship" => $this->relationshipType
+                ]);
+                return;
+            }
+            
             Log::info("Linking entity to parent", [
                 "entity_id" => $entityId,
                 "parent_id" => $this->parentEntityId,
-                "relationship" => $this->relationshipType
+                "relationship" => $this->relationshipType,
+                "debug_backtrace" => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3)
             ]);
             
             // Different linking properties based on relationship type
@@ -1384,7 +1430,7 @@ class CreateWikidataEntity implements ShouldQueue
                     "rank" => "normal",
                 ];
 
-                // Add qualifiers if needed (e.g., page numbers for sources)
+                // Add qualifiers if needed (e.g., page numbers for sources, locations for victims)
                 if ($this->relationshipType === "source") {
                     // For book sources, add page numbers if available
                     if (!empty($this->entityData["pages"])) {
@@ -1402,6 +1448,42 @@ class CreateWikidataEntity implements ShouldQueue
                             ],
                         ];
                     }
+                } 
+                // Add location qualifier for victims/perpetrators if available
+                elseif (($this->relationshipType === "victim" || $this->relationshipType === "perpetrator") && 
+                       !empty($this->entityData["location"]) && 
+                       !empty($this->entityData["location"]["id"])) {
+                    
+                    $locationId = $this->entityData["location"]["id"];
+                    $mappingProvider = app(\App\Services\EntityMapping\EntityMappingProviderInterface::class);
+                    $locationProperty = $mappingProvider->getPropertyId("LOCATION"); // Should map to P276
+                    
+                    // Log the location data being used for qualifier
+                    Log::info("Adding location qualifier to victim/perpetrator relationship", [
+                        "entity_type" => $this->relationshipType,
+                        "location_id" => $locationId,
+                        "location_property" => $locationProperty,
+                        "parent_id" => $this->parentEntityId,
+                        "entity_id" => $entityId,
+                        "mapping_provider_class" => get_class($mappingProvider)
+                    ]);
+                    
+                    $statement["qualifiers"] = [
+                        $locationProperty => [
+                            [
+                                "snaktype" => "value",
+                                "property" => $locationProperty,
+                                "datavalue" => [
+                                    "value" => [
+                                        "entity-type" => "item",
+                                        "id" => $locationId,
+                                        "numeric-id" => intval(substr($locationId, 1)),
+                                    ],
+                                    "type" => "wikibase-entityid",
+                                ],
+                            ],
+                        ],
+                    ];
                 }
 
                 // Call the WikibaseService to add this statement to the parent
@@ -1431,13 +1513,42 @@ class CreateWikidataEntity implements ShouldQueue
                     $parentEntityType = $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Event'); // Default to event
                 }
                 
+                // Log the statement we're about to add
+                Log::info("Adding link statement to parent entity", [
+                    "parent_id" => $this->parentEntityId,
+                    "property" => $linkProperty,
+                    "child_id" => $entityId,
+                    "relationship" => $this->relationshipType
+                ]);
+                
+                // Ensure the parentEntityId is valid
+                if (empty($this->parentEntityId) || !preg_match('/^Q\d+$/', $this->parentEntityId)) {
+                    Log::error("Invalid parent entity ID format for linking", [
+                        "parent_id" => $this->parentEntityId,
+                        "child_id" => $entityId,
+                        "relationship" => $this->relationshipType
+                    ]);
+                    return;
+                }
+                
+                // Prepare update data with claims
+                $updateData = [
+                    "claims" => [
+                        $linkProperty => [$statement],
+                    ],
+                ];
+                
+                // Log what we're about to send
+                Log::info("Preparing to update parent entity with link to child", [
+                    "parent_id" => $this->parentEntityId,
+                    "child_id" => $entityId,
+                    "property" => $linkProperty,
+                    "update_data" => $updateData
+                ]);
+                
                 $result = $wikidataService->updateEntity(
                     $this->parentEntityId,
-                    [
-                        "claims" => [
-                            $linkProperty => [$statement],
-                        ],
-                    ],
+                    $updateData,
                     $parentEntityType // Use parent entity type
                 );
 
@@ -1468,14 +1579,34 @@ class CreateWikidataEntity implements ShouldQueue
                             "rank" => "normal",
                         ];
                         
+                        // Ensure the entity ID is valid
+                        if (empty($entityId) || !preg_match('/^Q\d+$/', $entityId)) {
+                            Log::error("Invalid entity ID format for back-link", [
+                                "entity_id" => $entityId,
+                                "parent_id" => $this->parentEntityId,
+                                "relationship" => $this->relationshipType
+                            ]);
+                            return;
+                        }
+                        
+                        // Prepare back-link update data
+                        $backLinkData = [
+                            "claims" => [
+                                "P793" => [$backLinkStatement],
+                            ],
+                        ];
+                        
+                        // Log the back-link update we're about to perform
+                        Log::info("Preparing to add significant event back-link to person entity", [
+                            "person_id" => $entityId,
+                            "event_id" => $this->parentEntityId,
+                            "update_data" => $backLinkData
+                        ]);
+                        
                         // Add the P793 back-link (child entity points to parent as significant event)
                         $backLinkResult = $wikidataService->updateEntity(
                             $entityId,
-                            [
-                                "claims" => [
-                                    "P793" => [$backLinkStatement],
-                                ],
-                            ],
+                            $backLinkData,
                             $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Person') // Person entity type for victims/perpetrators
                         );
                         
@@ -1525,8 +1656,20 @@ class CreateWikidataEntity implements ShouldQueue
     ) {
         try {
             $mappingProvider = app(EntityMappingProviderInterface::class);
+            
+            Log::info("Starting linkMainEntityToChildren", [
+                "main_id" => $mainEntityId,
+                "created_entities" => $createdEntities,
+                "entity_type" => $this->entityType,
+                "expected_event_type" => $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Event')
+            ]);
+            
             // Only perform this operation for event entities
             if ($this->entityType !== $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Event')) {
+                Log::warning("Skipping linkMainEntityToChildren - not an event entity", [
+                    "entity_type" => $this->entityType,
+                    "expected_type" => $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Event')
+                ]);
                 return;
             }
 
