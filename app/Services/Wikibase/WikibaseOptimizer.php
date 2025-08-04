@@ -101,6 +101,23 @@ class WikibaseOptimizer
             Log::info("WikibaseOptimizer: Removing ID for create operation");
             unset($data["id"]);
         }
+        
+        // Remove 'type' field which causes API errors
+        if (isset($data["type"])) {
+            Log::info("WikibaseOptimizer: Removing 'type' field for API compatibility");
+            unset($data["type"]);
+        }
+        
+        // Remove 'title' and 'description' fields which should only exist in labels/descriptions
+        if (isset($data["title"])) {
+            Log::info("WikibaseOptimizer: Removing 'title' field for API compatibility");
+            unset($data["title"]);
+        }
+        
+        if (isset($data["description"])) {
+            Log::info("WikibaseOptimizer: Removing 'description' field for API compatibility");
+            unset($data["description"]);
+        }
 
         $this->ensureRequiredFields($data);
 

@@ -314,6 +314,12 @@ class WikibaseFormatterModels
             Log::debug("Debug mode restored to original state: " . ($this->inDebugMode ? "true" : "false"));
         }
         
+        // Remove type field from formatted data as it causes API errors
+        if (isset($formattedData['type'])) {
+            Log::info("WikibaseFormatterModels: Removing 'type' field from formatted data for API compatibility");
+            unset($formattedData['type']);
+        }
+        
         // Return result with formatted data and updated data
         return [
             "formattedData" => $formattedData,

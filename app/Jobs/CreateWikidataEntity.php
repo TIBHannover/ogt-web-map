@@ -207,8 +207,32 @@ class CreateWikidataEntity implements ShouldQueue
         $createRelatedJobs($victims, $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Person'), 'victim');
         $createRelatedJobs($perpetrators, $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Person'), 'perpetrator');
         
-        // Create jobs for sources - link to main entity, not to a victim or perpetrator
-        $createRelatedJobs($sources, $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Book'), 'source');
+        // Process sources - only create jobs for non-URL sources
+        $filteredSources = [];
+        foreach ($sources as $source) {
+            // Check if this is a URL source (has type='url' or contains URL fields)
+            $isUrlSource = 
+                (isset($source['type']) && $source['type'] === 'url') ||
+                (isset($source['url']) && filter_var($source['url'], FILTER_VALIDATE_URL)) ||
+                // Also check if it has a source_type of 'url'
+                (isset($source['source_type']) && $source['source_type'] === 'url');
+            
+            if ($isUrlSource) {
+                Log::info("Skipping URL source - will be added as reference only", [
+                    "source_title" => $source['title'] ?? $source['name'] ?? 'Unknown',
+                    "url" => $source['url'] ?? 'none'
+                ]);
+                continue;
+            }
+            
+            // Only include non-URL sources (books, archives, etc.)
+            $filteredSources[] = $source;
+        }
+        
+        // Create jobs only for non-URL sources - link to main entity
+        if (!empty($filteredSources)) {
+            $createRelatedJobs($filteredSources, $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Book'), 'source');
+        }
         
         // If we have related entities, create a job chain
         if (!empty($chainedJobs)) {
@@ -311,6 +335,31 @@ class CreateWikidataEntity implements ShouldQueue
             if (!defined('LARAVEL_QUEUE_WORKER')) {
                 define('LARAVEL_QUEUE_WORKER', true);
             }
+            
+            // Validate and log environment settings for debugging
+            $botUsername = config('wikidata.bot_username');
+            Log::info("Entity creation job using bot credentials", [
+                "username" => $botUsername,
+                "has_password" => !empty(config('wikidata.bot_password')),
+                "password_length" => strlen(config('wikidata.bot_password') ?? ''),
+                "api_url" => config('wikidata.api_url')
+            ]);
+            
+            // Use direct bot login which uses username/password from config
+            $csrfToken = $wikidataService->directBotLogin();
+            
+            if (!$csrfToken) {
+                Log::error("Failed to login with bot credentials for entity creation", [
+                    "type" => $this->entityType,
+                    "title" => $this->entityData["title"] ?? "Unknown",
+                ]);
+                throw new \Exception("Failed to login with bot credentials");
+            }
+            
+            Log::info("Successfully logged in with bot credentials", [
+                "username" => config('wikidata.bot_username'),
+                "type" => $this->entityType
+            ]);
             
             // Check if we need to replace the parent entity ID placeholder with actual ID
             // This is for child entities that were chained after the main entity was created
@@ -444,21 +493,10 @@ class CreateWikidataEntity implements ShouldQueue
                 $formattedData = $formattedResult["formattedData"];
 
                 // Create the entity using the formatted data
+                // The entity data is already properly formatted by the formatter/optimizer
+                // Just pass it directly to the WikibaseService
                 $response = $wikidataService->createEntity(
-                    [
-                        "title" =>
-                            $formattedData["labels"]["de"]["value"] ??
-                            ($this->entityData["title"] ?? "Untitled Entity"),
-                        "description" =>
-                            $formattedData["descriptions"]["de"]["value"] ??
-                            ($this->entityData["description"] ?? ""),
-                        "type" => $this->entityType,
-                        "claims" => $formattedData["claims"] ?? [],
-                        "labels" => $formattedData["labels"] ?? [],
-                        "descriptions" => $formattedData["descriptions"] ?? [],
-                        "aliases" => $formattedData["aliases"] ?? [],
-                        "sitelinks" => $formattedData["sitelinks"] ?? [],
-                    ],
+                    $formattedData, // Use the formatted data directly without modification
                     $this->entityType
                 );
 

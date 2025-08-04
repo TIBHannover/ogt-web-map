@@ -540,10 +540,29 @@ abstract class BaseEntity
         if (method_exists($source, "getFormattedReference")) {
             $reference = $source->getFormattedReference($parentEntityId);
 
+            // Get the property of the source if it has a toClaim method
+            $sourcePropertyId = null;
+            if (method_exists($source, "toClaim")) {
+                $sourceClaim = $source->toClaim();
+                if (!empty($sourceClaim) && !empty($sourceClaim["mainsnak"]) && !empty($sourceClaim["mainsnak"]["property"])) {
+                    $sourcePropertyId = $sourceClaim["mainsnak"]["property"];
+                }
+            }
+
             // Add the reference only to specific claims defined in SOURCE_REFERENCE_PROPERTIES
             foreach ($this->data["claims"] as $propertyId => &$statements) {
                 // Skip properties that are not in our target list
                 if (!in_array($propertyId, self::SOURCE_REFERENCE_PROPERTIES)) {
+                    continue;
+                }
+                
+                // Skip adding reference to the same property that the source itself uses
+                // This prevents duplicate claims when a source is also a perpetrator or victim
+                if ($propertyId === $sourcePropertyId) {
+                    Log::debug("Skipping reference for property that matches source property", [
+                        "property" => $propertyId,
+                        "source_property" => $sourcePropertyId
+                    ]);
                     continue;
                 }
 

@@ -3,118 +3,73 @@
 return [
     /*
     |--------------------------------------------------------------------------
-    | Wikidata API URL
+    | Wikidata API Configuration
     |--------------------------------------------------------------------------
     |
-    | The URL of the Wikidata API endpoint.
+    | Configuration settings for connecting to the Wikidata API.
     |
     */
+
+    // API URL for Wikidata
     'api_url' => env('WIKIDATA_API_URL', 'https://www.wikidata.org/w/api.php'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Wikidata SPARQL URL
-    |--------------------------------------------------------------------------
-    |
-    | The URL of the Wikidata SPARQL endpoint.
-    |
-    */
-    'url' => env('WIKIDATA_URL', 'https://query.wikidata.org/sparql'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Wikidata Bot Username
-    |--------------------------------------------------------------------------
-    |
-    | The username of the Wikidata bot account to use for API requests.
-    |
-    */
-    'bot_username' => env('WIKIDATA_BOT_USERNAME', ''),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Wikidata Bot Password
-    |--------------------------------------------------------------------------
-    |
-    | The password of the Wikidata bot account to use for API requests.
-    |
-    */
-    'bot_password' => env('WIKIDATA_BOT_PASSWORD', ''),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Wikidata Simulation Mode
-    |--------------------------------------------------------------------------
-    |
-    | When enabled, Wikidata API requests will be simulated and no actual
-    | changes will be made to Wikidata. This is useful for testing and
-    | development.
-    |
-    */
+    
+    // SPARQL query endpoint
+    'sparql_url' => env('WIKIDATA_SPARQL_URL', 'https://query.wikidata.org/sparql'),
+    
+    // Sandbox API URL
+    'sandbox_api_url' => env('WIKIDATA_SANDBOX_API_URL', 'https://test.wikidata.org/w/api.php'),
+    
+    // Custom Wikibase URL (for using alternative Wikibase instances like FactGrid)
+    'custom_wikibase_url' => env('CUSTOM_WIKIBASE_URL'),
+    
+    // Bot username
+    'bot_username' => env('WIKIDATA_BOT_USERNAME', 'GTOBot@GTOBot'),
+    
+    // Bot password
+    'bot_password' => env('WIKIDATA_BOT_PASSWORD'),
+    
+    // Sandbox mode - use test.wikidata.org instead of www.wikidata.org
+    'sandbox_mode' => env('WIKIDATA_SANDBOX_MODE', false),
+    
+    // Simulation mode - don't make actual API calls, just return fake entity IDs
     'simulation_mode' => env('WIKIDATA_SIMULATION_MODE', false),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Edit Summary
-    |--------------------------------------------------------------------------
-    |
-    | The summary to use for edits made to Wikidata. This appears in the edit
-    | history on Wikidata.
-    |
-    */
-    'edit_summary' => env('WIKIDATA_EDIT_SUMMARY', 'Adding data via OGT API'),
     
-    /*
-    |--------------------------------------------------------------------------
-    | Use Queue System
-    |--------------------------------------------------------------------------
-    |
-    | When enabled, entity creation will be processed through Laravel's queue
-    | system to handle rate limiting gracefully.
-    |
-    */
-    'use_queue' => env('WIKIDATA_USE_QUEUE', true),
+    // Debug mode - enable logging and return more details
+    'debug_mode' => env('WIKIDATA_DEBUG_MODE', false),
     
-    /*
-    |--------------------------------------------------------------------------
-    | Max Retries for Rate Limited Operations
-    |--------------------------------------------------------------------------
-    |
-    | The maximum number of times to retry operations that are rate limited.
-    |
-    */
+    // Maximum retries for rate-limited operations
     'max_retries' => env('WIKIDATA_MAX_RETRIES', 3),
     
-    /*
-    |--------------------------------------------------------------------------
-    | Initial Retry Delay (in seconds)
-    |--------------------------------------------------------------------------
-    |
-    | The initial delay in seconds before retrying a rate-limited operation.
-    | This value will be multiplied by 2^retry_count for exponential backoff.
-    |
-    */
+    // Initial delay in seconds before retry
     'initial_retry_delay' => env('WIKIDATA_INITIAL_RETRY_DELAY', 5),
+    
+    // Edit summary to use for Wikidata edits
+    'edit_summary' => env('WIKIDATA_EDIT_SUMMARY', 'Adding data via OGT API'),
+    
+    // Request model class
+    'request_model' => \App\Models\WikibaseEntryRequest::class,
     
     /*
     |--------------------------------------------------------------------------
-    | Callback URL
+    | Debugging and Logging Options
     |--------------------------------------------------------------------------
     |
-    | Global callback URL to notify when entities are created. This is more
-    | reliable than per-request callbacks because it can be configured in
-    | environment variables and will be used for all entity creations.
+    | Additional options for debugging and logging Wikidata operations.
     |
     */
-   'callback_url' => env('WIKIDATA_CALLBACK_URL'),
-   
-   /*
-    |--------------------------------------------------------------------------
-    | Cached Persons File
-    |--------------------------------------------------------------------------
-    |
-    | The path to the file where the cached persons data is stored.
-    |
-    */
-   'cachedPersonsFile' => env('WIKIDATA_CACHED_PERSONS_FILE', 'wikidata/persons.json'),
+    
+    // Enable extra debugging output
+    'debug_logging' => env('WIKIDATA_DEBUG_LOGGING', false),
+    
+    // Log full request and response details (can be very verbose)
+    'log_full_requests' => env('WIKIDATA_LOG_FULL_REQUESTS', false),
+    
+    // Log entity creation data
+    'log_entity_creation' => env('WIKIDATA_LOG_ENTITY_CREATION', false),
+    
+    // Log API URLs on initialization
+    'log_api_urls' => env('WIKIDATA_LOG_API_URLS', false),
+    
+    // Verify entity IDs after creation
+    'verify_entity_ids' => env('WIKIDATA_VERIFY_ENTITY_IDS', false),
 ];

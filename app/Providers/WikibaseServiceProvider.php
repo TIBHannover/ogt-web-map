@@ -7,6 +7,7 @@ use App\Services\Wikibase\WikibaseFormatterModels;
 use App\Services\Wikibase\WikibaseOptimizer;
 use App\Services\Wikibase\WikibaseService;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 
 class WikibaseServiceProvider extends ServiceProvider
@@ -34,10 +35,26 @@ class WikibaseServiceProvider extends ServiceProvider
 
         // Register the Wikibase service
         $this->app->singleton(WikibaseService::class, function ($app) {
-            $baseUrl = config(
-                "services.wikibase.api_url",
-                "https://test.wikidata.org/w/api.php",
-            );
+            // First check for custom Wikibase URL (higher priority)
+            $baseUrl = config('wikidata.custom_wikibase_url');
+            
+            // If sandbox mode is enabled, use sandbox URL
+            if (empty($baseUrl) && config('wikidata.sandbox_mode', false)) {
+                $baseUrl = config('wikidata.sandbox_api_url', 'https://test.wikidata.org/w/api.php');
+            }
+            
+            // If no custom URL, use regular Wikidata API URL
+            if (empty($baseUrl)) {
+                $baseUrl = config(
+                    "wikidata.api_url",
+                    "https://www.wikidata.org/w/api.php"
+                );
+            }
+            
+            // Log which API URL is being used
+            if (config('wikidata.log_api_urls', false)) {
+                Log::info("WikibaseService initialized with API URL: {$baseUrl}");
+            }
 
             return new WikibaseService(
                 new Client(),
