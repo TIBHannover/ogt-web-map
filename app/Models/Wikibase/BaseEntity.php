@@ -8,13 +8,20 @@ use Illuminate\Support\Facades\Log;
 abstract class BaseEntity
 {
     // Properties that should receive source references
+    /**
+     * Properties that should receive source references
+     * 
+     * This list defines which properties will have source references added to them
+     * when addSource is called. For example, if P8031 (perpetrator) is in this list,
+     * then all perpetrator claims will get source references attached.
+     */
     protected const SOURCE_REFERENCE_PROPERTIES = [
-        "P1590",
-        "P8031",
-        "P8032",
-        "P1120",
-        "P1561",
-        "P5582",
+        "P1590", // Victim count
+        "P8031", // Perpetrator 
+        "P8032", // Victim
+        "P1120", // Number of deaths
+        "P1561", // Number of missing persons 
+        "P5582", // Number of survivors
     ];
 
     // Entity data storage
@@ -497,22 +504,45 @@ abstract class BaseEntity
             $this->data["claims"][$property] = [];
         }
 
-        $this->data["claims"][$property][] = [
-            "mainsnak" => [
-                "snaktype" => "value",
-                "property" => $property,
-                "datavalue" => [
-                    "value" => [
-                        "entity-type" => "item",
-                        "id" => $entityId,
-                        "numeric-id" => intval(substr($entityId, 1)),
+        // Check if this relation already exists in the claims to avoid duplicates
+        $isDuplicate = false;
+        foreach ($this->data["claims"][$property] as $existingStatement) {
+            if (isset($existingStatement["mainsnak"]["datavalue"]["value"]["id"]) && 
+                $existingStatement["mainsnak"]["datavalue"]["value"]["id"] === $entityId) {
+                $isDuplicate = true;
+                
+                Log::info("Skipping duplicate relation in addRelation method", [
+                    "property" => $property,
+                    "entity_id" => $entityId
+                ]);
+                break;
+            }
+        }
+        
+        // Only add if not a duplicate
+        if (!$isDuplicate) {
+            $this->data["claims"][$property][] = [
+                "mainsnak" => [
+                    "snaktype" => "value",
+                    "property" => $property,
+                    "datavalue" => [
+                        "value" => [
+                            "entity-type" => "item",
+                            "id" => $entityId,
+                            "numeric-id" => intval(substr($entityId, 1)),
+                        ],
+                        "type" => "wikibase-entityid",
                     ],
-                    "type" => "wikibase-entityid",
                 ],
-            ],
-            "type" => "statement",
-            "rank" => "normal",
-        ];
+                "type" => "statement",
+                "rank" => "normal",
+            ];
+            
+            Log::info("Added relation to entity", [
+                "property" => $property,
+                "entity_id" => $entityId
+            ]);
+        }
     }
 
     /**

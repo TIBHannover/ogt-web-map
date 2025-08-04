@@ -188,24 +188,36 @@ class Event extends BaseEntity
                             "VICTIM",
                         );
                         $event->addRelation($victimProperty, $victim["id"]);
-                        
+
                         Log::info("Added existing victim to event", [
                             "victim_id" => $victim["id"],
-                            "victim_name" => $victim["name"] ?? "Unknown"
+                            "victim_name" => $victim["name"] ?? "Unknown",
                         ]);
-                    } 
+                    }
                     // For new victims (with temp_id), we'll log that they'll be added by CreateWikidataEntity
-                    else if (substr($victim["id"], 0, 4) === "new_" || !empty($victim["temp_id"])) {
+                    elseif (
+                        substr($victim["id"], 0, 4) === "new_" ||
+                        !empty($victim["temp_id"])
+                    ) {
                         $tempId = $victim["id"] ?? $victim["temp_id"];
-                        $victimName = $victim["name"] ?? (!empty($victim["firstName"]) && !empty($victim["lastName"]) ? 
-                            $victim["firstName"] . " " . $victim["lastName"] : "Unknown");
-                            
-                        Log::info("New victim will be created and linked through job chain", [
-                            "temp_id" => $tempId,
-                            "victim_name" => $victimName,
-                            "has_firstName" => !empty($victim["firstName"]),
-                            "has_lastName" => !empty($victim["lastName"])
-                        ]);
+                        $victimName =
+                            $victim["name"] ??
+                            (!empty($victim["firstName"]) &&
+                            !empty($victim["lastName"])
+                                ? $victim["firstName"] .
+                                    " " .
+                                    $victim["lastName"]
+                                : "Unknown");
+
+                        Log::info(
+                            "New victim will be created and linked through job chain",
+                            [
+                                "temp_id" => $tempId,
+                                "victim_name" => $victimName,
+                                "has_firstName" => !empty($victim["firstName"]),
+                                "has_lastName" => !empty($victim["lastName"]),
+                            ],
+                        );
                     }
                 }
             }
@@ -224,28 +236,84 @@ class Event extends BaseEntity
                         $perpetratorProperty = $event->mappingProvider->getPropertyId(
                             "PERPETRATOR",
                         );
-                        $event->addRelation(
-                            $perpetratorProperty,
-                            $perpetrator["id"],
-                        );
-                        
-                        Log::info("Added existing perpetrator to event", [
-                            "perpetrator_id" => $perpetrator["id"],
-                            "perpetrator_name" => $perpetrator["name"] ?? "Unknown"
-                        ]);
+
+                        // Check if this perpetrator already exists in the claims to avoid duplicates
+                        $isDuplicate = false;
+                        if (
+                            isset($event->data["claims"][$perpetratorProperty])
+                        ) {
+                            foreach (
+                                $event->data["claims"][$perpetratorProperty]
+                                as $existingStatement
+                            ) {
+                                if (
+                                    isset(
+                                        $existingStatement["mainsnak"][
+                                            "datavalue"
+                                        ]["value"]["id"],
+                                    ) &&
+                                    $existingStatement["mainsnak"]["datavalue"][
+                                        "value"
+                                    ]["id"] === $perpetrator["id"]
+                                ) {
+                                    $isDuplicate = true;
+                                    Log::info(
+                                        "Skipping duplicate perpetrator",
+                                        [
+                                            "perpetrator_id" =>
+                                                $perpetrator["id"],
+                                            "perpetrator_name" =>
+                                                $perpetrator["name"] ??
+                                                "Unknown",
+                                        ],
+                                    );
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Only add if not a duplicate
+                        if (!$isDuplicate) {
+                            $event->addRelation(
+                                $perpetratorProperty,
+                                $perpetrator["id"],
+                            );
+
+                            Log::info("Added existing perpetrator to event", [
+                                "perpetrator_id" => $perpetrator["id"],
+                                "perpetrator_name" =>
+                                    $perpetrator["name"] ?? "Unknown",
+                            ]);
+                        }
                     }
                     // For new perpetrators (with temp_id), we'll log that they'll be added by CreateWikidataEntity
-                    else if (substr($perpetrator["id"], 0, 4) === "new_" || !empty($perpetrator["temp_id"])) {
+                    elseif (
+                        substr($perpetrator["id"], 0, 4) === "new_" ||
+                        !empty($perpetrator["temp_id"])
+                    ) {
                         $tempId = $perpetrator["id"] ?? $perpetrator["temp_id"];
-                        $perpetratorName = $perpetrator["name"] ?? (!empty($perpetrator["firstName"]) && !empty($perpetrator["lastName"]) ? 
-                            $perpetrator["firstName"] . " " . $perpetrator["lastName"] : "Unknown");
-                            
-                        Log::info("New perpetrator will be created and linked through job chain", [
-                            "temp_id" => $tempId,
-                            "perpetrator_name" => $perpetratorName,
-                            "has_firstName" => !empty($perpetrator["firstName"]),
-                            "has_lastName" => !empty($perpetrator["lastName"])
-                        ]);
+                        $perpetratorName =
+                            $perpetrator["name"] ??
+                            (!empty($perpetrator["firstName"]) &&
+                            !empty($perpetrator["lastName"])
+                                ? $perpetrator["firstName"] .
+                                    " " .
+                                    $perpetrator["lastName"]
+                                : "Unknown");
+
+                        Log::info(
+                            "New perpetrator will be created and linked through job chain",
+                            [
+                                "temp_id" => $tempId,
+                                "perpetrator_name" => $perpetratorName,
+                                "has_firstName" => !empty(
+                                    $perpetrator["firstName"]
+                                ),
+                                "has_lastName" => !empty(
+                                    $perpetrator["lastName"]
+                                ),
+                            ],
+                        );
                     }
                 }
             }

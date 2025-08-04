@@ -494,8 +494,18 @@ class WikibaseFormatterModels
                         : "None",
                 ]);
 
-                // Get sources if available
-                $sources = $relatedEntity["sources"] ?? [];
+                // Check if there are additional sources in the related entity
+                $additionalSources = $relatedEntity["sources"] ?? [];
+                if (!empty($additionalSources)) {
+                    // Merge with existing sources to avoid duplicates
+                    $sources = array_merge($sources, $additionalSources);
+                    $personData["sources"] = $sources;
+
+                    Log::info("Added additional sources from related entity", [
+                        "additional_sources_count" => count($additionalSources),
+                        "total_sources_count" => count($sources),
+                    ]);
+                }
 
                 // If _debugMode key is explicitly set to false, override debug mode locally
                 $localDebugMode = $this->inDebugMode;
@@ -547,6 +557,41 @@ class WikibaseFormatterModels
                         $personData,
                         $role,
                     );
+
+                    // Explicitly add sources to the person model
+                    if (!empty($sources)) {
+                        $sourceModels = SourceFactory::createMultipleFromArray(
+                            $sources,
+                        );
+                        $this->addSourcesToEntityInternal(
+                            $personModel,
+                            $sourceModels,
+                        );
+                        Log::info(
+                            "Explicitly added sources to person model during creation",
+                            [
+                                "person_name" => $personModel->getName(),
+                                "sources_count" => count($sources),
+                                "first_source" => !empty($sources[0])
+                                    ? $sources[0]["title"] ?? "Unknown"
+                                    : "None",
+                                "has_url_claims" => isset(
+                                    $personModel->getData()["claims"][
+                                        $this->mappingProvider->getPropertyId(
+                                            "STATED_IN_URL",
+                                        )
+                                    ],
+                                ),
+                                "has_described_by_claims" => isset(
+                                    $personModel->getData()["claims"][
+                                        $this->mappingProvider->getPropertyId(
+                                            "DESCRIBED_BY_SOURCE",
+                                        )
+                                    ],
+                                ),
+                            ],
+                        );
+                    }
 
                     // Option 1: Use queue system for person entity creation
                     $useQueue = config("wikibase.use_queue", true);
@@ -907,14 +952,47 @@ class WikibaseFormatterModels
                     $sources,
                 );
                 $this->addSourcesToEntityInternal($person, $sourceModels);
-
-                Log::info("Added source information to person entity", [
-                    "person" => $person->getName() ?? "Unknown",
-                    "sources_count" => count($sources),
-                    "first_source" => !empty($sources[0])
-                        ? $sources[0]["title"] ?? "Unknown"
-                        : "None",
-                ]);
+                Log::info(
+                    "Added source information to person entity before creation",
+                    [
+                        "person_name" => $person->getName(),
+                        "sources_count" => count($sources),
+                        "first_source" => !empty($sources[0])
+                            ? $sources[0]["title"] ?? "Unknown"
+                            : "None",
+                        "has_url_claims" => isset(
+                            $person->getData()["claims"][
+                                $this->mappingProvider->getPropertyId(
+                                    "STATED_IN_URL",
+                                )
+                            ],
+                        ),
+                        "has_described_by_claims" => isset(
+                            $person->getData()["claims"][
+                                $this->mappingProvider->getPropertyId(
+                                    "DESCRIBED_BY_SOURCE",
+                                )
+                            ],
+                        ),
+                    ],
+                );
+            } elseif (!empty($person->getData()["sources"])) {
+                // If sources are in the person data but not passed as parameter
+                $personSources = $person->getData()["sources"];
+                $sourceModels = SourceFactory::createMultipleFromArray(
+                    $personSources,
+                );
+                $this->addSourcesToEntityInternal($person, $sourceModels);
+                Log::info(
+                    "Added source information from person data before creation",
+                    [
+                        "person_name" => $person->getName(),
+                        "sources_count" => count($personSources),
+                        "first_source" => !empty($personSources[0])
+                            ? $personSources[0]["title"] ?? "Unknown"
+                            : "None",
+                    ],
+                );
             } else {
                 Log::warning("No sources provided for person entity", [
                     "person" => $person->getName() ?? "Unknown",
@@ -1037,6 +1115,57 @@ class WikibaseFormatterModels
             return;
         }
 
+        // Check for duplicate sources to avoid processing the same source multiple times
+        $processedSourceHashes = [];
+        $uniqueSources = [];
+
+        foreach ($sources as $source) {
+            // Create a hash key for this source to detect duplicates
+            $sourceHash = "";
+            if (method_exists($source, "getTitle")) {
+                $sourceHash .= $source->getTitle();
+            }
+            if (method_exists($source, "getType")) {
+                $sourceHash .= "-" . $source->getType();
+            }
+            if (method_exists($source, "getUrl")) {
+                $sourceHash .= "-" . $source->getUrl();
+            }
+
+            $sourceHash = md5($sourceHash);
+
+            // Skip if we've already processed this source
+            if (in_array($sourceHash, $processedSourceHashes)) {
+                Log::debug(
+                    "Skipping duplicate source in addSourcesToEntityInternal",
+                    [
+                        "source_hash" => $sourceHash,
+                        "source_title" => method_exists($source, "getTitle")
+                            ? $source->getTitle()
+                            : "unknown",
+                    ],
+                );
+                continue;
+            }
+
+            // Add to processed list and unique sources
+            $processedSourceHashes[] = $sourceHash;
+            $uniqueSources[] = $source;
+        }
+
+        // Replace original sources with unique ones
+        $sources = $uniqueSources;
+
+        // Log how many duplicates were removed
+        $originalCount = count($sources);
+        if (count($uniqueSources) < $originalCount) {
+            Log::info("Removed duplicate sources from processing", [
+                "original_count" => $originalCount,
+                "unique_count" => count($uniqueSources),
+                "entity_type" => $entity->getEntityType(),
+            ]);
+        }
+
         // Get property IDs from mapping provider
         $describedBySourceProperty = $this->mappingProvider->getPropertyId(
             "DESCRIBED_BY_SOURCE",
@@ -1063,8 +1192,96 @@ class WikibaseFormatterModels
                 ? $source->getTitle()
                 : "unknown";
 
-            // 1. Add the source as reference to specific claims
+            // 1. Add the source as reference to specific claims (e.g. P8031, P8032)
             $entity->addSource($source, $parentEntityId);
+
+            // Skip adding standalone source claims for entity references (P8031, P8032)
+            // to avoid duplicating entity reference claims when adding sources
+            $entityData = $entity->getData();
+            $perpetratorProperty = $this->mappingProvider->getPropertyId(
+                "PERPETRATOR",
+            );
+            $victimProperty = $this->mappingProvider->getPropertyId("VICTIM");
+
+            // If this source is also a perpetrator or victim entity, skip adding it as a standalone source
+            // to prevent duplicating the entity reference
+            if (
+                method_exists($source, "getEntityId") &&
+                !empty($source->getEntityId())
+            ) {
+                $sourceEntityId = $source->getEntityId();
+
+                // Check if this entity is already listed as a perpetrator
+                $isPerpetrator = false;
+                if (isset($entityData["claims"][$perpetratorProperty])) {
+                    foreach (
+                        $entityData["claims"][$perpetratorProperty]
+                        as $statement
+                    ) {
+                        if (
+                            isset(
+                                $statement["mainsnak"]["datavalue"]["value"][
+                                    "id"
+                                ],
+                            ) &&
+                            $statement["mainsnak"]["datavalue"]["value"][
+                                "id"
+                            ] === $sourceEntityId
+                        ) {
+                            $isPerpetrator = true;
+                            Log::info(
+                                "Skipping source addition for entity that is already a perpetrator",
+                                [
+                                    "entity_id" => $sourceEntityId,
+                                ],
+                            );
+                            break;
+                        }
+                    }
+                }
+
+                // Check if this entity is already listed as a victim
+                $isVictim = false;
+                if (isset($entityData["claims"][$victimProperty])) {
+                    foreach (
+                        $entityData["claims"][$victimProperty]
+                        as $statement
+                    ) {
+                        if (
+                            isset(
+                                $statement["mainsnak"]["datavalue"]["value"][
+                                    "id"
+                                ],
+                            ) &&
+                            $statement["mainsnak"]["datavalue"]["value"][
+                                "id"
+                            ] === $sourceEntityId
+                        ) {
+                            $isVictim = true;
+                            Log::info(
+                                "Skipping source addition for entity that is already a victim",
+                                [
+                                    "entity_id" => $sourceEntityId,
+                                ],
+                            );
+                            break;
+                        }
+                    }
+                }
+
+                // If the source is already a perpetrator or victim, skip adding it as a standalone source
+                if ($isPerpetrator || $isVictim) {
+                    Log::info(
+                        "Skipping standalone source claim for entity that is already a relation",
+                        [
+                            "entity_id" => $sourceEntityId,
+                            "is_perpetrator" => $isPerpetrator,
+                            "is_victim" => $isVictim,
+                        ],
+                    );
+                    continue;
+                }
+            }
 
             // 2. Add the source as a standalone claim to the entity
             if (method_exists($source, "toClaim")) {
@@ -1168,8 +1385,40 @@ class WikibaseFormatterModels
                     }
                 }
 
-                // Add the source claim with all its qualifiers
-                $entityData["claims"][$propertyId][] = $sourceClaim;
+                // Check if this exact claim already exists to avoid duplicates
+                $isDuplicate = false;
+                if (isset($entityData["claims"][$propertyId])) {
+                    foreach (
+                        $entityData["claims"][$propertyId]
+                        as $existingClaim
+                    ) {
+                        // Compare the main datavalue to check for duplicates
+                        if (
+                            isset($existingClaim["mainsnak"]["datavalue"]) &&
+                            isset($sourceClaim["mainsnak"]["datavalue"]) &&
+                            $existingClaim["mainsnak"]["datavalue"] ==
+                                $sourceClaim["mainsnak"]["datavalue"]
+                        ) {
+                            $isDuplicate = true;
+                            Log::info("Skipping duplicate source claim", [
+                                "property" => $propertyId,
+                                "source_type" => $sourceType,
+                                "source_title" => $sourceTitle,
+                            ]);
+                            break;
+                        }
+                    }
+                }
+
+                // Only add the claim if it's not a duplicate
+                if (!$isDuplicate) {
+                    $entityData["claims"][$propertyId][] = $sourceClaim;
+                    Log::info("Added source claim to entity", [
+                        "property" => $propertyId,
+                        "source_type" => $sourceType,
+                        "source_title" => $sourceTitle,
+                    ]);
+                }
 
                 // Update the entity data
                 $entity->setData($entityData);

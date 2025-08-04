@@ -47,6 +47,17 @@ abstract class BaseSource
     {
         return $this->type;
     }
+    
+    /**
+     * Get the entity ID if this source is an entity
+     * 
+     * @return string|null The entity ID if this source is an entity, null otherwise
+     */
+    public function getEntityId(): ?string
+    {
+        // Base implementation returns null - override in subclasses for entities
+        return null;
+    }
 
     /**
      * Ensures that a URL has a valid scheme (http:// or https://).
