@@ -84,7 +84,8 @@
     "config": {
         "optimize-autoloader": true,
         "preferred-install": "dist",
-        "sort-packages": true
+        "sort-packages": true,
+        "ignore-platform-reqs": ["ext-gd", "ext-iconv"]
     },
     "minimum-stability": "dev",
     "prefer-stable": true
