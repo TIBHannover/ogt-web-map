@@ -196,11 +196,27 @@ abstract class BaseEntity
     public function addImage(string $imageFilename): void
     {
         if (empty($imageFilename)) {
+            Log::warning("Empty image filename provided to addImage");
             return;
         }
 
+        // Get the image property ID (P18 in Wikidata)
         $imageProperty = $this->mappingProvider->getPropertyId("IMAGE");
+        
+        // Format the image filename for Wikidata - it requires "File:" prefix
+        // and needs to match exactly how it appears on Wikimedia Commons
+        if (strpos($imageFilename, 'File:') !== 0 && strpos($imageFilename, 'file:') !== 0) {
+            $imageFilename = 'File:' . $imageFilename;
+        }
 
+        // Log the image addition
+        Log::info("Adding image to entity", [
+            "property" => $imageProperty,
+            "image" => $imageFilename,
+            "entity_type" => $this->getEntityType(),
+            "entity_label" => $this->getLabel() ?? 'Unknown'
+        ]);
+        
         $this->data["claims"][$imageProperty] = [
             [
                 "mainsnak" => [
@@ -215,6 +231,21 @@ abstract class BaseEntity
                 "rank" => "normal",
             ],
         ];
+        
+        // Verify the image was added to the claims
+        if (isset($this->data["claims"][$imageProperty])) {
+            Log::info("Image claim successfully added to entity data", [
+                "property" => $imageProperty,
+                "claims_count" => count($this->data["claims"]),
+                "has_image_claim" => isset($this->data["claims"][$imageProperty]) ? 'yes' : 'no'
+            ]);
+        } else {
+            Log::error("Failed to add image claim to entity data", [
+                "property" => $imageProperty,
+                "claims_count" => count($this->data["claims"]),
+                "claims_keys" => implode(", ", array_keys($this->data["claims"]))
+            ]);
+        }
     }
 
     /**

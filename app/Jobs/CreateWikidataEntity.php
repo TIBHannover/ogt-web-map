@@ -11,7 +11,9 @@ use App\Services\Wikibase\WikibaseService;
 use App\Services\Wikibase\WikibaseFormatterModels;
 use App\Services\EntityMapping\EntityMappingProviderInterface;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Bus; // Add this for job chaining
+use Illuminate\Support\Facades\Bus;
+use App\Models\Wikibase\Person;
+use App\Models\Wikibase\Source\SourceFactory; // Add this for job chaining
 
 class CreateWikidataEntity implements ShouldQueue
 {
@@ -1337,6 +1339,257 @@ class CreateWikidataEntity implements ShouldQueue
     }
 
     /**
+     * Add sources to a person entity using the BaseEntity.addSource method
+     * 
+     * @param WikibaseService $wikidataService The wikidata service
+     * @param string $entityId The entity ID to add sources to
+     * @param array $sources The sources to add
+     * @return void
+     */
+    protected function addSourcesUsingBaseEntity(
+        WikibaseService $wikidataService,
+        string $entityId,
+        array $sources
+    ): void {
+        try {
+            // Ensure we have sources to add
+            if (empty($sources)) {
+                Log::warning("No sources provided to addSourcesUsingBaseEntity", [
+                    "entity_id" => $entityId
+                ]);
+                return;
+            }
+            
+            // Log the sources we're working with
+            Log::info("Sources data for person entity", [
+                "entity_id" => $entityId,
+                "sources_count" => count($sources),
+                "sources_data" => json_encode(array_map(function($source) {
+                    return [
+                        'type' => $source['type'] ?? 'unknown',
+                        'title' => $source['title'] ?? 'untitled'
+                    ];
+                }, $sources))
+            ]);
+            
+            // Create a Person object for the entity
+            $mappingProvider = app(EntityMappingProviderInterface::class);
+            $person = new Person("Person entity {$entityId}", "Person entity from Wikidata", $mappingProvider);
+            
+            // Get entity data if available and set it to the person
+            if (!empty($this->entityData['title'])) {
+                $person = new Person(
+                    $this->entityData['title'], 
+                    $this->entityData['description'] ?? "Person entity from Wikidata",
+                    $mappingProvider
+                );
+            }
+            
+            // Create source models from the source data
+            $sourceModels = SourceFactory::createMultipleFromArray($sources);
+            
+            Log::info("Created source models for person entity", [
+                "entity_id" => $entityId,
+                "source_models_count" => count($sourceModels),
+                "source_models_types" => implode(", ", array_map(function($source) {
+                    return $source->getType() ?? 'unknown';
+                }, $sourceModels))
+            ]);
+            
+            // Direct approach - create all claims directly
+            $updateData = ['claims' => []];
+            
+            // Add URL sources (P973)
+            $urlProperty = $mappingProvider->getPropertyId("STATED_IN_URL");
+            $updateData['claims'][$urlProperty] = [];
+            
+            // Add described by sources (P1343)
+            $describedByProperty = $mappingProvider->getPropertyId("DESCRIBED_BY_SOURCE");
+            $updateData['claims'][$describedByProperty] = [];
+            
+            // Process each source directly
+            foreach ($sourceModels as $source) {
+                // For URL sources
+                if ($source->getType() === 'url' && method_exists($source, 'getUrl')) {
+                    $url = $source->getUrl();
+                    if (!empty($url)) {
+                        // Create a URL claim
+                        $urlClaim = [
+                            "mainsnak" => [
+                                "snaktype" => "value",
+                                "property" => $urlProperty,
+                                "datavalue" => [
+                                    "value" => $url,
+                                    "type" => "string",
+                                ]
+                            ],
+                            "type" => "statement",
+                            "rank" => "normal"
+                        ];
+                        
+                        // Add qualifiers if needed (language, retrieval date)
+                        if (method_exists($source, 'getRetrievalDate') || method_exists($source, 'getLanguage')) {
+                            $urlClaim['qualifiers'] = [];
+                            $urlClaim['qualifiers-order'] = [];
+                            
+                            // Add language qualifier (German - Q188)
+                            $languageProperty = $mappingProvider->getPropertyId("LANGUAGE");
+                            $urlClaim['qualifiers'][$languageProperty] = [
+                                [
+                                    "snaktype" => "value",
+                                    "property" => $languageProperty,
+                                    "datavalue" => [
+                                        "value" => [
+                                            "entity-type" => "item",
+                                            "id" => "Q188", // German
+                                            "numeric-id" => 188
+                                        ],
+                                        "type" => "wikibase-entityid"
+                                    ]
+                                ]
+                            ];
+                            $urlClaim['qualifiers-order'][] = $languageProperty;
+                            
+                            // Add retrieval date qualifier
+                            $retrievalDateProperty = $mappingProvider->getPropertyId("RETRIEVAL_DATE");
+                            $retrievalDate = method_exists($source, 'getRetrievalDate') ? $source->getRetrievalDate() : date('Y-m-d');
+                            $urlClaim['qualifiers'][$retrievalDateProperty] = [
+                                [
+                                    "snaktype" => "value",
+                                    "property" => $retrievalDateProperty,
+                                    "datavalue" => [
+                                        "value" => [
+                                            "time" => "+" . $retrievalDate . "T00:00:00Z",
+                                            "timezone" => 0,
+                                            "before" => 0,
+                                            "after" => 0,
+                                            "precision" => 11,
+                                            "calendarmodel" => "http://www.wikidata.org/entity/Q1985727"
+                                        ],
+                                        "type" => "time"
+                                    ]
+                                ]
+                            ];
+                            $urlClaim['qualifiers-order'][] = $retrievalDateProperty;
+                        }
+                        
+                        $updateData['claims'][$urlProperty][] = $urlClaim;
+                        Log::info("Added URL source claim for person entity", [
+                            "entity_id" => $entityId,
+                            "url" => $url,
+                            "title" => $source->getTitle() ?? 'Untitled'
+                        ]);
+                    }
+                }
+                
+                // For archive/book sources
+                if ($source->getType() === 'archive' || $source->getType() === 'book') {
+                    $sourceEntityId = method_exists($source, 'getEntityId') ? $source->getEntityId() : null;
+                    $sourceTitle = $source->getTitle() ?? 'Unknown source';
+                    
+                    if (!empty($sourceEntityId)) {
+                        // Create a described-by claim
+                        $describedByClaim = [
+                            "mainsnak" => [
+                                "snaktype" => "value",
+                                "property" => $describedByProperty,
+                                "datavalue" => [
+                                    "value" => [
+                                        "entity-type" => "item",
+                                        "id" => $sourceEntityId,
+                                        "numeric-id" => intval(substr($sourceEntityId, 1))
+                                    ],
+                                    "type" => "wikibase-entityid"
+                                ]
+                            ],
+                            "type" => "statement",
+                            "rank" => "normal"
+                        ];
+                        
+                        // Add inventory number if available
+                        if (method_exists($source, 'getInventoryNumber') && !empty($source->getInventoryNumber())) {
+                            $inventoryProperty = $mappingProvider->getPropertyId("INVENTORY_NUMBER");
+                            $describedByClaim['qualifiers'] = [
+                                $inventoryProperty => [
+                                    [
+                                        "snaktype" => "value",
+                                        "property" => $inventoryProperty,
+                                        "datavalue" => [
+                                            "value" => $source->getInventoryNumber(),
+                                            "type" => "string"
+                                        ]
+                                    ]
+                                ]
+                            ];
+                            $describedByClaim['qualifiers-order'] = [$inventoryProperty];
+                        }
+                        
+                        $updateData['claims'][$describedByProperty][] = $describedByClaim;
+                        Log::info("Added described-by source claim for person entity", [
+                            "entity_id" => $entityId,
+                            "source_entity_id" => $sourceEntityId,
+                            "title" => $sourceTitle
+                        ]);
+                    } else {
+                        Log::warning("Source has no entity ID, skipping described-by claim", [
+                            "source_type" => $source->getType(),
+                            "source_title" => $sourceTitle
+                        ]);
+                    }
+                }
+            }
+            
+            // Remove empty claim arrays
+            if (empty($updateData['claims'][$urlProperty])) {
+                unset($updateData['claims'][$urlProperty]);
+            }
+            
+            if (empty($updateData['claims'][$describedByProperty])) {
+                unset($updateData['claims'][$describedByProperty]);
+            }
+            
+            // Log the claims we're adding
+            Log::info("Source claims prepared for person entity", [
+                "entity_id" => $entityId,
+                "url_claims" => !empty($updateData['claims'][$urlProperty]) ? count($updateData['claims'][$urlProperty]) : 0,
+                "described_by_claims" => !empty($updateData['claims'][$describedByProperty]) ? count($updateData['claims'][$describedByProperty]) : 0,
+                "claims_data" => json_encode($updateData['claims'])
+            ]);
+            
+            // Update the entity with the source claims
+            if (!empty($updateData['claims'])) {
+                $result = $wikidataService->updateEntity(
+                    $entityId,
+                    $updateData,
+                    $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Person')
+                );
+                
+                if ($result) {
+                    Log::info("Successfully added source claims to person entity", [
+                        "entity_id" => $entityId,
+                        "claim_count" => count($updateData['claims'])
+                    ]);
+                } else {
+                    Log::error("Failed to add source claims to person entity", [
+                        "entity_id" => $entityId,
+                        "error" => "WikibaseService returned false or null"
+                    ]);
+                }
+            } else {
+                Log::warning("No source claims to add to person entity", [
+                    "entity_id" => $entityId
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error("Exception while adding sources to person entity", [
+                "error" => $e->getMessage(),
+                "entity_id" => $entityId,
+                "trace" => $e->getTraceAsString()
+            ]);
+        }
+    }
+    
+    /**
      * Link this entity to its parent entity
      *
      * @param WikibaseService $wikidataService
@@ -1616,6 +1869,26 @@ class CreateWikidataEntity implements ShouldQueue
                                 "event_id" => $this->parentEntityId,
                                 "relationship" => $this->relationshipType,
                             ]);
+                            
+                            // Now that the back-link is added, add sources to the person entity
+                            if (!empty($this->entityData['sources'])) {
+                                Log::info("Adding sources to newly created person entity", [
+                                    "entity_id" => $entityId,
+                                    "sources_count" => count($this->entityData['sources']),
+                                    "parent_id" => $this->parentEntityId,
+                                    "first_source" => !empty($this->entityData['sources'][0]) ? ($this->entityData['sources'][0]['title'] ?? 'Unknown') : 'None'
+                                ]);
+                                
+                                // Create a Person object and add sources to it
+                                $this->addSourcesUsingBaseEntity($wikidataService, $entityId, $this->entityData['sources']);
+                            } else {
+                                Log::warning("No sources available to add to person entity", [
+                                    "entity_id" => $entityId,
+                                    "parent_id" => $this->parentEntityId,
+                                    "has_entity_data" => !empty($this->entityData) ? 'yes' : 'no',
+                                    "entity_data_keys" => !empty($this->entityData) ? implode(", ", array_keys($this->entityData)) : 'none'
+                                ]);
+                            }
                         } else {
                             Log::error("Failed to add P793 significant event back-link", [
                                 "person_id" => $entityId,

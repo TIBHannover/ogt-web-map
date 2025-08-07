@@ -469,6 +469,71 @@ export default {
                 }
             });
 
+            // Check for missing fields in victims and perpetrators
+            if (this.formData.victims && this.formData.victims.length > 0) {
+                console.log("First victim data:", this.formData.victims[0]);
+                console.log("First victim keys:", Object.keys(this.formData.victims[0]));
+                console.log("First victim has birthName:", this.formData.victims[0].hasOwnProperty('birthName'));
+                console.log("First victim has imageFilename:", this.formData.victims[0].hasOwnProperty('imageFilename'));
+                console.log("First victim has employer:", this.formData.victims[0].hasOwnProperty('employer'));
+                
+                // Add missing fields to victims if needed
+                this.formData.victims.forEach(victim => {
+                    // Make sure role is set to 'victim'
+                    victim.role = 'victim';
+                    if (!victim.hasOwnProperty('birthName')) {
+                        victim.birthName = '';
+                        console.log("Added missing birthName field to victim");
+                    }
+                    
+                    if (!victim.hasOwnProperty('imageUrl')) {
+                        victim.imageUrl = null;
+                        console.log("Added missing imageUrl field to victim");
+                    }
+                    
+                    if (!victim.hasOwnProperty('imageFilename')) {
+                        victim.imageFilename = null;
+                        console.log("Added missing imageFilename field to victim");
+                    }
+                    
+                    if (!victim.hasOwnProperty('employer')) {
+                        victim.employer = null;
+                        console.log("Added missing employer field to victim");
+                    }
+                });
+            }
+            
+            if (this.formData.perpetrators && this.formData.perpetrators.length > 0) {
+                console.log("First perpetrator data:", this.formData.perpetrators[0]);
+                console.log("First perpetrator keys:", Object.keys(this.formData.perpetrators[0]));
+                
+                // Add missing fields to perpetrators if needed
+                this.formData.perpetrators.forEach(perpetrator => {
+                    if (!perpetrator.hasOwnProperty('birthName')) {
+                        perpetrator.birthName = '';
+                        console.log("Added missing birthName field to perpetrator");
+                    }
+                    
+                    if (!perpetrator.hasOwnProperty('imageUrl')) {
+                        perpetrator.imageUrl = null;
+                        console.log("Added missing imageUrl field to perpetrator");
+                    }
+                    
+                    if (!perpetrator.hasOwnProperty('imageFilename')) {
+                        perpetrator.imageFilename = null;
+                        console.log("Added missing imageFilename field to perpetrator");
+                    }
+                    
+                    if (!perpetrator.hasOwnProperty('employer')) {
+                        perpetrator.employer = null;
+                        console.log("Added missing employer field to perpetrator");
+                    }
+                    
+                    // Make sure role is set to 'perpetrator'
+                    perpetrator.role = 'perpetrator';
+                });
+            }
+
             console.log("Initialized data:", {
                 victims: this.formData.victims,
                 perpetrators: this.formData.perpetrators,

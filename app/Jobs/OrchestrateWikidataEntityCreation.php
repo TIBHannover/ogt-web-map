@@ -74,12 +74,28 @@ class OrchestrateWikidataEntityCreation implements ShouldQueue
     public function handle()
     {
         try {
+            // Map image_filename to the image field that Event.php expects
+            if (!empty($this->entityData['image_filename']) && empty($this->entityData['image'])) {
+                $this->entityData['image'] = $this->entityData['image_filename'];
+                Log::info("Mapped image_filename to image field for Wikidata", [
+                    "image_filename" => $this->entityData['image_filename'],
+                    "entity_type" => $this->entityData['type'] ?? 'unknown'
+                ]);
+            } else {
+                Log::warning("No image_filename found in entity data", [
+                    "has_image_filename" => !empty($this->entityData['image_filename']) ? 'yes' : 'no',
+                    "has_image" => !empty($this->entityData['image']) ? 'yes' : 'no',
+                    "data_keys" => implode(", ", array_keys($this->entityData))
+                ]);
+            }
+            
             Log::info("Starting orchestrated Wikidata entity creation", [
                 "type" => $this->entityType,
                 "title" => $this->entityData["title"] ?? "Unknown",
                 "has_victims" => !empty($this->entityData["victims"]),
                 "has_perpetrators" => !empty($this->entityData["perpetrators"]),
                 "has_sources" => !empty($this->entityData["sources"]) || !empty($this->entityData["books"]),
+                "has_image" => !empty($this->entityData["image"]),
             ]);
 
             // If we have victims or perpetrators, make sure we're not using placeholders
@@ -372,6 +388,25 @@ class OrchestrateWikidataEntityCreation implements ShouldQueue
             $enriched['date_of_death'] = $enriched['deathDate'];
         }
         
+        // Preserve the birth name field
+        if (!empty($enriched['birthName'])) {
+            $enriched['birth_name'] = $enriched['birthName'];
+            Log::info("Preserved birth name field", ["birth_name" => $enriched['birth_name']]);
+        }
+        
+        // Preserve the image fields
+        if (!empty($enriched['imageFilename'])) {
+            $enriched['image'] = $enriched['imageFilename'];
+            Log::info("Set image from imageFilename", ["image" => $enriched['image']]);
+        } elseif (!empty($enriched['image'])) {
+            Log::info("Using existing image field", ["image" => $enriched['image']]);
+        }
+        
+        // Preserve the employer field
+        if (!empty($enriched['employer'])) {
+            Log::info("Preserved employer field", ["employer" => $enriched['employer']]);
+        }
+        
         // Determine the name from available fields if not already set
         if (empty($enriched['name'])) {
             if (!empty($enriched['firstName']) || !empty($enriched['lastName'])) {
@@ -435,8 +470,12 @@ class OrchestrateWikidataEntityCreation implements ShouldQueue
             "type" => $enriched['type'],
             "has_birthdate" => isset($enriched['date_of_birth']),
             "has_deathdate" => isset($enriched['date_of_death']),
+            "has_birth_name" => isset($enriched['birth_name']),
+            "has_image" => isset($enriched['image']),
+            "has_employer" => isset($enriched['employer']),
             "field_count" => count($enriched),
-            "key_fields" => array_intersect_key($enriched, array_flip(['name', 'title', 'description', 'type', 'role', 'date_of_birth', 'date_of_death', 'gender', 'place_of_birth', 'nationality']))
+            "key_fields" => array_intersect_key($enriched, array_flip(['name', 'title', 'description', 'type', 'role', 'date_of_birth', 'date_of_death', 'gender', 'place_of_birth', 'nationality', 'birth_name', 'image', 'employer'])),
+            "all_fields" => array_keys($enriched)
         ]);
         
         return $enriched;

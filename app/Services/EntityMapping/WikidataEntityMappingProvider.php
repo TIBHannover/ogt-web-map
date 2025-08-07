@@ -41,6 +41,8 @@ class WikidataEntityMappingProvider implements EntityMappingProviderInterface
         "SUBJECT_HAS_ROLE" => "P2868",
         "SIGNIFICANT_EVENT" => "P793",
         "COUNTRY_OF_CITIZENSHIP" => "P27",
+        "BIRTH_NAME" => "P1477",
+        "EMPLOYER" => "P108",
 
         // Book properties
         "TITLE" => "P1476",

@@ -73,7 +73,10 @@
                         Wikidata
                     </a>
                     <button
-                        v-if="!person.id || (person.id && !person.id.startsWith('Q'))"
+                        v-if="
+                            !person.id ||
+                            (person.id && !person.id.startsWith('Q'))
+                        "
                         type="button"
                         class="edit-person"
                         @click="
@@ -280,7 +283,7 @@
                             ></v-text-field>
                         </div>
                         <div class="form-group">
-                            <v-textarea
+                            <text-area
                                 v-model="newPersonLocal.description"
                                 :label="
                                     isAuthorForm
@@ -294,9 +297,62 @@
                                 "
                                 rows="3"
                                 :rules="[rules.required]"
-                                required
-                            ></v-textarea>
+                                :required="true"
+                            ></text-area>
                         </div>
+
+                        <!-- Geburtsname / Birth name (P1477) -->
+                        <div
+                            class="form-group"
+                            v-if="!newPersonLocal.isOrganization"
+                        >
+                            <text-field
+                                v-model="newPersonLocal.birthName"
+                                label="Geburtsname"
+                                placeholder="Geburtsname, falls abweichend vom aktuellen Namen"
+                            >
+                            </text-field>
+                        </div>
+
+                        <!-- Image field -->
+                        <div class="form-group">
+                            <image-selector
+                                :image-url="newPersonLocal.imageUrl"
+                                :image-filename="newPersonLocal.imageFilename"
+                                @update:image-url="newPersonLocal.imageUrl = $event"
+                                @update:image-filename="newPersonLocal.imageFilename = $event"
+                            >
+                            </image-selector>
+                        </div>
+
+                        <!-- Arbeitgeber / Employer (P108) - only for perpetrators -->
+                        <div
+                            class="form-group"
+                            v-if="
+                                !newPersonLocal.isOrganization &&
+                                (newPersonLocal.role === 'perpetrator' ||
+                                    props.label.toLowerCase().includes('täter'))
+                            "
+                        >
+                            <wikidata-selector
+                                v-model="newPersonLocal.employer"
+                                label="Arbeitgeber"
+                                dialog-title="Arbeitgeber auswählen"
+                                search-label="Organisation suchen..."
+                                :search-results="
+                                    wikidataSearchResults.employer || []
+                                "
+                                :is-loading="isWikidataSearchLoading.employer"
+                                :search-performed="
+                                    wikidataSearchPerformed.employer
+                                "
+                                endpoint="people"
+                                @search="
+                                    searchWikidataItems('employer', $event)
+                                "
+                            ></wikidata-selector>
+                        </div>
+
                         <!-- Geschlecht / Gender (P21) -->
                         <div class="form-group">
                             <gender-selector
@@ -452,6 +508,9 @@ import WikidataSelector from "./common/WikidataSelector.vue";
 import GenderSelector from "./GenderSelector.vue";
 import WikidataSuggestions from "./common/WikidataSuggestions.vue";
 import ValidationError from "../../helpers/ValidationError.vue";
+import TextField from "./common/TextField.vue";
+import TextArea from "./common/TextArea.vue";
+import ImageSelector from "./ImageSelector.vue";
 import { useValidation } from "../../../composables/useValidation";
 
 const props = defineProps({
@@ -483,6 +542,10 @@ const props = defineProps({
             birthDate: null,
             deathDate: null,
             description: "",
+            birthName: "", // Added for P1477 Geburtsname
+            imageUrl: null, // Image URL for display
+            imageFilename: null, // Image filename for Wikidata
+            employer: null, // Added for P108 Arbeitgeber
             isOrganization: false,
             gender: null,
             nationality: null,
@@ -570,6 +633,7 @@ const wikidataSearchResults = ref({
     place_of_birth: [],
     place_of_death: [],
     place_of_detention: [],
+    employer: [], // Added for P108 Arbeitgeber
 });
 
 const isWikidataSearchLoading = ref({
@@ -577,6 +641,7 @@ const isWikidataSearchLoading = ref({
     place_of_birth: false,
     place_of_death: false,
     place_of_detention: false,
+    employer: false, // Added for P108 Arbeitgeber
 });
 
 const wikidataSearchPerformed = ref({
@@ -584,6 +649,7 @@ const wikidataSearchPerformed = ref({
     place_of_birth: false,
     place_of_death: false,
     place_of_detention: false,
+    employer: false, // Added for P108 Arbeitgeber
 });
 
 // Predefined gender options with Wikidata IDs
@@ -644,6 +710,8 @@ const onEditPerson = (person) => {
     editMode.value = true;
     editingPersonId.value = person.id || person.tempId;
 
+    console.log('Editing person data:', person);
+
     // Fu00fclle das Formular mit den Daten der Person
     const personData = {
         firstName: person.firstName || "",
@@ -651,17 +719,24 @@ const onEditPerson = (person) => {
         birthDate: person.birthDate || null,
         deathDate: person.deathDate || null,
         description: person.description || "",
+        birthName: person.birthName || "", 
         isOrganization: person.isOrganization || false,
         gender: person.gender || null,
         nationality: person.nationality || null,
         place_of_birth: person.place_of_birth || null,
         place_of_death: person.place_of_death || null,
         place_of_detention: person.place_of_detention || null,
+        imageUrl: person.imageUrl || null,
+        imageFilename: person.imageFilename || person.image || null,
+        employer: person.employer || null,
+        role: person.role || null,
         // Bewahre die ID und andere wichtige Eigenschaften
         id: person.id,
         tempId: person.tempId,
         label: person.label,
     };
+    
+    console.log('Prepared edit data:', personData);
 
     // Aktualisiere die newPerson-Daten
     emit("update:newPerson", personData);

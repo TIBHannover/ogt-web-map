@@ -19,6 +19,8 @@ class Person extends BaseEntity
     protected $placeOfDeath;
     protected $occupation;
     protected $role;
+    protected $birthName; // Added for P1477 Geburtsname
+    protected $employer; // Added for P108 Arbeitgeber
 
     /**
      * Constructor
@@ -68,6 +70,14 @@ class Person extends BaseEntity
                 ? json_encode($data["occupation"])
                 : "Not set",
             "has_occupation" => isset($data["occupation"]),
+            "birth_name" => $data["birthName"] ?? $data["birth_name"] ?? "Not set",
+            "has_birth_name" => isset($data["birthName"]) || isset($data["birth_name"]),
+            "image" => $data["image"] ?? $data["imageFilename"] ?? "Not set",
+            "has_image" => isset($data["image"]) || isset($data["imageFilename"]),
+            "employer" => isset($data["employer"])
+                ? json_encode($data["employer"])
+                : "Not set",
+            "has_employer" => isset($data["employer"]),
             "data_keys" => array_keys($data),
             "all_data" => $data,
         ]);
@@ -181,9 +191,35 @@ class Person extends BaseEntity
             }
         }
 
-        // Set image
-        if (!empty($data["image"])) {
+        // Set birth name (P1477) - support both birthName and birth_name fields
+        if (!empty($data["birthName"])) {
+            $person->setBirthName($data["birthName"]);
+            Log::info("Set birth name from birthName field", ["birthName" => $data["birthName"]]);
+        } elseif (!empty($data["birth_name"])) {
+            $person->setBirthName($data["birth_name"]);
+            Log::info("Set birth name from birth_name field", ["birth_name" => $data["birth_name"]]);
+        }
+        
+        // Set employer (P108) - typically for perpetrators
+        if (!empty($data["employer"])) {
+            if (is_string($data["employer"]) && substr($data["employer"], 0, 1) === 'Q') {
+                // Direct Q-ID string
+                $person->setEmployer($data["employer"]);
+                Log::info("Set employer from string value", ["employer_id" => $data["employer"]]);
+            } elseif (is_array($data["employer"]) && !empty($data["employer"]["id"])) {
+                // Object with id field
+                $person->setEmployer($data["employer"]["id"]);
+                Log::info("Set employer from object value", ["employer_id" => $data["employer"]["id"]]);
+            }
+        }
+        
+        // Set image - try imageFilename first (from new UI), then fall back to image for backward compatibility
+        if (!empty($data["imageFilename"])) {
+            $person->addImage($data["imageFilename"]);
+            Log::info("Added image to person from imageFilename", ["image" => $data["imageFilename"]]);
+        } elseif (!empty($data["image"])) {
             $person->addImage($data["image"]);
+            Log::info("Added image to person from legacy image field", ["image" => $data["image"]]);
         }
 
         // Set role (victim/perpetrator) for all persons in the victim/perpetrator flow
@@ -727,6 +763,90 @@ class Person extends BaseEntity
      * @param mixed $value The value to check
      * @return bool True if the value indicates an organization
      */
+    /**
+     * Set the birth name
+     * 
+     * @param string $birthName The birth name of the person
+     * @return void
+     */
+    public function setBirthName(string $birthName): void
+    {
+        $this->birthName = $birthName;
+        
+        if (empty($birthName)) {
+            return;
+        }
+        
+        $birthNameProperty = $this->mappingProvider->getPropertyId("BIRTH_NAME"); // Should map to P1477
+        
+        $this->data["claims"][$birthNameProperty] = [
+            [
+                "mainsnak" => [
+                    "snaktype" => "value",
+                    "property" => $birthNameProperty,
+                    "datavalue" => [
+                        "value" => [
+                            "text" => $birthName,
+                            "language" => "de"
+                        ],
+                        "type" => "monolingualtext"
+                    ]
+                ],
+                "type" => "statement",
+                "rank" => "normal"
+            ]
+        ];
+        
+        Log::info("Added birth name claim to person", [
+            "property" => $birthNameProperty,
+            "value" => $birthName
+        ]);
+    }
+    
+    /**
+     * Set the employer
+     * 
+     * @param string $employerId The Wikidata Q-number for the employer
+     * @return void
+     */
+    public function setEmployer(string $employerId): void
+    {
+        $this->employer = $employerId;
+        
+        if (empty($employerId) || substr($employerId, 0, 1) !== "Q") {
+            Log::warning("Invalid employer ID provided to setEmployer", [
+                "id" => $employerId,
+            ]);
+            return;
+        }
+        
+        $employerProperty = $this->mappingProvider->getPropertyId("EMPLOYER"); // Should map to P108
+        
+        $this->data["claims"][$employerProperty] = [
+            [
+                "mainsnak" => [
+                    "snaktype" => "value",
+                    "property" => $employerProperty,
+                    "datavalue" => [
+                        "value" => [
+                            "entity-type" => "item",
+                            "id" => $employerId,
+                            "numeric-id" => intval(substr($employerId, 1)),
+                        ],
+                        "type" => "wikibase-entityid",
+                    ],
+                ],
+                "type" => "statement",
+                "rank" => "normal",
+            ],
+        ];
+        
+        Log::info("Added employer claim to person", [
+            "property" => $employerProperty,
+            "employer_id" => $employerId,
+        ]);
+    }
+
     public static function isOrganizationValue($value): bool
     {
         if (!isset($value)) {

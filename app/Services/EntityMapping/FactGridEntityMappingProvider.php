@@ -43,6 +43,9 @@ class FactGridEntityMappingProvider implements EntityMappingProviderInterface
         "OCCUPATION" => "F106", // Example ID - replace with actual FactGrid ID
         "SUBJECT_HAS_ROLE" => "F2868", // Example ID - replace with actual FactGrid ID
         "SIGNIFICANT_EVENT" => "F793", // Example ID - replace with actual FactGrid ID
+        "BIRTH_NAME" => "F1477", // Example ID - replace with actual FactGrid ID
+        "EMPLOYER" => "F108", // Example ID - replace with actual FactGrid ID
+        "COUNTRY_OF_CITIZENSHIP" => "F27", // Example ID - replace with actual FactGrid ID
 
         // Book properties
         "TITLE" => "F1476", // Example ID - replace with actual FactGrid ID
