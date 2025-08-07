@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Bus;
 use App\Models\Wikibase\Person;
 use App\Models\Wikibase\Source\SourceFactory; // Add this for job chaining
+use App\Services\Wikibase\ImageHandler;
 
 class CreateWikidataEntity implements ShouldQueue
 {
@@ -93,93 +94,132 @@ class CreateWikidataEntity implements ShouldQueue
         array $entityData,
         string $entityType,
         ?string $callbackUrl = null,
-        ?int $requestId = null
+        ?int $requestId = null,
     ): void {
         // First, log that we're starting this method with a unique identifier to find in logs
-        $uniqueId = uniqid('chain_', true);
+        $uniqueId = uniqid("chain_", true);
         Log::info("*** IMPORTANT: createEntityWithRelated STARTED ***", [
             "chain_id" => $uniqueId,
             "entity_type" => $entityType,
-            "title" => $entityData['title'] ?? 'Untitled',
+            "title" => $entityData["title"] ?? "Untitled",
             "request_id" => $requestId,
-            "backtrace" => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3)
+            "backtrace" => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3),
         ]);
-        
+
         // Extract the related entities before creating the main entity
-        $victims = $entityData['victims'] ?? [];
-        $perpetrators = $entityData['perpetrators'] ?? [];
-        $sources = $entityData['sources'] ?? [];
+        $victims = $entityData["victims"] ?? [];
+        $perpetrators = $entityData["perpetrators"] ?? [];
+        $sources = $entityData["sources"] ?? [];
         $books = [];
-        
+
         // Handle books in both formats (books array or single book)
-        if (!empty($entityData['books']) && is_array($entityData['books'])) {
-            $books = $entityData['books'];
-        } elseif (!empty($entityData['book']) && is_array($entityData['book'])) {
-            $books[] = $entityData['book'];
+        if (!empty($entityData["books"]) && is_array($entityData["books"])) {
+            $books = $entityData["books"];
+        } elseif (
+            !empty($entityData["book"]) &&
+            is_array($entityData["book"])
+        ) {
+            $books[] = $entityData["book"];
         }
-        
+
         // Log what we're going to process with detailed information
-        $relatedCount = count($victims) + count($perpetrators) + count($sources) + count($books);
-        Log::info("createEntityWithRelated: Creating entity with related entities", [
-            "main_entity_type" => $entityType,
-            "title" => $entityData['title'] ?? 'Untitled',
-            "related_entities" => $relatedCount,
-            "victims" => count($victims),
-            "victims_data" => array_map(function($v) { return $v['name'] ?? $v['title'] ?? 'Unknown'; }, $victims),
-            "perpetrators" => count($perpetrators),
-            "perpetrators_data" => array_map(function($p) { return $p['name'] ?? $p['title'] ?? 'Unknown'; }, $perpetrators),
-            "sources" => count($sources),
-            "books" => count($books),
-            "request_id" => $requestId
-        ]);
-        
+        $relatedCount =
+            count($victims) +
+            count($perpetrators) +
+            count($sources) +
+            count($books);
+        Log::info(
+            "createEntityWithRelated: Creating entity with related entities",
+            [
+                "main_entity_type" => $entityType,
+                "title" => $entityData["title"] ?? "Untitled",
+                "related_entities" => $relatedCount,
+                "victims" => count($victims),
+                "victims_data" => array_map(function ($v) {
+                    return $v["name"] ?? ($v["title"] ?? "Unknown");
+                }, $victims),
+                "perpetrators" => count($perpetrators),
+                "perpetrators_data" => array_map(function ($p) {
+                    return $p["name"] ?? ($p["title"] ?? "Unknown");
+                }, $perpetrators),
+                "sources" => count($sources),
+                "books" => count($books),
+                "request_id" => $requestId,
+            ],
+        );
+
         // Create the main entity job
-        $entityData['_inChain'] = true; // Add flag to prevent recursive chain creation
-        $mainEntityJob = new self($entityData, $entityType, $callbackUrl, null, null, $requestId);
-        
+        $entityData["_inChain"] = true; // Add flag to prevent recursive chain creation
+        $mainEntityJob = new self(
+            $entityData,
+            $entityType,
+            $callbackUrl,
+            null,
+            null,
+            $requestId,
+        );
+
         // Prepare the chain of jobs for related entities
         $chainedJobs = [];
-        
+
         // Helper function to create jobs for each related entity type
-        $createRelatedJobs = function($entities, $entityType, $relationshipType) use (&$chainedJobs) {
-            Log::info("createEntityWithRelated: Processing entities for job chain", [
-                "entity_type" => $entityType,
-                "relationship" => $relationshipType,
-                "count" => count($entities),
-                "entities" => array_map(function($e) {
-                    return [
-                        'name' => $e['name'] ?? $e['title'] ?? 'Unknown',
-                        'id' => $e['id'] ?? 'new',
-                        'has_temp_id' => !empty($e['tempId']) || !empty($e['temp_id'])
-                    ];
-                }, $entities)
-            ]);
-    
+        $createRelatedJobs = function (
+            $entities,
+            $entityType,
+            $relationshipType,
+        ) use (&$chainedJobs) {
+            Log::info(
+                "createEntityWithRelated: Processing entities for job chain",
+                [
+                    "entity_type" => $entityType,
+                    "relationship" => $relationshipType,
+                    "count" => count($entities),
+                    "entities" => array_map(function ($e) {
+                        return [
+                            "name" => $e["name"] ?? ($e["title"] ?? "Unknown"),
+                            "id" => $e["id"] ?? "new",
+                            "has_temp_id" =>
+                                !empty($e["tempId"]) || !empty($e["temp_id"]),
+                        ];
+                    }, $entities),
+                ],
+            );
+
             foreach ($entities as $entity) {
                 // Skip entities that already have Wikidata IDs and don't need creation
-                if (!empty($entity['id']) && substr($entity['id'], 0, 1) === 'Q' && 
-                    empty($entity['_forceCreate']) && empty($entity['tempId']) && empty($entity['temp_id'])) {
-                    Log::info("createEntityWithRelated: Skipping entity with existing ID", [
-                        "id" => $entity['id'],
-                        "name" => $entity['name'] ?? $entity['title'] ?? 'Unknown'
-                    ]);
+                if (
+                    !empty($entity["id"]) &&
+                    substr($entity["id"], 0, 1) === "Q" &&
+                    empty($entity["_forceCreate"]) &&
+                    empty($entity["tempId"]) &&
+                    empty($entity["temp_id"])
+                ) {
+                    Log::info(
+                        "createEntityWithRelated: Skipping entity with existing ID",
+                        [
+                            "id" => $entity["id"],
+                            "name" =>
+                                $entity["name"] ??
+                                ($entity["title"] ?? "Unknown"),
+                        ],
+                    );
                     continue;
                 }
-        
+
                 // Make sure we have a title for the entity
-                if (empty($entity['title']) && !empty($entity['name'])) {
-                    $entity['title'] = $entity['name'];
+                if (empty($entity["title"]) && !empty($entity["name"])) {
+                    $entity["title"] = $entity["name"];
                 }
 
                 // Remove any flags that might confuse the formatter
-                unset($entity['_forceCreate']);
-                unset($entity['_inQueueWorker']);
+                unset($entity["_forceCreate"]);
+                unset($entity["_inQueueWorker"]);
 
                 // Add flag to prevent recursive chain creation
-                $entity['_inChain'] = true;
-                
+                $entity["_inChain"] = true;
+
                 // Add flag to disable P2093 placeholder claims
-                $entity['_skipPlaceholderClaims'] = true;
+                $entity["_skipPlaceholderClaims"] = true;
 
                 // Create a job for this related entity that will run after the main entity
                 // Always use the main entity as parent, not a previous entity in the chain
@@ -187,92 +227,124 @@ class CreateWikidataEntity implements ShouldQueue
                     $entity,
                     $entityType,
                     null, // No callback for child entities
-                    '__MAIN_ENTITY_ID__', // Special placeholder for the parent ID
+                    "__MAIN_ENTITY_ID__", // Special placeholder for the parent ID
                     $relationshipType,
-                    null // No request ID for child entities
+                    null, // No request ID for child entities
                 );
-        
-                Log::info("createEntityWithRelated: Added entity to job chain", [
-                    "name" => $entity['name'] ?? $entity['title'] ?? 'Unknown',
-                    "type" => $entityType,
-                    "relationship" => $relationshipType,
-                    "temp_id" => $entity['tempId'] ?? $entity['temp_id'] ?? null
-                ]);
-        
+
+                Log::info(
+                    "createEntityWithRelated: Added entity to job chain",
+                    [
+                        "name" =>
+                            $entity["name"] ?? ($entity["title"] ?? "Unknown"),
+                        "type" => $entityType,
+                        "relationship" => $relationshipType,
+                        "temp_id" =>
+                            $entity["tempId"] ?? ($entity["temp_id"] ?? null),
+                    ],
+                );
+
                 $chainedJobs[] = $childJob;
             }
         };
         // Get mapping provider for entity types
         $mappingProvider = app(EntityMappingProviderInterface::class);
-        
+
         // Create jobs for each type of related entity
-        $createRelatedJobs($victims, $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Person'), 'victim');
-        $createRelatedJobs($perpetrators, $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Person'), 'perpetrator');
-        
+        $createRelatedJobs(
+            $victims,
+            $mappingProvider->getEntityTypeId("App\\Models\\Wikibase\\Person"),
+            "victim",
+        );
+        $createRelatedJobs(
+            $perpetrators,
+            $mappingProvider->getEntityTypeId("App\\Models\\Wikibase\\Person"),
+            "perpetrator",
+        );
+
         // Process sources - only create jobs for non-URL sources
         $filteredSources = [];
         foreach ($sources as $source) {
             // Check if this is a URL source (has type='url' or contains URL fields)
-            $isUrlSource = 
-                (isset($source['type']) && $source['type'] === 'url') ||
-                (isset($source['url']) && filter_var($source['url'], FILTER_VALIDATE_URL)) ||
+            $isUrlSource =
+                (isset($source["type"]) && $source["type"] === "url") ||
+                (isset($source["url"]) &&
+                    filter_var($source["url"], FILTER_VALIDATE_URL)) ||
                 // Also check if it has a source_type of 'url'
-                (isset($source['source_type']) && $source['source_type'] === 'url');
-            
+                (isset($source["source_type"]) &&
+                    $source["source_type"] === "url");
+
             if ($isUrlSource) {
-                Log::info("Skipping URL source - will be added as reference only", [
-                    "source_title" => $source['title'] ?? $source['name'] ?? 'Unknown',
-                    "url" => $source['url'] ?? 'none'
-                ]);
+                Log::info(
+                    "Skipping URL source - will be added as reference only",
+                    [
+                        "source_title" =>
+                            $source["title"] ?? ($source["name"] ?? "Unknown"),
+                        "url" => $source["url"] ?? "none",
+                    ],
+                );
                 continue;
             }
-            
+
             // Only include non-URL sources (books, archives, etc.)
             $filteredSources[] = $source;
         }
-        
+
         // Create jobs only for non-URL sources - link to main entity
         if (!empty($filteredSources)) {
-            $createRelatedJobs($filteredSources, $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Book'), 'source');
+            $createRelatedJobs(
+                $filteredSources,
+                $mappingProvider->getEntityTypeId(
+                    "App\\Models\\Wikibase\\Book",
+                ),
+                "source",
+            );
         }
-        
+
         // If we have related entities, create a job chain
         if (!empty($chainedJobs)) {
             // Log the job chain creation
             Log::info("Creating job chain for entity creation", [
                 "main_entity_type" => $entityType,
-                "title" => $entityData['title'] ?? 'Untitled',
+                "title" => $entityData["title"] ?? "Untitled",
                 "related_entities" => count($chainedJobs),
-                "chain_type" => "Bus::chain"
+                "chain_type" => "Bus::chain",
             ]);
-            
+
             // Create the job chain: main entity job followed by all child entity jobs
-            Log::info("Dispatching job chain with " . count($chainedJobs) . " related entities", [
-                "chain_length" => count($chainedJobs) + 1,
-                "entity_type" => $entityType,
-                "child_types" => array_map(function($job) {
-                    return $job->entityType ?? 'unknown';
-                }, $chainedJobs),
-                "chain_method" => "Bus::chain"
-            ]);
-            
+            Log::info(
+                "Dispatching job chain with " .
+                    count($chainedJobs) .
+                    " related entities",
+                [
+                    "chain_length" => count($chainedJobs) + 1,
+                    "entity_type" => $entityType,
+                    "child_types" => array_map(function ($job) {
+                        return $job->entityType ?? "unknown";
+                    }, $chainedJobs),
+                    "chain_method" => "Bus::chain",
+                ],
+            );
+
             try {
                 // Using Bus::chain for the job chain
-                $chain = Bus::chain(array_merge([$mainEntityJob], $chainedJobs));
+                $chain = Bus::chain(
+                    array_merge([$mainEntityJob], $chainedJobs),
+                );
                 $chain->dispatch();
-                
+
                 // Log success
                 Log::info("Successfully dispatched job chain", [
                     "chain_length" => count($chainedJobs) + 1,
-                    "main_entity" => $entityData['title'] ?? 'Untitled'
+                    "main_entity" => $entityData["title"] ?? "Untitled",
                 ]);
             } catch (\Exception $e) {
                 // Log any errors with dispatching the chain
                 Log::error("Error dispatching job chain", [
                     "error" => $e->getMessage(),
-                    "trace" => $e->getTraceAsString()
+                    "trace" => $e->getTraceAsString(),
                 ]);
-                
+
                 // As a fallback, dispatch the main job directly
                 Log::info("Falling back to dispatching main job only");
                 $mainEntityJob->dispatch();
@@ -281,17 +353,17 @@ class CreateWikidataEntity implements ShouldQueue
             // If no related entities, just dispatch the main entity job
             Log::info("No related entities to create, dispatching single job", [
                 "main_entity_type" => $entityType,
-                "title" => $entityData['title'] ?? 'Untitled'
+                "title" => $entityData["title"] ?? "Untitled",
             ]);
             $mainEntityJob->dispatch();
         }
-        
+
         // Log completion of the method with the same unique ID for tracing
         Log::info("*** IMPORTANT: createEntityWithRelated COMPLETED ***", [
             "chain_id" => $uniqueId,
             "entity_type" => $entityType,
-            "title" => $entityData['title'] ?? 'Untitled',
-            "related_entities_count" => count($chainedJobs)
+            "title" => $entityData["title"] ?? "Untitled",
+            "related_entities_count" => count($chainedJobs),
         ]);
     }
 
@@ -311,7 +383,7 @@ class CreateWikidataEntity implements ShouldQueue
         ?string $callbackUrl = null,
         ?string $parentEntityId = null,
         ?string $relationshipType = null,
-        ?int $requestId = null
+        ?int $requestId = null,
     ) {
         $this->entityData = $entityData;
         $this->entityType = $entityType;
@@ -330,104 +402,147 @@ class CreateWikidataEntity implements ShouldQueue
      */
     public function handle(
         WikibaseService $wikidataService,
-        WikibaseFormatterModels $formatterModels
+        WikibaseFormatterModels $formatterModels,
     ) {
         try {
             // Define a global constant to mark that we're in a queue worker
-            if (!defined('LARAVEL_QUEUE_WORKER')) {
-                define('LARAVEL_QUEUE_WORKER', true);
+            if (!defined("LARAVEL_QUEUE_WORKER")) {
+                define("LARAVEL_QUEUE_WORKER", true);
             }
-            
+
             // Validate and log environment settings for debugging
-            $botUsername = config('wikidata.bot_username');
+            $botUsername = config("wikidata.bot_username");
             Log::info("Entity creation job using bot credentials", [
                 "username" => $botUsername,
-                "has_password" => !empty(config('wikidata.bot_password')),
-                "password_length" => strlen(config('wikidata.bot_password') ?? ''),
-                "api_url" => config('wikidata.api_url')
+                "has_password" => !empty(config("wikidata.bot_password")),
+                "password_length" => strlen(
+                    config("wikidata.bot_password") ?? "",
+                ),
+                "api_url" => config("wikidata.api_url"),
             ]);
-            
+
             // Use direct bot login which uses username/password from config
             $csrfToken = $wikidataService->directBotLogin();
-            
+
             if (!$csrfToken) {
-                Log::error("Failed to login with bot credentials for entity creation", [
-                    "type" => $this->entityType,
-                    "title" => $this->entityData["title"] ?? "Unknown",
-                ]);
+                Log::error(
+                    "Failed to login with bot credentials for entity creation",
+                    [
+                        "type" => $this->entityType,
+                        "title" => $this->entityData["title"] ?? "Unknown",
+                    ],
+                );
                 throw new \Exception("Failed to login with bot credentials");
             }
-            
+
             Log::info("Successfully logged in with bot credentials", [
-                "username" => config('wikidata.bot_username'),
-                "type" => $this->entityType
+                "username" => config("wikidata.bot_username"),
+                "type" => $this->entityType,
             ]);
-            
+
             // Check if we need to replace the parent entity ID placeholder with actual ID
             // This is for child entities that were chained after the main entity was created
-            if ($this->parentEntityId === '__MAIN_ENTITY_ID__' && isset($GLOBALS['last_created_entity_id'])) {
-                $this->parentEntityId = $GLOBALS['last_created_entity_id'];
-                Log::info("Replaced parent entity ID placeholder with actual ID", [
-                    "parent_id" => $this->parentEntityId,
-                    "entity_type" => $this->entityType,
-                    "relationship" => $this->relationshipType
-                ]);
-                
+            if (
+                $this->parentEntityId === "__MAIN_ENTITY_ID__" &&
+                isset($GLOBALS["last_created_entity_id"])
+            ) {
+                $this->parentEntityId = $GLOBALS["last_created_entity_id"];
+                Log::info(
+                    "Replaced parent entity ID placeholder with actual ID",
+                    [
+                        "parent_id" => $this->parentEntityId,
+                        "entity_type" => $this->entityType,
+                        "relationship" => $this->relationshipType,
+                    ],
+                );
+
                 // Also replace significant_event_id placeholder with the actual entity ID
                 // This is needed for person entities to link back to the main event
-                if (isset($this->entityData['significant_event_id']) && 
-                    $this->entityData['significant_event_id'] === '__MAIN_ENTITY_ID__') {
-                    
-                    $this->entityData['significant_event_id'] = $GLOBALS['last_created_entity_id'];
-                    Log::info("Replaced significant_event_id placeholder with actual ID", [
-                        "significant_event_id" => $this->entityData['significant_event_id'],
-                        "entity_type" => $this->entityType,
-                        "relationship" => $this->relationshipType
-                    ]);
+                if (
+                    isset($this->entityData["significant_event_id"]) &&
+                    $this->entityData["significant_event_id"] ===
+                        "__MAIN_ENTITY_ID__"
+                ) {
+                    $this->entityData["significant_event_id"] =
+                        $GLOBALS["last_created_entity_id"];
+                    Log::info(
+                        "Replaced significant_event_id placeholder with actual ID",
+                        [
+                            "significant_event_id" =>
+                                $this->entityData["significant_event_id"],
+                            "entity_type" => $this->entityType,
+                            "relationship" => $this->relationshipType,
+                        ],
+                    );
                 }
             }
 
             // ***** AUTO-DETECT RELATED ENTITIES *****
             // If this is a main entity (no parent ID) and we have related entities,
             // we should use job chains instead of trying to create them directly in the formatter
-            if (empty($this->parentEntityId) && empty($this->entityData['_inChain'])) {
-                $hasVictims = !empty($this->entityData['victims']) && is_array($this->entityData['victims']);
-                $hasPerpetrators = !empty($this->entityData['perpetrators']) && is_array($this->entityData['perpetrators']);
-                $hasSources = !empty($this->entityData['sources']) && is_array($this->entityData['sources']);
-                $hasBooks = (!empty($this->entityData['books']) && is_array($this->entityData['books'])) || 
-                           (!empty($this->entityData['book']) && is_array($this->entityData['book']));
-                
-                if ($hasVictims || $hasPerpetrators || $hasSources || $hasBooks) {
+            if (
+                empty($this->parentEntityId) &&
+                empty($this->entityData["_inChain"])
+            ) {
+                $hasVictims =
+                    !empty($this->entityData["victims"]) &&
+                    is_array($this->entityData["victims"]);
+                $hasPerpetrators =
+                    !empty($this->entityData["perpetrators"]) &&
+                    is_array($this->entityData["perpetrators"]);
+                $hasSources =
+                    !empty($this->entityData["sources"]) &&
+                    is_array($this->entityData["sources"]);
+                $hasBooks =
+                    (!empty($this->entityData["books"]) &&
+                        is_array($this->entityData["books"])) ||
+                    (!empty($this->entityData["book"]) &&
+                        is_array($this->entityData["book"]));
+
+                if (
+                    $hasVictims ||
+                    $hasPerpetrators ||
+                    $hasSources ||
+                    $hasBooks
+                ) {
                     // We're a main entity with related entities - use job chains
-                    Log::info("Auto-detected related entities - using job chain approach", [
-                        "type" => $this->entityType,
-                        "victims" => $hasVictims ? count($this->entityData['victims']) : 0,
-                        "perpetrators" => $hasPerpetrators ? count($this->entityData['perpetrators']) : 0,
-                        "sources" => $hasSources ? count($this->entityData['sources']) : 0,
-                        "has_books" => $hasBooks
-                    ]);
-                    
+                    Log::info(
+                        "Auto-detected related entities - using job chain approach",
+                        [
+                            "type" => $this->entityType,
+                            "victims" => $hasVictims
+                                ? count($this->entityData["victims"])
+                                : 0,
+                            "perpetrators" => $hasPerpetrators
+                                ? count($this->entityData["perpetrators"])
+                                : 0,
+                            "sources" => $hasSources
+                                ? count($this->entityData["sources"])
+                                : 0,
+                            "has_books" => $hasBooks,
+                        ],
+                    );
+
                     // Use our static method to create entity with related entities
                     self::createEntityWithRelated(
                         $this->entityData,
                         $this->entityType,
                         $this->callbackUrl,
-                        $this->requestId
+                        $this->requestId,
                     );
-                    
+
                     // We've dispatched the job chain, so we don't need to continue with this job
                     Log::info("Main job complete - job chain dispatched");
                     return;
                 }
             }
-            
 
             Log::info("Starting job to create Wikidata entity", [
                 "type" => $this->entityType,
                 "title" => $this->entityData["title"] ?? "Unknown",
                 "attempt" => $this->attempts(),
                 "parent_id" => $this->parentEntityId,
-                "relationship" => $this->relationshipType
+                "relationship" => $this->relationshipType,
             ]);
 
             try {
@@ -439,144 +554,273 @@ class CreateWikidataEntity implements ShouldQueue
                 // Collect existing entity IDs from related entities
                 $this->collectExistingEntityIds($existingEntityIds);
 
-
                 // If this is being called from the orchestrator, we're creating a single entity,
                 // so we don't need to handle related entities (they'll be created in chained jobs)
                 $createRelatedEntities = empty($this->parentEntityId);
-                
+
                 // If we're in a job chain (have a parent ID), we don't need to process our own children
                 // because each entity in the chain is responsible for itself only
                 if (!$createRelatedEntities) {
-                    Log::info("Skipping related entity processing since this is a child entity in a job chain", [
-                        "type" => $this->entityType,
-                        "parent_id" => $this->parentEntityId,
-                        "relationship" => $this->relationshipType
-                    ]);
+                    Log::info(
+                        "Skipping related entity processing since this is a child entity in a job chain",
+                        [
+                            "type" => $this->entityType,
+                            "parent_id" => $this->parentEntityId,
+                            "relationship" => $this->relationshipType,
+                        ],
+                    );
                 }
-                
+
                 // Since we're using job chains to create related entities, we need to prevent
                 // the formatter from creating them directly, but we still need to include
                 // them so relationships are properly established.
-                
+
                 // Make a copy of the entity data that we'll modify
                 $entityDataForFormatter = $this->entityData;
-                
+
+                // Check if there are images and handle them with our ImageHandler
+                if (
+                    isset($entityDataForFormatter["image"]) ||
+                    isset($entityDataForFormatter["imageFilename"]) ||
+                    isset($entityDataForFormatter["image_filename"])
+                ) {
+                    Log::info("Preprocessing images with ImageHandler");
+                }
+
                 // For victims, preserve them but modify to prevent creation
-                if (!empty($entityDataForFormatter['victims'])) {
-                    foreach ($entityDataForFormatter['victims'] as $key => $victim) {
+                if (!empty($entityDataForFormatter["victims"])) {
+                    foreach (
+                        $entityDataForFormatter["victims"]
+                        as $key => $victim
+                    ) {
                         // Mark it to NOT force create
-                        $entityDataForFormatter['victims'][$key]['_forceCreate'] = false;
+                        $entityDataForFormatter["victims"][$key][
+                            "_forceCreate"
+                        ] = false;
                         // Add a flag that tells the formatter not to create this entity
-                        $entityDataForFormatter['victims'][$key]['_skipCreate'] = true;
+                        $entityDataForFormatter["victims"][$key][
+                            "_skipCreate"
+                        ] = true;
                     }
                 }
-                
+
                 // For perpetrators, preserve them but modify to prevent creation
-                if (!empty($entityDataForFormatter['perpetrators'])) {
-                    foreach ($entityDataForFormatter['perpetrators'] as $key => $perpetrator) {
+                if (!empty($entityDataForFormatter["perpetrators"])) {
+                    foreach (
+                        $entityDataForFormatter["perpetrators"]
+                        as $key => $perpetrator
+                    ) {
                         // Mark it to NOT force create
-                        $entityDataForFormatter['perpetrators'][$key]['_forceCreate'] = false;
+                        $entityDataForFormatter["perpetrators"][$key][
+                            "_forceCreate"
+                        ] = false;
                         // Add a flag that tells the formatter not to create this entity
-                        $entityDataForFormatter['perpetrators'][$key]['_skipCreate'] = true;
+                        $entityDataForFormatter["perpetrators"][$key][
+                            "_skipCreate"
+                        ] = true;
                     }
                 }
-                
+
                 // For sources/books, preserve them but modify to prevent creation
-                if (!empty($entityDataForFormatter['sources'])) {
-                    foreach ($entityDataForFormatter['sources'] as $key => $source) {
-                        $entityDataForFormatter['sources'][$key]['_forceCreate'] = false;
-                        $entityDataForFormatter['sources'][$key]['_skipCreate'] = true;
+                if (!empty($entityDataForFormatter["sources"])) {
+                    foreach (
+                        $entityDataForFormatter["sources"]
+                        as $key => $source
+                    ) {
+                        $entityDataForFormatter["sources"][$key][
+                            "_forceCreate"
+                        ] = false;
+                        $entityDataForFormatter["sources"][$key][
+                            "_skipCreate"
+                        ] = true;
                     }
                 }
-                
+
                 // Log what we're doing
-                Log::info("Preparing entity data for formatter - added _skipCreate flags to prevent direct creation", [
-                    "entity_type" => $this->entityType,
-                    "title" => $entityDataForFormatter['title'] ?? 'Untitled',
-                    "victims" => !empty($entityDataForFormatter['victims']) ? count($entityDataForFormatter['victims']) : 0,
-                    "perpetrators" => !empty($entityDataForFormatter['perpetrators']) ? count($entityDataForFormatter['perpetrators']) : 0,
-                ]);
-                
+                Log::info(
+                    "Preparing entity data for formatter - added _skipCreate flags to prevent direct creation",
+                    [
+                        "entity_type" => $this->entityType,
+                        "title" =>
+                            $entityDataForFormatter["title"] ?? "Untitled",
+                        "victims" => !empty($entityDataForFormatter["victims"])
+                            ? count($entityDataForFormatter["victims"])
+                            : 0,
+                        "perpetrators" => !empty(
+                            $entityDataForFormatter["perpetrators"]
+                        )
+                            ? count($entityDataForFormatter["perpetrators"])
+                            : 0,
+                    ],
+                );
+
                 // Format the entity data with relationships but prevent entity creation
                 // First, make sure sources are properly included in the entity data
-                if (!empty($this->entityData['sources'])) {
-                    $entityDataForFormatter['sources'] = $this->entityData['sources'];
-                    Log::info("Including sources in entity data for formatting", [
-                        "sources_count" => count($this->entityData['sources']),
-                        "first_source" => !empty($this->entityData['sources'][0]) ? 
-                            ($this->entityData['sources'][0]['title'] ?? 'Unknown') : 'None'
-                    ]);
+                if (!empty($this->entityData["sources"])) {
+                    $entityDataForFormatter["sources"] =
+                        $this->entityData["sources"];
+                    Log::info(
+                        "Including sources in entity data for formatting",
+                        [
+                            "sources_count" => count(
+                                $this->entityData["sources"],
+                            ),
+                            "first_source" => !empty(
+                                $this->entityData["sources"][0]
+                            )
+                                ? $this->entityData["sources"][0]["title"] ??
+                                    "Unknown"
+                                : "None",
+                        ],
+                    );
                 }
-                
+
                 $formattedResult = $formatterModels->formatEntityData(
                     $entityDataForFormatter,
                     $this->entityType,
-                    false // Never try to create related entities directly
+                    false, // Never try to create related entities directly
                 );
 
                 // Get the formatted data for the WikibaseService
                 $formattedData = $formattedResult["formattedData"];
 
                 // Create the entity using the formatted data
+                // Enhanced image handling using the ImageHandler class
+                // Extract image filename from any available source
+                $imageFilename = ImageHandler::extractImageFilename(
+                    $this->entityData,
+                );
+
+                // If we found an image, make sure it's properly set in the formatted data
+                if ($imageFilename) {
+                    // Set the image in the formatted data without the File: prefix
+                    $formattedData[
+                        "image"
+                    ] = ImageHandler::prepareImageFilename(
+                        $imageFilename,
+                        false,
+                    );
+                    Log::info("Set image in formatted data", [
+                        "image" => $formattedData["image"],
+                        "original_filename" => $imageFilename,
+                        "entity_type" => $this->entityType,
+                    ]);
+                }
+
+                // Check if we have an image in the claims
+                $imagePropertyId = $wikidataService
+                    ->getMappingProvider()
+                    ->getPropertyId("IMAGE");
+                if (!empty($imagePropertyId) && !empty($imageFilename)) {
+                    // Use the ImageHandler to add the image claim with proper formatting
+                    $formattedData = ImageHandler::addImageClaim(
+                        $formattedData,
+                        $imageFilename,
+                        $imagePropertyId,
+                    );
+                } elseif (!empty($imageFilename)) {
+                    Log::warning(
+                        "Could not find IMAGE property ID for image claim",
+                        [
+                            "image" => $imageFilename,
+                            "entity_type" => $this->entityType,
+                        ],
+                    );
+                }
+
+                // Log the full entity data being sent
+                Log::info("Sending formatted entity data to Wikidata", [
+                    "entity_type" => $this->entityType,
+                    "title" => $formattedData["labels"]["de"] ?? "Unknown",
+                    "has_image" => !empty($formattedData["image"]),
+                    "image_value" => $formattedData["image"] ?? "None",
+                    "has_image_claim" => !empty(
+                        $formattedData["claims"][$imagePropertyId]
+                    )
+                        ? "yes"
+                        : "no",
+                    "data_keys" => implode(", ", array_keys($formattedData)),
+                ]);
+
                 // The entity data is already properly formatted by the formatter/optimizer
                 // Just pass it directly to the WikibaseService
                 $response = $wikidataService->createEntity(
-                    $formattedData, // Use the formatted data directly without modification
-                    $this->entityType
+                    $formattedData, // Use the formatted data with our image fixes
+                    $this->entityType,
                 );
 
                 if ($response && isset($response["entity"]["id"])) {
                     $entityId = $response["entity"]["id"];
-                    
+
                     // Store the entity ID in a global variable so chained jobs can access it
                     // This allows child jobs in the chain to link to this entity
-                    $GLOBALS['last_created_entity_id'] = $entityId;
+                    $GLOBALS["last_created_entity_id"] = $entityId;
 
-                    Log::info("Stored entity ID in global variable for job chain", [
-                        "entity_id" => $entityId,
-                        "type" => $this->entityType,
-                        "is_part_of_chain" => !empty($this->parentEntityId) ? 'child' : 'parent'
-                    ]);
+                    Log::info(
+                        "Stored entity ID in global variable for job chain",
+                        [
+                            "entity_id" => $entityId,
+                            "type" => $this->entityType,
+                            "is_part_of_chain" => !empty($this->parentEntityId)
+                                ? "child"
+                                : "parent",
+                        ],
+                    );
 
                     // For debugging - track job chain execution
                     if (empty($this->parentEntityId)) {
                         // This is the main entity in a chain
-                        Log::info("Main entity in job chain created - child jobs should execute next", [
-                            "entity_id" => $entityId,
-                            "type" => $this->entityType
-                        ]);
-                        
+                        Log::info(
+                            "Main entity in job chain created - child jobs should execute next",
+                            [
+                                "entity_id" => $entityId,
+                                "type" => $this->entityType,
+                            ],
+                        );
+
                         // Directly update the status in the database
                         // This serves as a fallback in case the callback fails
                         try {
                             if ($this->requestId) {
-                                $requestModel = config("wikidata.request_model", self::DEFAULT_REQUEST_MODEL);
-                                $entryRequest = $requestModel::find($this->requestId);
-                                
+                                $requestModel = config(
+                                    "wikidata.request_model",
+                                    self::DEFAULT_REQUEST_MODEL,
+                                );
+                                $entryRequest = $requestModel::find(
+                                    $this->requestId,
+                                );
+
                                 if ($entryRequest) {
                                     // Use EntryStatusController's static method to update status
                                     \App\Http\Controllers\EntryStatusController::updateStatusHistoryStatic(
                                         $entryRequest,
-                                        'wikidata_published',
-                                        "Eintrag erfolgreich erstellt mit Wikidata-ID: {$entityId}"
+                                        "wikidata_published",
+                                        "Eintrag erfolgreich erstellt mit Wikidata-ID: {$entityId}",
                                     );
-                                    
+
                                     // Also update the wikidata_id field
                                     $entryRequest->wikidata_id = $entityId;
                                     $entryRequest->created_entities = $createdEntities;
                                     $entryRequest->save();
-                                    
-                                    Log::info("Direct database update successful", [
-                                        "entity_id" => $entityId,
-                                        "request_id" => $this->requestId
-                                    ]);
+
+                                    Log::info(
+                                        "Direct database update successful",
+                                        [
+                                            "entity_id" => $entityId,
+                                            "request_id" => $this->requestId,
+                                        ],
+                                    );
                                 }
                             }
                         } catch (\Exception $dbEx) {
-                            Log::warning("Direct database update failed: " . $dbEx->getMessage(), [
-                                "entity_id" => $entityId,
-                                "request_id" => $this->requestId
-                            ]);
+                            Log::warning(
+                                "Direct database update failed: " .
+                                    $dbEx->getMessage(),
+                                [
+                                    "entity_id" => $entityId,
+                                    "request_id" => $this->requestId,
+                                ],
+                            );
                         }
                     } else {
                         // This is a child entity in a chain
@@ -584,7 +828,7 @@ class CreateWikidataEntity implements ShouldQueue
                             "entity_id" => $entityId,
                             "parent_id" => $this->parentEntityId,
                             "relationship" => $this->relationshipType,
-                            "type" => $this->entityType
+                            "type" => $this->entityType,
                         ]);
                     }
 
@@ -597,24 +841,24 @@ class CreateWikidataEntity implements ShouldQueue
                         $this->trackCreatedPerpetrators(
                             $existingEntityIds,
                             $newlyCreatedEntityIds,
-                            $createdEntities
+                            $createdEntities,
                         );
                         $this->trackCreatedBookEntities(
                             $existingEntityIds,
                             $newlyCreatedEntityIds,
-                            $createdEntities
+                            $createdEntities,
                         );
                         $this->trackCreatedVictims(
                             $existingEntityIds,
                             $newlyCreatedEntityIds,
-                            $createdEntities
+                            $createdEntities,
                         );
                     }
 
                     // Update entity data again with any changes made during tracking
                     $this->updateEntityWithFormattedData(
                         $formatterModels,
-                        $entityId
+                        $entityId,
                     );
 
                     Log::info(
@@ -625,7 +869,7 @@ class CreateWikidataEntity implements ShouldQueue
                             "additional_entities" => count($createdEntities),
                             "referenced_entities" => count($existingEntityIds),
                             "newly_created_ids" => $newlyCreatedEntityIds,
-                        ]
+                        ],
                     );
 
                     // If this entity has a parent entity it should be linked to
@@ -634,70 +878,92 @@ class CreateWikidataEntity implements ShouldQueue
                             "entity_id" => $entityId,
                             "parent_id" => $this->parentEntityId,
                             "relationship" => $this->relationshipType,
-                            "parent_is_placeholder" => $this->parentEntityId === "__MAIN_ENTITY_ID__"
+                            "parent_is_placeholder" =>
+                                $this->parentEntityId === "__MAIN_ENTITY_ID__",
                         ]);
                         $this->linkEntityToParent($wikidataService, $entityId);
                     } else {
-                        Log::warning("Skipping linking entity to parent - missing parent ID or relationship", [
-                            "has_parent_id" => !empty($this->parentEntityId),
-                            "has_relationship" => !empty($this->relationshipType),
-                            "entity_id" => $entityId
-                        ]);
+                        Log::warning(
+                            "Skipping linking entity to parent - missing parent ID or relationship",
+                            [
+                                "has_parent_id" => !empty(
+                                    $this->parentEntityId
+                                ),
+                                "has_relationship" => !empty(
+                                    $this->relationshipType
+                                ),
+                                "entity_id" => $entityId,
+                            ],
+                        );
                     }
 
                     // For events, link this entity to any victims or perpetrators that were created
                     if (
-                        $this->entityType === app(EntityMappingProviderInterface::class)->getEntityTypeId('App\\Models\\Wikibase\\Event') &&
+                        $this->entityType ===
+                            app(
+                                EntityMappingProviderInterface::class,
+                            )->getEntityTypeId(
+                                "App\\Models\\Wikibase\\Event",
+                            ) &&
                         !empty($createdEntities)
                     ) {
                         $this->linkMainEntityToChildren(
                             $wikidataService,
                             $entityId,
-                            $createdEntities
+                            $createdEntities,
                         );
                     }
 
                     // Update the database status to reflect the entity was published in Wikidata
                     $this->updateRequestStatus($entityId);
-                    
+
                     // For main entities only (not child entities in the chain), dispatch events and callbacks
                     if (empty($this->parentEntityId)) {
                         // Dispatch an event about the entity creation
                         // This replaces the direct HTTP callback with a more reliable event-based approach
-                        event(new \App\Events\WikidataEntityCreated(
-                            $entityId,
-                            $this->entityType,
-                            $createdEntities,
-                            null, // No parent ID for main entity
-                            null, // No relationship type for main entity
-                            $this->entityData
-                        ));
+                        event(
+                            new \App\Events\WikidataEntityCreated(
+                                $entityId,
+                                $this->entityType,
+                                $createdEntities,
+                                null, // No parent ID for main entity
+                                null, // No relationship type for main entity
+                                $this->entityData,
+                            ),
+                        );
 
                         // For backward compatibility, still use the callback if provided
                         if ($this->callbackUrl) {
                             $this->notifyCallback($entityId, $createdEntities);
                         }
-                        
+
                         Log::info("Dispatched event for main entity creation", [
                             "entity_id" => $entityId,
                             "type" => $this->entityType,
-                            "created_related_entities" => count($createdEntities)
+                            "created_related_entities" => count(
+                                $createdEntities,
+                            ),
                         ]);
                     } else {
                         // For child entities, dispatch a different event type that includes parent information
-                        event(new \App\Events\WikidataChildEntityCreated(
-                            $entityId,
-                            $this->entityType,
-                            $this->parentEntityId,
-                            $this->relationshipType,
-                            $this->entityData
-                        ));
-                        
-                        Log::info("Created child entity with parent relationship", [
-                            "entity_id" => $entityId,
-                            "parent_id" => $this->parentEntityId,
-                            "relationship" => $this->relationshipType
-                        ]);
+                        event(
+                            new \App\Events\WikidataChildEntityCreated(
+                                $entityId,
+                                $this->entityType,
+                                $this->parentEntityId,
+                                $this->relationshipType,
+                                $this->entityData,
+                            ),
+                        );
+
+                        Log::info(
+                            "Created child entity with parent relationship",
+                            [
+                                "entity_id" => $entityId,
+                                "parent_id" => $this->parentEntityId,
+                                "relationship" => $this->relationshipType,
+                            ],
+                        );
                     }
                 } else {
                     $this->handleEntityCreationFailure($response);
@@ -794,7 +1060,7 @@ class CreateWikidataEntity implements ShouldQueue
     protected function trackCreatedPerpetrators(
         array $existingEntityIds,
         array &$newlyCreatedEntityIds,
-        array &$createdEntities
+        array &$createdEntities,
     ): void {
         if (
             !empty($this->entityData["perpetrators"]) &&
@@ -827,7 +1093,7 @@ class CreateWikidataEntity implements ShouldQueue
                             [
                                 "id" => $perpetrator["id"],
                                 "name" => $name,
-                            ]
+                            ],
                         );
                     }
                 }
@@ -856,7 +1122,7 @@ class CreateWikidataEntity implements ShouldQueue
         return trim(
             (isset($entity["firstName"]) ? $entity["firstName"] : "") .
                 " " .
-                (isset($entity["lastName"]) ? $entity["lastName"] : "")
+                (isset($entity["lastName"]) ? $entity["lastName"] : ""),
         );
     }
 
@@ -871,7 +1137,7 @@ class CreateWikidataEntity implements ShouldQueue
     protected function trackCreatedBookEntities(
         array $existingEntityIds,
         array &$newlyCreatedEntityIds,
-        array &$createdEntities
+        array &$createdEntities,
     ): void {
         $bookEntities = $this->getBookEntities();
 
@@ -902,7 +1168,7 @@ class CreateWikidataEntity implements ShouldQueue
                         [
                             "id" => $book["id"],
                             "title" => $title,
-                        ]
+                        ],
                     );
                 }
             }
@@ -920,7 +1186,7 @@ class CreateWikidataEntity implements ShouldQueue
     protected function trackCreatedVictims(
         array $existingEntityIds,
         array &$newlyCreatedEntityIds,
-        array &$createdEntities
+        array &$createdEntities,
     ): void {
         if (
             !empty($this->entityData["victims"]) &&
@@ -953,7 +1219,7 @@ class CreateWikidataEntity implements ShouldQueue
                             [
                                 "id" => $victim["id"],
                                 "name" => $name,
-                            ]
+                            ],
                         );
                     }
                 }
@@ -978,13 +1244,13 @@ class CreateWikidataEntity implements ShouldQueue
         // Try to update the request status to failed if we've exhausted retries
         if ($this->attempts() >= $this->tries) {
             $this->updateRequestStatusToFailed(
-                "Failed to create Wikidata entity: " . json_encode($response)
+                "Failed to create Wikidata entity: " . json_encode($response),
             );
         }
 
         // Throw an exception to trigger a retry
         throw new \Exception(
-            "Failed to create Wikidata entity: " . json_encode($response)
+            "Failed to create Wikidata entity: " . json_encode($response),
         );
     }
 
@@ -1009,33 +1275,41 @@ class CreateWikidataEntity implements ShouldQueue
                 // Get request model class name from config or use the correct default
                 $requestModelClass = config(
                     "wikidata.request_model",
-                    self::DEFAULT_REQUEST_MODEL
+                    self::DEFAULT_REQUEST_MODEL,
                 );
 
                 // Check if the model class exists before trying to use it
                 if (!class_exists($requestModelClass)) {
-                    Log::warning("Request model class {$requestModelClass} not found. Skipping status update.", [
-                        "error_message" => $errorMessage,
-                        "request_id" => $requestId
-                    ]);
+                    Log::warning(
+                        "Request model class {$requestModelClass} not found. Skipping status update.",
+                        [
+                            "error_message" => $errorMessage,
+                            "request_id" => $requestId,
+                        ],
+                    );
                     return;
                 }
 
                 // Try to update with a simple query first (most reliable approach)
                 try {
-                    $requestModelClass::where('id', $requestId)
-                        ->update([
-                            'status' => 'wikidata_failed',
-                            'rejection_reason' => $errorMessage // This is likely to exist since it's a standard field
-                        ]);
-                    
-                    Log::info("Updated request status to wikidata_failed using direct update", [
-                        "request_id" => $requestId
+                    $requestModelClass::where("id", $requestId)->update([
+                        "status" => "wikidata_failed",
+                        "rejection_reason" => $errorMessage, // This is likely to exist since it's a standard field
                     ]);
-                    
+
+                    Log::info(
+                        "Updated request status to wikidata_failed using direct update",
+                        [
+                            "request_id" => $requestId,
+                        ],
+                    );
+
                     return; // Exit early if successful
                 } catch (\Exception $updateEx) {
-                    Log::warning("Direct update of status failed, trying full model: " . $updateEx->getMessage());
+                    Log::warning(
+                        "Direct update of status failed, trying full model: " .
+                            $updateEx->getMessage(),
+                    );
                     // Continue with model-based approach as fallback
                 }
 
@@ -1045,29 +1319,39 @@ class CreateWikidataEntity implements ShouldQueue
 
                     if ($request) {
                         $request->status = "wikidata_failed";
-                        
+
                         // Check which error field to use based on schema
-                        if (\Illuminate\Support\Facades\Schema::hasColumn(
-                            (new $requestModelClass())->getTable(),
-                            'error_message'
-                        )) {
+                        if (
+                            \Illuminate\Support\Facades\Schema::hasColumn(
+                                new $requestModelClass()->getTable(),
+                                "error_message",
+                            )
+                        ) {
                             $request->error_message = $errorMessage;
-                        } else if (\Illuminate\Support\Facades\Schema::hasColumn(
-                            (new $requestModelClass())->getTable(),
-                            'rejection_reason'
-                        )) {
+                        } elseif (
+                            \Illuminate\Support\Facades\Schema::hasColumn(
+                                new $requestModelClass()->getTable(),
+                                "rejection_reason",
+                            )
+                        ) {
                             $request->rejection_reason = $errorMessage;
                         }
-                        
+
                         $request->save();
 
-                        Log::info("Updated request status to wikidata_failed using model", [
-                            "request_id" => $requestId,
-                            "error" => $errorMessage,
-                        ]);
+                        Log::info(
+                            "Updated request status to wikidata_failed using model",
+                            [
+                                "request_id" => $requestId,
+                                "error" => $errorMessage,
+                            ],
+                        );
                     }
                 } catch (\Exception $modelEx) {
-                    Log::error("Failed to update status using model approach: " . $modelEx->getMessage());
+                    Log::error(
+                        "Failed to update status using model approach: " .
+                            $modelEx->getMessage(),
+                    );
                 }
             }
         } catch (\Exception $e) {
@@ -1136,20 +1420,23 @@ class CreateWikidataEntity implements ShouldQueue
     {
         // If the error is specifically about model not found,
         // we can log it but not treat it as truly fatal
-        $isModelNotFoundError = (
-            strpos($e->getMessage(), "WikibaseEntryRequest") !== false ||
-            strpos($e->getMessage(), "WikibaseRequest") !== false
-        ) && strpos($e->getMessage(), "not found") !== false;
-        
+        $isModelNotFoundError =
+            (strpos($e->getMessage(), "WikibaseEntryRequest") !== false ||
+                strpos($e->getMessage(), "WikibaseRequest") !== false) &&
+            strpos($e->getMessage(), "not found") !== false;
+
         if ($isModelNotFoundError) {
-            Log::warning("Non-critical error: Request model not found. Entity creation was likely successful.", [
-                "error" => $e->getMessage(),
-                "entity_data" => [
-                    "type" => $this->entityType,
-                    "title" => $this->entityData["title"] ?? "Unknown",
+            Log::warning(
+                "Non-critical error: Request model not found. Entity creation was likely successful.",
+                [
+                    "error" => $e->getMessage(),
+                    "entity_data" => [
+                        "type" => $this->entityType,
+                        "title" => $this->entityData["title"] ?? "Unknown",
+                    ],
                 ],
-            ]);
-            
+            );
+
             // Still try to notify the callback if available
             if ($this->callbackUrl) {
                 try {
@@ -1158,7 +1445,8 @@ class CreateWikidataEntity implements ShouldQueue
                         "json" => [
                             "entity_id" => "UNKNOWN", // We don't know the ID but the entity might have been created
                             "status" => "partial_success",
-                            "message" => "Entity was likely created but could not update the request record.",
+                            "message" =>
+                                "Entity was likely created but could not update the request record.",
                             "original_data" => $this->entityData,
                         ],
                     ]);
@@ -1168,10 +1456,10 @@ class CreateWikidataEntity implements ShouldQueue
                     ]);
                 }
             }
-            
+
             return;
         }
-        
+
         // For truly fatal errors, proceed with the original error handling
         Log::critical("Fatal error in CreateWikidataEntity job", [
             "error" => $e->getMessage(),
@@ -1227,15 +1515,18 @@ class CreateWikidataEntity implements ShouldQueue
                 // Get request model class name from config or use the correct default
                 $requestModelClass = config(
                     "wikidata.request_model",
-                    self::DEFAULT_REQUEST_MODEL
+                    self::DEFAULT_REQUEST_MODEL,
                 );
 
                 // Check if the model class exists before trying to use it
                 if (!class_exists($requestModelClass)) {
-                    Log::warning("Request model class {$requestModelClass} not found. Skipping status update.", [
-                        "entity_id" => $entityId,
-                        "request_id" => $requestId
-                    ]);
+                    Log::warning(
+                        "Request model class {$requestModelClass} not found. Skipping status update.",
+                        [
+                            "entity_id" => $entityId,
+                            "request_id" => $requestId,
+                        ],
+                    );
                     return;
                 }
 
@@ -1243,32 +1534,43 @@ class CreateWikidataEntity implements ShouldQueue
                 try {
                     // Simple update with only the most critical fields
                     $updateData = [
-                        'status' => 'wikidata_published',
-                        'wikidata_id' => $entityId
+                        "status" => "wikidata_published",
+                        "wikidata_id" => $entityId,
                     ];
-                    
+
                     // Try to update the record
-                    $affected = $requestModelClass::where('id', $requestId)
+                    $affected = $requestModelClass
+                        ::where("id", $requestId)
                         ->update($updateData);
-                    
+
                     if ($affected) {
-                        Log::info("Updated request status to wikidata_published using minimal fields", [
-                            "request_id" => $requestId,
-                            "entity_id" => $entityId,
-                        ]);
+                        Log::info(
+                            "Updated request status to wikidata_published using minimal fields",
+                            [
+                                "request_id" => $requestId,
+                                "entity_id" => $entityId,
+                            ],
+                        );
                     } else {
-                        Log::warning("Could not find request to update status", [
-                            "request_id" => $requestId,
-                            "entity_id" => $entityId,
-                        ]);
+                        Log::warning(
+                            "Could not find request to update status",
+                            [
+                                "request_id" => $requestId,
+                                "entity_id" => $entityId,
+                            ],
+                        );
                     }
                 } catch (\Exception $updateEx) {
                     // If we can't update with a query, last resort is to try a full model update
-                    Log::warning("Simple database update failed: " . $updateEx->getMessage(), [
-                        "request_id" => $requestId,
-                        "entity_id" => $entityId,
-                    ]);
-                    
+                    Log::warning(
+                        "Simple database update failed: " .
+                            $updateEx->getMessage(),
+                        [
+                            "request_id" => $requestId,
+                            "entity_id" => $entityId,
+                        ],
+                    );
+
                     // Last attempt - try to use the model directly
                     try {
                         $request = $requestModelClass::find($requestId);
@@ -1277,17 +1579,21 @@ class CreateWikidataEntity implements ShouldQueue
                             $request->wikidata_id = $entityId;
                             // Don't set wikidata_url at all
                             $request->save();
-                            
+
                             Log::info("Updated request with model approach", [
                                 "request_id" => $requestId,
                                 "entity_id" => $entityId,
                             ]);
                         }
                     } catch (\Exception $modelEx) {
-                        Log::error("All update approaches failed: " . $modelEx->getMessage(), [
-                            "request_id" => $requestId,
-                            "entity_id" => $entityId,
-                        ]);
+                        Log::error(
+                            "All update approaches failed: " .
+                                $modelEx->getMessage(),
+                            [
+                                "request_id" => $requestId,
+                                "entity_id" => $entityId,
+                            ],
+                        );
                     }
                 }
             } else {
@@ -1312,7 +1618,7 @@ class CreateWikidataEntity implements ShouldQueue
      */
     protected function notifyCallback(
         string $entityId,
-        array $createdEntities = []
+        array $createdEntities = [],
     ) {
         try {
             $client = new \GuzzleHttp\Client();
@@ -1340,7 +1646,7 @@ class CreateWikidataEntity implements ShouldQueue
 
     /**
      * Add sources to a person entity using the BaseEntity.addSource method
-     * 
+     *
      * @param WikibaseService $wikidataService The wikidata service
      * @param string $entityId The entity ID to add sources to
      * @param array $sources The sources to add
@@ -1349,68 +1655,86 @@ class CreateWikidataEntity implements ShouldQueue
     protected function addSourcesUsingBaseEntity(
         WikibaseService $wikidataService,
         string $entityId,
-        array $sources
+        array $sources,
     ): void {
         try {
             // Ensure we have sources to add
             if (empty($sources)) {
-                Log::warning("No sources provided to addSourcesUsingBaseEntity", [
-                    "entity_id" => $entityId
-                ]);
+                Log::warning(
+                    "No sources provided to addSourcesUsingBaseEntity",
+                    [
+                        "entity_id" => $entityId,
+                    ],
+                );
                 return;
             }
-            
+
             // Log the sources we're working with
             Log::info("Sources data for person entity", [
                 "entity_id" => $entityId,
                 "sources_count" => count($sources),
-                "sources_data" => json_encode(array_map(function($source) {
-                    return [
-                        'type' => $source['type'] ?? 'unknown',
-                        'title' => $source['title'] ?? 'untitled'
-                    ];
-                }, $sources))
+                "sources_data" => json_encode(
+                    array_map(function ($source) {
+                        return [
+                            "type" => $source["type"] ?? "unknown",
+                            "title" => $source["title"] ?? "untitled",
+                        ];
+                    }, $sources),
+                ),
             ]);
-            
+
             // Create a Person object for the entity
             $mappingProvider = app(EntityMappingProviderInterface::class);
-            $person = new Person("Person entity {$entityId}", "Person entity from Wikidata", $mappingProvider);
-            
+            $person = new Person(
+                "Person entity {$entityId}",
+                "Person entity from Wikidata",
+                $mappingProvider,
+            );
+
             // Get entity data if available and set it to the person
-            if (!empty($this->entityData['title'])) {
+            if (!empty($this->entityData["title"])) {
                 $person = new Person(
-                    $this->entityData['title'], 
-                    $this->entityData['description'] ?? "Person entity from Wikidata",
-                    $mappingProvider
+                    $this->entityData["title"],
+                    $this->entityData["description"] ??
+                        "Person entity from Wikidata",
+                    $mappingProvider,
                 );
             }
-            
+
             // Create source models from the source data
             $sourceModels = SourceFactory::createMultipleFromArray($sources);
-            
+
             Log::info("Created source models for person entity", [
                 "entity_id" => $entityId,
                 "source_models_count" => count($sourceModels),
-                "source_models_types" => implode(", ", array_map(function($source) {
-                    return $source->getType() ?? 'unknown';
-                }, $sourceModels))
+                "source_models_types" => implode(
+                    ", ",
+                    array_map(function ($source) {
+                        return $source->getType() ?? "unknown";
+                    }, $sourceModels),
+                ),
             ]);
-            
+
             // Direct approach - create all claims directly
-            $updateData = ['claims' => []];
-            
+            $updateData = ["claims" => []];
+
             // Add URL sources (P973)
             $urlProperty = $mappingProvider->getPropertyId("STATED_IN_URL");
-            $updateData['claims'][$urlProperty] = [];
-            
+            $updateData["claims"][$urlProperty] = [];
+
             // Add described by sources (P1343)
-            $describedByProperty = $mappingProvider->getPropertyId("DESCRIBED_BY_SOURCE");
-            $updateData['claims'][$describedByProperty] = [];
-            
+            $describedByProperty = $mappingProvider->getPropertyId(
+                "DESCRIBED_BY_SOURCE",
+            );
+            $updateData["claims"][$describedByProperty] = [];
+
             // Process each source directly
             foreach ($sourceModels as $source) {
                 // For URL sources
-                if ($source->getType() === 'url' && method_exists($source, 'getUrl')) {
+                if (
+                    $source->getType() === "url" &&
+                    method_exists($source, "getUrl")
+                ) {
                     $url = $source->getUrl();
                     if (!empty($url)) {
                         // Create a URL claim
@@ -1421,20 +1745,25 @@ class CreateWikidataEntity implements ShouldQueue
                                 "datavalue" => [
                                     "value" => $url,
                                     "type" => "string",
-                                ]
+                                ],
                             ],
                             "type" => "statement",
-                            "rank" => "normal"
+                            "rank" => "normal",
                         ];
-                        
+
                         // Add qualifiers if needed (language, retrieval date)
-                        if (method_exists($source, 'getRetrievalDate') || method_exists($source, 'getLanguage')) {
-                            $urlClaim['qualifiers'] = [];
-                            $urlClaim['qualifiers-order'] = [];
-                            
+                        if (
+                            method_exists($source, "getRetrievalDate") ||
+                            method_exists($source, "getLanguage")
+                        ) {
+                            $urlClaim["qualifiers"] = [];
+                            $urlClaim["qualifiers-order"] = [];
+
                             // Add language qualifier (German - Q188)
-                            $languageProperty = $mappingProvider->getPropertyId("LANGUAGE");
-                            $urlClaim['qualifiers'][$languageProperty] = [
+                            $languageProperty = $mappingProvider->getPropertyId(
+                                "LANGUAGE",
+                            );
+                            $urlClaim["qualifiers"][$languageProperty] = [
                                 [
                                     "snaktype" => "value",
                                     "property" => $languageProperty,
@@ -1442,51 +1771,69 @@ class CreateWikidataEntity implements ShouldQueue
                                         "value" => [
                                             "entity-type" => "item",
                                             "id" => "Q188", // German
-                                            "numeric-id" => 188
+                                            "numeric-id" => 188,
                                         ],
-                                        "type" => "wikibase-entityid"
-                                    ]
-                                ]
+                                        "type" => "wikibase-entityid",
+                                    ],
+                                ],
                             ];
-                            $urlClaim['qualifiers-order'][] = $languageProperty;
-                            
+                            $urlClaim["qualifiers-order"][] = $languageProperty;
+
                             // Add retrieval date qualifier
-                            $retrievalDateProperty = $mappingProvider->getPropertyId("RETRIEVAL_DATE");
-                            $retrievalDate = method_exists($source, 'getRetrievalDate') ? $source->getRetrievalDate() : date('Y-m-d');
-                            $urlClaim['qualifiers'][$retrievalDateProperty] = [
+                            $retrievalDateProperty = $mappingProvider->getPropertyId(
+                                "RETRIEVAL_DATE",
+                            );
+                            $retrievalDate = method_exists(
+                                $source,
+                                "getRetrievalDate",
+                            )
+                                ? $source->getRetrievalDate()
+                                : date("Y-m-d");
+                            $urlClaim["qualifiers"][$retrievalDateProperty] = [
                                 [
                                     "snaktype" => "value",
                                     "property" => $retrievalDateProperty,
                                     "datavalue" => [
                                         "value" => [
-                                            "time" => "+" . $retrievalDate . "T00:00:00Z",
+                                            "time" =>
+                                                "+" .
+                                                $retrievalDate .
+                                                "T00:00:00Z",
                                             "timezone" => 0,
                                             "before" => 0,
                                             "after" => 0,
                                             "precision" => 11,
-                                            "calendarmodel" => "http://www.wikidata.org/entity/Q1985727"
+                                            "calendarmodel" =>
+                                                "http://www.wikidata.org/entity/Q1985727",
                                         ],
-                                        "type" => "time"
-                                    ]
-                                ]
+                                        "type" => "time",
+                                    ],
+                                ],
                             ];
-                            $urlClaim['qualifiers-order'][] = $retrievalDateProperty;
+                            $urlClaim[
+                                "qualifiers-order"
+                            ][] = $retrievalDateProperty;
                         }
-                        
-                        $updateData['claims'][$urlProperty][] = $urlClaim;
+
+                        $updateData["claims"][$urlProperty][] = $urlClaim;
                         Log::info("Added URL source claim for person entity", [
                             "entity_id" => $entityId,
                             "url" => $url,
-                            "title" => $source->getTitle() ?? 'Untitled'
+                            "title" => $source->getTitle() ?? "Untitled",
                         ]);
                     }
                 }
-                
+
                 // For archive/book sources
-                if ($source->getType() === 'archive' || $source->getType() === 'book') {
-                    $sourceEntityId = method_exists($source, 'getEntityId') ? $source->getEntityId() : null;
-                    $sourceTitle = $source->getTitle() ?? 'Unknown source';
-                    
+                if (
+                    $source->getType() === "archive" ||
+                    $source->getType() === "book"
+                ) {
+                    $sourceEntityId = method_exists($source, "getEntityId")
+                        ? $source->getEntityId()
+                        : null;
+                    $sourceTitle = $source->getTitle() ?? "Unknown source";
+
                     if (!empty($sourceEntityId)) {
                         // Create a described-by claim
                         $describedByClaim = [
@@ -1497,98 +1844,126 @@ class CreateWikidataEntity implements ShouldQueue
                                     "value" => [
                                         "entity-type" => "item",
                                         "id" => $sourceEntityId,
-                                        "numeric-id" => intval(substr($sourceEntityId, 1))
+                                        "numeric-id" => intval(
+                                            substr($sourceEntityId, 1),
+                                        ),
                                     ],
-                                    "type" => "wikibase-entityid"
-                                ]
+                                    "type" => "wikibase-entityid",
+                                ],
                             ],
                             "type" => "statement",
-                            "rank" => "normal"
+                            "rank" => "normal",
                         ];
-                        
+
                         // Add inventory number if available
-                        if (method_exists($source, 'getInventoryNumber') && !empty($source->getInventoryNumber())) {
-                            $inventoryProperty = $mappingProvider->getPropertyId("INVENTORY_NUMBER");
-                            $describedByClaim['qualifiers'] = [
+                        if (
+                            method_exists($source, "getInventoryNumber") &&
+                            !empty($source->getInventoryNumber())
+                        ) {
+                            $inventoryProperty = $mappingProvider->getPropertyId(
+                                "INVENTORY_NUMBER",
+                            );
+                            $describedByClaim["qualifiers"] = [
                                 $inventoryProperty => [
                                     [
                                         "snaktype" => "value",
                                         "property" => $inventoryProperty,
                                         "datavalue" => [
                                             "value" => $source->getInventoryNumber(),
-                                            "type" => "string"
-                                        ]
-                                    ]
-                                ]
+                                            "type" => "string",
+                                        ],
+                                    ],
+                                ],
                             ];
-                            $describedByClaim['qualifiers-order'] = [$inventoryProperty];
+                            $describedByClaim["qualifiers-order"] = [
+                                $inventoryProperty,
+                            ];
                         }
-                        
-                        $updateData['claims'][$describedByProperty][] = $describedByClaim;
-                        Log::info("Added described-by source claim for person entity", [
-                            "entity_id" => $entityId,
-                            "source_entity_id" => $sourceEntityId,
-                            "title" => $sourceTitle
-                        ]);
+
+                        $updateData["claims"][
+                            $describedByProperty
+                        ][] = $describedByClaim;
+                        Log::info(
+                            "Added described-by source claim for person entity",
+                            [
+                                "entity_id" => $entityId,
+                                "source_entity_id" => $sourceEntityId,
+                                "title" => $sourceTitle,
+                            ],
+                        );
                     } else {
-                        Log::warning("Source has no entity ID, skipping described-by claim", [
-                            "source_type" => $source->getType(),
-                            "source_title" => $sourceTitle
-                        ]);
+                        Log::warning(
+                            "Source has no entity ID, skipping described-by claim",
+                            [
+                                "source_type" => $source->getType(),
+                                "source_title" => $sourceTitle,
+                            ],
+                        );
                     }
                 }
             }
-            
+
             // Remove empty claim arrays
-            if (empty($updateData['claims'][$urlProperty])) {
-                unset($updateData['claims'][$urlProperty]);
+            if (empty($updateData["claims"][$urlProperty])) {
+                unset($updateData["claims"][$urlProperty]);
             }
-            
-            if (empty($updateData['claims'][$describedByProperty])) {
-                unset($updateData['claims'][$describedByProperty]);
+
+            if (empty($updateData["claims"][$describedByProperty])) {
+                unset($updateData["claims"][$describedByProperty]);
             }
-            
+
             // Log the claims we're adding
             Log::info("Source claims prepared for person entity", [
                 "entity_id" => $entityId,
-                "url_claims" => !empty($updateData['claims'][$urlProperty]) ? count($updateData['claims'][$urlProperty]) : 0,
-                "described_by_claims" => !empty($updateData['claims'][$describedByProperty]) ? count($updateData['claims'][$describedByProperty]) : 0,
-                "claims_data" => json_encode($updateData['claims'])
+                "url_claims" => !empty($updateData["claims"][$urlProperty])
+                    ? count($updateData["claims"][$urlProperty])
+                    : 0,
+                "described_by_claims" => !empty(
+                    $updateData["claims"][$describedByProperty]
+                )
+                    ? count($updateData["claims"][$describedByProperty])
+                    : 0,
+                "claims_data" => json_encode($updateData["claims"]),
             ]);
-            
+
             // Update the entity with the source claims
-            if (!empty($updateData['claims'])) {
+            if (!empty($updateData["claims"])) {
                 $result = $wikidataService->updateEntity(
                     $entityId,
                     $updateData,
-                    $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Person')
+                    $mappingProvider->getEntityTypeId(
+                        "App\\Models\\Wikibase\\Person",
+                    ),
                 );
-                
+
                 if ($result) {
-                    Log::info("Successfully added source claims to person entity", [
-                        "entity_id" => $entityId,
-                        "claim_count" => count($updateData['claims'])
-                    ]);
+                    Log::info(
+                        "Successfully added source claims to person entity",
+                        [
+                            "entity_id" => $entityId,
+                            "claim_count" => count($updateData["claims"]),
+                        ],
+                    );
                 } else {
                     Log::error("Failed to add source claims to person entity", [
                         "entity_id" => $entityId,
-                        "error" => "WikibaseService returned false or null"
+                        "error" => "WikibaseService returned false or null",
                     ]);
                 }
             } else {
                 Log::warning("No source claims to add to person entity", [
-                    "entity_id" => $entityId
+                    "entity_id" => $entityId,
                 ]);
             }
         } catch (\Exception $e) {
             Log::error("Exception while adding sources to person entity", [
                 "error" => $e->getMessage(),
                 "entity_id" => $entityId,
-                "trace" => $e->getTraceAsString()
+                "trace" => $e->getTraceAsString(),
             ]);
         }
     }
-    
+
     /**
      * Link this entity to its parent entity
      *
@@ -1598,59 +1973,79 @@ class CreateWikidataEntity implements ShouldQueue
      */
     protected function linkEntityToParent(
         WikibaseService $wikidataService,
-        string $entityId
+        string $entityId,
     ) {
         try {
             // Check if we have a parent entity ID and relationship type
             if (empty($this->parentEntityId)) {
-                Log::warning("Cannot link entity to parent - missing parent ID", [
-                    "entity_id" => $entityId,
-                    "relationship" => $this->relationshipType ?? 'unknown'
-                ]);
+                Log::warning(
+                    "Cannot link entity to parent - missing parent ID",
+                    [
+                        "entity_id" => $entityId,
+                        "relationship" => $this->relationshipType ?? "unknown",
+                    ],
+                );
                 return;
             }
-            
+
             if (empty($this->relationshipType)) {
-                Log::warning("Cannot link entity to parent - missing relationship type", [
-                    "entity_id" => $entityId,
-                    "parent_id" => $this->parentEntityId
-                ]);
+                Log::warning(
+                    "Cannot link entity to parent - missing relationship type",
+                    [
+                        "entity_id" => $entityId,
+                        "parent_id" => $this->parentEntityId,
+                    ],
+                );
                 return;
             }
-            
+
             // Double check that we're not using a placeholder parent ID
             if ($this->parentEntityId === "__MAIN_ENTITY_ID__") {
-                Log::error("Cannot link to parent - parent ID is still a placeholder", [
-                    "entity_id" => $entityId,
-                    "parent_id" => $this->parentEntityId,
-                    "relationship" => $this->relationshipType
-                ]);
+                Log::error(
+                    "Cannot link to parent - parent ID is still a placeholder",
+                    [
+                        "entity_id" => $entityId,
+                        "parent_id" => $this->parentEntityId,
+                        "relationship" => $this->relationshipType,
+                    ],
+                );
                 return;
             }
-            
+
             Log::info("Linking entity to parent", [
                 "entity_id" => $entityId,
                 "parent_id" => $this->parentEntityId,
                 "relationship" => $this->relationshipType,
-                "debug_backtrace" => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3)
+                "debug_backtrace" => debug_backtrace(
+                    DEBUG_BACKTRACE_IGNORE_ARGS,
+                    3,
+                ),
             ]);
-            
+
             // Different linking properties based on relationship type
             $linkProperty = null;
-            $mappingProvider = app(\App\Services\EntityMapping\EntityMappingProviderInterface::class);
+            $mappingProvider = app(
+                \App\Services\EntityMapping\EntityMappingProviderInterface::class,
+            );
 
             switch ($this->relationshipType) {
                 case "source":
-                    $linkProperty = $mappingProvider->getPropertyId('DESCRIBED_BY_SOURCE'); // Described by source
+                    $linkProperty = $mappingProvider->getPropertyId(
+                        "DESCRIBED_BY_SOURCE",
+                    ); // Described by source
                     break;
                 case "perpetrator":
-                    $linkProperty = $mappingProvider->getPropertyId('PERPETRATOR'); // Has perpetrator
+                    $linkProperty = $mappingProvider->getPropertyId(
+                        "PERPETRATOR",
+                    ); // Has perpetrator
                     break;
                 case "victim":
-                    $linkProperty = $mappingProvider->getPropertyId('VICTIM'); // Has victim
+                    $linkProperty = $mappingProvider->getPropertyId("VICTIM"); // Has victim
                     break;
                 case "book": // For backwards compatibility
-                    $linkProperty = $mappingProvider->getPropertyId('DESCRIBED_BY_SOURCE'); // Treat books as sources
+                    $linkProperty = $mappingProvider->getPropertyId(
+                        "DESCRIBED_BY_SOURCE",
+                    ); // Treat books as sources
                     break;
                 default:
                     Log::warning(
@@ -1659,7 +2054,7 @@ class CreateWikidataEntity implements ShouldQueue
                             "relationship" => $this->relationshipType,
                             "entity_id" => $entityId,
                             "parent_id" => $this->parentEntityId,
-                        ]
+                        ],
                     );
                     return; // Unknown relationship type
             }
@@ -1701,26 +2096,37 @@ class CreateWikidataEntity implements ShouldQueue
                             ],
                         ];
                     }
-                } 
+                }
                 // Add location qualifier for victims/perpetrators if available
-                elseif (($this->relationshipType === "victim" || $this->relationshipType === "perpetrator") && 
-                       !empty($this->entityData["location"]) && 
-                       !empty($this->entityData["location"]["id"])) {
-                    
+                elseif (
+                    ($this->relationshipType === "victim" ||
+                        $this->relationshipType === "perpetrator") &&
+                    !empty($this->entityData["location"]) &&
+                    !empty($this->entityData["location"]["id"])
+                ) {
                     $locationId = $this->entityData["location"]["id"];
-                    $mappingProvider = app(\App\Services\EntityMapping\EntityMappingProviderInterface::class);
-                    $locationProperty = $mappingProvider->getPropertyId("LOCATION"); // Should map to P276
-                    
+                    $mappingProvider = app(
+                        \App\Services\EntityMapping\EntityMappingProviderInterface::class,
+                    );
+                    $locationProperty = $mappingProvider->getPropertyId(
+                        "LOCATION",
+                    ); // Should map to P276
+
                     // Log the location data being used for qualifier
-                    Log::info("Adding location qualifier to victim/perpetrator relationship", [
-                        "entity_type" => $this->relationshipType,
-                        "location_id" => $locationId,
-                        "location_property" => $locationProperty,
-                        "parent_id" => $this->parentEntityId,
-                        "entity_id" => $entityId,
-                        "mapping_provider_class" => get_class($mappingProvider)
-                    ]);
-                    
+                    Log::info(
+                        "Adding location qualifier to victim/perpetrator relationship",
+                        [
+                            "entity_type" => $this->relationshipType,
+                            "location_id" => $locationId,
+                            "location_property" => $locationProperty,
+                            "parent_id" => $this->parentEntityId,
+                            "entity_id" => $entityId,
+                            "mapping_provider_class" => get_class(
+                                $mappingProvider,
+                            ),
+                        ],
+                    );
+
                     $statement["qualifiers"] = [
                         $locationProperty => [
                             [
@@ -1730,7 +2136,9 @@ class CreateWikidataEntity implements ShouldQueue
                                     "value" => [
                                         "entity-type" => "item",
                                         "id" => $locationId,
-                                        "numeric-id" => intval(substr($locationId, 1)),
+                                        "numeric-id" => intval(
+                                            substr($locationId, 1),
+                                        ),
                                     ],
                                     "type" => "wikibase-entityid",
                                 ],
@@ -1743,66 +2151,78 @@ class CreateWikidataEntity implements ShouldQueue
                 // For the update, we need the parent entity type, not the child entity type
                 // We'll use the main event entity type for simplicity (most common case)
                 $parentEntityType = null;
-                
+
                 // Try to determine parent entity type based on relationship
                 switch ($this->relationshipType) {
                     case "victim":
                     case "perpetrator":
                         // Parent is likely an event/incident
-                        $parentEntityType = $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Event');
+                        $parentEntityType = $mappingProvider->getEntityTypeId(
+                            "App\\Models\\Wikibase\\Event",
+                        );
                         break;
                     case "source":
                     case "book":
                         // Parent could be any entity type, default to event but check ID
-                        if (substr($this->parentEntityId, 0, 1) === 'Q') {
+                        if (substr($this->parentEntityId, 0, 1) === "Q") {
                             // If we can't determine it, use a generic type that can accept sources
-                            $parentEntityType = $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Event');
+                            $parentEntityType = $mappingProvider->getEntityTypeId(
+                                "App\\Models\\Wikibase\\Event",
+                            );
                         }
                         break;
                 }
-                
+
                 // Fallback if we couldn't determine the type
                 if (!$parentEntityType) {
-                    $parentEntityType = $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Event'); // Default to event
+                    $parentEntityType = $mappingProvider->getEntityTypeId(
+                        "App\\Models\\Wikibase\\Event",
+                    ); // Default to event
                 }
-                
+
                 // Log the statement we're about to add
                 Log::info("Adding link statement to parent entity", [
                     "parent_id" => $this->parentEntityId,
                     "property" => $linkProperty,
                     "child_id" => $entityId,
-                    "relationship" => $this->relationshipType
+                    "relationship" => $this->relationshipType,
                 ]);
-                
+
                 // Ensure the parentEntityId is valid
-                if (empty($this->parentEntityId) || !preg_match('/^Q\d+$/', $this->parentEntityId)) {
+                if (
+                    empty($this->parentEntityId) ||
+                    !preg_match('/^Q\d+$/', $this->parentEntityId)
+                ) {
                     Log::error("Invalid parent entity ID format for linking", [
                         "parent_id" => $this->parentEntityId,
                         "child_id" => $entityId,
-                        "relationship" => $this->relationshipType
+                        "relationship" => $this->relationshipType,
                     ]);
                     return;
                 }
-                
+
                 // Prepare update data with claims
                 $updateData = [
                     "claims" => [
                         $linkProperty => [$statement],
                     ],
                 ];
-                
+
                 // Log what we're about to send
-                Log::info("Preparing to update parent entity with link to child", [
-                    "parent_id" => $this->parentEntityId,
-                    "child_id" => $entityId,
-                    "property" => $linkProperty,
-                    "update_data" => $updateData
-                ]);
-                
+                Log::info(
+                    "Preparing to update parent entity with link to child",
+                    [
+                        "parent_id" => $this->parentEntityId,
+                        "child_id" => $entityId,
+                        "property" => $linkProperty,
+                        "update_data" => $updateData,
+                    ],
+                );
+
                 $result = $wikidataService->updateEntity(
                     $this->parentEntityId,
                     $updateData,
-                    $parentEntityType // Use parent entity type
+                    $parentEntityType, // Use parent entity type
                 );
 
                 if ($result) {
@@ -1811,9 +2231,12 @@ class CreateWikidataEntity implements ShouldQueue
                         "parent_id" => $this->parentEntityId,
                         "relationship" => $this->relationshipType,
                     ]);
-                    
+
                     // For victim or perpetrator entities, also add a significant event (P793) link back to the parent
-                    if ($this->relationshipType === "victim" || $this->relationshipType === "perpetrator") {
+                    if (
+                        $this->relationshipType === "victim" ||
+                        $this->relationshipType === "perpetrator"
+                    ) {
                         // Create statement to add the main entity as a significant event (P793)
                         $backLinkStatement = [
                             "mainsnak" => [
@@ -1823,7 +2246,9 @@ class CreateWikidataEntity implements ShouldQueue
                                     "value" => [
                                         "entity-type" => "item",
                                         "id" => $this->parentEntityId,
-                                        "numeric-id" => intval(substr($this->parentEntityId, 1)),
+                                        "numeric-id" => intval(
+                                            substr($this->parentEntityId, 1),
+                                        ),
                                     ],
                                     "type" => "wikibase-entityid",
                                 ],
@@ -1831,69 +2256,115 @@ class CreateWikidataEntity implements ShouldQueue
                             "type" => "statement",
                             "rank" => "normal",
                         ];
-                        
+
                         // Ensure the entity ID is valid
-                        if (empty($entityId) || !preg_match('/^Q\d+$/', $entityId)) {
-                            Log::error("Invalid entity ID format for back-link", [
-                                "entity_id" => $entityId,
-                                "parent_id" => $this->parentEntityId,
-                                "relationship" => $this->relationshipType
-                            ]);
+                        if (
+                            empty($entityId) ||
+                            !preg_match('/^Q\d+$/', $entityId)
+                        ) {
+                            Log::error(
+                                "Invalid entity ID format for back-link",
+                                [
+                                    "entity_id" => $entityId,
+                                    "parent_id" => $this->parentEntityId,
+                                    "relationship" => $this->relationshipType,
+                                ],
+                            );
                             return;
                         }
-                        
+
                         // Prepare back-link update data
                         $backLinkData = [
                             "claims" => [
                                 "P793" => [$backLinkStatement],
                             ],
                         ];
-                        
+
                         // Log the back-link update we're about to perform
-                        Log::info("Preparing to add significant event back-link to person entity", [
-                            "person_id" => $entityId,
-                            "event_id" => $this->parentEntityId,
-                            "update_data" => $backLinkData
-                        ]);
-                        
+                        Log::info(
+                            "Preparing to add significant event back-link to person entity",
+                            [
+                                "person_id" => $entityId,
+                                "event_id" => $this->parentEntityId,
+                                "update_data" => $backLinkData,
+                            ],
+                        );
+
                         // Add the P793 back-link (child entity points to parent as significant event)
                         $backLinkResult = $wikidataService->updateEntity(
                             $entityId,
                             $backLinkData,
-                            $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Person') // Person entity type for victims/perpetrators
+                            $mappingProvider->getEntityTypeId(
+                                "App\\Models\\Wikibase\\Person",
+                            ), // Person entity type for victims/perpetrators
                         );
-                        
+
                         if ($backLinkResult) {
-                            Log::info("Successfully added P793 significant event back-link", [
-                                "person_id" => $entityId,
-                                "event_id" => $this->parentEntityId,
-                                "relationship" => $this->relationshipType,
-                            ]);
-                            
+                            Log::info(
+                                "Successfully added P793 significant event back-link",
+                                [
+                                    "person_id" => $entityId,
+                                    "event_id" => $this->parentEntityId,
+                                    "relationship" => $this->relationshipType,
+                                ],
+                            );
+
                             // Now that the back-link is added, add sources to the person entity
-                            if (!empty($this->entityData['sources'])) {
-                                Log::info("Adding sources to newly created person entity", [
-                                    "entity_id" => $entityId,
-                                    "sources_count" => count($this->entityData['sources']),
-                                    "parent_id" => $this->parentEntityId,
-                                    "first_source" => !empty($this->entityData['sources'][0]) ? ($this->entityData['sources'][0]['title'] ?? 'Unknown') : 'None'
-                                ]);
-                                
+                            if (!empty($this->entityData["sources"])) {
+                                Log::info(
+                                    "Adding sources to newly created person entity",
+                                    [
+                                        "entity_id" => $entityId,
+                                        "sources_count" => count(
+                                            $this->entityData["sources"],
+                                        ),
+                                        "parent_id" => $this->parentEntityId,
+                                        "first_source" => !empty(
+                                            $this->entityData["sources"][0]
+                                        )
+                                            ? $this->entityData["sources"][0][
+                                                    "title"
+                                                ] ?? "Unknown"
+                                            : "None",
+                                    ],
+                                );
+
                                 // Create a Person object and add sources to it
-                                $this->addSourcesUsingBaseEntity($wikidataService, $entityId, $this->entityData['sources']);
+                                $this->addSourcesUsingBaseEntity(
+                                    $wikidataService,
+                                    $entityId,
+                                    $this->entityData["sources"],
+                                );
                             } else {
-                                Log::warning("No sources available to add to person entity", [
-                                    "entity_id" => $entityId,
-                                    "parent_id" => $this->parentEntityId,
-                                    "has_entity_data" => !empty($this->entityData) ? 'yes' : 'no',
-                                    "entity_data_keys" => !empty($this->entityData) ? implode(", ", array_keys($this->entityData)) : 'none'
-                                ]);
+                                Log::warning(
+                                    "No sources available to add to person entity",
+                                    [
+                                        "entity_id" => $entityId,
+                                        "parent_id" => $this->parentEntityId,
+                                        "has_entity_data" => !empty(
+                                            $this->entityData
+                                        )
+                                            ? "yes"
+                                            : "no",
+                                        "entity_data_keys" => !empty(
+                                            $this->entityData
+                                        )
+                                            ? implode(
+                                                ", ",
+                                                array_keys($this->entityData),
+                                            )
+                                            : "none",
+                                    ],
+                                );
                             }
                         } else {
-                            Log::error("Failed to add P793 significant event back-link", [
-                                "person_id" => $entityId,
-                                "event_id" => $this->parentEntityId,
-                            ]);
+                            Log::error(
+                                "Failed to add P793 significant event back-link",
+                                [
+                                    "person_id" => $entityId,
+                                    "event_id" => $this->parentEntityId,
+                                ],
+                            );
                         }
                     }
                 } else {
@@ -1925,24 +2396,36 @@ class CreateWikidataEntity implements ShouldQueue
     protected function linkMainEntityToChildren(
         WikibaseService $wikidataService,
         string $mainEntityId,
-        array $createdEntities
+        array $createdEntities,
     ) {
         try {
             $mappingProvider = app(EntityMappingProviderInterface::class);
-            
+
             Log::info("Starting linkMainEntityToChildren", [
                 "main_id" => $mainEntityId,
                 "created_entities" => $createdEntities,
                 "entity_type" => $this->entityType,
-                "expected_event_type" => $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Event')
+                "expected_event_type" => $mappingProvider->getEntityTypeId(
+                    "App\\Models\\Wikibase\\Event",
+                ),
             ]);
-            
+
             // Only perform this operation for event entities
-            if ($this->entityType !== $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Event')) {
-                Log::warning("Skipping linkMainEntityToChildren - not an event entity", [
-                    "entity_type" => $this->entityType,
-                    "expected_type" => $mappingProvider->getEntityTypeId('App\\Models\\Wikibase\\Event')
-                ]);
+            if (
+                $this->entityType !==
+                $mappingProvider->getEntityTypeId(
+                    "App\\Models\\Wikibase\\Event",
+                )
+            ) {
+                Log::warning(
+                    "Skipping linkMainEntityToChildren - not an event entity",
+                    [
+                        "entity_type" => $this->entityType,
+                        "expected_type" => $mappingProvider->getEntityTypeId(
+                            "App\\Models\\Wikibase\\Event",
+                        ),
+                    ],
+                );
                 return;
             }
 
@@ -1964,7 +2447,7 @@ class CreateWikidataEntity implements ShouldQueue
                                 "entity-type" => "item",
                                 "id" => $mainEntityId,
                                 "numeric-id" => intval(
-                                    substr($mainEntityId, 1)
+                                    substr($mainEntityId, 1),
                                 ),
                             ],
                             "type" => "wikibase-entityid",
@@ -1989,7 +2472,7 @@ class CreateWikidataEntity implements ShouldQueue
                             "main_id" => $mainEntityId,
                             "child_id" => $entity["id"],
                             "child_type" => $entity["type"],
-                        ]
+                        ],
                     );
                 } else {
                     Log::error(
@@ -1998,7 +2481,7 @@ class CreateWikidataEntity implements ShouldQueue
                             "main_id" => $mainEntityId,
                             "child_id" => $entity["id"],
                             "child_type" => $entity["type"],
-                        ]
+                        ],
                     );
                 }
             }
@@ -2026,13 +2509,13 @@ class CreateWikidataEntity implements ShouldQueue
      */
     protected function updateEntityWithFormattedData(
         WikibaseFormatterModels $formatterModels,
-        string $entityId
+        string $entityId,
     ): void {
         try {
             $formattedResult = $formatterModels->formatEntityData(
                 $this->entityData,
                 $this->entityType,
-                false // Don't create related entities again
+                false, // Don't create related entities again
             );
 
             // Update the entityData with the formatted data
@@ -2043,7 +2526,7 @@ class CreateWikidataEntity implements ShouldQueue
                 [
                     "entity_id" => $entityId,
                     "type" => $this->entityType,
-                ]
+                ],
             );
         } catch (\Exception $e) {
             Log::error("Error updating entity with formatted data", [

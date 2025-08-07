@@ -213,13 +213,38 @@ class Person extends BaseEntity
             }
         }
         
-        // Set image - try imageFilename first (from new UI), then fall back to image for backward compatibility
+        // Enhanced image handling - check all possible image fields
+        $imageFilename = null;
+        
+        // Try the most specific imageFilename field first (from new UI)
         if (!empty($data["imageFilename"])) {
-            $person->addImage($data["imageFilename"]);
-            Log::info("Added image to person from imageFilename", ["image" => $data["imageFilename"]]);
-        } elseif (!empty($data["image"])) {
-            $person->addImage($data["image"]);
-            Log::info("Added image to person from legacy image field", ["image" => $data["image"]]);
+            $imageFilename = $data["imageFilename"];
+            Log::info("Found imageFilename in person data", ["imageFilename" => $imageFilename]);
+        }
+        // Then try the direct image_filename field
+        elseif (!empty($data["image_filename"])) {
+            $imageFilename = $data["image_filename"];
+            Log::info("Found image_filename in person data", ["image_filename" => $imageFilename]);
+        }
+        // Then try the legacy image field
+        elseif (!empty($data["image"])) {
+            $imageFilename = $data["image"];
+            Log::info("Found legacy image field in person data", ["image" => $imageFilename]);
+        }
+        // Finally try the URL as a fallback and extract filename
+        elseif (!empty($data["image_url"])) {
+            $urlParts = explode('/', $data["image_url"]);
+            $imageFilename = end($urlParts);
+            Log::info("Extracted filename from image_url", [
+                "image_url" => $data["image_url"],
+                "extracted_filename" => $imageFilename
+            ]);
+        }
+        
+        // If we found an image, add it to the person
+        if ($imageFilename) {
+            $person->addImage($imageFilename);
+            Log::info("Added image to person entity", ["image" => $imageFilename]);
         }
 
         // Set role (victim/perpetrator) for all persons in the victim/perpetrator flow

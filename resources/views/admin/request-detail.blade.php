@@ -69,10 +69,10 @@ use function App\Helpers\formatWikidataProperty;
         @if(($request->status == 'error' || $request->status == 'wikidata_failed') && $request->error_message)
             <div class="mt-2">
                 <strong>Fehlermeldung:</strong> {{ $request->error_message }}
-                <form action="/api/wikidata/requests/{{ $request->id }}/retry" method="POST" class="d-inline ml-2">
+                <form action="/api/wikidata/requests/{{ $request->id }}/retry" method="POST" class="d-inline ml-2 retry-form">
                     @csrf
                     <input type="hidden" name="redirect" value="{{ route('admin.requests.show', $request->id) }}">
-                    <button type="submit" class="btn btn-sm btn-warning">
+                    <button type="submit" class="btn btn-sm btn-warning retry-button">
                         <i class="bi bi-arrow-repeat me-1"></i> Wiederholen
                     </button>
                 </form>
@@ -553,7 +553,7 @@ Victims: {{ var_export($request->victims, true) }}</pre>
 
                             // Deaktiviere Debug-Modus für Formatierung (um vollständige Daten zu erhalten)
                             $formatter->setDebugMode(false);
-                            
+
                             // Stelle sicher, dass auch der globale Wikibase Debug-Modus deaktiviert ist
                             config(['wikibase.debug_mode' => false]);
 
@@ -567,7 +567,7 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                                     $requestData[$key] = $value;
                                 }
                             }
-                            
+
                             // JSON-codierte Felder dekodieren
                             $jsonFields = ['coordinates', 'selected_causes', 'victims', 'perpetrators', 'sources', 'status_history', 'created_entities'];
                             foreach ($jsonFields as $field) {
@@ -588,7 +588,7 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                                     }
                                 }
                             }
-                            
+
                             // Koordinaten speziell behandeln, falls als String im Format "lat, lng" angegeben
                             if (isset($requestData['coordinates']) && is_string($requestData['coordinates'])) {
                                 if (preg_match('/^\s*([0-9.\-]+)\s*,\s*([0-9.\-]+)\s*$/', $requestData['coordinates'], $matches)) {
@@ -599,7 +599,7 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                                     error_log("Parsed coordinates: " . json_encode($requestData['coordinates']));
                                 }
                             }
-                            
+
                             // Spezialfall: Die causes bereinigen, falls als Array von JSON-Strings vorhanden
                             if (isset($requestData['selected_causes']) && is_array($requestData['selected_causes'])) {
                                 foreach ($requestData['selected_causes'] as $index => $cause) {
@@ -613,7 +613,7 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                             // Debug-Ausgabe der Eingabedaten
                             error_log("Data sent to formatter: " . json_encode(array_keys($requestData)));
                             error_log("Type sent to formatter: " . $request->type);
-                            
+
                             $result = $formatter->formatEntityData($requestData, $request->type, false); // false = keine Entities erstellen
 
                             // Nach unseren Änderungen gibt formatEntityData ein Array mit zwei Schlüsseln zurück
@@ -632,12 +632,12 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                             <h6>Aufbereitete Daten für Wikidata API:</h6>
                             <pre class="bg-light p-3" style="max-height: 400px; overflow-y: auto;">{{ json_encode($formattedData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
                         </div>
-                        
+
                         <div class="mb-4">
                             <h6>Verarbeitete Eingangsdaten:</h6>
                             <pre class="bg-light p-3" style="max-height: 200px; overflow-y: auto;">{{ json_encode($requestData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
                         </div>
-                        
+
                         <div class="mb-4">
                             <h6>Debug-Informationen:</h6>
                             <table class="table table-sm table-bordered">
@@ -732,11 +732,11 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                         </div>
                     @endif
 
-                    @if($request->status == 'error')
-                        <form action="/api/wikidata/requests/{{ $request->id }}/retry" method="POST">
+                    @if($request->status == 'error' || $request->status == 'wikidata_failed')
+                        <form action="/api/wikidata/requests/{{ $request->id }}/retry" method="POST" id="retryForm">
                             @csrf
                             <input type="hidden" name="redirect" value="{{ route('admin.requests.show', $request->id) }}">
-                            <button type="submit" class="btn btn-warning w-100 mb-2">
+                            <button type="submit" class="btn btn-warning w-100 mb-2" id="retryButton">
                                 <i class="bi bi-arrow-repeat me-1"></i> Erneut versuchen
                             </button>
                         </form>
@@ -944,11 +944,75 @@ Victims: {{ var_export($request->victims, true) }}</pre>
         });
     });
 </script>
+
+<script>
+    $(document).ready(function() {
+        // Handle form submission for retry buttons
+        $('form[action*="/retry"]').on('submit', function(e) {
+            e.preventDefault();
+
+            var form = $(this);
+            var submitBtn = form.find('button[type="submit"]');
+            var originalBtnText = submitBtn.html();
+
+            // Change button text and disable it
+            submitBtn.html('<i class="bi bi-hourglass-split me-1"></i> Verarbeite...').prop('disabled', true);
+
+            // Submit the form via AJAX
+            $.ajax({
+                url: form.attr('action'),
+                type: 'POST',
+                data: form.serialize(),
+                dataType: 'json',
+                success: function(response) {
+                    // If the response contains a redirect URL, navigate to it
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
+                    } else {
+                        // Show success message
+                        alert('Erfolgreich zur Warteschlange hinzugefügt. Bitte aktualisieren Sie die Seite.');
+                        location.reload();
+                    }
+                },
+                error: function(xhr) {
+                    // Reset button
+                    submitBtn.html(originalBtnText).prop('disabled', false);
+
+                    // Show error message
+                    let errorMsg = 'Ein Fehler ist aufgetreten.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+                    alert(errorMsg);
+                }
+            });
+        });
+    });
+</script>
+
 <style>
     #map-container {
         height: 300px;
         width: 100%;
         border-radius: 4px;
+    }
+
+    /* Person image preview styles */
+    .person-thumbnail {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .image-link:hover .person-thumbnail {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2) !important;
+    }
+
+    .image-link:hover .image-overlay {
+        opacity: 1 !important;
+    }
+
+    .image-container {
+        margin-bottom: 10px;
     }
 </style>
 @endpush

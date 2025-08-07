@@ -47,25 +47,15 @@ class WikibaseEntryRequest extends Model
         "cause",
         "selected_causes",
         "sources",
-        "gender",
-        "nationality",
-        "place_of_birth",
-        "place_of_death",
-        "place_of_detention",
     ];
 
     protected $casts = [
-        'victims' => 'array',
-        'perpetrators' => 'array',
-        'sources' => 'array',
-        'created_entities' => 'array',
-        'gender' => 'array',
-        'nationality' => 'array',
-        'place_of_birth' => 'array',
-        'place_of_death' => 'array',
-        'place_of_detention' => 'array',
-        'status_history' => 'array',
+        "victims" => "array",
+        "perpetrators" => "array",
+        "sources" => "array",
+        "created_entities" => "array",
+        "status_history" => "array",
     ];
 
-    protected $table = 'wikidata_entry_requests';
+    protected $table = "wikidata_entry_requests";
 }

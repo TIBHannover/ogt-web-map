@@ -465,36 +465,47 @@ class WikibaseService
             Log::info("WikibaseService: Entity data before update", [
                 "entity_id" => $entityId,
                 "type" => $type,
-                "claims_count" => isset($rawData["claims"]) ? count($rawData["claims"]) : 0,
-                "claim_keys" => isset($rawData["claims"]) ? array_keys($rawData["claims"]) : [],
+                "claims_count" => isset($rawData["claims"])
+                    ? count($rawData["claims"])
+                    : 0,
+                "claim_keys" => isset($rawData["claims"])
+                    ? array_keys($rawData["claims"])
+                    : [],
             ]);
-            
+
             // Make sure the entity ID is not in the data (it will be passed separately)
             if (isset($rawData["id"])) {
-                Log::info("WikibaseService: Entity ID will be passed separately in API params, removing from data payload");
+                Log::info(
+                    "WikibaseService: Entity ID will be passed separately in API params, removing from data payload",
+                );
                 unset($rawData["id"]);
             }
-            
+
             // Optimize data for update operation
             $optimizedData = $this->optimizer->optimize($rawData, "update");
 
             // First, get CSRF token for editing
             $csrfToken = $this->getCSRFToken();
             if (!$csrfToken) {
-                throw new \Exception("Failed to get CSRF token for entity update");
+                throw new \Exception(
+                    "Failed to get CSRF token for entity update",
+                );
             }
 
             // Prepare the data for the API call
             $apiParams = [
                 "action" => "wbeditentity",
-                "id" => $entityId,  // This is critical - include the entity ID
+                "id" => $entityId, // This is critical - include the entity ID
                 "token" => $csrfToken,
                 "format" => "json",
                 "data" => json_encode($optimizedData),
-                "summary" => config("wikidata.edit_summary", "Updating data via OGT API"),
+                "summary" => config(
+                    "wikidata.edit_summary",
+                    "Updating data via OGT API",
+                ),
                 "bot" => 1, // Mark as bot edit
             ];
-            
+
             // Log a specific warning if the entity ID is empty or invalid
             if (empty($entityId) || !preg_match('/^Q\d+$/', $entityId)) {
                 Log::error("WikibaseService: Invalid entity ID for update", [
@@ -507,7 +518,9 @@ class WikibaseService
             Log::info("WikibaseService: Updating entity with API request", [
                 "api_url" => $this->baseUrl,
                 "entity_id" => $entityId,
-                "request_params" => array_merge($apiParams, ["token" => "[REDACTED]"])  
+                "request_params" => array_merge($apiParams, [
+                    "token" => "[REDACTED]",
+                ]),
             ]);
 
             // Make the API call to update the entity
@@ -518,7 +531,7 @@ class WikibaseService
 
             // Parse and return the response
             $result = json_decode($response->getBody(), true);
-            
+
             // Log the API response
             Log::info("WikibaseService: Entity update API response", [
                 "response" => $result,
@@ -529,7 +542,7 @@ class WikibaseService
             if (isset($result["error"])) {
                 throw new \Exception(
                     "Wikibase API error: " . json_encode($result["error"]),
-                    $result["error"]["code"] ?? 0
+                    $result["error"]["code"] ?? 0,
                 );
             }
 
@@ -716,21 +729,21 @@ class WikibaseService
                 );
                 return null;
             }
-            
+
             // Special handling for MediaWiki bot passwords
             // Format should be: username@botname and password should be the bot password
             $botName = null;
-            if (strpos($username, '@') !== false) {
-                $parts = explode('@', $username);
+            if (strpos($username, "@") !== false) {
+                $parts = explode("@", $username);
                 $mainUsername = $parts[0];
                 $botName = $parts[1];
-                
+
                 // For MediaWiki API bot passwords, username becomes "username@botname"
                 // See: https://www.mediawiki.org/wiki/Manual:Bot_passwords
                 Log::info("Using MediaWiki bot password format", [
                     "original" => $username,
                     "main_username" => $mainUsername,
-                    "bot_name" => $botName
+                    "bot_name" => $botName,
                 ]);
             }
 
@@ -780,13 +793,15 @@ class WikibaseService
                 "lgtoken" => $loginToken,
                 "format" => "json",
             ];
-            
+
             // Log the login request (without password)
             Log::info("Sending login request", [
-                "params" => array_merge($loginParams, ["lgpassword" => "[REDACTED]"]),
-                "url" => $this->baseUrl
+                "params" => array_merge($loginParams, [
+                    "lgpassword" => "[REDACTED]",
+                ]),
+                "url" => $this->baseUrl,
             ]);
-            
+
             $loginResponse = $client->post($this->baseUrl, [
                 "form_params" => $loginParams,
             ]);
@@ -945,5 +960,15 @@ class WikibaseService
         $botUser->wikibase_access_secret = config("wikidata.bot_password");
 
         return $botUser;
+    }
+
+    /**
+     * Get the mapping provider instance
+     *
+     * @return EntityMappingProviderInterface
+     */
+    public function getMappingProvider(): EntityMappingProviderInterface
+    {
+        return $this->mappingProvider;
     }
 }

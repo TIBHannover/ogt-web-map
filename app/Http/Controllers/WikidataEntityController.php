@@ -70,14 +70,18 @@ class WikidataEntityController extends Controller
             $entryRequest->description = $validated["description"];
             $entryRequest->type = $validated["type"];
             $entryRequest->coordinates = $validated["coordinates"] ?? null;
-            $entryRequest->coordinates_qualifier = $validated["coordinates_qualifier"] ?? null;
+            $entryRequest->coordinates_qualifier =
+                $validated["coordinates_qualifier"] ?? null;
             $entryRequest->victims = $validated["victims"] ?? null;
             $entryRequest->perpetrators = $validated["perpetrators"] ?? null;
             $entryRequest->gender = $validated["gender"] ?? null;
             $entryRequest->nationality = $validated["nationality"] ?? null;
-            $entryRequest->place_of_birth = $validated["place_of_birth"] ?? null;
-            $entryRequest->place_of_death = $validated["place_of_death"] ?? null;
-            $entryRequest->place_of_detention = $validated["place_of_detention"] ?? null;
+            $entryRequest->place_of_birth =
+                $validated["place_of_birth"] ?? null;
+            $entryRequest->place_of_death =
+                $validated["place_of_death"] ?? null;
+            $entryRequest->place_of_detention =
+                $validated["place_of_detention"] ?? null;
 
             // Zeitpunkt oder Zeitraum je nach Typ
             if (isset($validated["eventTimeType"])) {
@@ -115,7 +119,7 @@ class WikidataEntityController extends Controller
 
             // Debug-Ausgabe für Qualifier
             Log::debug("Qualifier-Werte", [
-                "coordinates_qualifier" => 
+                "coordinates_qualifier" =>
                     $validated["coordinates_qualifier"] ?? "nicht gesetzt",
                 "victim_qualifier" =>
                     $validated["victimCountQualifier"] ?? "nicht gesetzt",
@@ -132,17 +136,17 @@ class WikidataEntityController extends Controller
             // Speichern der ausgewählten Ursachen
             if (!empty($validated["causes"])) {
                 $entryRequest->selected_causes = json_encode(
-                    $validated["causes"]
+                    $validated["causes"],
                 );
             }
 
             // Quellen - Clean up before storing
             if (!empty($validated["sources"])) {
                 $formatter = app(
-                    \App\Services\Wikibase\WikibaseFormatterModels::class
+                    \App\Services\Wikibase\WikibaseFormatterModels::class,
                 );
                 $validated["sources"] = $formatter->cleanupSourceData(
-                    $validated["sources"]
+                    $validated["sources"],
                 );
             }
             $entryRequest->sources = $validated["sources"] ?? null;
@@ -183,7 +187,7 @@ class WikidataEntityController extends Controller
                     "message" =>
                         "Eintrag wurde zur Prüsfung eingereicht und wird nach Freigabe erstellt.",
                 ],
-                Response::HTTP_CREATED
+                Response::HTTP_CREATED,
             );
         } catch (\Exception $e) {
             Log::error("Wikidata Entry Request Error: " . $e->getMessage());
@@ -195,7 +199,7 @@ class WikidataEntityController extends Controller
                         "Fehler beim Speichern der Anfrage: " .
                         $e->getMessage(),
                 ],
-                Response::HTTP_INTERNAL_SERVER_ERROR
+                Response::HTTP_INTERNAL_SERVER_ERROR,
             );
         }
     }
@@ -230,7 +234,7 @@ class WikidataEntityController extends Controller
                     "success" => true,
                     "requests" => $requests,
                 ],
-                Response::HTTP_OK
+                Response::HTTP_OK,
             );
         } catch (\Exception $e) {
             Log::error("Error getting requests: " . $e->getMessage());
@@ -241,7 +245,7 @@ class WikidataEntityController extends Controller
                     "message" =>
                         "Fehler beim Abrufen der Anfragen: " . $e->getMessage(),
                 ],
-                Response::HTTP_INTERNAL_SERVER_ERROR
+                Response::HTTP_INTERNAL_SERVER_ERROR,
             );
         }
     }
@@ -269,7 +273,7 @@ class WikidataEntityController extends Controller
                             "message" =>
                                 "Diese Anfrage wurde bereits genehmigt.",
                         ],
-                        Response::HTTP_BAD_REQUEST
+                        Response::HTTP_BAD_REQUEST,
                     );
                 }
 
@@ -278,7 +282,7 @@ class WikidataEntityController extends Controller
                         "success" => false,
                         "message" => "Diese Anfrage wurde bereits genehmigt.",
                     ],
-                    Response::HTTP_BAD_REQUEST
+                    Response::HTTP_BAD_REQUEST,
                 );
             }
 
@@ -287,7 +291,7 @@ class WikidataEntityController extends Controller
 
             // Use the EntryStatusController to update status history
             app(
-                \App\Http\Controllers\EntryStatusController::class
+                \App\Http\Controllers\EntryStatusController::class,
             )->updateStatusHistory($entryRequest, "approved", $comment);
 
             $entryRequest->approved_by = "admin"; // Spu00e4ter durch authentifizierten Benutzer ersetzen
@@ -302,24 +306,24 @@ class WikidataEntityController extends Controller
 
             // Log the callback URL for debugging
             \Illuminate\Support\Facades\Log::info(
-                "Using callback URL: " . $callbackUrl
+                "Using callback URL: " . $callbackUrl,
             );
 
             // Make sure any formatter instance has debug mode disabled
             $formatter = app(
-                \App\Services\Wikibase\WikibaseFormatterModels::class
+                \App\Services\Wikibase\WikibaseFormatterModels::class,
             );
             if (method_exists($formatter, "setDebugMode")) {
                 $formatter->setDebugMode(false);
                 Log::info(
-                    "Debug mode explicitly disabled before dispatching CreateWikidataEntity job"
+                    "Debug mode explicitly disabled before dispatching CreateWikidataEntity job",
                 );
             }
 
             \App\Jobs\CreateWikidataEntity::dispatch(
                 $entryRequest->toArray(),
                 $entryRequest->type,
-                $callbackUrl
+                $callbackUrl,
             );
 
             if ($request->has("redirect")) {
@@ -330,7 +334,7 @@ class WikidataEntityController extends Controller
                         "message" =>
                             "Anfrage genehmigt und Wikidata-Eintrag zur Queue hinzugefügt.",
                     ],
-                    Response::HTTP_OK
+                    Response::HTTP_OK,
                 );
             }
 
@@ -340,7 +344,7 @@ class WikidataEntityController extends Controller
                     "message" =>
                         "Anfrage genehmigt und Wikidata-Eintrag zur Queue hinzugefügt.",
                 ],
-                Response::HTTP_OK
+                Response::HTTP_OK,
             );
         } catch (\Exception $e) {
             Log::error("Error approving request: " . $e->getMessage());
@@ -354,7 +358,7 @@ class WikidataEntityController extends Controller
                             "Fehler bei der Genehmigung der Anfrage: " .
                             $e->getMessage(),
                     ],
-                    Response::HTTP_INTERNAL_SERVER_ERROR
+                    Response::HTTP_INTERNAL_SERVER_ERROR,
                 );
             }
 
@@ -365,7 +369,7 @@ class WikidataEntityController extends Controller
                         "Fehler bei der Genehmigung der Anfrage: " .
                         $e->getMessage(),
                 ],
-                Response::HTTP_INTERNAL_SERVER_ERROR
+                Response::HTTP_INTERNAL_SERVER_ERROR,
             );
         }
     }
@@ -394,7 +398,7 @@ class WikidataEntityController extends Controller
                         "message" => "Ungültige Eingabe",
                         "errors" => $validator->errors(),
                     ],
-                    Response::HTTP_BAD_REQUEST
+                    Response::HTTP_BAD_REQUEST,
                 );
             }
 
@@ -404,7 +408,7 @@ class WikidataEntityController extends Controller
                     "message" => "Ungültige Eingabe",
                     "errors" => $validator->errors(),
                 ],
-                Response::HTTP_BAD_REQUEST
+                Response::HTTP_BAD_REQUEST,
             );
         }
 
@@ -421,7 +425,7 @@ class WikidataEntityController extends Controller
                             "message" =>
                                 "Diese Anfrage wurde bereits abgelehnt.",
                         ],
-                        Response::HTTP_BAD_REQUEST
+                        Response::HTTP_BAD_REQUEST,
                     );
                 }
 
@@ -430,7 +434,7 @@ class WikidataEntityController extends Controller
                         "success" => false,
                         "message" => "Diese Anfrage wurde bereits abgelehnt.",
                     ],
-                    Response::HTTP_BAD_REQUEST
+                    Response::HTTP_BAD_REQUEST,
                 );
             }
 
@@ -439,7 +443,7 @@ class WikidataEntityController extends Controller
 
             // Use the EntryStatusController to update status history
             app(
-                \App\Http\Controllers\EntryStatusController::class
+                \App\Http\Controllers\EntryStatusController::class,
             )->updateStatusHistory($entryRequest, "rejected", $comment);
 
             $entryRequest->rejected_by = "admin"; // Spu00e4ter durch authentifizierten Benutzer ersetzen
@@ -453,7 +457,7 @@ class WikidataEntityController extends Controller
                         "success" => true,
                         "message" => "Anfrage erfolgreich abgelehnt.",
                     ],
-                    Response::HTTP_OK
+                    Response::HTTP_OK,
                 );
             }
 
@@ -462,7 +466,7 @@ class WikidataEntityController extends Controller
                     "success" => true,
                     "message" => "Anfrage erfolgreich abgelehnt.",
                 ],
-                Response::HTTP_OK
+                Response::HTTP_OK,
             );
         } catch (\Exception $e) {
             Log::error("Error rejecting request: " . $e->getMessage());
@@ -476,7 +480,7 @@ class WikidataEntityController extends Controller
                             "Fehler bei der Ablehnung der Anfrage: " .
                             $e->getMessage(),
                     ],
-                    Response::HTTP_INTERNAL_SERVER_ERROR
+                    Response::HTTP_INTERNAL_SERVER_ERROR,
                 );
             }
 
@@ -487,7 +491,7 @@ class WikidataEntityController extends Controller
                         "Fehler bei der Ablehnung der Anfrage: " .
                         $e->getMessage(),
                 ],
-                Response::HTTP_INTERNAL_SERVER_ERROR
+                Response::HTTP_INTERNAL_SERVER_ERROR,
             );
         }
     }
@@ -505,17 +509,20 @@ class WikidataEntityController extends Controller
         try {
             $entryRequest = WikibaseEntryRequest::findOrFail($id);
 
-            // Pru00fcfen, ob die Anfrage im Status "error" ist
-            if ($entryRequest->status !== "error") {
+            // Prüfen, ob die Anfrage im Status "error" oder "wikidata_failed" ist
+            if (
+                $entryRequest->status !== "error" &&
+                $entryRequest->status !== "wikidata_failed"
+            ) {
                 if ($request->has("redirect")) {
                     return response()->json(
                         [
                             "redirect" => $request->input("redirect"),
                             "success" => false,
                             "message" =>
-                                "Nur Anfragen mit dem Status 'error' ku00f6nnen erneut verarbeitet werden.",
+                                "Nur Anfragen mit dem Status 'error' oder 'wikidata_failed' können erneut verarbeitet werden.",
                         ],
-                        Response::HTTP_BAD_REQUEST
+                        Response::HTTP_BAD_REQUEST,
                     );
                 }
 
@@ -523,9 +530,9 @@ class WikidataEntityController extends Controller
                     [
                         "success" => false,
                         "message" =>
-                            "Nur Anfragen mit dem Status 'error' ku00f6nnen erneut verarbeitet werden.",
+                            "Nur Anfragen mit dem Status 'error' oder 'wikidata_failed' können erneut verarbeitet werden.",
                     ],
-                    Response::HTTP_BAD_REQUEST
+                    Response::HTTP_BAD_REQUEST,
                 );
             }
 
@@ -534,7 +541,7 @@ class WikidataEntityController extends Controller
 
             // Use the EntryStatusController to update status history
             app(
-                \App\Http\Controllers\EntryStatusController::class
+                \App\Http\Controllers\EntryStatusController::class,
             )->updateStatusHistory($entryRequest, "pending", $comment);
 
             $entryRequest->error_message = null; // Fehler zurücksetzen
@@ -548,7 +555,7 @@ class WikidataEntityController extends Controller
             \App\Jobs\CreateWikidataEntity::dispatch(
                 $entryRequest->toArray(),
                 $entryRequest->type,
-                $callbackUrl
+                $callbackUrl,
             );
 
             if ($request->has("redirect")) {
@@ -559,7 +566,7 @@ class WikidataEntityController extends Controller
                         "message" =>
                             "Anfrage wurde zur erneuten Verarbeitung eingereicht und zur Queue hinzugefu00fcgt.",
                     ],
-                    Response::HTTP_OK
+                    Response::HTTP_OK,
                 );
             }
 
@@ -569,7 +576,7 @@ class WikidataEntityController extends Controller
                     "message" =>
                         "Anfrage wurde zur erneuten Verarbeitung eingereicht und zur Queue hinzugefu00fcgt.",
                 ],
-                Response::HTTP_OK
+                Response::HTTP_OK,
             );
         } catch (\Exception $e) {
             Log::error("Error retrying request: " . $e->getMessage());
@@ -583,7 +590,7 @@ class WikidataEntityController extends Controller
                             "Fehler bei der erneuten Verarbeitung: " .
                             $e->getMessage(),
                     ],
-                    Response::HTTP_INTERNAL_SERVER_ERROR
+                    Response::HTTP_INTERNAL_SERVER_ERROR,
                 );
             }
 
@@ -594,7 +601,7 @@ class WikidataEntityController extends Controller
                         "Fehler bei der erneuten Verarbeitung: " .
                         $e->getMessage(),
                 ],
-                Response::HTTP_INTERNAL_SERVER_ERROR
+                Response::HTTP_INTERNAL_SERVER_ERROR,
             );
         }
     }
@@ -615,7 +622,7 @@ class WikidataEntityController extends Controller
                     "success" => true,
                     "request" => $entryRequest,
                 ],
-                Response::HTTP_OK
+                Response::HTTP_OK,
             );
         } catch (\Exception $e) {
             Log::error("Error getting request: " . $e->getMessage());
@@ -626,7 +633,7 @@ class WikidataEntityController extends Controller
                     "message" =>
                         "Fehler beim Abrufen der Anfrage: " . $e->getMessage(),
                 ],
-                Response::HTTP_INTERNAL_SERVER_ERROR
+                Response::HTTP_INTERNAL_SERVER_ERROR,
             );
         }
     }
@@ -654,7 +661,7 @@ class WikidataEntityController extends Controller
                         "message" => "Ungu00fcltige Eingabe",
                         "errors" => $validator->errors(),
                     ],
-                    Response::HTTP_BAD_REQUEST
+                    Response::HTTP_BAD_REQUEST,
                 );
             }
 
@@ -664,7 +671,7 @@ class WikidataEntityController extends Controller
                     "message" => "Ungu00fcltige Eingabe",
                     "errors" => $validator->errors(),
                 ],
-                Response::HTTP_BAD_REQUEST
+                Response::HTTP_BAD_REQUEST,
             );
         }
 
@@ -681,7 +688,7 @@ class WikidataEntityController extends Controller
                             "message" =>
                                 "Nur genehmigte Anfragen können zurückgezogen werden.",
                         ],
-                        Response::HTTP_BAD_REQUEST
+                        Response::HTTP_BAD_REQUEST,
                     );
                 }
 
@@ -691,7 +698,7 @@ class WikidataEntityController extends Controller
                         "message" =>
                             "Nur genehmigte Anfragen können zurückgezogen werden.",
                     ],
-                    Response::HTTP_BAD_REQUEST
+                    Response::HTTP_BAD_REQUEST,
                 );
             }
 
@@ -701,7 +708,7 @@ class WikidataEntityController extends Controller
 
             // Use the EntryStatusController to update status history
             app(
-                \App\Http\Controllers\EntryStatusController::class
+                \App\Http\Controllers\EntryStatusController::class,
             )->updateStatusHistory($entryRequest, "rejected", $comment);
 
             // Aktualisiere den Status und setze den Ablehnungsgrund
@@ -729,7 +736,7 @@ class WikidataEntityController extends Controller
                         "message" =>
                             "Genehmigung erfolgreich zurückgezogen. Der Eintrag wurde als abgelehnt markiert.",
                     ],
-                    Response::HTTP_OK
+                    Response::HTTP_OK,
                 );
             }
 
@@ -739,7 +746,7 @@ class WikidataEntityController extends Controller
                     "message" =>
                         "Genehmigung erfolgreich zurückgezogen. Der Eintrag wurde als abgelehnt markiert.",
                 ],
-                Response::HTTP_OK
+                Response::HTTP_OK,
             );
         } catch (\Exception $e) {
             Log::error("Error retracting approval: " . $e->getMessage());
@@ -753,7 +760,7 @@ class WikidataEntityController extends Controller
                             "Fehler beim Zuru00fcckziehen der Genehmigung: " .
                             $e->getMessage(),
                     ],
-                    Response::HTTP_INTERNAL_SERVER_ERROR
+                    Response::HTTP_INTERNAL_SERVER_ERROR,
                 );
             }
 
@@ -764,7 +771,7 @@ class WikidataEntityController extends Controller
                         "Fehler beim Zuru00fcckziehen der Genehmigung: " .
                         $e->getMessage(),
                 ],
-                Response::HTTP_INTERNAL_SERVER_ERROR
+                Response::HTTP_INTERNAL_SERVER_ERROR,
             );
         }
     }
@@ -790,7 +797,7 @@ class WikidataEntityController extends Controller
                     "message" => "Ungültige Bilddaten",
                     "errors" => $validator->errors(),
                 ],
-                Response::HTTP_BAD_REQUEST
+                Response::HTTP_BAD_REQUEST,
             );
         }
 
@@ -809,7 +816,7 @@ class WikidataEntityController extends Controller
                     "image_url" => $entryRequest->image_url,
                     "image_filename" => $entryRequest->image_filename,
                 ],
-                Response::HTTP_OK
+                Response::HTTP_OK,
             );
         } catch (\Exception $e) {
             Log::error("Error updating image: " . $e->getMessage());
@@ -821,7 +828,7 @@ class WikidataEntityController extends Controller
                         "Fehler beim Aktualisieren des Bildes: " .
                         $e->getMessage(),
                 ],
-                Response::HTTP_INTERNAL_SERVER_ERROR
+                Response::HTTP_INTERNAL_SERVER_ERROR,
             );
         }
     }
@@ -875,7 +882,7 @@ class WikidataEntityController extends Controller
                 throw new \Exception(
                     "Login fehlgeschlagen: " .
                         ($loginResult["login"]["reason"] ??
-                            "Unbekannter Fehler")
+                            "Unbekannter Fehler"),
                 );
             }
 
@@ -902,7 +909,7 @@ class WikidataEntityController extends Controller
             ];
         } catch (\Exception $e) {
             Log::error(
-                "Wikidata API Authentifizierungsfehler: " . $e->getMessage()
+                "Wikidata API Authentifizierungsfehler: " . $e->getMessage(),
             );
             return null;
         }
@@ -915,7 +922,7 @@ class WikidataEntityController extends Controller
      * @return array
      */
     private function prepareEntityData(
-        WikibaseEntryRequest $entryRequest
+        WikibaseEntryRequest $entryRequest,
     ): array {
         // Wir erstellen ein Label und eine Beschreibung in Deutsch
         $label = [
@@ -942,7 +949,7 @@ class WikidataEntityController extends Controller
 
         // Ort/Koordinaten hinzufu00fcgen, falls vorhanden
         if ($entryRequest->coordinates) {
-            list($lat, $lon) = explode(",", $entryRequest->coordinates);
+            [$lat, $lon] = explode(",", $entryRequest->coordinates);
             $statements["P625"] = [
                 [
                     "value" => [
@@ -1047,7 +1054,7 @@ class WikidataEntityController extends Controller
             // Create a new request record in the database to track this entity creation
             $requestModel = config(
                 "wikidata.request_model",
-                "\\App\\Models\\WikibaseEntryRequest"
+                "\\App\\Models\\WikibaseEntryRequest",
             );
 
             $request = new $requestModel();
@@ -1062,7 +1069,7 @@ class WikidataEntityController extends Controller
                 $entityData,
                 $entityType,
                 $callbackUrl,
-                $request->id // Pass the request ID for tracking
+                $request->id, // Pass the request ID for tracking
             );
 
             dispatch($job);
@@ -1091,7 +1098,7 @@ class WikidataEntityController extends Controller
                         "Error dispatching entity creation job: " .
                         $e->getMessage(),
                 ],
-                500
+                500,
             );
         }
     }
@@ -1124,7 +1131,7 @@ class WikidataEntityController extends Controller
                         "message" => "Invalid callback data",
                         "errors" => $validator->errors(),
                     ],
-                    Response::HTTP_BAD_REQUEST
+                    Response::HTTP_BAD_REQUEST,
                 );
             }
 
@@ -1149,7 +1156,7 @@ class WikidataEntityController extends Controller
                         "success" => false,
                         "message" => "Missing ID in original data",
                     ],
-                    Response::HTTP_BAD_REQUEST
+                    Response::HTTP_BAD_REQUEST,
                 );
             }
 
@@ -1166,7 +1173,7 @@ class WikidataEntityController extends Controller
                         "success" => false,
                         "message" => "Entry request not found",
                     ],
-                    Response::HTTP_NOT_FOUND
+                    Response::HTTP_NOT_FOUND,
                 );
             }
             // Update based on status
@@ -1177,11 +1184,11 @@ class WikidataEntityController extends Controller
 
                 // Update status to wikidata_published
                 app(
-                    \App\Http\Controllers\EntryStatusController::class
+                    \App\Http\Controllers\EntryStatusController::class,
                 )->updateStatusHistory(
                     $entryRequest,
                     "wikidata_published",
-                    "Eintrag erfolgreich erstellt mit Wikidata-ID: {$entityId}"
+                    "Eintrag erfolgreich erstellt mit Wikidata-ID: {$entityId}",
                 );
 
                 Log::info(
@@ -1191,7 +1198,7 @@ class WikidataEntityController extends Controller
                         "entity_id" => $entityId,
                         "status" => "wikidata_published",
                         "created_entities_count" => count($createdEntities),
-                    ]
+                    ],
                 );
             } elseif ($status === "failed") {
                 // Handle failed entity creation
@@ -1201,11 +1208,11 @@ class WikidataEntityController extends Controller
 
                 // Update status to indicate failure
                 app(
-                    \App\Http\Controllers\EntryStatusController::class
+                    \App\Http\Controllers\EntryStatusController::class,
                 )->updateStatusHistory(
                     $entryRequest,
                     "wikidata_failed",
-                    "Fehler bei der Erstellung des Wikidata-Eintrags: {$errorMessage}"
+                    "Fehler bei der Erstellung des Wikidata-Eintrags: {$errorMessage}",
                 );
 
                 Log::error("Entity creation failed", [
@@ -1241,7 +1248,7 @@ class WikidataEntityController extends Controller
                     "message" =>
                         "Error processing callback: " . $e->getMessage(),
                 ],
-                Response::HTTP_INTERNAL_SERVER_ERROR
+                Response::HTTP_INTERNAL_SERVER_ERROR,
             );
         }
     }

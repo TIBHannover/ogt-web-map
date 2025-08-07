@@ -4,23 +4,24 @@ namespace App\Models\Wikibase;
 
 use App\Services\EntityMapping\EntityMappingProviderInterface;
 use Illuminate\Support\Facades\Log;
+use App\Services\Wikibase\ImageHandler;
 
 abstract class BaseEntity
 {
     // Properties that should receive source references
     /**
      * Properties that should receive source references
-     * 
+     *
      * This list defines which properties will have source references added to them
      * when addSource is called. For example, if P8031 (perpetrator) is in this list,
      * then all perpetrator claims will get source references attached.
      */
     protected const SOURCE_REFERENCE_PROPERTIES = [
         "P1590", // Victim count
-        "P8031", // Perpetrator 
+        "P8031", // Perpetrator
         "P8032", // Victim
         "P1120", // Number of deaths
-        "P1561", // Number of missing persons 
+        "P1561", // Number of missing persons
         "P5582", // Number of survivors
     ];
 
@@ -200,30 +201,61 @@ abstract class BaseEntity
             return;
         }
 
+        Log::info("addImage called with filename", [
+            "imageFilename" => $imageFilename,
+            "entity_type" => $this->getEntityType(),
+            "entity_label" => $this->getLabel() ?? "Unknown",
+            "caller" =>
+                debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1][
+                    "function"
+                ] ?? "unknown",
+        ]);
+
         // Get the image property ID (P18 in Wikidata)
         $imageProperty = $this->mappingProvider->getPropertyId("IMAGE");
-        
-        // Format the image filename for Wikidata - it requires "File:" prefix
-        // and needs to match exactly how it appears on Wikimedia Commons
-        if (strpos($imageFilename, 'File:') !== 0 && strpos($imageFilename, 'file:') !== 0) {
-            $imageFilename = 'File:' . $imageFilename;
+        if (empty($imageProperty)) {
+            Log::error("Could not find IMAGE property ID", [
+                "entity_type" => $this->getEntityType(),
+                "entity_label" => $this->getLabel() ?? "Unknown",
+            ]);
+            return;
         }
+
+        // Process the image filename using the ImageHandler utility class
+        // Get a display version (with File: prefix) for storage
+        $displayFilename = ImageHandler::prepareImageFilename(
+            $imageFilename,
+            true,
+        );
+
+        // Get a clean version (without File: prefix) for API submission
+        $apiFilename = ImageHandler::prepareImageFilename(
+            $imageFilename,
+            false,
+        );
 
         // Log the image addition
         Log::info("Adding image to entity", [
             "property" => $imageProperty,
-            "image" => $imageFilename,
+            "display_filename" => $displayFilename,
+            "api_filename" => $apiFilename,
             "entity_type" => $this->getEntityType(),
-            "entity_label" => $this->getLabel() ?? 'Unknown'
+            "entity_label" => $this->getLabel() ?? "Unknown",
         ]);
-        
+
+        // Ensure claims array exists
+        if (!isset($this->data["claims"])) {
+            $this->data["claims"] = [];
+        }
+
+        // Add the image claim with proper formatting for API submission (no File: prefix)
         $this->data["claims"][$imageProperty] = [
             [
                 "mainsnak" => [
                     "snaktype" => "value",
                     "property" => $imageProperty,
                     "datavalue" => [
-                        "value" => $imageFilename,
+                        "value" => $apiFilename,
                         "type" => "string",
                     ],
                 ],
@@ -231,19 +263,40 @@ abstract class BaseEntity
                 "rank" => "normal",
             ],
         ];
-        
+
+        // Also add the image directly to the entity data for debugging/direct access
+        // Use the API version (without File: prefix) as required by Wikidata
+        $this->data["image"] = $apiFilename;
+
+        // Add the image_filename field explicitly (without File: prefix) for UI compatibility
+        $this->data["image_filename"] = $apiFilename;
+
         // Verify the image was added to the claims
         if (isset($this->data["claims"][$imageProperty])) {
             Log::info("Image claim successfully added to entity data", [
                 "property" => $imageProperty,
+                "api_filename" => $apiFilename,
+                "display_filename" => $displayFilename,
                 "claims_count" => count($this->data["claims"]),
-                "has_image_claim" => isset($this->data["claims"][$imageProperty]) ? 'yes' : 'no'
+                "has_image_claim" => isset(
+                    $this->data["claims"][$imageProperty],
+                )
+                    ? "yes"
+                    : "no",
+                "claim_structure" => json_encode(
+                    $this->data["claims"][$imageProperty],
+                ),
             ]);
         } else {
             Log::error("Failed to add image claim to entity data", [
                 "property" => $imageProperty,
+                "api_filename" => $apiFilename,
+                "display_filename" => $displayFilename,
                 "claims_count" => count($this->data["claims"]),
-                "claims_keys" => implode(", ", array_keys($this->data["claims"]))
+                "claims_keys" => implode(
+                    ", ",
+                    array_keys($this->data["claims"]),
+                ),
             ]);
         }
     }
@@ -396,15 +449,15 @@ abstract class BaseEntity
         }
 
         // Determine if value is a Wikidata entity ID (starts with Q)
-        $isEntityId = substr($value, 0, 1) === 'Q';
-        
+        $isEntityId = substr($value, 0, 1) === "Q";
+
         // Log the qualifier for debugging
         \Illuminate\Support\Facades\Log::info("Adding qualifier to statement", [
-            'property' => $property,
-            'value' => $value,
-            'is_entity_id' => $isEntityId
+            "property" => $property,
+            "value" => $value,
+            "is_entity_id" => $isEntityId,
         ]);
-        
+
         // Add the qualifier based on type
         if ($isEntityId) {
             // Entity ID qualifier (like Q12345)
@@ -538,18 +591,23 @@ abstract class BaseEntity
         // Check if this relation already exists in the claims to avoid duplicates
         $isDuplicate = false;
         foreach ($this->data["claims"][$property] as $existingStatement) {
-            if (isset($existingStatement["mainsnak"]["datavalue"]["value"]["id"]) && 
-                $existingStatement["mainsnak"]["datavalue"]["value"]["id"] === $entityId) {
+            if (
+                isset(
+                    $existingStatement["mainsnak"]["datavalue"]["value"]["id"],
+                ) &&
+                $existingStatement["mainsnak"]["datavalue"]["value"]["id"] ===
+                    $entityId
+            ) {
                 $isDuplicate = true;
-                
+
                 Log::info("Skipping duplicate relation in addRelation method", [
                     "property" => $property,
-                    "entity_id" => $entityId
+                    "entity_id" => $entityId,
                 ]);
                 break;
             }
         }
-        
+
         // Only add if not a duplicate
         if (!$isDuplicate) {
             $this->data["claims"][$property][] = [
@@ -568,10 +626,10 @@ abstract class BaseEntity
                 "type" => "statement",
                 "rank" => "normal",
             ];
-            
+
             Log::info("Added relation to entity", [
                 "property" => $property,
-                "entity_id" => $entityId
+                "entity_id" => $entityId,
             ]);
         }
     }
@@ -628,7 +686,11 @@ abstract class BaseEntity
             $sourcePropertyId = null;
             if (method_exists($source, "toClaim")) {
                 $sourceClaim = $source->toClaim();
-                if (!empty($sourceClaim) && !empty($sourceClaim["mainsnak"]) && !empty($sourceClaim["mainsnak"]["property"])) {
+                if (
+                    !empty($sourceClaim) &&
+                    !empty($sourceClaim["mainsnak"]) &&
+                    !empty($sourceClaim["mainsnak"]["property"])
+                ) {
                     $sourcePropertyId = $sourceClaim["mainsnak"]["property"];
                 }
             }
@@ -639,14 +701,17 @@ abstract class BaseEntity
                 if (!in_array($propertyId, self::SOURCE_REFERENCE_PROPERTIES)) {
                     continue;
                 }
-                
+
                 // Skip adding reference to the same property that the source itself uses
                 // This prevents duplicate claims when a source is also a perpetrator or victim
                 if ($propertyId === $sourcePropertyId) {
-                    Log::debug("Skipping reference for property that matches source property", [
-                        "property" => $propertyId,
-                        "source_property" => $sourcePropertyId
-                    ]);
+                    Log::debug(
+                        "Skipping reference for property that matches source property",
+                        [
+                            "property" => $propertyId,
+                            "source_property" => $sourcePropertyId,
+                        ],
+                    );
                     continue;
                 }
 
@@ -670,20 +735,24 @@ abstract class BaseEntity
                     if (!isset($statement["references"])) {
                         $statement["references"] = [];
                     }
-                    
+
                     // Check if this reference already exists for this statement
                     $referenceExists = false;
                     foreach ($statement["references"] as $existingRef) {
-                        if ($existingRef == $reference) {  // Using == for array comparison
+                        if ($existingRef == $reference) {
+                            // Using == for array comparison
                             $referenceExists = true;
-                            Log::debug("Skipping duplicate reference for property", [
-                                "property" => $propertyId,
-                                "source_type" => $source->getType()
-                            ]);
+                            Log::debug(
+                                "Skipping duplicate reference for property",
+                                [
+                                    "property" => $propertyId,
+                                    "source_type" => $source->getType(),
+                                ],
+                            );
                             break;
                         }
                     }
-                    
+
                     if (!$referenceExists) {
                         $statement["references"][] = $reference;
                     }

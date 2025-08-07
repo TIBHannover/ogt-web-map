@@ -71,11 +71,21 @@ export const routes = [
             title: "Zahlen: Gestapo. Terror. Orte",
         },
     },
-    // Admin-Routen wurden entfernt, da sie jetzt über PHP implementiert sind
     {
         name: "entry",
         path: "/entry",
         component: Entry,
+        meta: {
+            title: "Neuen Eintrag anlegen für: Gestapo. Terror. Orte",
+        },
+    },
+    {
+        name: "entry-status",
+        path: "/entry-status",
+        component: EntryStatus,
+        meta: {
+            title: "Eintragstatus ansehen für: Gestapo. Terror. Orte",
+        },
     },
     {
         name: "bibliography",

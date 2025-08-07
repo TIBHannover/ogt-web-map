@@ -277,6 +277,9 @@ class WikibaseFormatterModels
                 "first_source" => !empty($sources[0])
                     ? $sources[0]["title"] ?? "Unknown"
                     : "None",
+                "source_types" => array_map(function ($source) {
+                    return $source["type"] ?? "unknown";
+                }, $sources),
             ]);
         }
 
@@ -483,14 +486,18 @@ class WikibaseFormatterModels
                     $role,
                 );
 
-                // Include sources for the person entity
-                $personData["sources"] = $sources;
+                // Include sources for the person entity, preserving any sources already in personData
+                $existingSources = $personData["sources"] ?? [];
+                $mergedSources = array_merge($existingSources, $sources);
+                $personData["sources"] = $mergedSources;
 
                 Log::info("Added sources to person entity data", [
                     "person" => $personData["name"] ?? "Unknown",
-                    "sources_count" => count($sources),
-                    "first_source" => !empty($sources[0])
-                        ? $sources[0]["title"] ?? "Unknown"
+                    "existing_sources_count" => count($existingSources),
+                    "parent_sources_count" => count($sources),
+                    "total_sources_count" => count($mergedSources),
+                    "first_source" => !empty($mergedSources[0])
+                        ? $mergedSources[0]["title"] ?? "Unknown"
                         : "None",
                 ]);
 
@@ -498,12 +505,18 @@ class WikibaseFormatterModels
                 $additionalSources = $relatedEntity["sources"] ?? [];
                 if (!empty($additionalSources)) {
                     // Merge with existing sources to avoid duplicates
-                    $sources = array_merge($sources, $additionalSources);
-                    $personData["sources"] = $sources;
+                    $allSources = array_merge(
+                        $personData["sources"] ?? [],
+                        $additionalSources,
+                    );
+                    $personData["sources"] = $allSources;
 
                     Log::info("Added additional sources from related entity", [
                         "additional_sources_count" => count($additionalSources),
-                        "total_sources_count" => count($sources),
+                        "merged_sources_count" => count($allSources),
+                        "first_additional" => !empty($additionalSources[0])
+                            ? $additionalSources[0]["title"] ?? "Unknown"
+                            : "None",
                     ]);
                 }
 
@@ -559,9 +572,14 @@ class WikibaseFormatterModels
                     );
 
                     // Explicitly add sources to the person model
-                    if (!empty($sources)) {
-                        $sourceModels = SourceFactory::createMultipleFromArray(
+                    if (!empty($sources) || !empty($personData["sources"])) {
+                        // Combine any sources from person data with the parent entity sources
+                        $allSources = array_merge(
+                            $personData["sources"] ?? [],
                             $sources,
+                        );
+                        $sourceModels = SourceFactory::createMultipleFromArray(
+                            $allSources,
                         );
                         $this->addSourcesToEntityInternal(
                             $personModel,
@@ -571,10 +589,19 @@ class WikibaseFormatterModels
                             "Explicitly added sources to person model during creation",
                             [
                                 "person_name" => $personModel->getName(),
-                                "sources_count" => count($sources),
-                                "first_source" => !empty($sources[0])
-                                    ? $sources[0]["title"] ?? "Unknown"
+                                "person_sources_count" => count(
+                                    $personData["sources"] ?? [],
+                                ),
+                                "parent_sources_count" => count($sources),
+                                "total_sources_count" => count($allSources),
+                                "first_source" => !empty($allSources[0])
+                                    ? $allSources[0]["title"] ?? "Unknown"
                                     : "None",
+                                "sources_types" => array_map(function (
+                                    $source,
+                                ) {
+                                    return $source["type"] ?? "unknown";
+                                }, $allSources),
                                 "has_url_claims" => isset(
                                     $personModel->getData()["claims"][
                                         $this->mappingProvider->getPropertyId(
@@ -921,6 +948,11 @@ class WikibaseFormatterModels
             "role" => $role,
             "_add_role_claim" => true,
             "relationship" => $role,
+            "sources" => $entity["sources"] ?? [], // Ensure sources from the person entity are included
+            "imageUrl" => $entity["imageUrl"] ?? null,
+            "imageFilename" =>
+                $entity["imageFilename"] ??
+                ($entity["image_filename"] ?? ($entity["image"] ?? null)),
         ];
     }
 
@@ -943,7 +975,14 @@ class WikibaseFormatterModels
         // Ensure the global config is also set to false
         config(["wikibase.debug_mode" => false]);
 
-        Log::info("Debug mode explicitly disabled for person entity creation");
+        Log::info("Debug mode explicitly disabled for person entity creation", [
+            "person_name" => $person->getName() ?? "Unknown",
+            "sources_count" => count($sources),
+            "has_person_sources" => !empty($person->getData()["sources"]),
+            "person_sources_count" => !empty($person->getData()["sources"])
+                ? count($person->getData()["sources"])
+                : 0,
+        ]);
 
         try {
             // Process sources and add them to the person entity
@@ -960,6 +999,9 @@ class WikibaseFormatterModels
                         "first_source" => !empty($sources[0])
                             ? $sources[0]["title"] ?? "Unknown"
                             : "None",
+                        "sources_types" => array_map(function ($source) {
+                            return $source["type"] ?? "unknown";
+                        }, $sources),
                         "has_url_claims" => isset(
                             $person->getData()["claims"][
                                 $this->mappingProvider->getPropertyId(
@@ -979,8 +1021,12 @@ class WikibaseFormatterModels
             } elseif (!empty($person->getData()["sources"])) {
                 // If sources are in the person data but not passed as parameter
                 $personSources = $person->getData()["sources"];
+                // Merge with any sources passed as parameter to ensure we have all sources
+                $allSources = !empty($sources)
+                    ? array_merge($personSources, $sources)
+                    : $personSources;
                 $sourceModels = SourceFactory::createMultipleFromArray(
-                    $personSources,
+                    $allSources,
                 );
                 $this->addSourcesToEntityInternal($person, $sourceModels);
                 Log::info(

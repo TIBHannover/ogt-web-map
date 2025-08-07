@@ -114,22 +114,23 @@
             "
             :selectedPlace="selectedPerson"
         ></sources>
+
+        <!-- Back button to return to previous item (only shown if we have a previous location) -->
+        <div v-if="hasPreviousLocation">
+            <v-list-item density="compact" class="mt-3" style="border: 0">
+                <v-btn
+                    prepend-icon="mdi-arrow-left"
+                    variant="outlined"
+                    @click="$emit('goBack')"
+                    class="button-back"
+                    size="small"
+                >
+                    Zurück
+                </v-btn>
+            </v-list-item>
+            <v-divider></v-divider>
+        </div>
     </div>
-    <!-- Back button to return to previous item (only shown if we have a previous location) -->
-    <template v-if="hasPreviousLocation">
-        <v-list-item density="compact" class="mt-3" style="border: 0">
-            <v-btn
-                prepend-icon="mdi-arrow-left"
-                variant="outlined"
-                @click="$emit('goBack')"
-                class="button-back"
-                size="small"
-            >
-                Zurück
-            </v-btn>
-        </v-list-item>
-        <v-divider></v-divider>
-    </template>
 </template>
 
 <script setup>
