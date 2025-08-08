@@ -244,12 +244,14 @@
                         v-model:selectedSources="selectedSources"
                         @searchWikidataEntities="searchWikidataEntities"
                         @selectExistingEntity="selectExistingEntity"
+                        @updateEventTimeType="eventTimeType = $event"
                         @searchPeople="searchPeople"
                         @selectVictim="selectVictim"
                         @startNewVictimForm="startNewVictimForm"
                         @cancelNewVictimForm="cancelNewVictimForm"
                         @addNewVictim="addNewVictim"
                         @removeVictim="removeVictim"
+                        @updateVictim="updateVictim"
                         @startAddingAnotherVictim="startAddingAnotherVictim"
                         @searchPerpetrators="searchPerpetrators"
                         @selectPerpetrator="selectPerpetrator"
@@ -257,6 +259,7 @@
                         @cancelNewPerpetratorForm="cancelNewPerpetratorForm"
                         @addNewPerpetrator="addNewPerpetrator"
                         @removePerpetrator="removePerpetrator"
+                        @updatePerpetrator="updatePerpetrator"
                         @startAddingAnotherPerpetrator="
                             startAddingAnotherPerpetrator
                         "
@@ -366,6 +369,9 @@ const newVictim = ref({
     birthDate: null,
     deathDate: null,
     description: "",
+    birthName: "",
+    imageUrl: null,
+    imageFilename: null,
     isOrganization: false,
     gender: null,
     nationality: null,
@@ -386,6 +392,9 @@ const newPerpetrator = ref({
     birthDate: null,
     deathDate: null,
     description: "",
+    birthName: "",
+    imageUrl: null,
+    imageFilename: null,
     isOrganization: false,
     gender: null,
     nationality: null,
@@ -767,6 +776,9 @@ const resetNewVictimForm = () => {
         birthDate: null,
         deathDate: null,
         description: "",
+        birthName: "",
+        imageUrl: null,
+        imageFilename: null,
         isOrganization: false,
         gender: null,
         nationality: null,
@@ -786,6 +798,9 @@ const addNewVictim = () => {
         birthDate: newVictim.value.birthDate,
         deathDate: newVictim.value.deathDate,
         description: newVictim.value.description,
+        birthName: newVictim.value.birthName || "",
+        imageUrl: newVictim.value.imageUrl || null,
+        imageFilename: newVictim.value.imageFilename || null,
         isOrganization: newVictim.value.isOrganization || false,
         // Wikidata fields
         gender: newVictim.value.gender || null,
@@ -873,6 +888,9 @@ const resetNewPerpetratorForm = () => {
         birthDate: null,
         deathDate: null,
         description: "",
+        birthName: "",
+        imageUrl: null,
+        imageFilename: null,
         isOrganization: false,
         gender: null,
         nationality: null,
@@ -892,6 +910,9 @@ const addNewPerpetrator = () => {
         birthDate: newPerpetrator.value.birthDate,
         deathDate: newPerpetrator.value.deathDate,
         description: newPerpetrator.value.description,
+        birthName: newPerpetrator.value.birthName || "",
+        imageUrl: newPerpetrator.value.imageUrl || null,
+        imageFilename: newPerpetrator.value.imageFilename || null,
         isOrganization: newPerpetrator.value.isOrganization || false,
         // Wikidata fields
         gender: newPerpetrator.value.gender || null,
@@ -936,6 +957,42 @@ const removePerpetrator = (perpetratorId) => {
     selectedPerpetrators.value = selectedPerpetrators.value.filter(
         (v) => (v.id || v.tempId) !== perpetratorId,
     );
+};
+
+const updateVictim = (person) => {
+    const index = selectedVictims.value.findIndex(
+        (v) => (v.id || v.tempId) === (person.id || person.tempId),
+    );
+
+    if (index !== -1) {
+        // Create updated person object with all fields
+        const updatedPerson = {
+            ...person,
+            tempId: person.tempId || selectedVictims.value[index].tempId,
+            id: person.id || selectedVictims.value[index].id,
+        };
+
+        // Replace the person at the found index
+        selectedVictims.value.splice(index, 1, updatedPerson);
+    }
+};
+
+const updatePerpetrator = (person) => {
+    const index = selectedPerpetrators.value.findIndex(
+        (p) => (p.id || p.tempId) === (person.id || person.tempId),
+    );
+
+    if (index !== -1) {
+        // Create updated person object with all fields
+        const updatedPerson = {
+            ...person,
+            tempId: person.tempId || selectedPerpetrators.value[index].tempId,
+            id: person.id || selectedPerpetrators.value[index].id,
+        };
+
+        // Replace the person at the found index
+        selectedPerpetrators.value.splice(index, 1, updatedPerson);
+    }
 };
 
 const searchCause = debounce(async (query) => {
@@ -1086,31 +1143,30 @@ const resetForm = async () => {
                 imageUrl: imageUrl.value,
                 imageFilename: imageFilename.value,
                 sources: selectedSources.value,
-                statusToken: secureToken
+                statusToken: secureToken,
             };
         };
-        
+
         // Debug log for location qualifier
-        console.log('Submitting location qualifier:', {
+        console.log("Submitting location qualifier:", {
             locationQualifierValue: locationQualifier.value,
-            rawValue: typeof locationQualifier.value === 'object' ? JSON.stringify(locationQualifier.value) : locationQualifier.value
+            rawValue:
+                typeof locationQualifier.value === "object"
+                    ? JSON.stringify(locationQualifier.value)
+                    : locationQualifier.value,
         });
 
         // Get prepared form data
         const formData = prepareFormData();
-        
-        // Complete log of submission data
-        console.log('Full submission data:', formData);
 
-        const response = await axios.post(
-            "/api/wikidata/entities",
-            formData,
-            {
-                headers: {
-                    "X-CSRF-TOKEN": csrfToken,
-                },
+        // Complete log of submission data
+        console.log("Full submission data:", formData);
+
+        const response = await axios.post("/api/wikidata/entities", formData, {
+            headers: {
+                "X-CSRF-TOKEN": csrfToken,
             },
-        );
+        });
 
         if (response.data.success) {
             // Debug logging

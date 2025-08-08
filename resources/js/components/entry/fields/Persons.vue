@@ -561,7 +561,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { ref, computed, watch, toRefs } from "vue";
 import WikidataSelector from "./common/WikidataSelector.vue";
 import GenderSelector from "./GenderSelector.vue";
 import WikidataSuggestions from "./common/WikidataSuggestions.vue";
@@ -642,6 +642,8 @@ const props = defineProps({
     },
 });
 
+// Composables
+
 // Emits für Ereignisse
 const emit = defineEmits([
     "searchPeople",
@@ -663,7 +665,13 @@ const searchQuery = ref("");
 const editMode = ref(false);
 const editingPersonId = ref(null);
 const organizationMode = ref(false);
-const newPersonLocal = ref({ ...props.newPerson });
+// Initialize with a deep clone of the newPerson object
+const newPersonLocal = ref(JSON.parse(JSON.stringify(props.newPerson)));
+
+// Debug log function
+const logDebug = (message, data = null) => {
+    console.log(`[Persons] ${message}`, data || "");
+};
 
 // Filter search results based on organization mode
 const filteredSearchResults = computed(() => {
@@ -693,9 +701,15 @@ const filteredSearchResults = computed(() => {
 const openPersonDialog = (isOrg) => {
     dialogOpen.value = true;
     organizationMode.value = isOrg;
+    editMode.value = false;
+    editingPersonId.value = null;
+
+    // Make a deep clone to avoid reference issues
+    const basePersonData = JSON.parse(JSON.stringify(props.newPerson));
+
     // Set the organization flag in the new person object
     newPersonLocal.value = {
-        ...props.newPerson,
+        ...basePersonData,
         isOrganization: isOrg,
         // Set role based on the label if available
         role: props.label.toLowerCase().includes("täter")
@@ -704,6 +718,8 @@ const openPersonDialog = (isOrg) => {
               ? "victim"
               : "",
     };
+
+    console.log("Dialog opened for new person:", newPersonLocal.value);
 };
 
 // Computed property to check if selection is valid
@@ -810,60 +826,82 @@ const onEditPerson = (person) => {
     editMode.value = true;
     editingPersonId.value = person.id || person.tempId;
 
-    console.log("Editing person data:", person);
+    // Set the organization mode based on the person being edited
+    organizationMode.value = person.isOrganization || false;
 
-    // Fu00fclle das Formular mit den Daten der Person
-    const personData = {
-        firstName: person.firstName || "",
-        lastName: person.lastName || "",
-        birthDate: person.birthDate || null,
-        deathDate: person.deathDate || null,
-        description: person.description || "",
-        birthName: person.birthName || "",
-        isOrganization: person.isOrganization || false,
-        gender: person.gender || null,
-        nationality: person.nationality || null,
-        place_of_birth: person.place_of_birth || null,
-        place_of_death: person.place_of_death || null,
-        place_of_detention: person.place_of_detention || null,
-        imageUrl: person.imageUrl || null,
-        imageFilename: person.imageFilename || person.image || null,
-        employer: person.employer || null,
-        role: person.role || null,
-        // Bewahre die ID und andere wichtige Eigenschaften
-        id: person.id,
-        tempId: person.tempId,
-        label: person.label,
-    };
+    logDebug("Editing person data:", person);
 
-    console.log("Prepared edit data:", personData);
-
-    // Aktualisiere die newPerson-Daten
-    emit("update:newPerson", personData);
-
-    // Starte das Formular für die Person
-    emit("startNewPersonForm");
-
-    // u00d6ffne den Dialog
+    // CRITICAL: First force the dialog to open before updating reactive data
     dialogOpen.value = true;
+
+    // Use setTimeout to ensure the dialog is fully mounted before updating data
+    setTimeout(() => {
+        // Create a clean copy of all person properties
+        const personData = {
+            firstName: person.firstName || "",
+            lastName: person.lastName || "",
+            birthDate: person.birthDate || null,
+            deathDate: person.deathDate || null,
+            description: person.description || "",
+            birthName: person.birthName || "",
+            isOrganization: person.isOrganization || false,
+            gender: person.gender || null,
+            nationality: person.nationality || null,
+            place_of_birth: person.place_of_birth || null,
+            place_of_death: person.place_of_death || null,
+            place_of_detention: person.place_of_detention || null,
+            imageUrl: person.imageUrl || null,
+            imageFilename: person.imageFilename || person.image || null,
+            employer: person.employer || null,
+            role: person.role || null,
+            // Preserve important properties
+            id: person.id,
+            tempId: person.tempId,
+            label: person.label,
+        };
+
+        logDebug("Prepared edit data:", personData);
+
+        // Use Object.assign to update all properties at once
+        Object.assign(newPersonLocal.value, personData);
+
+        // Double-check organization mode is set correctly
+        organizationMode.value = personData.isOrganization || false;
+
+        logDebug("newPersonLocal updated for editing:", newPersonLocal.value);
+
+        // Update parent component data
+        emit("update:newPerson", personData);
+
+        // Trigger form state in parent
+        emit("startNewPersonForm");
+    }, 50);
 };
 
 const onUpdatePerson = () => {
-    if (!canAddNewPerson.value) return;
+    if (!canAddNewPerson.value) {
+        console.warn("Cannot update person: validation failed");
+        return;
+    }
 
-    // Fu00fcge die ID des bearbeiteten Eintrags hinzu
+    console.log("Updating person with data:", newPersonLocal.value);
+
+    // Füge die ID des bearbeiteten Eintrags hinzu
     const updatedPerson = {
         ...newPersonLocal.value,
         id: editingPersonId.value,
     };
 
+    console.log("Sending update with data:", updatedPerson);
+
     // Aktualisiere die Person
     emit("updatePerson", updatedPerson);
 
-    // Schlieu00dfe den Dialog und setze den Bearbeitungsmodus zuru00fcck
+    // Schließe den Dialog und setze den Bearbeitungsmodus zurück
     dialogOpen.value = false;
     editMode.value = false;
     editingPersonId.value = null;
+    organizationMode.value = false;
 
     // Formular zurücksetzen
     emit("cancelNewPersonForm");
@@ -878,13 +916,19 @@ const onInfoButtonClick = () => {
 };
 
 const closeDialog = () => {
+    logDebug("Closing dialog and resetting form");
+
     dialogOpen.value = false;
     searchQuery.value = "";
     editMode.value = false;
     editingPersonId.value = null;
     organizationMode.value = false;
-    // Reset newPersonLocal to default with isOrganization explicitly set to false
-    newPersonLocal.value = { ...props.newPerson, isOrganization: false };
+
+    // Reset form data with a complete replacement using deep clone
+    newPersonLocal.value = JSON.parse(JSON.stringify(props.newPerson));
+
+    logDebug("Dialog closed, form reset to:", newPersonLocal.value);
+
     if (props.showNewPersonForm) {
         onCancelNewPersonForm();
     }
