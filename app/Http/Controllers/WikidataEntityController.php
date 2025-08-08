@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\EntryStatusController;
 use App\Models\WikibaseEntryRequest;
 use App\Jobs\OrchestrateWikidataEntityCreation;
 use App\Services\Wikibase\WikibaseFormatterModels;
@@ -179,6 +180,17 @@ class WikidataEntityController extends Controller
             $entryRequest->submitted_by = "anonymous";
             $entryRequest->save();
 
+            // Send notification to admin about new entry request
+            try {
+                $entryStatusController = new EntryStatusController();
+                $entryStatusController->notifyAdmin($entryRequest);
+            } catch (\Exception $e) {
+                Log::error(
+                    "Failed to send admin notification: " . $e->getMessage(),
+                );
+                // Continue anyway, don't block the process if email fails
+            }
+
             // Erfolgreiche Antwort
             return response()->json(
                 [
@@ -262,6 +274,9 @@ class WikidataEntityController extends Controller
     {
         try {
             $entryRequest = WikibaseEntryRequest::findOrFail($id);
+            $statusController = app(
+                \App\Http\Controllers\EntryStatusController::class,
+            );
 
             // Pru00fcfen, ob die Anfrage bereits genehmigt wurde
             if ($entryRequest->status === "approved") {
@@ -290,9 +305,11 @@ class WikidataEntityController extends Controller
             $comment = $request->input("comment", "Eintrag wurde genehmigt.");
 
             // Use the EntryStatusController to update status history
-            app(
-                \App\Http\Controllers\EntryStatusController::class,
-            )->updateStatusHistory($entryRequest, "approved", $comment);
+            $statusController->updateStatusHistory(
+                $entryRequest,
+                "approved",
+                $comment,
+            );
 
             $entryRequest->approved_by = "admin"; // Spu00e4ter durch authentifizierten Benutzer ersetzen
             $entryRequest->save();
@@ -308,6 +325,14 @@ class WikidataEntityController extends Controller
             \Illuminate\Support\Facades\Log::info(
                 "Using callback URL: " . $callbackUrl,
             );
+
+            // Check if we should send an email notification to the user
+            if ($entryRequest->email && $entryRequest->notify_on_publish) {
+                \Illuminate\Support\Facades\Log::info(
+                    "User has opted in for notifications. Will send email when the entry is published.",
+                    ["email" => $entryRequest->email],
+                );
+            }
 
             // Make sure any formatter instance has debug mode disabled
             $formatter = app(
@@ -500,11 +525,11 @@ class WikidataEntityController extends Controller
      * Fu00fchrt eine erneute Verarbeitung einer fehlgeschlagenen Anfrage durch.
      *
      * @param  Request  $request
-     * @param  int  $id
+     * @param  int  $id  The ID of the entry request to retry
      *
      * @return JsonResponse
      */
-    public function retryRequest(Request $request, int $id): JsonResponse
+    public function retryRequest(Request $request, $id): JsonResponse
     {
         try {
             $entryRequest = WikibaseEntryRequest::findOrFail($id);
@@ -1178,18 +1203,89 @@ class WikidataEntityController extends Controller
             }
             // Update based on status
             if ($status === "success" && $entityId) {
+                // Log detailed information for debugging
+                Log::info("Processing successful entity creation callback", [
+                    "entry_id" => $entryId,
+                    "entity_id" => $entityId,
+                    "has_email" => !empty($entryRequest->email) ? "yes" : "no",
+                    "email" => $entryRequest->email ?? "not set",
+                    "notify_on_publish" => $entryRequest->notify_on_publish
+                        ? "yes"
+                        : "no",
+                    "created_entities_count" => count($createdEntities),
+                ]);
+
                 // Update the entry with the Wikidata ID
                 $entryRequest->wikidata_id = $entityId;
                 $entryRequest->created_entities = $createdEntities;
 
-                // Update status to wikidata_published
-                app(
+                // Get status controller instance for reuse
+                $statusController = app(
                     \App\Http\Controllers\EntryStatusController::class,
-                )->updateStatusHistory(
+                );
+
+                // Update status to wikidata_published
+                $statusController->updateStatusHistory(
                     $entryRequest,
                     "wikidata_published",
                     "Eintrag erfolgreich erstellt mit Wikidata-ID: {$entityId}",
                 );
+
+                // Send email notification if user opted in
+                if ($entryRequest->email && $entryRequest->notify_on_publish) {
+                    Log::info(
+                        "Attempting to send publication notification from callback handler",
+                        [
+                            "email" => $entryRequest->email,
+                            "entry_id" => $entryId,
+                            "entity_id" => $entityId,
+                            "status" => $entryRequest->status,
+                        ],
+                    );
+
+                    try {
+                        \Illuminate\Support\Facades\Mail::to(
+                            $entryRequest->email,
+                        )->send(
+                            new \App\Mail\UserEntryPublishedNotification(
+                                $entryRequest,
+                            ),
+                        );
+
+                        Log::info("Sent published notification email to user", [
+                            "entry_id" => $entryId,
+                            "entity_id" => $entityId,
+                            "email" => $entryRequest->email,
+                        ]);
+                    } catch (\Exception $e) {
+                        Log::error(
+                            "Failed to send published notification email",
+                            [
+                                "entry_id" => $entryId,
+                                "entity_id" => $entityId,
+                                "email" => $entryRequest->email,
+                                "error" => $e->getMessage(),
+                                "trace" => $e->getTraceAsString(),
+                                "class" => get_class($e),
+                            ],
+                        );
+                        // Continue with the process even if email fails
+                    }
+                } else {
+                    Log::warning(
+                        "Skipping publication notification - missing email or opt-in",
+                        [
+                            "entry_id" => $entryId,
+                            "has_email" => !empty($entryRequest->email)
+                                ? "yes"
+                                : "no",
+                            "notify_on_publish" => $entryRequest->notify_on_publish
+                                ? "yes"
+                                : "no",
+                            "status" => $entryRequest->status,
+                        ],
+                    );
+                }
 
                 Log::info(
                     "Updated entry status after successful Wikidata creation",
@@ -1206,10 +1302,13 @@ class WikidataEntityController extends Controller
                     $error ??
                     "Unbekannter Fehler bei der Erstellung des Wikidata-Eintrags";
 
-                // Update status to indicate failure
-                app(
+                // Get status controller instance
+                $statusController = app(
                     \App\Http\Controllers\EntryStatusController::class,
-                )->updateStatusHistory(
+                );
+
+                // Update status to indicate failure
+                $statusController->updateStatusHistory(
                     $entryRequest,
                     "wikidata_failed",
                     "Fehler bei der Erstellung des Wikidata-Eintrags: {$errorMessage}",

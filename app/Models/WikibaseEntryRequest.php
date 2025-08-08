@@ -19,6 +19,8 @@ class WikibaseEntryRequest extends Model
         "coordinates_qualifier",
         "status",
         "status_token",
+        "email",
+        "notify_on_publish",
         "status_history",
         "status_updated_at",
         "comment",
@@ -55,6 +57,7 @@ class WikibaseEntryRequest extends Model
         "sources" => "array",
         "created_entities" => "array",
         "status_history" => "array",
+        "notify_on_publish" => "boolean",
     ];
 
     protected $table = "wikidata_entry_requests";

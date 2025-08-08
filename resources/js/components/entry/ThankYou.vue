@@ -37,6 +37,53 @@
                         <v-icon>mdi-content-copy</v-icon>
                     </button>
                 </div>
+
+                <!-- Email notification form -->
+                <div v-if="statusToken" class="email-notification-form">
+                    <h3>Per E-Mail über den Status informiert werden</h3>
+                    <p>
+                        Erhalten Sie den Status-Link per E-Mail und werden Sie
+                        benachrichtigt, wenn Ihr Eintrag veröffentlicht wird.
+                    </p>
+
+                    <div class="form-group">
+                        <v-text-field
+                            v-model="email"
+                            label="Ihre E-Mail-Adresse"
+                            placeholder="beispiel@email.de"
+                            :rules="[rules.required, rules.email]"
+                            variant="outlined"
+                            density="comfortable"
+                        ></v-text-field>
+                    </div>
+
+                    <div class="notification-options">
+                        <v-checkbox
+                            v-model="notifyOnPublish"
+                            label="Benachrichtigen Sie mich, wenn mein Eintrag veröffentlicht wird"
+                            color="primary"
+                        ></v-checkbox>
+                    </div>
+
+                    <v-btn
+                        :loading="sending"
+                        :disabled="!isValidEmail || sending"
+                        color="primary"
+                        @click="sendStatusEmail"
+                    >
+                        Status-Link per E-Mail senden
+                    </v-btn>
+
+                    <div v-if="emailSent" class="success-message">
+                        <v-icon color="success">mdi-check-circle</v-icon>
+                        E-Mail wurde erfolgreich gesendet!
+                    </div>
+                    <div v-if="emailError" class="error-message">
+                        <v-icon color="error">mdi-alert-circle</v-icon>
+                        {{ emailError }}
+                    </div>
+                </div>
+
                 <p v-if="statusToken" class="status-tip">
                     <v-icon small color="info">mdi-information-outline</v-icon>
                     Tipp: Speichern Sie diesen Link, um später den Status Ihres
@@ -77,6 +124,24 @@ const props = defineProps({
 
 const statusToken = ref("");
 const copySuccess = ref(false);
+const email = ref("");
+const notifyOnPublish = ref(true);
+const sending = ref(false);
+const emailSent = ref(false);
+const emailError = ref("");
+
+const rules = {
+    required: (value) => !!value || "Erforderlich",
+    email: (value) => {
+        const pattern =
+            /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return pattern.test(value) || "Ungültige E-Mail-Adresse";
+    },
+};
+
+const isValidEmail = computed(() => {
+    return email.value && rules.email(email.value) === true;
+});
 
 const statusUrl = computed(() => {
     if (!statusToken.value) return "";
@@ -172,6 +237,49 @@ const copyStatusLink = () => {
             console.error("Fehler beim Kopieren des Links:", err);
         });
 };
+
+const sendStatusEmail = async () => {
+    if (!statusToken.value || !isValidEmail.value) {
+        return;
+    }
+
+    sending.value = true;
+    emailError.value = "";
+    emailSent.value = false;
+
+    try {
+        const response = await fetch("/api/entry-status/send-email", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": document
+                    .querySelector('meta[name="csrf-token"]')
+                    ?.getAttribute("content"),
+            },
+            body: JSON.stringify({
+                token: statusToken.value,
+                email: email.value,
+                notify_on_publish: notifyOnPublish.value,
+            }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            emailSent.value = true;
+            // Clear the form or disable it after successful submission
+            sending.value = false;
+        } else {
+            emailError.value = data.message || "Fehler beim Senden der E-Mail.";
+            sending.value = false;
+        }
+    } catch (error) {
+        console.error("Email sending error:", error);
+        emailError.value =
+            "Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.";
+        sending.value = false;
+    }
+};
 </script>
 
 <style scoped>
@@ -229,6 +337,46 @@ const copyStatusLink = () => {
     padding: 1.5rem;
     margin: 1.5rem 0;
     text-align: left;
+}
+
+/* Email notification form */
+.email-notification-form {
+    background-color: #f1f8e9;
+    border: 1px solid #dcedc8;
+    border-radius: 6px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.email-notification-form h3 {
+    font-size: 1.1rem;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    color: #2e7d32;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.notification-options {
+    margin-bottom: 1.5rem;
+}
+
+.success-message {
+    margin-top: 1rem;
+    color: #2e7d32;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.error-message {
+    margin-top: 1rem;
+    color: #d32f2f;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .status-box h2 {
