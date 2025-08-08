@@ -86,28 +86,16 @@ abstract class BaseEntity
         // Make sure title is not empty to ensure labels are set
         $title = !empty($this->title) ? $this->title : "Unnamed entity";
 
-        // Set the German label (primary language)
+        // Set only German label
         $this->data["labels"]["de"] = [
             "language" => "de",
             "value" => $title,
         ];
 
-        // Also set English label for international accessibility
-        $this->data["labels"]["en"] = [
-            "language" => "en",
-            "value" => $title,
-        ];
-
-        // Set description if available
+        // Set description if available (only in German)
         if (!empty($this->description)) {
             $this->data["descriptions"]["de"] = [
                 "language" => "de",
-                "value" => $this->description,
-            ];
-
-            // Also set English description
-            $this->data["descriptions"]["en"] = [
-                "language" => "en",
                 "value" => $this->description,
             ];
         }
