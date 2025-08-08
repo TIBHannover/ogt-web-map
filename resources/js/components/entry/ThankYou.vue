@@ -80,32 +80,51 @@ const copySuccess = ref(false);
 
 const statusUrl = computed(() => {
     if (!statusToken.value) return "";
-    return `${window.location.origin}/entry-status?id=${statusToken.value}`;
+    // Ensure consistent URL format with the EntryStatus component's expectation
+    const url = `${window.location.origin}/entry-status?id=${statusToken.value}`;
+    console.log("Generated status URL:", url);
+    return url;
 });
 
 onMounted(() => {
-    //console.log('ThankYou Component mounted, props:', props);
-    //console.log('Request ID from props:', props.requestId);
-    //console.log('URL query params:', router.currentRoute.value.query);
+    console.log("ThankYou Component mounted, props:", props);
+    console.log("Request ID from props:", props.requestId);
+    console.log("URL query params:", router.currentRoute.value.query);
 
     // Priority 1: Check props
     if (props.requestId) {
         statusToken.value = props.requestId;
-        //console.log('Status token set from props:', statusToken.value);
+        console.log("Status token set from props:", statusToken.value);
+        // Store token for later use
+        localStorage.setItem("entryStatusToken", statusToken.value);
     }
     // Priority 2: Check URL query parameter
     else if (router.currentRoute.value.query.token) {
         statusToken.value = router.currentRoute.value.query.token;
         //console.log('Status token set from URL query:', statusToken.value);
+        // Store token for later use
+        localStorage.setItem("entryStatusToken", statusToken.value);
+    }
+    // Additional check for 'id' parameter as fallback
+    else if (router.currentRoute.value.query.id) {
+        statusToken.value = router.currentRoute.value.query.id;
+        console.log(
+            "Status token set from URL id parameter:",
+            statusToken.value,
+        );
+        localStorage.setItem("entryStatusToken", statusToken.value);
     }
     // Priority 3: Check localStorage as fallback
     else {
         const savedToken = localStorage.getItem("entryStatusToken");
         if (savedToken) {
             statusToken.value = savedToken;
-            //console.log('Status token set from localStorage:', statusToken.value);
+            console.log(
+                "Status token set from localStorage:",
+                statusToken.value,
+            );
         } else {
-            //console.log('No token found in props, URL or localStorage');
+            console.log("No token found in props, URL or localStorage");
         }
     }
 });
@@ -119,10 +138,27 @@ const addAnother = () => {
 };
 
 const goToStatusPage = () => {
-    router.push(`/entry-status?id=${statusToken.value}`);
+    if (!statusToken.value) {
+        console.error("Cannot navigate to status page: no token available");
+        return;
+    }
+
+    console.log("Navigating to status page with token:", statusToken.value);
+    // Use the same query parameter format that EntryStatus expects
+    router.push({
+        path: "/entry-status",
+        query: { id: statusToken.value },
+    });
 };
 
 const copyStatusLink = () => {
+    if (!statusUrl.value) {
+        console.error("Cannot copy status link: no URL available");
+        alert("Es ist kein Status-Link verfügbar.");
+        return;
+    }
+
+    console.log("Copying status link to clipboard:", statusUrl.value);
     navigator.clipboard
         .writeText(statusUrl.value)
         .then(() => {

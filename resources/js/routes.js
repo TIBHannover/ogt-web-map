@@ -83,6 +83,7 @@ export const routes = [
         name: "entry-status",
         path: "/entry-status",
         component: EntryStatus,
+        props: (route) => ({ tokenId: route.query.id }),
         meta: {
             title: "Eintragstatus ansehen für: Gestapo. Terror. Orte",
         },
