@@ -796,6 +796,7 @@ const canAddNewPerson = computed(() => {
 // Event handlers
 const onSearchPeople = (query) => {
     if (!query || query.trim() === "") return;
+    searchQuery.value = query; // Store the search query locally
     emit("searchPeople", query);
 };
 
@@ -806,6 +807,18 @@ const onSelectPerson = (person) => {
 
 const onStartNewPersonForm = () => {
     editMode.value = false; // Stelle sicher, dass wir nicht im Bearbeitungsmodus sind
+
+    // Use the search query to prefill name fields
+    if (searchQuery.value) {
+        const parts = searchQuery.value.trim().split(" ");
+        if (parts.length > 1) {
+            newPersonLocal.value.firstName = parts[0];
+            newPersonLocal.value.lastName = parts.slice(1).join(" ");
+        } else {
+            newPersonLocal.value.lastName = parts[0];
+        }
+    }
+
     emit("startNewPersonForm");
 };
 
