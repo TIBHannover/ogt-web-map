@@ -1,4 +1,5 @@
 <template>
+    <!-- Component name should be multi-word: PersonsField -->
     <div class="persons-section container-section">
         <div class="section-header">
             <label :for="fieldId" class="section-label">{{ label }}:</label>
@@ -12,14 +13,29 @@
             </button>
         </div>
 
-        <div class="add-person-container">
+        <div class="persons-container">
+            <!-- Add Person button -->
+            <v-btn
+                color="primary"
+                class="mt-2 mb-4 button bg-secondary"
+                @click="openPersonDialog(false)"
+                prepend-icon="mdi-account-plus"
+            >
+                {{ label.includes("*") ? label.replace("*", "") : label }}
+                Person hinzufügen
+            </v-btn>
+
+            <br />
+
+            <!-- Add Organization button -->
             <v-btn
                 color="primary"
                 class="mt-2 button bg-secondary"
-                @click="dialogOpen = true"
-                prepend-icon="mdi-account-plus"
+                @click="openPersonDialog(true)"
+                prepend-icon="mdi-domain-plus"
             >
-                {{ label }} hinzufügen
+                {{ label.includes("*") ? label.replace("*", "") : label }}
+                Organisation hinzufügen
             </v-btn>
         </div>
 
@@ -106,7 +122,11 @@
         <v-dialog v-model="dialogOpen" max-width="600px">
             <v-card>
                 <v-card-title>{{
-                    editMode ? `${label} bearbeiten` : `${label} hinzufügen`
+                    editMode
+                        ? `${label} bearbeiten`
+                        : organizationMode
+                          ? `${label} Organisation hinzufügen`
+                          : `${label} Person hinzufügen`
                 }}</v-card-title>
                 <v-card-text class="overlay-content">
                     <!-- Search UI Container - only shown when not adding a new person -->
@@ -115,7 +135,11 @@
                         <div class="persons-search">
                             <div class="search-input-container">
                                 <v-text-field
-                                    :placeholder="`Namen der ${label} oder einer Organisation suchen...`"
+                                    :placeholder="
+                                        organizationMode
+                                            ? `Namen der Organisation suchen...`
+                                            : `Namen der Person suchen...`
+                                    "
                                     v-model="searchQuery"
                                     append-inner-icon="mdi-magnify"
                                     @click:append-inner="
@@ -171,9 +195,21 @@
                                 v-if="
                                     !isSearchLoading &&
                                     !searchQuery.trim() &&
-                                    label === 'Täter*In *'
+                                    label === 'Täter*In *' &&
+                                    !organizationMode
                                 "
                                 :q-ids="['Q106625639']"
+                                endpoint="people"
+                                @select="onSelectPerson"
+                            />
+                            <wikidata-suggestions
+                                v-if="
+                                    !isSearchLoading &&
+                                    !searchQuery.trim() &&
+                                    label === 'Täter*In *' &&
+                                    organizationMode
+                                "
+                                :q-ids="['Q380622']"
                                 endpoint="people"
                                 @select="onSelectPerson"
                             />
@@ -181,12 +217,12 @@
 
                         <!-- Suchergebnisse für Personen -->
                         <v-list
-                            v-if="peopleSearchResults.length > 0"
+                            v-if="filteredSearchResults.length > 0"
                             class="search-results mt-3"
                             density="compact"
                         >
                             <v-list-item
-                                v-for="person in peopleSearchResults"
+                                v-for="person in filteredSearchResults"
                                 :key="person.id"
                                 @click="onSelectPerson(person)"
                                 class="search-result-item"
@@ -197,6 +233,14 @@
                                 <v-list-item-subtitle v-if="person.description">
                                     {{ person.description }}
                                 </v-list-item-subtitle>
+                                <v-chip
+                                    v-if="person.isOrganization"
+                                    size="small"
+                                    color="primary"
+                                    class="ml-2 mb-1"
+                                >
+                                    Organisation
+                                </v-chip>
                                 <v-list-item-subtitle
                                     v-if="person.birth || person.death"
                                     class="result-metadata"
@@ -226,7 +270,9 @@
                                     {{
                                         isAuthorForm
                                             ? "Autor*In nicht gefunden? Neu anlegen"
-                                            : "Person/Organisation nicht gefunden? Neu anlegen"
+                                            : organizationMode
+                                              ? "Organisation nicht gefunden? Neu anlegen"
+                                              : "Person nicht gefunden? Neu anlegen"
                                     }}
                                 </v-btn>
                             </div>
@@ -241,7 +287,9 @@
                                     ? "Eintrag bearbeiten"
                                     : isAuthorForm
                                       ? "Neue/n Autor*In anlegen"
-                                      : "Neuen Eintrag anlegen"
+                                      : organizationMode
+                                        ? "Neue Organisation anlegen"
+                                        : "Neue Person anlegen"
                             }}
                         </h4>
                         <div class="form-group" v-if="!hideIsOrganisation">
@@ -498,7 +546,13 @@
                         @click="editMode ? onUpdatePerson() : onAddNewPerson()"
                         :disabled="!canAddNewPerson"
                     >
-                        {{ editMode ? "Speichern" : "Person hinzufügen" }}
+                        {{
+                            editMode
+                                ? "Speichern"
+                                : organizationMode
+                                  ? "Organisation hinzufügen"
+                                  : "Person hinzufügen"
+                        }}
                     </v-btn>
                 </v-card-actions>
             </v-card>
@@ -608,7 +662,49 @@ const dialogOpen = ref(false);
 const searchQuery = ref("");
 const editMode = ref(false);
 const editingPersonId = ref(null);
-const newPersonLocal = computed(() => props.newPerson);
+const organizationMode = ref(false);
+const newPersonLocal = ref({ ...props.newPerson });
+
+// Filter search results based on organization mode
+const filteredSearchResults = computed(() => {
+    if (!props.peopleSearchResults || props.peopleSearchResults.length === 0) {
+        return [];
+    }
+
+    // Filter results based on organization mode
+    if (organizationMode.value) {
+        // If we're in organization mode, prioritize organizations
+        return [...props.peopleSearchResults].sort((a, b) => {
+            if (a.isOrganization && !b.isOrganization) return -1;
+            if (!a.isOrganization && b.isOrganization) return 1;
+            return 0;
+        });
+    } else {
+        // If we're in person mode, prioritize persons
+        return [...props.peopleSearchResults].sort((a, b) => {
+            if (!a.isOrganization && b.isOrganization) return -1;
+            if (a.isOrganization && !b.isOrganization) return 1;
+            return 0;
+        });
+    }
+});
+
+// Function to open the dialog with the correct mode
+const openPersonDialog = (isOrg) => {
+    dialogOpen.value = true;
+    organizationMode.value = isOrg;
+    // Set the organization flag in the new person object
+    newPersonLocal.value = {
+        ...props.newPerson,
+        isOrganization: isOrg,
+        // Set role based on the label if available
+        role: props.label.toLowerCase().includes("täter")
+            ? "perpetrator"
+            : props.label.toLowerCase().includes("opfer")
+              ? "victim"
+              : "",
+    };
+};
 
 // Computed property to check if selection is valid
 const isValid = computed(() => {
@@ -786,6 +882,9 @@ const closeDialog = () => {
     searchQuery.value = "";
     editMode.value = false;
     editingPersonId.value = null;
+    organizationMode.value = false;
+    // Reset newPersonLocal to default with isOrganization explicitly set to false
+    newPersonLocal.value = { ...props.newPerson, isOrganization: false };
     if (props.showNewPersonForm) {
         onCancelNewPersonForm();
     }
