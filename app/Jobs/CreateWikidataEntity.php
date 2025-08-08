@@ -782,10 +782,8 @@ class CreateWikidataEntity implements ShouldQueue
                         // This serves as a fallback in case the callback fails
                         try {
                             if ($this->requestId) {
-                                $requestModel = config(
-                                    "wikidata.request_model",
-                                    self::DEFAULT_REQUEST_MODEL,
-                                );
+                                $requestModel =
+                                    "\\App\\Models\\WikibaseEntryRequest";
                                 $entryRequest = $requestModel::find(
                                     $this->requestId,
                                 );
@@ -1273,10 +1271,7 @@ class CreateWikidataEntity implements ShouldQueue
 
             if (!empty($requestId)) {
                 // Get request model class name from config or use the correct default
-                $requestModelClass = config(
-                    "wikidata.request_model",
-                    self::DEFAULT_REQUEST_MODEL,
-                );
+                $requestModelClass = "\\App\\Models\\WikibaseEntryRequest";
 
                 // Check if the model class exists before trying to use it
                 if (!class_exists($requestModelClass)) {
@@ -1321,16 +1316,17 @@ class CreateWikidataEntity implements ShouldQueue
                         $request->status = "wikidata_failed";
 
                         // Check which error field to use based on schema
+                        $table = $request->getTable();
                         if (
                             \Illuminate\Support\Facades\Schema::hasColumn(
-                                new $requestModelClass()->getTable(),
+                                $table,
                                 "error_message",
                             )
                         ) {
                             $request->error_message = $errorMessage;
                         } elseif (
                             \Illuminate\Support\Facades\Schema::hasColumn(
-                                new $requestModelClass()->getTable(),
+                                $table,
                                 "rejection_reason",
                             )
                         ) {
@@ -1513,10 +1509,7 @@ class CreateWikidataEntity implements ShouldQueue
             // If we have a request ID, update the database
             if (!empty($requestId)) {
                 // Get request model class name from config or use the correct default
-                $requestModelClass = config(
-                    "wikidata.request_model",
-                    self::DEFAULT_REQUEST_MODEL,
-                );
+                $requestModelClass = "\\App\\Models\\WikibaseEntryRequest";
 
                 // Check if the model class exists before trying to use it
                 if (!class_exists($requestModelClass)) {
