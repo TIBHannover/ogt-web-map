@@ -1,25 +1,25 @@
 @component('mail::message')
 # Ihr Eintragsanfragestatus
 
-Vielen Dank für Ihre Eintragsanfrage: **{{ $entryRequest->title }}**
+Vielen Dank für deine Eintragsanfrage: **{{ $entryRequest->title }}**
 
-Mit dem unten stehenden Link können Sie jederzeit den aktuellen Status Ihrer Anfrage überprüfen.
-Bitte bewahren Sie diese E-Mail auf, um den Status Ihrer Anfrage verfolgen zu können.
+Mit dem unten stehenden Link kannst du jederzeit den aktuellen Status deiner Anfrage überprüfen.
+Bitte bewahre diese E-Mail auf, um den Status deiner Anfrage verfolgen zu können.
 
 @component('mail::button', ['url' => $statusUrl])
 Status meiner Anfrage prüfen
 @endcomponent
 
-**Details zu Ihrer Anfrage:**
+**Details zu deiner Anfrage:**
 
-**Titel:** {{ $entryRequest->title }}
-**Typ:** {{ $entryRequest->type }}
-**Beschreibung:** {{ $entryRequest->description }}
-**Erstellt am:** {{ $entryRequest->created_at->format('d.m.Y H:i') }}
+**Titel:** {{ $entryRequest->title }} <br>
+**Typ:** {{ $entryRequest->type }} <br>
+**Beschreibung:** {{ $entryRequest->description }} <br>
+**Erstellt am:** {{ $entryRequest->created_at->format('d.m.Y H:i') }} <br>
 **Aktueller Status:** {{ $entryRequest->status }}
 
-Wir werden Ihre Anfrage so schnell wie möglich bearbeiten. Bei weiteren Fragen können Sie uns gerne kontaktieren.
+Wir werden deine Anfrage so schnell wie möglich bearbeiten. Bei weiteren Fragen kannst du uns gerne kontaktieren.
 
 Mit freundlichen Grüßen,<br>
-{{ config('app.name') }}
+Dein Gestapo.Terror.Orte. Team
 @endcomponent

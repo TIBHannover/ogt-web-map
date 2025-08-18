@@ -18,8 +18,14 @@
             <v-btn
                 color="primary"
                 class="mt-2 mb-4 button bg-secondary"
-                @click="openPersonDialog(false)"
+                @click="
+                    (e) => {
+                        forceResetAndOpen(false, e);
+                    }
+                "
                 prepend-icon="mdi-account-plus"
+                :data-action="'add-person'"
+                id="add-person-button"
             >
                 {{ label.includes("*") ? label.replace("*", "") : label }}
                 Person hinzufügen
@@ -31,8 +37,14 @@
             <v-btn
                 color="primary"
                 class="mt-2 button bg-secondary"
-                @click="openPersonDialog(true)"
+                @click="
+                    (e) => {
+                        forceResetAndOpen(true, e);
+                    }
+                "
                 prepend-icon="mdi-domain-plus"
+                :data-action="'add-organization'"
+                id="add-organization-button"
             >
                 {{ label.includes("*") ? label.replace("*", "") : label }}
                 Organisation hinzufügen
@@ -96,13 +108,14 @@
                         type="button"
                         class="edit-person"
                         @click="
-                            onEditPerson(person);
+                            onEditPerson(person, $event);
                             console.log(
                                 'Edit button clicked for person:',
                                 person,
                             );
                         "
                         title="Person bearbeiten"
+                        data-action="edit-person"
                     >
                         <v-icon size="small">mdi-pencil</v-icon>
                     </button>
@@ -545,6 +558,11 @@
                         color="primary"
                         @click="editMode ? onUpdatePerson() : onAddNewPerson()"
                         :disabled="!canAddNewPerson"
+                        :id="
+                            editMode
+                                ? 'update-person-button'
+                                : 'save-new-person-button'
+                        "
                     >
                         {{
                             editMode
@@ -561,7 +579,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, toRefs } from "vue";
+import { ref, computed, watch, toRefs, nextTick, onMounted } from "vue";
 import WikidataSelector from "./common/WikidataSelector.vue";
 import GenderSelector from "./GenderSelector.vue";
 import WikidataSuggestions from "./common/WikidataSuggestions.vue";
@@ -697,17 +715,76 @@ const filteredSearchResults = computed(() => {
     }
 });
 
-// Function to open the dialog with the correct mode
-const openPersonDialog = (isOrg) => {
-    dialogOpen.value = true;
-    organizationMode.value = isOrg;
+// Hard reset all dialog state and form data
+const resetDialogState = () => {
+    // Reset all state variables
+    searchQuery.value = "";
     editMode.value = false;
     editingPersonId.value = null;
+    organizationMode.value = false;
+    dialogOpen.value = false;
+
+    // Create a fresh copy of the default person data
+    const defaultPersonData = JSON.parse(JSON.stringify(props.newPerson));
+
+    // Completely replace the object - don't mutate it
+    newPersonLocal.value = defaultPersonData;
+
+    // Notify parent components
+    emit("update:newPerson", defaultPersonData);
+
+    // If we were in new person form mode, cancel it
+    if (props.showNewPersonForm) {
+        emit("cancelNewPersonForm");
+    }
+
+    // Clear any search results
+    emit("searchPeople", "");
+};
+
+// Force a reset and then open dialog for adding new person
+const forceResetAndOpen = (isOrg, event) => {
+    // Prevent event propagation
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+
+    // First close and reset everything
+    resetDialogState();
+
+    // Then use setTimeout to ensure complete reset before opening again
+    setTimeout(() => {
+        // Make sure the parent component is not in new person form mode
+        if (props.showNewPersonForm) {
+            emit("cancelNewPersonForm");
+        }
+
+        // Reset the newPersonLocal value to default
+        newPersonLocal.value = JSON.parse(JSON.stringify(props.newPerson));
+
+        // Open the dialog in the correct mode (will show search form)
+        openPersonDialog(isOrg);
+    }, 50);
+};
+
+// Function to open the dialog with the correct mode
+const openPersonDialog = (isOrg, event) => {
+    // Check if we have an event and prevent it from bubbling up
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+
+    // Reset edit-specific state
+    editMode.value = false;
+    editingPersonId.value = null;
+    searchQuery.value = "";
 
     // Make a deep clone to avoid reference issues
     const basePersonData = JSON.parse(JSON.stringify(props.newPerson));
 
-    // Set the organization flag in the new person object
+    // Set the organization flag in the new person object - completely replace the object
     newPersonLocal.value = {
         ...basePersonData,
         isOrganization: isOrg,
@@ -719,7 +796,21 @@ const openPersonDialog = (isOrg) => {
               : "",
     };
 
-    console.log("Dialog opened for new person:", newPersonLocal.value);
+    // Force update to parent component before opening dialog
+    emit("update:newPerson", newPersonLocal.value);
+
+    // Now open the dialog and set the organization mode
+    dialogOpen.value = true;
+    organizationMode.value = isOrg;
+
+    // Make sure we're NOT in new person form mode - we want to show the search first
+    // This is critical for showing the search form instead of the edit form
+    if (props.showNewPersonForm) {
+        emit("cancelNewPersonForm");
+    }
+
+    // Clear search results to start fresh
+    emit("searchPeople", "");
 };
 
 // Computed property to check if selection is valid
@@ -806,19 +897,41 @@ const onSelectPerson = (person) => {
 };
 
 const onStartNewPersonForm = () => {
-    editMode.value = false; // Stelle sicher, dass wir nicht im Bearbeitungsmodus sind
+    // Reset edit mode and any editing state
+    editMode.value = false;
+    editingPersonId.value = null;
+
+    // Reset newPersonLocal to default before setting values
+    const basePersonData = JSON.parse(JSON.stringify(props.newPerson));
+
+    // Preserve organization mode setting
+    basePersonData.isOrganization = organizationMode.value;
+
+    // Set role based on label
+    basePersonData.role = props.label.toLowerCase().includes("täter")
+        ? "perpetrator"
+        : props.label.toLowerCase().includes("opfer")
+          ? "victim"
+          : "";
 
     // Use the search query to prefill name fields
     if (searchQuery.value) {
         const parts = searchQuery.value.trim().split(" ");
         if (parts.length > 1) {
-            newPersonLocal.value.firstName = parts[0];
-            newPersonLocal.value.lastName = parts.slice(1).join(" ");
+            basePersonData.firstName = parts[0];
+            basePersonData.lastName = parts.slice(1).join(" ");
         } else {
-            newPersonLocal.value.lastName = parts[0];
+            basePersonData.lastName = parts[0];
         }
     }
 
+    // Set the newPersonLocal with our prepared data
+    newPersonLocal.value = basePersonData;
+
+    // Update parent data
+    emit("update:newPerson", basePersonData);
+
+    // Emit the event to show the form
     emit("startNewPersonForm");
 };
 
@@ -829,66 +942,79 @@ const onCancelNewPersonForm = () => {
 };
 
 const onAddNewPerson = () => {
-    emit("update:newPerson", newPersonLocal.value);
+    // Store a local copy of the current data before any changes
+    const dataToAdd = JSON.parse(JSON.stringify(newPersonLocal.value));
+
+    // Update parent with data to add (do this before resetting)
+    emit("update:newPerson", dataToAdd);
+
+    // Signal to add the new person
     emit("addNewPerson");
-    dialogOpen.value = false;
+
+    // Reset dialog state completely
+    resetDialogState();
 };
 
-const onEditPerson = (person) => {
-    // Aktiviere den Bearbeitungsmodus
-    editMode.value = true;
-    editingPersonId.value = person.id || person.tempId;
+const onEditPerson = (person, event) => {
+    // Prevent event propagation if event exists
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
 
-    // Set the organization mode based on the person being edited
-    organizationMode.value = person.isOrganization || false;
+    // Clear any existing search results
+    searchQuery.value = "";
 
-    logDebug("Editing person data:", person);
+    // First, reset form state completely
+    const cleanStartingState = JSON.parse(JSON.stringify(props.newPerson));
+    newPersonLocal.value = cleanStartingState;
 
-    // CRITICAL: First force the dialog to open before updating reactive data
+    // Now prepare the edit data before setting edit mode
+    const personData = {
+        firstName: person.firstName || "",
+        lastName: person.lastName || "",
+        birthDate: person.birthDate || null,
+        deathDate: person.deathDate || null,
+        description: person.description || "",
+        birthName: person.birthName || "",
+        isOrganization: person.isOrganization || false,
+        gender: person.gender || null,
+        nationality: person.nationality || null,
+        place_of_birth: person.place_of_birth || null,
+        place_of_death: person.place_of_death || null,
+        place_of_detention: person.place_of_detention || null,
+        imageUrl: person.imageUrl || null,
+        imageFilename: person.imageFilename || person.image || null,
+        employer: person.employer || null,
+        role: person.role || null,
+        // Preserve important properties
+        id: person.id,
+        tempId: person.tempId,
+        label: person.label,
+    };
+
+    // Force dialog to open first
     dialogOpen.value = true;
 
-    // Use setTimeout to ensure the dialog is fully mounted before updating data
-    setTimeout(() => {
-        // Create a clean copy of all person properties
-        const personData = {
-            firstName: person.firstName || "",
-            lastName: person.lastName || "",
-            birthDate: person.birthDate || null,
-            deathDate: person.deathDate || null,
-            description: person.description || "",
-            birthName: person.birthName || "",
-            isOrganization: person.isOrganization || false,
-            gender: person.gender || null,
-            nationality: person.nationality || null,
-            place_of_birth: person.place_of_birth || null,
-            place_of_death: person.place_of_death || null,
-            place_of_detention: person.place_of_detention || null,
-            imageUrl: person.imageUrl || null,
-            imageFilename: person.imageFilename || person.image || null,
-            employer: person.employer || null,
-            role: person.role || null,
-            // Preserve important properties
-            id: person.id,
-            tempId: person.tempId,
-            label: person.label,
-        };
+    // Use nextTick to ensure the dialog is mounted before updating form data
+    nextTick(() => {
+        // Wait briefly for dialog rendering
+        setTimeout(() => {
+            // Completely replace the newPersonLocal object
+            newPersonLocal.value = personData;
 
-        logDebug("Prepared edit data:", personData);
+            // Now set the edit mode flags AFTER data is prepared
+            editMode.value = true;
+            editingPersonId.value = person.id || person.tempId;
+            organizationMode.value = personData.isOrganization || false;
 
-        // Use Object.assign to update all properties at once
-        Object.assign(newPersonLocal.value, personData);
+            // Update parent component data
+            emit("update:newPerson", personData);
 
-        // Double-check organization mode is set correctly
-        organizationMode.value = personData.isOrganization || false;
-
-        logDebug("newPersonLocal updated for editing:", newPersonLocal.value);
-
-        // Update parent component data
-        emit("update:newPerson", personData);
-
-        // Trigger form state in parent
-        emit("startNewPersonForm");
-    }, 50);
+            // Trigger form state in parent - this shows the edit form instead of search
+            emit("startNewPersonForm");
+        }, 50);
+    });
 };
 
 const onUpdatePerson = () => {
@@ -897,15 +1023,11 @@ const onUpdatePerson = () => {
         return;
     }
 
-    console.log("Updating person with data:", newPersonLocal.value);
-
     // Füge die ID des bearbeiteten Eintrags hinzu
     const updatedPerson = {
         ...newPersonLocal.value,
         id: editingPersonId.value,
     };
-
-    console.log("Sending update with data:", updatedPerson);
 
     // Aktualisiere die Person
     emit("updatePerson", updatedPerson);
@@ -924,23 +1046,24 @@ const onRemovePerson = (id) => {
     emit("removePerson", id);
 };
 
+// Add initialization on component mount
+onMounted(() => {
+    // Ensure we start with a clean state
+    resetDialogState();
+});
+
 const onInfoButtonClick = () => {
     emit("infoButtonClick", props.fieldId);
 };
 
 const closeDialog = () => {
-    logDebug("Closing dialog and resetting form");
+    // Use the centralized reset function
+    resetDialogState();
 
-    dialogOpen.value = false;
-    searchQuery.value = "";
-    editMode.value = false;
-    editingPersonId.value = null;
-    organizationMode.value = false;
-
-    // Reset form data with a complete replacement using deep clone
-    newPersonLocal.value = JSON.parse(JSON.stringify(props.newPerson));
-
-    logDebug("Dialog closed, form reset to:", newPersonLocal.value);
+    // Ensure we're not in new person form mode when dialog closes
+    if (props.showNewPersonForm) {
+        emit("cancelNewPersonForm");
+    }
 
     if (props.showNewPersonForm) {
         onCancelNewPersonForm();

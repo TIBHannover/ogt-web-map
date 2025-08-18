@@ -160,7 +160,9 @@
                             ($event) => emit('update:selectedLocation', $event)
                         "
                         @update:location-search="locationSearchValue = $event"
-                        @update:location-qualifier="locationQualifierValue = $event"
+                        @update:location-qualifier="
+                            locationQualifierValue = $event
+                        "
                         @search-location="onSearchLocation"
                         @handle-map-click="onHandleMapClick"
                         @field-focus="setActiveField"
@@ -538,7 +540,7 @@ const emit = defineEmits([
 const title = computed({
     get: () => props.formsTitle,
     set: (value) => {
-        console.log('EventsForm: Updating title to:', value);
+        console.log("EventsForm: Updating title to:", value);
         emit("update:formsTitle", value);
     },
 });
@@ -1001,6 +1003,7 @@ const canAddNewPerpetrator = computed(() => {
 const onTitleInput = () => emit("searchWikidataEntities");
 const onSelectExistingEntity = (entity) => emit("selectExistingEntity", entity);
 const onSearchPeople = (query) => {
+    console.log("EventsForm: Searching people with query:", query);
     if (query && query.length >= 2) {
         // Kurze Verzögerung, damit das Ladeicon nicht bei jeder Eingabe kurz aufflackert
         setTimeout(() => {
@@ -1015,11 +1018,24 @@ const onSearchPeople = (query) => {
     }
     emit("searchPeople", query);
 };
-const onSelectVictim = (person) => emit("selectVictim", person);
-const onStartNewVictimForm = () => emit("startNewVictimForm");
-const onCancelNewVictimForm = () => emit("cancelNewVictimForm");
+const onSelectVictim = (person) => {
+    console.log("EventsForm: Selected victim:", person);
+    emit("selectVictim", person);
+};
+const onStartNewVictimForm = () => {
+    console.log("EventsForm: Starting new victim form");
+    emit("startNewVictimForm");
+};
+const onCancelNewVictimForm = () => {
+    console.log("EventsForm: Canceling new victim form");
+    emit("cancelNewVictimForm");
+};
 
 const onAddNewVictim = () => {
+    console.log(
+        "EventsForm: Adding new victim with data:",
+        newVictimLocal.value,
+    );
     emit("update:newVictim", newVictimLocal.value);
     emit("addNewVictim");
 };

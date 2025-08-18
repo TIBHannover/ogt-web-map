@@ -3,9 +3,9 @@
 
 Gute Nachrichten! Ihre Eintragsanfrage wurde genehmigt und in Wikidata veröffentlicht.
 
-**Titel:** {{ $entryRequest->title }}
-**Typ:** {{ $entryRequest->type }}
-**Beschreibung:** {{ $entryRequest->description }}
+**Titel:** {{ $entryRequest->title }} <br>
+**Typ:** {{ $entryRequest->type }} <br>
+**Beschreibung:** {{ $entryRequest->description }} <br>
 **Veröffentlicht am:** {{ $entryRequest->status_updated_at->format('d.m.Y H:i') }}
 
 @if($wikidataUrl)
@@ -20,10 +20,10 @@ Eintrag auf der Karte ansehen
 @endcomponent
 @endif
 
-Vielen Dank für Ihren Beitrag zur Dokumentation historischer Ereignisse. Ihre Mitwirkung ist wichtig für die Bewahrung des kollektiven Gedächtnisses.
+Vielen Dank für deinen Beitrag zur Dokumentation historischer Ereignisse. Ihre Mitwirkung ist wichtig für die Bewahrung des kollektiven Gedächtnisses.
 
-Falls Sie Fragen haben oder weitere Informationen hinzufügen möchten, zögern Sie nicht, uns zu kontaktieren.
+Falls du Fragen haben oder weitere Informationen hinzufügen möchtest, zögern nicht, uns zu kontaktieren.
 
 Mit freundlichen Grüßen,<br>
-{{ config('app.name') }}
+Dein Gestapo.Terror.Orte. Team
 @endcomponent

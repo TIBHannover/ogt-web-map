@@ -380,94 +380,102 @@ class EntryStatusController extends Controller
                 Response::HTTP_INTERNAL_SERVER_ERROR,
             );
         }
+    }
 
-        /**
-         * Manually trigger a notification for testing purposes
-         *
-         * @param Request $request The HTTP request
-         * @return JsonResponse
-         */
-        public function sendManualNotification(Request $request): JsonResponse
-        {
-            try {
-                $validated = $request->validate([
-                    "token" => "required|string",
-                    "type" => "required|string|in:status,published",
-                ]);
+    /**
+     * Manually trigger a notification for testing purposes
+     *
+     * @param Request $request The HTTP request
+     * @return JsonResponse
+     */
+    public function sendManualNotification(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                "token" => "required|string",
+                "type" => "required|string|in:status,published",
+            ]);
 
-                // Find the entry request by token
-                $entryRequest = WikibaseEntryRequest::where(
-                    "status_token",
-                    $validated["token"],
-                )->first();
+            // Find the entry request by token
+            $entryRequest = WikibaseEntryRequest::where(
+                "status_token",
+                $validated["token"],
+            )->first();
 
-                if (!$entryRequest) {
-                    return response()->json(
-                        [
-                            "success" => false,
-                            "message" => "Eintrag nicht gefunden. Bitte überprüfen Sie den Token.",
-                        ],
-                        Response::HTTP_NOT_FOUND,
-                    );
-                }
-
-                // If no email is set, we can't send a notification
-                if (empty($entryRequest->email)) {
-                    return response()->json(
-                        [
-                            "success" => false,
-                            "message" => "Keine E-Mail-Adresse für diesen Eintrag hinterlegt.",
-                        ],
-                        Response::HTTP_BAD_REQUEST,
-                    );
-                }
-
-                Log::info("Manually triggering notification", [
-                    "entry_id" => $entryRequest->id,
-                    "email" => $entryRequest->email,
-                    "type" => $validated["type"],
-                ]);
-
-                if ($validated["type"] === "status") {
-                    // Send status link notification
-                    Mail::to($entryRequest->email)->send(
-                        new UserStatusLinkNotification($entryRequest),
-                    );
-
-                    return response()->json([
-                        "success" => true,
-                        "message" => "Status-Benachrichtigung wurde manuell gesendet.",
-                    ]);
-                } else if ($validated["type"] === "published") {
-                    // Send published notification
-                    Mail::to($entryRequest->email)->send(
-                        new UserEntryPublishedNotification($entryRequest),
-                    );
-
-                    return response()->json([
-                        "success" => true,
-                        "message" => "Veröffentlichungs-Benachrichtigung wurde manuell gesendet.",
-                    ]);
-                }
-
-                return response()->json([
-                    "success" => false,
-                    "message" => "Ungültiger Benachrichtigungstyp.",
-                ], Response::HTTP_BAD_REQUEST);
-            } catch (\Exception $e) {
-                Log::error("Failed to send manual notification", [
-                    "error" => $e->getMessage(),
-                    "trace" => $e->getTraceAsString(),
-                ]);
-
+            if (!$entryRequest) {
                 return response()->json(
                     [
                         "success" => false,
-                        "message" => "Ein Fehler ist aufgetreten: " . $e->getMessage(),
+                        "message" =>
+                            "Eintrag nicht gefunden. Bitte überprüfen Sie den Token.",
                     ],
-                    Response::HTTP_INTERNAL_SERVER_ERROR,
+                    Response::HTTP_NOT_FOUND,
                 );
             }
+
+            // If no email is set, we can't send a notification
+            if (empty($entryRequest->email)) {
+                return response()->json(
+                    [
+                        "success" => false,
+                        "message" =>
+                            "Keine E-Mail-Adresse für diesen Eintrag hinterlegt.",
+                    ],
+                    Response::HTTP_BAD_REQUEST,
+                );
+            }
+
+            Log::info("Manually triggering notification", [
+                "entry_id" => $entryRequest->id,
+                "email" => $entryRequest->email,
+                "type" => $validated["type"],
+            ]);
+
+            if ($validated["type"] === "status") {
+                // Send status link notification
+                Mail::to($entryRequest->email)->send(
+                    new UserStatusLinkNotification($entryRequest),
+                );
+
+                return response()->json([
+                    "success" => true,
+                    "message" =>
+                        "Status-Benachrichtigung wurde manuell gesendet.",
+                ]);
+            } elseif ($validated["type"] === "published") {
+                // Send published notification
+                Mail::to($entryRequest->email)->send(
+                    new UserEntryPublishedNotification($entryRequest),
+                );
+
+                return response()->json([
+                    "success" => true,
+                    "message" =>
+                        "Veröffentlichungs-Benachrichtigung wurde manuell gesendet.",
+                ]);
+            }
+
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" => "Ungültiger Benachrichtigungstyp.",
+                ],
+                Response::HTTP_BAD_REQUEST,
+            );
+        } catch (\Exception $e) {
+            Log::error("Failed to send manual notification", [
+                "error" => $e->getMessage(),
+                "trace" => $e->getTraceAsString(),
+            ]);
+
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" =>
+                        "Ein Fehler ist aufgetreten: " . $e->getMessage(),
+                ],
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+            );
         }
     }
 

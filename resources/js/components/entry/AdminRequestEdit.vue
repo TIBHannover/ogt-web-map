@@ -472,65 +472,96 @@ export default {
             // Check for missing fields in victims and perpetrators
             if (this.formData.victims && this.formData.victims.length > 0) {
                 console.log("First victim data:", this.formData.victims[0]);
-                console.log("First victim keys:", Object.keys(this.formData.victims[0]));
-                console.log("First victim has birthName:", this.formData.victims[0].hasOwnProperty('birthName'));
-                console.log("First victim has imageFilename:", this.formData.victims[0].hasOwnProperty('imageFilename'));
-                console.log("First victim has employer:", this.formData.victims[0].hasOwnProperty('employer'));
-                
+                console.log(
+                    "First victim keys:",
+                    Object.keys(this.formData.victims[0]),
+                );
+                console.log(
+                    "First victim has birthName:",
+                    this.formData.victims[0].hasOwnProperty("birthName"),
+                );
+                console.log(
+                    "First victim has imageFilename:",
+                    this.formData.victims[0].hasOwnProperty("imageFilename"),
+                );
+                console.log(
+                    "First victim has employer:",
+                    this.formData.victims[0].hasOwnProperty("employer"),
+                );
+
                 // Add missing fields to victims if needed
-                this.formData.victims.forEach(victim => {
+                this.formData.victims.forEach((victim) => {
                     // Make sure role is set to 'victim'
-                    victim.role = 'victim';
-                    if (!victim.hasOwnProperty('birthName')) {
-                        victim.birthName = '';
+                    victim.role = "victim";
+                    if (!victim.hasOwnProperty("birthName")) {
+                        victim.birthName = "";
                         console.log("Added missing birthName field to victim");
                     }
-                    
-                    if (!victim.hasOwnProperty('imageUrl')) {
+
+                    if (!victim.hasOwnProperty("imageUrl")) {
                         victim.imageUrl = null;
                         console.log("Added missing imageUrl field to victim");
                     }
-                    
-                    if (!victim.hasOwnProperty('imageFilename')) {
+
+                    if (!victim.hasOwnProperty("imageFilename")) {
                         victim.imageFilename = null;
-                        console.log("Added missing imageFilename field to victim");
+                        console.log(
+                            "Added missing imageFilename field to victim",
+                        );
                     }
-                    
-                    if (!victim.hasOwnProperty('employer')) {
+
+                    if (!victim.hasOwnProperty("employer")) {
                         victim.employer = null;
                         console.log("Added missing employer field to victim");
                     }
                 });
             }
-            
-            if (this.formData.perpetrators && this.formData.perpetrators.length > 0) {
-                console.log("First perpetrator data:", this.formData.perpetrators[0]);
-                console.log("First perpetrator keys:", Object.keys(this.formData.perpetrators[0]));
-                
+
+            if (
+                this.formData.perpetrators &&
+                this.formData.perpetrators.length > 0
+            ) {
+                console.log(
+                    "First perpetrator data:",
+                    this.formData.perpetrators[0],
+                );
+                console.log(
+                    "First perpetrator keys:",
+                    Object.keys(this.formData.perpetrators[0]),
+                );
+
                 // Add missing fields to perpetrators if needed
-                this.formData.perpetrators.forEach(perpetrator => {
-                    if (!perpetrator.hasOwnProperty('birthName')) {
-                        perpetrator.birthName = '';
-                        console.log("Added missing birthName field to perpetrator");
+                this.formData.perpetrators.forEach((perpetrator) => {
+                    if (!perpetrator.hasOwnProperty("birthName")) {
+                        perpetrator.birthName = "";
+                        console.log(
+                            "Added missing birthName field to perpetrator",
+                        );
                     }
-                    
-                    if (!perpetrator.hasOwnProperty('imageUrl')) {
+
+                    if (!perpetrator.hasOwnProperty("imageUrl")) {
                         perpetrator.imageUrl = null;
-                        console.log("Added missing imageUrl field to perpetrator");
+                        console.log(
+                            "Added missing imageUrl field to perpetrator",
+                        );
                     }
-                    
-                    if (!perpetrator.hasOwnProperty('imageFilename')) {
+
+                    if (!perpetrator.hasOwnProperty("imageFilename")) {
                         perpetrator.imageFilename = null;
-                        console.log("Added missing imageFilename field to perpetrator");
+                        console.log(
+                            "Added missing imageFilename field to perpetrator",
+                        );
                     }
-                    
-                    if (!perpetrator.hasOwnProperty('employer')) {
+
+                    if (!perpetrator.hasOwnProperty("employer")) {
                         perpetrator.employer = null;
-                        console.log("Added missing employer field to perpetrator");
+                        console.log(
+                            "Added missing employer field to perpetrator",
+                        );
                     }
-                    
+
                     // Make sure role is set to 'perpetrator'
-                    perpetrator.role = 'perpetrator';
+                    perpetrator.role = "perpetrator";
                 });
             }
 
@@ -1233,32 +1264,123 @@ export default {
 
         // Start adding a new victim
         startNewVictimForm() {
-            // Implementation depends on your component structure
+            console.log("AdminRequestEdit: Starting new victim form");
+            // Reset the new victim to default values first
+            this.newVictim = {
+                firstName: "",
+                lastName: "",
+                birthDate: null,
+                deathDate: null,
+                description: "",
+                birthName: "",
+                gender: null,
+                isOrganization: false,
+                nationality: null,
+                place_of_birth: null,
+                place_of_death: null,
+                place_of_detention: null,
+                imageUrl: null,
+                imageFilename: null,
+                employer: null,
+                role: "victim",
+            };
+
+            // Then show the form
             this.showNewVictimForm = true;
+            console.log(
+                "AdminRequestEdit: showNewVictimForm set to",
+                this.showNewVictimForm,
+            );
         },
 
         // Cancel adding a new victim
         cancelNewVictimForm() {
-            // Implementation depends on your component structure
+            console.log("AdminRequestEdit: Canceling new victim form");
+            // Reset the victim data and hide the form
+            this.newVictim = {
+                firstName: "",
+                lastName: "",
+                birthDate: null,
+                deathDate: null,
+                description: "",
+                birthName: "",
+                gender: null,
+                isOrganization: false,
+                nationality: null,
+                place_of_birth: null,
+                place_of_death: null,
+                place_of_detention: null,
+                imageUrl: null,
+                imageFilename: null,
+                employer: null,
+                role: "victim",
+            };
             this.showNewVictimForm = false;
+            console.log(
+                "AdminRequestEdit: showNewVictimForm set to",
+                this.showNewVictimForm,
+            );
         },
 
         // Add a new victim
         addNewVictim(person) {
+            console.log(
+                "AdminRequestEdit: Adding new victim",
+                person || this.newVictim,
+            );
+
             if (!this.formData.victims) {
                 this.formData.victims = [];
             }
 
-            // Use the passed person or the form data
-            const newVictim = person || this.newVictim || {};
+            // Make a deep copy to avoid reference issues
+            const victimData = JSON.parse(
+                JSON.stringify(person || this.newVictim || {}),
+            );
 
             // Add a temporary ID if none exists
-            if (!newVictim.id && !newVictim.tempId) {
-                newVictim.tempId = "temp_" + new Date().getTime();
+            if (!victimData.id && !victimData.tempId) {
+                victimData.tempId = "temp_" + new Date().getTime();
             }
 
-            this.formData.victims.push(newVictim);
+            // Make sure role is set
+            if (!victimData.role) {
+                victimData.role = "victim";
+            }
+
+            // Add to victims array
+            this.formData.victims.push(victimData);
+            console.log(
+                "AdminRequestEdit: Added victim to formData.victims",
+                victimData,
+            );
+
+            // Reset the form
+            this.newVictim = {
+                firstName: "",
+                lastName: "",
+                birthDate: null,
+                deathDate: null,
+                description: "",
+                birthName: "",
+                gender: null,
+                isOrganization: false,
+                nationality: null,
+                place_of_birth: null,
+                place_of_death: null,
+                place_of_detention: null,
+                imageUrl: null,
+                imageFilename: null,
+                employer: null,
+                role: "victim",
+            };
+
+            // Hide the form
             this.showNewVictimForm = false;
+            console.log(
+                "AdminRequestEdit: showNewVictimForm set to",
+                this.showNewVictimForm,
+            );
         },
 
         // Select a perpetrator
@@ -1288,13 +1410,51 @@ export default {
 
         // Start adding a new perpetrator
         startNewPerpetratorForm() {
-            // Implementation depends on your component structure
+            // Reset the new perpetrator to default values first
+            this.newPerpetrator = {
+                firstName: "",
+                lastName: "",
+                birthDate: null,
+                deathDate: null,
+                description: "",
+                birthName: "",
+                gender: null,
+                isOrganization: false,
+                nationality: null,
+                place_of_birth: null,
+                place_of_death: null,
+                place_of_detention: null,
+                imageUrl: null,
+                imageFilename: null,
+                employer: null,
+                role: "perpetrator",
+            };
+
+            // Then show the form
             this.showNewPerpetratorForm = true;
         },
 
         // Cancel adding a new perpetrator
         cancelNewPerpetratorForm() {
-            // Implementation depends on your component structure
+            // Reset the perpetrator data and hide the form
+            this.newPerpetrator = {
+                firstName: "",
+                lastName: "",
+                birthDate: null,
+                deathDate: null,
+                description: "",
+                birthName: "",
+                gender: null,
+                isOrganization: false,
+                nationality: null,
+                place_of_birth: null,
+                place_of_death: null,
+                place_of_detention: null,
+                imageUrl: null,
+                imageFilename: null,
+                employer: null,
+                role: "perpetrator",
+            };
             this.showNewPerpetratorForm = false;
         },
 
@@ -1304,15 +1464,45 @@ export default {
                 this.formData.perpetrators = [];
             }
 
-            // Use the passed person or the form data
-            const newPerpetrator = person || this.newPerpetrator || {};
+            // Make a deep copy to avoid reference issues
+            const perpetratorData = JSON.parse(
+                JSON.stringify(person || this.newPerpetrator || {}),
+            );
 
             // Add a temporary ID if none exists
-            if (!newPerpetrator.id && !newPerpetrator.tempId) {
-                newPerpetrator.tempId = "temp_" + new Date().getTime();
+            if (!perpetratorData.id && !perpetratorData.tempId) {
+                perpetratorData.tempId = "temp_" + new Date().getTime();
             }
 
-            this.formData.perpetrators.push(newPerpetrator);
+            // Make sure role is set
+            if (!perpetratorData.role) {
+                perpetratorData.role = "perpetrator";
+            }
+
+            // Add to perpetrators array
+            this.formData.perpetrators.push(perpetratorData);
+
+            // Reset the form
+            this.newPerpetrator = {
+                firstName: "",
+                lastName: "",
+                birthDate: null,
+                deathDate: null,
+                description: "",
+                birthName: "",
+                gender: null,
+                isOrganization: false,
+                nationality: null,
+                place_of_birth: null,
+                place_of_death: null,
+                place_of_detention: null,
+                imageUrl: null,
+                imageFilename: null,
+                employer: null,
+                role: "perpetrator",
+            };
+
+            // Hide the form
             this.showNewPerpetratorForm = false;
         },
 
