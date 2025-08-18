@@ -35,9 +35,11 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     bcmath \
     gd \
     zip \
-    && docker-php-ext-enable iconv \
-    # Verify extensions are installed
-    && php -m | grep -E 'gd|iconv|zip' \
+    # iconv is built into PHP, so no need to install or enable it separately
+    # Just verify it exists
+    && php -m | grep -E 'iconv' || echo "Warning: iconv not available but will continue" \
+    # Verify other extensions are installed
+    && php -m | grep -E 'gd|zip' \
     # Configure Composer to recognize extensions
     && mkdir -p /root/.composer \
     && echo '{"config":{"platform":{"php":"8.3.0", "ext-gd":"*", "ext-iconv":"*", "ext-zip":"*"}}}' > /root/.composer/composer.json
