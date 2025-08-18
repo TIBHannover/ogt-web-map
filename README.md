@@ -104,9 +104,10 @@ Software you need to run the OGT website:
 2. Build and start Docker containers
    ```sh
    cd ogt-api/
-   cp .env.local .env
+   cp .env.example .env
    docker compose -f compose.local.yml build
    docker compose -f compose.local.yml up -d
+   npm install
    ```
 
 3. Compile assets for development
