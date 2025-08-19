@@ -1225,67 +1225,30 @@ class WikidataEntityController extends Controller
                 );
 
                 // Update status to wikidata_published
+                // This will trigger the email notification in EntryStatusController->sendStatusChangeNotifications
                 $statusController->updateStatusHistory(
                     $entryRequest,
                     "wikidata_published",
                     "Eintrag erfolgreich erstellt mit Wikidata-ID: {$entityId}",
                 );
 
-                // Send email notification if user opted in
-                if ($entryRequest->email && $entryRequest->notify_on_publish) {
-                    Log::info(
-                        "Attempting to send publication notification from callback handler",
-                        [
-                            "email" => $entryRequest->email,
-                            "entry_id" => $entryId,
-                            "entity_id" => $entityId,
-                            "status" => $entryRequest->status,
-                        ],
-                    );
+                // Log whether notification conditions were met
+                Log::info(
+                    "Notification handling delegated to EntryStatusController",
+                    [
+                        "entry_id" => $entryId,
+                        "has_email" => !empty($entryRequest->email)
+                            ? "yes"
+                            : "no",
+                        "notify_on_publish" => $entryRequest->notify_on_publish
+                            ? "yes"
+                            : "no",
+                        "email" => $entryRequest->email ?? "not set",
+                        "status" => "wikidata_published",
+                    ],
+                );
 
-                    try {
-                        \Illuminate\Support\Facades\Mail::to(
-                            $entryRequest->email,
-                        )->send(
-                            new \App\Mail\UserEntryPublishedNotification(
-                                $entryRequest,
-                            ),
-                        );
-
-                        Log::info("Sent published notification email to user", [
-                            "entry_id" => $entryId,
-                            "entity_id" => $entityId,
-                            "email" => $entryRequest->email,
-                        ]);
-                    } catch (\Exception $e) {
-                        Log::error(
-                            "Failed to send published notification email",
-                            [
-                                "entry_id" => $entryId,
-                                "entity_id" => $entityId,
-                                "email" => $entryRequest->email,
-                                "error" => $e->getMessage(),
-                                "trace" => $e->getTraceAsString(),
-                                "class" => get_class($e),
-                            ],
-                        );
-                        // Continue with the process even if email fails
-                    }
-                } else {
-                    Log::warning(
-                        "Skipping publication notification - missing email or opt-in",
-                        [
-                            "entry_id" => $entryId,
-                            "has_email" => !empty($entryRequest->email)
-                                ? "yes"
-                                : "no",
-                            "notify_on_publish" => $entryRequest->notify_on_publish
-                                ? "yes"
-                                : "no",
-                            "status" => $entryRequest->status,
-                        ],
-                    );
-                }
+                // Do not log a warning about skipping notification since EntryStatusController will handle it
 
                 Log::info(
                     "Updated entry status after successful Wikidata creation",

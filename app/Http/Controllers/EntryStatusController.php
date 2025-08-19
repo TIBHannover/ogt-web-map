@@ -210,7 +210,7 @@ class EntryStatusController extends Controller
         string $newStatus,
     ): void {
         try {
-            // Log entry to track execution path
+            // Log entry to track execution path with more details
             Log::info("Checking notification conditions", [
                 "entry_id" => $entryRequest->id,
                 "status" => $newStatus,
@@ -220,9 +220,32 @@ class EntryStatusController extends Controller
                     : "false",
                 "email" => $entryRequest->email ?? "not set",
                 "wikidata_id" => $entryRequest->wikidata_id ?? "not set",
+                "status_exactly_wikidata_published" =>
+                    $newStatus === "wikidata_published" ? "true" : "false",
+                "email_empty_check" => empty($entryRequest->email)
+                    ? "true"
+                    : "false",
+                "notify_flag_check" => $entryRequest->notify_on_publish
+                    ? "true"
+                    : "false",
             ]);
 
             // Send notification for wikidata_published status
+            Log::info("Evaluating email notification conditions", [
+                "status" => $newStatus,
+                "status_is_wikidata_published" =>
+                    $newStatus === "wikidata_published" ? "true" : "false",
+                "notify_on_publish" => $entryRequest->notify_on_publish
+                    ? "true"
+                    : "false",
+                "email" => $entryRequest->email ?? "empty",
+                "condition_result" =>
+                    $newStatus === "wikidata_published" &&
+                    $entryRequest->notify_on_publish
+                        ? "true"
+                        : "false",
+            ]);
+
             if (
                 $newStatus === "wikidata_published" &&
                 $entryRequest->notify_on_publish
@@ -241,25 +264,51 @@ class EntryStatusController extends Controller
                 Log::info("Sending publication notification email", [
                     "to" => $entryRequest->email,
                     "entry_id" => $entryRequest->id,
+                    "status" => $newStatus,
+                    "wikidata_id" => $entryRequest->wikidata_id ?? "not set",
                 ]);
 
-                Mail::to($entryRequest->email)->send(
-                    new UserEntryPublishedNotification($entryRequest),
-                );
+                try {
+                    Mail::to($entryRequest->email)->send(
+                        new UserEntryPublishedNotification($entryRequest),
+                    );
+
+                    // Check if mail was sent successfully
+                    if (count(Mail::failures()) > 0) {
+                        Log::error("Failed to send notification email", [
+                            "entry_id" => $entryRequest->id,
+                            "email" => $entryRequest->email,
+                            "failures" => Mail::failures(),
+                        ]);
+                    }
+                } catch (\Exception $mailException) {
+                    Log::error("Exception while sending notification email", [
+                        "entry_id" => $entryRequest->id,
+                        "email" => $entryRequest->email,
+                        "exception" => $mailException->getMessage(),
+                        "trace" => $mailException->getTraceAsString(),
+                    ]);
+                }
 
                 Log::info("Sent published notification email to user", [
                     "entry_id" => $entryRequest->id,
                     "email" => $entryRequest->email,
+                    "status" => $newStatus,
+                    "wikidata_id" => $entryRequest->wikidata_id ?? "not set",
                 ]);
             } else {
                 Log::info("Skipping notification - conditions not met", [
                     "status" => $newStatus,
-                    "is_published_status" =>
+                    "status_match" =>
                         $newStatus === "wikidata_published" ? "true" : "false",
                     "notify_on_publish" => $entryRequest->notify_on_publish
                         ? "true"
                         : "false",
                     "entry_id" => $entryRequest->id,
+                    "has_email" => !empty($entryRequest->email)
+                        ? "true"
+                        : "false",
+                    "email" => $entryRequest->email ?? "not set",
                 ]);
             }
         } catch (\Exception $e) {

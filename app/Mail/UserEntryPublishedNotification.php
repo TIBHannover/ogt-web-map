@@ -8,7 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class UserEntryPublishedNotification extends Mailable
+class UserEntryPublishedNotification extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -53,7 +53,7 @@ class UserEntryPublishedNotification extends Mailable
         // This assumes there's a way to link directly to the entity on the map
         $this->mapUrl = null;
         if ($entryRequest->wikidata_id) {
-            $baseUrl = config('app.url');
+            $baseUrl = config("app.url");
             $this->mapUrl = "{$baseUrl}/map?entity={$entryRequest->wikidata_id}";
         }
     }
@@ -65,7 +65,8 @@ class UserEntryPublishedNotification extends Mailable
      */
     public function build()
     {
-        return $this->subject('Ihr Eintrag wurde veröffentlicht: ' . $this->entryRequest->title)
-                    ->markdown('emails.user.entry-published');
+        return $this->subject(
+            "Ihr Eintrag wurde veröffentlicht: " . $this->entryRequest->title,
+        )->markdown("emails.user.entry-published");
     }
 }

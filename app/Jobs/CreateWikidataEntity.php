@@ -223,6 +223,42 @@ class CreateWikidataEntity implements ShouldQueue
 
                 // Create a job for this related entity that will run after the main entity
                 // Always use the main entity as parent, not a previous entity in the chain
+
+                // Store the main entity ID in a special field to ensure we use it even if globals change
+                $entity["_main_entity_id_placeholder"] = "__MAIN_ENTITY_ID__";
+
+                // Ensure the entity data includes the relationship type as the role
+                if ($relationshipType) {
+                    // Always set both role and relationship_type to ensure consistency
+                    $entity["role"] = $relationshipType;
+                    $entity["relationship_type"] = $relationshipType;
+
+                    // Store parent relationship info in the entity data
+                    $entity["_parent_is_main_event"] = true;
+                    $entity["_main_event_relationship"] = $relationshipType;
+
+                    Log::info(
+                        "Setting role and relationship properties for job chain entity",
+                        [
+                            "relationship_type" => $relationshipType,
+                            "entity_name" =>
+                                $entity["name"] ??
+                                ($entity["title"] ?? "Unknown"),
+                            "role" => $relationshipType,
+                            "temp_id" =>
+                                $entity["tempId"] ??
+                                ($entity["temp_id"] ?? null),
+                        ],
+                    );
+                }
+
+                // Create an entity key to identify this entity in the chain
+                $entityKey = uniqid("entity_", true);
+
+                // Store the entity data for future reference
+                $entity["_entity_chain_key"] = $entityKey;
+                $entity["_main_entity_type"] = $entityType;
+
                 $childJob = new self(
                     $entity,
                     $entityType,
@@ -231,6 +267,10 @@ class CreateWikidataEntity implements ShouldQueue
                     $relationshipType,
                     null, // No request ID for child entities
                 );
+
+                // Store the relationship type and role in entity data for clarity
+                $entity["_job_chain_relationship"] = $relationshipType;
+                $entity["_parent_placeholder"] = "__MAIN_ENTITY_ID__";
 
                 Log::info(
                     "createEntityWithRelated: Added entity to job chain",
@@ -410,6 +450,36 @@ class CreateWikidataEntity implements ShouldQueue
                 define("LARAVEL_QUEUE_WORKER", true);
             }
 
+            // Ensure role and relationship_type are consistent
+            if (
+                isset($this->entityData["role"]) &&
+                isset($this->relationshipType) &&
+                $this->entityData["role"] !== $this->relationshipType
+            ) {
+                Log::warning(
+                    "Inconsistent role and relationship_type in job data",
+                    [
+                        "role" => $this->entityData["role"],
+                        "relationship_type" => $this->relationshipType,
+                        "entity_type" => $this->entityType,
+                        "title" => $this->entityData["title"] ?? "Unknown",
+                    ],
+                );
+            }
+
+            // Check if this is the main entity (no parent ID)
+            $isMainEntity = empty($this->parentEntityId);
+
+            // If this is the main event entity (first entity in the chain), store its ID
+            // in a dedicated global variable for all person entities to reference
+            if ($isMainEntity && $this->entityType === "Q6983405") {
+                // We will set the main_event_entity_id global after successful creation
+                Log::info("This is the main event entity in the job chain", [
+                    "entity_type" => $this->entityType,
+                    "title" => $this->entityData["title"] ?? "Unknown",
+                ]);
+            }
+
             // Validate and log environment settings for debugging
             $botUsername = config("wikidata.bot_username");
             Log::info("Entity creation job using bot credentials", [
@@ -444,15 +514,79 @@ class CreateWikidataEntity implements ShouldQueue
             // This is for child entities that were chained after the main entity was created
             if (
                 $this->parentEntityId === "__MAIN_ENTITY_ID__" &&
-                isset($GLOBALS["last_created_entity_id"])
+                (isset($GLOBALS["main_event_entity_id"]) ||
+                    isset($GLOBALS["last_created_entity_id"]))
             ) {
-                $this->parentEntityId = $GLOBALS["last_created_entity_id"];
+                // Store original parent ID before updating it
+                $originalParentId = $this->parentEntityId;
+
+                // For victims and perpetrators, ALWAYS link to the main event
+                // This ensures proper entity relationships regardless of execution order
+                // This is the critical fix for the parent-child relationship issue
+
+                // CRITICAL FIX: Always use the main event ID for ALL person entities
+                // This ensures all victims and perpetrators link directly to the event
+                // regardless of the order in which they are created
+                if (isset($GLOBALS["main_event_entity_id"])) {
+                    // IMPORTANT: Always use main_event_entity_id for ALL related entities
+                    // This is the key fix to ensure proper parent-child relationships
+                    $this->parentEntityId = $GLOBALS["main_event_entity_id"];
+
+                    // Store this directly in entity data as well
+                    $this->entityData["_main_event_id"] =
+                        $GLOBALS["main_event_entity_id"];
+
+                    Log::info(
+                        "Using main event ID as parent for related entity",
+                        [
+                            "entity_type" => $this->entityType,
+                            "relationship" => $this->relationshipType,
+                            "main_event_id" => $GLOBALS["main_event_entity_id"],
+                            "entity_role" =>
+                                $this->entityData["role"] ?? "not set",
+                        ],
+                    );
+                } else {
+                    // Fallback to last created entity, but log a warning
+                    $this->parentEntityId = $GLOBALS["last_created_entity_id"];
+                    Log::warning(
+                        "Main event ID global variable not found - using fallback",
+                        [
+                            "fallback_id" => $GLOBALS["last_created_entity_id"],
+                            "entity_type" => $this->entityType,
+                            "relationship" => $this->relationshipType,
+                        ],
+                    );
+                }
+
+                // Also ensure that relationship_type is set correctly in the entity data
+                if (
+                    !isset($this->entityData["relationship_type"]) &&
+                    $this->relationshipType
+                ) {
+                    $this->entityData["relationship_type"] =
+                        $this->relationshipType;
+                }
+
+                // Ensure role matches relationship_type for consistency
+                if (
+                    !isset($this->entityData["role"]) &&
+                    $this->relationshipType
+                ) {
+                    $this->entityData["role"] = $this->relationshipType;
+                }
+
                 Log::info(
                     "Replaced parent entity ID placeholder with actual ID",
                     [
                         "parent_id" => $this->parentEntityId,
                         "entity_type" => $this->entityType,
                         "relationship" => $this->relationshipType,
+                        "original_parent_id" => $originalParentId,
+                        "has_role" => isset($this->entityData["role"])
+                            ? "yes"
+                            : "no",
+                        "role" => $this->entityData["role"] ?? "not set",
                     ],
                 );
 
@@ -770,11 +904,17 @@ class CreateWikidataEntity implements ShouldQueue
                     // For debugging - track job chain execution
                     if (empty($this->parentEntityId)) {
                         // This is the main entity in a chain
+                        // Store the main event ID in a global variable for all entities in the chain to use
+                        $GLOBALS["main_event_entity_id"] = $entityId;
+
+                        // Indicate this is the main entity in a job chain
                         Log::info(
                             "Main entity in job chain created - child jobs should execute next",
                             [
                                 "entity_id" => $entityId,
                                 "type" => $this->entityType,
+                                "stored_as_main_event" => "yes",
+                                "main_event_id" => $entityId,
                             ],
                         );
 
@@ -1960,6 +2100,9 @@ class CreateWikidataEntity implements ShouldQueue
     /**
      * Link this entity to its parent entity
      *
+     * For victims and perpetrators, ensures they are always linked to the main event entity
+     * rather than to each other, to maintain correct data relationships
+     *
      * @param WikibaseService $wikidataService
      * @param string $entityId The newly created entity ID
      * @return void
@@ -1968,6 +2111,56 @@ class CreateWikidataEntity implements ShouldQueue
         WikibaseService $wikidataService,
         string $entityId,
     ) {
+        // CRITICAL FIX: For any person entity (victim or perpetrator), ALWAYS use the main event ID
+        // as the parent - this ensures the correct data structure in Wikidata
+        if (
+            $this->entityType === "Q5" && // Person entity type
+            isset($GLOBALS["main_event_entity_id"])
+        ) {
+            // Only log if we're changing the parent
+            if ($this->parentEntityId !== $GLOBALS["main_event_entity_id"]) {
+                Log::info(
+                    "OVERRIDE: Forcing main event as parent for person entity",
+                    [
+                        "entity_id" => $entityId,
+                        "original_parent" => $this->parentEntityId,
+                        "main_event_id" => $GLOBALS["main_event_entity_id"],
+                        "relationship_type" => $this->relationshipType,
+                        "entity_role" => $this->entityData["role"] ?? "not set",
+                    ],
+                );
+            }
+
+            // CRITICAL: Always use the main event as parent for all person entities
+            // This is the key fix to ensure proper data relationships in Wikidata
+            $this->parentEntityId = $GLOBALS["main_event_entity_id"];
+
+            // Also update the significant_event_id to ensure proper back-links
+            if (isset($this->entityData["significant_event_id"])) {
+                $this->entityData["significant_event_id"] =
+                    $GLOBALS["main_event_entity_id"];
+            }
+
+            // Make sure role and relationship_type are set correctly and consistently
+            if ($this->relationshipType) {
+                $this->entityData["role"] = $this->relationshipType;
+                $this->entityData["relationship_type"] =
+                    $this->relationshipType;
+
+                // Log the relationship for debugging
+                Log::info("Setting consistent role and relationship type", [
+                    "entity_id" => $entityId,
+                    "relationship_type" => $this->relationshipType,
+                    "role" => $this->relationshipType,
+                    "parent_id" => $this->parentEntityId,
+                    "parent_is_main_event" =>
+                        $this->parentEntityId ===
+                        $GLOBALS["main_event_entity_id"]
+                            ? "yes"
+                            : "no",
+                ]);
+            }
+        }
         try {
             // Check if we have a parent entity ID and relationship type
             if (empty($this->parentEntityId)) {
@@ -1994,15 +2187,137 @@ class CreateWikidataEntity implements ShouldQueue
 
             // Double check that we're not using a placeholder parent ID
             if ($this->parentEntityId === "__MAIN_ENTITY_ID__") {
-                Log::error(
-                    "Cannot link to parent - parent ID is still a placeholder",
-                    [
+                // Try one more time to replace the placeholder with the correct main event ID
+                if (isset($GLOBALS["main_event_entity_id"])) {
+                    $this->parentEntityId = $GLOBALS["main_event_entity_id"];
+                    Log::info("Fixed placeholder parent ID at linking time", [
                         "entity_id" => $entityId,
-                        "parent_id" => $this->parentEntityId,
+                        "main_event_id" => $this->parentEntityId,
                         "relationship" => $this->relationshipType,
-                    ],
+                        "role" => $this->entityData["role"] ?? "not set",
+                    ]);
+                } elseif (isset($GLOBALS["last_created_entity_id"])) {
+                    // Fallback to last created entity if main event ID is not available
+                    $this->parentEntityId = $GLOBALS["last_created_entity_id"];
+                    Log::warning(
+                        "Using last_created_entity_id as fallback - main_event_entity_id not found",
+                        [
+                            "entity_id" => $entityId,
+                            "last_created_id" => $this->parentEntityId,
+                            "relationship" => $this->relationshipType,
+                        ],
+                    );
+                } else {
+                    Log::error(
+                        "Cannot link to parent - parent ID is still a placeholder",
+                        [
+                            "entity_id" => $entityId,
+                            "parent_id" => $this->parentEntityId,
+                            "relationship" => $this->relationshipType,
+                        ],
+                    );
+                    return;
+                }
+            }
+
+            // Verify that we're linking to the correct parent type
+            // Events (Q6983405) should be the parent for both victims and perpetrators
+            if (
+                $this->relationshipType === "perpetrator" ||
+                $this->relationshipType === "victim"
+            ) {
+                // For person entities, check if we're linking to a person instead of an event
+                // This would indicate an incorrect parent-child relationship
+                $mappingProvider = app(
+                    \App\Services\EntityMapping\EntityMappingProviderInterface::class,
                 );
-                return;
+
+                // For person entities (victims/perpetrators), ALWAYS link to the main event entity
+                // This is the critical fix for the parent-child relationship issue
+                // All victims and perpetrators must link directly to the event entity,
+                // not to each other, to maintain correct data relationships in Wikidata
+                if (isset($GLOBALS["main_event_entity_id"])) {
+                    // Only log a warning if we were about to use the wrong parent
+                    if (
+                        $GLOBALS["main_event_entity_id"] !==
+                        $this->parentEntityId
+                    ) {
+                        Log::warning(
+                            "FIXING RELATIONSHIP: Entity would be linked to wrong parent - correcting to main event",
+                            [
+                                "entity_id" => $entityId,
+                                "entity_type" => $this->entityType,
+                                "incorrect_parent_id" => $this->parentEntityId,
+                                "correct_main_event_id" =>
+                                    $GLOBALS["main_event_entity_id"],
+                                "relationship" => $this->relationshipType,
+                                "entity_role" =>
+                                    $this->entityData["role"] ?? "not set",
+                            ],
+                        );
+                    }
+
+                    // CRITICAL FIX: Always use the main event ID for victims and perpetrators
+                    $this->parentEntityId = $GLOBALS["main_event_entity_id"];
+
+                    // Set the parent entity ID directly in the entity data as well
+                    $this->entityData["parent_entity_id"] =
+                        $GLOBALS["main_event_entity_id"];
+
+                    // Ensure the significant_event property will use the main event
+                    if (isset($this->entityData["significant_event_id"])) {
+                        $this->entityData["significant_event_id"] =
+                            $GLOBALS["main_event_entity_id"];
+                    }
+
+                    // Log the parent ID usage for transparency
+                    Log::info("Using main event as parent for person entity", [
+                        "entity_id" => $entityId,
+                        "main_event_id" => $GLOBALS["main_event_entity_id"],
+                        "relationship" => $this->relationshipType,
+                        "entity_role" => $this->entityData["role"] ?? "not set",
+                    ]);
+                } else {
+                    Log::warning(
+                        "Cannot ensure correct parent - main_event_entity_id not available",
+                        [
+                            "entity_id" => $entityId,
+                            "current_parent_id" => $this->parentEntityId,
+                        ],
+                    );
+                }
+
+                // Check if role matches relationship_type for consistency
+                if (
+                    isset($this->entityData["role"]) &&
+                    $this->entityData["role"] !== $this->relationshipType
+                ) {
+                    Log::warning("Role and relationship_type mismatch", [
+                        "entity_id" => $entityId,
+                        "role" => $this->entityData["role"] ?? "not set",
+                        "relationship_type" => $this->relationshipType,
+                        "will_use" => $this->relationshipType, // We'll use the relationship_type for linking
+                    ]);
+
+                    // Fix the role to match the relationship_type
+                    $this->entityData["role"] = $this->relationshipType;
+                }
+
+                // Log the parent ID and relationship for debugging
+                Log::info("Verifying parent entity for person relationship", [
+                    "entity_id" => $entityId,
+                    "parent_id" => $this->parentEntityId,
+                    "relationship" => $this->relationshipType,
+                    "entity_data_role" =>
+                        $this->entityData["role"] ?? "not set",
+                    "entity_data_has_relationship_type" => isset(
+                        $this->entityData["relationship_type"],
+                    )
+                        ? "yes"
+                        : "no",
+                    "entity_data_relationship_type" =>
+                        $this->entityData["relationship_type"] ?? "not set",
+                ]);
             }
 
             Log::info("Linking entity to parent", [

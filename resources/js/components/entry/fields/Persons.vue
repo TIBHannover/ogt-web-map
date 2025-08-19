@@ -908,11 +908,18 @@ const onStartNewPersonForm = () => {
     basePersonData.isOrganization = organizationMode.value;
 
     // Set role based on label
-    basePersonData.role = props.label.toLowerCase().includes("täter")
+    const role = props.label.toLowerCase().includes("täter")
         ? "perpetrator"
         : props.label.toLowerCase().includes("opfer")
           ? "victim"
           : "";
+
+    // Set both role and relationship_type to ensure consistency
+    basePersonData.role = role;
+    basePersonData.relationship_type = role;
+
+    // Log the role assignment for debugging
+    console.log(`Setting role and relationship_type for new person: ${role}`);
 
     // Use the search query to prefill name fields
     if (searchQuery.value) {
@@ -944,6 +951,18 @@ const onCancelNewPersonForm = () => {
 const onAddNewPerson = () => {
     // Store a local copy of the current data before any changes
     const dataToAdd = JSON.parse(JSON.stringify(newPersonLocal.value));
+
+    // Ensure both role and relationship_type are set consistently
+    if (dataToAdd.role && !dataToAdd.relationship_type) {
+        dataToAdd.relationship_type = dataToAdd.role;
+    } else if (dataToAdd.relationship_type && !dataToAdd.role) {
+        dataToAdd.role = dataToAdd.relationship_type;
+    }
+
+    // For debugging - log the role assignment
+    console.log(
+        `Adding new person with role: ${dataToAdd.role}, relationship_type: ${dataToAdd.relationship_type}`,
+    );
 
     // Update parent with data to add (do this before resetting)
     emit("update:newPerson", dataToAdd);
