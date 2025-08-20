@@ -305,6 +305,7 @@
                                         : "Neue Person anlegen"
                             }}
                         </h4>
+                        <!--
                         <div class="form-group" v-if="!hideIsOrganisation">
                             <v-checkbox
                                 v-model="newPersonLocal.isOrganization"
@@ -313,6 +314,7 @@
                                 class="mb-3"
                             ></v-checkbox>
                         </div>
+                        -->
                         <div class="form-group">
                             <v-text-field
                                 v-model="newPersonLocal.firstName"
@@ -373,21 +375,6 @@
                                 placeholder="Geburtsname, falls abweichend vom aktuellen Namen"
                             >
                             </text-field>
-                        </div>
-
-                        <!-- Image field -->
-                        <div class="form-group">
-                            <image-selector
-                                :image-url="newPersonLocal.imageUrl"
-                                :image-filename="newPersonLocal.imageFilename"
-                                @update:image-url="
-                                    newPersonLocal.imageUrl = $event
-                                "
-                                @update:image-filename="
-                                    newPersonLocal.imageFilename = $event
-                                "
-                            >
-                            </image-selector>
                         </div>
 
                         <!-- Arbeitgeber / Employer (P108) - only for perpetrators -->
@@ -547,6 +534,23 @@
                                     )
                                 "
                             ></wikidata-selector>
+
+                            <!-- Image field -->
+                            <div class="form-group">
+                                <image-selector
+                                    :image-url="newPersonLocal.imageUrl"
+                                    :image-filename="
+                                        newPersonLocal.imageFilename
+                                    "
+                                    @update:image-url="
+                                        newPersonLocal.imageUrl = $event
+                                    "
+                                    @update:image-filename="
+                                        newPersonLocal.imageFilename = $event
+                                    "
+                                >
+                                </image-selector>
+                            </div>
                         </div>
                     </div>
                 </v-card-text>
