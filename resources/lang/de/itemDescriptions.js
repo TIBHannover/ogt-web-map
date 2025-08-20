@@ -91,4 +91,17 @@ export const itemDescriptions = {
             "Im Sommer 1936 gelang es der Gestapo, einen Spitzel in die Organisation einzuschleusen. In der Folge wurde nahezu das gesamte Lese- und Verteilernetz enttarnt. Mindestens 420 Personen wurden verhaftet und verhört. Insgesamt verhängten die NS-Justizbehörden 105 Zuchthaus- und 134 Gefängnisstrafen. Mehrere Engagierte verloren im Zusammenhang mit ihrem Widerstand ihr Leben.",
         ],
     },
+    Q108127303: {
+        textParts: [
+            "Die Staatspolizeistelle Hildesheim wurde am 31. Juli 1935 gegründet. Zuvor war die Staatspolizeistelle Hannover für die beiden Regierungsbezirke Hannover und Hildesheim zuständig. 1941 wurde die Staatspolizeistelle Hildesheim zur Außendienststelle der Staatspolizeistelle Hannover herabgestuft. Die Staatspolizeistelle Hildesheim war zunächst im Regierungsgebäude am Domhof 1 untergebracht. 1938 bezog sie ein eigenes Gebäude in der Gartenstraße 20, das bei einem Luftangriff am 22. März 1945 zerstört und nicht wiederaufgebaut wurde. ",
+        ],
+    },
+    Q106477284: {
+        textParts: [
+            "Im Land Braunschweig dominierte die SS früh den Polizeiapparat. Wie im gesamten Reich wurde ein Jahr später auch in Braunschweig die Politische Polizei als eigenständige Zentralinstanz eingerichtet, organisatorisch von der übrigen Verwaltung getrennt und dem direkten Zugriff des Reichsführers-SS Heinrich Himmler unterstellt. Mit der reichsweiten formellen Unterstellung der Polizei unter Himmler im Jahr 1936 erhielt die Behörde den Namen „Geheime Staatspolizeistelle Braunschweig“.",
+            "Zwischen 1937 und 1939 löste die Staatspolizeistelle Braunschweig, die mit Ausnahme der Enklaven für das gesamte Staatsgebiet des Landes Braunschweig mit rund 560.000 Einwohnern zuständig war, ihre fünf bisherigen Außenstellen bei den Kreisdirektionen Blankenburg, Gandersheim, Helmstedt, Holzminden und Wolfenbüttel auf. Damit sollte die Politische Polizei endgültig organisatorisch und räumlich aus der allgemeinen Verwaltung herausgelöst werden.",
+            "Zur Bearbeitung der politischen polizeilichen Aufgaben außerhalb der Stadt Braunschweig wurden drei neue Dienststellen als „Außenstellen“ der Staatspolizeistelle gegründet. Bis zum Frühjahr 1938 war die Behörde im Alten Ministerium am Bohlweg 51 untergebracht. Im Zuge der personellen Erweiterung und der Trennung von der allgemeinen Verwaltung zog die „Innere Politische Polizei“ (Abteilung II) im April 1938 in das Gebäude der Landesbauernschaft in der Leopoldstraße 24/25. 1939 kamen vorübergehend Räume in der Steinstraße hinzu, wo sich auch der Haupteingang der Staatspolizeistelle befand. Während Abteilung II in der Leopoldstraße verblieb, verlegten der Leiter, die Verwaltung (Abteilung I) und die Abwehrpolizei (Abteilung III) ihre Büros in die Wilhelm-Friedrich-Loeper-Straße 52 (nach 1945 wieder Adolfstraße).",
+            "Der Hauptdienststelle in Braunschweig unterstanden die Außenstellen in Bad Harzburg, Salzgitter („Grubengebiet“) und Watenstedt („Hüttengebiet“). In Bad Harzburg und Salzgitter erledigten die jeweiligen Leiter mit drei Mitarbeitern sämtliche staatspolizeilichen Aufgaben. Die Außenstelle Watenstedt war hingegen deutlich stärker besetzt und diente faktisch als Erweiterung der Abteilung II im Gebiet der Reichswerke.",
+        ],
+    },
 };
