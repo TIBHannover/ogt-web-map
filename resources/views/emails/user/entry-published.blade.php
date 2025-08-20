@@ -6,7 +6,7 @@ Gute Nachrichten! Ihre Eintragsanfrage wurde genehmigt und in Wikidata veröffen
 **Titel:** {{ $entryRequest->title }} <br>
 **Typ:** {{ $entryRequest->type }} <br>
 **Beschreibung:** {{ $entryRequest->description }} <br>
-**Veröffentlicht am:** {{ $entryRequest->status_updated_at->format('d.m.Y H:i') }}
+**Veröffentlicht am:** {{ is_object($entryRequest->status_updated_at) && method_exists($entryRequest->status_updated_at, 'format') ? $entryRequest->status_updated_at->format('d.m.Y H:i') : date('d.m.Y H:i', strtotime($entryRequest->status_updated_at ?? now())) }}
 
 @if($wikidataUrl)
 @component('mail::button', ['url' => $wikidataUrl])

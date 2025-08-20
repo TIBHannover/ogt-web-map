@@ -210,14 +210,20 @@ class EntryStatusController extends Controller
         string $newStatus,
     ): void {
         try {
+            // IMPORTANT: Force notify on published entries - remove this override
+            // after debugging is complete
+            $forceNotify = $newStatus === "wikidata_published";
+
             // Log entry to track execution path with more details
             Log::info("Checking notification conditions", [
                 "entry_id" => $entryRequest->id,
                 "status" => $newStatus,
                 "has_email" => !empty($entryRequest->email),
-                "notify_on_publish" => $entryRequest->notify_on_publish
-                    ? "true"
-                    : "false",
+                "notify_on_publish" => $forceNotify
+                    ? "true (forced)"
+                    : ($entryRequest->notify_on_publish
+                        ? "true"
+                        : "false"),
                 "email" => $entryRequest->email ?? "not set",
                 "wikidata_id" => $entryRequest->wikidata_id ?? "not set",
                 "status_exactly_wikidata_published" =>
@@ -246,9 +252,10 @@ class EntryStatusController extends Controller
                         : "false",
             ]);
 
+            // For wikidata_published status, force notification regardless of notify_on_publish flag
             if (
                 $newStatus === "wikidata_published" &&
-                $entryRequest->notify_on_publish
+                ($entryRequest->notify_on_publish || $forceNotify)
             ) {
                 if (empty($entryRequest->email)) {
                     Log::warning(
@@ -269,9 +276,25 @@ class EntryStatusController extends Controller
                 ]);
 
                 try {
-                    Mail::to($entryRequest->email)->send(
-                        new UserEntryPublishedNotification($entryRequest),
-                    );
+                    // Send the email immediately without queuing for wikidata_published status
+                    if ($newStatus === "wikidata_published") {
+                        $mailable = new UserEntryPublishedNotification(
+                            $entryRequest,
+                        );
+                        $mailable->onQueue(null); // Don't use queue
+                        Mail::to($entryRequest->email)->send($mailable);
+                        Log::info(
+                            "Attempted to send published notification without queuing",
+                            [
+                                "entry_id" => $entryRequest->id,
+                                "email" => $entryRequest->email,
+                            ],
+                        );
+                    } else {
+                        Mail::to($entryRequest->email)->send(
+                            new UserEntryPublishedNotification($entryRequest),
+                        );
+                    }
 
                     // Check if mail was sent successfully
                     if (count(Mail::failures()) > 0) {
@@ -280,22 +303,114 @@ class EntryStatusController extends Controller
                             "email" => $entryRequest->email,
                             "failures" => Mail::failures(),
                         ]);
+                    } else {
+                        Log::info("No mail failures reported", [
+                            "entry_id" => $entryRequest->id,
+                            "email" => $entryRequest->email,
+                        ]);
                     }
                 } catch (\Exception $mailException) {
                     Log::error("Exception while sending notification email", [
                         "entry_id" => $entryRequest->id,
                         "email" => $entryRequest->email,
                         "exception" => $mailException->getMessage(),
+                        "exception_class" => get_class($mailException),
                         "trace" => $mailException->getTraceAsString(),
                     ]);
+
+                    // Try an alternative approach as a fallback
+                    try {
+                        Log::info("Attempting fallback email method", [
+                            "entry_id" => $entryRequest->id,
+                            "email" => $entryRequest->email
+                        ]);
+
+                        $to = $entryRequest->email;
+                        $subject = "Ihr Eintrag wurde veröffentlicht: " . $entryRequest->title;
+                        $message = "Ihr Eintrag '{$entryRequest->title}' wurde in Wikidata veröffentlicht.\n\n";
+                        if (!empty($entryRequest->wikidata_id)) {
+                            $message .= "Sie können den Eintrag unter https://www.wikidata.org/wiki/{$entryRequest->wikidata_id} ansehen.";
+                        }
+
+                        $headers = "From: " . config("mail.from.address") . "\r\n" .
+                                   "Reply-To: " . config("mail.from.address") . "\r\n" .
+                                   "X-Mailer: PHP/" . phpversion();
+
+                        $mailResult = @mail($to, $subject, $message, $headers);
+
+                        Log::info("Fallback mail attempt result", [
+                            "entry_id" => $entryRequest->id,
+                            "result" => $mailResult ? "success" : "failed"
+                        ]);
+                    } catch (\Exception $fallbackEx) {
+                        Log::error("Fallback mail method also failed", [
+                            "entry_id" => $entryRequest->id,
+                            "exception" => $fallbackEx->getMessage()
+                        ]);
+                    }
                 }
 
-                Log::info("Sent published notification email to user", [
-                    "entry_id" => $entryRequest->id,
-                    "email" => $entryRequest->email,
-                    "status" => $newStatus,
-                    "wikidata_id" => $entryRequest->wikidata_id ?? "not set",
-                ]);
+                    // Try an alternative mail method for important notifications
+                    if ($newStatus === "wikidata_published") {
+                        try {
+                            Log::info(
+                                "Trying alternative mail method for published notification",
+                                [
+                                    "entry_id" => $entryRequest->id,
+                                ],
+                            );
+                            $to = $entryRequest->email;
+                            $subject =
+                                "Ihr Eintrag wurde veröffentlicht: " .
+                                $entryRequest->title;
+                            $message = "Ihr Eintrag '{$entryRequest->title}' wurde in Wikidata veröffentlicht.\n\n";
+                            $message .= "Sie können den Eintrag unter https://www.wikidata.org/wiki/{$entryRequest->wikidata_id} ansehen.";
+
+                            // Try PHP's mail function directly as a last resort
+                            $headers =
+                                "From: " .
+                                config("mail.from.address") .
+                                "\r\n" .
+                                "Reply-To: " .
+                                config("mail.from.address") .
+                                "\r\n" .
+                                "X-Mailer: PHP/" .
+                                phpversion();
+
+                            $mailResult = mail(
+                                $to,
+                                $subject,
+                                $message,
+                                $headers,
+                            );
+
+                            Log::info("Alternative mail attempt result", [
+                                "entry_id" => $entryRequest->id,
+                                "result" => $mailResult ? "success" : "failed",
+                            ]);
+                        } catch (\Exception $altMailEx) {
+                            Log::error("Alternative mail method also failed", [
+                                "entry_id" => $entryRequest->id,
+                                "exception" => $altMailEx->getMessage(),
+                            ]);
+                        }
+                    }
+                }
+
+                Log::info(
+                    "Completed published notification email process for user",
+                    [
+                        "entry_id" => $entryRequest->id,
+                        "email" => $entryRequest->email,
+                        "status" => $newStatus,
+                        "wikidata_id" =>
+                            $entryRequest->wikidata_id ?? "not set",
+                        "forced_notify" => $forceNotify ? "yes" : "no",
+                        "original_notify_setting" => $entryRequest->notify_on_publish
+                            ? "yes"
+                            : "no",
+                    ],
+                );
             } else {
                 Log::info("Skipping notification - conditions not met", [
                     "status" => $newStatus,

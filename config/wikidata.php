@@ -78,4 +78,11 @@ return [
 
     // Verify entity IDs after creation
     "verify_entity_ids" => env("WIKIDATA_VERIFY_ENTITY_IDS", false),
+
+    "url" => env("WIKIDATA_URL", "https://query.wikidata.org/sparql"),
+
+    "cachedPersonsFile" => env(
+        "WIKIDATA_CACHED_PERSONS_FILE",
+        "wikidata/persons.json",
+    ),
 ];

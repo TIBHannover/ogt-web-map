@@ -1669,7 +1669,13 @@ class CreateWikidataEntity implements ShouldQueue
                     $updateData = [
                         "status" => "wikidata_published",
                         "wikidata_id" => $entityId,
+                        "status_updated_at" => now(), // Ensure status_updated_at is set
                     ];
+
+                    // Make sure we have a notification flag set for successful publications
+                    if (!isset($updateData["notify_on_publish"])) {
+                        $updateData["notify_on_publish"] = true;
+                    }
 
                     // Try to update the record
                     $affected = $requestModelClass
@@ -1684,6 +1690,78 @@ class CreateWikidataEntity implements ShouldQueue
                                 "entity_id" => $entityId,
                             ],
                         );
+
+                        // Force trigger notification manually after successful status update
+                        try {
+                            $statusController = app(
+                                \App\Http\Controllers\EntryStatusController::class,
+                            );
+                            $entryRequest = \App\Models\WikibaseEntryRequest::find(
+                                $requestId,
+                            );
+                            if ($entryRequest) {
+                                Log::info(
+                                    "Manually triggering notification after status update",
+                                    [
+                                        "request_id" => $requestId,
+                                        "entity_id" => $entityId,
+                                        "has_email" => !empty(
+                                            $entryRequest->email
+                                        )
+                                            ? "yes"
+                                            : "no",
+                                        "email" =>
+                                            $entryRequest->email ?? "not set",
+                                    ],
+                                );
+
+                                $statusController->sendStatusChangeNotifications(
+                                    $entryRequest,
+                                    "wikidata_published",
+                                );
+                            }
+                        } catch (\Exception $notifyEx) {
+                            Log::error(
+                                "Failed to send manual notification after status update",
+                                [
+                                    "request_id" => $requestId,
+                                    "entity_id" => $entityId,
+                                    "error" => $notifyEx->getMessage(),
+                                ],
+                            );
+
+                            // Force trigger notification manually after model update
+                            try {
+                                $statusController = app(
+                                    \App\Http\Controllers\EntryStatusController::class,
+                                );
+                                Log::info(
+                                    "Manually triggering notification after model update",
+                                    [
+                                        "request_id" => $requestId,
+                                        "entity_id" => $entityId,
+                                        "has_email" => !empty($request->email)
+                                            ? "yes"
+                                            : "no",
+                                        "email" => $request->email ?? "not set",
+                                    ],
+                                );
+
+                                $statusController->sendStatusChangeNotifications(
+                                    $request,
+                                    "wikidata_published",
+                                );
+                            } catch (\Exception $notifyEx) {
+                                Log::error(
+                                    "Failed to send manual notification after model update",
+                                    [
+                                        "request_id" => $requestId,
+                                        "entity_id" => $entityId,
+                                        "error" => $notifyEx->getMessage(),
+                                    ],
+                                );
+                            }
+                        }
                     } else {
                         Log::warning(
                             "Could not find request to update status",
@@ -1710,6 +1788,7 @@ class CreateWikidataEntity implements ShouldQueue
                         if ($request) {
                             $request->status = "wikidata_published";
                             $request->wikidata_id = $entityId;
+                            $request->status_updated_at = now(); // Ensure status_updated_at is set
                             // Don't set wikidata_url at all
                             $request->save();
 
