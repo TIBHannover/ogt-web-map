@@ -124,10 +124,7 @@ Route::get("/wikidata/search/places", [
 ]);
 
 // General Wikidata search route
-Route::get("/wikidata/search", [
-    App\Http\Controllers\Api\WikidataSearchController::class,
-    "search",
-]);
+Route::get("/wikidata/search", [WikidataSearchController::class, "search"]);
 
 // Route for creating Wikidata entities programmatically
 Route::post("/wikidata/entity", [

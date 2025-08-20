@@ -6,6 +6,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
 
 class WikidataSearchController extends Controller
 {
@@ -34,7 +35,7 @@ class WikidataSearchController extends Controller
                         "ids" => $query,
                         "languages" => "de|en", // Deutsch und Englisch anfordern
                         "format" => "json",
-                    ]
+                    ],
                 );
 
                 if (
@@ -83,11 +84,11 @@ class WikidataSearchController extends Controller
 
                                 $label = $this->getPrioritizedLabel(
                                     $entity,
-                                    $resultObj
+                                    $resultObj,
                                 );
                                 $description = $this->getPrioritizedDescription(
                                     $entity,
-                                    $resultObj
+                                    $resultObj,
                                 );
 
                                 return response()->json([
@@ -115,13 +116,13 @@ class WikidataSearchController extends Controller
                     "format" => "json",
                     "type" => "item",
                     "limit" => 10,
-                ]
+                ],
             );
 
             if (!$response->successful()) {
                 return response()->json(
                     ["error" => "Wikidata API request failed"],
-                    500
+                    500,
                 );
             }
 
@@ -138,7 +139,7 @@ class WikidataSearchController extends Controller
                         "ids" => $result["id"],
                         "languages" => "de|en", // Deutsch und Englisch anfordern
                         "format" => "json",
-                    ]
+                    ],
                 );
 
                 if ($entityResponse->successful()) {
@@ -185,14 +186,14 @@ class WikidataSearchController extends Controller
                                 // Prioritäten für Beschreibung anwenden
                                 $description = $this->getPrioritizedDescription(
                                     $entity,
-                                    $result
+                                    $result,
                                 );
 
                                 $filteredResults[] = [
                                     "id" => $result["id"],
                                     "label" => $this->getPrioritizedLabel(
                                         $entity,
-                                        $result
+                                        $result,
                                     ),
                                     "description" => $description,
                                     "birth" => $birth,
@@ -210,7 +211,7 @@ class WikidataSearchController extends Controller
             \Log::error("Wikidata search error: " . $e->getMessage());
             return response()->json(
                 ["error" => "Failed to search Wikidata: " . $e->getMessage()],
-                500
+                500,
             );
         }
     }
@@ -224,7 +225,7 @@ class WikidataSearchController extends Controller
      */
     private function getPrioritizedDescription(
         array $entity,
-        array $result
+        array $result,
     ): ?string {
         // Default to null if nothing is found
         $description = null;
@@ -291,7 +292,7 @@ class WikidataSearchController extends Controller
                         "ids" => $title,
                         "languages" => "de|en", // Request German and English
                         "format" => "json",
-                    ]
+                    ],
                 );
 
                 if (
@@ -305,7 +306,7 @@ class WikidataSearchController extends Controller
                     $label = $this->getPrioritizedLabel($entity, $resultObj);
                     $description = $this->getPrioritizedDescription(
                         $entity,
-                        $resultObj
+                        $resultObj,
                     );
 
                     return response()->json([
@@ -331,13 +332,13 @@ class WikidataSearchController extends Controller
                     "format" => "json",
                     "type" => "item",
                     "limit" => 10,
-                ]
+                ],
             );
 
             if (!$response->successful()) {
                 return response()->json(
                     ["error" => "Wikidata API request failed"],
-                    500
+                    500,
                 );
             }
 
@@ -356,7 +357,7 @@ class WikidataSearchController extends Controller
                         "ids" => $result["id"],
                         "languages" => "de|en", // Deutsch und Englisch anfordern
                         "format" => "json",
-                    ]
+                    ],
                 );
 
                 if ($entityResponse->successful()) {
@@ -368,7 +369,7 @@ class WikidataSearchController extends Controller
                         $label = $this->getPrioritizedLabel($entity, $result);
                         $description = $this->getPrioritizedDescription(
                             $entity,
-                            $result
+                            $result,
                         );
 
                         $processedResults[] = [
@@ -394,7 +395,7 @@ class WikidataSearchController extends Controller
             \Log::error("Wikidata title search error: " . $e->getMessage());
             return response()->json(
                 ["error" => "Failed to search Wikidata: " . $e->getMessage()],
-                500
+                500,
             );
         }
     }
@@ -416,7 +417,7 @@ class WikidataSearchController extends Controller
                     "ids" => $result["id"],
                     "languages" => "de|en",
                     "format" => "json",
-                ]
+                ],
             );
 
             if ($entityResponse->successful()) {
@@ -427,7 +428,7 @@ class WikidataSearchController extends Controller
                     $label = $this->getPrioritizedLabel($entity, $result);
                     $description = $this->getPrioritizedDescription(
                         $entity,
-                        $result
+                        $result,
                     );
 
                     $processedResults[] = [
@@ -473,7 +474,7 @@ class WikidataSearchController extends Controller
                         "ids" => $query,
                         "languages" => "de|en", // Request German and English
                         "format" => "json",
-                    ]
+                    ],
                 );
 
                 if (
@@ -488,7 +489,7 @@ class WikidataSearchController extends Controller
                     }";
 
                     $sparqlResponse = Http::accept(
-                        "application/sparql-results+json"
+                        "application/sparql-results+json",
                     )->get("https://query.wikidata.org/sparql", [
                         "query" => $sparqlQuery,
                         "format" => "json",
@@ -504,11 +505,11 @@ class WikidataSearchController extends Controller
 
                             $label = $this->getPrioritizedLabel(
                                 $entity,
-                                $resultObj
+                                $resultObj,
                             );
                             $description = $this->getPrioritizedDescription(
                                 $entity,
-                                $resultObj
+                                $resultObj,
                             );
 
                             return response()->json([
@@ -534,13 +535,13 @@ class WikidataSearchController extends Controller
                     "format" => "json",
                     "type" => "item",
                     "limit" => 20, // Get more results
-                ]
+                ],
             );
 
             if (!$searchResponse->successful()) {
                 return response()->json(
                     ["error" => "Wikidata API request failed"],
-                    500
+                    500,
                 );
             }
 
@@ -562,7 +563,7 @@ class WikidataSearchController extends Controller
                     " ",
                     array_map(function ($id) {
                         return "wd:$id";
-                    }, $entityIds)
+                    }, $entityIds),
                 ) .
                 " }";
 
@@ -573,7 +574,7 @@ class WikidataSearchController extends Controller
             }";
 
             $sparqlResponse = Http::accept(
-                "application/sparql-results+json"
+                "application/sparql-results+json",
             )->get("https://query.wikidata.org/sparql", [
                 "query" => $sparqlQuery,
                 "format" => "json",
@@ -582,7 +583,7 @@ class WikidataSearchController extends Controller
             if (!$sparqlResponse->successful()) {
                 return response()->json(
                     ["error" => "Wikidata SPARQL request failed"],
-                    500
+                    500,
                 );
             }
 
@@ -595,7 +596,7 @@ class WikidataSearchController extends Controller
                 $entityId = str_replace(
                     "http://www.wikidata.org/entity/",
                     "",
-                    $result["item"]["value"]
+                    $result["item"]["value"],
                 );
 
                 // Try to find the original search result to get its description
@@ -652,7 +653,7 @@ class WikidataSearchController extends Controller
                         "Failed to search Wikidata concepts: " .
                         $e->getMessage(),
                 ],
-                500
+                500,
             );
         }
     }
@@ -681,7 +682,7 @@ class WikidataSearchController extends Controller
                         "ids" => $query,
                         "languages" => "de|en", // Request German and English
                         "format" => "json",
-                    ]
+                    ],
                 );
 
                 if (
@@ -698,7 +699,7 @@ class WikidataSearchController extends Controller
                                 isset(
                                     $claim["mainsnak"]["datavalue"]["value"][
                                         "id"
-                                    ]
+                                    ],
                                 )
                             ) {
                                 $instanceOf =
@@ -735,7 +736,7 @@ class WikidataSearchController extends Controller
                                 isset(
                                     $claim["mainsnak"]["datavalue"]["value"][
                                         "id"
-                                    ]
+                                    ],
                                 )
                             ) {
                                 $authorId =
@@ -752,7 +753,7 @@ class WikidataSearchController extends Controller
                     $label = $this->getPrioritizedLabel($entity, $resultObj);
                     $description = $this->getPrioritizedDescription(
                         $entity,
-                        $resultObj
+                        $resultObj,
                     );
 
                     return response()->json([
@@ -779,13 +780,13 @@ class WikidataSearchController extends Controller
                     "format" => "json",
                     "type" => "item",
                     "limit" => 10,
-                ]
+                ],
             );
 
             if (!$response->successful()) {
                 return response()->json(
                     ["error" => "Wikidata API request failed"],
-                    500
+                    500,
                 );
             }
 
@@ -807,7 +808,7 @@ class WikidataSearchController extends Controller
                         "ids" => $result["id"],
                         "languages" => "de|en",
                         "format" => "json",
-                    ]
+                    ],
                 );
 
                 if ($entityResponse->successful()) {
@@ -820,7 +821,7 @@ class WikidataSearchController extends Controller
                         $label = $this->getPrioritizedLabel($entity, $result);
                         $description = $this->getPrioritizedDescription(
                             $entity,
-                            $result
+                            $result,
                         );
 
                         $processedResults[] = [
@@ -849,7 +850,7 @@ class WikidataSearchController extends Controller
                     "error" =>
                         "Failed to search Wikidata books: " . $e->getMessage(),
                 ],
-                500
+                500,
             );
         }
     }
@@ -879,7 +880,7 @@ class WikidataSearchController extends Controller
                         "ids" => $query,
                         "languages" => "de|en", // Request German and English
                         "format" => "json",
-                    ]
+                    ],
                 );
 
                 if (
@@ -896,7 +897,7 @@ class WikidataSearchController extends Controller
                                 isset(
                                     $claim["mainsnak"]["datavalue"]["value"][
                                         "id"
-                                    ]
+                                    ],
                                 )
                             ) {
                                 $instanceOf =
@@ -931,7 +932,7 @@ class WikidataSearchController extends Controller
                     $label = $this->getPrioritizedLabel($entity, $resultObj);
                     $description = $this->getPrioritizedDescription(
                         $entity,
-                        $resultObj
+                        $resultObj,
                     );
 
                     return response()->json([
@@ -957,13 +958,13 @@ class WikidataSearchController extends Controller
                     "format" => "json",
                     "type" => "item",
                     "limit" => 10,
-                ]
+                ],
             );
 
             if (!$response->successful()) {
                 return response()->json(
                     ["error" => "Wikidata API request failed"],
-                    500
+                    500,
                 );
             }
 
@@ -987,7 +988,7 @@ class WikidataSearchController extends Controller
                         "ids" => $result["id"],
                         "languages" => "de|en", // Deutsch und Englisch anfordern
                         "format" => "json",
-                    ]
+                    ],
                 );
 
                 if ($entityResponse->successful()) {
@@ -1000,7 +1001,7 @@ class WikidataSearchController extends Controller
                         $label = $this->getPrioritizedLabel($entity, $result);
                         $description = $this->getPrioritizedDescription(
                             $entity,
-                            $result
+                            $result,
                         );
 
                         $processedResults[] = [
@@ -1030,7 +1031,7 @@ class WikidataSearchController extends Controller
                         "Failed to search Wikidata archives: " .
                         $e->getMessage(),
                 ],
-                500
+                500,
             );
         }
     }
@@ -1059,7 +1060,7 @@ class WikidataSearchController extends Controller
                         "ids" => $query,
                         "languages" => "de|en", // Request German and English
                         "format" => "json",
-                    ]
+                    ],
                 );
 
                 if (
@@ -1076,7 +1077,7 @@ class WikidataSearchController extends Controller
                                 isset(
                                     $claim["mainsnak"]["datavalue"]["value"][
                                         "id"
-                                    ]
+                                    ],
                                 )
                             ) {
                                 $instanceOf =
@@ -1104,7 +1105,7 @@ class WikidataSearchController extends Controller
                     $label = $this->getPrioritizedLabel($entity, $resultObj);
                     $description = $this->getPrioritizedDescription(
                         $entity,
-                        $resultObj
+                        $resultObj,
                     );
 
                     return response()->json([
@@ -1127,13 +1128,13 @@ class WikidataSearchController extends Controller
                     "format" => "json",
                     "type" => "item",
                     "limit" => 10,
-                ]
+                ],
             );
 
             if (!$response->successful()) {
                 return response()->json(
                     ["error" => "Wikidata API request failed"],
-                    500
+                    500,
                 );
             }
 
@@ -1153,7 +1154,7 @@ class WikidataSearchController extends Controller
                         "ids" => $result["id"],
                         "languages" => "de|en", // Deutsch und Englisch anfordern
                         "format" => "json",
-                    ]
+                    ],
                 );
 
                 if ($entityResponse->successful()) {
@@ -1171,7 +1172,7 @@ class WikidataSearchController extends Controller
                                     isset(
                                         $claim["mainsnak"]["datavalue"][
                                             "value"
-                                        ]["id"]
+                                        ]["id"],
                                     )
                                 ) {
                                     $instanceOf =
@@ -1197,7 +1198,7 @@ class WikidataSearchController extends Controller
                         $label = $this->getPrioritizedLabel($entity, $result);
                         $description = $this->getPrioritizedDescription(
                             $entity,
-                            $result
+                            $result,
                         );
 
                         $processedResults[] = [
@@ -1220,7 +1221,92 @@ class WikidataSearchController extends Controller
             \Log::error("Wikidata places search error: " . $e->getMessage());
             return response()->json(
                 ["error" => "Failed to search Wikidata: " . $e->getMessage()],
-                500
+                500,
+            );
+        }
+    }
+
+    /**
+     * General search method for Wikidata entities
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $request->validate([
+            "query" => "required|string|min:2",
+            "type" => "nullable|string",
+        ]);
+
+        $query = $request->input("query");
+        $type = $request->input("type");
+
+        try {
+            // If a specific type is provided, route to the appropriate search method
+            if ($type) {
+                switch ($type) {
+                    case "person":
+                    case "people":
+                        return $this->searchPeople($request);
+
+                    case "place":
+                    case "places":
+                        return $this->searchPlaces($request);
+
+                    case "book":
+                    case "books":
+                        return $this->searchBooks($request);
+
+                    case "archive":
+                    case "archives":
+                        return $this->searchArchives($request);
+
+                    case "cause":
+                    case "causes":
+                        return $this->searchCauses($request);
+                }
+            }
+
+            // Default generic search
+            $response = Http::get("https://www.wikidata.org/w/api.php", [
+                "action" => "wbsearchentities",
+                "search" => $query,
+                "language" => "de",
+                "format" => "json",
+                "type" => "item",
+                "limit" => 15,
+            ]);
+
+            if (!$response->successful()) {
+                return response()->json(
+                    ["error" => "Wikidata API request failed"],
+                    500,
+                );
+            }
+
+            $results = $response->json()["search"] ?? [];
+            $processedResults = [];
+
+            foreach ($results as $result) {
+                $processedResults[] = [
+                    "id" => $result["id"],
+                    "label" => $result["label"] ?? $result["id"],
+                    "description" => $result["description"] ?? "",
+                    "url" => "https://www.wikidata.org/wiki/" . $result["id"],
+                ];
+            }
+
+            return response()->json([
+                "results" => $processedResults,
+                "query" => $query,
+                "count" => count($processedResults),
+            ]);
+        } catch (\Exception $e) {
+            Log::error("General Wikidata search error: " . $e->getMessage());
+            return response()->json(
+                ["error" => "Failed to search Wikidata: " . $e->getMessage()],
+                500,
             );
         }
     }

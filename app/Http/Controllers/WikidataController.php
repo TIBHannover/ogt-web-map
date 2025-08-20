@@ -52,24 +52,23 @@ class WikidataController extends Controller
         if ($validator->fails()) {
             Log::warning(
                 "Validation of Wikidata persons response failed.",
-                $validator->errors()->all()
+                $validator->errors()->all(),
             );
 
             return response([], Response::HTTP_NO_CONTENT);
         }
 
         $persons = $wikidataClient->mergeItemsData(
-            $personsResponse["results"]["bindings"]
+            $personsResponse["results"]["bindings"],
         );
         $groupedPersons = $wikidataClient->groupItemsByProperty(
             $persons,
             WikidataClient::PERSON_GROUPS_IDS,
-            "P2868"
         );
 
         Storage::disk("local")->put(
             config("wikidata.cachedPersonsFile"),
-            json_encode($groupedPersons)
+            json_encode($groupedPersons),
         );
 
         return response($groupedPersons, Response::HTTP_OK);
@@ -85,14 +84,14 @@ class WikidataController extends Controller
     {
         $groupedPersons = array_fill_keys(
             array_keys(WikidataClient::PERSON_GROUPS_IDS),
-            []
+            [],
         );
 
         if (
             Storage::disk("local")->exists(config("wikidata.cachedPersonsFile"))
         ) {
             $groupedPersons = Storage::disk("local")->get(
-                config("wikidata.cachedPersonsFile")
+                config("wikidata.cachedPersonsFile"),
             );
         }
 
@@ -137,19 +136,19 @@ class WikidataController extends Controller
         if ($validator->fails()) {
             Log::warning(
                 "Validation of Wikidata places response failed.",
-                $validator->errors()->all()
+                $validator->errors()->all(),
             );
 
             return response([], Response::HTTP_NO_CONTENT);
         }
 
         $locations = $wikidataClient->mergeItemsData(
-            $placesResponse["results"]["bindings"]
+            $placesResponse["results"]["bindings"],
         );
         $groupedLocations = $wikidataClient->groupItemsByProperty(
             $locations,
             WikidataClient::PLACE_GROUPS_IDS,
-            "P31"
+            "P31",
         );
 
         return response($groupedLocations, Response::HTTP_OK);

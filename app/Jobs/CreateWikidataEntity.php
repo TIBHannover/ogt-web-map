@@ -12,6 +12,7 @@ use App\Services\Wikibase\WikibaseFormatterModels;
 use App\Services\EntityMapping\EntityMappingProviderInterface;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Schema;
 use App\Models\Wikibase\Person;
 use App\Models\Wikibase\Source\SourceFactory; // Add this for job chaining
 use App\Services\Wikibase\ImageHandler;
@@ -1715,9 +1716,11 @@ class CreateWikidataEntity implements ShouldQueue
                                     ],
                                 );
 
+                                // Force notification for published status
                                 $statusController->sendStatusChangeNotifications(
                                     $entryRequest,
                                     "wikidata_published",
+                                    true, // Force notification
                                 );
                             }
                         } catch (\Exception $notifyEx) {
@@ -1740,16 +1743,20 @@ class CreateWikidataEntity implements ShouldQueue
                                     [
                                         "request_id" => $requestId,
                                         "entity_id" => $entityId,
-                                        "has_email" => !empty($request->email)
+                                        "has_email" => !empty(
+                                            $entryRequest->email
+                                        )
                                             ? "yes"
                                             : "no",
-                                        "email" => $request->email ?? "not set",
+                                        "email" =>
+                                            $entryRequest->email ?? "not set",
                                     ],
                                 );
 
                                 $statusController->sendStatusChangeNotifications(
-                                    $request,
+                                    $entryRequest,
                                     "wikidata_published",
+                                    true, // Force notification
                                 );
                             } catch (\Exception $notifyEx) {
                                 Log::error(
@@ -1789,6 +1796,15 @@ class CreateWikidataEntity implements ShouldQueue
                             $request->status = "wikidata_published";
                             $request->wikidata_id = $entityId;
                             $request->status_updated_at = now(); // Ensure status_updated_at is set
+                            // Reset notification sent status to ensure a notification is sent
+                            if (
+                                Schema::hasColumn(
+                                    "wikidata_entry_requests",
+                                    "notification_sent_at",
+                                )
+                            ) {
+                                $request->notification_sent_at = null;
+                            }
                             // Don't set wikidata_url at all
                             $request->save();
 

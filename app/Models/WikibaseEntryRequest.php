@@ -21,6 +21,7 @@ class WikibaseEntryRequest extends Model
         "status_token",
         "email",
         "notify_on_publish",
+        "notification_sent_at",
         "status_history",
         "status_updated_at",
         "comment",
@@ -58,6 +59,7 @@ class WikibaseEntryRequest extends Model
         "created_entities" => "array",
         "status_history" => "array",
         "notify_on_publish" => "boolean",
+        "notification_sent_at" => "datetime",
     ];
 
     protected $table = "wikidata_entry_requests";

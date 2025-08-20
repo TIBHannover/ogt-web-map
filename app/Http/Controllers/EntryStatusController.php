@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 
 class EntryStatusController extends Controller
 {
@@ -139,6 +140,15 @@ class EntryStatusController extends Controller
         $entryRequest->status_history = $history;
         $entryRequest->status_updated_at = now();
         $entryRequest->comment = $comment;
+
+        // Reset notification_sent_at when changing to published status
+        if (
+            $newStatus === "wikidata_published" &&
+            Schema::hasColumn("wikidata_entry_requests", "notification_sent_at")
+        ) {
+            $entryRequest->notification_sent_at = null;
+        }
+
         $entryRequest->save();
 
         // Send notifications based on status changes
@@ -205,17 +215,31 @@ class EntryStatusController extends Controller
      * @param string $newStatus The new status
      * @return void
      */
-    protected function sendStatusChangeNotifications(
+    public function sendStatusChangeNotifications(
         WikibaseEntryRequest $entryRequest,
         string $newStatus,
+        bool $force = false,
     ): void {
         try {
-            // IMPORTANT: Force notify on published entries - remove this override
-            // after debugging is complete
+            // Check if notification_sent_at column exists
+            $hasNotificationColumn = Schema::hasColumn(
+                "wikidata_entry_requests",
+                "notification_sent_at",
+            );
+
+            // Check if notification was already sent for this entity
+            $alreadySent =
+                $hasNotificationColumn &&
+                $entryRequest->notification_sent_at !== null &&
+                !$force;
+
+            // Force notify on published entries
             $forceNotify = $newStatus === "wikidata_published";
 
             // Log entry to track execution path with more details
             Log::info("Checking notification conditions", [
+                "already_sent" => $alreadySent ? "yes" : "no",
+                "force_resend" => $force ? "yes" : "no",
                 "entry_id" => $entryRequest->id,
                 "status" => $newStatus,
                 "has_email" => !empty($entryRequest->email),
@@ -253,9 +277,11 @@ class EntryStatusController extends Controller
             ]);
 
             // For wikidata_published status, force notification regardless of notify_on_publish flag
+            // Skip if already sent and not forced
             if (
                 $newStatus === "wikidata_published" &&
-                ($entryRequest->notify_on_publish || $forceNotify)
+                ($entryRequest->notify_on_publish || $forceNotify) &&
+                (!$alreadySent || $force)
             ) {
                 if (empty($entryRequest->email)) {
                     Log::warning(
@@ -278,37 +304,55 @@ class EntryStatusController extends Controller
                 try {
                     // Send the email immediately without queuing for wikidata_published status
                     if ($newStatus === "wikidata_published") {
-                        $mailable = new UserEntryPublishedNotification(
-                            $entryRequest,
-                        );
-                        $mailable->onQueue(null); // Don't use queue
-                        Mail::to($entryRequest->email)->send($mailable);
-                        Log::info(
-                            "Attempted to send published notification without queuing",
-                            [
-                                "entry_id" => $entryRequest->id,
-                                "email" => $entryRequest->email,
-                            ],
-                        );
+                        try {
+                            $mailable = new UserEntryPublishedNotification(
+                                $entryRequest,
+                            );
+                            $mailable->onQueue(null); // Don't use queue
+                            Mail::to($entryRequest->email)->send($mailable);
+                            Log::info(
+                                "Attempted to send published notification without queuing",
+                                [
+                                    "entry_id" => $entryRequest->id,
+                                    "email" => $entryRequest->email,
+                                ],
+                            );
+                        } catch (\Exception $e) {
+                            Log::error(
+                                "Primary mail method failed, trying alternative",
+                                [
+                                    "entry_id" => $entryRequest->id,
+                                    "error" => $e->getMessage(),
+                                ],
+                            );
+                            throw $e; // Re-throw to trigger fallback
+                        }
                     } else {
                         Mail::to($entryRequest->email)->send(
                             new UserEntryPublishedNotification($entryRequest),
                         );
                     }
 
-                    // Check if mail was sent successfully
-                    if (count(Mail::failures()) > 0) {
-                        Log::error("Failed to send notification email", [
-                            "entry_id" => $entryRequest->id,
-                            "email" => $entryRequest->email,
-                            "failures" => Mail::failures(),
-                        ]);
-                    } else {
-                        Log::info("No mail failures reported", [
-                            "entry_id" => $entryRequest->id,
-                            "email" => $entryRequest->email,
-                        ]);
+                    // Mark notification as sent
+                    if (
+                        Schema::hasColumn(
+                            "wikidata_entry_requests",
+                            "notification_sent_at",
+                        )
+                    ) {
+                        $entryRequest->notification_sent_at = now();
+                        $entryRequest->save();
                     }
+
+                    Log::info(
+                        "Notification sent successfully and marked as sent",
+                        [
+                            "entry_id" => $entryRequest->id,
+                            "email" => $entryRequest->email,
+                            "notification_sent_at" =>
+                                $entryRequest->notification_sent_at,
+                        ],
+                    );
                 } catch (\Exception $mailException) {
                     Log::error("Exception while sending notification email", [
                         "entry_id" => $entryRequest->id,
@@ -317,38 +361,6 @@ class EntryStatusController extends Controller
                         "exception_class" => get_class($mailException),
                         "trace" => $mailException->getTraceAsString(),
                     ]);
-
-                    // Try an alternative approach as a fallback
-                    try {
-                        Log::info("Attempting fallback email method", [
-                            "entry_id" => $entryRequest->id,
-                            "email" => $entryRequest->email
-                        ]);
-
-                        $to = $entryRequest->email;
-                        $subject = "Ihr Eintrag wurde veröffentlicht: " . $entryRequest->title;
-                        $message = "Ihr Eintrag '{$entryRequest->title}' wurde in Wikidata veröffentlicht.\n\n";
-                        if (!empty($entryRequest->wikidata_id)) {
-                            $message .= "Sie können den Eintrag unter https://www.wikidata.org/wiki/{$entryRequest->wikidata_id} ansehen.";
-                        }
-
-                        $headers = "From: " . config("mail.from.address") . "\r\n" .
-                                   "Reply-To: " . config("mail.from.address") . "\r\n" .
-                                   "X-Mailer: PHP/" . phpversion();
-
-                        $mailResult = @mail($to, $subject, $message, $headers);
-
-                        Log::info("Fallback mail attempt result", [
-                            "entry_id" => $entryRequest->id,
-                            "result" => $mailResult ? "success" : "failed"
-                        ]);
-                    } catch (\Exception $fallbackEx) {
-                        Log::error("Fallback mail method also failed", [
-                            "entry_id" => $entryRequest->id,
-                            "exception" => $fallbackEx->getMessage()
-                        ]);
-                    }
-                }
 
                     // Try an alternative mail method for important notifications
                     if ($newStatus === "wikidata_published") {
@@ -384,10 +396,34 @@ class EntryStatusController extends Controller
                                 $headers,
                             );
 
-                            Log::info("Alternative mail attempt result", [
-                                "entry_id" => $entryRequest->id,
-                                "result" => $mailResult ? "success" : "failed",
-                            ]);
+                            // Even if we used the fallback method, mark as sent if successful
+                            if (
+                                $mailResult &&
+                                Schema::hasColumn(
+                                    "wikidata_entry_requests",
+                                    "notification_sent_at",
+                                )
+                            ) {
+                                $entryRequest->notification_sent_at = now();
+                                $entryRequest->save();
+
+                                Log::info(
+                                    "Alternative mail sent successfully, marked as sent",
+                                    [
+                                        "entry_id" => $entryRequest->id,
+                                        "email" => $entryRequest->email,
+                                        "notification_sent_at" =>
+                                            $entryRequest->notification_sent_at,
+                                    ],
+                                );
+                            } else {
+                                Log::info("Alternative mail attempt result", [
+                                    "entry_id" => $entryRequest->id,
+                                    "result" => $mailResult
+                                        ? "success"
+                                        : "failed",
+                                ]);
+                            }
                         } catch (\Exception $altMailEx) {
                             Log::error("Alternative mail method also failed", [
                                 "entry_id" => $entryRequest->id,
@@ -558,7 +594,12 @@ class EntryStatusController extends Controller
             $validated = $request->validate([
                 "token" => "required|string",
                 "type" => "required|string|in:status,published",
+                "force" => "sometimes|boolean",
             ]);
+
+            $force = $request->has("force")
+                ? (bool) $request->input("force")
+                : false;
 
             // Find the entry request by token
             $entryRequest = WikibaseEntryRequest::where(
@@ -607,15 +648,49 @@ class EntryStatusController extends Controller
                         "Status-Benachrichtigung wurde manuell gesendet.",
                 ]);
             } elseif ($validated["type"] === "published") {
+                if (
+                    Schema::hasColumn(
+                        "wikidata_entry_requests",
+                        "notification_sent_at",
+                    ) &&
+                    $entryRequest->notification_sent_at &&
+                    !$force
+                ) {
+                    return response()->json([
+                        "success" => false,
+                        "already_sent" => true,
+                        "sent_at" => $entryRequest->notification_sent_at,
+                        "message" =>
+                            "Veröffentlichungs-Benachrichtigung wurde bereits gesendet. Verwenden Sie 'force=true', um erneut zu senden.",
+                    ]);
+                }
+
                 // Send published notification
                 Mail::to($entryRequest->email)->send(
                     new UserEntryPublishedNotification($entryRequest),
                 );
 
+                // Record that notification was sent if column exists
+                if (
+                    Schema::hasColumn(
+                        "wikidata_entry_requests",
+                        "notification_sent_at",
+                    )
+                ) {
+                    $entryRequest->notification_sent_at = now();
+                    $entryRequest->save();
+                }
+
                 return response()->json([
                     "success" => true,
                     "message" =>
                         "Veröffentlichungs-Benachrichtigung wurde manuell gesendet.",
+                    "notification_sent_at" => Schema::hasColumn(
+                        "wikidata_entry_requests",
+                        "notification_sent_at",
+                    )
+                        ? $entryRequest->notification_sent_at
+                        : null,
                 ]);
             }
 
