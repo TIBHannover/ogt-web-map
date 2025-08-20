@@ -85,7 +85,11 @@
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "sort-packages": true,
-        "ignore-platform-reqs": ["ext-gd", "ext-iconv"]
+        "platform": {
+            "php": "8.3.0",
+            "ext-gd": "1.0",
+            "ext-iconv": "1.0"
+        }
     },
     "minimum-stability": "dev",
     "prefer-stable": true
