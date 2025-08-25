@@ -10,6 +10,10 @@ return new class extends Migration {
      */
     public function up(): void
     {
+        if (Schema::hasTable("wikidata_entry_requests")) {
+            return;
+        }
+
         Schema::create("wikidata_entry_requests", function (Blueprint $table) {
             $table->id();
             $table->string("title");
