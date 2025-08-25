@@ -132,12 +132,6 @@ Route::post("/wikidata/entity", [
     "createEntity",
 ]);
 
-// Route for entity creation webhook callback
-Route::post("/wikidata/entity-callback", [
-    WikidataEntityController::class,
-    "handleEntityCallback",
-]);
-
 // Route for sending status link to user via email
 Route::post("/entry-status/send-email", [
     App\Http\Controllers\EntryStatusController::class,

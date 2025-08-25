@@ -691,7 +691,6 @@ class WikibaseFormatterModels
                         $queued = $wikibaseService->queueEntityCreation(
                             $personData,
                             $personModel->getEntityType(),
-                            null, // No callback URL
                             $parentEntityId,
                             $role,
                         );

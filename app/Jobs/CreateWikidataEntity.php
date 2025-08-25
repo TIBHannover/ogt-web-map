@@ -61,11 +61,6 @@ class CreateWikidataEntity implements ShouldQueue
     protected $entityType;
 
     /**
-     * Callback URL to notify when complete (optional)
-     */
-    protected $callbackUrl;
-
-    /**
      * Parent entity ID if this entity should be linked to another entity when created
      */
     protected $parentEntityId;
@@ -87,14 +82,14 @@ class CreateWikidataEntity implements ShouldQueue
      *
      * @param array $entityData Data for the main entity
      * @param string $entityType Type of the main entity
-     * @param string|null $callbackUrl Optional callback URL
+     * @param string|null $parentEntityId Optional parent entity ID
+     * @param string|null $relationshipType Optional relationship type
      * @param int|null $requestId Optional request ID for database tracking
      * @return void
      */
     public static function createEntityWithRelated(
         array $entityData,
         string $entityType,
-        ?string $callbackUrl = null,
         ?int $requestId = null,
     ): void {
         // First, log that we're starting this method with a unique identifier to find in logs
@@ -154,7 +149,6 @@ class CreateWikidataEntity implements ShouldQueue
         $mainEntityJob = new self(
             $entityData,
             $entityType,
-            $callbackUrl,
             null,
             null,
             $requestId,
@@ -263,7 +257,6 @@ class CreateWikidataEntity implements ShouldQueue
                 $childJob = new self(
                     $entity,
                     $entityType,
-                    null, // No callback for child entities
                     "__MAIN_ENTITY_ID__", // Special placeholder for the parent ID
                     $relationshipType,
                     null, // No request ID for child entities
@@ -388,7 +381,13 @@ class CreateWikidataEntity implements ShouldQueue
 
                 // As a fallback, dispatch the main job directly
                 Log::info("Falling back to dispatching main job only");
-                $mainEntityJob->dispatch();
+                self::dispatch(
+                    $entityData,
+                    $entityType,
+                    null,
+                    null,
+                    $requestId,
+                );
             }
         } else {
             // If no related entities, just dispatch the main entity job
@@ -396,7 +395,7 @@ class CreateWikidataEntity implements ShouldQueue
                 "main_entity_type" => $entityType,
                 "title" => $entityData["title"] ?? "Untitled",
             ]);
-            $mainEntityJob->dispatch();
+            self::dispatch($entityData, $entityType, null, null, $requestId);
         }
 
         // Log completion of the method with the same unique ID for tracing
@@ -413,7 +412,6 @@ class CreateWikidataEntity implements ShouldQueue
      *
      * @param array $entityData The entity data to create
      * @param string $entityType The entity type (Q-number)
-     * @param string|null $callbackUrl Optional URL to notify when complete
      * @param string|null $parentEntityId Optional parent entity ID to link to when created
      * @param string|null $relationshipType Optional relationship type to the parent
      * @param int|null $requestId Optional database ID of the request
@@ -421,14 +419,12 @@ class CreateWikidataEntity implements ShouldQueue
     public function __construct(
         array $entityData,
         string $entityType,
-        ?string $callbackUrl = null,
         ?string $parentEntityId = null,
         ?string $relationshipType = null,
         ?int $requestId = null,
     ) {
         $this->entityData = $entityData;
         $this->entityType = $entityType;
-        $this->callbackUrl = $callbackUrl;
         $this->parentEntityId = $parentEntityId;
         $this->relationshipType = $relationshipType;
         $this->requestId = $requestId;
@@ -662,7 +658,6 @@ class CreateWikidataEntity implements ShouldQueue
                     self::createEntityWithRelated(
                         $this->entityData,
                         $this->entityType,
-                        $this->callbackUrl,
                         $this->requestId,
                     );
 
@@ -674,10 +669,11 @@ class CreateWikidataEntity implements ShouldQueue
 
             Log::info("Starting job to create Wikidata entity", [
                 "type" => $this->entityType,
-                "title" => $this->entityData["title"] ?? "Unknown",
+                "title" => $this->entityData["title"] ?? "Untitled",
                 "attempt" => $this->attempts(),
                 "parent_id" => $this->parentEntityId,
                 "relationship" => $this->relationshipType,
+                "request_id" => $this->requestId,
             ]);
 
             try {
@@ -1054,12 +1050,21 @@ class CreateWikidataEntity implements ShouldQueue
                     }
 
                     // Update the database status to reflect the entity was published in Wikidata
+                    // This ensures the status is updated even if the callback fails
                     $this->updateRequestStatus($entityId);
 
-                    // For main entities only (not child entities in the chain), dispatch events and callbacks
+                    // Log that we've updated the status directly
+                    Log::info(
+                        "Status updated directly in job to wikidata_published",
+                        [
+                            "entity_id" => $entityId,
+                            "request_id" => $this->requestId,
+                        ],
+                    );
+
+                    // For main entities only (not child entities in the chain), dispatch events
                     if (empty($this->parentEntityId)) {
                         // Dispatch an event about the entity creation
-                        // This replaces the direct HTTP callback with a more reliable event-based approach
                         event(
                             new \App\Events\WikidataEntityCreated(
                                 $entityId,
@@ -1070,11 +1075,6 @@ class CreateWikidataEntity implements ShouldQueue
                                 $this->entityData,
                             ),
                         );
-
-                        // For backward compatibility, still use the callback if provided
-                        if ($this->callbackUrl) {
-                            $this->notifyCallback($entityId, $createdEntities);
-                        }
 
                         Log::info("Dispatched event for main entity creation", [
                             "entity_id" => $entityId,
@@ -1519,31 +1519,16 @@ class CreateWikidataEntity implements ShouldQueue
             // If we've exhausted all retries, update the status and notify about the failure
             $this->updateRequestStatusToFailed($e->getMessage());
 
-            if ($this->callbackUrl) {
-                try {
-                    $client = new \GuzzleHttp\Client();
-                    $client->post($this->callbackUrl, [
-                        "json" => [
-                            "entity_id" => null,
-                            "status" => "failed",
-                            "error" => $e->getMessage(),
-                            "original_data" => $this->entityData,
-                        ],
-                    ]);
-
-                    Log::info("Sent failure notification for entity creation", [
-                        "error" => $e->getMessage(),
-                        "entity_data" => [
-                            "type" => $this->entityType,
-                            "title" => $this->entityData["title"] ?? "Unknown",
-                        ],
-                    ]);
-                } catch (\Exception $callbackEx) {
-                    Log::error("Failed to send failure callback", [
-                        "error" => $callbackEx->getMessage(),
-                    ]);
-                }
-            }
+            // Log the failure for monitoring purposes
+            Log::error("Entity creation failed after multiple retries", [
+                "error" => $e->getMessage(),
+                "entity_data" => [
+                    "type" => $this->entityType,
+                    "title" => $this->entityData["title"] ?? "Unknown",
+                ],
+                "request_id" => $this->requestId,
+                "trace" => $e->getTraceAsString(),
+            ]);
         }
     }
 
@@ -1574,26 +1559,6 @@ class CreateWikidataEntity implements ShouldQueue
                 ],
             );
 
-            // Still try to notify the callback if available
-            if ($this->callbackUrl) {
-                try {
-                    $client = new \GuzzleHttp\Client();
-                    $client->post($this->callbackUrl, [
-                        "json" => [
-                            "entity_id" => "UNKNOWN", // We don't know the ID but the entity might have been created
-                            "status" => "partial_success",
-                            "message" =>
-                                "Entity was likely created but could not update the request record.",
-                            "original_data" => $this->entityData,
-                        ],
-                    ]);
-                } catch (\Exception $callbackEx) {
-                    Log::error("Failed to send partial success callback", [
-                        "error" => $callbackEx->getMessage(),
-                    ]);
-                }
-            }
-
             return;
         }
 
@@ -1610,34 +1575,24 @@ class CreateWikidataEntity implements ShouldQueue
         // Update the request status to failed
         $this->updateRequestStatusToFailed("Fatal error: " . $e->getMessage());
 
-        // Notify of the failure
-        if ($this->callbackUrl) {
-            try {
-                $client = new \GuzzleHttp\Client();
-                $client->post($this->callbackUrl, [
-                    "json" => [
-                        "entity_id" => null,
-                        "status" => "failed",
-                        "error" => "Fatal error: " . $e->getMessage(),
-                        "original_data" => $this->entityData,
-                    ],
-                ]);
-            } catch (\Exception $callbackEx) {
-                Log::error("Failed to send fatal error callback", [
-                    "error" => $callbackEx->getMessage(),
-                ]);
-            }
-        }
+        // Log the fatal error
+        Log::critical("Fatal error in CreateWikidataEntity job", [
+            "error" => $e->getMessage(),
+            "trace" => $e->getTraceAsString(),
+        ]);
     }
 
     /**
-     * Update the request status in the database
+     * Update the status of the entry request to reflect the entity was published
      *
      * @param string $entityId The Wikidata entity ID
+     * @param array $createdEntities Optional array of created entities
      * @return void
      */
-    protected function updateRequestStatus(string $entityId): void
-    {
+    protected function updateRequestStatus(
+        string $entityId,
+        array $createdEntities = [],
+    ): void {
         try {
             // First try to use the dedicated requestId property if it was provided
             $requestId = $this->requestId;
@@ -1664,12 +1619,18 @@ class CreateWikidataEntity implements ShouldQueue
                     return;
                 }
 
+                // Try to load the entry request model
+                $entryRequest = $requestModelClass::find($requestId);
+
                 // Use a simple direct query update approach - most reliable, doesn't need schema checks
                 try {
                     // Simple update with only the most critical fields
                     $updateData = [
                         "status" => "wikidata_published",
                         "wikidata_id" => $entityId,
+                        "created_entities" => !empty($createdEntities)
+                            ? json_encode($createdEntities)
+                            : null,
                         "status_updated_at" => now(), // Ensure status_updated_at is set
                     ];
 
@@ -1683,20 +1644,121 @@ class CreateWikidataEntity implements ShouldQueue
                         ::where("id", $requestId)
                         ->update($updateData);
 
+                    // Reload the entry request to make sure we have the latest data
+                    $entryRequest = $requestModelClass::find($requestId);
+
                     if ($affected) {
                         Log::info(
-                            "Updated request status to wikidata_published using minimal fields",
+                            "Updated request status to wikidata_published using model approach",
                             [
-                                "request_id" => $requestId,
+                                "request_id" => $this->requestId,
                                 "entity_id" => $entityId,
+                                "previous_status" =>
+                                    $entryRequest->status ?? "unknown",
                             ],
                         );
+
+                        // Ensure the model status was actually updated
+                        if (
+                            $entryRequest &&
+                            isset($entryRequest->status) &&
+                            $entryRequest->status !== "wikidata_published"
+                        ) {
+                            Log::warning(
+                                "Status update not reflected in model - forcing update",
+                                [
+                                    "request_id" => $this->requestId,
+                                    "entity_id" => $entityId,
+                                    "current_status" => $entryRequest->status,
+                                ],
+                            );
+
+                            // Force update with raw query as last resort
+                            try {
+                                \DB::table("wikidata_entry_requests")
+                                    ->where("id", $this->requestId)
+                                    ->update([
+                                        "status" => "wikidata_published",
+                                        "wikidata_id" => $entityId,
+                                        "created_entities" => !empty(
+                                            $createdEntities
+                                        )
+                                            ? json_encode($createdEntities)
+                                            : null,
+                                        "updated_at" => now(),
+                                    ]);
+
+                                Log::info(
+                                    "Forced status update via direct DB query",
+                                );
+                            } catch (\Exception $dbEx) {
+                                Log::error(
+                                    "Failed even with direct DB update: " .
+                                        $dbEx->getMessage(),
+                                );
+                            }
+                        }
+
+                        // Notification handling using EntryStatusController
+                        try {
+                            if ($entryRequest) {
+                                $statusController = app(
+                                    \App\Http\Controllers\EntryStatusController::class,
+                                );
+                                $statusController->sendStatusChangeNotifications(
+                                    $entryRequest,
+                                    "wikidata_published",
+                                    true, // Force notification
+                                );
+                            }
+                        } catch (\Exception $e) {
+                            Log::error(
+                                "Failed to send notification: " .
+                                    $e->getMessage(),
+                            );
+                        }
+
+                        // Ensure the model status was actually updated
+                        if (
+                            $entryRequest &&
+                            $entryRequest->status !== "wikidata_published"
+                        ) {
+                            Log::warning(
+                                "Status update not reflected in model - forcing update",
+                                [
+                                    "request_id" => $this->requestId,
+                                    "entity_id" => $entityId,
+                                    "current_status" => $entryRequest->status,
+                                ],
+                            );
+
+                            // Force update with raw query as last resort
+                            try {
+                                \DB::table("wikidata_entry_requests")
+                                    ->where("id", $this->requestId)
+                                    ->update([
+                                        "status" => "wikidata_published",
+                                        "wikidata_id" => $entityId,
+                                        "updated_at" => now(),
+                                    ]);
+
+                                Log::info(
+                                    "Forced status update via direct DB query",
+                                );
+                            } catch (\Exception $dbEx) {
+                                Log::error(
+                                    "Failed even with direct DB update: " .
+                                        $dbEx->getMessage(),
+                                );
+                            }
+                        }
 
                         // Force trigger notification manually after successful status update
                         try {
                             $statusController = app(
                                 \App\Http\Controllers\EntryStatusController::class,
                             );
+                            // Reload the entry request to make sure we have the latest data
                             $entryRequest = \App\Models\WikibaseEntryRequest::find(
                                 $requestId,
                             );
@@ -1743,21 +1805,24 @@ class CreateWikidataEntity implements ShouldQueue
                                     [
                                         "request_id" => $requestId,
                                         "entity_id" => $entityId,
-                                        "has_email" => !empty(
-                                            $entryRequest->email
-                                        )
-                                            ? "yes"
-                                            : "no",
-                                        "email" =>
-                                            $entryRequest->email ?? "not set",
+                                        "has_email" =>
+                                            $entryRequest &&
+                                            !empty($entryRequest->email)
+                                                ? "yes"
+                                                : "no",
+                                        "email" => $entryRequest
+                                            ? $entryRequest->email ?? "not set"
+                                            : "not set",
                                     ],
                                 );
 
-                                $statusController->sendStatusChangeNotifications(
-                                    $entryRequest,
-                                    "wikidata_published",
-                                    true, // Force notification
-                                );
+                                if ($entryRequest) {
+                                    $statusController->sendStatusChangeNotifications(
+                                        $entryRequest,
+                                        "wikidata_published",
+                                        true, // Force notification
+                                    );
+                                }
                             } catch (\Exception $notifyEx) {
                                 Log::error(
                                     "Failed to send manual notification after model update",
@@ -1795,6 +1860,11 @@ class CreateWikidataEntity implements ShouldQueue
                         if ($request) {
                             $request->status = "wikidata_published";
                             $request->wikidata_id = $entityId;
+                            $request->created_entities = !empty(
+                                $createdEntities
+                            )
+                                ? $createdEntities
+                                : null;
                             $request->status_updated_at = now(); // Ensure status_updated_at is set
                             // Reset notification sent status to ensure a notification is sent
                             if (
@@ -1831,41 +1901,6 @@ class CreateWikidataEntity implements ShouldQueue
             }
         } catch (\Exception $e) {
             Log::error("Error in updateRequestStatus method", [
-                "error" => $e->getMessage(),
-                "entity_id" => $entityId,
-            ]);
-        }
-    }
-
-    /**
-     * Notify a callback URL about the created entity
-     *
-     * @param string $entityId The created entity ID
-     * @param array $createdEntities Additional entities that were created
-     * @return void
-     */
-    protected function notifyCallback(
-        string $entityId,
-        array $createdEntities = [],
-    ) {
-        try {
-            $client = new \GuzzleHttp\Client();
-            $response = $client->post($this->callbackUrl, [
-                "json" => [
-                    "entity_id" => $entityId,
-                    "status" => "success",
-                    "original_data" => $this->entityData,
-                    "created_entities" => $createdEntities,
-                ],
-            ]);
-
-            Log::info("Sent callback notification for created entity", [
-                "entity_id" => $entityId,
-                "status_code" => $response->getStatusCode(),
-                "created_entities_count" => count($createdEntities),
-            ]);
-        } catch (\Exception $e) {
-            Log::error("Failed to send callback notification", [
                 "error" => $e->getMessage(),
                 "entity_id" => $entityId,
             ]);
@@ -2861,11 +2896,15 @@ class CreateWikidataEntity implements ShouldQueue
                 ];
 
                 // Call the WikibaseService to add this statement to the person entity
-                $result = $wikidataService->updateEntity($entity["id"], [
-                    "claims" => [
-                        "P793" => [$statement],
+                $result = $wikidataService->updateEntity(
+                    $entity["id"],
+                    [
+                        "claims" => [
+                            "P793" => [$statement],
+                        ],
                     ],
-                ]);
+                    "Q5",
+                ); // Q5 is the Person entity type
 
                 if ($result) {
                     $linkedEntities++;

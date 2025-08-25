@@ -893,7 +893,6 @@ class WikibaseService
      *
      * @param array $data The entity data
      * @param string $type The entity type
-     * @param string|null $callbackUrl Optional callback URL
      * @param string|null $parentEntityId Optional parent entity ID
      * @param string|null $relationshipType Optional relationship type
      * @param int|null $requestId Optional request ID
@@ -902,7 +901,6 @@ class WikibaseService
     public function queueEntityCreation(
         array $data,
         string $type,
-        ?string $callbackUrl = null,
         ?string $parentEntityId = null,
         ?string $relationshipType = null,
         ?int $requestId = null,
@@ -928,7 +926,6 @@ class WikibaseService
             \App\Jobs\CreateWikidataEntity::dispatch(
                 $data,
                 $type,
-                $callbackUrl,
                 $parentEntityId,
                 $relationshipType,
                 $requestId,
