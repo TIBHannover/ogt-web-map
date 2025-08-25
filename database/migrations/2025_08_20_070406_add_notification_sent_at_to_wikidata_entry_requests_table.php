@@ -11,10 +11,17 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table("wikidata_entry_requests", function (Blueprint $table) {
-            $table
-                ->timestamp("notification_sent_at")
-                ->nullable()
-                ->after("notify_on_publish");
+            if (
+                !Schema::hasColumn(
+                    "wikidata_entry_requests",
+                    "notification_sent_at",
+                )
+            ) {
+                $table
+                    ->timestamp("notification_sent_at")
+                    ->nullable()
+                    ->after("notify_on_publish");
+            }
         });
     }
 
@@ -24,7 +31,14 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table("wikidata_entry_requests", function (Blueprint $table) {
-            $table->dropColumn("notification_sent_at");
+            if (
+                Schema::hasColumn(
+                    "wikidata_entry_requests",
+                    "notification_sent_at",
+                )
+            ) {
+                $table->dropColumn("notification_sent_at");
+            }
         });
     }
 };
