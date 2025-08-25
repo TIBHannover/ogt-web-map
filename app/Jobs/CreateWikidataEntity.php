@@ -421,8 +421,9 @@ class CreateWikidataEntity implements ShouldQueue
         string $entityType,
         ?string $parentEntityId = null,
         ?string $relationshipType = null,
-        ?int $requestId = null,
+        $requestId = null,
     ) {
+        // Remove type hint to accept both string and int
         $this->entityData = $entityData;
         $this->entityType = $entityType;
         $this->parentEntityId = $parentEntityId;
@@ -929,7 +930,7 @@ class CreateWikidataEntity implements ShouldQueue
                                     // Use EntryStatusController's static method to update status
                                     \App\Http\Controllers\EntryStatusController::updateStatusHistoryStatic(
                                         $entryRequest,
-                                        "wikidata_published",
+                                        "published",
                                         "Eintrag erfolgreich erstellt mit Wikidata-ID: {$entityId}",
                                     );
 
@@ -991,9 +992,12 @@ class CreateWikidataEntity implements ShouldQueue
                     }
 
                     // Update entity data again with any changes made during tracking
+                    // Call updateEntityWithFormattedData with the newly created entity ID
                     $this->updateEntityWithFormattedData(
                         $formatterModels,
                         $entityId,
+                        $this->entityData,
+                        $this->entityType,
                     );
 
                     Log::info(
@@ -1105,7 +1109,121 @@ class CreateWikidataEntity implements ShouldQueue
                         );
                     }
                 } else {
-                    $this->handleEntityCreationFailure($response);
+                    // Check if the error is because the entity already exists
+                    if (
+                        $response &&
+                        isset($response["error"]) &&
+                        isset($response["error"]["info"]) &&
+                        strpos(
+                            $response["error"]["info"],
+                            "already has label",
+                        ) !== false &&
+                        strpos(
+                            $response["error"]["info"],
+                            "using the same description text",
+                        ) !== false
+                    ) {
+                        // Extract the existing entity ID from the error message
+                        $existingEntityId = null;
+                        $errorInfo = $response["error"]["info"];
+                        if (
+                            preg_match(
+                                "/\[\[Q\d+\|?(Q\d+)?\]\]/",
+                                $errorInfo,
+                                $matches,
+                            )
+                        ) {
+                            $existingEntityId =
+                                isset($matches[1]) && !empty($matches[1])
+                                    ? $matches[1]
+                                    : substr($matches[0], 2, -2);
+                        }
+                        if ($existingEntityId) {
+                            Log::info(
+                                "Entity already exists, using existing entity",
+                                [
+                                    "existing_entity_id" => $existingEntityId,
+                                    "request_id" => $this->requestId,
+                                ],
+                            );
+                            // Update the request with the existing entity ID
+                            $this->updateRequestStatus($existingEntityId);
+                            return;
+                        }
+                    }
+
+                    // Handle other failure cases
+                    // Check if the entity was successfully created
+                    if (isset($entityId) && !empty($entityId)) {
+                        $this->updateRequestStatus($entityId);
+                    } else {
+                        // Check if the error is because the entity already exists
+                        if (
+                            $response &&
+                            isset($response["error"]) &&
+                            isset($response["error"]["info"])
+                        ) {
+                            $errorInfo = $response["error"]["info"];
+
+                            // Check for duplicate entity error pattern
+                            if (
+                                strpos($errorInfo, "already has label") !==
+                                    false &&
+                                strpos(
+                                    $errorInfo,
+                                    "using the same description text",
+                                ) !== false
+                            ) {
+                                // Extract the existing entity ID
+                                $existingEntityId = null;
+                                if (
+                                    preg_match(
+                                        "/\[\[Q\d+\|?(Q\d+)?\]\]/",
+                                        $errorInfo,
+                                        $matches,
+                                    )
+                                ) {
+                                    $existingEntityId =
+                                        isset($matches[1]) &&
+                                        !empty($matches[1])
+                                            ? $matches[1]
+                                            : substr($matches[0], 2, -2);
+                                }
+
+                                // Create error message
+                                $errorMessage =
+                                    "Entity already exists in Wikidata";
+                                if ($existingEntityId) {
+                                    $errorMessage .=
+                                        " with ID: " .
+                                        $existingEntityId .
+                                        ". You can view it at https://www.wikidata.org/wiki/" .
+                                        $existingEntityId;
+                                }
+
+                                // Log the duplicate entity
+                                Log::info("Duplicate entity detected", [
+                                    "existing_entity_id" => $existingEntityId,
+                                    "entity_title" =>
+                                        $this->entityData["title"] ?? "Unknown",
+                                    "entity_type" => $this->entityType,
+                                    "request_id" => $this->requestId,
+                                ]);
+
+                                // Update the request status with the duplicate entity information
+                                $this->updateRequestStatusToFailed(
+                                    $errorMessage,
+                                    $existingEntityId,
+                                );
+                            } else {
+                                // Handle other types of failures
+                                $this->handleEntityCreationFailure($response);
+                            }
+                        } else {
+                            // Handle other types of failures
+                            $this->handleEntityCreationFailure($response);
+                        }
+                    }
                 }
             } catch (\Exception $e) {
                 $this->handleException($e);
@@ -1383,13 +1501,16 @@ class CreateWikidataEntity implements ShouldQueue
         // Try to update the request status to failed if we've exhausted retries
         if ($this->attempts() >= $this->tries) {
             $this->updateRequestStatusToFailed(
-                "Failed to create Wikidata entity: " . json_encode($response),
+                "Failed to create Wikidata entity: " .
+                    ($response ? json_encode($response) : "null"),
+                null,
             );
         }
 
         // Throw an exception to trigger a retry
         throw new \Exception(
-            "Failed to create Wikidata entity: " . json_encode($response),
+            "Failed to create Wikidata entity: " .
+                ($response ? json_encode($response) : "null"),
         );
     }
 
@@ -1397,18 +1518,38 @@ class CreateWikidataEntity implements ShouldQueue
      * Update the request status to failed
      *
      * @param string $errorMessage The error message
+     * @param string|null $existingEntityId Optional existing entity ID for duplicate cases
      * @return void
      */
-    protected function updateRequestStatusToFailed(string $errorMessage): void
-    {
+    protected function updateRequestStatusToFailed(
+        string $errorMessage,
+        ?string $existingEntityId = null,
+    ): void {
         try {
             // First try to use the dedicated requestId property
             $requestId = $this->requestId;
 
+            // Convert to integer if it's a string but numeric
+            if (is_string($requestId) && is_numeric($requestId)) {
+                $requestId = (int) $requestId;
+            }
+
             // If not available, try to get it from the entityData
             if (empty($requestId) && !empty($this->entityData["id"])) {
                 $requestId = $this->entityData["id"];
+
+                // Also convert this to integer if needed
+                if (is_string($requestId) && is_numeric($requestId)) {
+                    $requestId = (int) $requestId;
+                }
             }
+
+            // Log the request ID being used
+            Log::info("Updating request status to failed", [
+                "request_id" => $requestId,
+                "request_id_type" => gettype($requestId),
+                "error_message" => $errorMessage,
+            ]);
 
             if (!empty($requestId)) {
                 // Get request model class name from config or use the correct default
@@ -1428,19 +1569,42 @@ class CreateWikidataEntity implements ShouldQueue
 
                 // Try to update with a simple query first (most reliable approach)
                 try {
-                    $requestModelClass::where("id", $requestId)->update([
-                        "status" => "wikidata_failed",
-                        "rejection_reason" => $errorMessage, // This is likely to exist since it's a standard field
-                    ]);
+                    // Use direct DB query which is more reliable
+                    // Note: We use "error" status for failures because SQLite CHECK constraints
+                    // only allow specific status values (pending, approved, rejected, error, published)
+                    $updateData = [
+                        "status" => "error", // Use 'error' instead of 'wikidata_failed' due to database constraints
+                        "rejection_reason" => $errorMessage,
+                        "updated_at" => now(),
+                        "status_updated_at" => now(),
+                    ];
+
+                    // If we have an existing entity ID, store it for reference
+                    if ($existingEntityId) {
+                        $updateData["wikidata_id"] = $existingEntityId;
+                    }
+
+                    // Try using Eloquent's query builder for more reliable updates
+                    $affected = \DB::table("wikidata_entry_requests")
+                        ->where("id", $requestId)
+                        ->update($updateData);
 
                     Log::info(
-                        "Updated request status to wikidata_failed using direct update",
+                        "Updated request status to rejected using direct update",
                         [
                             "request_id" => $requestId,
+                            "affected_rows" => $affected,
                         ],
                     );
 
-                    return; // Exit early if successful
+                    if ($affected > 0) {
+                        return; // Exit early if successful
+                    } else {
+                        Log::warning(
+                            "Direct update did not affect any rows. Trying model approach.",
+                            ["request_id" => $requestId],
+                        );
+                    }
                 } catch (\Exception $updateEx) {
                     Log::warning(
                         "Direct update of status failed, trying full model: " .
@@ -1454,7 +1618,7 @@ class CreateWikidataEntity implements ShouldQueue
                     $request = $requestModelClass::find($requestId);
 
                     if ($request) {
-                        $request->status = "wikidata_failed";
+                        $request->status = "error"; // Use 'error' instead of 'wikidata_failed' due to database constraints
 
                         // Check which error field to use based on schema
                         $table = $request->getTable();
@@ -1477,10 +1641,9 @@ class CreateWikidataEntity implements ShouldQueue
                         $request->save();
 
                         Log::info(
-                            "Updated request status to wikidata_failed using model",
+                            "Updated request status to rejected using model approach",
                             [
                                 "request_id" => $requestId,
-                                "error" => $errorMessage,
                             ],
                         );
                     }
@@ -1517,17 +1680,14 @@ class CreateWikidataEntity implements ShouldQueue
             throw $e;
         } else {
             // If we've exhausted all retries, update the status and notify about the failure
-            $this->updateRequestStatusToFailed($e->getMessage());
+            $this->updateRequestStatusToFailed(
+                "Error creating entity: " . $e->getMessage(),
+                null,
+            );
 
             // Log the failure for monitoring purposes
             Log::error("Entity creation failed after multiple retries", [
                 "error" => $e->getMessage(),
-                "entity_data" => [
-                    "type" => $this->entityType,
-                    "title" => $this->entityData["title"] ?? "Unknown",
-                ],
-                "request_id" => $this->requestId,
-                "trace" => $e->getTraceAsString(),
             ]);
         }
     }
@@ -1573,12 +1733,14 @@ class CreateWikidataEntity implements ShouldQueue
         ]);
 
         // Update the request status to failed
-        $this->updateRequestStatusToFailed("Fatal error: " . $e->getMessage());
+        $this->updateRequestStatusToFailed(
+            "Fatal error during entity creation: " . $e->getMessage(),
+            null,
+        );
 
         // Log the fatal error
         Log::critical("Fatal error in CreateWikidataEntity job", [
             "error" => $e->getMessage(),
-            "trace" => $e->getTraceAsString(),
         ]);
     }
 
@@ -1597,15 +1759,39 @@ class CreateWikidataEntity implements ShouldQueue
             // First try to use the dedicated requestId property if it was provided
             $requestId = $this->requestId;
 
+            // Convert to integer if it's a string but numeric
+            if (is_string($requestId) && is_numeric($requestId)) {
+                $requestId = (int) $requestId;
+            }
+
             // If not available, try to get it from the entityData as a fallback
             if (empty($requestId) && !empty($this->entityData["id"])) {
                 $requestId = $this->entityData["id"];
+
+                // Also convert this to integer if needed
+                if (is_string($requestId) && is_numeric($requestId)) {
+                    $requestId = (int) $requestId;
+                }
             }
+
+            // Log the request ID being used
+            Log::info("Updating request status", [
+                "request_id" => $requestId,
+                "entity_id" => $entityId,
+                "request_id_type" => gettype($requestId),
+            ]);
 
             // If we have a request ID, update the database
             if (!empty($requestId)) {
                 // Get request model class name from config or use the correct default
                 $requestModelClass = "\\App\\Models\\WikibaseEntryRequest";
+
+                // Log the model class and table being used
+                Log::info("Using model class for status update", [
+                    "model_class" => $requestModelClass,
+                    "table_name" => "wikidata_entry_requests",
+                    "request_id" => $requestId,
+                ]);
 
                 // Check if the model class exists before trying to use it
                 if (!class_exists($requestModelClass)) {
@@ -1620,18 +1806,38 @@ class CreateWikidataEntity implements ShouldQueue
                 }
 
                 // Try to load the entry request model
-                $entryRequest = $requestModelClass::find($requestId);
+                try {
+                    $entryRequest = $requestModelClass::find($requestId);
+
+                    // Log whether we found the entry request
+                    Log::info("Entry request lookup result", [
+                        "request_id" => $requestId,
+                        "found" => $entryRequest ? "yes" : "no",
+                        "status" => $entryRequest
+                            ? $entryRequest->status
+                            : "N/A",
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error("Error finding entry request", [
+                        "request_id" => $requestId,
+                        "error" => $e->getMessage(),
+                    ]);
+                    $entryRequest = null;
+                }
 
                 // Use a simple direct query update approach - most reliable, doesn't need schema checks
                 try {
                     // Simple update with only the most critical fields
+                    // Using "wikidata_published" status after fixing SQLite CHECK constraints
+                    // The previous workaround of using "approved" is no longer needed
                     $updateData = [
-                        "status" => "wikidata_published",
+                        "status" => "wikidata_published", // Now using proper status after fixing constraints
                         "wikidata_id" => $entityId,
                         "created_entities" => !empty($createdEntities)
                             ? json_encode($createdEntities)
                             : null,
                         "status_updated_at" => now(), // Ensure status_updated_at is set
+                        "updated_at" => now(), // Also update the updated_at timestamp
                     ];
 
                     // Make sure we have a notification flag set for successful publications
@@ -1640,16 +1846,38 @@ class CreateWikidataEntity implements ShouldQueue
                     }
 
                     // Try to update the record
-                    $affected = $requestModelClass
-                        ::where("id", $requestId)
+                    // Log what we're about to update
+                    Log::info("Attempting to update request status", [
+                        "model_class" => $requestModelClass,
+                        "request_id" => $requestId,
+                        "new_status" => "wikidata_published", // Explicitly log the status we're setting
+                        "entity_id" => $entityId,
+                    ]);
+
+                    // Log what we're trying to update
+                    Log::info("Updating entry request directly", [
+                        "table" => "wikidata_entry_requests",
+                        "request_id" => $requestId,
+                        "data" => $updateData,
+                    ]);
+
+                    // Try using Eloquent's query builder for more reliable updates
+                    $affected = \DB::table("wikidata_entry_requests")
+                        ->where("id", $requestId)
                         ->update($updateData);
+
+                    // Log the result
+                    Log::info("Direct update result", [
+                        "request_id" => $requestId,
+                        "affected_rows" => $affected,
+                    ]);
 
                     // Reload the entry request to make sure we have the latest data
                     $entryRequest = $requestModelClass::find($requestId);
 
                     if ($affected) {
                         Log::info(
-                            "Updated request status to wikidata_published using model approach",
+                            "Updated request status to published using model approach",
                             [
                                 "request_id" => $this->requestId,
                                 "entity_id" => $entityId,
@@ -1676,9 +1904,9 @@ class CreateWikidataEntity implements ShouldQueue
                             // Force update with raw query as last resort
                             try {
                                 \DB::table("wikidata_entry_requests")
-                                    ->where("id", $this->requestId)
+                                    ->where("id", $requestId)
                                     ->update([
-                                        "status" => "wikidata_published",
+                                        "status" => "published",
                                         "wikidata_id" => $entityId,
                                         "created_entities" => !empty(
                                             $createdEntities
@@ -1686,6 +1914,7 @@ class CreateWikidataEntity implements ShouldQueue
                                             ? json_encode($createdEntities)
                                             : null,
                                         "updated_at" => now(),
+                                        "status_updated_at" => now(),
                                     ]);
 
                                 Log::info(
@@ -1721,6 +1950,7 @@ class CreateWikidataEntity implements ShouldQueue
                         // Ensure the model status was actually updated
                         if (
                             $entryRequest &&
+                            isset($entryRequest->status) &&
                             $entryRequest->status !== "wikidata_published"
                         ) {
                             Log::warning(
@@ -1735,11 +1965,12 @@ class CreateWikidataEntity implements ShouldQueue
                             // Force update with raw query as last resort
                             try {
                                 \DB::table("wikidata_entry_requests")
-                                    ->where("id", $this->requestId)
+                                    ->where("id", $requestId)
                                     ->update([
-                                        "status" => "wikidata_published",
+                                        "status" => "wikidata_published", // Using proper wikidata_published status
                                         "wikidata_id" => $entityId,
                                         "updated_at" => now(),
+                                        "status_updated_at" => now(),
                                     ]);
 
                                 Log::info(
@@ -1858,7 +2089,7 @@ class CreateWikidataEntity implements ShouldQueue
                     try {
                         $request = $requestModelClass::find($requestId);
                         if ($request) {
-                            $request->status = "wikidata_published";
+                            $request->status = "wikidata_published"; // Using wikidata_published status directly
                             $request->wikidata_id = $entityId;
                             $request->created_entities = !empty(
                                 $createdEntities
@@ -2499,22 +2730,7 @@ class CreateWikidataEntity implements ShouldQueue
 
             if ($linkProperty) {
                 // Create the statement to add to the parent entity
-                $statement = [
-                    "mainsnak" => [
-                        "snaktype" => "value",
-                        "property" => $linkProperty,
-                        "datavalue" => [
-                            "value" => [
-                                "entity-type" => "item",
-                                "id" => $entityId,
-                                "numeric-id" => intval(substr($entityId, 1)),
-                            ],
-                            "type" => "wikibase-entityid",
-                        ],
-                    ],
-                    "type" => "statement",
-                    "rank" => "normal",
-                ];
+                $statement = [];
 
                 // Add qualifiers if needed (e.g., page numbers for sources, locations for victims)
                 if ($this->relationshipType === "source") {
@@ -2809,7 +3025,6 @@ class CreateWikidataEntity implements ShouldQueue
                     Log::error("Failed to link entity to its parent", [
                         "child_id" => $entityId,
                         "parent_id" => $this->parentEntityId,
-                        "relationship" => $this->relationshipType,
                     ]);
                 }
             }
@@ -2835,38 +3050,19 @@ class CreateWikidataEntity implements ShouldQueue
         WikibaseService $wikidataService,
         string $mainEntityId,
         array $createdEntities,
-    ) {
+    ): void {
         try {
-            $mappingProvider = app(EntityMappingProviderInterface::class);
-
-            Log::info("Starting linkMainEntityToChildren", [
-                "main_id" => $mainEntityId,
-                "created_entities" => $createdEntities,
-                "entity_type" => $this->entityType,
-                "expected_event_type" => $mappingProvider->getEntityTypeId(
-                    "App\\Models\\Wikibase\\Event",
-                ),
+            Log::info("Linking main entity to created children", [
+                "main_entity_id" => $mainEntityId,
+                "created_entities_count" => count($createdEntities),
             ]);
 
-            // Only perform this operation for event entities
-            if (
-                $this->entityType !==
-                $mappingProvider->getEntityTypeId(
-                    "App\\Models\\Wikibase\\Event",
-                )
-            ) {
-                Log::warning(
-                    "Skipping linkMainEntityToChildren - not an event entity",
-                    [
-                        "entity_type" => $this->entityType,
-                        "expected_type" => $mappingProvider->getEntityTypeId(
-                            "App\\Models\\Wikibase\\Event",
-                        ),
-                    ],
-                );
+            if (empty($createdEntities)) {
                 return;
             }
 
+            // Get mapping provider for entity type information
+            $mappingProvider = app(EntityMappingProviderInterface::class);
             $linkedEntities = 0;
 
             foreach ($createdEntities as $entity) {
@@ -2879,14 +3075,11 @@ class CreateWikidataEntity implements ShouldQueue
                 $statement = [
                     "mainsnak" => [
                         "snaktype" => "value",
-                        "property" => "P793", // Significant event - this is a specific property not in the constants
+                        "property" => "P793",
                         "datavalue" => [
                             "value" => [
                                 "entity-type" => "item",
                                 "id" => $mainEntityId,
-                                "numeric-id" => intval(
-                                    substr($mainEntityId, 1),
-                                ),
                             ],
                             "type" => "wikibase-entityid",
                         ],
@@ -2903,75 +3096,78 @@ class CreateWikidataEntity implements ShouldQueue
                             "P793" => [$statement],
                         ],
                     ],
-                    "Q5",
-                ); // Q5 is the Person entity type
+                    "Q5", // Q5 is the Person entity type
+                );
 
                 if ($result) {
                     $linkedEntities++;
                     Log::info(
-                        "Successfully linked main entity as significant event to child entity",
+                        "Successfully linked person entity to main entity",
                         [
-                            "main_id" => $mainEntityId,
-                            "child_id" => $entity["id"],
-                            "child_type" => $entity["type"],
+                            "person_id" => $entity["id"],
+                            "main_entity_id" => $mainEntityId,
+                            "type" => $entity["type"],
                         ],
                     );
                 } else {
-                    Log::error(
-                        "Failed to link main entity as significant event to child entity",
-                        [
-                            "main_id" => $mainEntityId,
-                            "child_id" => $entity["id"],
-                            "child_type" => $entity["type"],
-                        ],
-                    );
+                    Log::error("Failed to link person entity to main entity", [
+                        "person_id" => $entity["id"],
+                        "main_entity_id" => $mainEntityId,
+                        "type" => $entity["type"],
+                    ]);
                 }
             }
 
-            if ($linkedEntities > 0) {
-                Log::info("Completed bidirectional linking", [
-                    "main_entity_id" => $mainEntityId,
-                    "linked_entities" => $linkedEntities,
-                ]);
-            }
+            Log::info("Completed linking entities", [
+                "main_entity_id" => $mainEntityId,
+                "linked_entities" => $linkedEntities,
+                "total_entities" => count($createdEntities),
+            ]);
         } catch (\Exception $e) {
             Log::error("Exception while linking main entity to children", [
                 "error" => $e->getMessage(),
-                "main_id" => $mainEntityId,
+                "main_entity_id" => $mainEntityId,
             ]);
         }
     }
 
     /**
-     * Update entity data using the WikibaseFormatterModels
+     * Update an entity with formatted data using the formatter
      *
-     * @param WikibaseFormatterModels $formatterModels The formatter models instance
-     * @param string $entityId The newly created entity ID
+     * @param WikibaseFormatterModels $formatterModels
+     * @param string $entityId The entity ID to update
+     * @param array $entityData The entity data to format
+     * @param string $type The entity type (defaults to Person)
      * @return void
      */
     protected function updateEntityWithFormattedData(
         WikibaseFormatterModels $formatterModels,
         string $entityId,
+        array $entityData,
+        string $type = "Q5",
     ): void {
         try {
             $formattedResult = $formatterModels->formatEntityData(
-                $this->entityData,
-                $this->entityType,
-                false, // Don't create related entities again
+                $entityData,
+                $type,
             );
 
-            // Update the entityData with the formatted data
-            $this->entityData = $formattedResult["updatedData"];
-
-            Log::info(
-                "Updated entity data with formatted data using WikibaseFormatterModels",
-                [
+            if (!empty($formattedResult)) {
+                Log::info("Formatted entity data for update", [
                     "entity_id" => $entityId,
-                    "type" => $this->entityType,
-                ],
-            );
+                    "type" => $type,
+                ]);
+
+                // Call update entity to apply the formatted data
+                $wikidataService = app(WikibaseService::class);
+                $wikidataService->updateEntity(
+                    $entityId,
+                    $formattedResult,
+                    $type,
+                );
+            }
         } catch (\Exception $e) {
-            Log::error("Error updating entity with formatted data", [
+            Log::error("Error formatting entity data for update", [
                 "error" => $e->getMessage(),
                 "entity_id" => $entityId,
             ]);

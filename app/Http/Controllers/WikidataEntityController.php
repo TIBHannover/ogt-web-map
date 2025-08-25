@@ -6,11 +6,13 @@ use App\Http\Controllers\EntryStatusController;
 use App\Models\WikibaseEntryRequest;
 use App\Jobs\OrchestrateWikidataEntityCreation;
 use App\Services\Wikibase\WikibaseFormatterModels;
+use App\Services\Wikibase\WikibaseService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 /**
  * Controller für die Verwaltung von Wikidata-Entitu00e4ten und Anfragen.
@@ -355,6 +357,59 @@ class WikidataEntityController extends Controller
                 );
             }
 
+            // Pre-check if this entity might already exist in Wikidata
+            // This prevents duplicate creation attempts and provides better user feedback
+            $existingEntityCheck = $this->checkForExistingEntity($entryRequest);
+            if ($existingEntityCheck["isDuplicate"]) {
+                // Update status and return early
+                $errorMessage = $existingEntityCheck["message"];
+                $existingEntityId = $existingEntityCheck["entityId"];
+
+                // Update the request status to error (for duplicates)
+                // Note: We use "error" instead of a more specific status like "duplicate"
+                // because SQLite CHECK constraints only allow specific status values
+                // (pending, approved, rejected, error, published)
+                $entryRequest->status = "error";
+                $entryRequest->rejection_reason = $errorMessage;
+                $entryRequest->wikidata_id = $existingEntityId; // Store the existing ID for reference
+                $entryRequest->status_updated_at = now();
+                $entryRequest->save();
+
+                // Return success with additional info about the duplicate
+                if ($request->has("redirect")) {
+                    return response()->json([
+                        "redirect" => $request->input("redirect"),
+                        "success" => false,
+                        "message" =>
+                            "Entität existiert bereits in Wikidata mit ID: " .
+                            $existingEntityId,
+                        "existing_entity_id" => $existingEntityId,
+                        "wikidata_url" =>
+                            "https://www.wikidata.org/wiki/" .
+                            $existingEntityId,
+                    ]);
+                }
+
+                return response()->json([
+                    "success" => false,
+                    "message" =>
+                        "Entität existiert bereits in Wikidata mit ID: " .
+                        $existingEntityId,
+                    "existing_entity_id" => $existingEntityId,
+                    "wikidata_url" =>
+                        "https://www.wikidata.org/wiki/" . $existingEntityId,
+                ]);
+            }
+
+            // No duplicate found, proceed with normal dispatch
+            // The job will update the status to "published" upon successful completion
+            // (we use "published" instead of "wikidata_published" due to SQLite constraints)
+            Log::info("No duplicate entity found, dispatching creation job", [
+                "request_id" => $entryRequest->id,
+                "title" => $entryRequest->title,
+                "type" => $entryRequest->type,
+            ]);
+
             \App\Jobs\CreateWikidataEntity::dispatch(
                 $entryRequest->toArray(),
                 $entryRequest->type,
@@ -362,6 +417,13 @@ class WikidataEntityController extends Controller
                 null, // relationship type
                 $entryRequest->id, // request ID for direct status updates
             );
+
+            // Log the job dispatch with request ID for debugging
+            Log::info("Dispatched CreateWikidataEntity job for request", [
+                "request_id" => $entryRequest->id,
+                "type" => $entryRequest->type,
+                "status" => $entryRequest->status,
+            ]);
 
             if ($request->has("redirect")) {
                 return response()->json(
@@ -595,8 +657,15 @@ class WikidataEntityController extends Controller
                 $entryRequest->type,
                 null, // parent entity ID
                 null, // relationship type
-                $entryRequest->id, // request ID for direct status updates
+                (int) $entryRequest->id, // request ID for direct status updates (ensure it's an integer)
             );
+
+            // Log the job dispatch with request ID for debugging
+            Log::info("Dispatched CreateWikidataEntity job for retry request", [
+                "request_id" => $entryRequest->id,
+                "type" => $entryRequest->type,
+                "status" => $entryRequest->status,
+            ]);
 
             if ($request->has("redirect")) {
                 return response()->json(
@@ -1062,12 +1131,106 @@ class WikidataEntityController extends Controller
                 ];
             }
         }
+    }
 
-        return [
-            "labels" => $label,
-            "descriptions" => $description,
-            "claims" => $statements,
-        ];
+    /**
+     * Check if an entity might already exist in Wikidata
+     * This performs a preliminary check before dispatching the job
+     *
+     * @param WikibaseEntryRequest $entryRequest The entry request to check
+     * @return array Result with isDuplicate flag, message, and entityId if found
+     */
+    private function checkForExistingEntity($entryRequest): array
+    {
+        try {
+            // Default result structure
+            $result = [
+                "isDuplicate" => false,
+                "message" => "",
+                "entityId" => null,
+            ];
+
+            // Get Wikibase service
+            $wikibaseService = app(WikibaseService::class);
+
+            // Log the search attempt
+            Log::info("Checking for existing entity before creation", [
+                "title" => $entryRequest->title,
+                "type" => $entryRequest->type,
+                "id" => $entryRequest->id,
+            ]);
+
+            // Check if there's an entity with the same label and description
+            $searchResults = $wikibaseService->searchEntities(
+                $entryRequest->title,
+                "de", // German language code
+                $entryRequest->type,
+            );
+
+            // Handle case when searchEntities returns null
+            if ($searchResults === null) {
+                Log::warning("Entity search returned null result", [
+                    "title" => $entryRequest->title,
+                    "type" => $entryRequest->type,
+                ]);
+                return $result; // Return default (not duplicate) result
+            }
+
+            if (!empty($searchResults) && isset($searchResults["search"])) {
+                foreach ($searchResults["search"] as $entity) {
+                    // If we find an exact match for title (label)
+                    if (
+                        Str::lower($entity["label"]) ===
+                        Str::lower($entryRequest->title)
+                    ) {
+                        // Entity might be a duplicate
+                        $result["isDuplicate"] = true;
+                        $result["entityId"] = $entity["id"];
+                        $result["message"] =
+                            "Entity already exists in Wikidata with ID: " .
+                            $entity["id"] .
+                            ". You can view it at https://www.wikidata.org/wiki/" .
+                            $entity["id"];
+
+                        // Log the duplicate detection
+                        Log::info(
+                            "Potential duplicate entity detected during pre-check",
+                            [
+                                "entity_title" => $entryRequest->title,
+                                "existing_id" => $entity["id"],
+                                "request_id" => $entryRequest->id,
+                            ],
+                        );
+
+                        break;
+                    }
+                }
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            // If anything goes wrong, log it but don't block the job
+            Log::warning(
+                "Error in pre-checking for duplicate entity: " .
+                    $e->getMessage(),
+            );
+
+            // Log detailed error information
+            Log::error("Exception in checkForExistingEntity", [
+                "exception" => get_class($e),
+                "message" => $e->getMessage(),
+                "title" => $entryRequest->title ?? "unknown",
+                "type" => $entryRequest->type ?? "unknown",
+                "request_id" => $entryRequest->id ?? "unknown",
+                "trace" => $e->getTraceAsString(),
+            ]);
+
+            return [
+                "isDuplicate" => false,
+                "message" => "",
+                "entityId" => null,
+            ];
+        }
     }
 
     /**

@@ -68,7 +68,14 @@ class WikibaseService
         EntityMappingProviderInterface $mappingProvider,
         string $baseUrl = null,
     ) {
-        $this->client = $client;
+        // Create a new client with default user-agent header
+        $this->client = new Client([
+            "headers" => [
+                "User-Agent" =>
+                    "OGT-Wiki-App/1.0 (https://offene-geschichte.de; info@offene-geschichte.de)",
+            ],
+        ]);
+
         $this->formatter = $formatter;
         $this->optimizer = $optimizer;
         $this->mappingProvider = $mappingProvider;
@@ -99,6 +106,11 @@ class WikibaseService
 
             $this->baseUrl = $baseUrl;
         }
+
+        // Log the URL being used for API calls
+        Log::info("WikibaseService initialized with API URL", [
+            "baseUrl" => $this->baseUrl,
+        ]);
 
         // Log which API URL is being used
         if (config("wikidata.log_api_urls", false)) {
@@ -760,13 +772,18 @@ class WikibaseService
                 ],
             ]);
 
-            // 1. Retrieve login token
+            // 1. Retrieve CSRF token
             $tokenResponse = $client->get($this->baseUrl, [
                 "query" => [
                     "action" => "query",
                     "meta" => "tokens",
                     "type" => "login",
                     "format" => "json",
+                ],
+                "cookies" => $cookieJar,
+                "headers" => [
+                    "User-Agent" =>
+                        "OGT-Wiki-App/1.0 (https://offene-geschichte.de; info@offene-geschichte.de)",
                 ],
             ]);
 
@@ -831,6 +848,11 @@ class WikibaseService
                     "meta" => "tokens",
                     "format" => "json",
                 ],
+                "cookies" => $cookieJar,
+                "headers" => [
+                    "User-Agent" =>
+                        "OGT-Wiki-App/1.0 (https://offene-geschichte.de; info@offene-geschichte.de)",
+                ],
             ]);
 
             $csrfData = json_decode(
@@ -889,6 +911,160 @@ class WikibaseService
     }
 
     /**
+     * Search for entities in Wikidata
+     *
+     * @param string $search The search term
+     * @param string $language The language code (e.g., 'de', 'en')
+     * @param string|null $type Optional entity type to filter by
+     * @return array|null The search results or null on failure
+     */
+    /**
+     * Get the API URL for Wikibase/Wikidata
+     *
+     * @return string The API URL
+     */
+    public function getApiUrl(): string
+    {
+        if (empty($this->baseUrl)) {
+            // Fallback to config value if not set
+            $this->baseUrl = config(
+                "wikidata.api_url",
+                "https://www.wikidata.org/w/api.php",
+            );
+            Log::warning("baseUrl was not set, using fallback from config", [
+                "baseUrl" => $this->baseUrl,
+            ]);
+        }
+        return $this->baseUrl;
+    }
+
+    public function searchEntities(
+        string $search,
+        string $language = "de",
+        ?string $type = null,
+        int $limit = 10,
+    ): ?array {
+        try {
+            // Check if client is initialized
+            if (!$this->client) {
+                Log::error("HTTP client is not initialized in WikibaseService");
+                return null;
+            }
+
+            // Get the base URL for the API - getApiUrl() now handles the empty check internally
+            $apiUrl = $this->getApiUrl();
+
+            // Create parameters for the search request
+            $params = [
+                "action" => "wbsearchentities",
+                "search" => $search,
+                "language" => $language,
+                "format" => "json",
+                "limit" => $limit,
+            ];
+
+            // Add type filter if provided
+            if ($type) {
+                $params["type"] = $type === "item" ? "item" : $type;
+            }
+
+            Log::info("Searching for entities", [
+                "search" => $search,
+                "language" => $language,
+                "type" => $type,
+                "limit" => $limit,
+                "api_url" => $apiUrl,
+            ]);
+
+            // Perform the search request with a timeout and user-agent
+            $response = $this->client->get($apiUrl, [
+                "query" => $params,
+                "timeout" => 10,
+                "connect_timeout" => 5,
+                "headers" => [
+                    "User-Agent" =>
+                        "OGT-Wiki-App/1.0 (https://offene-geschichte.de; info@offene-geschichte.de)",
+                ],
+            ]);
+
+            // Parse and return the results
+            $responseBody = $response->getBody()->getContents();
+            $data = json_decode($responseBody, true);
+
+            // Check if the response is valid JSON
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                Log::error("Invalid JSON response from API", [
+                    "json_error" => json_last_error_msg(),
+                    "response_body" =>
+                        substr($responseBody, 0, 500) .
+                        (strlen($responseBody) > 500 ? "..." : ""),
+                ]);
+                return null;
+            }
+
+            // Check if the API returned an error
+            if (isset($data["error"])) {
+                Log::error("API returned an error", [
+                    "error_code" => $data["error"]["code"] ?? "unknown",
+                    "error_info" =>
+                        $data["error"]["info"] ?? "No error info provided",
+                    "search" => $search,
+                ]);
+                return null;
+            }
+
+            // Log success
+            Log::info("Entity search completed", [
+                "term" => $search,
+                "language" => $language,
+                "type" => $type,
+                "results_count" => isset($data["search"])
+                    ? count($data["search"])
+                    : 0,
+            ]);
+
+            return $data;
+        } catch (\GuzzleHttp\Exception\ConnectException $e) {
+            // Handle connection timeouts
+            Log::error("Connection timeout while searching for entities", [
+                "message" => $e->getMessage(),
+                "search" => $search,
+                "api_url" => $this->baseUrl ?? "not set",
+            ]);
+            return null;
+        } catch (\GuzzleHttp\Exception\RequestException $e) {
+            // Handle Guzzle request exceptions specifically
+            Log::error("API request error while searching for entities", [
+                "message" => $e->getMessage(),
+                "search" => $search,
+                "language" => $language,
+                "type" => $type,
+                "api_url" => $this->baseUrl ?? "not set",
+                "response" => $e->hasResponse()
+                    ? (string) $e->getResponse()->getBody()
+                    : "no response",
+                "status_code" => $e->hasResponse()
+                    ? $e->getResponse()->getStatusCode()
+                    : "unknown",
+            ]);
+
+            return null;
+        } catch (\Exception $e) {
+            // Log error and return null
+            Log::error("Error searching for entities", [
+                "message" => $e->getMessage(),
+                "search" => $search,
+                "language" => $language,
+                "type" => $type,
+                "api_url" => $this->baseUrl ?? "not set",
+                "trace" => $e->getTraceAsString(),
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
      * Queue an entity creation job
      *
      * @param array $data The entity data
@@ -913,6 +1089,7 @@ class WikibaseService
                     [
                         "type" => $type,
                         "title" => $data["title"] ?? "Unknown",
+                        "request_id" => $requestId,
                     ],
                 );
 
@@ -928,7 +1105,7 @@ class WikibaseService
                 $type,
                 $parentEntityId,
                 $relationshipType,
-                $requestId,
+                (int) $requestId, // Ensure request ID is an integer
             );
 
             return true;

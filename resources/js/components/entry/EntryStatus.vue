@@ -51,8 +51,9 @@
                             class="status-detail"
                             v-if="
                                 (entryData.status === 'approved' ||
-                                    entryData.status ===
-                                        'wikidata_published') &&
+                                    entryData.status === 'wikidata_published' ||
+                                    (entryData.status === 'published' &&
+                                        entryData.wikidata_id)) &&
                                 entryData.wikidata_id
                             "
                         >
@@ -227,8 +228,10 @@ const getStatusLabel = (status) => {
         revision_needed: "Überarbeitung nötig",
         approved: "Genehmigt",
         rejected: "Abgelehnt",
+        error: "Fehler aufgetreten",
         wikidata_submitted: "An Wikidata übermittelt",
         wikidata_published: "In Wikidata veröffentlicht",
+        published: "In Wikidata veröffentlicht", // Display published status as "In Wikidata veröffentlicht"
         wikidata_failed: "Fehler bei Wikidata-Erstellung",
     };
     return statusLabels[status] || status;
@@ -241,8 +244,10 @@ const getStatusClass = (status) => {
         revision_needed: "status-revision",
         approved: "status-approved",
         rejected: "status-rejected",
+        error: "status-failed", // Use failed style for error status
         wikidata_submitted: "status-wikidata-submitted",
         wikidata_published: "status-wikidata-published",
+        published: "status-wikidata-published", // Use wikidata-published style for published status
         wikidata_failed: "status-failed",
     };
     return statusClasses[status] || "";
