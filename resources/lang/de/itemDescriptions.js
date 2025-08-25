@@ -104,4 +104,13 @@ export const itemDescriptions = {
             "Der Hauptdienststelle in Braunschweig unterstanden die Außenstellen in Bad Harzburg, Salzgitter („Grubengebiet“) und Watenstedt („Hüttengebiet“). In Bad Harzburg und Salzgitter erledigten die jeweiligen Leiter mit drei Mitarbeitern sämtliche staatspolizeilichen Aufgaben. Die Außenstelle Watenstedt war hingegen deutlich stärker besetzt und diente faktisch als Erweiterung der Abteilung II im Gebiet der Reichswerke.",
         ],
     },
+    Q106625639: {
+        textParts: [
+            "Mit der Heraufstufung zur Staatspolizeileitstelle im Jahr 1938 wurde die Gestapo-Dienststelle in Hannover zu einer zentralen regionalen Schaltstelle. Sie war für den gesamten Gau Süd-Hannover-Braunschweig mit seinen über zwei Millionen Einwohner*innen zuständig.",
+            "Die Staatspolizeileitstelle Hannover ging aus der bereits 1933 eingerichteten Staatspolizeistelle Hannover hervor, die zunächst die Regierungsbezirke Hannover und Hildesheim abdeckte. Zwischen 1935 und 1941 existierte in Hildesheim eine eigenständige Staatspolizeistelle, die anschließend als Außendienststelle der Leitstelle Hannover weitergeführt wurde.",
+            "Ab 1936 nutzte die Gestapo Hannover ein repräsentatives Gebäude in der Schlägerstraße 55 als Dienstsitz – die ehemalige Zentrale des jüdischen Gumpel-Konzerns, der im Zuge der nationalsozialistischen „Arisierung“ enteignet worden war. Nach einem Luftangriff am 8. Oktober 1943, bei dem das Gebäude zerstört wurde, wich die Leitstelle kurzfristig in den Sitzungssaal des Polizeipräsidiums in der Hardenbergstraße 1 aus.",
+            "Bereits am 22. Oktober 1943 bezog sie ein Ausweichquartier in der Rühmkorffstraße 20, das jedoch im Herbst 1944 ebenfalls durch Bombenangriffe unbrauchbar wurde. Nach längeren Verhandlungen, auch mit der Leitung der Stadtbibliothek, erhielt die Gestapo Ende 1944 Räume im teilweise zerstörten Bibliotheksgebäude in der Hildesheimer Straße 12, die sie bis zu ihrer Auflösung am 10. April 1945 nutzte.",
+            "Parallel zur Verlagerung einzelner Dienststellen nutzte die Gestapo ab Herbst 1943 auch das Gelände der ehemaligen Israelitischen Gartenbauschule in Ahlem (Wunstorfer Landstraße 1, heute: Heisterbergallee 10, Gedenkstätte Ahlem). Dort entstanden eine Nebenstelle der Leitstelle, ein Polizeiersatzgefängnis sowie eine Hinrichtungsstätte.",
+        ],
+    },
 };
