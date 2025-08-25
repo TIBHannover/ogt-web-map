@@ -23,12 +23,16 @@ use Illuminate\Support\Facades\Route;
 Route::post("/export/download", [
     \App\Http\Controllers\ExportController::class,
     "export",
-])->name("public.export.download")->middleware('throttle:5,1');
+])
+    ->name("public.export.download")
+    ->middleware("throttle:5,1");
 
 Route::get("/export/download", [
     \App\Http\Controllers\ExportController::class,
     "export",
-])->name("public.export.download.get")->middleware('throttle:5,1');
+])
+    ->name("public.export.download.get")
+    ->middleware("throttle:5,1");
 // Public frontend routes - let Vue.js router handle them
 Route::get("/{vue_capture?}", function () {
     return view("app");
@@ -40,7 +44,7 @@ Route::get("/{vue_capture?}", function () {
 Route::get("/login", [AuthController::class, "showLoginForm"])->name("login");
 Route::post("/login", [AuthController::class, "login"]);
 Route::get("/register", [AuthController::class, "showRegistrationForm"])->name(
-    "register"
+    "register",
 );
 Route::post("/register", [AuthController::class, "register"]);
 Route::post("/logout", [AuthController::class, "logout"])->name("logout");
@@ -76,17 +80,17 @@ Route::prefix("admin")
     ->middleware(["auth", "admin"])
     ->group(function () {
         Route::get("/", [DashboardController::class, "index"])->name(
-            "admin.dashboard"
+            "admin.dashboard",
         );
         Route::get("/dashboard", [DashboardController::class, "index"])->name(
-            "admin.dashboard.index"
+            "admin.dashboard.index",
         );
         Route::get("/wikidata-settings", [
             DashboardController::class,
             "wikidataSettings",
         ])->name("admin.wikidata.settings");
         Route::get("/requests", [DashboardController::class, "requests"])->name(
-            "admin.requests"
+            "admin.requests",
         );
         Route::get("/requests/{id}", [
             DashboardController::class,
@@ -101,7 +105,7 @@ Route::prefix("admin")
             "updateRequest",
         ])->name("admin.requests.update");
         Route::get("/users", [DashboardController::class, "users"])->name(
-            "admin.users"
+            "admin.users",
         );
 
         // Jobs management routes
@@ -126,7 +130,9 @@ Route::prefix("admin")
         Route::post("/export/download", [
             \App\Http\Controllers\ExportController::class,
             "export",
-        ])->name("admin.export.download")->middleware('throttle:5,1');
+        ])
+            ->name("admin.export.download")
+            ->middleware("throttle:5,1");
 
         // Failed jobs management routes
         Route::delete("/jobs/failed/{id}", [
@@ -163,4 +169,4 @@ Route::prefix("api/wikidata")->group(function () {
 
 Route::get("{any}", function () {
     return view("app");
-})->where("any", ".*");
+})->where("any", "^(?!api).*$");

@@ -5,6 +5,7 @@ namespace App\Http\Clients;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -328,6 +329,13 @@ class WikidataClient
 
         $response = Http::timeout(60)
             ->accept("application/sparql-results+json")
+            ->withHeaders([
+                "User-Agent" =>
+                    "GTO-App/1.0 (https://www.gestapo-terror-orte.de; info@gestapo-terror-orte.de) PHP-Laravel/" .
+                    app()->version(),
+                "Accept-Encoding" => "gzip",
+                "From" => "info@gestapo-terror-orte.de",
+            ])
             ->get(config("wikidata.url"), ["query" => $query]);
 
         if ($response->ok()) {
@@ -349,7 +357,7 @@ class WikidataClient
                 [
                     "status" => $response->status(),
                     "query" => $query,
-                ] + $exceptionLog
+                ] + $exceptionLog,
             );
 
             return [];
@@ -440,7 +448,7 @@ class WikidataClient
     private function getItemValues(
         array $itemChunk,
         string $chunkType,
-        string $chunkKey
+        string $chunkKey,
     ): array {
         $itemValues = [];
 
@@ -483,7 +491,7 @@ class WikidataClient
     public function groupItemsByProperty(
         array $items,
         array $groups,
-        string $propertyId
+        string $propertyId,
     ): array {
         // return all item groups, even if empty
         $groupedItems = array_fill_keys(array_keys($groups), []);
@@ -497,7 +505,7 @@ class WikidataClient
                     [
                         "itemId" => $itemId,
                         "propertyLabel" => $propertyLabel,
-                    ]
+                    ],
                 );
 
                 continue;
@@ -523,7 +531,7 @@ class WikidataClient
                     [
                         "itemId" => $itemId,
                         "propertyIds" => $propertyIds,
-                    ]
+                    ],
                 );
             }
         }
@@ -544,93 +552,118 @@ class WikidataClient
             // Prüfe, ob es sich um eine direkte Q-Nummer handelt (z.B. "Q1234567")
             if (preg_match('/^Q\d+$/', $searchTerm)) {
                 // Direkte Anfrage des Entities mit der Q-ID
-                $response = Http::get('https://www.wikidata.org/w/api.php', [
-                    'action' => 'wbgetentities',
-                    'ids' => $searchTerm,
-                    'languages' => 'de|en', // Deutsch und Englisch anfordern
-                    'format' => 'json'
+                $response = Http::get("https://www.wikidata.org/w/api.php", [
+                    "action" => "wbgetentities",
+                    "ids" => $searchTerm,
+                    "languages" => "de|en", // Deutsch und Englisch anfordern
+                    "format" => "json",
                 ]);
 
-                if ($response->successful() && !empty($response->json()['entities'][$searchTerm])) {
-                    $entity = $response->json()['entities'][$searchTerm];
-                    
+                if (
+                    $response->successful() &&
+                    !empty($response->json()["entities"][$searchTerm])
+                ) {
+                    $entity = $response->json()["entities"][$searchTerm];
+
                     // Beschreibung priorisieren: Deutsch > Englisch > leer
-                    $description = '';
-                    if (!empty($entity['descriptions']['de']['value'])) {
-                        $description = $entity['descriptions']['de']['value'];
-                    } elseif (!empty($entity['descriptions']['en']['value'])) {
-                        $description = $entity['descriptions']['en']['value'];
+                    $description = "";
+                    if (!empty($entity["descriptions"]["de"]["value"])) {
+                        $description = $entity["descriptions"]["de"]["value"];
+                    } elseif (!empty($entity["descriptions"]["en"]["value"])) {
+                        $description = $entity["descriptions"]["en"]["value"];
                     }
-                    
+
                     // Auch Labels bevorzugt aus Deutsch, dann Englisch
                     $label = $searchTerm;
-                    if (!empty($entity['labels']['de']['value'])) {
-                        $label = $entity['labels']['de']['value'];
-                    } elseif (!empty($entity['labels']['en']['value'])) {
-                        $label = $entity['labels']['en']['value'];
+                    if (!empty($entity["labels"]["de"]["value"])) {
+                        $label = $entity["labels"]["de"]["value"];
+                    } elseif (!empty($entity["labels"]["en"]["value"])) {
+                        $label = $entity["labels"]["en"]["value"];
                     }
-                    
+
                     // Erstelle ein dem Suchergebnis ähnliches Format
-                    return [[
-                        'id' => $searchTerm,
-                        'label' => $label,
-                        'description' => $description,
-                        'match' => ['type' => 'exactMatch', 'text' => $searchTerm]
-                    ]];
+                    return [
+                        [
+                            "id" => $searchTerm,
+                            "label" => $label,
+                            "description" => $description,
+                            "match" => [
+                                "type" => "exactMatch",
+                                "text" => $searchTerm,
+                            ],
+                        ],
+                    ];
                 }
             }
 
             // Standardsuche nach Titeln
-            $response = Http::get('https://www.wikidata.org/w/api.php', [
-                'action' => 'wbsearchentities',
-                'search' => $searchTerm,
-                'language' => 'de',
-                'format' => 'json',
-                'limit' => $limit,
-                'type' => 'item'
+            $response = Http::get("https://www.wikidata.org/w/api.php", [
+                "action" => "wbsearchentities",
+                "search" => $searchTerm,
+                "language" => "de",
+                "format" => "json",
+                "limit" => $limit,
+                "type" => "item",
             ]);
 
             if ($response->successful()) {
-                $results = $response->json()['search'] ?? [];
-                
+                $results = $response->json()["search"] ?? [];
+
                 // Wenn nötig, zusätzliche Informationen für jedes Ergebnis abrufen
                 if (!empty($results)) {
                     foreach ($results as &$result) {
                         // Falls keine deutsche Beschreibung vorhanden ist, versuche englische zu finden
-                        if (empty($result['description'])) {
+                        if (empty($result["description"])) {
                             // Details für dieses Element abrufen
-                            $entityResponse = Http::get('https://www.wikidata.org/w/api.php', [
-                                'action' => 'wbgetentities',
-                                'ids' => $result['id'],
-                                'languages' => 'de|en',
-                                'format' => 'json'
-                            ]);
-                            
-                            if ($entityResponse->successful() && !empty($entityResponse->json()['entities'][$result['id']])) {
-                                $entity = $entityResponse->json()['entities'][$result['id']];
-                                
+                            $entityResponse = Http::get(
+                                "https://www.wikidata.org/w/api.php",
+                                [
+                                    "action" => "wbgetentities",
+                                    "ids" => $result["id"],
+                                    "languages" => "de|en",
+                                    "format" => "json",
+                                ],
+                            );
+
+                            if (
+                                $entityResponse->successful() &&
+                                !empty(
+                                    $entityResponse->json()["entities"][
+                                        $result["id"]
+                                    ]
+                                )
+                            ) {
+                                $entity = $entityResponse->json()["entities"][
+                                    $result["id"]
+                                ];
+
                                 // Englische Beschreibung verwenden, wenn keine deutsche existiert
-                                if (!empty($entity['descriptions']['en']['value'])) {
-                                    $result['description'] = $entity['descriptions']['en']['value'];
+                                if (
+                                    !empty(
+                                        $entity["descriptions"]["en"]["value"]
+                                    )
+                                ) {
+                                    $result["description"] =
+                                        $entity["descriptions"]["en"]["value"];
                                 }
                             }
                         }
                     }
                 }
-                
+
                 return $results;
             }
 
-            Log::error('Wikidata title search failed', [
-                'statusCode' => $response->status(),
-                'response' => $response->body()
+            Log::error("Wikidata title search failed", [
+                "statusCode" => $response->status(),
+                "response" => $response->body(),
             ]);
 
             return [];
         } catch (\Exception $e) {
-            Log::error('Exception during Wikidata title search', [
-                'message' => $e->getMessage(),
-                'searchTerm' => $searchTerm
+            Log::error("Exception during Wikidata title search", [
+                "message" => $e->getMessage(),
+                "searchTerm" => $searchTerm,
             ]);
 
             return [];
