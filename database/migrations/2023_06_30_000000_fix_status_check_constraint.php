@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
-class FixStatusCheckConstraint2023June extends Migration
+class FixStatusCheckConstraint2023JuneUnique extends Migration
 {
     /**
      * Run the migrations.

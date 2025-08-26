@@ -6,7 +6,7 @@ services:
       - "80:80"
     volumes:
       - storage:/var/www/html/storage
-      - ./.env:/var/www/html/.env:ro
+      - ./.env:/var/www/html/.env
       #- ./logs:/var/log/nginx
       #- ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     env_file:
