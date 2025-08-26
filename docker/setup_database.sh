@@ -9,24 +9,23 @@ mkdir -p /var/www/html/storage/framework/cache
 mkdir -p /var/www/html/storage/framework/sessions
 mkdir -p /var/www/html/storage/framework/views
 
-# Create SQLite database file if it doesn't exist
-TOUCH_DB=0
-if [ ! -f /var/www/html/storage/app/database.sqlite ]; then
+# Set up the database file
+DB_PATH="/var/www/html/storage/app/database.sqlite"
+if [ ! -f "$DB_PATH" ]; then
     echo "Creating SQLite database file..."
-    touch /var/www/html/storage/app/database.sqlite
-    TOUCH_DB=1
+    touch "$DB_PATH"
+
+    # Initialize database with SQL file if it exists
+    if [ -f /var/www/html/database/init.sql ]; then
+        echo "Initializing database with schema and initial data..."
+        sqlite3 "$DB_PATH" < /var/www/html/database/init.sql
+        echo "Database initialized with schema and default admin user."
+    fi
 fi
 
 # Set proper permissions
 chown -R nginx:nginx /var/www/html/storage
 chmod -R 775 /var/www/html/storage
-chmod 664 /var/www/html/storage/app/database.sqlite
-
-# Run migrations if database was just created
-if [ "$TOUCH_DB" = "1" ]; then
-    echo "Running migrations..."
-    cd /var/www/html
-    php artisan migrate --force
-fi
+chmod 664 "$DB_PATH"
 
 echo "Database setup complete!"

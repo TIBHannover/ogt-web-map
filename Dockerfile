@@ -62,6 +62,9 @@ RUN mkdir -p /var/log/nginx && \
 # Set working directory
 WORKDIR /var/www/html
 
+# Create SQLite database directory
+RUN mkdir -p /var/www/html/storage/app
+
 # Copy application
 COPY . .
 
@@ -72,8 +75,11 @@ RUN composer install --optimize-autoloader --no-dev && \
     chown -R nginx:nginx /var/www/html
 
 # Make sure storage and cache directories are writable
-RUN chmod -R 775 storage bootstrap/cache && \
-    chown -R nginx:nginx storage bootstrap/cache
+RUN touch /var/www/html/storage/app/database.sqlite && \
+    chmod -R 775 storage bootstrap/cache && \
+    chmod 664 /var/www/html/storage/app/database.sqlite && \
+    chown -R nginx:nginx storage bootstrap/cache && \
+    chown nginx:nginx /var/www/html/storage/app/database.sqlite
 
 # Startup script
 COPY docker/start.sh /start.sh
