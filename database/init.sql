@@ -1,5 +1,4 @@
 -- Initialize the SQLite database with all tables and a default admin user
--- This database should be stored at /var/www/html/storage/app/database.sqlite
 
 -- Users Table
 CREATE TABLE IF NOT EXISTS "users" (
@@ -63,6 +62,7 @@ CREATE TABLE IF NOT EXISTS "wikidata_entry_requests" (
     "description" TEXT NOT NULL,
     "type" VARCHAR(255) NOT NULL,
     "coordinates" VARCHAR(255) NULL,
+    "coordinates_qualifier" VARCHAR(255) NULL,
     "victims" TEXT NULL,
     "perpetrators" TEXT NULL,
     "time_point" VARCHAR(255) NULL,
@@ -102,6 +102,19 @@ CREATE TABLE IF NOT EXISTS "wikidata_entry_requests" (
     "status_updated_at" DATETIME NULL,
     "comment" TEXT NULL,
     "created_at" DATETIME NULL,
+    "updated_at" DATETIME NULL,
+    "email" VARCHAR(255) NULL,
+    "notify_on_publish" BOOLEAN DEFAULT 0,
+    "notification_sent_at" DATETIME NULL
+);
+
+-- Wikidata Entity Relationships (if used in your application)
+CREATE TABLE IF NOT EXISTS "wikidata_entity_relationships" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "entity_id" VARCHAR(255) NOT NULL,
+    "related_entity_id" VARCHAR(255) NOT NULL,
+    "relationship_type" VARCHAR(255) NOT NULL,
+    "created_at" DATETIME NULL,
     "updated_at" DATETIME NULL
 );
 
@@ -130,7 +143,8 @@ INSERT INTO "migrations" ("migration", "batch") VALUES
 ('2023_08_25_000000_update_status_constraints', 1),
 ('2023_10_10_000000_add_time_qualifiers_to_wikidata_entry_requests', 1),
 ('2023_11_22_000001_add_status_token_to_entry_requests', 1),
-('2025_06_30_000000_fix_status_check_constraint', 1);
+('2025_06_30_000000_fix_status_check_constraint', 1),
+('2025_08_26_000000_ensure_all_columns_exist', 1);
 
 -- Create default admin user
 -- Password is 'admin123' (hashed) - change this in production!
