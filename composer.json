@@ -41,7 +41,9 @@
         "laravel/tinker": "^2.5",
         "phpoffice/phpspreadsheet": "^4.4",
         "league/oauth1-client": "^1.11",
-        "spatie/laravel-ignition": "^2.9"
+        "spatie/laravel-ignition": "^2.9",
+        "spatie/pdf-to-image": "^2.2",
+        "intervention/image": "^2.7"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",

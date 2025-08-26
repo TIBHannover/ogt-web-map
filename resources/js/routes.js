@@ -6,6 +6,7 @@ const Charts = () => import("./components/Charts.vue");
 const Counts = () => import("./components/Counts.vue");
 const Entry = () => import("./components/Entry.vue");
 const Tours = () => import("./components/Tours.vue");
+const ReminderCalendar = () => import("./components/ReminderCalendar.vue");
 // Admin-Komponenten werden nicht mehr verwendet - jetzt über PHP implementiert
 // const Admin = () => import("./components/admin/WikidataRequestsAdmin.vue");
 // const WikidataRequestDetail = () => import("./components/admin/WikidataRequestDetail.vue");
@@ -14,7 +15,8 @@ const Workshops = () => import("./components/Workshops.vue");
 const Materials = () => import("./components/Materials.vue");
 const Forschungsdaten = () => import("./components/ResearchData.vue");
 const ThankYou = () => import("./components/entry/ThankYou.vue");
-const EntryStatus = () => import("./components/entry/EntryStatus.vue");
+// Uncomment if needed later
+// const EntryStatus = () => import("./components/entry/EntryStatus.vue");
 
 export const routes = [
     {
@@ -115,6 +117,14 @@ export const routes = [
         component: Tours,
         meta: {
             title: "Touren: Gestapo. Terror. Orte",
+        },
+    },
+    {
+        name: "erinnerungskalender",
+        path: "/erinnerungskalender",
+        component: ReminderCalendar,
+        meta: {
+            title: "Erinnerungskalender: Gestapo. Terror. Orte",
         },
     },
     {
