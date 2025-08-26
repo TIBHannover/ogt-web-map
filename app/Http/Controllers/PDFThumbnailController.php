@@ -24,23 +24,29 @@ class PDFThumbnailController extends Controller
         ]);
 
         $pdfFile = $request->input("pdf_file");
-        // Handle paths that might already include 'resources'
-        $cleanPath = preg_replace("/^resources\//", "", $pdfFile);
-        $pdfPath = public_path($cleanPath);
+
+        // Log the original path
+        Log::info("Original PDF path requested: " . $pdfFile);
+
+        // Extract just the filename and use resources/tiles directory
+        $filename = basename($pdfFile);
+        $pdfPath = public_path("resources/tiles/" . $filename);
+
+        Log::info("Looking for PDF at: " . $pdfPath);
 
         // Check if file exists
         if (!file_exists($pdfPath)) {
             return response()->json(
                 [
                     "success" => false,
-                    "message" => "PDF file not found",
+                    "message" => "PDF file not found: " . $filename,
                 ],
                 404,
             );
         }
 
         // Define thumbnail path
-        $thumbnailName = pathinfo($pdfFile, PATHINFO_FILENAME) . ".jpg";
+        $thumbnailName = pathinfo($filename, PATHINFO_FILENAME) . ".jpg";
         $thumbnailDir = "thumbnails";
 
         // Create the thumbnails directory if it doesn't exist
@@ -51,8 +57,19 @@ class PDFThumbnailController extends Controller
         $thumbnailPath = $thumbnailDir . "/" . $thumbnailName;
         $fullThumbnailPath = Storage::disk("public")->path($thumbnailPath);
 
+        Log::info("Thumbnail path: " . $thumbnailPath);
+        Log::info("Full thumbnail path: " . $fullThumbnailPath);
+
+        // Create thumbnails directory if it doesn't exist
+        $thumbnailsDir = dirname($fullThumbnailPath);
+        if (!is_dir($thumbnailsDir)) {
+            Log::info("Creating thumbnails directory: {$thumbnailsDir}");
+            mkdir($thumbnailsDir, 0755, true);
+        }
+
         // Check if thumbnail already exists
         if (Storage::disk("public")->exists($thumbnailPath)) {
+            Log::info("Thumbnail already exists, returning existing thumbnail");
             return response()->json([
                 "success" => true,
                 "thumbnail_url" => asset("storage/" . $thumbnailPath),
@@ -62,6 +79,9 @@ class PDFThumbnailController extends Controller
         try {
             // Create a simple placeholder image
             $this->createPlaceholderImage($fullThumbnailPath);
+            Log::info(
+                "Thumbnail created successfully at: {$fullThumbnailPath}",
+            );
 
             return response()->json([
                 "success" => true,
@@ -89,16 +109,18 @@ class PDFThumbnailController extends Controller
     public function getAllThumbnails(): JsonResponse
     {
         $thumbnails = [];
+
+        // Look for PDF files in resources/tiles directory
         $files = glob(public_path("resources/tiles/*.pdf"));
+        Log::info("Found " . count($files) . " PDF files in resources/tiles");
 
         foreach ($files as $file) {
-            $relativePath = "resources/tiles/" . basename($file);
-            $filename = pathinfo($file, PATHINFO_BASENAME);
+            $filename = basename($file);
             $thumbnailName = pathinfo($file, PATHINFO_FILENAME) . ".jpg";
             $thumbnailPath = "thumbnails/" . $thumbnailName;
 
             $thumbnails[] = [
-                "pdf_file" => $relativePath,
+                "pdf_file" => $filename,
                 "thumbnail_url" => Storage::disk("public")->exists(
                     $thumbnailPath,
                 )
@@ -159,17 +181,49 @@ class PDFThumbnailController extends Controller
         // Clean up the filename by removing any URI path encoding
         $filename = urldecode($filename);
 
-        // Handle paths that might already include 'resources'
-        $cleanPath = preg_replace("/^resources\//", "", $filename);
-        $path = public_path($cleanPath);
+        Log::info("PDF requested: " . $filename);
 
-        if (!file_exists($path)) {
-            abort(404);
+        // Extract just the filename and use resources/tiles directory
+        $pdfPath = public_path("resources/tiles/" . basename($filename));
+
+        Log::info("Looking for PDF at: " . $pdfPath);
+
+        if (!file_exists($pdfPath)) {
+            abort(404, "PDF file not found: " . basename($filename));
         }
 
-        return Response::file($path, [
+        return Response::file($pdfPath, [
             "Content-Type" => "application/pdf",
-            "Content-Disposition" => 'inline; filename="' . $filename . '"',
+            "Content-Disposition" =>
+                'inline; filename="' . basename($filename) . '"',
+        ]);
+    }
+
+    /**
+     * Check if a PDF file exists
+     *
+     * @param string $filename
+     * @return JsonResponse
+     */
+    public function checkPdfExists($filename): JsonResponse
+    {
+        // Clean up the filename by removing any URI path encoding
+        $filename = urldecode($filename);
+
+        Log::info("Checking if PDF exists: " . $filename);
+
+        // Extract just the filename and use resources/tiles directory
+        $pdfPath = public_path("resources/tiles/" . basename($filename));
+
+        Log::info("Looking for PDF at: " . $pdfPath);
+
+        $exists = file_exists($pdfPath);
+
+        return response()->json([
+            "success" => true,
+            "exists" => $exists,
+            "filename" => basename($filename),
+            "path" => $pdfPath,
         ]);
     }
 }

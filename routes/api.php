@@ -150,4 +150,10 @@ Route::post("/pdf/generate-thumbnail", [
 Route::get("/pdf/{filename}", [
     App\Http\Controllers\PDFThumbnailController::class,
     "servePdf",
-]);
+])->where("filename", ".*");
+
+// Additional route to check if a PDF exists
+Route::get("/pdf/check/{filename}", [
+    App\Http\Controllers\PDFThumbnailController::class,
+    "checkPdfExists",
+])->where("filename", ".*");

@@ -30,6 +30,7 @@
                                     cover
                                     class="bg-grey-lighten-2"
                                     @click="openPdf(latestTile.file)"
+                                    @error="handleImageError(latestTile)"
                                 ></v-img>
                                 <v-sheet
                                     v-else
@@ -162,6 +163,7 @@
                                 max-height="300"
                                 cover
                                 class="bg-grey-lighten-2"
+                                @error="handleEventImageError(selectedEvent)"
                             ></v-img>
                             <v-sheet
                                 v-else
@@ -232,6 +234,28 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+
+        <!-- Error Dialog -->
+        <v-dialog v-model="showErrorDialog" max-width="500">
+            <v-card>
+                <v-card-title class="text-h5 bg-error text-white">
+                    Fehler
+                </v-card-title>
+                <v-card-text class="pt-4">
+                    {{ errorMessage }}
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                        variant="text"
+                        color="primary"
+                        @click="showErrorDialog = false"
+                    >
+                        Schließen
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </v-container>
 </template>
 
@@ -269,6 +293,8 @@ export default {
             dateEvents: [],
             selectedDateObject: null,
             weekdays: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],
+            showErrorDialog: false,
+            errorMessage: "",
         };
     },
 
@@ -437,10 +463,15 @@ export default {
                 }
             }
 
+            // Ensure file path is properly formatted
+            const filePath = tile.file ? tile.file.replace(/^\.\//g, "") : null;
+
             return {
                 ...tile,
                 date: fixedDate,
-                thumbnailUrl: null, // Will be updated later if available
+                file: filePath,
+                // Use the provided thumbnail URL
+                thumbnailUrl: tile.thumbnailUrl,
             };
         });
 
@@ -454,7 +485,7 @@ export default {
                 start: date,
                 description: tile.description || "",
                 file: tile.file,
-                thumbnailUrl: null, // Will be updated later if available
+                thumbnailUrl: tile.thumbnailUrl,
                 // Store the month and day to find recurring events
                 month: getMonth(date),
                 day: getDate(date),
@@ -463,6 +494,12 @@ export default {
     },
 
     methods: {
+        // Handle event image loading errors
+        handleEventImageError(event) {
+            console.warn(`Event image loading error: ${event.name}`);
+            // Use a default image placeholder
+            event.thumbnailUrl = "/images/pdf_placeholder.jpg";
+        },
         // Navigation methods
         nextMonth() {
             this.currentDate = addMonths(this.currentDate, 1);
@@ -514,10 +551,38 @@ export default {
         openPdf(file) {
             if (!file) return;
 
-            // Open the PDF file in a new tab
-            const url = getPdfUrl(file);
-            window.open(url, "_blank");
+            try {
+                // Ensure we have the correct path format
+                const fileName = file.includes("/")
+                    ? file
+                    : `resources/tiles/${file}`;
+
+                // Skip checking and directly try to open the PDF
+                const url = getPdfUrl(fileName);
+                console.log(`Opening PDF: ${url}`);
+                window.open(url, "_blank");
+            } catch (error) {
+                console.error("Error opening PDF:", error);
+                this.errorMessage =
+                    "Beim Öffnen der PDF-Datei ist ein Fehler aufgetreten.";
+                this.showErrorDialog = true;
+            }
         },
+
+        // Handle image loading errors
+        handleImageError(tile) {
+            console.warn(`Image loading error for tile: ${tile.label}`);
+            // Use a default image placeholder
+            tile.thumbnailUrl = "/images/pdf_placeholder.jpg";
+
+            // Update the corresponding event if needed
+            const event = this.events.find((e) => e.id === tile.id);
+            if (event) {
+                event.thumbnailUrl = "/images/pdf_placeholder.jpg";
+            }
+        },
+
+        // No need for thumbnail loading since we use static images
     },
 };
 </script>
