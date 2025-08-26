@@ -19,7 +19,7 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from "vue";
+import { ref, computed, inject, provide } from "vue";
 const emit = defineEmits(["setActiveMenu"]);
 const ogtGlobals = inject("ogtGlobals");
 
@@ -63,13 +63,6 @@ const menuItems = ref([
         title: "Touren",
         icon: "mdi-routes",
         path: "/touren",
-        show: true,
-        toMenu: "mainMenu",
-    },
-    {
-        title: "Erinnerungskalender",
-        icon: "mdi-calendar",
-        path: "/erinnerungskalender",
         show: true,
         toMenu: "mainMenu",
     },
