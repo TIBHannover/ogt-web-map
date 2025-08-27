@@ -1,57 +1,83 @@
 <template>
     <v-container>
-        <v-row>
-            <v-col cols="12">
-                <h1 class="text-h4 mb-4">Erinnerungskalender</h1>
+        <v-row
+            :style="{
+                'padding-left':
+                    freeClientWidth < 75 && !isMenuDisplayed
+                        ? computedPadding
+                        : 0,
+            }"
+        >
+            <v-col>
+                <h1
+                    class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-h4 text-md-h3"
+                    lang="de"
+                    :class="{ 'text-center': ogtGlobals.isMobile }"
+                >
+                    Erinnerungskalender
+                </h1>
+                <p>Einleitungstext hier. Lorem ipsum dolor.</p>
             </v-col>
         </v-row>
 
         <!-- Featured Tile Section -->
         <v-row v-if="latestTile">
+            <v-card-title class="text-h5 mb-1 pb-0">
+                Aktuelle Erinnerungskachel
+            </v-card-title>
             <v-col cols="12">
                 <v-card class="mb-6">
-                    <v-card-title class="text-h5">
-                        Aktuelle Erinnerungskachel
-                    </v-card-title>
-                    <v-card-subtitle class="pb-0">
-                        {{ formatDate(latestTile.date) }} -
-                        {{ latestTile.label }}
-                    </v-card-subtitle>
                     <v-card-text>
                         <div class="d-flex flex-column flex-md-row">
-                            <div
-                                class="pdf-preview mr-md-4 mb-4 mb-md-0"
-                                style="max-width: 300px"
-                            >
-                                <v-img
-                                    v-if="latestTile.thumbnailUrl"
-                                    :src="latestTile.thumbnailUrl"
-                                    max-height="400"
-                                    cover
-                                    class="bg-grey-lighten-2"
-                                    @click="openPdf(latestTile.file)"
-                                    @error="handleImageError(latestTile)"
-                                ></v-img>
-                                <v-sheet
-                                    v-else
-                                    height="400"
-                                    color="grey-lighten-2"
-                                    class="d-flex align-center justify-center"
+                            <div class="thumb mr-md-4 mb-4 mb-md-0">
+                                <div
+                                    class="mr-md-4 mb-4 mb-md-0 square-container"
                                     @click="openPdf(latestTile.file)"
                                 >
-                                    <v-icon size="64">mdi-file-pdf-box</v-icon>
-                                </v-sheet>
+                                    <template v-if="latestTile.thumbnailUrl">
+                                        <v-img
+                                            :src="latestTile.thumbnailUrl"
+                                            height="400"
+                                            width="400"
+                                            max-width="100%"
+                                            cover
+                                            class="square-image bg-grey-lighten-2"
+                                            @error="
+                                                handleImageError(latestTile)
+                                            "
+                                        ></v-img>
+                                    </template>
+                                    <v-sheet
+                                        v-else
+                                        height="400"
+                                        width="400"
+                                        max-width="100%"
+                                        color="grey-lighten-2"
+                                        class="square-placeholder d-flex align-center justify-center"
+                                    >
+                                        <v-icon size="64"
+                                            >mdi-file-pdf-box</v-icon
+                                        >
+                                    </v-sheet>
+                                </div>
                             </div>
                             <div>
+                                <h5 class="text-h5 text-title pl-0">
+                                    {{ latestTile.label }}
+                                </h5>
+                                <p class="text-subtitle pb-0 pl-0">
+                                    {{ formatDate(latestTile.date) }}
+                                </p>
                                 <p class="text-body-1">
                                     {{ latestTile.description }}
                                 </p>
                                 <v-btn
                                     color="primary"
-                                    class="mt-2"
+                                    class="mt-2 download-button"
                                     @click="openPdf(latestTile.file)"
                                 >
-                                    PDF öffnen
+                                    <v-icon start> mdi-download </v-icon>
+                                    Kachel öffnen
                                 </v-btn>
                             </div>
                         </div>
@@ -63,7 +89,7 @@
         <!-- Calendar Section -->
         <v-row>
             <v-col cols="12">
-                <v-card>
+                <v-card class="bg-white">
                     <v-toolbar flat density="compact">
                         <v-btn
                             icon="mdi-chevron-left"
@@ -145,31 +171,70 @@
             </v-col>
         </v-row>
 
+        <v-row>
+            <v-col cols="12">
+                <v-card-title class="text-h5 mb-1 pb-0 pl-0"
+                    >Anleitung Erinnerungskacheln</v-card-title
+                >
+                <p>
+                    Gemeinsam an die Orte, Ereignisse und Geschädigten des
+                    Gestapo-Terrors erinnern – diese Anleitung zeigt dir, wie du
+                    Schritt für Schritt deine eigenen Erinnerungskacheln zu den
+                    auf der interaktiven Landkarte verzeichneten Anlässen
+                    erstellen kannst!
+                </p>
+                <v-btn
+                    class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 py-3 text-transform-none"
+                    color="black"
+                    background="grey"
+                    elevation="24"
+                    min-width="200px"
+                    variant="outlined"
+                    style="height: auto"
+                    rounded
+                    size="x-large"
+                    href="./resources/tiles/Anleitung_Erinnerungskacheln_compressed.pdf"
+                    target="_blank"
+                >
+                    <v-icon start class="ml-3"> mdi-download </v-icon>
+                    <span class="whitespace-normal"
+                        >Download "Anleitung Erinnerungskacheln"
+                    </span>
+                </v-btn>
+            </v-col>
+        </v-row>
+
         <!-- Event Details Dialog -->
         <v-dialog v-model="showEventDialog" max-width="600">
             <v-card v-if="selectedEvent">
-                <v-card-title class="text-h5">
-                    {{ selectedEvent.name }}
-                </v-card-title>
-                <v-card-subtitle>
-                    {{ formatDate(selectedEvent.start) }}
-                </v-card-subtitle>
+                <div class="px-4 py-4 pb-0">
+                    <h5 class="text-h5 text-title">
+                        {{ selectedEvent.name }}
+                    </h5>
+                    <p class="text-subtitle">
+                        {{ formatDate(selectedEvent.start) }}
+                    </p>
+                </div>
                 <v-card-text>
                     <div class="d-flex flex-column">
-                        <div class="pdf-preview mb-4" style="max-width: 100%">
+                        <div class="thumb mb-4 square-container">
                             <v-img
                                 v-if="selectedEvent.thumbnailUrl"
                                 :src="selectedEvent.thumbnailUrl"
-                                max-height="300"
+                                height="400"
+                                width="400"
+                                max-width="100%"
                                 cover
-                                class="bg-grey-lighten-2"
+                                class="square-image bg-grey-lighten-2"
                                 @error="handleEventImageError(selectedEvent)"
                             ></v-img>
                             <v-sheet
                                 v-else
-                                height="200"
+                                height="400"
+                                width="400"
+                                max-width="100%"
                                 color="grey-lighten-2"
-                                class="d-flex align-center justify-center"
+                                class="d-flex align-center justify-center square-placeholder"
                             >
                                 <v-icon size="64">mdi-file-pdf-box</v-icon>
                             </v-sheet>
@@ -177,10 +242,11 @@
                         <p>{{ selectedEvent.description }}</p>
                         <v-btn
                             color="primary"
-                            class="mt-2"
+                            class="mt-2 download-button"
                             @click="openPdf(selectedEvent.file)"
                         >
-                            PDF öffnen
+                            <v-icon start> mdi-download </v-icon>
+                            Kachel öffnen
                         </v-btn>
                     </div>
                 </v-card-text>
@@ -259,7 +325,9 @@
     </v-container>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, onMounted, onUnmounted, inject } from "vue";
+import { useDisplay } from "vuetify";
 import { reminderTiles } from "../data/reminderTiles";
 import {
     format,
@@ -279,325 +347,406 @@ import {
 import { de } from "date-fns/locale";
 import { getPdfUrl } from "../utils/pdfUtils";
 
-export default {
-    name: "ReminderCalendar",
+// Get display breakpoints and use them in the template
+const { mdAndUp } = useDisplay();
 
-    data() {
-        return {
-            currentDate: new Date(),
-            tiles: [],
-            events: [],
-            selectedEvent: null,
-            showEventDialog: false,
-            showDateDialog: false,
-            dateEvents: [],
-            selectedDateObject: null,
-            weekdays: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],
-            showErrorDialog: false,
-            errorMessage: "",
-        };
-    },
+// Global state for consistent access across components
+const ogtGlobals = inject("ogtGlobals");
 
-    computed: {
-        title() {
-            // Format the current month and year for display
-            return format(this.currentDate, "MMMM yyyy", { locale: de });
-        },
+// State
+const currentDate = ref(new Date());
+const tiles = ref([]);
+const events = ref([]);
+const selectedEvent = ref(null);
+const showEventDialog = ref(false);
+const showDateDialog = ref(false);
+const dateEvents = ref([]);
+const selectedDateObject = ref(null);
+const weekdays = ref(["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]);
+const showErrorDialog = ref(false);
+const errorMessage = ref("");
 
-        latestTile() {
-            // Get the current or upcoming tile
-            const now = new Date();
+// Props
+const props = defineProps({
+    isMenuDisplayed: Boolean,
+});
 
-            // First try to find a tile for today's date
-            const todayTile = this.tiles.find((tile) => {
-                const tileDate = parseISO(tile.date);
-                return (
-                    getDate(tileDate) === getDate(now) &&
-                    getMonth(tileDate) === getMonth(now)
-                );
-            });
+// Reactive references
+const freeClientWidth = ref(document.documentElement.clientWidth);
 
-            if (todayTile) return todayTile;
+// Used in template for dynamic padding calculation
+const computedPadding = computed(() => {
+    return freeClientWidth.value < 75 && !props.isMenuDisplayed
+        ? `${75 - freeClientWidth.value}px`
+        : "0";
+});
 
-            // If no tile for today, find the next upcoming tile based on month/day
-            const nowMonth = getMonth(now);
-            const nowDay = getDate(now);
-
-            // Sort events that are coming up next in the year
-            const upcomingTiles = [...this.tiles]
-                .filter((tile) => {
-                    const tileDate = parseISO(tile.date);
-                    const tileMonth = getMonth(tileDate);
-                    const tileDay = getDate(tileDate);
-
-                    return (
-                        tileMonth > nowMonth ||
-                        (tileMonth === nowMonth && tileDay > nowDay)
-                    );
-                })
-                .sort((a, b) => {
-                    const dateA = parseISO(a.date);
-                    const dateB = parseISO(b.date);
-
-                    const monthA = getMonth(dateA);
-                    const monthB = getMonth(dateB);
-
-                    if (monthA !== monthB) return monthA - monthB;
-                    return getDate(dateA) - getDate(dateB);
-                });
-
-            if (upcomingTiles.length > 0) return upcomingTiles[0];
-
-            // If no upcoming tiles, return the most recent past tile
-            const pastTiles = [...this.tiles]
-                .filter((tile) => {
-                    const tileDate = parseISO(tile.date);
-                    const tileMonth = getMonth(tileDate);
-                    const tileDay = getDate(tileDate);
-
-                    return (
-                        tileMonth < nowMonth ||
-                        (tileMonth === nowMonth && tileDay <= nowDay)
-                    );
-                })
-                .sort((a, b) => {
-                    const dateA = parseISO(a.date);
-                    const dateB = parseISO(b.date);
-
-                    const monthA = getMonth(dateA);
-                    const monthB = getMonth(dateB);
-
-                    if (monthA !== monthB) return monthB - monthA;
-                    return getDate(dateB) - getDate(dateA);
-                });
-
-            return pastTiles.length > 0 ? pastTiles[0] : null;
-        },
-
-        calendarDays() {
-            // Get the start of the current month
-            const monthStart = startOfMonth(this.currentDate);
-            // Get the end of the current month
-            const monthEnd = endOfMonth(this.currentDate);
-
-            // Get all days in the month
-            const days = eachDayOfInterval({
-                start: monthStart,
-                end: monthEnd,
-            });
-
-            // Determine the first day of the month (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
-            let firstDay = monthStart.getDay();
-            // Convert to Monday-based (0 = Monday, ..., 6 = Sunday)
-            firstDay = firstDay === 0 ? 6 : firstDay - 1;
-
-            // Add days from previous month to fill the first week
-            const prevMonthDays = [];
-            if (firstDay > 0) {
-                const prevMonth = subMonths(monthStart, 1);
-                const prevMonthEnd = endOfMonth(prevMonth);
-
-                for (let i = firstDay - 1; i >= 0; i--) {
-                    const date = new Date(prevMonthEnd);
-                    date.setDate(prevMonthEnd.getDate() - i);
-                    prevMonthDays.push(date);
-                }
-            }
-
-            // Add days from next month to complete the grid (6 rows x 7 days = 42 cells)
-            const nextMonthDays = [];
-            const totalDaysNeeded = 42 - days.length - prevMonthDays.length;
-
-            if (totalDaysNeeded > 0) {
-                const nextMonth = addMonths(monthStart, 1);
-                const nextMonthStart = startOfMonth(nextMonth);
-
-                for (let i = 0; i < totalDaysNeeded; i++) {
-                    const date = new Date(nextMonthStart);
-                    date.setDate(nextMonthStart.getDate() + i);
-                    nextMonthDays.push(date);
-                }
-            }
-
-            // Combine all days
-            const allDays = [...prevMonthDays, ...days, ...nextMonthDays];
-
-            // Format and add metadata to each day
-            return allDays.map((date) => {
-                const day = getDate(date);
-                const month = getMonth(date);
-                const year = getYear(date);
-
-                // Find events for this day (regardless of year)
-                const dayEvents = this.events.filter((event) => {
-                    const eventDate = new Date(event.start);
-                    return (
-                        getDate(eventDate) === day &&
-                        getMonth(eventDate) === month
-                    );
-                });
-
-                return {
-                    date,
-                    day,
-                    month,
-                    year,
-                    currentMonth: isSameMonth(date, this.currentDate),
-                    isToday: isToday(date),
-                    events: dayEvents,
-                };
-            });
-        },
-    },
-
-    created() {
-        // Load and format the reminder tiles data
-        this.tiles = reminderTiles.map((tile) => {
-            // Fix any date format issues (like the "1998-03-203" typo)
-            let fixedDate = tile.date;
-            if (tile.date && !isValid(parseISO(tile.date))) {
-                // Try to extract a valid date from potentially malformed date strings
-                const match = tile.date.match(/(\d{4})-(\d{2})-(\d{2})/);
-                if (match) {
-                    fixedDate = `${match[1]}-${match[2]}-${match[3]}`;
-                }
-            }
-
-            // Ensure file path is properly formatted
-            const filePath = tile.file ? tile.file.replace(/^\.\//g, "") : null;
-
-            return {
-                ...tile,
-                date: fixedDate,
-                file: filePath,
-                // Use the provided thumbnail URL
-                thumbnailUrl: tile.thumbnailUrl,
-            };
-        });
-
-        // Create events for the calendar
-        this.events = this.tiles.map((tile) => {
-            const date = parseISO(tile.date);
-
-            return {
-                id: tile.id,
-                name: tile.label,
-                start: date,
-                description: tile.description || "",
-                file: tile.file,
-                thumbnailUrl: tile.thumbnailUrl,
-                // Store the month and day to find recurring events
-                month: getMonth(date),
-                day: getDate(date),
-            };
-        });
-    },
-
-    methods: {
-        // Handle event image loading errors
-        handleEventImageError(event) {
-            console.warn(`Event image loading error: ${event.name}`);
-            // Use a default image placeholder
-            event.thumbnailUrl = "/images/pdf_placeholder.jpg";
-        },
-        // Navigation methods
-        nextMonth() {
-            this.currentDate = addMonths(this.currentDate, 1);
-        },
-
-        prevMonth() {
-            this.currentDate = subMonths(this.currentDate, 1);
-        },
-
-        setToday() {
-            this.currentDate = new Date();
-        },
-
-        // Handle clicking on a calendar day
-        handleDayClick(day) {
-            if (day.events.length === 0) return;
-
-            this.selectedDateObject = day.date;
-            this.dateEvents = day.events;
-
-            if (day.events.length === 1) {
-                // If only one event, show it directly
-                this.selectEvent(day.events[0]);
-            } else {
-                // If multiple events, show the date dialog
-                this.showDateDialog = true;
-            }
-        },
-
-        // Select an event to display its details
-        selectEvent(event) {
-            this.selectedEvent = event;
-            this.showEventDialog = true;
-            this.showDateDialog = false; // Close date dialog if open
-        },
-
-        // Format a date for display
-        formatDate(dateObj) {
-            if (!dateObj) return "";
-
-            const date =
-                typeof dateObj === "string" ? parseISO(dateObj) : dateObj;
-            if (!isValid(date)) return "";
-
-            return format(date, "dd. MMMM yyyy", { locale: de });
-        },
-
-        // Open a PDF file
-        openPdf(file) {
-            if (!file) return;
-
-            try {
-                // Ensure we have the correct path format
-                const fileName = file.includes("/")
-                    ? file
-                    : `resources/tiles/${file}`;
-
-                // Skip checking and directly try to open the PDF
-                const url = getPdfUrl(fileName);
-                console.log(`Opening PDF: ${url}`);
-                window.open(url, "_blank");
-            } catch (error) {
-                console.error("Error opening PDF:", error);
-                this.errorMessage =
-                    "Beim Öffnen der PDF-Datei ist ein Fehler aufgetreten.";
-                this.showErrorDialog = true;
-            }
-        },
-
-        // Handle image loading errors
-        handleImageError(tile) {
-            console.warn(`Image loading error for tile: ${tile.label}`);
-            // Use a default image placeholder
-            tile.thumbnailUrl = "/images/pdf_placeholder.jpg";
-
-            // Update the corresponding event if needed
-            const event = this.events.find((e) => e.id === tile.id);
-            if (event) {
-                event.thumbnailUrl = "/images/pdf_placeholder.jpg";
-            }
-        },
-
-        // No need for thumbnail loading since we use static images
-    },
+const setFreeClientWidth = () => {
+    const container = document.getElementById("container");
+    if (container) {
+        freeClientWidth.value =
+            (document.documentElement.clientWidth - container.clientWidth) / 2;
+    }
 };
+
+// Lifecycle hooks
+onMounted(() => {
+    setFreeClientWidth();
+    window.addEventListener("resize", setFreeClientWidth);
+});
+
+onUnmounted(() => {
+    window.removeEventListener("resize", setFreeClientWidth);
+});
+
+// Computed properties
+const title = computed(() => {
+    // Format the current month and year for display
+    return format(currentDate.value, "MMMM yyyy", { locale: de });
+});
+
+const latestTile = computed(() => {
+    // Get the current or upcoming tile
+    const now = new Date();
+
+    // First try to find a tile for today's date
+    const todayTile = tiles.value.find((tile) => {
+        const tileDate = parseISO(tile.date);
+        return (
+            getDate(tileDate) === getDate(now) &&
+            getMonth(tileDate) === getMonth(now)
+        );
+    });
+
+    if (todayTile) return todayTile;
+
+    // If no tile for today, find the next upcoming tile based on month/day
+    const nowMonth = getMonth(now);
+    const nowDay = getDate(now);
+
+    // Sort events that are coming up next in the year
+    const upcomingTiles = [...tiles.value]
+        .filter((tile) => {
+            const tileDate = parseISO(tile.date);
+            const tileMonth = getMonth(tileDate);
+            const tileDay = getDate(tileDate);
+
+            return (
+                tileMonth > nowMonth ||
+                (tileMonth === nowMonth && tileDay > nowDay)
+            );
+        })
+        .sort((a, b) => {
+            const dateA = parseISO(a.date);
+            const dateB = parseISO(b.date);
+
+            const monthA = getMonth(dateA);
+            const monthB = getMonth(dateB);
+
+            if (monthA !== monthB) return monthA - monthB;
+            return getDate(dateA) - getDate(dateB);
+        });
+
+    if (upcomingTiles.length > 0) return upcomingTiles[0];
+
+    // If no upcoming tiles, return the most recent past tile
+    const pastTiles = [...tiles.value]
+        .filter((tile) => {
+            const tileDate = parseISO(tile.date);
+            const tileMonth = getMonth(tileDate);
+            const tileDay = getDate(tileDate);
+
+            return (
+                tileMonth < nowMonth ||
+                (tileMonth === nowMonth && tileDay <= nowDay)
+            );
+        })
+        .sort((a, b) => {
+            const dateA = parseISO(a.date);
+            const dateB = parseISO(b.date);
+
+            const monthA = getMonth(dateA);
+            const monthB = getMonth(dateB);
+
+            if (monthA !== monthB) return monthB - monthA;
+            return getDate(dateB) - getDate(dateA);
+        });
+
+    return pastTiles.length > 0 ? pastTiles[0] : null;
+});
+
+const calendarDays = computed(() => {
+    // Get the start of the current month
+    const monthStart = startOfMonth(currentDate.value);
+    // Get the end of the current month
+    const monthEnd = endOfMonth(currentDate.value);
+
+    // Get all days in the month
+    const days = eachDayOfInterval({
+        start: monthStart,
+        end: monthEnd,
+    });
+
+    // Determine the first day of the month (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
+    let firstDay = monthStart.getDay();
+    // Convert to Monday-based (0 = Monday, ..., 6 = Sunday)
+    firstDay = firstDay === 0 ? 6 : firstDay - 1;
+
+    // Add days from previous month to fill the first week
+    const prevMonthDays = [];
+    if (firstDay > 0) {
+        const prevMonth = subMonths(monthStart, 1);
+        const prevMonthEnd = endOfMonth(prevMonth);
+
+        for (let i = firstDay - 1; i >= 0; i--) {
+            const date = new Date(prevMonthEnd);
+            date.setDate(prevMonthEnd.getDate() - i);
+            prevMonthDays.push(date);
+        }
+    }
+
+    // Add days from next month to complete the grid (6 rows x 7 days = 42 cells)
+    const nextMonthDays = [];
+    const totalDaysNeeded = 42 - days.length - prevMonthDays.length;
+
+    if (totalDaysNeeded > 0) {
+        const nextMonth = addMonths(monthStart, 1);
+        const nextMonthStart = startOfMonth(nextMonth);
+
+        for (let i = 0; i < totalDaysNeeded; i++) {
+            const date = new Date(nextMonthStart);
+            date.setDate(nextMonthStart.getDate() + i);
+            nextMonthDays.push(date);
+        }
+    }
+
+    // Combine all days
+    const allDays = [...prevMonthDays, ...days, ...nextMonthDays];
+
+    // Format and add metadata to each day
+    return allDays.map((date) => {
+        const day = getDate(date);
+        const month = getMonth(date);
+        const year = getYear(date);
+
+        // Find events for this day (regardless of year)
+        const dayEvents = events.value.filter((event) => {
+            const eventDate = new Date(event.start);
+            return getDate(eventDate) === day && getMonth(eventDate) === month;
+        });
+
+        return {
+            date,
+            day,
+            month,
+            year,
+            currentMonth: isSameMonth(date, currentDate.value),
+            isToday: isToday(date),
+            events: dayEvents,
+        };
+    });
+});
+
+// Methods
+const handleEventImageError = (event) => {
+    console.warn(`Event image loading error: ${event.name}`);
+    console.warn(`Failed image path: ${event.thumbnailUrl}`);
+    // Use a default image placeholder
+    event.thumbnailUrl = "/images/pdf_placeholder.svg";
+};
+
+const nextMonth = () => {
+    currentDate.value = addMonths(currentDate.value, 1);
+};
+
+const prevMonth = () => {
+    currentDate.value = subMonths(currentDate.value, 1);
+};
+
+const setToday = () => {
+    currentDate.value = new Date();
+};
+
+const handleDayClick = (day) => {
+    if (day.events.length === 0) return;
+
+    selectedDateObject.value = day.date;
+    dateEvents.value = day.events;
+
+    if (day.events.length === 1) {
+        // If only one event, show it directly
+        selectEvent(day.events[0]);
+    } else {
+        // If multiple events, show the date dialog
+        showDateDialog.value = true;
+    }
+};
+
+const selectEvent = (event) => {
+    selectedEvent.value = event;
+    showEventDialog.value = true;
+    showDateDialog.value = false; // Close date dialog if open
+};
+
+const formatDate = (dateObj) => {
+    if (!dateObj) return "";
+
+    const date = typeof dateObj === "string" ? parseISO(dateObj) : dateObj;
+    if (!isValid(date)) return "";
+
+    return format(date, "dd. MMMM yyyy", { locale: de });
+};
+
+const openPdf = (file) => {
+    if (!file) return;
+
+    try {
+        // Ensure we have the correct path format
+        const fileName = file.includes("/") ? file : `resources/tiles/${file}`;
+
+        // Skip checking and directly try to open the PDF
+        const url = getPdfUrl(fileName);
+        window.open(url, "_blank");
+    } catch (error) {
+        console.error("Error opening PDF:", error);
+        errorMessage.value =
+            "Beim Öffnen der PDF-Datei ist ein Fehler aufgetreten.";
+        showErrorDialog.value = true;
+    }
+};
+
+const handleImageError = (tile) => {
+    console.warn(`Image loading error for tile: ${tile.label}`);
+    console.warn(`Failed image path: ${tile.thumbnailUrl}`);
+    // Use a default image placeholder
+    tile.thumbnailUrl = "/images/pdf_placeholder.svg";
+
+    // Update the corresponding event if needed
+    const event = events.value.find((e) => e.id === tile.id);
+    if (event) {
+        event.thumbnailUrl = "/images/pdf_placeholder.svg";
+    }
+};
+
+// Lifecycle hook - equivalent to created()
+onMounted(() => {
+    // Load and format the reminder tiles data
+    tiles.value = reminderTiles.map((tile) => {
+        // Fix any date format issues (like the "1998-03-203" typo)
+        let fixedDate = tile.date;
+        if (tile.date && !isValid(parseISO(tile.date))) {
+            // Try to extract a valid date from potentially malformed date strings
+            const match = tile.date.match(/(\d{4})-(\d{2})-(\d{2})/);
+            if (match) {
+                fixedDate = `${match[1]}-${match[2]}-${match[3]}`;
+            }
+        }
+
+        // Ensure file path is properly formatted
+        const filePath = tile.file ? tile.file.replace(/^\.\//g, "") : null;
+
+        return {
+            ...tile,
+            date: fixedDate,
+            file: filePath,
+        };
+    });
+
+    // Create events for the calendar
+    events.value = tiles.value.map((tile) => {
+        const date = parseISO(tile.date);
+
+        const thumbnailUrl = tile.thumbnailUrl || null;
+
+        return {
+            id: tile.id,
+            name: tile.label,
+            start: date,
+            description: tile.description || "",
+            file: tile.file,
+            thumbnailUrl: thumbnailUrl,
+            // Store the month and day to find recurring events
+            month: getMonth(date),
+            day: getDate(date),
+        };
+    });
+});
 </script>
 
 <style scoped>
-.pdf-preview {
+.thumb {
     cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease-in-out;
+}
+
+.thumb:hover,
+.square-container:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+}
+
+.text-title {
+    font-weight: 500;
+}
+
+.text-subtitle {
+    color: #888;
+    font-size: 0.875rem;
+    font-weight: 400;
+}
+
+.square-container {
+    width: 400px;
+    height: 400px;
+    max-width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    position: relative;
     border: 1px solid #e0e0e0;
     border-radius: 4px;
     overflow: hidden;
     transition: all 0.2s ease-in-out;
 }
 
-.pdf-preview:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+.square-image {
+    aspect-ratio: 1/1;
+    object-fit: contain !important;
+    border-radius: 4px;
+}
+
+.square-placeholder {
+    aspect-ratio: 1/1;
+    border-radius: 4px;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 600px) {
+    .square-container {
+        width: 300px;
+        height: 300px;
+    }
+
+    .square-image,
+    .square-placeholder {
+        height: 300px !important;
+        width: 300px !important;
+    }
+}
+
+@media (max-width: 400px) {
+    .square-container {
+        width: 250px;
+        height: 250px;
+    }
+
+    .square-image,
+    .square-placeholder {
+        height: 250px !important;
+        width: 250px !important;
+    }
 }
 
 /* Calendar Styles */
@@ -678,5 +827,21 @@ export default {
     font-size: 0.75rem;
     color: #757575;
     margin-top: 2px;
+}
+
+.download-button {
+    display: inline-block;
+    padding: 0.8rem 1.5rem;
+    background-color: #3490dc;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+    height: 3rem;
+}
+
+.download-button:hover {
+    background-color: #2779bd;
 }
 </style>

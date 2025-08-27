@@ -6,7 +6,7 @@ export const reminderTiles = [
         description:
             "Das Mahnmal für die Sinti im Altwarmarmbüchener Moor wurde am 03. März 1998 zum 55 Jahrestag der Deportation der hannoverschen Sinti in das KZ Auschwitz-Birkenau eingeweiht.",
         file: "Erinnerungskacheln_Erinnerungsort_Altwarnbuechener_Moor_03_Maerz_compressed.pdf",
-        thumbnailUrl: "/images/tiles/altwarmbuechener_moor_thumbnail.jpg",
+        thumbnailUrl: "/images/thumbs/tiles/thumb_03_03_moor.jpg",
     },
     {
         id: 2,
@@ -15,7 +15,7 @@ export const reminderTiles = [
         description:
             "01. April 1945: Das Arbeitserziehungslager Ohrbeck wurde durch die Gestapo Osnabrück aufgrund sich annähernder alliierter Truppen aufgelöst. Das Lagerpersonal floh mit insgesamt 62 der verbliebenen Häftlinge nach Bremen, der Verbleib der 125 im Lager hinterbliebenen Personen ist unklar.",
         file: "Erinnerungskacheln_Arbeitserziehungslager_Ohrbeck_01 April_compressed.pdf",
-        thumbnailUrl: "/images/tiles/ohrbeck_thumbnail.jpg",
+        thumbnailUrl: "/images/thumbs/tiles/thumb_04_01_erziehungslager.jpg",
     },
     {
         id: 3,
@@ -24,6 +24,6 @@ export const reminderTiles = [
         description:
             'Hugo Bestel, geboren am 20. März 1892, war Mitglied der "Sozialistischen Front", einer sozialdemokratischen Widerstandsorganisation gegen den Nationalsozialismus in Hannover.',
         file: "Erinnerungskacheln_Ereignis_Bestel_09 September_compressed.pdf",
-        thumbnailUrl: "/images/tiles/bestel_thumbnail.jpg",
+        thumbnailUrl: "/images/thumbs/tiles/thumb_09_09_bestel.jpg",
     },
 ];
