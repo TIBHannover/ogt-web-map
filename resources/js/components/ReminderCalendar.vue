@@ -89,34 +89,72 @@
         <!-- Tutorial section -->
         <v-row>
             <v-col cols="12">
-                <v-card-title class="text-h5 mb-1 pb-0 pl-0"
-                    >Anleitung Erinnerungskacheln</v-card-title
-                >
-                <p>
-                    Gemeinsam an die Orte, Ereignisse und Geschädigten des
-                    Gestapo-Terrors erinnern – diese Anleitung zeigt dir, wie du
-                    Schritt für Schritt deine eigenen Erinnerungskacheln zu den
-                    auf der interaktiven Landkarte verzeichneten Anlässen
-                    erstellen kannst!
-                </p>
-                <v-btn
-                    class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 py-3 text-transform-none"
-                    color="black"
-                    background="grey"
-                    elevation="24"
-                    min-width="200px"
-                    variant="outlined"
-                    style="height: auto"
-                    rounded
-                    size="x-large"
-                    href="./resources/tiles/Anleitung_Erinnerungskacheln_compressed.pdf"
-                    target="_blank"
-                >
-                    <v-icon start class="ml-3"> mdi-download </v-icon>
-                    <span class="whitespace-normal"
-                        >Download "Anleitung Erinnerungskacheln"
-                    </span>
-                </v-btn>
+                <v-grid>
+                    <v-row>
+                        <v-col cols="12" md="6">
+                            <v-card-title class="text-h5 mb-1 pb-0 pl-0"
+                                >Anleitung Erinnerungskacheln</v-card-title
+                            >
+                            <p>
+                                Gemeinsam an die Orte, Ereignisse und
+                                Geschädigten des Gestapo-Terrors erinnern –
+                                diese Anleitung zeigt dir, wie du Schritt für
+                                Schritt deine eigenen Erinnerungskacheln zu den
+                                auf der interaktiven Landkarte verzeichneten
+                                Anlässen erstellen kannst!
+                            </p>
+                            <v-btn
+                                class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 py-3 text-transform-none"
+                                color="black"
+                                background="grey"
+                                elevation="24"
+                                min-width="200px"
+                                variant="outlined"
+                                style="height: auto"
+                                rounded
+                                size="x-large"
+                                href="./resources/tiles/Anleitung_Erinnerungskacheln_compressed.pdf"
+                                target="_blank"
+                            >
+                                <v-icon start class="ml-3">
+                                    mdi-download
+                                </v-icon>
+                                <span class="whitespace-normal"
+                                    >Download "Anleitung Erinnerungskacheln"
+                                </span>
+                            </v-btn>
+                        </v-col>
+                        <v-col cols="12" md="6">
+                            <!-- Download All PDFs Button -->
+                            <v-card-title class="text-h5 mb-1 pb-0 pl-0"
+                                >Erinnerungskacheln herunterladen</v-card-title
+                            >
+                            <p>
+                                Hier kannst du alle Kacheln als ZIP Datei
+                                herunterladen.
+                            </p>
+                            <div class="text-center py-4">
+                                <v-btn
+                                    class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 py-3 text-transform-none"
+                                    color="black"
+                                    background="grey"
+                                    elevation="24"
+                                    min-width="200px"
+                                    variant="outlined"
+                                    style="height: auto"
+                                    rounded
+                                    size="x-large"
+                                    prepend-icon="mdi-archive-arrow-down"
+                                    @click="downloadAllPdfs"
+                                    :loading="isDownloading"
+                                    :disabled="!tiles.length || isDownloading"
+                                >
+                                    Alle PDFs als ZIP-Datei herunterladen
+                                </v-btn>
+                            </div>
+                        </v-col>
+                    </v-row>
+                </v-grid>
             </v-col>
         </v-row>
 
@@ -412,7 +450,7 @@ const display = useDisplay();
 // Global state for consistent access across components
 const ogtGlobals = inject("ogtGlobals");
 
-// State
+// Internal state
 const currentDate = ref(new Date());
 const tiles = ref([]);
 const events = ref([]);
@@ -428,6 +466,7 @@ const tooltipText = ref("");
 const tooltipVisible = ref(false);
 const tooltipX = ref(0);
 const tooltipY = ref(0);
+const isDownloading = ref(false);
 
 // Props
 const props = defineProps({
@@ -715,6 +754,112 @@ const openPdf = (file) => {
         errorMessage.value =
             "Beim Öffnen der PDF-Datei ist ein Fehler aufgetreten.";
         showErrorDialog.value = true;
+    }
+};
+
+const downloadAllPdfs = async () => {
+    isDownloading.value = true;
+    try {
+        const pdfFiles = tiles.value
+            .filter((tile) => tile.file)
+            .map((tile) => {
+                return {
+                    fileName: tile.file,
+                    label: tile.label,
+                };
+            });
+
+        if (pdfFiles.length === 0) {
+            errorMessage.value =
+                "Keine PDF-Dateien zum Herunterladen gefunden.";
+            showErrorDialog.value = true;
+            isDownloading.value = false;
+            return;
+        }
+
+        // Show user feedback on starting the download process
+        const toastMessage = `${pdfFiles.length} PDF-Dateien werden vorbereitet...`;
+        if (ogtGlobals.showToast) {
+            ogtGlobals.showToast(toastMessage, "info");
+        }
+
+        console.log(`Downloading ${pdfFiles.length} PDF files as ZIP archive`);
+
+        // Create a FormData object to send to the server
+        const formData = new FormData();
+        formData.append("files", JSON.stringify(pdfFiles));
+
+        // Send request to the server
+        const response = await fetch("/api/download-pdfs", {
+            method: "POST",
+            body: formData,
+        });
+
+        if (!response.ok) {
+            // Check for JSON response with error details
+            try {
+                const errorData = await response.json();
+                throw new Error(
+                    errorData.message ||
+                        `Server responded with ${response.status}: ${response.statusText}`,
+                );
+            } catch (jsonError) {
+                throw new Error(
+                    `Server responded with ${response.status}: ${response.statusText}`,
+                );
+            }
+        }
+
+        // Get content type to verify we received a ZIP file
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/zip")) {
+            console.warn(`Unexpected content type: ${contentType}`);
+        }
+
+        // Get the file as a blob
+        const blob = await response.blob();
+
+        if (blob.size === 0) {
+            throw new Error("Leere ZIP-Datei vom Server erhalten.");
+        }
+
+        // Create a download link with current date in filename
+        const now = new Date();
+        const dateStr = format(now, "yyyy-MM-dd", { locale: de });
+        const filename = `erinnerungskacheln_${dateStr}.zip`;
+
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = downloadUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+
+        // Clean up
+        window.URL.revokeObjectURL(downloadUrl);
+        document.body.removeChild(a);
+
+        // Show success message
+        if (ogtGlobals.showToast) {
+            ogtGlobals.showToast(
+                "ZIP-Datei wurde erfolgreich erstellt.",
+                "success",
+            );
+        }
+    } catch (error) {
+        console.error("Error downloading PDF files:", error);
+        errorMessage.value = `Beim Herunterladen der PDF-Dateien ist ein Fehler aufgetreten: ${error.message}`;
+        showErrorDialog.value = true;
+
+        // Show error toast
+        if (ogtGlobals.showToast) {
+            ogtGlobals.showToast(
+                "Download fehlgeschlagen. Bitte versuchen Sie es später erneut.",
+                "error",
+            );
+        }
+    } finally {
+        isDownloading.value = false;
     }
 };
 
@@ -1264,6 +1409,17 @@ onMounted(() => {
 }
 
 /* Day background already defined above */
+
+.download-all-button {
+    margin: 20px auto;
+    padding: 12px 24px;
+    transition: all 0.3s ease;
+}
+
+.download-all-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
 
 .download-button {
     display: inline-block;

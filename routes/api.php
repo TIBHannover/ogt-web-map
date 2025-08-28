@@ -157,3 +157,9 @@ Route::get("/pdf/check/{filename}", [
     App\Http\Controllers\PDFThumbnailController::class,
     "checkPdfExists",
 ])->where("filename", ".*");
+
+// Route for downloading multiple PDFs as a ZIP archive
+Route::post("/download-pdfs", [
+    App\Http\Controllers\PDFDownloadController::class,
+    "downloadPdfs",
+]);
