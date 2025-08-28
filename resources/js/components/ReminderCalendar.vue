@@ -176,9 +176,22 @@
                                     'outside-month': !day.currentMonth,
                                     today: day.isToday,
                                     'has-events': day.events.length > 0,
+                                    'has-multiple-events':
+                                        day.events.length > 1,
                                 }"
                                 @click="handleDayClick(day)"
                             >
+                                <div
+                                    v-if="
+                                        day.events.length > 0 &&
+                                        day.events[0].thumbnailUrl
+                                    "
+                                    class="day-background"
+                                    :style="{
+                                        backgroundImage: `url(${day.events[0].thumbnailUrl})`,
+                                        backgroundSize: 'cover',
+                                    }"
+                                ></div>
                                 <div class="day-number">{{ day.day }}</div>
                                 <div
                                     v-if="day.events.length > 0"
@@ -188,6 +201,18 @@
                                         v-for="event in day.events.slice(0, 2)"
                                         :key="event.id"
                                         class="event-dot"
+                                        @mouseover="
+                                            showTooltip($event, event.name)
+                                        "
+                                        @touchstart="
+                                            showTooltip(
+                                                $event,
+                                                event.name,
+                                                true,
+                                            )
+                                        "
+                                        @mouseleave="hideTooltip"
+                                        @touchend="hideTooltip"
                                     >
                                         {{ event.name.substring(0, 15)
                                         }}{{
@@ -197,8 +222,27 @@
                                     <div
                                         v-if="day.events.length > 2"
                                         class="more-events"
+                                        @mouseover="
+                                            showTooltip(
+                                                $event,
+                                                getMoreEventsTooltip(
+                                                    day.events.slice(2),
+                                                ),
+                                            )
+                                        "
+                                        @touchstart="
+                                            showTooltip(
+                                                $event,
+                                                getMoreEventsTooltip(
+                                                    day.events.slice(2),
+                                                ),
+                                                true,
+                                            )
+                                        "
+                                        @mouseleave="hideTooltip"
+                                        @touchend="hideTooltip"
                                     >
-                                        +{{ day.events.length - 2 }} mehr
+                                        +{{ day.events.length - 2 }} weitere
                                     </div>
                                 </div>
                             </div>
@@ -326,6 +370,15 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+
+        <!-- Custom tooltip -->
+        <div
+            class="custom-tooltip"
+            :class="{ visible: tooltipVisible }"
+            :style="{ top: `${tooltipY}px`, left: `${tooltipX}px` }"
+        >
+            {{ tooltipText }}
+        </div>
     </v-container>
 </template>
 
@@ -352,7 +405,8 @@ import { de } from "date-fns/locale";
 import { getPdfUrl } from "../utils/pdfUtils";
 
 // Get display breakpoints and use them in the template
-const { mdAndUp } = useDisplay();
+// Display utilities for responsive design
+const display = useDisplay();
 
 // Global state for consistent access across components
 const ogtGlobals = inject("ogtGlobals");
@@ -369,6 +423,10 @@ const selectedDateObject = ref(null);
 const weekdays = ref(["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]);
 const showErrorDialog = ref(false);
 const errorMessage = ref("");
+const tooltipText = ref("");
+const tooltipVisible = ref(false);
+const tooltipX = ref(0);
+const tooltipY = ref(0);
 
 // Props
 const props = defineProps({
@@ -586,6 +644,46 @@ const handleDayClick = (day) => {
     }
 };
 
+// Create tooltip text for "more events" indicator
+const getMoreEventsTooltip = (events) => {
+    return events
+        .map((event, index) => `${index + 1}. ${event.name}`)
+        .join("\n");
+};
+
+// Custom tooltip handlers
+const showTooltip = (event, text, isTouch = false) => {
+    // Prevent default on touch to avoid scrolling
+    if (isTouch) {
+        event.preventDefault();
+    }
+
+    tooltipText.value = text;
+
+    // Position calculation
+    const rect = event.target.getBoundingClientRect();
+    tooltipX.value = rect.left + rect.width / 2;
+
+    // Position tooltip above for mouse, below for touch (to avoid finger covering tooltip)
+    tooltipY.value = isTouch ? rect.bottom + 15 : rect.top - 5;
+
+    // Show the tooltip immediately for touch, with delay for mouse
+    if (isTouch) {
+        tooltipVisible.value = true;
+    } else {
+        setTimeout(() => {
+            tooltipVisible.value = true;
+        }, 300);
+    }
+};
+
+const hideTooltip = () => {
+    // Add a small delay for touch to ensure the tooltip is seen
+    setTimeout(() => {
+        tooltipVisible.value = false;
+    }, 500);
+};
+
 const selectEvent = (event) => {
     selectedEvent.value = event;
     showEventDialog.value = true;
@@ -740,16 +838,91 @@ onMounted(() => {
     }
 }
 
+@media (max-width: 600px) and (min-width: 401px) {
+    .calendar-body {
+        grid-auto-rows: minmax(80px, auto);
+        gap: 6px;
+        padding: 5px;
+        overflow: visible;
+    }
+
+    .calendar-day {
+        padding: 4px;
+        min-height: 80px;
+        border-width: 1px;
+        transition-duration: 0.3s;
+    }
+
+    .calendar-day.has-events {
+        transform: scale(1.08);
+        border-width: 1px;
+    }
+
+    .calendar-day.has-multiple-events {
+        transform: scale(1.12);
+        border-width: 1px;
+        border-color: #2196f3;
+    }
+}
+
 @media (max-width: 400px) {
     .square-container {
-        width: 250px;
-        height: 250px;
+        height: 300px !important;
+        width: 300px !important;
     }
 
     .square-image,
     .square-placeholder {
-        height: 250px !important;
-        width: 250px !important;
+        height: 300px !important;
+        width: 300px !important;
+    }
+
+    .calendar-body {
+        grid-auto-rows: minmax(60px, auto);
+        gap: 4px;
+        padding: 2px;
+        overflow: visible;
+    }
+
+    .calendar-day {
+        padding: 2px;
+        min-height: 60px;
+        border-width: 1px;
+        transition-duration: 0.3s;
+    }
+
+    .calendar-day.has-events {
+        transform: scale(1.05);
+        border-width: 1px;
+    }
+
+    .calendar-day.has-multiple-events {
+        transform: scale(1.08);
+        border-width: 1px;
+        border-color: #2196f3;
+    }
+
+    .day-number {
+        font-size: 0.9rem;
+        margin-bottom: 1px;
+    }
+
+    .has-events .day-number {
+        font-size: 1rem;
+    }
+
+    .event-dot {
+        margin: 1px 0;
+        padding: 1px 2px;
+        font-size: 0.6rem;
+    }
+
+    .event-indicator {
+        margin-top: 2px;
+    }
+
+    .more-events {
+        font-size: 0.6rem;
     }
 }
 
@@ -776,8 +949,15 @@ onMounted(() => {
 .calendar-body {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    grid-auto-rows: minmax(100px, auto);
-    gap: 2px;
+    grid-auto-rows: minmax(120px, auto);
+    gap: 8px;
+    position: relative;
+    padding: 10px;
+    overflow: visible;
+    transition: all 0.3s ease;
+    max-width: 1200px;
+    margin: 0 auto;
+    box-sizing: border-box;
 }
 
 .calendar-day {
@@ -786,11 +966,29 @@ onMounted(() => {
     min-height: 100px;
     position: relative;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 1;
+    overflow: hidden;
+    border-radius: 8px;
+    box-sizing: border-box;
+    transform-origin: center;
+    will-change: transform, box-shadow;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
 }
 
 .calendar-day:hover {
     background-color: #f5f5f5;
+    transform: scale(1.08);
+    z-index: 10;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    transition-duration: 0.3s;
+}
+
+.calendar-day.has-multiple-events:hover {
+    transform: scale(1.25);
+    z-index: 15;
 }
 
 .outside-month {
@@ -803,35 +1001,213 @@ onMounted(() => {
     font-weight: bold;
 }
 
-.has-events {
+.calendar-day.has-events {
     font-weight: bold;
+    transform: scale(1.15);
+    z-index: 5;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    border: 2px solid #4caf50;
+    margin: 0;
+    background-color: rgba(255, 255, 255, 0.85);
+    transition-delay: 0.05s;
+    position: relative;
+}
+
+.calendar-day.has-multiple-events {
+    transform: scale(1.2);
+    z-index: 6;
+    box-shadow: 0 6px 12px rgba(33, 150, 243, 0.3);
+    border: 2px solid #2196f3;
+    background-color: rgba(255, 255, 255, 0.9);
+    position: relative;
+}
+
+.day-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover !important;
+    background-position: center;
+    opacity: 0.25;
+    z-index: -1;
+    filter: blur(1px);
+    transition: all 0.5s ease;
+    transform: scale(1.1);
+    will-change: opacity, filter, transform;
+}
+
+.calendar-day:hover .day-background {
+    opacity: 0.4;
+    filter: blur(0px);
+    transform: scale(1.05);
+    transition-duration: 0.3s;
+}
+
+.calendar-day.has-events .day-background {
+    opacity: 0.35;
+    transform: scale(1.15);
+    transition-delay: 0.05s;
+}
+
+.calendar-day.has-multiple-events .day-background {
+    opacity: 0.4;
+    transform: scale(1.2);
+    filter: blur(0.5px);
+    transition-delay: 0.08s;
+    background-size: cover !important;
 }
 
 .day-number {
-    font-size: 1.1rem;
-    margin-bottom: 4px;
+    font-size: 1.2rem;
+    margin-bottom: 6px;
+    font-weight: 500;
+    position: relative;
+    z-index: 2;
+}
+
+.calendar-day.has-events .day-number {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #1b5e20;
+}
+
+.calendar-day.has-multiple-events .day-number {
+    color: #0d47a1;
+    font-size: 1.4rem;
 }
 
 .event-indicator {
-    margin-top: 4px;
+    margin-top: 6px;
+    position: relative;
+    z-index: 2;
 }
 
 .event-dot {
-    margin: 2px 0;
-    padding: 2px 4px;
-    font-size: 0.75rem;
-    background-color: #bbdefb;
+    margin: 3px 0;
+    padding: 3px 5px;
+    font-size: 0.8rem;
+    background-color: rgba(187, 222, 251, 0.85);
     border-radius: 4px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    cursor: help;
+    position: relative;
+}
+
+.calendar-day.has-multiple-events .event-dot {
+    background-color: rgba(144, 202, 249, 0.9);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    font-weight: 500;
+    border: 1px solid rgba(33, 150, 243, 0.4);
+    margin: 4px 0;
 }
 
 .more-events {
     font-size: 0.75rem;
-    color: #757575;
-    margin-top: 2px;
+    color: #1b5e20;
+    text-align: center;
+    font-weight: bold;
+    margin-top: 4px;
+    padding: 3px 5px;
+    background-color: rgba(76, 175, 80, 0.2);
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    cursor: help;
+    position: relative;
 }
+
+.calendar-day.has-multiple-events .more-events {
+    color: #0d47a1;
+    background-color: rgba(33, 150, 243, 0.2);
+    padding: 3px 6px;
+    margin-top: 5px;
+    font-size: 0.8rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(33, 150, 243, 0.3);
+    white-space: pre-line;
+}
+
+/* Custom tooltip styles */
+.custom-tooltip {
+    position: fixed;
+    transform: translateX(-50%) translateY(-100%);
+    background-color: rgba(33, 33, 33, 0.95);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    z-index: 2000;
+    max-width: 300px;
+    min-width: 100px;
+    white-space: pre-line;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+        opacity 0.2s ease,
+        visibility 0.2s ease;
+    text-align: left;
+    line-height: 1.4;
+}
+
+.custom-tooltip::after,
+.custom-tooltip::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    margin-left: -6px;
+    border-width: 6px;
+    border-style: solid;
+}
+
+/* Arrow pointing down (for tooltips above elements) */
+.custom-tooltip::after {
+    top: 100%;
+    border-color: rgba(33, 33, 33, 0.95) transparent transparent transparent;
+}
+
+/* Arrow pointing up (for tooltips below elements on touch devices) */
+.custom-tooltip::before {
+    bottom: 100%;
+    border-color: transparent transparent rgba(33, 33, 33, 0.95) transparent;
+    opacity: 0;
+}
+
+.custom-tooltip.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Media query for touch devices */
+@media (hover: none) and (pointer: coarse) {
+    .custom-tooltip {
+        /* For touch devices, place tooltip below by default */
+        transform: translateX(-50%) translateY(0);
+    }
+
+    .custom-tooltip::after {
+        /* Hide down arrow on touch */
+        opacity: 0;
+    }
+
+    .custom-tooltip::before {
+        /* Show up arrow on touch */
+        opacity: 1;
+    }
+
+    .event-dot,
+    .more-events {
+        /* Increase touch target size */
+        padding: 5px 7px;
+    }
+}
+
+/* Day background already defined above */
 
 .download-button {
     display: inline-block;
