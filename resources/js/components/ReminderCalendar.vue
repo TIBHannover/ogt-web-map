@@ -73,7 +73,8 @@
                                 </p>
                                 <v-btn
                                     color="primary"
-                                    class="mt-2 download-button"
+                                    variant="flat"
+                                    class="mt-2"
                                     @click="openPdf(latestTile.file)"
                                 >
                                     <v-icon start> mdi-download </v-icon>
@@ -86,75 +87,70 @@
             </v-col>
         </v-row>
 
-        <!-- Tutorial section -->
-        <v-row>
-            <v-col cols="12">
-                <v-grid>
-                    <v-row>
-                        <v-col cols="12" md="6">
-                            <v-card-title class="text-h5 mb-1 pb-0 pl-0"
-                                >Anleitung Erinnerungskacheln</v-card-title
-                            >
-                            <p>
-                                Gemeinsam an die Orte, Ereignisse und
-                                Geschädigten des Gestapo-Terrors erinnern –
-                                diese Anleitung zeigt dir, wie du Schritt für
-                                Schritt deine eigenen Erinnerungskacheln zu den
-                                auf der interaktiven Landkarte verzeichneten
-                                Anlässen erstellen kannst!
-                            </p>
-                            <v-btn
-                                class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 py-3 text-transform-none"
-                                color="black"
-                                background="grey"
-                                elevation="24"
-                                min-width="200px"
-                                variant="outlined"
-                                style="height: auto"
-                                rounded
-                                size="x-large"
-                                href="./resources/tiles/Anleitung_Erinnerungskacheln_compressed.pdf"
-                                target="_blank"
-                            >
-                                <v-icon start class="ml-3">
-                                    mdi-download
-                                </v-icon>
-                                <span class="whitespace-normal"
-                                    >Download "Anleitung Erinnerungskacheln"
-                                </span>
-                            </v-btn>
-                        </v-col>
-                        <v-col cols="12" md="6">
-                            <!-- Download All PDFs Button -->
-                            <v-card-title class="text-h5 mb-1 pb-0 pl-0"
-                                >Erinnerungskacheln herunterladen</v-card-title
-                            >
-                            <p>
-                                Hier kannst du alle Kacheln als ZIP Datei
-                                herunterladen.
-                            </p>
-                            <div class="text-center py-4">
-                                <v-btn
-                                    class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 py-3 text-transform-none"
-                                    color="black"
-                                    background="grey"
-                                    elevation="24"
-                                    min-width="200px"
-                                    variant="outlined"
-                                    style="height: auto"
-                                    rounded
-                                    size="x-large"
-                                    prepend-icon="mdi-archive-arrow-down"
-                                    @click="downloadAllPdfs"
-                                    :loading="isDownloading"
-                                    :disabled="!tiles.length || isDownloading"
-                                >
-                                    Alle PDFs als ZIP-Datei herunterladen
-                                </v-btn>
-                            </div>
-                        </v-col>
-                    </v-row>
-                </v-grid>
+        <!-- Instruction and Download Cards -->
+        <v-row class="mb-6 equal-height-row">
+            <v-col cols="12" md="6" class="d-flex flex-column card-container">
+                <v-card-title class="text-h5 mb-1 pb-0 pl-0">
+                    Anleitung Erinnerungskacheln
+                </v-card-title>
+                <v-card
+                    class="card-equal-height d-flex flex-column"
+                    style="flex: 1"
+                >
+                    <v-card-text class="flex-grow-1">
+                        <p class="text-body-1">
+                            Gemeinsam an die Orte, Ereignisse und Geschädigten
+                            des Gestapo-Terrors erinnern – diese Anleitung zeigt
+                            dir, wie du Schritt für Schritt deine eigenen
+                            Erinnerungskacheln zu den auf der interaktiven
+                            Landkarte verzeichneten Anlässen erstellen kannst!
+                        </p>
+                    </v-card-text>
+                    <v-card-actions class="pa-4 pt-0 card-actions">
+                        <v-btn
+                            color="primary"
+                            variant="flat"
+                            prepend-icon="mdi-file-pdf-box"
+                            href="./resources/tiles/Anleitung_Erinnerungskacheln_compressed.pdf"
+                            target="_blank"
+                            class="ml-2"
+                        >
+                            Anleitung öffnen
+                        </v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-col>
+
+            <v-col cols="12" md="6" class="d-flex flex-column card-container">
+                <v-card-title class="text-h5 mb-1 pb-0 pl-0">
+                    Erinnerungskacheln herunterladen
+                </v-card-title>
+                <v-card
+                    class="card-equal-height d-flex flex-column"
+                    style="flex: 1"
+                >
+                    <v-card-text class="flex-grow-1">
+                        <p class="text-body-1">
+                            Lade alle Erinnerungskacheln als ZIP-Archiv
+                            herunter, um offline darauf zugreifen zu können. Das
+                            Archiv enthält alle PDF-Dateien der
+                            Erinnerungskacheln, die im Kalender angezeigt
+                            werden.
+                        </p>
+                    </v-card-text>
+                    <v-card-actions class="pa-4 pt-0 card-actions">
+                        <v-btn
+                            color="primary"
+                            variant="flat"
+                            prepend-icon="mdi-archive-arrow-down"
+                            @click="downloadAllPdfs"
+                            :loading="isDownloading"
+                            :disabled="!tiles.length || isDownloading"
+                        >
+                            Alle Erinnerungskacheln herunterladen
+                        </v-btn>
+                    </v-card-actions>
+                </v-card>
             </v-col>
         </v-row>
 
@@ -329,7 +325,8 @@
                         <p>{{ selectedEvent.description }}</p>
                         <v-btn
                             color="primary"
-                            class="mt-2 download-button"
+                            variant="flat"
+                            class="mt-2"
                             @click="openPdf(selectedEvent.file)"
                         >
                             <v-icon start> mdi-download </v-icon>
@@ -443,8 +440,6 @@ import {
 import { de } from "date-fns/locale";
 import { getPdfUrl } from "../utils/pdfUtils";
 
-// Get display breakpoints and use them in the template
-// Display utilities for responsive design
 const display = useDisplay();
 
 // Global state for consistent access across components
@@ -490,16 +485,6 @@ const setFreeClientWidth = () => {
             (document.documentElement.clientWidth - container.clientWidth) / 2;
     }
 };
-
-// Lifecycle hooks
-onMounted(() => {
-    setFreeClientWidth();
-    window.addEventListener("resize", setFreeClientWidth);
-});
-
-onUnmounted(() => {
-    window.removeEventListener("resize", setFreeClientWidth);
-});
 
 // Computed properties
 const title = computed(() => {
@@ -878,6 +863,8 @@ const handleImageError = (tile) => {
 
 // Lifecycle hook - equivalent to created()
 onMounted(() => {
+    setFreeClientWidth();
+    window.addEventListener("resize", setFreeClientWidth);
     // Load and format the reminder tiles data
     tiles.value = reminderTiles.map((tile) => {
         // Fix any date format issues (like the "1998-03-203" typo)
@@ -919,9 +906,17 @@ onMounted(() => {
         };
     });
 });
+
+onUnmounted(() => {
+    window.removeEventListener("resize", setFreeClientWidth);
+});
 </script>
 
 <style scoped>
+.font-family-special-elite {
+    font-family: "Special Elite" !important;
+}
+
 .thumb {
     cursor: pointer;
     border-radius: 4px;
@@ -1410,30 +1405,34 @@ onMounted(() => {
 
 /* Day background already defined above */
 
-.download-all-button {
-    margin: 20px auto;
-    padding: 12px 24px;
-    transition: all 0.3s ease;
+/* Removed .download-all-button styles as we're using .download-button for consistency */
+
+.card-equal-height {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    min-height: 230px; /* Ensures minimum height for both cards */
+    flex-grow: 1;
 }
 
-.download-all-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+.equal-height-row {
+    align-items: stretch;
+    display: flex;
+    flex-wrap: wrap;
 }
 
-.download-button {
-    display: inline-block;
-    padding: 0.8rem 1.5rem;
-    background-color: #3490dc;
-    color: white;
-    text-decoration: none;
-    border-radius: 4px;
-    font-weight: bold;
-    transition: background-color 0.3s;
-    height: 3rem;
+.card-container {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
 }
 
-.download-button:hover {
-    background-color: #2779bd;
+.card-actions {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
+
+/* Button styling handled by Vuetify's flat variant */
 </style>
