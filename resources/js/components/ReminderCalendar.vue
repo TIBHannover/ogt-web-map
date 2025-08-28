@@ -17,7 +17,18 @@
                     Erinnerungskalender
                 </h1>
                 <p class="hyphens-auto">
-                    Einleitungstext hier. Lorem ipsum dolor.
+                    Mit diesem Kalender werden jeden Monat an unterschiedliche
+                    Ereignisse, Orte oder Gedenkstätten erinnert, die in
+                    Zusammenhang mit den Verbrechen der Gestapo und ihren
+                    Geschädigten stehen.
+                </p>
+                <p class="hyphens-auto">
+                    Blättere dich einfach durch die verschiedenen
+                    Monatsansichten und entdecke die Erinnerungskacheln! Mit
+                    jeder Kachel wird sich einem konkreten Anlass gewidmet. Sie
+                    erscheinen zu den jeweiligen Jahrestagen der Anlässe,
+                    enthalten weiterführende Informationen und illustrieren das
+                    vorgestellte Thema.
                 </p>
             </v-col>
         </v-row>
@@ -101,11 +112,12 @@
                 >
                     <v-card-text class="flex-grow-1">
                         <p class="text-body-1">
-                            Gemeinsam an die Orte, Ereignisse und Geschädigten
-                            des Gestapo-Terrors erinnern – diese Anleitung zeigt
-                            dir, wie du Schritt für Schritt deine eigenen
-                            Erinnerungskacheln zu den auf der interaktiven
-                            Landkarte verzeichneten Anlässen erstellen kannst!
+                            Mit Hilfe der Anleitung kannst auch du eigene
+                            Erinnerungskacheln erstellen und einen Beitrag zum
+                            Projekt leisten. Schreibe uns gerne eine
+                            <a href="mailto:ogt.project@tib.eu">E-Mail</a> mit
+                            deiner Erinnerungskachel und wir fügen diese in den
+                            Kalender ein.
                         </p>
                     </v-card-text>
                     <v-card-actions class="pa-4 pt-0 card-actions">
@@ -133,11 +145,12 @@
                 >
                     <v-card-text class="flex-grow-1">
                         <p class="text-body-1">
-                            Lade alle Erinnerungskacheln als ZIP-Archiv
-                            herunter, um offline darauf zugreifen zu können. Das
-                            Archiv enthält alle PDF-Dateien der
-                            Erinnerungskacheln, die im Kalender angezeigt
-                            werden.
+                            Die Erinnerungskacheln können eigenständig aus dem
+                            Erinnerungskalender heruntergeladen werden und
+                            eignen sich ideal für die Weiternutzung in anderen
+                            Formaten, z.B. als Plakatvorlage, als Instagram Post
+                            u.v.m. Du kannst auch alle Erinnerungskacheln hier
+                            als ZIP herunterladen.
                         </p>
                     </v-card-text>
                     <v-card-actions class="pa-4 pt-0 card-actions">
