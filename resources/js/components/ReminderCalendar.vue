@@ -213,6 +213,7 @@
                                         "
                                         @mouseleave="hideTooltip"
                                         @touchend="hideTooltip"
+                                        @click.stop="selectEvent(event)"
                                     >
                                         {{ event.name.substring(0, 15)
                                         }}{{
@@ -842,7 +843,7 @@ onMounted(() => {
     .calendar-body {
         grid-template-columns: repeat(7, 1fr);
         grid-auto-rows: minmax(80px, auto);
-        gap: 4px;
+        gap: 6px;
         padding: 4px;
         overflow: visible;
     }
@@ -854,6 +855,9 @@ onMounted(() => {
         transition-duration: 0.3s;
         width: 100%;
         box-sizing: border-box;
+        transform-origin: center;
+        transform: scale(1);
+        margin: 0;
     }
 
     .calendar-day.has-events {
@@ -882,9 +886,27 @@ onMounted(() => {
     .calendar-body {
         grid-template-columns: repeat(7, 1fr);
         grid-auto-rows: minmax(60px, auto);
-        gap: 1px;
-        padding: 1px;
+        gap: 3px;
+        padding: 2px;
         overflow: visible;
+    }
+
+    /* Mobile hover effects for calendar day */
+    .calendar-day:hover {
+        z-index: 10;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        transform: scale(1.05);
+        background-color: #f5f5f5;
+    }
+
+    .calendar-day.has-events:hover {
+        border-color: #2e7d32;
+        box-shadow: 0 3px 10px rgba(76, 175, 80, 0.3);
+    }
+
+    .calendar-day.has-multiple-events:hover {
+        border-color: #1565c0;
+        box-shadow: 0 3px 10px rgba(33, 150, 243, 0.3);
     }
 
     .calendar-day {
@@ -894,6 +916,11 @@ onMounted(() => {
         transition-duration: 0.3s;
         width: 100%;
         box-sizing: border-box;
+        transform-origin: center;
+        transform: scale(1);
+        margin: 0;
+        overflow: visible;
+        position: relative;
     }
 
     .calendar-day.has-events {
@@ -937,6 +964,7 @@ onMounted(() => {
     flex-direction: column;
     width: 100% !important;
     max-width: 100%;
+    perspective: 1000px; /* Add 3D perspective for better hover effects */
 }
 
 .calendar-header {
@@ -957,7 +985,7 @@ onMounted(() => {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     grid-auto-rows: minmax(120px, auto);
-    gap: 6px;
+    gap: 10px;
     position: relative;
     padding: 8px;
     transition: all 0.3s ease;
@@ -965,6 +993,7 @@ onMounted(() => {
     margin: 0 auto;
     box-sizing: border-box;
     width: 100%;
+    overflow: visible;
 }
 
 .calendar-day {
@@ -983,16 +1012,25 @@ onMounted(() => {
     flex-direction: column;
     width: 100% !important;
     flex: 1;
+    transform-origin: center;
+    transform: scale(1);
+    margin: 0;
 }
 
 .calendar-day:hover {
     background-color: #f5f5f5;
     z-index: 10;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
+    transform: scale(1.08);
+    margin: -2px;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .calendar-day.has-multiple-events:hover {
     z-index: 15;
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px rgba(33, 150, 243, 0.3);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .outside-month {
@@ -1015,6 +1053,13 @@ onMounted(() => {
     width: 100%;
 }
 
+.calendar-day.has-events:hover {
+    border: 3px solid #2e7d32;
+    box-shadow: 0 8px 16px rgba(76, 175, 80, 0.4);
+    transform: scale(1.1);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
 .calendar-day.has-multiple-events {
     z-index: 6;
     box-shadow: 0 2px 6px rgba(33, 150, 243, 0.3);
@@ -1022,6 +1067,13 @@ onMounted(() => {
     background-color: rgba(255, 255, 255, 0.9);
     position: relative;
     width: 100%;
+}
+
+.calendar-day.has-multiple-events:hover {
+    border: 3px solid #1565c0;
+    box-shadow: 0 10px 20px rgba(33, 150, 243, 0.5);
+    transform: scale(1.12);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .day-background {
@@ -1041,10 +1093,11 @@ onMounted(() => {
 }
 
 .calendar-day:hover .day-background {
-    opacity: 0.4;
+    opacity: 0.6;
     filter: blur(0px);
     transform: scale(1.05);
     transition-duration: 0.3s;
+    background-size: 110% 110% !important;
 }
 
 .calendar-day.has-events .day-background {
@@ -1096,8 +1149,9 @@ onMounted(() => {
     overflow: hidden;
     text-overflow: ellipsis;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    cursor: help;
+    cursor: pointer;
     position: relative;
+    z-index: 2;
 }
 
 .calendar-day.has-multiple-events .event-dot {
@@ -1118,7 +1172,7 @@ onMounted(() => {
     background-color: rgba(76, 175, 80, 0.2);
     border-radius: 4px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    cursor: help;
+    cursor: pointer;
     position: relative;
 }
 
