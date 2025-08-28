@@ -167,7 +167,7 @@
                         </div>
 
                         <!-- Calendar Days -->
-                        <div class="calendar-body">
+                        <div class="calendar-body" style="width: 100%">
                             <div
                                 v-for="(day, index) in calendarDays"
                                 :key="index"
@@ -840,9 +840,10 @@ onMounted(() => {
 
 @media (max-width: 600px) and (min-width: 401px) {
     .calendar-body {
+        grid-template-columns: repeat(7, 1fr);
         grid-auto-rows: minmax(80px, auto);
-        gap: 6px;
-        padding: 5px;
+        gap: 4px;
+        padding: 4px;
         overflow: visible;
     }
 
@@ -851,16 +852,17 @@ onMounted(() => {
         min-height: 80px;
         border-width: 1px;
         transition-duration: 0.3s;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .calendar-day.has-events {
-        transform: scale(1.08);
-        border-width: 1px;
+        border-width: 2px;
+        border-color: #4caf50;
     }
 
     .calendar-day.has-multiple-events {
-        transform: scale(1.12);
-        border-width: 1px;
+        border-width: 2px;
         border-color: #2196f3;
     }
 }
@@ -878,9 +880,10 @@ onMounted(() => {
     }
 
     .calendar-body {
+        grid-template-columns: repeat(7, 1fr);
         grid-auto-rows: minmax(60px, auto);
-        gap: 4px;
-        padding: 2px;
+        gap: 1px;
+        padding: 1px;
         overflow: visible;
     }
 
@@ -889,16 +892,18 @@ onMounted(() => {
         min-height: 60px;
         border-width: 1px;
         transition-duration: 0.3s;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .calendar-day.has-events {
-        transform: scale(1.05);
-        border-width: 1px;
+        border-width: 2px;
+        border-color: #4caf50;
+        width: 100%;
     }
 
     .calendar-day.has-multiple-events {
-        transform: scale(1.08);
-        border-width: 1px;
+        border-width: 2px;
         border-color: #2196f3;
     }
 
@@ -930,7 +935,8 @@ onMounted(() => {
 .calendar-grid {
     display: flex;
     flex-direction: column;
-    width: 100%;
+    width: 100% !important;
+    max-width: 100%;
 }
 
 .calendar-header {
@@ -940,6 +946,7 @@ onMounted(() => {
     font-weight: bold;
     margin-bottom: 8px;
     border-bottom: 1px solid #e0e0e0;
+    width: 100%;
 }
 
 .weekday-header {
@@ -950,14 +957,14 @@ onMounted(() => {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     grid-auto-rows: minmax(120px, auto);
-    gap: 8px;
+    gap: 6px;
     position: relative;
-    padding: 10px;
-    overflow: visible;
+    padding: 8px;
     transition: all 0.3s ease;
-    max-width: 1200px;
+    max-width: 100%;
     margin: 0 auto;
     box-sizing: border-box;
+    width: 100%;
 }
 
 .calendar-day {
@@ -966,28 +973,25 @@ onMounted(() => {
     min-height: 100px;
     position: relative;
     cursor: pointer;
-    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: all 0.3s ease;
     z-index: 1;
     overflow: hidden;
-    border-radius: 8px;
+    border-radius: 4px;
     box-sizing: border-box;
-    transform-origin: center;
-    will-change: transform, box-shadow;
     background-color: #ffffff;
     display: flex;
     flex-direction: column;
+    width: 100% !important;
+    flex: 1;
 }
 
 .calendar-day:hover {
     background-color: #f5f5f5;
-    transform: scale(1.08);
     z-index: 10;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    transition-duration: 0.3s;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
 }
 
 .calendar-day.has-multiple-events:hover {
-    transform: scale(1.25);
     z-index: 15;
 }
 
@@ -1003,23 +1007,21 @@ onMounted(() => {
 
 .calendar-day.has-events {
     font-weight: bold;
-    transform: scale(1.15);
     z-index: 5;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    border: 2px solid #4caf50;
-    margin: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 3px solid #4caf50;
     background-color: rgba(255, 255, 255, 0.85);
-    transition-delay: 0.05s;
     position: relative;
+    width: 100%;
 }
 
 .calendar-day.has-multiple-events {
-    transform: scale(1.2);
     z-index: 6;
-    box-shadow: 0 6px 12px rgba(33, 150, 243, 0.3);
-    border: 2px solid #2196f3;
+    box-shadow: 0 2px 6px rgba(33, 150, 243, 0.3);
+    border: 3px solid #2196f3;
     background-color: rgba(255, 255, 255, 0.9);
     position: relative;
+    width: 100%;
 }
 
 .day-background {
@@ -1060,22 +1062,22 @@ onMounted(() => {
 }
 
 .day-number {
-    font-size: 1.2rem;
-    margin-bottom: 6px;
+    font-size: 1.1rem;
+    margin-bottom: 4px;
     font-weight: 500;
     position: relative;
     z-index: 2;
 }
 
 .calendar-day.has-events .day-number {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     font-weight: bold;
     color: #1b5e20;
 }
 
 .calendar-day.has-multiple-events .day-number {
     color: #0d47a1;
-    font-size: 1.4rem;
+    font-size: 1.25rem;
 }
 
 .event-indicator {
