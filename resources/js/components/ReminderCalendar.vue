@@ -86,9 +86,46 @@
             </v-col>
         </v-row>
 
+        <!-- Tutorial section -->
+        <v-row>
+            <v-col cols="12">
+                <v-card-title class="text-h5 mb-1 pb-0 pl-0"
+                    >Anleitung Erinnerungskacheln</v-card-title
+                >
+                <p>
+                    Gemeinsam an die Orte, Ereignisse und Geschädigten des
+                    Gestapo-Terrors erinnern – diese Anleitung zeigt dir, wie du
+                    Schritt für Schritt deine eigenen Erinnerungskacheln zu den
+                    auf der interaktiven Landkarte verzeichneten Anlässen
+                    erstellen kannst!
+                </p>
+                <v-btn
+                    class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 py-3 text-transform-none"
+                    color="black"
+                    background="grey"
+                    elevation="24"
+                    min-width="200px"
+                    variant="outlined"
+                    style="height: auto"
+                    rounded
+                    size="x-large"
+                    href="./resources/tiles/Anleitung_Erinnerungskacheln_compressed.pdf"
+                    target="_blank"
+                >
+                    <v-icon start class="ml-3"> mdi-download </v-icon>
+                    <span class="whitespace-normal"
+                        >Download "Anleitung Erinnerungskacheln"
+                    </span>
+                </v-btn>
+            </v-col>
+        </v-row>
+
         <!-- Calendar Section -->
         <v-row>
             <v-col cols="12">
+                <v-card-title class="text-h5 mb-1 pb-0 pl-0"
+                    >Kalenderansicht</v-card-title
+                >
                 <v-card class="bg-white">
                     <v-toolbar flat density="compact">
                         <v-btn
@@ -168,39 +205,6 @@
                         </div>
                     </div>
                 </v-card>
-            </v-col>
-        </v-row>
-
-        <v-row>
-            <v-col cols="12">
-                <v-card-title class="text-h5 mb-1 pb-0 pl-0"
-                    >Anleitung Erinnerungskacheln</v-card-title
-                >
-                <p>
-                    Gemeinsam an die Orte, Ereignisse und Geschädigten des
-                    Gestapo-Terrors erinnern – diese Anleitung zeigt dir, wie du
-                    Schritt für Schritt deine eigenen Erinnerungskacheln zu den
-                    auf der interaktiven Landkarte verzeichneten Anlässen
-                    erstellen kannst!
-                </p>
-                <v-btn
-                    class="background-color-grey border-none justify-start ml-1 mr-5 my-3 mb-6 text-h6 py-3 text-transform-none"
-                    color="black"
-                    background="grey"
-                    elevation="24"
-                    min-width="200px"
-                    variant="outlined"
-                    style="height: auto"
-                    rounded
-                    size="x-large"
-                    href="./resources/tiles/Anleitung_Erinnerungskacheln_compressed.pdf"
-                    target="_blank"
-                >
-                    <v-icon start class="ml-3"> mdi-download </v-icon>
-                    <span class="whitespace-normal"
-                        >Download "Anleitung Erinnerungskacheln"
-                    </span>
-                </v-btn>
             </v-col>
         </v-row>
 
