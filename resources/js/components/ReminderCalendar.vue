@@ -1,5 +1,5 @@
 <template>
-    <v-container>
+    <v-container id="container" class="mb-110">
         <v-row
             :style="{
                 'padding-left':
@@ -16,7 +16,9 @@
                 >
                     Erinnerungskalender
                 </h1>
-                <p>Einleitungstext hier. Lorem ipsum dolor.</p>
+                <p class="hyphens-auto">
+                    Einleitungstext hier. Lorem ipsum dolor.
+                </p>
             </v-col>
         </v-row>
 
@@ -1104,7 +1106,7 @@ onUnmounted(() => {
     flex-direction: column;
     width: 100% !important;
     max-width: 100%;
-    perspective: 1000px; /* Add 3D perspective for better hover effects */
+    perspective: 1000px;
 }
 
 .calendar-header {
@@ -1327,7 +1329,6 @@ onUnmounted(() => {
     white-space: pre-line;
 }
 
-/* Custom tooltip styles */
 .custom-tooltip {
     position: fixed;
     transform: translateX(-50%) translateY(-100%);
@@ -1361,13 +1362,11 @@ onUnmounted(() => {
     border-style: solid;
 }
 
-/* Arrow pointing down (for tooltips above elements) */
 .custom-tooltip::after {
     top: 100%;
     border-color: rgba(33, 33, 33, 0.95) transparent transparent transparent;
 }
 
-/* Arrow pointing up (for tooltips below elements on touch devices) */
 .custom-tooltip::before {
     bottom: 100%;
     border-color: transparent transparent rgba(33, 33, 33, 0.95) transparent;
@@ -1379,33 +1378,24 @@ onUnmounted(() => {
     visibility: visible;
 }
 
-/* Media query for touch devices */
 @media (hover: none) and (pointer: coarse) {
     .custom-tooltip {
-        /* For touch devices, place tooltip below by default */
         transform: translateX(-50%) translateY(0);
     }
 
     .custom-tooltip::after {
-        /* Hide down arrow on touch */
         opacity: 0;
     }
 
     .custom-tooltip::before {
-        /* Show up arrow on touch */
         opacity: 1;
     }
 
     .event-dot,
     .more-events {
-        /* Increase touch target size */
         padding: 5px 7px;
     }
 }
-
-/* Day background already defined above */
-
-/* Removed .download-all-button styles as we're using .download-button for consistency */
 
 .card-equal-height {
     height: 100%;
@@ -1434,5 +1424,11 @@ onUnmounted(() => {
     border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-/* Button styling handled by Vuetify's flat variant */
+.mb-110 {
+    margin-bottom: 110px;
+}
+
+.hyphens-auto {
+    hyphens: auto;
+}
 </style>
