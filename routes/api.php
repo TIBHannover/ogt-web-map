@@ -145,3 +145,29 @@ Route::get("/entry-status/check-notifications/{token}", [
     App\Http\Controllers\EntryStatusController::class,
     "checkNotificationStatus",
 ]);
+
+// PDF Thumbnail routes
+Route::get("/pdf/thumbnails", [
+    App\Http\Controllers\PDFThumbnailController::class,
+    "getAllThumbnails",
+]);
+Route::post("/pdf/generate-thumbnail", [
+    App\Http\Controllers\PDFThumbnailController::class,
+    "generateThumbnail",
+]);
+Route::get("/pdf/{filename}", [
+    App\Http\Controllers\PDFThumbnailController::class,
+    "servePdf",
+])->where("filename", ".*");
+
+// Additional route to check if a PDF exists
+Route::get("/pdf/check/{filename}", [
+    App\Http\Controllers\PDFThumbnailController::class,
+    "checkPdfExists",
+])->where("filename", ".*");
+
+// Route for downloading multiple PDFs as a ZIP archive
+Route::post("/download-pdfs", [
+    App\Http\Controllers\PDFDownloadController::class,
+    "downloadPdfs",
+]);

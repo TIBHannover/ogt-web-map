@@ -69,6 +69,23 @@
                                         <span
                                             class="w-full justify-center d-flex ga-2"
                                         >
+                                            <span> 28.08.2025 </span>
+                                            <v-icon
+                                                color="blue"
+                                                width="25px"
+                                                v-tooltip="{
+                                                    text: 'Nach der siebten Werkstatt // Teilnehmer: 6',
+                                                    html: true,
+                                                }"
+                                            >
+                                                mdi-information-outline
+                                            </v-icon>
+                                        </span>
+                                    </th>
+                                    <th width="100" class="text-center">
+                                        <span
+                                            class="w-full justify-center d-flex ga-2"
+                                        >
                                             <span> 31.07.2025 </span>
                                             <v-icon
                                                 color="blue"
