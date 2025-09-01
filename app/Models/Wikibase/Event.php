@@ -35,18 +35,18 @@ class Event extends BaseEntity
     /**
      * Create an Event model from array data
      */
-    public static function fromArray(array $data): self
+    public function fromArray(array $data): self
     {
-        $event = new self($data["title"] ?? "", $data["description"] ?? "");
+        $event = new self();
+        $event->id = $data["id"] ?? null;
 
-        // Set point in time if available
         if (!empty($data["time_point"])) {
             $event->setPointInTime(
                 $data["time_point"],
                 $data["time_point_qualifier"] ?? null,
             );
         } else {
-            // Or set start and end time
+            // Time Range
             if (!empty($data["time_period_start"])) {
                 $event->setStartTime(
                     $data["time_period_start"],

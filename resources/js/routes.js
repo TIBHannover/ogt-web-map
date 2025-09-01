@@ -15,8 +15,7 @@ const Workshops = () => import("./components/Workshops.vue");
 const Materials = () => import("./components/Materials.vue");
 const Forschungsdaten = () => import("./components/ResearchData.vue");
 const ThankYou = () => import("./components/entry/ThankYou.vue");
-// Uncomment if needed later
-// const EntryStatus = () => import("./components/entry/EntryStatus.vue");
+const EntryStatus = () => import("./components/entry/EntryStatus.vue");
 
 export const routes = [
     {

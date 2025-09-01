@@ -1080,7 +1080,9 @@ class WikidataEntityController extends Controller
                     "value" => [
                         "time" =>
                             "+" . $entryRequest->time_point . "T00:00:00Z",
-                        "precision" => 11, // Tag
+                        "precision" => $this->getDatePrecision(
+                            $entryRequest->time_point,
+                        ),
                         "before" => 0,
                         "after" => 0,
                         "timezone" => 0,
@@ -1099,7 +1101,9 @@ class WikidataEntityController extends Controller
                             "+" .
                             $entryRequest->time_period_start .
                             "T00:00:00Z",
-                        "precision" => 11,
+                        "precision" => $this->getDatePrecision(
+                            $entryRequest->time_period_start,
+                        ),
                         "before" => 0,
                         "after" => 0,
                         "timezone" => 0,
@@ -1119,7 +1123,9 @@ class WikidataEntityController extends Controller
                                 "+" .
                                 $entryRequest->time_period_end .
                                 "T00:00:00Z",
-                            "precision" => 11,
+                            "precision" => $this->getDatePrecision(
+                                $entryRequest->time_period_end,
+                            ),
                             "before" => 0,
                             "after" => 0,
                             "timezone" => 0,
@@ -1304,4 +1310,29 @@ class WikidataEntityController extends Controller
     }
 
     // The callback endpoint has been removed since we now update the status directly in the job
+    /**
+     * Automatically detect date precision from the date string
+     *
+     * @param string|null $date The date string
+     * @return int The Wikidata precision value (9 for year, 10 for month, 11 for day)
+     */
+    protected function getDatePrecision(?string $date): int
+    {
+        if (!$date) {
+            return 11; // Default to day precision
+        }
+
+        // Check if it's a year (4 digits only)
+        if (preg_match('/^\d{4}$/', $date)) {
+            return 9; // Year precision
+        }
+
+        // Check if it's a month (YYYY-MM format)
+        if (preg_match('/^\d{4}-\d{2}$/', $date)) {
+            return 10; // Month precision
+        }
+
+        // Otherwise it's a full date (YYYY-MM-DD format)
+        return 11; // Day precision
+    }
 }

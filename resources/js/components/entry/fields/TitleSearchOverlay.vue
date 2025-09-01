@@ -20,7 +20,12 @@
                                 type="text"
                                 v-model="localTitle"
                                 @input="onInput"
-                                @keydown.enter="(e) => { e.preventDefault(); performSearch(e); }"
+                                @keydown.enter="
+                                    (e) => {
+                                        e.preventDefault();
+                                        performSearch(e);
+                                    }
+                                "
                                 placeholder="Titel eingeben..."
                                 maxlength="250"
                                 autocomplete="off"
@@ -105,7 +110,11 @@
 
                     <!-- Checkbox - erscheint nur nach durchgeführter Suche und im Kontext 'create' -->
                     <div
-                        v-if="searchPerformed && !isLoading && props.context !== 'update'"
+                        v-if="
+                            searchPerformed &&
+                            !isLoading &&
+                            props.context !== 'update'
+                        "
                         class="confirmation-checkbox"
                     >
                         <input
@@ -207,7 +216,7 @@ const props = defineProps({
     context: {
         type: String,
         default: "create", // 'create' or 'update'
-        validator: (value) => ['create', 'update'].includes(value)
+        validator: (value) => ["create", "update"].includes(value),
     },
 });
 
@@ -242,7 +251,7 @@ const performSearch = async (event) => {
         event.preventDefault();
         event.stopPropagation();
     }
-    
+
     if (!localTitle.value || localTitle.value.length < 3) {
         return;
     }
@@ -252,16 +261,12 @@ const performSearch = async (event) => {
     noExistingEntry.value = false; // Reset checkbox when performing a new search
 
     try {
-        console.log('TitleSearchOverlay: Performing search for:', localTitle.value);
-        
         const response = await axios.get("/api/wikidata/entities", {
             params: {
                 title: localTitle.value,
                 limit: 5,
             },
         });
-
-        console.log('TitleSearchOverlay: Search response:', response.data);
 
         if (response.data.success && response.data.results) {
             searchResults.value = response.data.results;
@@ -271,7 +276,10 @@ const performSearch = async (event) => {
         searchPerformed.value = true;
     } catch (err) {
         console.error("Fehler bei der Wikidata-Suche:", err);
-        console.log('Error details:', err.response ? err.response.data : 'No response data');
+        console.log(
+            "Error details:",
+            err.response ? err.response.data : "No response data",
+        );
         searchResults.value = [];
         searchPerformed.value = true;
     } finally {
@@ -281,9 +289,7 @@ const performSearch = async (event) => {
 
 // Update title when input changes
 const onInput = () => {
-    console.log('TitleSearchOverlay: Input changed to:', localTitle.value);
-    // Only emit the update when in context='update' mode
-    if (props.context === 'update') {
+    if (props.context === "update") {
         emit("update:title", localTitle.value);
     }
     // Search no longer triggered automatically on input
@@ -310,8 +316,8 @@ const getTypeInfoTitle = () => {
 
 // Get the create button text based on entry type and context
 const getCreateButtonText = () => {
-    if (props.context === 'update') {
-        return 'Titel anpassen';
+    if (props.context === "update") {
+        return "Titel anpassen";
     }
     return `${getTypeInfoTitle()} erstellen`;
 };
@@ -321,18 +327,21 @@ const createEntry = () => {
     if (!localTitle.value || localTitle.value.length < 3) {
         return;
     }
-    
+
     // In update context, don't require the noExistingEntry checkbox
-    if (props.context !== 'update' && !noExistingEntry.value) {
+    if (props.context !== "update" && !noExistingEntry.value) {
         return;
     }
-    
-    console.log('TitleSearchOverlay: Creating entry with title:', localTitle.value);
-    console.log('TitleSearchOverlay: Context:', props.context);
-    
+
+    console.log(
+        "TitleSearchOverlay: Creating entry with title:",
+        localTitle.value,
+    );
+    console.log("TitleSearchOverlay: Context:", props.context);
+
     // Make sure the title gets emitted properly
     emit("update:title", localTitle.value);
-    
+
     // Also emit the create event which is what BaseInfos.vue listens for
     emit("create", localTitle.value);
 };

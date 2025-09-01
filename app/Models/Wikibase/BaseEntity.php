@@ -308,30 +308,71 @@ abstract class BaseEntity
     }
 
     /**
-     * Formats a date into the format expected by Wikidata.
+     * Format a date for Wikidata with different precision levels
      *
-     * @param string $date The date to format
+     * @param string $date The date string (YYYY, YYYY-MM, or YYYY-MM-DD format)
+     * @param string|null $precision Optional precision parameter ('year', 'month', 'day')
      * @return array|null A formatted date for Wikidata or null in case of error
      */
-    protected function formatDate(string $date): ?array
-    {
+    protected function formatDate(
+        string $date,
+        ?string $precision = null,
+    ): ?array {
         try {
-            $dateTime = new \DateTime($date);
-            $year = $dateTime->format("Y");
-            $month = $dateTime->format("m");
-            $day = $dateTime->format("d");
+            // Determine precision based on date format if not explicitly provided
+            if (!$precision) {
+                if (preg_match('/^\d{4}$/', $date)) {
+                    $precision = "year";
+                } elseif (preg_match('/^\d{4}-\d{2}$/', $date)) {
+                    $precision = "month";
+                } else {
+                    $precision = "day";
+                }
+            }
+
+            // Normalize the date string based on precision
+            switch ($precision) {
+                case "year":
+                    $year = $date;
+                    $month = "00";
+                    $day = "00";
+                    $precisionValue = 9; // Year precision in Wikidata
+                    break;
+                case "month":
+                    if (preg_match('/^(\d{4})-(\d{2})$/', $date, $matches)) {
+                        $year = $matches[1];
+                        $month = $matches[2];
+                        $day = "00";
+                    } else {
+                        $dateTime = new \DateTime($date);
+                        $year = $dateTime->format("Y");
+                        $month = $dateTime->format("m");
+                        $day = "00";
+                    }
+                    $precisionValue = 10; // Month precision in Wikidata
+                    break;
+                case "day":
+                default:
+                    $dateTime = new \DateTime($date);
+                    $year = $dateTime->format("Y");
+                    $month = $dateTime->format("m");
+                    $day = $dateTime->format("d");
+                    $precisionValue = 11; // Day precision in Wikidata
+                    break;
+            }
 
             return [
                 "time" => "+{$year}-{$month}-{$day}T00:00:00Z",
                 "timezone" => 0,
                 "before" => 0,
                 "after" => 0,
-                "precision" => 11, // Day precision
+                "precision" => $precisionValue,
                 "calendarmodel" => "http://www.wikidata.org/entity/Q1985727", // Gregorian calendar
             ];
         } catch (\Exception $e) {
             Log::warning("Error formatting date", [
                 "date" => $date,
+                "precision" => $precision,
                 "error" => $e->getMessage(),
             ]);
             return null;
