@@ -333,12 +333,6 @@ const createEntry = () => {
         return;
     }
 
-    console.log(
-        "TitleSearchOverlay: Creating entry with title:",
-        localTitle.value,
-    );
-    console.log("TitleSearchOverlay: Context:", props.context);
-
     // Make sure the title gets emitted properly
     emit("update:title", localTitle.value);
 

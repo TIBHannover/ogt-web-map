@@ -339,7 +339,6 @@
                 </div>
             </v-card-text>
             <v-card-actions>
-                <v-spacer></v-spacer>
                 <v-btn
                     color="grey-darken-1"
                     variant="text"
@@ -353,14 +352,23 @@
                     color="primary"
                     variant="text"
                     @click="goBackDialogStep"
-                    aria-label="Zurück zur vorherigen Auswahl"
+                    :aria-label="
+                        dialogStep === 'month'
+                            ? 'Zurück zur Jahresauswahl'
+                            : 'Zurück zur Monatsauswahl'
+                    "
                 >
-                    Zurück
+                    {{
+                        dialogStep === "month"
+                            ? "Zurück zur Jahresauswahl"
+                            : "Zurück zur Monatsauswahl"
+                    }}
                 </v-btn>
+                <v-spacer></v-spacer>
                 <v-btn
                     v-if="dialogStep !== 'year'"
                     color="primary"
-                    variant="text"
+                    variant="flat"
                     @click="skipCurrentStep"
                     :aria-label="
                         dialogStep === 'month'

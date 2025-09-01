@@ -11,7 +11,7 @@
             </button>
         </div>
         <div class="image-selection">
-            <v-button
+            <v-btn
                 type="button"
                 class="button bg-secondary"
                 @click="openImageSelector"
@@ -25,7 +25,7 @@
                         ? "Bild ändern"
                         : "Bild aus Wikimedia Commons auswählen"
                 }}
-            </v-button>
+            </v-btn>
 
             <div
                 v-if="

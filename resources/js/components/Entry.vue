@@ -244,7 +244,7 @@
                         v-model:selectedSources="selectedSources"
                         @searchWikidataEntities="searchWikidataEntities"
                         @selectExistingEntity="selectExistingEntity"
-                        @updateEventTimeType="eventTimeType = $event"
+                        @update:eventTimeType="eventTimeType = $event"
                         @searchPeople="searchPeople"
                         @selectVictim="selectVictim"
                         @startNewVictimForm="startNewVictimForm"

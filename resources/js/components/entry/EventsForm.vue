@@ -15,9 +15,9 @@
                     :wikidata-results="wikidataResultsValue"
                     @update:title="title = $event"
                     @update:description="description = $event"
-                    @field-focus="setActiveField"
+                    @fieldFocus="setActiveField"
                     @focusin="setActiveSection('title')"
-                    @info-button-click="openSectionInfo"
+                    @infoButtonClick="openSectionInfo"
                     @select-existing-entity="onSelectExistingEntity"
                     @validation="onBaseInfoValidation"
                 />
@@ -32,23 +32,23 @@
                     :event-start-date-qualifier="eventStartDateQualifierValue"
                     :event-end-date="eventEndDateValue"
                     :event-end-date-qualifier="eventEndDateQualifierValue"
-                    @update:event-time-type="updateEventTimeType($event)"
-                    @update:event-date="eventDateValue = $event"
-                    @update:event-date-qualifier="
+                    @update:eventTimeType="updateEventTimeType($event)"
+                    @update:eventDate="eventDateValue = $event"
+                    @update:eventDateQualifier="
                         eventDateQualifierValue = $event
                     "
-                    @update:event-start-date="eventStartDateValue = $event"
-                    @update:event-start-date-qualifier="
+                    @update:eventStartDate="eventStartDateValue = $event"
+                    @update:eventStartDateQualifier="
                         eventStartDateQualifierValue = $event
                     "
-                    @update:event-end-date="eventEndDateValue = $event"
-                    @update:event-end-date-qualifier="
+                    @update:eventEndDate="eventEndDateValue = $event"
+                    @update:eventEndDateQualifier="
                         eventEndDateQualifierValue = $event
                     "
-                    @field-focus="setActiveField"
-                    @info-button-click="openSectionInfo"
+                    @fieldFocus="setActiveField"
+                    @infoButtonClick="openSectionInfo"
                     @validation="onTimeValidation"
-                    required="true"
+                    :required="true"
                 />
 
                 <!-- Opfer-Eingabefeld -->
@@ -125,8 +125,8 @@
                     @update:arrest-count-qualifier="
                         arrestCountQualifierValue = $event
                     "
-                    @field-focus="setActiveField"
-                    @info-button-click="openSectionInfo"
+                    @fieldFocus="setActiveField"
+                    @infoButtonClick="openSectionInfo"
                 />
 
                 <!-- Ursache der Verfolgung -->
@@ -137,8 +137,8 @@
                     @search-cause="onSearchCause"
                     @select-cause="onSelectCause"
                     @remove-cause="onRemoveCause"
-                    @field-focus="setActiveField"
-                    @info-button-click="openSectionInfo"
+                    @fieldFocus="setActiveField"
+                    @infoButtonClick="openSectionInfo"
                 />
 
                 <!-- Standort -->
@@ -165,31 +165,31 @@
                         "
                         @search-location="onSearchLocation"
                         @handle-map-click="onHandleMapClick"
-                        @field-focus="setActiveField"
-                        @info-button-click="openSectionInfo"
+                        @fieldFocus="setActiveField"
+                        @infoButtonClick="openSectionInfo"
                         @validation="onLocationValidation"
                     />
                 </slot>
 
                 <!-- Bild aus Wikimedia Commons -->
                 <ImageSelector
-                    :image-url="imageUrlValue"
-                    :image-filename="imageFilenameValue"
-                    @update:image-url="imageUrlValue = $event"
-                    @update:image-filename="imageFilenameValue = $event"
-                    @field-focus="setActiveField"
-                    @info-button-click="openSectionInfo"
+                    :imageUrl="imageUrlValue"
+                    :imageFilename="imageFilenameValue"
+                    @update:imageUrl="imageUrlValue = $event"
+                    @update:imageFilename="imageFilenameValue = $event"
+                    @fieldFocus="setActiveField"
+                    @infoButtonClick="openSectionInfo"
                 />
 
                 <!-- Quellenangaben -->
                 <SourcesField
                     ref="sourcesFieldRef"
-                    :selected-sources="selectedSourcesValue"
-                    @update:selected-sources="selectedSourcesValue = $event"
-                    @field-focus="setActiveField"
-                    @info-button-click="openSectionInfo"
+                    :selectedSources="selectedSourcesValue"
+                    @update:selectedSources="selectedSourcesValue = $event"
+                    @fieldFocus="setActiveField"
+                    @infoButtonClick="openSectionInfo"
                     @validation="onSourcesValidation"
-                    required="true"
+                    :required="true"
                 />
                 <!-- Source items display is moved to SourcesField component -->
 
@@ -534,6 +534,7 @@ const emit = defineEmits([
     "handleMapClick",
     "goToStep",
     "submit",
+    "updateEventTimeType", // For backward compatibility
 ]);
 
 // Lokale Zustandsverwaltung durch Computed Properties
@@ -627,14 +628,9 @@ const arrestCountValue = computed({
 // Qualifier computed properties
 const victimCountQualifierValue = computed({
     get: () => {
-        console.log(
-            "Getting victim count qualifier:",
-            props.victimCountQualifier,
-        );
         return props.victimCountQualifier;
     },
     set: (value) => {
-        console.log("Setting victim count qualifier to:", value);
         emit("update:victimCountQualifier", value);
     },
 });
@@ -982,8 +978,9 @@ const updateEventTimeType = (type) => {
         eventDateQualifierValue.value = "";
     }
 
-    // Emit to parent
+    // Emit to parent using both event names for compatibility
     emit("update:eventTimeType", type);
+    emit("updateEventTimeType", type);
 };
 
 // Computed für die Prüfung, ob ein neues Opfer hinzugefügt werden kann
@@ -1003,7 +1000,6 @@ const canAddNewPerpetrator = computed(() => {
 const onTitleInput = () => emit("searchWikidataEntities");
 const onSelectExistingEntity = (entity) => emit("selectExistingEntity", entity);
 const onSearchPeople = (query) => {
-    console.log("EventsForm: Searching people with query:", query);
     if (query && query.length >= 2) {
         // Kurze Verzögerung, damit das Ladeicon nicht bei jeder Eingabe kurz aufflackert
         setTimeout(() => {
