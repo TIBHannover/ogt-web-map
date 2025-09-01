@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400" viewBox="0 0 300 400">
-  <rect width="300" height="400" fill="#f5f5f5"/>
-  <g transform="translate(90, 150)">
-    <path d="M56.388 0L28.193 30.146H0V96.709H28.678L56.872 126.854H113.743V0H56.388Z" fill="#FF5555"/>
-    <path d="M28.193 30.146H85.065V126.854H56.872L28.678 96.709V30.146H28.193Z" fill="#FF2222"/>
-    <path d="M28.678 96.709H0V30.146H28.193L28.678 96.709Z" fill="#FF8888"/>
-  </g>
-  <text x="150" y="300" font-family="Arial, sans-serif" font-size="18" text-anchor="middle" fill="#555555">PDF Dokument</text>
-</svg>
