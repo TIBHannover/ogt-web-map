@@ -60,6 +60,13 @@ const menuItems = ref([
         toMenu: "mainMenu",
     },
     {
+        title: "Erinnerungskalender",
+        icon: "mdi-calendar",
+        path: "/erinnerungskalender",
+        show: true,
+        toMenu: "mainMenu",
+    },
+    {
         title: "Touren",
         icon: "mdi-routes",
         path: "/touren",
