@@ -241,59 +241,14 @@
                                         backgroundSize: 'cover',
                                     }"
                                 ></div>
-                                <div class="day-number">{{ day.day }}</div>
                                 <div
-                                    v-if="day.events.length > 0"
-                                    class="event-indicator"
+                                    class="day-number"
+                                    :class="{
+                                        'event-day-number':
+                                            day.events.length > 0,
+                                    }"
                                 >
-                                    <div
-                                        v-for="event in day.events.slice(0, 2)"
-                                        :key="event.id"
-                                        class="event-dot"
-                                        @mouseover="
-                                            showTooltip($event, event.name)
-                                        "
-                                        @touchstart="
-                                            showTooltip(
-                                                $event,
-                                                event.name,
-                                                true,
-                                            )
-                                        "
-                                        @mouseleave="hideTooltip"
-                                        @touchend="hideTooltip"
-                                        @click.stop="selectEvent(event)"
-                                    >
-                                        {{ event.name.substring(0, 15)
-                                        }}{{
-                                            event.name.length > 15 ? "..." : ""
-                                        }}
-                                    </div>
-                                    <div
-                                        v-if="day.events.length > 2"
-                                        class="more-events"
-                                        @mouseover="
-                                            showTooltip(
-                                                $event,
-                                                getMoreEventsTooltip(
-                                                    day.events.slice(2),
-                                                ),
-                                            )
-                                        "
-                                        @touchstart="
-                                            showTooltip(
-                                                $event,
-                                                getMoreEventsTooltip(
-                                                    day.events.slice(2),
-                                                ),
-                                                true,
-                                            )
-                                        "
-                                        @mouseleave="hideTooltip"
-                                        @touchend="hideTooltip"
-                                    >
-                                        +{{ day.events.length - 2 }} weitere
-                                    </div>
+                                    {{ day.day }}
                                 </div>
                             </div>
                         </div>
@@ -997,10 +952,11 @@ onUnmounted(() => {
 @media (max-width: 600px) and (min-width: 401px) {
     .calendar-body {
         grid-template-columns: repeat(7, 1fr);
-        grid-auto-rows: minmax(80px, auto);
-        gap: 6px;
-        padding: 4px;
+        gap: 2px;
+        padding: 2px;
         overflow: visible;
+        grid-auto-rows: 1fr; /* This helps maintain aspect ratio */
+        aspect-ratio: auto; /* Override on mobile */
     }
 
     .calendar-day {
@@ -1040,10 +996,11 @@ onUnmounted(() => {
 
     .calendar-body {
         grid-template-columns: repeat(7, 1fr);
-        grid-auto-rows: minmax(60px, auto);
-        gap: 3px;
+        gap: 2px;
         padding: 2px;
         overflow: visible;
+        grid-auto-rows: 1fr; /* This helps maintain aspect ratio */
+        aspect-ratio: auto; /* Override on mobile */
     }
 
     /* Mobile hover effects for calendar day */
@@ -1139,8 +1096,7 @@ onUnmounted(() => {
 .calendar-body {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    grid-auto-rows: minmax(120px, auto);
-    gap: 10px;
+    gap: 4px;
     position: relative;
     padding: 8px;
     transition: all 0.3s ease;
@@ -1149,27 +1105,29 @@ onUnmounted(() => {
     box-sizing: border-box;
     width: 100%;
     overflow: visible;
+    grid-auto-rows: 1fr; /* This helps maintain aspect ratio */
+    aspect-ratio: 7/6; /* Maintain overall grid aspect ratio */
 }
 
+/* Force 1:1 aspect ratio for all calendar days */
 .calendar-day {
     border: 1px solid #e0e0e0;
-    padding: 8px;
-    min-height: 100px;
+    padding: 0;
     position: relative;
     cursor: pointer;
     transition: all 0.3s ease;
     z-index: 1;
     overflow: hidden;
-    border-radius: 4px;
+    border-radius: 8px;
     box-sizing: border-box;
-    background-color: #ffffff;
-    display: flex;
-    flex-direction: column;
-    width: 100% !important;
-    flex: 1;
+    background-color: #f5f5f5;
+    display: block;
+    width: 100%;
     transform-origin: center;
-    transform: scale(1);
-    margin: 0;
+    aspect-ratio: 1/1;
+    /* Additional technique to ensure 1:1 aspect ratio */
+    height: 0;
+    padding-bottom: 100%;
 }
 
 .calendar-day:hover {
@@ -1202,8 +1160,7 @@ onUnmounted(() => {
     font-weight: bold;
     z-index: 5;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border: 3px solid #4caf50;
-    background-color: rgba(255, 255, 255, 0.85);
+    background-color: transparent;
     position: relative;
     width: 100%;
 }
@@ -1218,8 +1175,7 @@ onUnmounted(() => {
 .calendar-day.has-multiple-events {
     z-index: 6;
     box-shadow: 0 2px 6px rgba(33, 150, 243, 0.3);
-    border: 3px solid #2196f3;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: transparent;
     position: relative;
     width: 100%;
 }
@@ -1235,63 +1191,78 @@ onUnmounted(() => {
     position: absolute;
     top: 0;
     left: 0;
+    right: 0;
+    bottom: 0;
     width: 100%;
     height: 100%;
     background-size: cover !important;
     background-position: center;
-    opacity: 0.25;
-    z-index: -1;
-    filter: blur(1px);
+    opacity: 1;
+    z-index: 1;
     transition: all 0.5s ease;
-    transform: scale(1.1);
-    will-change: opacity, filter, transform;
+    transform: scale(1);
+    will-change: opacity, transform;
+    border-radius: 8px;
+    filter: contrast(1.1) brightness(1.05);
 }
 
 .calendar-day:hover .day-background {
-    opacity: 0.6;
-    filter: blur(0px);
+    opacity: 1;
     transform: scale(1.05);
     transition-duration: 0.3s;
     background-size: 110% 110% !important;
+    filter: contrast(1.2) brightness(1.1);
 }
 
 .calendar-day.has-events .day-background {
-    opacity: 0.35;
-    transform: scale(1.15);
+    opacity: 1;
+    transform: scale(1);
     transition-delay: 0.05s;
+    border: 4px solid white;
 }
 
 .calendar-day.has-multiple-events .day-background {
-    opacity: 0.4;
-    transform: scale(1.2);
-    filter: blur(0.5px);
+    opacity: 1;
+    transform: scale(1);
     transition-delay: 0.08s;
     background-size: cover !important;
+    border: 4px solid white;
 }
 
 .day-number {
     font-size: 1.1rem;
-    margin-bottom: 4px;
     font-weight: 500;
-    position: relative;
-    z-index: 2;
+    z-index: 10;
+    color: #333;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    margin: 0;
+    padding: 0;
+    pointer-events: none;
+}
+
+.event-day-number {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 2px 6px;
+    border-radius: 4px;
 }
 
 .calendar-day.has-events .day-number {
     font-size: 1.2rem;
     font-weight: bold;
-    color: #1b5e20;
 }
 
 .calendar-day.has-multiple-events .day-number {
-    color: #0d47a1;
     font-size: 1.25rem;
 }
 
-.event-indicator {
-    margin-top: 6px;
-    position: relative;
-    z-index: 2;
+.event-indicator-hidden {
+    display: none;
 }
 
 .event-dot {
