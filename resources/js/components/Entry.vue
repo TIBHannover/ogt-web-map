@@ -269,6 +269,8 @@
                         @searchLocation="searchLocation"
                         @handleMapClick="handleMapClick"
                         @goToStep="goToStep"
+                        @searchStart="onSearchStart"
+                        @searchComplete="onSearchComplete"
                         @submit="resetForm"
                     />
 
@@ -629,12 +631,27 @@ const searchLocation = async () => {
             mapZoom.value = 15; // Näher heranzoomen
 
             selectedLocation.value = { lat, lng };
+
+            // Call success method on location selector ref
+            if (refsMounted.value && formRefs.value?.locationSelectorRef) {
+                formRefs.value.locationSelectorRef.onSearchSuccess();
+            }
         } else {
-            alert("Keine Ergebnisse gefunden");
+            // Call error method instead of showing alert
+            if (refsMounted.value && formRefs.value?.locationSelectorRef) {
+                formRefs.value.locationSelectorRef.onSearchError(
+                    "Keine Ergebnisse gefunden",
+                );
+            }
         }
     } catch (err) {
         console.error("Fehler bei der Standortsuche:", err);
-        alert("Fehler bei der Suche");
+        // Call error method instead of showing alert
+        if (refsMounted.value && formRefs.value?.locationSelectorRef) {
+            formRefs.value.locationSelectorRef.onSearchError(
+                "Fehler bei der Suche",
+            );
+        }
     }
 };
 

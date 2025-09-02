@@ -869,7 +869,7 @@ const getSectionInfoContent = (sectionName) => {
                <p>Eine präzise Dokumentation der Verfolgungsursachen ist wichtig für das Verständnis historischer Zusammenhänge.</p>`,
 
         location: `<p>Hier wird der genaue Ort des Ereignisses auf der Karte gewählt.</p>
-                    <p><strong>Dieses Feld ist ein Pflichtfeld!</p>
+                    <p><strong>Dieses Feld ist ein Pflichtfeld!</strong></p>
                   <p>Sie können:</p>
                   <ul>
                     <li>Direkt auf die Karte klicken, um einen Standort zu markieren</li>

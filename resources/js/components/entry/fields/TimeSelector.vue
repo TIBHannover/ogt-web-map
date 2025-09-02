@@ -1114,7 +1114,7 @@ defineExpose({
 .container-section {
     width: 100%;
     margin-bottom: 2rem;
-    background-color: var(--v-surface-variant);
+    background-color: #f5f5f5;
     padding: 1.5rem;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
