@@ -58,12 +58,6 @@
         >
             <div class="tutorial-backdrop" @click="skipTutorial"></div>
 
-            <!-- Elements to be highlighted will have this class added dynamically -->
-            <div
-                class="highlight-tutorial-container"
-                v-if="highlightElement"
-            ></div>
-
             <div class="tutorial-content" :style="positionStyle">
                 <div class="tutorial-step">
                     <!-- Chapter indicator instead of navigation chips -->
@@ -152,7 +146,9 @@
             </div>
 
             <div
-                v-if="currentStep.highlightSelector"
+                v-if="
+                    currentStep.highlightSelector && !currentStep.highlightClass
+                "
                 class="tutorial-highlight"
                 :style="highlightStyle"
             ></div>
@@ -706,14 +702,19 @@ const skipTutorial = () => {
 
 // Apply highlighting class to the target element
 const applyHighlightClass = () => {
-    if (highlightElement.value && currentStep.value.highlightClass) {
-        // First remove the class from any elements that might have it
-        document.querySelectorAll(".highlight-tutorial").forEach((el) => {
-            el.classList.remove("highlight-tutorial");
-        });
+    // First remove the class from any elements that might have it
+    document.querySelectorAll(".highlight-tutorial").forEach((el) => {
+        el.classList.remove("highlight-tutorial");
+        // Also remove any inline styles we might have added
+        el.style.removeProperty("z-index");
+    });
 
+    if (highlightElement.value && currentStep.value.highlightClass) {
         // Add the class to the current highlighted element
         highlightElement.value.classList.add(currentStep.value.highlightClass);
+
+        // Only set z-index to ensure it's above the backdrop
+        highlightElement.value.style.zIndex = "10000";
     }
 };
 
@@ -792,7 +793,13 @@ onMounted(() => {
     border: 2px solid #ff5252;
     z-index: 9998;
     pointer-events: none;
-    //animation: pulse 2s infinite;
+    animation: pulse 2s infinite;
+}
+
+/* Make sure the tutorial backdrop doesn't cover highlighted elements */
+.tutorial-backdrop {
+    z-index: 9000;
+    pointer-events: auto;
 }
 
 @keyframes pulse {
@@ -872,19 +879,16 @@ onMounted(() => {
 
 /* Highlighting styles */
 .highlight-tutorial {
-    position: relative;
+    /* Preserve original positioning properties */
     z-index: 10000 !important;
     transform: scale(1.05);
     transition: all 0.3s ease;
     box-shadow: 0 0 15px 5px rgba(255, 82, 82, 0.7);
     border-radius: 4px;
     animation: tutorial-pulse 2s infinite;
-}
-
-.highlight-tutorial-container {
-    position: absolute;
-    z-index: 9999;
-    pointer-events: none;
+    pointer-events: auto !important;
+    /* Ensure button stays clickable */
+    cursor: pointer;
 }
 
 @keyframes tutorial-pulse {
