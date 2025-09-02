@@ -2,6 +2,20 @@
 
 /*
 |--------------------------------------------------------------------------
+| Load SQLite Path Fix
+|--------------------------------------------------------------------------
+|
+| Load the SQLite path fix that ensures the database path is absolute
+| in the Docker environment.
+|
+*/
+
+if (file_exists(__DIR__ . '/sqlite_path_fix.php')) {
+    require __DIR__ . '/sqlite_path_fix.php';
+}
+
+/*
+|--------------------------------------------------------------------------
 | Create The Application
 |--------------------------------------------------------------------------
 |

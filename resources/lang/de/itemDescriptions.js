@@ -91,4 +91,26 @@ export const itemDescriptions = {
             "Im Sommer 1936 gelang es der Gestapo, einen Spitzel in die Organisation einzuschleusen. In der Folge wurde nahezu das gesamte Lese- und Verteilernetz enttarnt. Mindestens 420 Personen wurden verhaftet und verhört. Insgesamt verhängten die NS-Justizbehörden 105 Zuchthaus- und 134 Gefängnisstrafen. Mehrere Engagierte verloren im Zusammenhang mit ihrem Widerstand ihr Leben.",
         ],
     },
+    Q108127303: {
+        textParts: [
+            "Die Staatspolizeistelle Hildesheim wurde am 31. Juli 1935 gegründet. Zuvor war die Staatspolizeistelle Hannover für die beiden Regierungsbezirke Hannover und Hildesheim zuständig. 1941 wurde die Staatspolizeistelle Hildesheim zur Außendienststelle der Staatspolizeistelle Hannover herabgestuft. Die Staatspolizeistelle Hildesheim war zunächst im Regierungsgebäude am Domhof 1 untergebracht. 1938 bezog sie ein eigenes Gebäude in der Gartenstraße 20, das bei einem Luftangriff am 22. März 1945 zerstört und nicht wiederaufgebaut wurde. ",
+        ],
+    },
+    Q106477284: {
+        textParts: [
+            "Im Land Braunschweig dominierte die SS früh den Polizeiapparat. Wie im gesamten Reich wurde ein Jahr später auch in Braunschweig die Politische Polizei als eigenständige Zentralinstanz eingerichtet, organisatorisch von der übrigen Verwaltung getrennt und dem direkten Zugriff des Reichsführers-SS Heinrich Himmler unterstellt. Mit der reichsweiten formellen Unterstellung der Polizei unter Himmler im Jahr 1936 erhielt die Behörde den Namen „Geheime Staatspolizeistelle Braunschweig“.",
+            "Zwischen 1937 und 1939 löste die Staatspolizeistelle Braunschweig, die mit Ausnahme der Enklaven für das gesamte Staatsgebiet des Landes Braunschweig mit rund 560.000 Einwohnern zuständig war, ihre fünf bisherigen Außenstellen bei den Kreisdirektionen Blankenburg, Gandersheim, Helmstedt, Holzminden und Wolfenbüttel auf. Damit sollte die Politische Polizei endgültig organisatorisch und räumlich aus der allgemeinen Verwaltung herausgelöst werden.",
+            "Zur Bearbeitung der politischen polizeilichen Aufgaben außerhalb der Stadt Braunschweig wurden drei neue Dienststellen als „Außenstellen“ der Staatspolizeistelle gegründet. Bis zum Frühjahr 1938 war die Behörde im Alten Ministerium am Bohlweg 51 untergebracht. Im Zuge der personellen Erweiterung und der Trennung von der allgemeinen Verwaltung zog die „Innere Politische Polizei“ (Abteilung II) im April 1938 in das Gebäude der Landesbauernschaft in der Leopoldstraße 24/25. 1939 kamen vorübergehend Räume in der Steinstraße hinzu, wo sich auch der Haupteingang der Staatspolizeistelle befand. Während Abteilung II in der Leopoldstraße verblieb, verlegten der Leiter, die Verwaltung (Abteilung I) und die Abwehrpolizei (Abteilung III) ihre Büros in die Wilhelm-Friedrich-Loeper-Straße 52 (nach 1945 wieder Adolfstraße).",
+            "Der Hauptdienststelle in Braunschweig unterstanden die Außenstellen in Bad Harzburg, Salzgitter („Grubengebiet“) und Watenstedt („Hüttengebiet“). In Bad Harzburg und Salzgitter erledigten die jeweiligen Leiter mit drei Mitarbeitern sämtliche staatspolizeilichen Aufgaben. Die Außenstelle Watenstedt war hingegen deutlich stärker besetzt und diente faktisch als Erweiterung der Abteilung II im Gebiet der Reichswerke.",
+        ],
+    },
+    Q106625639: {
+        textParts: [
+            "Mit der Heraufstufung zur Staatspolizeileitstelle im Jahr 1938 wurde die Gestapo-Dienststelle in Hannover zu einer zentralen regionalen Schaltstelle. Sie war für den gesamten Gau Süd-Hannover-Braunschweig mit seinen über zwei Millionen Einwohner*innen zuständig.",
+            "Die Staatspolizeileitstelle Hannover ging aus der bereits 1933 eingerichteten Staatspolizeistelle Hannover hervor, die zunächst die Regierungsbezirke Hannover und Hildesheim abdeckte. Zwischen 1935 und 1941 existierte in Hildesheim eine eigenständige Staatspolizeistelle, die anschließend als Außendienststelle der Leitstelle Hannover weitergeführt wurde.",
+            "Ab 1936 nutzte die Gestapo Hannover ein repräsentatives Gebäude in der Schlägerstraße 55 als Dienstsitz – die ehemalige Zentrale des jüdischen Gumpel-Konzerns, der im Zuge der nationalsozialistischen „Arisierung“ enteignet worden war. Nach einem Luftangriff am 8. Oktober 1943, bei dem das Gebäude zerstört wurde, wich die Leitstelle kurzfristig in den Sitzungssaal des Polizeipräsidiums in der Hardenbergstraße 1 aus.",
+            "Bereits am 22. Oktober 1943 bezog sie ein Ausweichquartier in der Rühmkorffstraße 20, das jedoch im Herbst 1944 ebenfalls durch Bombenangriffe unbrauchbar wurde. Nach längeren Verhandlungen, auch mit der Leitung der Stadtbibliothek, erhielt die Gestapo Ende 1944 Räume im teilweise zerstörten Bibliotheksgebäude in der Hildesheimer Straße 12, die sie bis zu ihrer Auflösung am 10. April 1945 nutzte.",
+            "Parallel zur Verlagerung einzelner Dienststellen nutzte die Gestapo ab Herbst 1943 auch das Gelände der ehemaligen Israelitischen Gartenbauschule in Ahlem (Wunstorfer Landstraße 1, heute: Heisterbergallee 10, Gedenkstätte Ahlem). Dort entstanden eine Nebenstelle der Leitstelle, ein Polizeiersatzgefängnis sowie eine Hinrichtungsstätte.",
+        ],
+    },
 };

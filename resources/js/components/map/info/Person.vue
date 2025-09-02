@@ -115,19 +115,41 @@
             :selectedPlace="selectedPerson"
         ></sources>
     </div>
+    <!-- Back button to return to previous item (only shown if we have a previous location) -->
+    <template v-if="hasPreviousLocation">
+        <v-list-item density="compact" class="mt-3" style="border: 0">
+            <v-btn
+                prepend-icon="mdi-arrow-left"
+                variant="outlined"
+                @click="$emit('goBack')"
+                class="button-back"
+                size="small"
+            >
+                Zurück
+            </v-btn>
+        </v-list-item>
+        <v-divider></v-divider>
+    </template>
 </template>
 
-<script>
+<script setup>
 import Perpetrator from "./Perpetrator";
 import SignificantEvent from "./SignificantEvent";
 import Sources from "./Sources";
 import Victim from "./Victim";
 
-export default {
-    name: "Person",
-    components: { Perpetrator, SignificantEvent, Sources, Victim },
-    props: ["selectedPerson"],
-};
+const props = defineProps({
+    selectedPerson: {
+        type: Object,
+        required: true,
+    },
+    hasPreviousLocation: {
+        type: Boolean,
+        default: false,
+    },
+});
+
+defineEmits(["switchLocation", "goBack"]);
 </script>
 
 <style scoped></style>

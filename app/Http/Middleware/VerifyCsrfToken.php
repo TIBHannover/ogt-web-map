@@ -12,6 +12,6 @@ class VerifyCsrfToken extends Middleware
      * @var array
      */
     protected $except = [
-        //
+        '/export/download',  // Exclude the export route from CSRF verification
     ];
 }

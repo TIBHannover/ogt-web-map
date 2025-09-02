@@ -4,16 +4,34 @@ const Project = () => import("./components/Project.vue");
 const Glossary = () => import("./components/Glossary.vue");
 const Charts = () => import("./components/Charts.vue");
 const Counts = () => import("./components/Counts.vue");
-// const Entry = () => import('./components/Entry.vue');
+const Entry = () => import("./components/Entry.vue");
+const Tours = () => import("./components/Tours.vue");
+const ReminderCalendar = () => import("./components/ReminderCalendar.vue");
+// Admin-Komponenten werden nicht mehr verwendet - jetzt über PHP implementiert
+// const Admin = () => import("./components/admin/WikidataRequestsAdmin.vue");
+// const WikidataRequestDetail = () => import("./components/admin/WikidataRequestDetail.vue");
 const Bibliography = () => import("./components/Bibliography.vue");
 const Workshops = () => import("./components/Workshops.vue");
 const Materials = () => import("./components/Materials.vue");
+const Forschungsdaten = () => import("./components/ResearchData.vue");
+const ThankYou = () => import("./components/entry/ThankYou.vue");
+// Uncomment if needed later
+// const EntryStatus = () => import("./components/entry/EntryStatus.vue");
 
 export const routes = [
     {
         name: "welcome",
         path: "/starteite",
         component: Welcome,
+    },
+    {
+        name: "thank-you",
+        path: "/thank-you",
+        component: ThankYou,
+        props: true,
+        meta: {
+            title: "Vielen Dank für Ihren Eintrag",
+        },
     },
     {
         name: "project",
@@ -55,11 +73,12 @@ export const routes = [
             title: "Zahlen: Gestapo. Terror. Orte",
         },
     },
-    /* {
-        name: 'entry',
-        path: '/entry',
+    // Admin-Routen wurden entfernt, da sie jetzt über PHP implementiert sind
+    {
+        name: "entry",
+        path: "/entry",
         component: Entry,
-    }, */
+    },
     {
         name: "bibliography",
         path: "/literatur",
@@ -82,6 +101,30 @@ export const routes = [
         component: Materials,
         meta: {
             title: "Materialien: Gestapo. Terror. Orte",
+        },
+    },
+    {
+        name: "forschungsdaten",
+        path: "/forschungsdaten",
+        component: Forschungsdaten,
+        meta: {
+            title: "Forschungsdaten: Gestapo. Terror. Orte",
+        },
+    },
+    {
+        name: "tours",
+        path: "/touren",
+        component: Tours,
+        meta: {
+            title: "Touren: Gestapo. Terror. Orte",
+        },
+    },
+    {
+        name: "erinnerungskalender",
+        path: "/erinnerungskalender",
+        component: ReminderCalendar,
+        meta: {
+            title: "Erinnerungskalender: Gestapo. Terror. Orte.",
         },
     },
     {

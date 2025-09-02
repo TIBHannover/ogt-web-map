@@ -17,6 +17,12 @@ RUN apt-get update && apt-get install -y \
     nodejs \
     npm
 
+# Install PHP extensions and verify they're working
+RUN docker-php-ext-install pdo_mysql pdo_sqlite bcmath mbstring xml
+
+# Verify that the SQLite extension is installed
+RUN php -m | grep pdo_sqlite || (echo "SQLite extension not installed correctly" && exit 1)
+
 # PHP-Erweiterungen installieren
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
@@ -28,7 +34,15 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     pcntl \
     bcmath \
     gd \
-    zip
+    zip \
+    # iconv is built into PHP, so no need to install or enable it separately
+    # Just verify it exists
+    && php -m | grep -E 'iconv' || echo "Warning: iconv not available but will continue" \
+    # Verify other extensions are installed
+    && php -m | grep -E 'gd|zip' \
+    # Configure Composer to recognize extensions
+    && mkdir -p /root/.composer \
+    && echo '{"config":{"platform":{"php":"8.3.0", "ext-gd":"*", "ext-iconv":"*", "ext-zip":"*"}}}' > /root/.composer/composer.json
 
 # Apache-Konfiguration
 RUN a2enmod rewrite headers
@@ -94,6 +108,16 @@ if [ ! -d node_modules ]; then\n\
     npm install\n\
 fi\n\
 \n\
+
+# Install PhpSpreadsheet with ignore-platform-reqs\n\
+echo "Installing PhpSpreadsheet..."\n\
+if ! composer show | grep -q "phpoffice/phpspreadsheet"; then\n\
+    # Create a custom platform config to make Composer recognize extensions\n\
+    mkdir -p ~/.composer\n\
+    echo '{"config":{"platform":{"php":"8.3.0", "ext-gd":"*", "ext-iconv":"*", "ext-zip":"*"}}}' > ~/.composer/config.json\n\
+    composer require phpoffice/phpspreadsheet "^1.28.0" --no-interaction\n\
+fi\n\
+\n\
 # Berechtigungen für Storage und Cache Verzeichnisse setzen\n\
 mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache\n\
 chmod -R 777 storage bootstrap/cache\n\
@@ -115,6 +139,12 @@ RUN mkdir -p /var/www/html/storage/logs /var/www/html/storage/framework/cache \
     /var/www/html/bootstrap/cache \
     && chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache \
     && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
+RUN echo "xdebug.mode=debug" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.client_port=9003" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.log=/tmp/xdebug.log" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 # Entrypoint und CMD
 ENTRYPOINT ["docker-entrypoint.sh"]

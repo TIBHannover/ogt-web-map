@@ -59,6 +59,27 @@ const menuItems = ref([
         show: true,
         toMenu: "mainMenu",
     },
+    {
+        title: "Erinnerungskalender",
+        icon: "mdi-calendar",
+        path: "/erinnerungskalender",
+        show: true,
+        toMenu: "mainMenu",
+    },
+    {
+        title: "Touren",
+        icon: "mdi-routes",
+        path: "/touren",
+        show: true,
+        toMenu: "mainMenu",
+    },
+    {
+        title: "Forschungsdaten",
+        icon: "mdi-database",
+        path: "/forschungsdaten",
+        show: true,
+        toMenu: "mainMenu",
+    },
     /* {
         title: 'Eintrag anlegen',
         icon: 'mdi-plus',

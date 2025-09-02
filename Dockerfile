@@ -14,13 +14,29 @@ RUN apk add --no-cache \
     libxml2-dev \
     oniguruma-dev \
     sqlite-dev \
+    freetype-dev \
+    libjpeg-turbo-dev \
+    libzip-dev \
     shadow # Add shadow package for usermod
 
 # Install Node.js properly from Alpine package
 RUN apk add --no-cache nodejs npm
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo_mysql bcmath mbstring xml
+RUN docker-php-ext-install pdo_mysql pdo_sqlite bcmath mbstring xml
+
+# Verify that the SQLite extension is installed
+RUN php -m | grep pdo_sqlite || (echo "SQLite extension not installed correctly" && exit 1)
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
+    docker-php-ext-install -j$(nproc) pdo_mysql bcmath mbstring xml gd zip && \
+    # iconv is built into PHP on Alpine, so no need to install it separately
+    # Just verify it exists
+    php -m | grep -E 'iconv' || echo "Warning: iconv not available but will continue" && \
+    # Verify other extensions are installed
+    php -m | grep -E 'gd|zip' && \
+    # Create a marker file to confirm extensions are properly installed
+    touch /usr/local/etc/php/conf.d/extensions-installed.ini && \
+    echo "; Extensions verified at build time" > /usr/local/etc/php/conf.d/extensions-installed.ini
 
 # Configure PHP
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" && \

@@ -73,12 +73,6 @@ export const workshops = [
     },
     {
         label: "7. Werkstatt historische Daten // Vormittags",
-        date: "2025-08-12T13:00:00",
-        place: "digital",
-        link: "https://projects.tib.eu/ogt-orte-des-gestapoterrors/veranstaltungen/",
-    },
-    {
-        label: "7. Werkstatt historische Daten // Vormittags",
         date: "2025-08-28T10:00:00",
         place: "digital",
         link: "https://projects.tib.eu/ogt-orte-des-gestapoterrors/veranstaltungen/",

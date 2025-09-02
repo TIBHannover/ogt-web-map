@@ -39,6 +39,8 @@
         "illuminate/contracts": "^11",
         "laravel/framework": "^11.6",
         "laravel/tinker": "^2.5",
+        "phpoffice/phpspreadsheet": "^4.4",
+        "league/oauth1-client": "^1.11",
         "spatie/laravel-ignition": "^2.9"
     },
     "require-dev": {
@@ -52,7 +54,10 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        }
+        },
+        "files": [
+            "app/Helpers/WikidataHelpers.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
@@ -79,7 +84,12 @@
     "config": {
         "optimize-autoloader": true,
         "preferred-install": "dist",
-        "sort-packages": true
+        "sort-packages": true,
+        "platform": {
+            "php": "8.3.0",
+            "ext-gd": "1.0",
+            "ext-iconv": "1.0"
+        }
     },
     "minimum-stability": "dev",
     "prefer-stable": true

@@ -26,6 +26,7 @@
         "@fontsource/special-elite": "^4.5.8",
         "@mdi/font": "^7.1.96",
         "@vue-leaflet/vue-leaflet": "^0.10.1",
+        "date-fns": "^4.1.0",
         "dotenv-webpack": "^8.1.0",
         "laravel-mix": "^6.0.6",
         "leaflet": "^1.9.4",

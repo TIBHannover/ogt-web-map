@@ -3,6 +3,19 @@
 find /var/www/html/storage -type d -exec chmod 775 {} \;
 find /var/www/html/storage -type f -exec chmod 664 {} \;
 
+# Check and create database file if needed
+if [ ! -f /var/www/html/storage/app/database.sqlite ]; then
+    echo "Creating SQLite database file"
+    touch /var/www/html/storage/app/database.sqlite
+    chmod 664 /var/www/html/storage/app/database.sqlite
+fi
+
+# Check if the database is empty (file size = 0)
+if [ ! -s /var/www/html/storage/app/database.sqlite ]; then
+    echo "Database file is empty, running migrations"
+    php artisan migrate --force
+fi
+
 # Generate key if not set
 php artisan key:generate --force
 
