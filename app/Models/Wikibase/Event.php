@@ -35,9 +35,11 @@ class Event extends BaseEntity
     /**
      * Create an Event model from array data
      */
-    public function fromArray(array $data): self
+    public static function fromArray(array $data): self
     {
-        $event = new self();
+        $title = $data["title"] ?? ($data["name"] ?? "Unknown Event");
+        $description = $data["description"] ?? "";
+        $event = new self($title, $description);
         $event->id = $data["id"] ?? null;
 
         if (!empty($data["time_point"])) {

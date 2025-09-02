@@ -151,7 +151,6 @@ const searchImages = async () => {
 };
 
 const selectImage = (image) => {
-    console.log("Image selected:", image.title);
     selectedImage.value = image;
 };
 
