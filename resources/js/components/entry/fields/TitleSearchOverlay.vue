@@ -10,7 +10,7 @@
             <div class="overlay-body-wrapper">
                 <div class="overlay-body">
                     <div class="entry-banner">
-                        <h2>Welchen Eintrag wollen Sie anlegen?</h2>
+                        <h2>Welchen Eintrag möchtest du anlegen?</h2>
                     </div>
                     <div class="input-group">
                         <label for="entry-title">Titel des Eintrags</label>
@@ -48,9 +48,8 @@
                             <v-icon>mdi-information-outline</v-icon>
                         </div>
                         <p>
-                            Bitte prüfen Sie, ob dieser Eintrag bereits
-                            existiert und bestätigen dies mit der Checkbox unter
-                            der Suche.
+                            Bitte prüfe, ob dieser Eintrag bereits existiert und
+                            bestätige dies mit der Checkbox unter der Suche.
                         </p>
                     </div>
 
@@ -159,20 +158,18 @@
                     </div>
                     <div class="info-box-content">
                         <p>
-                            <strong>Wichtig:</strong> Bevor Sie einen neuen
-                            Eintrag erstellen, suchen Sie bitte zuerst, ob
-                            dieser bereits existiert.
+                            <strong>Wichtig:</strong> Bevor du einen neuen
+                            Eintrag erstellst, suche bitte zuerst, ob dieser
+                            bereits existiert.
                         </p>
-                        <p>Folgen Sie diesen Schritten:</p>
+                        <p>Folge diesen Schritten:</p>
                         <ol>
                             <li>
-                                Geben Sie den gewünschten Titel in das Suchfeld
-                                ein
+                                Gebe den gewünschten Titel in das Suchfeld ein
                             </li>
-                            <li>Klicken Sie auf "Suchen"</li>
+                            <li>Klicke auf "Suchen"</li>
                             <li>
-                                Prüfen Sie die angezeigten Suchergebnisse
-                                sorgfältig
+                                Prüfe die angezeigten Suchergebnisse sorgfältig
                             </li>
                             <li>
                                 Falls kein passender Eintrag existiert,
@@ -184,7 +181,7 @@
                             </li>
                         </ol>
                         <p>
-                            Falls Sie einen ähnlichen Eintrag finden, können Sie
+                            Falls du einen ähnlichen Eintrag findest, kannst du
                             diesen auf Wikidata öffnen, um mehr Informationen zu
                             erhalten.
                         </p>

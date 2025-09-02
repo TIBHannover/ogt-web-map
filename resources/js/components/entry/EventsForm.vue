@@ -833,32 +833,33 @@ const getInfoContent = (fieldName) => {
 // Konsolidierte Hilfetexte pro Sektion
 const getSectionInfoContent = (sectionName) => {
     const sectionContents = {
-        title: `<p>In diesem Bereich geben Sie die grundlegenden Informationen zum Ereignis ein.</p>
-               <p><strong>Titel:</strong> Geben Sie einen präzisen und aussagekräftigen Titel ein, der Art des Ereignisses, Zeit/Ort und ggf. beteiligte Gruppen enthält.</p>
-               <p><strong>Beschreibung:</strong> Beschreiben Sie das Ereignis kurz und informativ mit den wichtigsten Fakten, beteiligten Personen und historischem Kontext.</p>
+        title: `<p>In diesem Bereich werden die grundlegenden Informationen zum Ereignis erfasst.</p>
+               <p><strong>Titel:</strong> Gebe einen präzisen und aussagekräftigen Titel ein, der Art des Ereignisses, Zeit/Ort und ggf. beteiligte Gruppen enthält.</p>
+               <p><strong>Beschreibung:</strong> Beschreibe das Ereignis kurz und informativ mit den wichtigsten Fakten, beteiligten Personen und historischem Kontext.</p>
                <p>Beispiele für gute Titel: "Novemberpogrom 1938 in Osnabrück", "Deportation der jüdischen Bevölkerung aus Hamburg (1941)"</p>`,
 
-        time: `<p>Hier erfassen Sie die zeitlichen Informationen zum Ereignis.</p>
+        time: `<p>Hier werdem die zeitlichen Informationen zum Ereignis erfasst.</p>
                <p><strong>Diese Angabe ist verpflichtend.</strong></p>
-               <p>Sie können zwischen einem einzelnen Zeitpunkt oder einem Zeitraum wählen:</p>
+               <p>Du kannst zwischen einem einzelnen Zeitpunkt oder einem Zeitraum wählen:</p>
                <ul>
                  <li><strong>Zeitpunkt:</strong> Für Ereignisse, die an einem bestimmten Datum stattfanden</li>
                  <li><strong>Zeitraum:</strong> Für länger andauernde Ereignisse mit Start- und Enddatum</li>
                </ul>
-               <p>Falls das genaue Datum nicht bekannt ist, wählen Sie einen bestmöglichen Schätzwert und vermerken Sie die Unsicherheit in der Beschreibung.</p>`,
+               <p>Falls das genaue Datum nicht bekannt ist, kannst du auch nur einen Monat eines Jahres oder ein Jahr auswählen.<br />
+               Bei ungenauen Datumsangaben kannst du in der Select-Box unter dem Datum einen Qualifikator wie "ungefähr" setzen.</p>`,
 
-        counts: `<p>In diesem Bereich können Sie die Geschädigtenzahl des Ereignisses dokumentieren.</p>
-                <p>Sie können folgende Informationen erführen (sofern bekannt):</p>
+        counts: `<p>In diesem Bereich kannst du die Geschädigtenzahl des Ereignisses dokumentieren.</p>
+                <p>Folgende Informationen können hier ergänzt werden (sofern bekannt):</p>
                 <ul>
                   <li><strong>Gesamtzahl der Geschädigten:</strong> Alle betroffenen Personen</li>
                   <li><strong>Anzahl der Überlebenden:</strong> Personen, die das Ereignis überlebt haben</li>
                   <li><strong>Anzahl der Todesopfer:</strong> Personen, die durch das Ereignis ums Leben kamen</li>
                   <li><strong>Anzahl der Festnahmen:</strong> Personen, die im Zuge des Ereignisses festgenommen wurden</li>
                 </ul>
-                <p>Verwenden Sie nur gesicherte Zahlen aus verlässlichen Quellen. Bei Unsicherheit ist ein Bereich (z.B. "etwa 100-150 Opfer") in der Beschreibung besser als eine exakte Zahl.</p>`,
+                <p>Verwende nur gesicherte Zahlen aus verlässlichen Quellen. Bei Unsicherheit ist ein Bereich (z.B. "etwa 100-150 Opfer") in der Beschreibung besser als eine exakte Zahl.</p>`,
 
-        cause: `<p>Hier dokumentieren Sie die Ursache(n) der Verfolgung.</p>
-               <p>Wählen Sie die Hauptursache(n) aus oder fügen Sie neue hinzu. Typische Kategorien sind:</p>
+        cause: `<p>Hier dokumentierst du die Ursache(n) der Verfolgung.</p>
+               <p>Wähle die Hauptursache(n) aus oder füge neue hinzu. Typische Kategorien sind:</p>
                <ul>
                  <li>Religiöse Verfolgung</li>
                  <li>Rassistische Verfolgung</li>
@@ -867,16 +868,19 @@ const getSectionInfoContent = (sectionName) => {
                </ul>
                <p>Eine präzise Dokumentation der Verfolgungsursachen ist wichtig für das Verständnis historischer Zusammenhänge.</p>`,
 
-        location: `<p>Hier markieren Sie den genauen Ort des Ereignisses auf der Karte.</p>
+        location: `<p>Hier wird der genaue Ort des Ereignisses auf der Karte gewählt.</p>
+                    <p><strong>Dieses Feld ist ein Pflichtfeld!</p>
                   <p>Sie können:</p>
                   <ul>
                     <li>Direkt auf die Karte klicken, um einen Standort zu markieren</li>
                     <li>Nach einem Ort suchen, um ihn schneller zu finden</li>
                     <li>Die Karte zoomen und verschieben, um den genauen Standort zu lokalisieren</li>
                   </ul>
-                  <p>Präzise Ortsangaben sind wichtig für die historische Dokumentation und ermöglichen eine genaue geografische Einordnung.</p>`,
+                  <p>Präzise Ortsangaben sind wichtig für die historische Dokumentation und ermöglichen eine genaue geografische Einordnung.</p>
+                  <p>Wenn nur bespw. die Stadt bekannt ist, kann einfach das Stadtzentrum gewählt werden und dann in der Selectbox unter der Karte der Qualifikator "Ungefähr" um dies deutlich zu machen.</p>
+                  `,
 
-        image: `<p>Hier können Sie ein passendes Bild zum Ereignis hinzufügen.</p>
+        image: `<p>Hier kannst du ein passendes Bild zum Ereignis hinzufügen.</p>
                <p>Geeignete Bilder sind:</p>
                <ul>
                  <li>Historische Fotos vom Ereignis</li>
@@ -884,35 +888,35 @@ const getSectionInfoContent = (sectionName) => {
                  <li>Dokumente zum Ereignis</li>
                  <li>Denkmäler oder Gedenktafeln</li>
                </ul>
-               <p>Verwenden Sie nur Bilder, die Sie rechtlich nutzen dürfen, und achten Sie auf korrekte Quellenangaben.</p>`,
+               <p>Verwende nur Bilder, die rechtlich genutzt werden dürfen, und achten Sie auf korrekte Quellenangaben.</p>`,
 
-        sources: `<p>Hier können Sie Quellenangaben zum Ereignis hinzufügen.</p>
+        sources: `<p>Hier kannst du Quellenangaben zum Ereignis hinzufügen.</p>
                 <p><strong>Diese Angabe ist verpflichtend:</strong> Jedes Ereignis muss mindestens eine Quelle enthalten.</p>
-                <p>Sie können verschiedene Arten von Quellen angeben:</p>
+                <p>Du kannst verschiedene Arten von Quellen angeben:</p>
                 <ul class="mb-3">
                   <li><strong>Bücher:</strong> Wissenschaftliche Werke, Monographien, Sammelbände etc.</li>
                   <li><strong>URLs:</strong> Vertrauenswürdige Webseiten, Online-Archive, Datenbanken</li>
                   <li><strong>Archive:</strong> Archivmaterial mit Inventarnummer</li>
                 </ul>
-                <p>Bei Buchquellen können Sie nach bereits in Wikidata erfassten Werken suchen oder neue Werke manuell hinzufügen. Geben Sie möglichst genaue Seitenangaben an.</p>
+                <p>Bei Buchquellen kannst du nach bereits in Wikidata erfassten Werken suchen oder neue Werke manuell hinzufügen. Geben möglichst genaue Seitenangaben an.</p>
                 <p>Bei URLs ist das Zugriffsdatum wichtig, um die zeitliche Verfügbarkeit der Information zu dokumentieren.</p>
-                <p>Bei Archivquellen geben Sie das entsprechende Archiv und die Signatur oder Inventarnummer an. (Die meisten Archivalien haben eine Signatur. Seltener werden Inventarnummern genutzt, meist z. B. bei Gegenständen und manchmal auch bei Fotos).</p>`,
+                <p>Bei Archivquellen gebe das entsprechende Archiv und die Signatur oder Inventarnummer an. (Die meisten Archivalien haben eine Signatur. Seltener werden Inventarnummern genutzt, meist z. B. bei Gegenständen und manchmal auch bei Fotos).</p>`,
 
-        victims: `<p>Hier fügen Sie die Geschädigten des Ereignisses hinzu.</p>
-                <p>Sie können nach bereits bekannten Personen suchen oder neue Personen manuell hinzufügen.</p>
-                <p>Bei neuen Personen achten Sie bitte auf korrekte Namensschreibweisen, Lebensdaten und eine kurze Beschreibung.</p>
+        victims: `<p>Hier werden die Geschädigten des Ereignisses hinzugefügt.</p>
+                <p>Du kannst nach bereits bekannten Personen suchen oder neue Personen manuell hinzufügen.</p>
+                <p>Bei neuen Personen achte bitte auf korrekte Namensschreibweisen, Lebensdaten und eine kurze Beschreibung.</p>
                 <p>Dies hilft bei der Verknüpfung mit anderen Ereignissen und der Nachverfolgung von Biographien.</p>`,
 
-        perpetrators: `<p>Hier dokumentieren Sie die für das Ereignis verantwortlichen Personen oder Gruppen.</p>
+        perpetrators: `<p>Hier werden die für das Ereignis verantwortlichen Personen oder Gruppen dokumentiert.</p>
                      <p><strong>Diese Angabe ist verpflichtend:</strong> Jedes Ereignis muss mindestens einen Täter oder eine verantwortliche Organisation haben.</p>
-                     <p>Beachten Sie dabei die juristische und historische Genauigkeit, unterscheiden Sie zwischen direkten Tätern und Befehlsgebern und dokumentieren Sie auch institutionelle Verantwortlichkeiten." zu "Dokumentieren Sie auch institutionelle Verantwortlichkeiten.</p>
+                     <p>Beachte dabei die juristische und historische Genauigkeit, unterscheide zwischen direkten Tätern und Befehlsgebern und dokumentiere auch institutionelle Verantwortlichkeiten.</p>
                      <p>Zudem sind Befehlsgeber, organisatorisch Verantwortliche und direkt ausführende Täter gleichermaßen Täter.</p>
-                     <p>Wenn Sie natürliche Personen anlegen, ist besonders auf eine historisch präzise und sorgfältige Arbeitsweise zu achten.</p>`,
+                     <p>Wenn du natürliche Personen anlegst, ist besonders auf eine historisch präzise und sorgfältige Arbeitsweise zu achten.</p>`,
     };
 
     return (
         sectionContents[sectionName] ||
-        "<p>Wählen Sie einen Bereich aus, um Hilfe zu erhalten.</p>"
+        "<p>Wähle einen Bereich aus, um Hilfe zu erhalten.</p>"
     );
 };
 

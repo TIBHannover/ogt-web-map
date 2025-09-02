@@ -1,28 +1,28 @@
 <template>
     <div class="thankyou-container">
         <div class="thankyou-card">
-            <h1 class="title">Vielen Dank für Ihren Beitrag!</h1>
+            <h1 class="title">Vielen Dank für deinen Beitrag!</h1>
             <div class="icon-container">
                 <v-icon size="x-large" color="success">mdi-check-circle</v-icon>
             </div>
             <p class="message">
-                Ihr Eintrag wurde erfolgreich übermittelt und wird nun von
+                Dein Eintrag wurde erfolgreich übermittelt und wird nun von
                 unserem Team geprüft. Nach erfolgreicher Prüfung wird er auf der
                 Karte erscheinen.
             </p>
             <p class="sub-message">
-                Dieser Prozess kann einige Tage dauern. Wir danken Ihnen für
-                Ihre Geduld und Ihren wertvollen Beitrag zum Projekt.
+                Dieser Prozess kann einige Tage dauern. Wir danken dir für deine
+                Geduld und deinen wertvollen Beitrag zum Projekt.
             </p>
 
             <div class="status-box">
-                <h2>Status Ihres Eintrags</h2>
+                <h2>Status deines Eintrags</h2>
                 <p>
                     Aktueller Status:
                     <span class="status-label">Ausstehend</span>
                 </p>
                 <p v-if="statusToken">
-                    Sie können den aktuellen Status Ihres Eintrags jederzeit
+                    Du kannst den aktuellen Status Ihres Eintrags jederzeit
                     unter folgendem Link prüfen:
                 </p>
                 <div v-if="statusToken" class="status-link">
@@ -42,8 +42,8 @@
                 <div v-if="statusToken" class="email-notification-form">
                     <h3>Per E-Mail über den Status informiert werden</h3>
                     <p>
-                        Erhalten Sie den Status-Link per E-Mail und werden Sie
-                        benachrichtigt, wenn Ihr Eintrag veröffentlicht wird.
+                        Erhalte den Status-Link per E-Mail und werde
+                        benachrichtigt, wenn dein Eintrag veröffentlicht wird.
                     </p>
 
                     <div class="form-group">
@@ -86,7 +86,7 @@
 
                 <p v-if="statusToken" class="status-tip">
                     <v-icon small color="info">mdi-information-outline</v-icon>
-                    Tipp: Speichern Sie diesen Link, um später den Status Ihres
+                    Tipp: Speicher diesen Link, um später den Status deines
                     Eintrags zu überprüfen.
                 </p>
                 <p v-else class="status-tip">
@@ -94,7 +94,7 @@
                         >mdi-alert-circle-outline</v-icon
                     >
                     Hinweis: Der Status Ihres Eintrags kann derzeit nicht
-                    verfolgt werden. Bitte kontaktieren Sie uns bei Fragen.
+                    verfolgt werden. Bitte kontaktiere uns bei Fragen.
                 </p>
             </div>
 

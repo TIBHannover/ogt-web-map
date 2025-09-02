@@ -25,11 +25,11 @@
                     <div v-if="currentStep === 1" class="entry-form-wrapper">
                         <div class="step-container">
                             <h2 class="step-title">
-                                Schritt 1: Wählen Sie den Eintragstyp
+                                Schritt 1: Wähle den Eintragstyp
                             </h2>
                             <p>
-                                Bitte wählen Sie den Eintragstyp aus welchen Sie
-                                anlegen möchten.
+                                Bitte wähle den Eintragstyp aus welchen du
+                                anlegen möchtest.
                             </p>
                             <form class="forms">
                                 <fieldset>
@@ -144,8 +144,8 @@
                                 ></div>
                                 <div v-else>
                                     <p>
-                                        Bitte wählen Sie einen Eintragstyp aus,
-                                        um Informationen darüber zu erhalten.
+                                        Bitte wähle einen Eintragstyp aus, um
+                                        Informationen darüber zu erhalten.
                                     </p>
                                     <p>
                                         Zu den verfügbaren Eintragstypen
@@ -189,7 +189,7 @@
                                         </li>
                                     </ul>
                                     <p>
-                                        Wählen Sie einen Typ, um detailliertere
+                                        Wählen einen Typ, um detailliertere
                                         Informationen zu erhalten.
                                     </p>
                                 </div>
@@ -468,7 +468,7 @@ const setFreeClientWidth = () => {
 
 const goToStep = (step) => {
     if (step === 2 && !formsType.value) {
-        error.value = "Bitte wählen Sie einen Eintragstyp aus";
+        error.value = "Bitte wähle einen Eintragstyp aus";
         return;
     }
 
