@@ -2729,8 +2729,23 @@ class CreateWikidataEntity implements ShouldQueue
             }
 
             if ($linkProperty) {
-                // Create the statement to add to the parent entity
-                $statement = [];
+                // Create the statement to add to the parent entity with proper structure
+                $statement = [
+                    "mainsnak" => [
+                        "snaktype" => "value",
+                        "property" => $linkProperty,
+                        "datavalue" => [
+                            "value" => [
+                                "entity-type" => "item",
+                                "id" => $entityId,
+                                "numeric-id" => intval(substr($entityId, 1)),
+                            ],
+                            "type" => "wikibase-entityid",
+                        ],
+                    ],
+                    "type" => "statement",
+                    "rank" => "normal",
+                ];
 
                 // Add qualifiers if needed (e.g., page numbers for sources, locations for victims)
                 if ($this->relationshipType === "source") {

@@ -552,9 +552,16 @@ class WikibaseService
 
             // Check for errors in the response
             if (isset($result["error"])) {
+                // Ensure error code is numeric for Exception constructor
+                $errorCode = isset($result["error"]["code"])
+                    ? (is_numeric($result["error"]["code"])
+                        ? (int) $result["error"]["code"]
+                        : 0)
+                    : 0;
+
                 throw new \Exception(
                     "Wikibase API error: " . json_encode($result["error"]),
-                    $result["error"]["code"] ?? 0,
+                    $errorCode,
                 );
             }
 
