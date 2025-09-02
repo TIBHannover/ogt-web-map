@@ -164,8 +164,29 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
-    toggleTimeline: Function,
-    toggleMapOptions: Function,
+    toggleTimeline: {
+        type: Function,
+        required: false,
+    },
+    toggleMapOptions: {
+        type: Function,
+        required: false,
+        default: () => {
+            console.warn(
+                "Default toggleMapOptions called - props not properly passed",
+            );
+            // Try to find and click the map options button directly as fallback
+            const mapOptionsButton = document.querySelector(
+                ".map-options-button",
+            );
+            if (mapOptionsButton) {
+                console.log("Found map options button, clicking as fallback");
+                mapOptionsButton.click();
+            } else {
+                console.error("Could not find map options button");
+            }
+        },
+    },
     zoomToLocation: Function,
     openGlossaryEntry: Function,
     activateFilter: Function,
@@ -202,6 +223,7 @@ const chapters = [
                     left: "50%",
                     transform: "translate(-50%, -50%)",
                 },
+                onStepStart: null,
             },
             {
                 title: "Tutorial-Anleitung",
@@ -210,6 +232,7 @@ const chapters = [
                 highlightSelector: ".tutorial-button",
                 position: { bottom: "100px", left: "80px" },
                 highlightClass: "highlight-tutorial",
+                onStepStart: null,
             },
         ],
     },
@@ -222,17 +245,19 @@ const chapters = [
                     "Hier kannst Du das Menü für Kartenoptionen öffnen und siehst die einzelnen Kategorien, die auf der Karte angezeigt werden.",
                 highlightSelector: ".map-options-button", // Selector for the Map Options button
                 position: { top: "100px", right: "80px" },
-                onShowAction: "toggleMapOptions",
+                onShowAction: null, // Don't trigger twice
                 highlightClass: "highlight-tutorial",
+                onStepStart: null,
             },
             {
                 title: "Glossareinträge",
                 description:
                     "Über dieses Icon gelangst Du zu den Glossareinträgen der jeweiligen Kategorien. Als Beispiel öffnen wir den Glossareintrag zu den Arbeitserziehungslagern.",
                 highlightSelector: ".glossary-button", // Selector for the Glossary button
-                position: { top: "150px", right: "80px" },
+                position: { top: "150px", right: "400px" },
                 onShowAction: "openGlossaryEntry",
                 highlightClass: "highlight-tutorial",
+                onStepStart: "toggleMapOptions",
             },
             {
                 title: "Weitere Schlüsselbegriffe",
@@ -299,6 +324,7 @@ const chapters = [
                 },
                 onShowAction: "selectLocation",
                 highlightClass: "highlight-tutorial",
+                onStepStart: "selectLocation",
             },
             {
                 title: "Informationsübersicht",
@@ -415,6 +441,7 @@ const chapters = [
                 highlightSelector: ".timeline-button", // Selector for timeline button
                 position: { bottom: "100px", right: "100px" },
                 onShowAction: "toggleTimeline",
+                onStepStart: "toggleTimeline",
             },
             {
                 title: "Zeitfilter deaktivieren",
@@ -478,6 +505,7 @@ const chapters = [
                 highlightSelector: ".tutorial-button", // Selector for tutorial button
                 position: { bottom: "100px", left: "80px" },
                 highlightClass: "highlight-tutorial",
+                onStepStart: null,
             },
             {
                 title: "Vielen Dank",
@@ -560,11 +588,26 @@ const nextStep = () => {
         currentChapterSteps.value.length - 1
     ) {
         currentStepIndexInChapter.value++;
+        console.log("Moving to next step:", currentStep.value?.title);
+
         setTimeout(() => {
+            // Execute the step start action if defined - with a delay to ensure Vue has updated
+            if (currentStep.value?.onStepStart) {
+                console.log(
+                    "Executing onStepStart action:",
+                    currentStep.value.onStepStart,
+                );
+                executeAction(currentStep.value.onStepStart);
+            }
+
             updateHighlightElement();
             applyHighlightClass();
+
+            // Execute onShowAction after a slight delay
+            setTimeout(() => {
+                executeAction(currentStep.value?.onShowAction);
+            }, 200);
         }, 100);
-        executeAction(currentStep.value?.onShowAction);
     } else if (currentChapterIndex.value < chapters.length - 1) {
         nextChapter();
     }
@@ -573,11 +616,21 @@ const nextStep = () => {
 const prevStep = () => {
     if (currentStepIndexInChapter.value > 0) {
         currentStepIndexInChapter.value--;
+
         setTimeout(() => {
+            // Execute the step start action if defined - with a delay to ensure Vue has updated
+            if (currentStep.value?.onStepStart) {
+                executeAction(currentStep.value.onStepStart);
+            }
+
             updateHighlightElement();
             applyHighlightClass();
+
+            // Execute onShowAction after a slight delay
+            setTimeout(() => {
+                executeAction(currentStep.value?.onShowAction);
+            }, 200);
         }, 100);
-        executeAction(currentStep.value?.onShowAction);
     } else if (currentChapterIndex.value > 0) {
         prevChapter();
     }
@@ -587,11 +640,22 @@ const nextChapter = () => {
     if (currentChapterIndex.value < chapters.length - 1) {
         currentChapterIndex.value++;
         currentStepIndexInChapter.value = 0;
+
+        // Wait for Vue to update
         setTimeout(() => {
+            // Execute the step start action if defined
+            if (currentStep.value?.onStepStart) {
+                executeAction(currentStep.value.onStepStart);
+            }
+
             updateHighlightElement();
             applyHighlightClass();
-        }, 100);
-        executeAction(currentStep.value?.onShowAction);
+
+            // Execute onShowAction after a slight delay
+            setTimeout(() => {
+                executeAction(currentStep.value?.onShowAction);
+            }, 200);
+        }, 200);
     }
 };
 
@@ -599,6 +663,12 @@ const prevChapter = () => {
     if (currentChapterIndex.value > 0) {
         currentChapterIndex.value--;
         currentStepIndexInChapter.value = currentChapter.value.steps.length - 1;
+
+        // Execute the step start action if defined
+        if (currentStep.value?.onStepStart) {
+            executeAction(currentStep.value.onStepStart);
+        }
+
         setTimeout(() => {
             updateHighlightElement();
             applyHighlightClass();
@@ -611,6 +681,14 @@ const goToChapter = (chapterIndex) => {
     if (chapterIndex >= 0 && chapterIndex < chapters.length) {
         currentChapterIndex.value = chapterIndex;
         currentStepIndexInChapter.value = 0;
+
+        // Execute the step start action if defined
+        const targetChapter = chapters[chapterIndex];
+        const targetStep = targetChapter.steps[0];
+        if (targetStep.onStepStart) {
+            executeAction(targetStep.onStepStart);
+        }
+
         setTimeout(() => {
             updateHighlightElement();
             applyHighlightClass();
@@ -626,50 +704,63 @@ const toggleChapterMenu = () => {
 const executeAction = (actionName) => {
     if (!actionName) return;
 
-    switch (actionName) {
-        case "toggleTimeline":
-            if (props.toggleTimeline) props.toggleTimeline();
-            break;
-        case "toggleMapOptions":
-            if (props.toggleMapOptions) props.toggleMapOptions();
-            break;
-        case "openGlossaryEntry":
-            if (props.openGlossaryEntry)
-                props.openGlossaryEntry("Arbeitserziehungslager");
-            break;
-        case "activateFilter":
-            if (props.activateFilter)
-                props.activateFilter("Staatspolizeileitstellen");
-            break;
-        case "deactivateAllFilters":
-            if (props.deactivateAllFilters) props.deactivateAllFilters();
-            break;
-        case "selectLocation":
-            if (props.selectLocation) props.selectLocation("Hannover");
-            break;
-        case "openPersonDetails":
-            if (props.openPersonDetails)
-                props.openPersonDetails("Walter Blume");
-            break;
-        case "goBack":
-            if (props.goBack) props.goBack();
-            break;
-        case "closeDetails":
-            if (props.closeDetails) props.closeDetails();
-            break;
-        case "openMainMenu":
-            if (props.openMainMenu) props.openMainMenu();
-            break;
-        case "setTimeFilter":
-            if (props.setTimeFilter)
-                props.setTimeFilter({ start: "1933-08", end: "1945-03" });
-            break;
-        case "switchTimeFilterMode":
-            if (props.switchTimeFilterMode) props.switchTimeFilterMode("point");
-            break;
-        default:
-            console.warn(`Unbekannte Aktion: ${actionName}`);
-    }
+    // Add a small delay to ensure the UI is ready
+    setTimeout(() => {
+        switch (actionName) {
+            case "toggleTimeline":
+                if (props.toggleTimeline) props.toggleTimeline();
+                break;
+            case "toggleMapOptions":
+                if (props.toggleMapOptions) {
+                    console.log(
+                        "About to toggle map options from tutorial",
+                        props.toggleMapOptions,
+                    );
+                    props.toggleMapOptions();
+                    console.log("Toggled map options from tutorial");
+                } else {
+                    console.error("toggleMapOptions function is not available");
+                }
+                break;
+            case "openGlossaryEntry":
+                if (props.openGlossaryEntry)
+                    props.openGlossaryEntry("Arbeitserziehungslager");
+                break;
+            case "activateFilter":
+                if (props.activateFilter)
+                    props.activateFilter("Staatspolizeileitstellen");
+                break;
+            case "deactivateAllFilters":
+                if (props.deactivateAllFilters) props.deactivateAllFilters();
+                break;
+            case "selectLocation":
+                if (props.selectLocation) props.selectLocation("Hannover");
+                break;
+            case "openPersonDetails":
+                if (props.openPersonDetails)
+                    props.openPersonDetails("Walter Blume");
+                break;
+            case "goBack":
+                if (props.goBack) props.goBack();
+                break;
+            case "closeDetails":
+                if (props.closeDetails) props.closeDetails();
+                break;
+            case "openMainMenu":
+                if (props.openMainMenu) props.openMainMenu();
+                break;
+            case "setTimeFilter":
+                if (props.setTimeFilter)
+                    props.setTimeFilter({ start: "1933-08", end: "1945-03" });
+                break;
+            case "switchTimeFilterMode":
+                if (props.switchTimeFilterMode)
+                    props.switchTimeFilterMode("point");
+                break;
+            default:
+                console.warn(`Unbekannte Aktion: ${actionName}`);
+        }
+    }, 100); // Small delay to ensure UI is ready
 };
 
 // Tutorial control methods
@@ -679,11 +770,22 @@ const startTutorial = () => {
     active.value = true;
     isFirstVisit.value = false;
     emit("start");
+
+    // Wait for Vue to update
     setTimeout(() => {
+        // Execute step start action if defined
+        if (currentStep.value?.onStepStart) {
+            executeAction(currentStep.value.onStepStart);
+        }
+
         updateHighlightElement();
         applyHighlightClass();
-    }, 100);
-    executeAction(currentStep.value?.onShowAction);
+
+        // Execute onShowAction after a slight delay
+        setTimeout(() => {
+            executeAction(currentStep.value?.onShowAction);
+        }, 200);
+    }, 200);
 };
 
 const completeTutorial = () => {
@@ -741,6 +843,12 @@ onMounted(() => {
     if (!tutorialCompleted && !props.tutorialCompleted) {
         isFirstVisit.value = true;
         active.value = true;
+
+        // Execute step start action if defined
+        if (currentStep.value?.onStepStart) {
+            executeAction(currentStep.value.onStepStart);
+        }
+
         setTimeout(() => {
             updateHighlightElement();
             applyHighlightClass();
@@ -823,7 +931,7 @@ onMounted(() => {
     position: fixed;
     bottom: 20px !important;
     left: 20px !important;
-    z-index: 1000 !important;
+    z-index: 100 !important;
 }
 
 .chapter-indicator {
