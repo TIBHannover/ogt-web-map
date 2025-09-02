@@ -963,11 +963,6 @@ const onAddNewPerson = () => {
         dataToAdd.role = dataToAdd.relationship_type;
     }
 
-    // For debugging - log the role assignment
-    console.log(
-        `Adding new person with role: ${dataToAdd.role}, relationship_type: ${dataToAdd.relationship_type}`,
-    );
-
     // Update parent with data to add (do this before resetting)
     emit("update:newPerson", dataToAdd);
 
