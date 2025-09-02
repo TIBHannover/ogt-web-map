@@ -1,29 +1,89 @@
 <template>
-    <v-btn
-        v-if="!active"
-        icon
-        color="primary"
-        class="tutorial-button"
-        fixed
-        bottom
-        left
-        size="large"
-        @click="startTutorial"
-    >
-        <v-icon>mdi-help-circle</v-icon>
-    </v-btn>
     <div>
-        <div v-if="active" class="tutorial-overlay" :class="{ active }">
+        <!-- Help button to start tutorial -->
+        <v-btn
+            v-if="!active && !isFirstVisit"
+            icon
+            color="primary"
+            class="tutorial-button"
+            style="position: fixed; bottom: 20px; left: 20px"
+            size="large"
+            @click="startTutorial"
+        >
+            <v-icon>mdi-help-circle</v-icon>
+        </v-btn>
+
+        <!-- Chapter menu button -->
+        <v-btn
+            v-if="active && !chapterMenuOpen"
+            icon
+            color="secondary"
+            class="chapter-menu-button"
+            style="position: fixed; bottom: 80px; left: 20px; z-index: 10001"
+            size="large"
+            @click="toggleChapterMenu"
+        >
+            <v-icon>mdi-menu-open</v-icon>
+        </v-btn>
+
+        <!-- Chapter menu panel -->
+        <div v-if="chapterMenuOpen" class="chapter-menu-panel">
+            <div class="chapter-menu-header">
+                <h3>Kapitel</h3>
+                <v-btn icon size="small" @click="toggleChapterMenu">
+                    <v-icon>mdi-close</v-icon>
+                </v-btn>
+            </div>
+            <div class="chapter-menu-content">
+                <v-btn
+                    v-for="(chapter, index) in chapters"
+                    :key="index"
+                    :color="currentChapterIndex === index ? 'primary' : ''"
+                    @click="
+                        goToChapter(index);
+                        toggleChapterMenu();
+                    "
+                    block
+                    class="mb-2"
+                    variant="outlined"
+                >
+                    {{ chapter.title }}
+                </v-btn>
+            </div>
+        </div>
+        <div
+            v-if="active || isFirstVisit"
+            class="tutorial-overlay"
+            :class="{ active: active || isFirstVisit }"
+        >
             <div class="tutorial-backdrop" @click="skipTutorial"></div>
+
+            <!-- Elements to be highlighted will have this class added dynamically -->
+            <div
+                class="highlight-tutorial-container"
+                v-if="highlightElement"
+            ></div>
 
             <div class="tutorial-content" :style="positionStyle">
                 <div class="tutorial-step">
+                    <!-- Chapter indicator instead of navigation chips -->
+                    <div class="chapter-indicator">
+                        <span class="chapter-label"
+                            >Kapitel {{ currentChapterIndex + 1 }}/{{
+                                chapters.length
+                            }}:</span
+                        >
+                        <span class="chapter-title">{{
+                            currentChapter.title
+                        }}</span>
+                    </div>
+
                     <h3>{{ currentStep.title }}</h3>
                     <p v-html="currentStep.description"></p>
 
                     <div class="tutorial-navigation">
                         <v-btn
-                            v-if="currentStepIndex > 0"
+                            v-if="canGoBack"
                             variant="text"
                             @click="prevStep"
                             size="small"
@@ -33,23 +93,60 @@
 
                         <v-spacer></v-spacer>
 
-                        <v-btn
-                            v-if="currentStepIndex < steps.length - 1"
-                            color="primary"
-                            @click="nextStep"
-                            size="small"
+                        <template
+                            v-if="
+                                isFirstVisit &&
+                                currentChapterIndex === 0 &&
+                                currentStepIndexInChapter === 0
+                            "
                         >
-                            Weiter <v-icon>mdi-arrow-right</v-icon>
-                        </v-btn>
-
-                        <v-btn
-                            v-else
-                            color="success"
-                            @click="completeTutorial"
-                            size="small"
-                        >
-                            Verstanden <v-icon>mdi-check</v-icon>
-                        </v-btn>
+                            <v-btn
+                                variant="outlined"
+                                @click="skipTutorial"
+                                size="small"
+                                class="mr-2"
+                            >
+                                Tutorial abbrechen
+                            </v-btn>
+                            <v-btn
+                                color="primary"
+                                @click="nextStep"
+                                size="small"
+                            >
+                                Weiter <v-icon>mdi-arrow-right</v-icon>
+                            </v-btn>
+                        </template>
+                        <template v-else>
+                            <v-btn
+                                v-if="
+                                    currentChapterIndex < chapters.length - 1 &&
+                                    currentStepIndexInChapter ===
+                                        currentChapterSteps.length - 1
+                                "
+                                color="primary"
+                                @click="nextChapter"
+                                size="small"
+                            >
+                                Nächstes Kapitel
+                                <v-icon>mdi-arrow-right</v-icon>
+                            </v-btn>
+                            <v-btn
+                                v-else-if="!isLastStep"
+                                color="primary"
+                                @click="nextStep"
+                                size="small"
+                            >
+                                Weiter <v-icon>mdi-arrow-right</v-icon>
+                            </v-btn>
+                            <v-btn
+                                v-else
+                                color="success"
+                                @click="completeTutorial"
+                                size="small"
+                            >
+                                Verstanden <v-icon>mdi-check</v-icon>
+                            </v-btn>
+                        </template>
                     </div>
                 </div>
             </div>
@@ -67,65 +164,366 @@
 import { ref, computed, watch, onMounted } from "vue";
 
 const props = defineProps({
-    active: {
-        type: Boolean,
-        default: false,
-    },
-    steps: {
-        type: Array,
-        default: () => [],
-    },
-    initialStep: {
-        type: Number,
-        default: 0,
-    },
     tutorialCompleted: {
         type: Boolean,
         default: false,
     },
     toggleTimeline: Function,
-    // Weitere Aktionen könnten übergeben werden
     toggleMapOptions: Function,
     zoomToLocation: Function,
+    openGlossaryEntry: Function,
+    activateFilter: Function,
+    deactivateAllFilters: Function,
+    selectLocation: Function,
+    openPersonDetails: Function,
+    goBack: Function,
+    closeDetails: Function,
+    openMainMenu: Function,
+    setTimeFilter: Function,
+    switchTimeFilterMode: Function,
 });
 
 const emit = defineEmits(["complete", "skip", "start"]);
 
-const currentStepIndex = ref(props.initialStep);
+const active = ref(false);
+const isFirstVisit = ref(false);
+const currentChapterIndex = ref(0);
+const currentStepIndexInChapter = ref(0);
 const highlightElement = ref(null);
+const chapterMenuOpen = ref(false);
 
-const currentStep = computed(() => {
-    return props.steps[currentStepIndex.value] || {};
+// Define chapters and steps based on the document
+const chapters = [
+    {
+        title: "Willkommensansprache und Tutorial",
+        steps: [
+            {
+                title: "Willkommen",
+                description:
+                    "Willkommen auf Gestapo.Terror.Orte – der interaktiven Plattform zur Erforschung des Gestapo-Terrors in Niedersachsen.",
+                position: {
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                },
+            },
+            {
+                title: "Tutorial-Anleitung",
+                description:
+                    "Wir zeigen Dir hier, wie die Karte funktioniert. Du kannst das Tutorial jederzeit abbrechen und die Karte selbst erkunden. Das Tutorial kann beliebig oft neu gestartet werden.",
+                highlightSelector: ".tutorial-button",
+                position: { bottom: "100px", left: "80px" },
+                highlightClass: "highlight-tutorial",
+            },
+        ],
+    },
+    {
+        title: "Kartenoptionen",
+        steps: [
+            {
+                title: "Kartenoptionen-Menü",
+                description:
+                    "Hier kannst Du das Menü für Kartenoptionen öffnen und siehst die einzelnen Kategorien, die auf der Karte angezeigt werden.",
+                highlightSelector: ".map-options-button", // Selector for the Map Options button
+                position: { top: "100px", right: "80px" },
+                onShowAction: "toggleMapOptions",
+                highlightClass: "highlight-tutorial",
+            },
+            {
+                title: "Glossareinträge",
+                description:
+                    "Über dieses Icon gelangst Du zu den Glossareinträgen der jeweiligen Kategorien. Als Beispiel öffnen wir den Glossareintrag zu den Arbeitserziehungslagern.",
+                highlightSelector: ".glossary-button", // Selector for the Glossary button
+                position: { top: "150px", right: "80px" },
+                onShowAction: "openGlossaryEntry",
+                highlightClass: "highlight-tutorial",
+            },
+            {
+                title: "Weitere Schlüsselbegriffe",
+                description:
+                    "Hier findest Du auch weitere Schlüsselbegriffe zur Geschichte der Gestapo.",
+                highlightSelector: ".glossary-content", // Selector for the Glossary content
+                position: { top: "200px", right: "80px" },
+                highlightClass: "highlight-tutorial",
+            },
+            {
+                title: "Filteroptionen",
+                description:
+                    "Hier kannst Du auswählen, welche Kategorien auf der Karte angezeigt werden sollen.",
+                highlightSelector: ".filter-options", // Selector for the Filter options
+                position: { top: "120px", right: "80px" },
+                highlightClass: "highlight-tutorial",
+            },
+            {
+                title: "Alle Filter",
+                description:
+                    "In der Grundeinstellung werden alle Kategorien angezeigt. Hier kannst Du festlegen, ob alle oder keine Kategorien dargestellt werden sollen.",
+                highlightSelector: ".all-filters", // Selector for "All Filters"
+                position: { top: "150px", right: "80px" },
+                onShowAction: "deactivateAllFilters",
+                highlightClass: "highlight-tutorial",
+            },
+            {
+                title: "Kategorie auswählen",
+                description:
+                    "Jetzt kannst Du gezielt eine Kategorie auswählen. In diesem Beispiel aktivieren wir nur die Kategorie 'Staatspolizeileitstellen'.",
+                highlightSelector: ".filter-staatspolizeileitstellen", // Selector for the specific filter
+                position: { top: "180px", right: "80px" },
+                onShowAction: "activateFilter",
+                highlightClass: "highlight-tutorial",
+            },
+            {
+                title: "Gefilterte Anzeige",
+                description:
+                    "Nun werden ausschließlich Staatspolizeileitstellen auf der Karte angezeigt.",
+                position: { top: "200px", right: "80px" },
+            },
+            {
+                title: "Standorte auswählen",
+                description:
+                    "Du kannst Dir jetzt alle Standorte der Staatspolizeileitstellen auf der Karte ansehen oder über das Dropdown-Menü einen bestimmten Standort auswählen bzw. nach einem suchen.",
+                highlightSelector: ".location-filters", // Selector for the location filters
+                position: { bottom: "150px", right: "80px" },
+                highlightClass: "highlight-tutorial",
+            },
+        ],
+    },
+    {
+        title: "Standortdetails",
+        steps: [
+            {
+                title: "Detailansicht Hannover",
+                description:
+                    "Wir haben nun den Standort der Staatspolizeileitstelle Hannover ausgewählt und können uns diesen im Detail ansehen.",
+                highlightSelector: ".location-hannover", // Selector for Hannover location
+                position: {
+                    top: "150px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                },
+                onShowAction: "selectLocation",
+                highlightClass: "highlight-tutorial",
+            },
+            {
+                title: "Informationsübersicht",
+                description:
+                    "Hier findest Du verschiedene Informationen – z. B. zur Laufzeit, zu den einzelnen Standorten, zum Personal der Gestapostelle, zu Ereignissen mit Beteiligung der Gestapostelle sowie zu nachgeordneten Gestapo-Orten und heutigen Erinnerungsorten.",
+                highlightSelector: ".detail-scroll-area", // Selector for the scroll area
+                position: {
+                    top: "200px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                },
+                highlightClass: "highlight-tutorial",
+            },
+            {
+                title: "Verlinkungen",
+                description:
+                    "Alle unterstrichenen Angaben sind klickbar. Hier springen wir z. B. zu einem weiteren Standort der Staatspolizeileitstelle Hannover.",
+                highlightSelector: ".standort-links", // Selector for location links
+                position: {
+                    top: "250px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                },
+            },
+            {
+                title: "Personal-Informationen",
+                description:
+                    "Per Klick kannst Du auch Informationen über das Personal abrufen.",
+                highlightSelector: ".personal-section", // Selector for the personnel section
+                position: {
+                    top: "300px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                },
+            },
+            {
+                title: "Personendetails",
+                description:
+                    "Hier siehst Du die Detailinformationen zur Person.",
+                highlightSelector: ".person-details", // Selector for person details
+                position: {
+                    top: "350px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                },
+                onShowAction: "openPersonDetails",
+            },
+            {
+                title: "Navigation zurück",
+                description:
+                    "Mit diesem Button gelangst Du zurück zur Staatspolizeileitstelle Hannover.",
+                highlightSelector: ".back-button", // Selector for back button
+                position: { top: "150px", left: "100px" },
+                onShowAction: "goBack",
+            },
+            {
+                title: "Ereignisse",
+                description:
+                    "Hier findest Du Ereignisse, an denen die Staatspolizeileitstelle Hannover als Täterinstitution beteiligt war. In diesem Beispiel: die Überwachung des sogenannten 'Judenhauses' in der Knochenhauerstraße 61.",
+                highlightSelector: ".events-section", // Selector for events section
+                position: {
+                    top: "400px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                },
+            },
+            {
+                title: "Täterinstitutionen",
+                description:
+                    "Über einen Klick auf die Täterinstitution – in diesem Fall die Staatspolizeileitstelle Hannover – kommst Du zurück zum entsprechenden Eintrag.",
+                highlightSelector: ".perpetrator-link", // Selector for perpetrator link
+                position: {
+                    top: "450px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                },
+            },
+            {
+                title: "Verknüpfte Organisationen",
+                description:
+                    "Auch nachgeordnete Organisationen, Vorgängerorganisation (zeitlich) und Erinnerungsorte sind anklickbar.",
+                highlightSelector: ".related-organizations", // Selector for related organizations
+                position: {
+                    top: "500px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                },
+            },
+            {
+                title: "Ansicht schließen",
+                description:
+                    "Hier kannst Du die Detailansicht des Standorts wieder schließen.",
+                highlightSelector: ".close-button", // Selector for close button
+                position: { top: "100px", right: "100px" },
+                onShowAction: "closeDetails",
+            },
+            {
+                title: "Hauptmenü",
+                description:
+                    "Über diesen Button kannst Du das Hauptmenü öffnen und z. B. direkt ins Glossar wechseln.",
+                highlightSelector: ".main-menu-button", // Selector for main menu button
+                position: { top: "50px", left: "100px" },
+                onShowAction: "openMainMenu",
+            },
+        ],
+    },
+    {
+        title: "Zeitfilter",
+        steps: [
+            {
+                title: "Zeitfilter aktivieren",
+                description:
+                    "Hier kannst Du den Zeitfilter aktivieren, um gezielt nach Zeiträumen oder Zeitpunkten zu filtern.",
+                highlightSelector: ".timeline-button", // Selector for timeline button
+                position: { bottom: "100px", right: "100px" },
+                onShowAction: "toggleTimeline",
+            },
+            {
+                title: "Zeitfilter deaktivieren",
+                description:
+                    "Hier kannst Du den Zeitfilter wieder deaktivieren und alle Ereignisse ohne zeitliche Einschränkung anzeigen lassen.",
+                highlightSelector: ".timeline-disable-button", // Selector for timeline disable button
+                position: { bottom: "150px", right: "100px" },
+            },
+            {
+                title: "Filtermodus",
+                description:
+                    "Hier kannst Du den Filtermodus wechseln. Aktuell ist der Modus 'Zeitraum' aktiv.",
+                highlightSelector: ".timeline-mode-switch", // Selector for timeline mode switch
+                position: { bottom: "200px", right: "100px" },
+            },
+            {
+                title: "Zeitraum festlegen",
+                description:
+                    "In diesem Modus kannst Du einen Zeitraum festlegen – mit den beiden roten Reglern links und rechts.",
+                highlightSelector: ".timeline-range-sliders", // Selector for timeline range sliders
+                position: { bottom: "250px", right: "100px" },
+                onShowAction: "setTimeFilter",
+            },
+            {
+                title: "Zeitraumfilterung",
+                description:
+                    "Die Karte zeigt nun alle Ereignisse und Orte, die im gewählten Zeitraum relevant sind.",
+                highlightSelector: ".timeline-display", // Selector for timeline display
+                position: { bottom: "300px", right: "100px" },
+            },
+            {
+                title: "Zeitpunkt-Modus",
+                description: "Wechseln wir nun in den Modus 'Zeitpunkt'.",
+                highlightSelector: ".timeline-point-mode", // Selector for timeline point mode
+                position: { bottom: "350px", right: "100px" },
+                onShowAction: "switchTimeFilterMode",
+            },
+            {
+                title: "Zeitpunkt wählen",
+                description:
+                    "In diesem Modus kannst Du gezielt zu einem bestimmten Zeitpunkt springen.",
+                highlightSelector: ".timeline-point-slider", // Selector for timeline point slider
+                position: { bottom: "400px", right: "100px" },
+            },
+            {
+                title: "Ereignisse im Zeitpunkt",
+                description:
+                    "Jetzt werden nur noch die Ereignisse angezeigt, die im Oktober 1936 stattgefunden haben – zum Beispiel zur Verfolgung der Sozialistischen Front.",
+                highlightSelector: ".timeline-events", // Selector for timeline events
+                position: { bottom: "450px", right: "100px" },
+            },
+        ],
+    },
+    {
+        title: "Abschluss",
+        steps: [
+            {
+                title: "Tutorial neu starten",
+                description:
+                    "Hier kannst Du das Tutorial jederzeit neu starten.",
+                highlightSelector: ".tutorial-button", // Selector for tutorial button
+                position: { bottom: "100px", left: "80px" },
+                highlightClass: "highlight-tutorial",
+            },
+            {
+                title: "Vielen Dank",
+                description:
+                    "Danke, dass Du Dich mit der Geschichte des Gestapo-Terrors in Niedersachsen auseinandersetzt. Wenn Du Fragen oder Anmerkungen hast, kontaktiere uns gerne per E-Mail: ogt.project@tib.eu.",
+                position: {
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                },
+            },
+        ],
+    },
+];
+
+// Computed properties for current chapter and step
+const currentChapter = computed(() => {
+    return chapters[currentChapterIndex.value] || {};
 });
 
-watch(
-    () => props.active,
-    (newValue) => {
-        if (newValue) {
-            setTimeout(updateHighlightElement, 100);
+const currentChapterSteps = computed(() => {
+    return currentChapter.value.steps || [];
+});
 
-            // Führe die onShow-Aktion des aktuellen Schritts aus, falls vorhanden
-            if (currentStep.value?.onShowAction) {
-                executeAction(currentStep.value.onShowAction);
-            }
-        }
-    },
-);
+const currentStep = computed(() => {
+    return currentChapterSteps.value[currentStepIndexInChapter.value] || {};
+});
 
-const executeAction = (actionName) => {
-    switch (actionName) {
-        case "toggleTimeline":
-            if (props.toggleTimeline) props.toggleTimeline();
-            break;
-        case "toggleMapOptions":
-            if (props.toggleMapOptions) props.toggleMapOptions();
-            break;
-        // Weitere Aktionen hier definieren
-        default:
-            console.warn(`Unbekannte Aktion: ${actionName}`);
-    }
-};
+const isLastStep = computed(() => {
+    return (
+        currentChapterIndex.value === chapters.length - 1 &&
+        currentStepIndexInChapter.value === currentChapterSteps.value.length - 1
+    );
+});
 
+const canGoBack = computed(() => {
+    return !(
+        currentChapterIndex.value === 0 && currentStepIndexInChapter.value === 0
+    );
+});
+
+// Position and highlight styles
 const positionStyle = computed(() => {
     if (!currentStep.value.position) return {};
 
@@ -149,6 +547,7 @@ const highlightStyle = computed(() => {
     };
 });
 
+// Methods for navigation
 const updateHighlightElement = () => {
     if (currentStep.value.highlightSelector) {
         highlightElement.value = document.querySelector(
@@ -160,51 +559,191 @@ const updateHighlightElement = () => {
 };
 
 const nextStep = () => {
-    if (currentStepIndex.value < props.steps.length - 1) {
-        currentStepIndex.value++;
-        setTimeout(updateHighlightElement, 100);
+    if (
+        currentStepIndexInChapter.value <
+        currentChapterSteps.value.length - 1
+    ) {
+        currentStepIndexInChapter.value++;
+        setTimeout(() => {
+            updateHighlightElement();
+            applyHighlightClass();
+        }, 100);
+        executeAction(currentStep.value?.onShowAction);
+    } else if (currentChapterIndex.value < chapters.length - 1) {
+        nextChapter();
     }
 };
 
 const prevStep = () => {
-    if (currentStepIndex.value > 0) {
-        currentStepIndex.value--;
-        setTimeout(updateHighlightElement, 100);
+    if (currentStepIndexInChapter.value > 0) {
+        currentStepIndexInChapter.value--;
+        setTimeout(() => {
+            updateHighlightElement();
+            applyHighlightClass();
+        }, 100);
+        executeAction(currentStep.value?.onShowAction);
+    } else if (currentChapterIndex.value > 0) {
+        prevChapter();
     }
 };
 
+const nextChapter = () => {
+    if (currentChapterIndex.value < chapters.length - 1) {
+        currentChapterIndex.value++;
+        currentStepIndexInChapter.value = 0;
+        setTimeout(() => {
+            updateHighlightElement();
+            applyHighlightClass();
+        }, 100);
+        executeAction(currentStep.value?.onShowAction);
+    }
+};
+
+const prevChapter = () => {
+    if (currentChapterIndex.value > 0) {
+        currentChapterIndex.value--;
+        currentStepIndexInChapter.value = currentChapter.value.steps.length - 1;
+        setTimeout(() => {
+            updateHighlightElement();
+            applyHighlightClass();
+        }, 100);
+        executeAction(currentStep.value?.onShowAction);
+    }
+};
+
+const goToChapter = (chapterIndex) => {
+    if (chapterIndex >= 0 && chapterIndex < chapters.length) {
+        currentChapterIndex.value = chapterIndex;
+        currentStepIndexInChapter.value = 0;
+        setTimeout(() => {
+            updateHighlightElement();
+            applyHighlightClass();
+        }, 100);
+        executeAction(currentStep.value?.onShowAction);
+    }
+};
+
+const toggleChapterMenu = () => {
+    chapterMenuOpen.value = !chapterMenuOpen.value;
+};
+
+const executeAction = (actionName) => {
+    if (!actionName) return;
+
+    switch (actionName) {
+        case "toggleTimeline":
+            if (props.toggleTimeline) props.toggleTimeline();
+            break;
+        case "toggleMapOptions":
+            if (props.toggleMapOptions) props.toggleMapOptions();
+            break;
+        case "openGlossaryEntry":
+            if (props.openGlossaryEntry)
+                props.openGlossaryEntry("Arbeitserziehungslager");
+            break;
+        case "activateFilter":
+            if (props.activateFilter)
+                props.activateFilter("Staatspolizeileitstellen");
+            break;
+        case "deactivateAllFilters":
+            if (props.deactivateAllFilters) props.deactivateAllFilters();
+            break;
+        case "selectLocation":
+            if (props.selectLocation) props.selectLocation("Hannover");
+            break;
+        case "openPersonDetails":
+            if (props.openPersonDetails)
+                props.openPersonDetails("Walter Blume");
+            break;
+        case "goBack":
+            if (props.goBack) props.goBack();
+            break;
+        case "closeDetails":
+            if (props.closeDetails) props.closeDetails();
+            break;
+        case "openMainMenu":
+            if (props.openMainMenu) props.openMainMenu();
+            break;
+        case "setTimeFilter":
+            if (props.setTimeFilter)
+                props.setTimeFilter({ start: "1933-08", end: "1945-03" });
+            break;
+        case "switchTimeFilterMode":
+            if (props.switchTimeFilterMode) props.switchTimeFilterMode("point");
+            break;
+        default:
+            console.warn(`Unbekannte Aktion: ${actionName}`);
+    }
+};
+
+// Tutorial control methods
 const startTutorial = () => {
+    currentChapterIndex.value = 0;
+    currentStepIndexInChapter.value = 0;
+    active.value = true;
+    isFirstVisit.value = false;
     emit("start");
+    setTimeout(() => {
+        updateHighlightElement();
+        applyHighlightClass();
+    }, 100);
+    executeAction(currentStep.value?.onShowAction);
 };
 
 const completeTutorial = () => {
+    active.value = false;
+    isFirstVisit.value = false;
     emit("complete");
     localStorage.setItem("tutorialCompleted", "true");
 };
 
 const skipTutorial = () => {
+    active.value = false;
+    isFirstVisit.value = false;
     emit("skip");
     localStorage.setItem("tutorialCompleted", "true");
 };
 
-watch(() => currentStep.value.highlightSelector, updateHighlightElement);
-watch(
-    () => props.active,
-    (newValue) => {
-        if (newValue) {
-            setTimeout(updateHighlightElement, 100);
+// Apply highlighting class to the target element
+const applyHighlightClass = () => {
+    if (highlightElement.value && currentStep.value.highlightClass) {
+        // First remove the class from any elements that might have it
+        document.querySelectorAll(".highlight-tutorial").forEach((el) => {
+            el.classList.remove("highlight-tutorial");
+        });
 
-            // Führe die onShow-Funktion des aktuellen Schritts aus, falls vorhanden
-            if (currentStep.value?.onShow) {
-                currentStep.value.onShow();
-            }
-        }
+        // Add the class to the current highlighted element
+        highlightElement.value.classList.add(currentStep.value.highlightClass);
+    }
+};
+
+// Watch for changes and update UI
+watch(
+    () => currentStep.value.highlightSelector,
+    () => {
+        updateHighlightElement();
+        setTimeout(applyHighlightClass, 50);
     },
 );
+watch([active, isFirstVisit], ([activeValue, firstVisitValue]) => {
+    if (activeValue || firstVisitValue) {
+        setTimeout(updateHighlightElement, 100);
+        executeAction(currentStep.value?.onShowAction);
+        setTimeout(applyHighlightClass, 100);
+    }
+});
 
+// On component mount
 onMounted(() => {
-    if (props.active) {
-        setTimeout(updateHighlightElement, 300);
+    // Check if this is the first visit
+    const tutorialCompleted = localStorage.getItem("tutorialCompleted");
+    if (!tutorialCompleted && !props.tutorialCompleted) {
+        isFirstVisit.value = true;
+        active.value = true;
+        setTimeout(() => {
+            updateHighlightElement();
+            applyHighlightClass();
+        }, 300);
     }
 });
 </script>
@@ -234,7 +773,7 @@ onMounted(() => {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(2px);
+    //backdrop-filter: blur(2px);
 }
 
 .tutorial-content {
@@ -253,7 +792,7 @@ onMounted(() => {
     border: 2px solid #ff5252;
     z-index: 9998;
     pointer-events: none;
-    animation: pulse 2s infinite;
+    //animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
@@ -278,5 +817,85 @@ onMounted(() => {
     bottom: 20px !important;
     left: 20px !important;
     z-index: 1000 !important;
+}
+
+.chapter-indicator {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.chapter-label {
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+.chapter-title {
+    font-style: italic;
+}
+
+.chapter-menu-button {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.chapter-menu-panel {
+    position: fixed;
+    bottom: 80px;
+    left: 20px;
+    width: 250px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    z-index: 10001;
+    overflow: hidden;
+}
+
+.chapter-menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.chapter-menu-header h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.chapter-menu-content {
+    padding: 12px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Highlighting styles */
+.highlight-tutorial {
+    position: relative;
+    z-index: 10000 !important;
+    transform: scale(1.05);
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px 5px rgba(255, 82, 82, 0.7);
+    border-radius: 4px;
+    animation: tutorial-pulse 2s infinite;
+}
+
+.highlight-tutorial-container {
+    position: absolute;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+@keyframes tutorial-pulse {
+    0% {
+        box-shadow: 0 0 15px 5px rgba(255, 82, 82, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 25px 8px rgba(255, 82, 82, 0.9);
+    }
+    100% {
+        box-shadow: 0 0 15px 5px rgba(255, 82, 82, 0.7);
+    }
 }
 </style>
