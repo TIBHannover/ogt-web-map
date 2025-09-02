@@ -269,8 +269,6 @@
                         @searchLocation="searchLocation"
                         @handleMapClick="handleMapClick"
                         @goToStep="goToStep"
-                        @searchStart="onSearchStart"
-                        @searchComplete="onSearchComplete"
                         @submit="resetForm"
                     />
 
@@ -594,7 +592,6 @@ const reinitializeMap = () => {
 };
 
 const handleMapClick = (event) => {
-    console.log("Map clicked!", event.latlng);
     selectedLocation.value = event.latlng;
 
     if (mapRef.value && mapRef.value.leafletObject) {
@@ -631,27 +628,12 @@ const searchLocation = async () => {
             mapZoom.value = 15; // Näher heranzoomen
 
             selectedLocation.value = { lat, lng };
-
-            // Call success method on location selector ref
-            if (refsMounted.value && formRefs.value?.locationSelectorRef) {
-                formRefs.value.locationSelectorRef.onSearchSuccess();
-            }
         } else {
-            // Call error method instead of showing alert
-            if (refsMounted.value && formRefs.value?.locationSelectorRef) {
-                formRefs.value.locationSelectorRef.onSearchError(
-                    "Keine Ergebnisse gefunden",
-                );
-            }
+            alert("Keine Ergebnisse gefunden");
         }
     } catch (err) {
         console.error("Fehler bei der Standortsuche:", err);
-        // Call error method instead of showing alert
-        if (refsMounted.value && formRefs.value?.locationSelectorRef) {
-            formRefs.value.locationSelectorRef.onSearchError(
-                "Fehler bei der Suche",
-            );
-        }
+        alert("Fehler bei der Suche");
     }
 };
 
