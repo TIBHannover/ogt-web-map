@@ -1133,7 +1133,7 @@ export default {
 
                     // Check required fields
                     if (!formData.title) {
-                        alert("Bitte geben Sie einen Titel ein.");
+                        alert("Bitte gebe einen Titel ein.");
                         return;
                     }
 
@@ -1141,7 +1141,7 @@ export default {
                         !formData.perpetrators ||
                         formData.perpetrators === "[]"
                     ) {
-                        alert("Bitte geben Sie mindestens einen Tu00e4ter an.");
+                        alert("Bitte gebe mindestens einen Tu00e4ter an.");
                         return;
                     }
 
@@ -1150,14 +1150,12 @@ export default {
                         (!formData.time_period_start ||
                             formData.time_period_start === "")
                     ) {
-                        alert(
-                            "Bitte geben Sie einen Zeitpunkt oder Zeitraum an.",
-                        );
+                        alert("Bitte gebe einen Zeitpunkt oder Zeitraum an.");
                         return;
                     }
 
                     if (!formData.sources || formData.sources === "[]") {
-                        alert("Bitte geben Sie mindestens eine Quelle an.");
+                        alert("Bitte gebe mindestens eine Quelle an.");
                         return;
                     }
 

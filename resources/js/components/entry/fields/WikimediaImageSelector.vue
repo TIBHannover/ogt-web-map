@@ -119,7 +119,7 @@ const searchPerformed = ref(false);
 
 const searchImages = async () => {
     if (!searchQuery.value || searchQuery.value.trim() === "") {
-        error.value = "Bitte geben Sie einen Suchbegriff ein.";
+        error.value = "Bitte gebe einen Suchbegriff ein.";
         return;
     }
 

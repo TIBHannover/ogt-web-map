@@ -27,7 +27,7 @@
 
         <ValidationError
             :show="showValidationErrors && !isValid"
-            message="Bitte wählen Sie einen Standort auf der Karte aus."
+            message="Bitte wähle einen Standort auf der Karte aus."
             showIcon
         />
 

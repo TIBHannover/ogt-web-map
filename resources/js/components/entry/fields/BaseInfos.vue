@@ -35,7 +35,7 @@
 
         <ValidationError
             :show="showValidationErrors && !isTitleValid"
-            message="Bitte geben Sie einen Titel ein."
+            message="Bitte gebe einen Titel ein."
             showIcon
         />
 
@@ -85,7 +85,7 @@
 
         <ValidationError
             :show="showValidationErrors && !isDescriptionValid"
-            message="Bitte geben Sie eine Kurzbeschreibung ein."
+            message="Bitte gebe eine Kurzbeschreibung ein."
             showIcon
         />
     </div>

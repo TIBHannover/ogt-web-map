@@ -220,14 +220,14 @@
         <ValidationError
             v-if="localEventTimeType === 'point'"
             :show="showValidationErrors && !isPointValid"
-            message="Bitte geben Sie ein Datum für das Ereignis ein."
+            message="Bitte gebe ein Datum für das Ereignis ein."
             showIcon
         />
 
         <ValidationError
             v-if="localEventTimeType === 'range'"
             :show="showValidationErrors && !isRangeValid"
-            message="Bitte geben Sie sowohl Beginn- als auch Enddatum für den Zeitraum ein."
+            message="Bitte gebe sowohl Beginn- als auch Enddatum für den Zeitraum ein."
             showIcon
         />
     </div>

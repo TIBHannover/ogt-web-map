@@ -23,7 +23,7 @@
 
             <ValidationError
                 :show="showValidationErrors && !isValid"
-                message="Bitte fügen Sie mindestens eine Quellenangabe hinzu."
+                message="Bitte füge mindestens eine Quellenangabe hinzu."
                 showIcon
             />
 
@@ -204,7 +204,7 @@ defineExpose({
 
 <!-- Global form styles -->
 <style>
-@import '../styles/form-styles.css';
+@import "../styles/form-styles.css";
 </style>
 
 <style scoped>

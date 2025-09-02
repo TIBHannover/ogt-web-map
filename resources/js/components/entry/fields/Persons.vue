@@ -53,7 +53,7 @@
 
         <ValidationError
             :show="showValidationErrors && !isValid"
-            :message="`Bitte fügen Sie mindestens einen Eintrag für ${label} hinzu.`"
+            :message="`Bitte füge mindestens einen Eintrag für ${label} hinzu.`"
             showIcon
         />
 
