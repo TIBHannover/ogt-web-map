@@ -46,6 +46,9 @@
             :steps="tutorialSteps"
             :tutorial-completed="tutorialCompleted"
             :toggle-timeline="toggleTimelineForTutorial"
+            :open-map-options="openMapOptions"
+            :close-map-options="closeMapOptions"
+            :toggle-map-options="toggleMapOptions"
             @complete="completeTutorial"
             @skip="skipTutorial"
             @start="startTutorial"
@@ -111,9 +114,11 @@ export default {
             isTimelineOpen,
             isMapOptionsOpen,
             isPlaceInfoOpen,
+            openMapOptions,
             closeMapOptions,
             openPlaceInfo,
             closePlaceInfo,
+            toggleMapOptions,
         } = NavigationHelpers();
         const minDate = ref({
             year: -Infinity,
@@ -3426,7 +3431,9 @@ export default {
             showPlaceInfoSidebar,
             selectedPlace,
             showPerson,
+            openMapOptions,
             closeMapOptions,
+            toggleMapOptions,
             switchLocation,
             toggleShowPlaceInfoSidebar,
             restoreCachedMapView,
@@ -3536,6 +3543,19 @@ export default {
 /* greyscale map tiles */
 .leaflet-tile-pane {
     filter: grayscale(1);
+}
+
+.highlight-tutorial {
+    /* Preserve original positioning properties */
+    z-index: 10000 !important;
+    transform: scale(1.05);
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px 5px rgba(255, 82, 82, 0.7);
+    border-radius: 4px;
+    animation: tutorial-pulse 2s infinite;
+    pointer-events: auto !important;
+    /* Ensure button stays clickable */
+    cursor: pointer;
 }
 </style>
 

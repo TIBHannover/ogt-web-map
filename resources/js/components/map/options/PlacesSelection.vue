@@ -47,7 +47,7 @@
                             icon
                             rounded="circle"
                             size="26px"
-                            class="mt-1"
+                            class="mt-1 glossary-button"
                             :to="{ name: 'glossary', hash: '#' + groupName }"
                             v-bind="props"
                         >
@@ -114,7 +114,10 @@ const checkedPlaceLayerGroups = ref(Object.keys(props.groupedPlaces));
 const emit = defineEmits(["update-layer-groups"]);
 
 const allSelected = computed(() => {
-    return checkedPlaceLayerGroups.value.length === Object.keys(props.groupedPlaces).length;
+    return (
+        checkedPlaceLayerGroups.value.length ===
+        Object.keys(props.groupedPlaces).length
+    );
 });
 
 const groupedPlacesOrder = [

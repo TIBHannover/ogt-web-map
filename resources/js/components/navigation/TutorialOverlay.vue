@@ -6,7 +6,6 @@
             icon
             color="primary"
             class="tutorial-button"
-            style="position: fixed; bottom: 20px; left: 20px"
             size="large"
             @click="startTutorial"
         >
@@ -19,7 +18,6 @@
             icon
             color="secondary"
             class="chapter-menu-button"
-            style="position: fixed; bottom: 80px; left: 20px; z-index: 10001"
             size="large"
             @click="toggleChapterMenu"
         >
@@ -168,22 +166,47 @@ const props = defineProps({
         type: Function,
         required: false,
     },
+    openTimeline: {
+        type: Function,
+        required: false,
+    },
+    closeTimeline: {
+        type: Function,
+        required: false,
+    },
     toggleMapOptions: {
+        type: Function,
+        required: false,
+    },
+    openMapOptions: {
+        type: Function,
+        required: false,
+    },
+    closeMapOptions: {
+        type: Function,
+        required: false,
+    },
+    resetAllNavigation: {
         type: Function,
         required: false,
         default: () => {
             console.warn(
-                "Default toggleMapOptions called - props not properly passed",
+                "Default resetAllNavigation called - props not properly passed",
             );
-            // Try to find and click the map options button directly as fallback
-            const mapOptionsButton = document.querySelector(
-                ".map-options-button",
-            );
-            if (mapOptionsButton) {
-                console.log("Found map options button, clicking as fallback");
-                mapOptionsButton.click();
-            } else {
-                console.error("Could not find map options button");
+            // Try direct DOM manipulation as fallback
+            try {
+                const mapOptionsButton = document.querySelector(
+                    ".map-options-button",
+                );
+                const closeButton = document.querySelector(
+                    ".v-navigation-drawer .v-btn .mdi-close",
+                );
+                if (mapOptionsButton && closeButton) {
+                    console.log("Found close button, clicking as fallback");
+                    closeButton.click();
+                }
+            } catch (e) {
+                console.error("Fallback close failed:", e);
             }
         },
     },
@@ -247,7 +270,7 @@ const chapters = [
                 position: { top: "100px", right: "80px" },
                 onShowAction: null, // Don't trigger twice
                 highlightClass: "highlight-tutorial",
-                onStepStart: null,
+                onStepStart: "closeMapOptions",
             },
             {
                 title: "Glossareinträge",
@@ -257,23 +280,25 @@ const chapters = [
                 position: { top: "150px", right: "400px" },
                 onShowAction: "openGlossaryEntry",
                 highlightClass: "highlight-tutorial",
-                onStepStart: "toggleMapOptions",
+                onStepStart: "openMapOptions",
             },
             {
                 title: "Weitere Schlüsselbegriffe",
                 description:
                     "Hier findest Du auch weitere Schlüsselbegriffe zur Geschichte der Gestapo.",
                 highlightSelector: ".glossary-content", // Selector for the Glossary content
-                position: { top: "200px", right: "80px" },
+                position: { top: "200px", right: "400px" },
                 highlightClass: "highlight-tutorial",
+                onStepStart: "openMapOptions",
             },
             {
                 title: "Filteroptionen",
                 description:
                     "Hier kannst Du auswählen, welche Kategorien auf der Karte angezeigt werden sollen.",
                 highlightSelector: ".filter-options", // Selector for the Filter options
-                position: { top: "120px", right: "80px" },
+                position: { top: "120px", right: "400px" },
                 highlightClass: "highlight-tutorial",
+                onStepStart: "openMapOptions",
             },
             {
                 title: "Alle Filter",
@@ -283,6 +308,7 @@ const chapters = [
                 position: { top: "150px", right: "80px" },
                 onShowAction: "deactivateAllFilters",
                 highlightClass: "highlight-tutorial",
+                onStepStart: "openMapOptions",
             },
             {
                 title: "Kategorie auswählen",
@@ -292,12 +318,14 @@ const chapters = [
                 position: { top: "180px", right: "80px" },
                 onShowAction: "activateFilter",
                 highlightClass: "highlight-tutorial",
+                onStepStart: "openMapOptions",
             },
             {
                 title: "Gefilterte Anzeige",
                 description:
                     "Nun werden ausschließlich Staatspolizeileitstellen auf der Karte angezeigt.",
                 position: { top: "200px", right: "80px" },
+                onStepStart: "openMapOptions",
             },
             {
                 title: "Standorte auswählen",
@@ -306,6 +334,7 @@ const chapters = [
                 highlightSelector: ".location-filters", // Selector for the location filters
                 position: { bottom: "150px", right: "80px" },
                 highlightClass: "highlight-tutorial",
+                onStepStart: "openMapOptions",
             },
         ],
     },
@@ -440,8 +469,8 @@ const chapters = [
                     "Hier kannst Du den Zeitfilter aktivieren, um gezielt nach Zeiträumen oder Zeitpunkten zu filtern.",
                 highlightSelector: ".timeline-button", // Selector for timeline button
                 position: { bottom: "100px", right: "100px" },
-                onShowAction: "toggleTimeline",
-                onStepStart: "toggleTimeline",
+                onShowAction: null,
+                onStepStart: "openTimeline",
             },
             {
                 title: "Zeitfilter deaktivieren",
@@ -597,6 +626,10 @@ const nextStep = () => {
                     "Executing onStepStart action:",
                     currentStep.value.onStepStart,
                 );
+                console.log(
+                    "Executing onStepStart:",
+                    currentStep.value.onStepStart,
+                );
                 executeAction(currentStep.value.onStepStart);
             }
 
@@ -618,19 +651,25 @@ const prevStep = () => {
         currentStepIndexInChapter.value--;
 
         setTimeout(() => {
-            // Execute the step start action if defined - with a delay to ensure Vue has updated
-            if (currentStep.value?.onStepStart) {
-                executeAction(currentStep.value.onStepStart);
-            }
-
             updateHighlightElement();
             applyHighlightClass();
 
-            // Execute onShowAction after a slight delay
-            setTimeout(() => {
-                executeAction(currentStep.value?.onShowAction);
-            }, 200);
-        }, 100);
+            // Execute step start action if defined
+            if (currentStep.value?.onStepStart) {
+                console.log(
+                    "Executing onStepStart in prevStep:",
+                    currentStep.value.onStepStart,
+                );
+                executeAction(currentStep.value.onStepStart);
+
+                // Execute onShowAction after the action has taken effect
+                setTimeout(() => {
+                    if (currentStep.value?.onShowAction) {
+                        executeAction(currentStep.value?.onShowAction);
+                    }
+                }, 500);
+            }
+        }, 200);
     } else if (currentChapterIndex.value > 0) {
         prevChapter();
     }
@@ -641,20 +680,25 @@ const nextChapter = () => {
         currentChapterIndex.value++;
         currentStepIndexInChapter.value = 0;
 
-        // Wait for Vue to update
         setTimeout(() => {
-            // Execute the step start action if defined
-            if (currentStep.value?.onStepStart) {
-                executeAction(currentStep.value.onStepStart);
-            }
-
             updateHighlightElement();
             applyHighlightClass();
 
-            // Execute onShowAction after a slight delay
-            setTimeout(() => {
-                executeAction(currentStep.value?.onShowAction);
-            }, 200);
+            // Execute step start action if defined
+            if (currentStep.value?.onStepStart) {
+                console.log(
+                    "Executing onStepStart in nextChapter:",
+                    currentStep.value.onStepStart,
+                );
+                executeAction(currentStep.value.onStepStart);
+
+                // Execute onShowAction after the action has taken effect
+                setTimeout(() => {
+                    if (currentStep.value?.onShowAction) {
+                        executeAction(currentStep.value?.onShowAction);
+                    }
+                }, 500);
+            }
         }, 200);
     }
 };
@@ -702,27 +746,113 @@ const toggleChapterMenu = () => {
 };
 
 const executeAction = (actionName) => {
-    if (!actionName) return;
+    if (!actionName) {
+        console.log("No action name provided");
+        return;
+    }
 
-    // Add a small delay to ensure the UI is ready
+    console.log("Executing action:", actionName);
     setTimeout(() => {
         switch (actionName) {
-            case "toggleTimeline":
-                if (props.toggleTimeline) props.toggleTimeline();
+            case "resetAllNavigation":
+                if (props.resetAllNavigation) props.resetAllNavigation();
                 break;
-            case "toggleMapOptions":
-                if (props.toggleMapOptions) {
-                    console.log(
-                        "About to toggle map options from tutorial",
-                        props.toggleMapOptions,
+            case "openTimeline":
+                if (props.openTimeline) {
+                    props.openTimeline();
+                } else if (props.toggleTimeline) {
+                    const isTimelineOpen = document.querySelector(
+                        ".timeline-drawer.v-navigation-drawer--active",
                     );
-                    props.toggleMapOptions();
-                    console.log("Toggled map options from tutorial");
-                } else {
-                    console.error("toggleMapOptions function is not available");
+                    if (!isTimelineOpen) {
+                        props.toggleTimeline();
+                    }
+                }
+                break;
+            case "closeTimeline":
+                if (props.closeTimeline) {
+                    props.closeTimeline();
+                } else if (props.toggleTimeline) {
+                    const isTimelineOpen = document.querySelector(
+                        ".timeline-drawer.v-navigation-drawer--active",
+                    );
+                    if (isTimelineOpen) {
+                        props.toggleTimeline();
+                    }
+                }
+                break;
+            // Already handled elsewhere
+            case "openMapOptions":
+                if (props.openMapOptions) {
+                    props.openMapOptions();
+                } else if (props.toggleMapOptions) {
+                    // Try multiple selectors to find the map options sidebar
+                    const isMapOptionsOpen = document.querySelector(
+                        ".menuOptionsidebar.v-navigation-drawer--active, .map-options-sidebar.v-navigation-drawer--active",
+                    );
+                    if (!isMapOptionsOpen) {
+                        console.log("Opening map options via toggleMapOptions");
+                        props.toggleMapOptions();
+                    }
+                }
+                break;
+            case "closeMapOptions":
+                if (props.closeMapOptions) {
+                    props.closeMapOptions();
+                } else if (props.toggleMapOptions) {
+                    // Try multiple selectors to find the map options sidebar
+                    const isMapOptionsOpen = document.querySelector(
+                        ".menuOptionsidebar.v-navigation-drawer--active, .map-options-sidebar.v-navigation-drawer--active",
+                    );
+                    if (isMapOptionsOpen) {
+                        console.log("Closing map options via toggleMapOptions");
+                        props.toggleMapOptions();
+                    }
                 }
                 break;
             case "openGlossaryEntry":
+                if (props.openGlossaryEntry)
+                    props.openGlossaryEntry("Arbeitserziehungslager");
+                break;
+            case "handleMapOptions":
+                if (props.toggleMapOptions) {
+                    props.toggleMapOptions();
+                } else if (props.openMapOptions) {
+                    props.openMapOptions();
+                } else {
+                    // Try direct DOM approach
+                    const mapOptionsButton = document.querySelector(
+                        ".map-options-button",
+                    );
+                    if (mapOptionsButton) {
+                        mapOptionsButton.click();
+                    }
+                }
+                break;
+            case "handleCloseMapOptions":
+                if (props.closeMapOptions) {
+                    props.closeMapOptions();
+                } else if (props.toggleMapOptions) {
+                    props.toggleMapOptions();
+                }
+                break;
+            // This case was already handled earlier in the switch statement
+            case "handleDuplicateMapOptions":
+                if (props.openMapOptions) {
+                    props.openMapOptions();
+                } else if (props.toggleMapOptions) {
+                    props.toggleMapOptions();
+                } else {
+                    // Try direct DOM approach
+                    const mapOptionsButton = document.querySelector(
+                        ".map-options-button",
+                    );
+                    if (mapOptionsButton) {
+                        mapOptionsButton.click();
+                    }
+                }
+                break;
+            case "handleGlossaryEntry":
                 if (props.openGlossaryEntry)
                     props.openGlossaryEntry("Arbeitserziehungslager");
                 break;
@@ -765,6 +895,8 @@ const executeAction = (actionName) => {
 
 // Tutorial control methods
 const startTutorial = () => {
+    closeAllNavigation();
+
     currentChapterIndex.value = 0;
     currentStepIndexInChapter.value = 0;
     active.value = true;
@@ -773,18 +905,24 @@ const startTutorial = () => {
 
     // Wait for Vue to update
     setTimeout(() => {
-        // Execute step start action if defined
-        if (currentStep.value?.onStepStart) {
-            executeAction(currentStep.value.onStepStart);
-        }
-
         updateHighlightElement();
         applyHighlightClass();
 
-        // Execute onShowAction after a slight delay
-        setTimeout(() => {
-            executeAction(currentStep.value?.onShowAction);
-        }, 200);
+        // Execute step start action if defined
+        if (currentStep.value?.onStepStart) {
+            console.log(
+                "Executing onStepStart in startTutorial:",
+                currentStep.value.onStepStart,
+            );
+            executeAction(currentStep.value.onStepStart);
+
+            // Execute onShowAction after a slight delay if it exists
+            setTimeout(() => {
+                if (currentStep.value?.onShowAction) {
+                    executeAction(currentStep.value?.onShowAction);
+                }
+            }, 500);
+        }
     }, 200);
 };
 
@@ -820,6 +958,84 @@ const applyHighlightClass = () => {
     }
 };
 
+const isAnyNavigationOpen = () => {
+    try {
+        const openDrawers = document.querySelectorAll(
+            ".v-navigation-drawer--active",
+        );
+        if (openDrawers.length > 0) {
+            return true;
+        }
+
+        const mapOptionsSidebar = document.querySelector(
+            ".menuOptionsidebar.v-navigation-drawer--active, .map-options-sidebar.v-navigation-drawer--active",
+        );
+        if (mapOptionsSidebar) {
+            return true;
+        }
+
+        const timelineDrawer = document.querySelector(
+            ".timeline-drawer.v-navigation-drawer--active",
+        );
+        if (timelineDrawer) {
+            return true;
+        }
+
+        return false;
+    } catch {
+        return false;
+    }
+};
+
+const closeNavigationDirectly = () => {
+    try {
+        if (!isAnyNavigationOpen()) {
+            return;
+        }
+
+        const mapOptionsSidebar = document.querySelector(
+            ".menuOptionsidebar.v-navigation-drawer--active, .map-options-sidebar.v-navigation-drawer--active",
+        );
+        if (mapOptionsSidebar) {
+            const mapOptionsCloseBtn = mapOptionsSidebar.querySelector(
+                ".v-list-item-action .v-btn",
+            );
+            if (mapOptionsCloseBtn) {
+                mapOptionsCloseBtn.click();
+                return;
+            }
+        }
+
+        const allCloseButtons = Array.from(
+            document.querySelectorAll(".v-navigation-drawer--active .v-btn"),
+        );
+        const closeButtons = allCloseButtons.filter((btn) => {
+            const iconEl = btn.querySelector(".mdi-close, .v-icon");
+            const rect = btn.getBoundingClientRect();
+            const isSmallButton = rect.width < 50 && rect.height < 50;
+            return iconEl !== null && isSmallButton;
+        });
+
+        if (closeButtons.length > 0) {
+            closeButtons.forEach((btn) => btn.click());
+            return;
+        }
+
+        const backdrop = document.querySelector(".v-overlay__scrim");
+        if (backdrop) {
+            backdrop.click();
+            return;
+        }
+
+        const mapOptionsButton = document.querySelector(".map-options-button");
+        if (mapOptionsButton && mapOptionsSidebar) {
+            mapOptionsButton.click();
+        }
+    } catch {
+        // Silently ignore errors during DOM manipulation
+    }
+};
+
 // Watch for changes and update UI
 watch(
     () => currentStep.value.highlightSelector,
@@ -836,18 +1052,45 @@ watch([active, isFirstVisit], ([activeValue, firstVisitValue]) => {
     }
 });
 
+// Helper method to ensure all navigation is closed
+const closeAllNavigation = () => {
+    // First try the proper function if available
+    if (props.resetAllNavigation) {
+        try {
+            props.resetAllNavigation();
+        } catch {
+            // Silently handle error
+        }
+    } else {
+        // No reset function available
+    }
+
+    // Then use direct DOM method as backup
+    const isOpen = isAnyNavigationOpen();
+
+    if (isOpen) {
+        closeNavigationDirectly();
+    }
+
+    setTimeout(() => {
+        if (isAnyNavigationOpen()) {
+            if (props.resetAllNavigation) props.resetAllNavigation();
+            closeNavigationDirectly();
+        }
+    }, 200);
+};
+
 // On component mount
 onMounted(() => {
-    // Check if this is the first visit
+    closeAllNavigation();
+
     const tutorialCompleted = localStorage.getItem("tutorialCompleted");
+
     if (!tutorialCompleted && !props.tutorialCompleted) {
+        setTimeout(closeAllNavigation, 300);
+
         isFirstVisit.value = true;
         active.value = true;
-
-        // Execute step start action if defined
-        if (currentStep.value?.onStepStart) {
-            executeAction(currentStep.value.onStepStart);
-        }
 
         setTimeout(() => {
             updateHighlightElement();
@@ -929,8 +1172,8 @@ onMounted(() => {
 
 .tutorial-button {
     position: fixed;
-    bottom: 20px !important;
-    left: 20px !important;
+    bottom: 20px;
+    left: 20px;
     z-index: 100 !important;
 }
 
@@ -951,6 +1194,10 @@ onMounted(() => {
 
 .chapter-menu-button {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 10001;
 }
 
 .chapter-menu-panel {
