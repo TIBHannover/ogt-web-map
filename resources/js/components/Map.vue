@@ -798,6 +798,9 @@ export default {
             try {
                 let groupedPlaces = {};
 
+                // Check if this is a refresh or initial load
+                const isRefresh = window.initialPlacesLoaded;
+
                 try {
                     // Versuche zuerst die Anfrage an den Cache
                     const response = await axios.get(
@@ -814,6 +817,13 @@ export default {
                 }
 
                 await nextTick();
+
+                // If this is a refresh, clear existing markers first
+                if (isRefresh) {
+                    clearAllPlaceMarkers();
+                }
+
+                // Pass the data to visualize places
                 await visualizePlaces(groupedPlaces);
                 setCurrentValues();
                 derivePlaceData(groupedPlaces);
@@ -830,9 +840,12 @@ export default {
                 currentGroupedPlaces.value = Object.keys(groupedPlaces);
 
                 // Update places cache after a delay
-                setTimeout(() => {
-                    updatePlacesCache();
-                }, 10000);
+                if (!window.initialPlacesLoaded) {
+                    setTimeout(() => {
+                        updatePlacesCache();
+                    }, 10000);
+                    window.initialPlacesLoaded = true;
+                }
             } catch (error) {
                 console.error("Error fetching grouped places:", error);
             }
@@ -858,6 +871,9 @@ export default {
                     if (message.type === "error") {
                         console.warn("Places Worker error:", message.error);
                     } else if (message.type === "success") {
+                        // Clear existing markers before adding new ones
+                        clearAllPlaceMarkers();
+
                         // Update groupedPlaces with new data
                         visualizePlaces(message.data);
                         derivePlaceData(message.data);
@@ -877,6 +893,29 @@ export default {
                 worker.postMessage("start");
             }, 10000);
         };
+
+        /**
+         * Clear all place markers from the map
+         */
+        const clearAllPlaceMarkers = () => {
+            // Remove all existing markers from layer groups
+            Object.keys(groupedPlaces.value).forEach((groupName) => {
+                const layerGroup = groupedPlaces.value[groupName].layerGroup;
+                if (layerGroup) {
+                    layerGroup.clearLayers();
+                }
+
+                // Clear the places by coordinates array
+                groupedPlaces.value[groupName].placesByCoordinates = [];
+
+                // Reset markers map
+                markersDate.value = new Map();
+            });
+        };
+
+        /**
+         * Clears all place markers from the map to prevent duplicates when refreshing data
+         */
 
         const createPlacesWorker = () => {
             const workerCode = `
@@ -933,6 +972,9 @@ export default {
          */
         const getPersons = async () => {
             try {
+                // Check if we need to handle refreshed data
+                const isRefresh = window.initialPersonsLoaded;
+
                 try {
                     // Versuche zuerst die API-Anfrage
                     const response = await axios.get(
@@ -948,6 +990,7 @@ export default {
                     persons.value = mockPersonsData;
                 }
 
+                // Process the data
                 processPersonsData();
 
                 if (Object.keys(derivedPlacesData.value).length > 0) {
@@ -955,9 +998,13 @@ export default {
                     await checkUrlForPerson();
                 }
 
-                setTimeout(() => {
-                    updatePersonsCache();
-                }, 10000);
+                // Only schedule a cache update if this is the initial load
+                if (!window.initialPersonsLoaded) {
+                    setTimeout(() => {
+                        updatePersonsCache();
+                    }, 10000);
+                    window.initialPersonsLoaded = true;
+                }
             } catch (error) {
                 console.error("Error fetching persons:", error);
             }
@@ -982,7 +1029,12 @@ export default {
                     if (message.type === "error") {
                         console.warn("Worker error:", message.error);
                     } else if (message.type === "success") {
+                        // Update persons data
                         persons.value = message.data;
+
+                        // Re-process the data
+                        processPersonsData();
+                        updateInfoSidebarData();
                     }
 
                     worker.terminate();
@@ -2384,27 +2436,42 @@ export default {
                     return;
                 }
                 const rawMap = toRaw(map.value);
-                const layerGroup = L.layerGroup(placeMarkers);
 
-                if (layerGroup && typeof layerGroup.addTo === "function") {
-                    layerGroup.addTo(rawMap);
+                // Check if a layer group already exists for this place group
+                if (groupedPlaces.value[placeGroupName].layerGroup) {
+                    // If it exists, clear it and add the new markers
+                    const existingLayerGroup =
+                        groupedPlaces.value[placeGroupName].layerGroup;
+                    existingLayerGroup.clearLayers();
 
-                    if (
-                        layers.value &&
-                        typeof layers.value.addOverlay === "function"
-                    ) {
-                        const rawLayers = toRaw(layers.value);
-                        rawLayers.addOverlay(
-                            layerGroup,
-                            groupedPlaces.value[placeGroupName]?.layerName ||
-                                "",
-                        );
-                    }
+                    // Add new markers to the existing layer group
+                    placeMarkers.forEach((marker) => {
+                        existingLayerGroup.addLayer(marker);
+                    });
+                } else {
+                    // Create a new layer group if it doesn't exist
+                    const layerGroup = L.layerGroup(placeMarkers);
 
-                    // Aktualisieren Sie die Referenz in groupedPlaces
-                    if (groupedPlaces.value[placeGroupName]) {
-                        groupedPlaces.value[placeGroupName].layerGroup =
-                            layerGroup;
+                    if (layerGroup && typeof layerGroup.addTo === "function") {
+                        layerGroup.addTo(rawMap);
+
+                        if (
+                            layers.value &&
+                            typeof layers.value.addOverlay === "function"
+                        ) {
+                            const rawLayers = toRaw(layers.value);
+                            rawLayers.addOverlay(
+                                layerGroup,
+                                groupedPlaces.value[placeGroupName]
+                                    ?.layerName || "",
+                            );
+                        }
+
+                        // Aktualisieren Sie die Referenz in groupedPlaces
+                        if (groupedPlaces.value[placeGroupName]) {
+                            groupedPlaces.value[placeGroupName].layerGroup =
+                                layerGroup;
+                        }
                     }
                 }
             } catch (error) {
