@@ -649,13 +649,15 @@ export default {
                 let groupedPlaces = {};
 
                 try {
-                    // Versuche zuerst die API-Anfrage
-                    const response = await axios.get("/api/wikidata/places");
+                    // Versuche zuerst die Anfrage an den Cache
+                    const response = await axios.get(
+                        "/api/wikidata/places/cache",
+                    );
                     groupedPlaces = response.data;
                 } catch (error) {
                     // Bei Fehler zu Mock-Daten greifen
                     console.warn(
-                        "Fehler beim Laden der Wikidata Places-Daten, verwende Mock-Daten:",
+                        "Fehler beim Laden der Wikidata Places-Cache-Daten, verwende Mock-Daten:",
                         error,
                     );
                     groupedPlaces = mockPlacesData;
@@ -676,9 +678,105 @@ export default {
                 await checkUrlForLocation();
                 await checkUrlForPerson();
                 currentGroupedPlaces.value = Object.keys(groupedPlaces);
+
+                // Update places cache after a delay
+                setTimeout(() => {
+                    updatePlacesCache();
+                }, 10000);
             } catch (error) {
                 console.error("Error fetching grouped places:", error);
             }
+        };
+
+        /**
+         * Update the places cache by fetching fresh data from the API
+         */
+        const updatePlacesCache = () => {
+            if (Object.keys(groupedPlaces.value).length === 0) {
+                console.log(
+                    "Kein Places-Cache-Update durchgeführt, da keine Ortsdaten vorliegen",
+                );
+                return;
+            }
+
+            setTimeout(() => {
+                const worker = createPlacesWorker();
+
+                worker.onmessage = (e) => {
+                    const message = e.data;
+
+                    if (message.type === "error") {
+                        console.warn("Places Worker error:", message.error);
+                    } else if (message.type === "success") {
+                        // Update groupedPlaces with new data
+                        visualizePlaces(message.data);
+                        derivePlaceData(message.data);
+                        if (
+                            Object.keys(persons.value.victims).length > 0 ||
+                            Object.keys(persons.value.perpetrators).length > 0
+                        ) {
+                            deriveDataFromVictims();
+                            deriveLocationEmployees();
+                        }
+                        updateInfoSidebarData();
+                    }
+
+                    worker.terminate();
+                };
+
+                worker.postMessage("start");
+            }, 10000);
+        };
+
+        const createPlacesWorker = () => {
+            const workerCode = `
+                function processData(data) {
+                    // Hier könntest du optional Daten optimieren oder filtern, falls nötig
+                    return data;
+                }
+
+                self.onmessage = async function(e) {
+                    try {
+                        // Lade die Daten
+                        const url = self.location.origin + '/api/wikidata/places';
+
+                        try {
+                            const response = await fetch(url);
+
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok: ' + response.status);
+                            }
+
+                            const rawData = await response.json();
+
+                            // Verarbeite die Daten - optional
+                            const processedData = processData(rawData);
+
+                            // Sende die verarbeiteten Daten zurück
+                            self.postMessage({
+                                type: 'success',
+                                data: processedData
+                            });
+                        } catch (fetchError) {
+                            // Wenn der API-Aufruf fehlschlägt, geben wir den Fehler weiter
+                            self.postMessage({
+                                type: 'error',
+                                error: 'API request failed: ' + fetchError.message
+                            });
+                        }
+                    } catch (error) {
+                        self.postMessage({
+                            type: 'error',
+                            error: error.message
+                        });
+                    }
+                };
+            `;
+
+            const blob = new Blob([workerCode], {
+                type: "application/javascript",
+            });
+            return new Worker(URL.createObjectURL(blob));
         };
         /**
          * Request persons data from cached file and Wikidata for perpetrators and victims.
