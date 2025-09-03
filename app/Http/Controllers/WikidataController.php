@@ -81,12 +81,13 @@ class WikidataController extends Controller
     }
 
     /**
-     * Get cached Wikidata persons data from file.
+     * Get cached Wikidata persons data from file or create cache if it doesn't exist.
      *
+     * @param WikidataClient $wikidataClient
      * @return Response
      * @throws FileNotFoundException
      */
-    public function getCachedPersons(): Response
+    public function getCachedPersons(WikidataClient $wikidataClient): Response
     {
         $groupedPersons = array_fill_keys(
             array_keys(WikidataClient::PERSON_GROUPS_IDS),
@@ -103,6 +104,66 @@ class WikidataController extends Controller
                     ),
                     true,
                 ) ?? $groupedPersons;
+        } else {
+            // Cache doesn't exist, create it by querying data
+            $personsResponse = $wikidataClient->queryPersons();
+
+            $validator = Validator::make($personsResponse, [
+                "head" => "required|array:vars|size:1",
+                "head.vars" => [
+                    "required",
+                    "array",
+                    "size:12",
+                    Rule::in([
+                        "item",
+                        "itemLabel",
+                        "itemDescription",
+                        "property",
+                        "statement",
+                        "propertyValue",
+                        "propertyValueLabel",
+                        "propertyTimePrecision",
+                        "qualifier",
+                        "qualifierValue",
+                        "qualifierValueLabel",
+                        "qualifierTimePrecision",
+                    ]),
+                ],
+                "results" => "required|array:bindings|size:1",
+                "results.bindings" => "required|array",
+            ]);
+
+            if (!$validator->fails()) {
+                $persons = $wikidataClient->mergeItemsData(
+                    $personsResponse["results"]["bindings"],
+                );
+                $groupedPersons = $wikidataClient->groupItemsByProperty(
+                    $persons,
+                    WikidataClient::PERSON_GROUPS_IDS,
+                    "P2868",
+                );
+
+                // Ensure the directory exists
+                $filePath = config("wikidata.cachedPersonsFile");
+                $directory = dirname($filePath);
+
+                if (
+                    $directory !== "." &&
+                    !Storage::disk("local")->exists($directory)
+                ) {
+                    Storage::disk("local")->makeDirectory($directory);
+                }
+
+                Storage::disk("local")->put(
+                    $filePath,
+                    json_encode($groupedPersons),
+                );
+            } else {
+                Log::warning(
+                    "Validation of Wikidata persons response failed during cache generation.",
+                    $validator->errors()->all(),
+                );
+            }
         }
 
         return response($groupedPersons, Response::HTTP_OK);
@@ -175,12 +236,13 @@ class WikidataController extends Controller
     }
 
     /**
-     * Get cached Wikidata places data from file.
+     * Get cached Wikidata places data from file or create cache if it doesn't exist.
      *
+     * @param WikidataClient $wikidataClient
      * @return Response
      * @throws FileNotFoundException
      */
-    public function getCachedPlaces(): Response
+    public function getCachedPlaces(WikidataClient $wikidataClient): Response
     {
         $groupedLocations = array_fill_keys(
             array_keys(WikidataClient::PLACE_GROUPS_IDS),
@@ -197,6 +259,66 @@ class WikidataController extends Controller
                     ),
                     true,
                 ) ?? $groupedLocations;
+        } else {
+            // Cache doesn't exist, create it by querying data
+            $placesResponse = $wikidataClient->queryPlaces();
+
+            $validator = Validator::make($placesResponse, [
+                "head" => "required|array:vars|size:1",
+                "head.vars" => [
+                    "required",
+                    "array",
+                    "size:12",
+                    Rule::in([
+                        "item",
+                        "itemLabel",
+                        "itemDescription",
+                        "property",
+                        "statement",
+                        "propertyValue",
+                        "propertyValueLabel",
+                        "propertyTimePrecision",
+                        "qualifier",
+                        "qualifierValue",
+                        "qualifierValueLabel",
+                        "qualifierTimePrecision",
+                    ]),
+                ],
+                "results" => "required|array:bindings|size:1",
+                "results.bindings" => "required|array",
+            ]);
+
+            if (!$validator->fails()) {
+                $locations = $wikidataClient->mergeItemsData(
+                    $placesResponse["results"]["bindings"],
+                );
+                $groupedLocations = $wikidataClient->groupItemsByProperty(
+                    $locations,
+                    WikidataClient::PLACE_GROUPS_IDS,
+                    "P31",
+                );
+
+                // Ensure the directory exists
+                $filePath = config("wikidata.cachedPlacesFile");
+                $directory = dirname($filePath);
+
+                if (
+                    $directory !== "." &&
+                    !Storage::disk("local")->exists($directory)
+                ) {
+                    Storage::disk("local")->makeDirectory($directory);
+                }
+
+                Storage::disk("local")->put(
+                    $filePath,
+                    json_encode($groupedLocations),
+                );
+            } else {
+                Log::warning(
+                    "Validation of Wikidata places response failed during cache generation.",
+                    $validator->errors()->all(),
+                );
+            }
         }
 
         return response($groupedLocations, Response::HTTP_OK);
