@@ -9,7 +9,7 @@ return [
     | The URL of the Wikidata API endpoint.
     |
     */
-    'api_url' => env('WIKIDATA_API_URL', 'https://www.wikidata.org/w/api.php'),
+    "api_url" => env("WIKIDATA_API_URL", "https://www.wikidata.org/w/api.php"),
 
     /*
     |--------------------------------------------------------------------------
@@ -19,7 +19,7 @@ return [
     | The URL of the Wikidata SPARQL endpoint.
     |
     */
-    'url' => env('WIKIDATA_URL', 'https://query.wikidata.org/sparql'),
+    "url" => env("WIKIDATA_URL", "https://query.wikidata.org/sparql"),
 
     /*
     |--------------------------------------------------------------------------
@@ -29,7 +29,7 @@ return [
     | The username of the Wikidata bot account to use for API requests.
     |
     */
-    'bot_username' => env('WIKIDATA_BOT_USERNAME', ''),
+    "bot_username" => env("WIKIDATA_BOT_USERNAME", ""),
 
     /*
     |--------------------------------------------------------------------------
@@ -39,7 +39,7 @@ return [
     | The password of the Wikidata bot account to use for API requests.
     |
     */
-    'bot_password' => env('WIKIDATA_BOT_PASSWORD', ''),
+    "bot_password" => env("WIKIDATA_BOT_PASSWORD", ""),
 
     /*
     |--------------------------------------------------------------------------
@@ -51,7 +51,7 @@ return [
     | development.
     |
     */
-    'simulation_mode' => env('WIKIDATA_SIMULATION_MODE', false),
+    "simulation_mode" => env("WIKIDATA_SIMULATION_MODE", false),
 
     /*
     |--------------------------------------------------------------------------
@@ -62,8 +62,8 @@ return [
     | history on Wikidata.
     |
     */
-    'edit_summary' => env('WIKIDATA_EDIT_SUMMARY', 'Adding data via OGT API'),
-    
+    "edit_summary" => env("WIKIDATA_EDIT_SUMMARY", "Adding data via OGT API"),
+
     /*
     |--------------------------------------------------------------------------
     | Use Queue System
@@ -73,8 +73,8 @@ return [
     | system to handle rate limiting gracefully.
     |
     */
-    'use_queue' => env('WIKIDATA_USE_QUEUE', true),
-    
+    "use_queue" => env("WIKIDATA_USE_QUEUE", true),
+
     /*
     |--------------------------------------------------------------------------
     | Max Retries for Rate Limited Operations
@@ -83,8 +83,8 @@ return [
     | The maximum number of times to retry operations that are rate limited.
     |
     */
-    'max_retries' => env('WIKIDATA_MAX_RETRIES', 3),
-    
+    "max_retries" => env("WIKIDATA_MAX_RETRIES", 3),
+
     /*
     |--------------------------------------------------------------------------
     | Initial Retry Delay (in seconds)
@@ -94,8 +94,8 @@ return [
     | This value will be multiplied by 2^retry_count for exponential backoff.
     |
     */
-    'initial_retry_delay' => env('WIKIDATA_INITIAL_RETRY_DELAY', 5),
-    
+    "initial_retry_delay" => env("WIKIDATA_INITIAL_RETRY_DELAY", 5),
+
     /*
     |--------------------------------------------------------------------------
     | Callback URL
@@ -106,9 +106,9 @@ return [
     | environment variables and will be used for all entity creations.
     |
     */
-   'callback_url' => env('WIKIDATA_CALLBACK_URL'),
-   
-   /*
+    "callback_url" => env("WIKIDATA_CALLBACK_URL"),
+
+    /*
     |--------------------------------------------------------------------------
     | Cached Persons File
     |--------------------------------------------------------------------------
@@ -116,5 +116,21 @@ return [
     | The path to the file where the cached persons data is stored.
     |
     */
-   'cachedPersonsFile' => env('WIKIDATA_CACHED_PERSONS_FILE', 'wikidata/persons.json'),
+    "cachedPersonsFile" => env(
+        "WIKIDATA_CACHED_PERSONS_FILE",
+        "wikidata/persons.json",
+    ),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Cached Places File
+    |--------------------------------------------------------------------------
+    |
+    | The path to the file where the cached places data is stored.
+    |
+    */
+    "cachedPlacesFile" => env(
+        "WIKIDATA_CACHED_PLACES_FILE",
+        "wikidata/places.json",
+    ),
 ];
