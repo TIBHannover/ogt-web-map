@@ -3,10 +3,10 @@
 return [
     /*
     |--------------------------------------------------------------------------
-    | Wikidata API URL
+    | Wikidata API Configuration
     |--------------------------------------------------------------------------
     |
-    | The URL of the Wikidata API endpoint.
+    | Configuration settings for connecting to the Wikidata API.
     |
     */
     "api_url" => env("WIKIDATA_API_URL", "https://www.wikidata.org/w/api.php"),
@@ -101,9 +101,7 @@ return [
     | Callback URL
     |--------------------------------------------------------------------------
     |
-    | Global callback URL to notify when entities are created. This is more
-    | reliable than per-request callbacks because it can be configured in
-    | environment variables and will be used for all entity creations.
+    | Additional options for debugging and logging Wikidata operations.
     |
     */
     "callback_url" => env("WIKIDATA_CALLBACK_URL"),

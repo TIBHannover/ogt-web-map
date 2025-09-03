@@ -11,15 +11,34 @@ services:
       - ./.env:/var/www/html/.env:ro
       - /var/www/html/vendor # Bewahrt die Container-Vendor-Dateien
       - /var/www/html/node_modules # Bewahrt die Container-Node-Modules
+      - ./storage/app:/var/www/html/storage/app
       - ./docker/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
     environment:
       - APP_ENV=local
       - APP_DEBUG=true
       - XDEBUG_CONFIG=client_host=host.docker.internal client_port=9003 discover_client_host=0 log=/tmp/xdebug.log
+      - MAIL_HOST=mailhog
+      - MAIL_PORT=1025
+      - MAIL_FROM_ADDRESS=noreply@ogt-api.local
+      - MAIL_FROM_NAME=OGT-API
     extra_hosts:
       - "host.docker.internal:host-gateway"
     env_file:
       - ./.env
+    depends_on:
+      - mailhog
+
+  mailhog:
+    image: mailhog/mailhog
+    restart: unless-stopped
+    ports:
+      - "8025:8025" # Web UI
+      - "1025:1025" # SMTP Server
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
 volumes:
   storage:
     driver: local

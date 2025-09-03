@@ -120,7 +120,8 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, onMounted } from "vue";
+import axios from "axios";
 
 const props = defineProps({
     modelValue: {
@@ -157,8 +158,9 @@ const props = defineProps({
     },
     endpoint: {
         type: String,
-        default: 'people',
-        validator: (value) => ['people', 'places', 'cause', 'books', 'archives'].includes(value)
+        default: "people",
+        validator: (value) =>
+            ["people", "places", "cause", "books", "archives"].includes(value),
     },
 });
 
@@ -167,6 +169,67 @@ const emit = defineEmits(["update:modelValue", "search"]);
 // Local state
 const dialogOpen = ref(false);
 const searchQuery = ref("");
+const entityLabels = ref({});
+const loadingEntity = ref(false);
+
+// Function to fetch entity label from Wikidata
+const fetchEntityLabel = async (entityId) => {
+    if (!entityId || entityLabels.value[entityId]) return;
+
+    loadingEntity.value = true;
+
+    try {
+        // First try the local API
+        const response = await axios.get(`/api/wikidata/entity/${entityId}`);
+        if (response.data && response.data.label) {
+            entityLabels.value[entityId] = {
+                label: response.data.label,
+                description: response.data.description || "",
+            };
+            return;
+        }
+
+        // If that fails, try the Wikidata API directly
+        const wikidataResponse = await axios.get(
+            `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${entityId}&format=json&languages=de|en&props=labels|descriptions&origin=*`,
+        );
+
+        if (
+            wikidataResponse.data &&
+            wikidataResponse.data.entities &&
+            wikidataResponse.data.entities[entityId]
+        ) {
+            const entity = wikidataResponse.data.entities[entityId];
+            let label = "";
+            let description = "";
+
+            // Try to get German label first, fall back to English
+            if (entity.labels && entity.labels.de) {
+                label = entity.labels.de.value;
+            } else if (entity.labels && entity.labels.en) {
+                label = entity.labels.en.value;
+            } else {
+                label = entityId; // Fallback to ID if no label found
+            }
+
+            // Try to get German description first, fall back to English
+            if (entity.descriptions && entity.descriptions.de) {
+                description = entity.descriptions.de.value;
+            } else if (entity.descriptions && entity.descriptions.en) {
+                description = entity.descriptions.en.value;
+            }
+
+            entityLabels.value[entityId] = {
+                label: label,
+                description: description,
+            };
+        }
+    } catch (error) {
+        console.error("Error fetching entity label:", error);
+    } finally {
+        loadingEntity.value = false;
+    }
+};
 
 // Computed properties
 const selectedItem = computed(() => {
@@ -188,7 +251,26 @@ const selectedItem = computed(() => {
         );
         if (foundItem) return foundItem;
 
-        // If not found in results, create a minimal object
+        // If not found in results, fetch the entity from the API
+        if (!loadingEntity.value) {
+            fetchEntityLabel(props.modelValue);
+        }
+
+        // If loading, return a temporary object with loading indicator
+        if (loadingEntity.value) {
+            return { id: props.modelValue, label: "Lädt..." };
+        }
+
+        // If we've fetched the label, use that
+        if (entityLabels.value[props.modelValue]) {
+            return {
+                id: props.modelValue,
+                label: entityLabels.value[props.modelValue].label,
+                description: entityLabels.value[props.modelValue].description,
+            };
+        }
+
+        // If all else fails, just show the ID as a fallback
         return { id: props.modelValue, label: props.modelValue };
     }
 
@@ -220,6 +302,32 @@ const selectItem = (item) => {
 const clearSelection = () => {
     emit("update:modelValue", null);
 };
+
+// Watch for changes to modelValue and fetch the label if needed
+watch(
+    () => props.modelValue,
+    (newValue) => {
+        if (
+            typeof newValue === "string" &&
+            newValue.startsWith("Q") &&
+            !entityLabels.value[newValue]
+        ) {
+            fetchEntityLabel(newValue);
+        }
+    },
+    { immediate: true },
+);
+
+// When component mounts, fetch any missing entity labels
+onMounted(() => {
+    if (
+        typeof props.modelValue === "string" &&
+        props.modelValue.startsWith("Q") &&
+        !entityLabels.value[props.modelValue]
+    ) {
+        fetchEntityLabel(props.modelValue);
+    }
+});
 </script>
 
 <style scoped>

@@ -25,11 +25,11 @@
                     <div v-if="currentStep === 1" class="entry-form-wrapper">
                         <div class="step-container">
                             <h2 class="step-title">
-                                Schritt 1: Wählen Sie den Eintragstyp
+                                Schritt 1: Wähle den Eintragstyp
                             </h2>
                             <p>
-                                Bitte wählen Sie den Eintragstyp aus welchen Sie
-                                anlegen möchten.
+                                Bitte wähle den Eintragstyp aus welchen du
+                                anlegen möchtest.
                             </p>
                             <form class="forms">
                                 <fieldset>
@@ -144,8 +144,8 @@
                                 ></div>
                                 <div v-else>
                                     <p>
-                                        Bitte wählen Sie einen Eintragstyp aus,
-                                        um Informationen darüber zu erhalten.
+                                        Bitte wähle einen Eintragstyp aus, um
+                                        Informationen darüber zu erhalten.
                                     </p>
                                     <p>
                                         Zu den verfügbaren Eintragstypen
@@ -189,7 +189,7 @@
                                         </li>
                                     </ul>
                                     <p>
-                                        Wählen Sie einen Typ, um detailliertere
+                                        Wählen einen Typ, um detailliertere
                                         Informationen zu erhalten.
                                     </p>
                                 </div>
@@ -244,12 +244,14 @@
                         v-model:selectedSources="selectedSources"
                         @searchWikidataEntities="searchWikidataEntities"
                         @selectExistingEntity="selectExistingEntity"
+                        @update:eventTimeType="eventTimeType = $event"
                         @searchPeople="searchPeople"
                         @selectVictim="selectVictim"
                         @startNewVictimForm="startNewVictimForm"
                         @cancelNewVictimForm="cancelNewVictimForm"
                         @addNewVictim="addNewVictim"
                         @removeVictim="removeVictim"
+                        @updateVictim="updateVictim"
                         @startAddingAnotherVictim="startAddingAnotherVictim"
                         @searchPerpetrators="searchPerpetrators"
                         @selectPerpetrator="selectPerpetrator"
@@ -257,6 +259,7 @@
                         @cancelNewPerpetratorForm="cancelNewPerpetratorForm"
                         @addNewPerpetrator="addNewPerpetrator"
                         @removePerpetrator="removePerpetrator"
+                        @updatePerpetrator="updatePerpetrator"
                         @startAddingAnotherPerpetrator="
                             startAddingAnotherPerpetrator
                         "
@@ -366,6 +369,9 @@ const newVictim = ref({
     birthDate: null,
     deathDate: null,
     description: "",
+    birthName: "",
+    imageUrl: null,
+    imageFilename: null,
     isOrganization: false,
     gender: null,
     nationality: null,
@@ -386,6 +392,9 @@ const newPerpetrator = ref({
     birthDate: null,
     deathDate: null,
     description: "",
+    birthName: "",
+    imageUrl: null,
+    imageFilename: null,
     isOrganization: false,
     gender: null,
     nationality: null,
@@ -459,7 +468,7 @@ const setFreeClientWidth = () => {
 
 const goToStep = (step) => {
     if (step === 2 && !formsType.value) {
-        error.value = "Bitte wählen Sie einen Eintragstyp aus";
+        error.value = "Bitte wähle einen Eintragstyp aus";
         return;
     }
 
@@ -583,7 +592,6 @@ const reinitializeMap = () => {
 };
 
 const handleMapClick = (event) => {
-    console.log("Map clicked!", event.latlng);
     selectedLocation.value = event.latlng;
 
     if (mapRef.value && mapRef.value.leafletObject) {
@@ -767,6 +775,9 @@ const resetNewVictimForm = () => {
         birthDate: null,
         deathDate: null,
         description: "",
+        birthName: "",
+        imageUrl: null,
+        imageFilename: null,
         isOrganization: false,
         gender: null,
         nationality: null,
@@ -786,6 +797,9 @@ const addNewVictim = () => {
         birthDate: newVictim.value.birthDate,
         deathDate: newVictim.value.deathDate,
         description: newVictim.value.description,
+        birthName: newVictim.value.birthName || "",
+        imageUrl: newVictim.value.imageUrl || null,
+        imageFilename: newVictim.value.imageFilename || null,
         isOrganization: newVictim.value.isOrganization || false,
         // Wikidata fields
         gender: newVictim.value.gender || null,
@@ -873,6 +887,9 @@ const resetNewPerpetratorForm = () => {
         birthDate: null,
         deathDate: null,
         description: "",
+        birthName: "",
+        imageUrl: null,
+        imageFilename: null,
         isOrganization: false,
         gender: null,
         nationality: null,
@@ -892,6 +909,9 @@ const addNewPerpetrator = () => {
         birthDate: newPerpetrator.value.birthDate,
         deathDate: newPerpetrator.value.deathDate,
         description: newPerpetrator.value.description,
+        birthName: newPerpetrator.value.birthName || "",
+        imageUrl: newPerpetrator.value.imageUrl || null,
+        imageFilename: newPerpetrator.value.imageFilename || null,
         isOrganization: newPerpetrator.value.isOrganization || false,
         // Wikidata fields
         gender: newPerpetrator.value.gender || null,
@@ -936,6 +956,42 @@ const removePerpetrator = (perpetratorId) => {
     selectedPerpetrators.value = selectedPerpetrators.value.filter(
         (v) => (v.id || v.tempId) !== perpetratorId,
     );
+};
+
+const updateVictim = (person) => {
+    const index = selectedVictims.value.findIndex(
+        (v) => (v.id || v.tempId) === (person.id || person.tempId),
+    );
+
+    if (index !== -1) {
+        // Create updated person object with all fields
+        const updatedPerson = {
+            ...person,
+            tempId: person.tempId || selectedVictims.value[index].tempId,
+            id: person.id || selectedVictims.value[index].id,
+        };
+
+        // Replace the person at the found index
+        selectedVictims.value.splice(index, 1, updatedPerson);
+    }
+};
+
+const updatePerpetrator = (person) => {
+    const index = selectedPerpetrators.value.findIndex(
+        (p) => (p.id || p.tempId) === (person.id || person.tempId),
+    );
+
+    if (index !== -1) {
+        // Create updated person object with all fields
+        const updatedPerson = {
+            ...person,
+            tempId: person.tempId || selectedPerpetrators.value[index].tempId,
+            id: person.id || selectedPerpetrators.value[index].id,
+        };
+
+        // Replace the person at the found index
+        selectedPerpetrators.value.splice(index, 1, updatedPerson);
+    }
 };
 
 const searchCause = debounce(async (query) => {
@@ -1057,36 +1113,14 @@ const resetForm = async () => {
 
         const secureToken = generateSecureToken();
 
-        // Debug log for location qualifier
-        console.log('Submitting location qualifier:', {
-            locationQualifierRef: locationQualifier,
-            locationQualifierValue: locationQualifier.value,
-            rawValue: typeof locationQualifier === 'object' ? JSON.stringify(locationQualifier) : locationQualifier
-        });
-
-        // Complete log of submission data
-        console.log('Full submission data:', {
-            title: formsTitle.value.trim(),
-            description: formsDescription.value.trim(),
-            type: formsType.value,
-            coordinates: coordinates,
-            coordinates_qualifier: locationQualifier,
-            // Include other key fields
-            victims: selectedVictims.value.length,
-            perpetrators: selectedPerpetrators.value.length,
-            eventTimeType: eventTimeType.value,
-            selectedCauses: selectedCauses.value.length,
-            sources: selectedSources.value.length
-        });
-
-        const response = await axios.post(
-            "/api/wikidata/entities",
-            {
-                title: formsTitle.value.trim(),
-                description: formsDescription.value.trim(),
+        // Function to prepare form data for submission - helps avoid circular references
+        const prepareFormData = () => {
+            return {
+                title: formsTitle.value?.trim() || "",
+                description: formsDescription.value?.trim() || "",
                 type: formsType.value,
                 coordinates: coordinates,
-                coordinates_qualifier: locationQualifier,
+                coordinates_qualifier: locationQualifier.value, // Use .value to avoid circular references
                 victims: selectedVictims.value,
                 perpetrators: selectedPerpetrators.value,
                 eventTimeType: eventTimeType.value,
@@ -1104,19 +1138,34 @@ const resetForm = async () => {
                 survivorCountQualifier: survivorCountQualifier.value,
                 deathCountQualifier: deathCountQualifier.value,
                 arrestCountQualifier: arrestCountQualifier.value,
-                coordinates_qualifier: locationQualifier,
                 causes: selectedCauses.value,
                 imageUrl: imageUrl.value,
                 imageFilename: imageFilename.value,
                 sources: selectedSources.value,
-                statusToken: secureToken, // Include the secure token
+                statusToken: secureToken,
+            };
+        };
+
+        // Debug log for location qualifier
+        console.log("Submitting location qualifier:", {
+            locationQualifierValue: locationQualifier.value,
+            rawValue:
+                typeof locationQualifier.value === "object"
+                    ? JSON.stringify(locationQualifier.value)
+                    : locationQualifier.value,
+        });
+
+        // Get prepared form data
+        const formData = prepareFormData();
+
+        // Complete log of submission data
+        console.log("Full submission data:", formData);
+
+        const response = await axios.post("/api/wikidata/entities", formData, {
+            headers: {
+                "X-CSRF-TOKEN": csrfToken,
             },
-            {
-                headers: {
-                    "X-CSRF-TOKEN": csrfToken,
-                },
-            },
-        );
+        });
 
         if (response.data.success) {
             // Debug logging

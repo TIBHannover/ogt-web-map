@@ -7,11 +7,9 @@
             class="qualifier-select"
         >
             <option value="">Genau</option>
-            <option value="Q5727902">Circa</option>
-            <option value="Q28863779">Koordinaten approximiert</option>
-            <option value="Q47116015">In der Nähe von</option>
-            <option value="Q47116028">Innerhalb von</option>
-            <option value="Q15642541">Ungefähr</option>
+            <option value="Q21818619">Bei</option>
+            <option value="Q32188232">angeblich</option>
+            <option value="Q60070514">Ungefähr</option>
         </select>
         <div class="select-arrow"></div>
     </div>

@@ -67,10 +67,10 @@ RUN echo "error_reporting = E_ALL" >> "$PHP_INI_DIR/php.ini" \
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Temporäre SQLite-Datei erstellen, um Berechtigungsprobleme zu vermeiden
-RUN mkdir -p /var/www/html/database \
-    && touch /var/www/html/database/database.sqlite \
-    && chmod 777 /var/www/html/database/database.sqlite \
-    && chmod 777 /var/www/html/database
+RUN mkdir -p /var/www/html/storage/app \
+    && touch /var/www/html/storage/app/database.sqlite \
+    && chmod 777 /var/www/html/storage/app/database.sqlite \
+    && chmod 777 /var/www/html/storage/app
 
 RUN mkdir -p /var/www/html/storage/app/public \
     && mkdir -p /var/www/html/storage/framework/cache \
@@ -119,7 +119,7 @@ if ! composer show | grep -q "phpoffice/phpspreadsheet"; then\n\
 fi\n\
 \n\
 # Berechtigungen für Storage und Cache Verzeichnisse setzen\n\
-mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache\n\
+mkdir -p storage/app storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache\n\
 chmod -R 777 storage bootstrap/cache\n\
 chown -R www-data:www-data storage bootstrap/cache\n\
 \n\

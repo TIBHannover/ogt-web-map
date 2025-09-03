@@ -20,10 +20,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware("auth:api")->get("/user", function (Request $request) {
-    return $request->user();
-});
-
 Route::get("/wikidata/persons", [WikidataController::class, "getPersons"]);
 Route::get("/wikidata/persons/cache", [
     WikidataController::class,
@@ -136,10 +132,22 @@ Route::post("/wikidata/entity", [
     "createEntity",
 ]);
 
-// Route for entity creation webhook callback
-Route::post("/wikidata/entity-callback", [
-    WikidataEntityController::class,
-    "handleEntityCallback",
+// Route for sending status link to user via email
+Route::post("/entry-status/send-email", [
+    App\Http\Controllers\EntryStatusController::class,
+    "sendStatusLinkToUser",
+]);
+
+// Route for manually triggering notifications (for testing)
+Route::post("/entry-status/send-manual-notification", [
+    App\Http\Controllers\EntryStatusController::class,
+    "sendManualNotification",
+]);
+
+// Route for checking if email notifications are enabled for an entry
+Route::get("/entry-status/check-notifications/{token}", [
+    App\Http\Controllers\EntryStatusController::class,
+    "checkNotificationStatus",
 ]);
 
 // PDF Thumbnail routes

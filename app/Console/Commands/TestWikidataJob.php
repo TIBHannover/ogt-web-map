@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Models\WikidataEntryRequest;
+use App\Models\WikibaseEntryRequest;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
 
@@ -34,14 +34,14 @@ class TestWikidataJob extends Command
 
         // Try to find an existing entry request, or create a new one
         try {
-            $entryRequest = WikidataEntryRequest::where(
+            $entryRequest = WikibaseEntryRequest::where(
                 "status",
                 "pending"
             )->first();
 
             if (!$entryRequest) {
                 $this->info("No pending entry request found, creating one...");
-                $entryRequest = WikidataEntryRequest::create([
+                $entryRequest = WikibaseEntryRequest::create([
                     "title" => "Direct Job Test " . date("Y-m-d H:i:s"),
                     "description" => "Testing direct job execution",
                     "type" => "Q6983405",

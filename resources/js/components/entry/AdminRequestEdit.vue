@@ -39,8 +39,6 @@
                 v-model:selectedVictims="formData.victims"
                 v-model:selectedPerpetrators="formData.perpetrators"
                 v-model:selectedCauses="formData.selected_causes"
-                :selectedLocation="getLocationObject()"
-                @update:selectedLocation="updateLocationObject($event)"
                 v-model:imageUrl="formData.image_url"
                 v-model:imageFilename="formData.image_filename"
                 v-model:selectedSources="formData.sources"
@@ -74,7 +72,19 @@
                 @selectCause="selectCause"
                 @removeCause="removeCause"
                 ref="eventsForm"
-            />
+            >
+                <!-- Custom Admin Coordinate Editor slot -->
+                <template #location-selector>
+                    <AdminCoordinateEditor
+                        :coordinates="formData.coordinates"
+                        :coordinates-qualifier="formData.coordinates_qualifier"
+                        @update:coordinates="updateCoordinates"
+                        @update:coordinates-qualifier="
+                            formData.coordinates_qualifier = $event
+                        "
+                    />
+                </template>
+            </EventsForm>
             <!-- Weitere Formulartypen ku00f6nnen hier hinzugefu00fcgt werden -->
             <div v-else class="alert alert-warning">
                 Formular fu00fcr den Typ "{{ requestType }}" ist noch nicht
@@ -105,11 +115,13 @@
 
 <script>
 import EventsForm from "./EventsForm.vue";
+import AdminCoordinateEditor from "./fields/AdminCoordinateEditor.vue";
 import axios from "axios";
 
 export default {
     components: {
         EventsForm,
+        AdminCoordinateEditor,
     },
     props: {
         initialData: {
@@ -377,12 +389,52 @@ export default {
                 typeof this.formData.coordinates === "string"
             ) {
                 try {
-                    this.formData.coordinates = JSON.parse(
+                    // First, try to parse as JSON object directly
+                    if (this.formData.coordinates.trim().startsWith("{")) {
+                        this.formData.coordinates = JSON.parse(
+                            this.formData.coordinates,
+                        );
+                        console.log(
+                            "Parsed coordinates from JSON string to object",
+                        );
+                    } else if (
+                        this.formData.coordinates.trim().startsWith("[")
+                    ) {
+                        // Try parsing as a JSON array
+                        const coordArray = JSON.parse(
+                            this.formData.coordinates,
+                        );
+                        if (
+                            Array.isArray(coordArray) &&
+                            coordArray.length >= 2
+                        ) {
+                            this.formData.coordinates = {
+                                lat: coordArray[0],
+                                lng: coordArray[1],
+                            };
+                            console.log(
+                                "Parsed coordinates from array to object",
+                            );
+                        }
+                    } else {
+                        // Try parsing as comma-separated string
+                        const parts = this.formData.coordinates.split(",");
+                        if (parts.length >= 2) {
+                            this.formData.coordinates = {
+                                lat: parseFloat(parts[0].trim()),
+                                lng: parseFloat(parts[1].trim()),
+                            };
+                            console.log(
+                                "Parsed coordinates from comma-separated string",
+                            );
+                        }
+                    }
+                } catch (e) {
+                    console.error(
+                        "Failed to parse coordinates:",
+                        e,
                         this.formData.coordinates,
                     );
-                    console.log("Parsed coordinates from string to object");
-                } catch (e) {
-                    console.error("Failed to parse coordinates as JSON:", e);
                     this.formData.coordinates = null;
                 }
             }
@@ -416,6 +468,102 @@ export default {
                     this.formData[field] = Number(this.formData[field]) || 0;
                 }
             });
+
+            // Check for missing fields in victims and perpetrators
+            if (this.formData.victims && this.formData.victims.length > 0) {
+                console.log("First victim data:", this.formData.victims[0]);
+                console.log(
+                    "First victim keys:",
+                    Object.keys(this.formData.victims[0]),
+                );
+                console.log(
+                    "First victim has birthName:",
+                    this.formData.victims[0].hasOwnProperty("birthName"),
+                );
+                console.log(
+                    "First victim has imageFilename:",
+                    this.formData.victims[0].hasOwnProperty("imageFilename"),
+                );
+                console.log(
+                    "First victim has employer:",
+                    this.formData.victims[0].hasOwnProperty("employer"),
+                );
+
+                // Add missing fields to victims if needed
+                this.formData.victims.forEach((victim) => {
+                    // Make sure role is set to 'victim'
+                    victim.role = "victim";
+                    if (!victim.hasOwnProperty("birthName")) {
+                        victim.birthName = "";
+                        console.log("Added missing birthName field to victim");
+                    }
+
+                    if (!victim.hasOwnProperty("imageUrl")) {
+                        victim.imageUrl = null;
+                        console.log("Added missing imageUrl field to victim");
+                    }
+
+                    if (!victim.hasOwnProperty("imageFilename")) {
+                        victim.imageFilename = null;
+                        console.log(
+                            "Added missing imageFilename field to victim",
+                        );
+                    }
+
+                    if (!victim.hasOwnProperty("employer")) {
+                        victim.employer = null;
+                        console.log("Added missing employer field to victim");
+                    }
+                });
+            }
+
+            if (
+                this.formData.perpetrators &&
+                this.formData.perpetrators.length > 0
+            ) {
+                console.log(
+                    "First perpetrator data:",
+                    this.formData.perpetrators[0],
+                );
+                console.log(
+                    "First perpetrator keys:",
+                    Object.keys(this.formData.perpetrators[0]),
+                );
+
+                // Add missing fields to perpetrators if needed
+                this.formData.perpetrators.forEach((perpetrator) => {
+                    if (!perpetrator.hasOwnProperty("birthName")) {
+                        perpetrator.birthName = "";
+                        console.log(
+                            "Added missing birthName field to perpetrator",
+                        );
+                    }
+
+                    if (!perpetrator.hasOwnProperty("imageUrl")) {
+                        perpetrator.imageUrl = null;
+                        console.log(
+                            "Added missing imageUrl field to perpetrator",
+                        );
+                    }
+
+                    if (!perpetrator.hasOwnProperty("imageFilename")) {
+                        perpetrator.imageFilename = null;
+                        console.log(
+                            "Added missing imageFilename field to perpetrator",
+                        );
+                    }
+
+                    if (!perpetrator.hasOwnProperty("employer")) {
+                        perpetrator.employer = null;
+                        console.log(
+                            "Added missing employer field to perpetrator",
+                        );
+                    }
+
+                    // Make sure role is set to 'perpetrator'
+                    perpetrator.role = "perpetrator";
+                });
+            }
 
             console.log("Initialized data:", {
                 victims: this.formData.victims,
@@ -460,6 +608,7 @@ export default {
                 perpetrators: this.formData.perpetrators,
                 selected_causes: this.formData.selected_causes,
                 coordinates: this.formData.coordinates,
+                coordinates_qualifier: this.formData.coordinates_qualifier,
                 time_point: this.formData.time_point,
                 time_period_start: this.formData.time_period_start,
                 victim_count: this.formData.victim_count,
@@ -537,6 +686,11 @@ export default {
 
         getLocationFromCoordinates() {
             // Parse coordinates and return a location object
+            console.log(
+                "getLocationFromCoordinates called, raw coordinates:",
+                this.formData.coordinates,
+            );
+
             if (!this.formData.coordinates || this.formData.coordinates === "")
                 return null;
 
@@ -545,12 +699,18 @@ export default {
                 if (typeof this.formData.coordinates === "string") {
                     if (this.formData.coordinates.startsWith("{")) {
                         const coords = JSON.parse(this.formData.coordinates);
+                        console.log(
+                            "Parsed coordinates from JSON object string",
+                        );
                         return {
                             lat: coords.lat || coords.latitude || 0,
                             lng: coords.lng || coords.longitude || 0,
                         };
                     } else if (this.formData.coordinates.startsWith("[")) {
                         const coords = JSON.parse(this.formData.coordinates);
+                        console.log(
+                            "Parsed coordinates from JSON array string",
+                        );
                         if (Array.isArray(coords) && coords.length >= 2) {
                             return {
                                 lat: coords[0],
@@ -561,14 +721,22 @@ export default {
                         // Try comma-separated format
                         const parts = this.formData.coordinates.split(",");
                         if (parts.length >= 2) {
+                            const lat = parseFloat(parts[0].trim());
+                            const lng = parseFloat(parts[1].trim());
+                            console.log(
+                                "Parsed coordinates from comma-separated string:",
+                                lat,
+                                lng,
+                            );
                             return {
-                                lat: parseFloat(parts[0].trim()),
-                                lng: parseFloat(parts[1].trim()),
+                                lat: lat,
+                                lng: lng,
                             };
                         }
                     }
                 } else if (typeof this.formData.coordinates === "object") {
                     // Already an object
+                    console.log("Using coordinates directly as object");
                     return {
                         lat:
                             this.formData.coordinates.lat ||
@@ -674,18 +842,40 @@ export default {
             }
         },
 
-        // Helper method to update location object
-        updateLocationObject(location) {
-            if (!location) {
+        updateCoordinates(coordinates) {
+            console.log("updateCoordinates called with:", coordinates);
+
+            // Handle different input formats consistently
+            if (!coordinates) {
                 this.formData.coordinates = null;
                 return;
             }
 
-            // Store as object directly, will be stringified when saving
-            this.formData.coordinates = {
-                lat: parseFloat(location.lat || 0),
-                lng: parseFloat(location.lng || 0),
-            };
+            // Always store as string in format "lat, lng"
+            if (typeof coordinates === "object") {
+                const lat = parseFloat(coordinates.lat || 0);
+                const lng = parseFloat(coordinates.lng || 0);
+                this.formData.coordinates = `${lat}, ${lng}`;
+            } else if (typeof coordinates === "string") {
+                // Already a string, just standardize formatting
+                const parts = coordinates.split(",");
+                if (parts.length >= 2) {
+                    const lat = parseFloat(parts[0].trim());
+                    const lng = parseFloat(parts[1].trim());
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        this.formData.coordinates = `${lat}, ${lng}`;
+                    } else {
+                        this.formData.coordinates = coordinates.trim();
+                    }
+                } else {
+                    this.formData.coordinates = coordinates.trim();
+                }
+            }
+
+            console.log(
+                "Stored coordinates in formData:",
+                this.formData.coordinates,
+            );
         },
 
         // Save the updated request
@@ -699,31 +889,93 @@ export default {
                 return;
             }
 
-            console.log("Sending request data to server:", formData);
+            // Log the form data before processing
+            console.log("Form data received for saving:", formData);
+            console.log("Coordinates before processing:", formData.coordinates);
 
-            // Create a clone of the data to avoid mutations
-            const requestData = JSON.parse(JSON.stringify(formData));
+            // Create a new object instead of using spreading or JSON parsing
+            const requestData = {};
+
+            // Copy all primitive properties
+            Object.keys(formData).forEach((key) => {
+                if (
+                    typeof formData[key] !== "object" ||
+                    formData[key] === null
+                ) {
+                    requestData[key] = formData[key];
+                }
+            });
+
+            // Explicitly handle coordinates in their original object format
+            if (formData.coordinates) {
+                // Keep the object format if it's already an object
+                if (
+                    typeof formData.coordinates === "object" &&
+                    formData.coordinates.lat &&
+                    formData.coordinates.lng
+                ) {
+                    // Just copy the object directly
+                    requestData.coordinates = {
+                        lat: formData.coordinates.lat,
+                        lng: formData.coordinates.lng,
+                    };
+                } else if (typeof formData.coordinates === "string") {
+                    // Try to parse string into object format
+                    const parts = formData.coordinates.split(",");
+                    if (parts.length >= 2) {
+                        requestData.coordinates = {
+                            lat: parseFloat(parts[0].trim()),
+                            lng: parseFloat(parts[1].trim()),
+                        };
+                    } else {
+                        // If we can't parse, just keep the string
+                        requestData.coordinates = formData.coordinates.trim();
+                    }
+                }
+            }
+
+            console.log(
+                "Coordinates after formatting as object:",
+                requestData.coordinates,
+            );
 
             // Ensure all array fields are properly stringified
             ["victims", "perpetrators", "selected_causes", "sources"].forEach(
                 (field) => {
-                    if (
-                        requestData[field] &&
-                        typeof requestData[field] !== "string"
-                    ) {
-                        requestData[field] = JSON.stringify(requestData[field]);
+                    if (formData[field]) {
+                        if (typeof formData[field] === "string") {
+                            requestData[field] = formData[field];
+                        } else {
+                            requestData[field] = JSON.stringify(
+                                formData[field],
+                            );
+                        }
+                    } else {
+                        requestData[field] = "[]";
                     }
                 },
             );
 
-            // Use Axios to submit the data
+            // Final check on coordinates
+            console.log(
+                "Final coordinates being sent to API:",
+                requestData.coordinates,
+            );
+            console.log("Full request data being sent:", requestData);
+
+            // Try storing coordinates directly in a custom header for debugging
+            const headers = {
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+                Accept: "application/json",
+                "X-Debug-Coordinates": JSON.stringify(
+                    requestData.coordinates || {},
+                ),
+            };
+
             axios
                 .post(`/admin/requests/${this.requestId}/update`, requestData, {
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-Requested-With": "XMLHttpRequest",
-                        Accept: "application/json",
-                    },
+                    headers: headers,
                 })
                 .then((response) => {
                     console.log("Update successful:", response.data);
@@ -800,12 +1052,15 @@ export default {
                     let formData;
                     if (typeof this.$refs.eventsForm.getData === "function") {
                         formData = this.$refs.eventsForm.getData();
-                        console.log(
-                            "Retrieved form data from component:",
-                            formData,
-                        );
+
+                        // Directly set coordinates from parent component data
+                        formData.coordinates = this.formData.coordinates || "";
+
+                        // Make sure coordinates_qualifier is included
+                        formData.coordinates_qualifier =
+                            this.formData.coordinates_qualifier || "";
                     } else {
-                        // Fallback to the current data in formData
+                        // Get form data directly from the component
                         formData = {
                             title: this.formData.title,
                             description: this.formData.description,
@@ -859,19 +1114,16 @@ export default {
                             image_filename: this.formData.image_filename || "",
                         };
 
-                        // Handle coordinates
-                        if (this.formData.coordinates) {
-                            if (typeof this.formData.coordinates === "string") {
-                                formData.coordinates =
-                                    this.formData.coordinates;
-                            } else {
-                                formData.coordinates = JSON.stringify(
-                                    this.formData.coordinates,
-                                );
-                            }
-                        } else {
-                            formData.coordinates = "";
-                        }
+                        // Handle coordinates - ensure they're in the right format
+                        formData.coordinates = this.formData.coordinates || "";
+                        console.log(
+                            "Set coordinates in fallback data:",
+                            formData.coordinates,
+                        );
+
+                        // Add coordinates qualifier
+                        formData.coordinates_qualifier =
+                            this.formData.coordinates_qualifier || "";
 
                         console.log(
                             "Using fallback data from formData:",
@@ -881,7 +1133,7 @@ export default {
 
                     // Check required fields
                     if (!formData.title) {
-                        alert("Bitte geben Sie einen Titel ein.");
+                        alert("Bitte gebe einen Titel ein.");
                         return;
                     }
 
@@ -889,7 +1141,7 @@ export default {
                         !formData.perpetrators ||
                         formData.perpetrators === "[]"
                     ) {
-                        alert("Bitte geben Sie mindestens einen Tu00e4ter an.");
+                        alert("Bitte gebe mindestens einen Tu00e4ter an.");
                         return;
                     }
 
@@ -898,20 +1150,17 @@ export default {
                         (!formData.time_period_start ||
                             formData.time_period_start === "")
                     ) {
-                        alert(
-                            "Bitte geben Sie einen Zeitpunkt oder Zeitraum an.",
-                        );
+                        alert("Bitte gebe einen Zeitpunkt oder Zeitraum an.");
                         return;
                     }
 
                     if (!formData.sources || formData.sources === "[]") {
-                        alert("Bitte geben Sie mindestens eine Quelle an.");
+                        alert("Bitte gebe mindestens eine Quelle an.");
                         return;
                     }
 
                     // Submit the form data
                     this.saveRequest(formData);
-                    return;
                 } catch (e) {
                     console.error("Error preparing form data:", e);
                     alert("Ein Fehler ist aufgetreten: " + e.message);
@@ -1013,32 +1262,123 @@ export default {
 
         // Start adding a new victim
         startNewVictimForm() {
-            // Implementation depends on your component structure
+            console.log("AdminRequestEdit: Starting new victim form");
+            // Reset the new victim to default values first
+            this.newVictim = {
+                firstName: "",
+                lastName: "",
+                birthDate: null,
+                deathDate: null,
+                description: "",
+                birthName: "",
+                gender: null,
+                isOrganization: false,
+                nationality: null,
+                place_of_birth: null,
+                place_of_death: null,
+                place_of_detention: null,
+                imageUrl: null,
+                imageFilename: null,
+                employer: null,
+                role: "victim",
+            };
+
+            // Then show the form
             this.showNewVictimForm = true;
+            console.log(
+                "AdminRequestEdit: showNewVictimForm set to",
+                this.showNewVictimForm,
+            );
         },
 
         // Cancel adding a new victim
         cancelNewVictimForm() {
-            // Implementation depends on your component structure
+            console.log("AdminRequestEdit: Canceling new victim form");
+            // Reset the victim data and hide the form
+            this.newVictim = {
+                firstName: "",
+                lastName: "",
+                birthDate: null,
+                deathDate: null,
+                description: "",
+                birthName: "",
+                gender: null,
+                isOrganization: false,
+                nationality: null,
+                place_of_birth: null,
+                place_of_death: null,
+                place_of_detention: null,
+                imageUrl: null,
+                imageFilename: null,
+                employer: null,
+                role: "victim",
+            };
             this.showNewVictimForm = false;
+            console.log(
+                "AdminRequestEdit: showNewVictimForm set to",
+                this.showNewVictimForm,
+            );
         },
 
         // Add a new victim
         addNewVictim(person) {
+            console.log(
+                "AdminRequestEdit: Adding new victim",
+                person || this.newVictim,
+            );
+
             if (!this.formData.victims) {
                 this.formData.victims = [];
             }
 
-            // Use the passed person or the form data
-            const newVictim = person || this.newVictim || {};
+            // Make a deep copy to avoid reference issues
+            const victimData = JSON.parse(
+                JSON.stringify(person || this.newVictim || {}),
+            );
 
             // Add a temporary ID if none exists
-            if (!newVictim.id && !newVictim.tempId) {
-                newVictim.tempId = "temp_" + new Date().getTime();
+            if (!victimData.id && !victimData.tempId) {
+                victimData.tempId = "temp_" + new Date().getTime();
             }
 
-            this.formData.victims.push(newVictim);
+            // Make sure role is set
+            if (!victimData.role) {
+                victimData.role = "victim";
+            }
+
+            // Add to victims array
+            this.formData.victims.push(victimData);
+            console.log(
+                "AdminRequestEdit: Added victim to formData.victims",
+                victimData,
+            );
+
+            // Reset the form
+            this.newVictim = {
+                firstName: "",
+                lastName: "",
+                birthDate: null,
+                deathDate: null,
+                description: "",
+                birthName: "",
+                gender: null,
+                isOrganization: false,
+                nationality: null,
+                place_of_birth: null,
+                place_of_death: null,
+                place_of_detention: null,
+                imageUrl: null,
+                imageFilename: null,
+                employer: null,
+                role: "victim",
+            };
+
+            // Hide the form
             this.showNewVictimForm = false;
+            console.log(
+                "AdminRequestEdit: showNewVictimForm set to",
+                this.showNewVictimForm,
+            );
         },
 
         // Select a perpetrator
@@ -1068,13 +1408,51 @@ export default {
 
         // Start adding a new perpetrator
         startNewPerpetratorForm() {
-            // Implementation depends on your component structure
+            // Reset the new perpetrator to default values first
+            this.newPerpetrator = {
+                firstName: "",
+                lastName: "",
+                birthDate: null,
+                deathDate: null,
+                description: "",
+                birthName: "",
+                gender: null,
+                isOrganization: false,
+                nationality: null,
+                place_of_birth: null,
+                place_of_death: null,
+                place_of_detention: null,
+                imageUrl: null,
+                imageFilename: null,
+                employer: null,
+                role: "perpetrator",
+            };
+
+            // Then show the form
             this.showNewPerpetratorForm = true;
         },
 
         // Cancel adding a new perpetrator
         cancelNewPerpetratorForm() {
-            // Implementation depends on your component structure
+            // Reset the perpetrator data and hide the form
+            this.newPerpetrator = {
+                firstName: "",
+                lastName: "",
+                birthDate: null,
+                deathDate: null,
+                description: "",
+                birthName: "",
+                gender: null,
+                isOrganization: false,
+                nationality: null,
+                place_of_birth: null,
+                place_of_death: null,
+                place_of_detention: null,
+                imageUrl: null,
+                imageFilename: null,
+                employer: null,
+                role: "perpetrator",
+            };
             this.showNewPerpetratorForm = false;
         },
 
@@ -1084,15 +1462,45 @@ export default {
                 this.formData.perpetrators = [];
             }
 
-            // Use the passed person or the form data
-            const newPerpetrator = person || this.newPerpetrator || {};
+            // Make a deep copy to avoid reference issues
+            const perpetratorData = JSON.parse(
+                JSON.stringify(person || this.newPerpetrator || {}),
+            );
 
             // Add a temporary ID if none exists
-            if (!newPerpetrator.id && !newPerpetrator.tempId) {
-                newPerpetrator.tempId = "temp_" + new Date().getTime();
+            if (!perpetratorData.id && !perpetratorData.tempId) {
+                perpetratorData.tempId = "temp_" + new Date().getTime();
             }
 
-            this.formData.perpetrators.push(newPerpetrator);
+            // Make sure role is set
+            if (!perpetratorData.role) {
+                perpetratorData.role = "perpetrator";
+            }
+
+            // Add to perpetrators array
+            this.formData.perpetrators.push(perpetratorData);
+
+            // Reset the form
+            this.newPerpetrator = {
+                firstName: "",
+                lastName: "",
+                birthDate: null,
+                deathDate: null,
+                description: "",
+                birthName: "",
+                gender: null,
+                isOrganization: false,
+                nationality: null,
+                place_of_birth: null,
+                place_of_death: null,
+                place_of_detention: null,
+                imageUrl: null,
+                imageFilename: null,
+                employer: null,
+                role: "perpetrator",
+            };
+
+            // Hide the form
             this.showNewPerpetratorForm = false;
         },
 
@@ -1193,5 +1601,5 @@ export default {
 
 <!-- Global form styles -->
 <style>
-@import '../entry/styles/form-styles.css';
+@import "../entry/styles/form-styles.css";
 </style>

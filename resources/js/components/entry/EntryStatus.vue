@@ -4,7 +4,7 @@
             <v-card-title class="status-title">
                 <h1>Status: {{ entryData.title }}</h1>
             </v-card-title>
-            
+
             <v-card-text>
                 <div class="status-info">
                     <div class="status-section">
@@ -15,11 +15,15 @@
                         </div>
                         <div class="status-detail">
                             <span class="label">Typ:</span>
-                            <span class="value">{{ getTypeLabel(entryData.type) }}</span>
+                            <span class="value">{{
+                                getTypeLabel(entryData.type)
+                            }}</span>
                         </div>
                         <div class="status-detail">
                             <span class="label">Eingereicht am:</span>
-                            <span class="value">{{ formatDate(entryData.created_at) }}</span>
+                            <span class="value">{{
+                                formatDate(entryData.created_at)
+                            }}</span>
                         </div>
                     </div>
 
@@ -27,18 +31,40 @@
                         <h2>Aktueller Status</h2>
                         <div class="status-detail">
                             <span class="label">Status:</span>
-                            <span class="status-badge" :class="getStatusClass(entryData.status)">
+                            <span
+                                class="status-badge"
+                                :class="getStatusClass(entryData.status)"
+                            >
                                 {{ getStatusLabel(entryData.status) }}
                             </span>
                         </div>
-                        <div class="status-detail" v-if="entryData.status_updated_at">
+                        <div
+                            class="status-detail"
+                            v-if="entryData.status_updated_at"
+                        >
                             <span class="label">Letzte Aktualisierung:</span>
-                            <span class="value">{{ formatDate(entryData.status_updated_at) }}</span>
+                            <span class="value">{{
+                                formatDate(entryData.status_updated_at)
+                            }}</span>
                         </div>
-                        <div class="status-detail" v-if="(entryData.status === 'approved' || entryData.status === 'wikidata_published') && entryData.wikidata_id">
+                        <div
+                            class="status-detail"
+                            v-if="
+                                (entryData.status === 'approved' ||
+                                    entryData.status === 'wikidata_published' ||
+                                    (entryData.status === 'published' &&
+                                        entryData.wikidata_id)) &&
+                                entryData.wikidata_id
+                            "
+                        >
                             <span class="label">Wikidata ID:</span>
                             <span class="value">
-                                <a :href="getWikidataUrl(entryData.wikidata_id)" target="_blank">
+                                <a
+                                    :href="
+                                        getWikidataUrl(entryData.wikidata_id)
+                                    "
+                                    target="_blank"
+                                >
                                     {{ entryData.wikidata_id }}
                                     <v-icon small>mdi-open-in-new</v-icon>
                                 </a>
@@ -50,15 +76,34 @@
                         </div>
                     </div>
 
-                    <div class="status-section" v-if="entryData.status_history && entryData.status_history.length">
+                    <div
+                        class="status-section"
+                        v-if="
+                            entryData.status_history &&
+                            entryData.status_history.length
+                        "
+                    >
                         <h2>Status Verlauf</h2>
                         <div class="status-timeline">
-                            <div class="timeline-item" v-for="(item, index) in entryData.status_history" :key="index">
-                                <div class="timeline-icon" :class="getStatusClass(item.status)"></div>
+                            <div
+                                class="timeline-item"
+                                v-for="(
+                                    item, index
+                                ) in entryData.status_history"
+                                :key="index"
+                            >
+                                <div
+                                    class="timeline-icon"
+                                    :class="getStatusClass(item.status)"
+                                ></div>
                                 <div class="timeline-content">
                                     <h3>{{ getStatusLabel(item.status) }}</h3>
-                                    <p class="timeline-date">{{ formatDate(item.date) }}</p>
-                                    <p v-if="item.comment">{{ item.comment }}</p>
+                                    <p class="timeline-date">
+                                        {{ formatDate(item.date) }}
+                                    </p>
+                                    <p v-if="item.comment">
+                                        {{ item.comment }}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -67,8 +112,12 @@
             </v-card-text>
 
             <v-card-actions>
-                <v-btn color="primary" @click="goToHome">Zurück zur Startseite</v-btn>
-                <v-btn color="secondary" @click="addAnother">Weiteren Eintrag hinzufügen</v-btn>
+                <v-btn color="primary" @click="goToHome"
+                    >Zurück zur Startseite</v-btn
+                >
+                <v-btn color="secondary" @click="addAnother"
+                    >Weiteren Eintrag hinzufügen</v-btn
+                >
             </v-card-actions>
         </v-card>
 
@@ -80,13 +129,19 @@
                 <p>{{ error }}</p>
             </v-card-text>
             <v-card-actions>
-                <v-btn color="primary" @click="goToHome">Zurück zur Startseite</v-btn>
+                <v-btn color="primary" @click="goToHome"
+                    >Zurück zur Startseite</v-btn
+                >
             </v-card-actions>
         </v-card>
 
         <v-card class="status-card" v-else>
             <v-card-text class="text-center">
-                <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+                <v-progress-circular
+                    indeterminate
+                    color="primary"
+                    size="64"
+                ></v-progress-circular>
                 <p class="mt-4">Lade Eintragsdaten...</p>
             </v-card-text>
         </v-card>
@@ -94,94 +149,108 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import axios from 'axios';
+import { ref, onMounted } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import axios from "axios";
 
 const props = defineProps({
     tokenId: {
         type: String,
-        required: true
-    }
+        default: null,
+    },
 });
 
 const router = useRouter();
+const route = useRoute();
 const entryData = ref(null);
 const error = ref(null);
 const isLoading = ref(true);
+const tokenId = ref(props.tokenId || route.query.id || null);
 
 onMounted(async () => {
     try {
-        if (!props.tokenId) {
-            error.value = "Keine Eintrags-ID gefunden. Bitte überprüfen Sie den Link.";
+        // Check both props and URL query parameters for the token
+        if (!tokenId.value) {
+            error.value =
+                "Keine Eintrags-ID gefunden. Bitte überprüfen Sie den Link.";
+            console.error("No token ID found in props or URL query parameters");
             return;
         }
-        
-        const response = await axios.get(`/api/entry-status/${props.tokenId}`);
-        
+
+        console.log("Fetching entry status with token:", tokenId.value);
+        const response = await axios.get(`/api/entry-status/${tokenId.value}`);
+
         if (response.data.success) {
             entryData.value = response.data.data;
         } else {
-            error.value = response.data.message || "Ein Fehler ist aufgetreten beim Laden der Eintragsdaten.";
+            error.value =
+                response.data.message ||
+                "Ein Fehler ist aufgetreten beim Laden der Eintragsdaten.";
         }
     } catch (err) {
         console.error("Fehler beim Laden des Eintragsstatus:", err);
-        error.value = "Ein Fehler ist aufgetreten beim Laden der Eintragsdaten. Bitte versuchen Sie es später erneut.";
+        error.value =
+            "Ein Fehler ist aufgetreten beim Laden der Eintragsdaten. Bitte versuchen Sie es später erneut.";
+        console.error("Error loading entry status:", err);
     } finally {
         isLoading.value = false;
     }
 });
 
 const formatDate = (dateString) => {
-    if (!dateString) return 'k.A.';
+    if (!dateString) return "k.A.";
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('de-DE', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+    return new Intl.DateTimeFormat("de-DE", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
     }).format(date);
 };
 
 const getTypeLabel = (typeCode) => {
     const types = {
-        'Q6983405': 'Ereignis',
-        'Q5003624': 'Erinnerungsort',
-        'Q108047567': 'Staatspolizeistelle',
-        'Q108047541': 'Staatspolizeiaußenstelle',
-        'Q277565': 'Arbeitserziehungslager',
-        'Q40357': 'Gefängnis'
+        Q6983405: "Ereignis",
+        Q5003624: "Erinnerungsort",
+        Q108047567: "Staatspolizeistelle",
+        Q108047541: "Staatspolizeiaußenstelle",
+        Q277565: "Arbeitserziehungslager",
+        Q40357: "Gefängnis",
     };
     return types[typeCode] || typeCode;
 };
 
 const getStatusLabel = (status) => {
     const statusLabels = {
-        'pending': 'Ausstehend',
-        'in_review': 'In Prüfung',
-        'revision_needed': 'Überarbeitung nötig',
-        'approved': 'Genehmigt',
-        'rejected': 'Abgelehnt',
-        'wikidata_submitted': 'An Wikidata übermittelt',
-        'wikidata_published': 'In Wikidata veröffentlicht',
-        'wikidata_failed': 'Fehler bei Wikidata-Erstellung'
+        pending: "Ausstehend",
+        in_review: "In Prüfung",
+        revision_needed: "Überarbeitung nötig",
+        approved: "Genehmigt",
+        rejected: "Abgelehnt",
+        error: "Fehler aufgetreten",
+        wikidata_submitted: "An Wikidata übermittelt",
+        wikidata_published: "In Wikidata veröffentlicht",
+        published: "In Wikidata veröffentlicht", // Display published status as "In Wikidata veröffentlicht"
+        wikidata_failed: "Fehler bei Wikidata-Erstellung",
     };
     return statusLabels[status] || status;
 };
 
 const getStatusClass = (status) => {
     const statusClasses = {
-        'pending': 'status-pending',
-        'in_review': 'status-in-review',
-        'revision_needed': 'status-revision',
-        'approved': 'status-approved',
-        'rejected': 'status-rejected',
-        'wikidata_submitted': 'status-wikidata-submitted',
-        'wikidata_published': 'status-wikidata-published',
-        'wikidata_failed': 'status-failed'
+        pending: "status-pending",
+        in_review: "status-in-review",
+        revision_needed: "status-revision",
+        approved: "status-approved",
+        rejected: "status-rejected",
+        error: "status-failed", // Use failed style for error status
+        wikidata_submitted: "status-wikidata-submitted",
+        wikidata_published: "status-wikidata-published",
+        published: "status-wikidata-published", // Use wikidata-published style for published status
+        wikidata_failed: "status-failed",
     };
-    return statusClasses[status] || '';
+    return statusClasses[status] || "";
 };
 
 const getWikidataUrl = (wikidataId) => {
@@ -189,11 +258,11 @@ const getWikidataUrl = (wikidataId) => {
 };
 
 const goToHome = () => {
-    router.push('/');
+    router.push("/");
 };
 
 const addAnother = () => {
-    router.push('/entry');
+    router.push("/entry");
 };
 </script>
 
@@ -316,7 +385,7 @@ const addAnother = () => {
 }
 
 .status-timeline:before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 15px;
@@ -369,11 +438,11 @@ const addAnother = () => {
     .status-container {
         padding: 1rem;
     }
-    
+
     .status-detail {
         flex-direction: column;
     }
-    
+
     .status-detail .label {
         min-width: auto;
         margin-bottom: 0.25rem;

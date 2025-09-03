@@ -15,8 +15,7 @@ const Workshops = () => import("./components/Workshops.vue");
 const Materials = () => import("./components/Materials.vue");
 const Forschungsdaten = () => import("./components/ResearchData.vue");
 const ThankYou = () => import("./components/entry/ThankYou.vue");
-// Uncomment if needed later
-// const EntryStatus = () => import("./components/entry/EntryStatus.vue");
+const EntryStatus = () => import("./components/entry/EntryStatus.vue");
 
 export const routes = [
     {
@@ -73,11 +72,22 @@ export const routes = [
             title: "Zahlen: Gestapo. Terror. Orte",
         },
     },
-    // Admin-Routen wurden entfernt, da sie jetzt über PHP implementiert sind
     {
         name: "entry",
         path: "/entry",
         component: Entry,
+        meta: {
+            title: "Neuen Eintrag anlegen für: Gestapo. Terror. Orte",
+        },
+    },
+    {
+        name: "entry-status",
+        path: "/entry-status",
+        component: EntryStatus,
+        props: (route) => ({ tokenId: route.query.id }),
+        meta: {
+            title: "Eintragstatus ansehen für: Gestapo. Terror. Orte",
+        },
     },
     {
         name: "bibliography",

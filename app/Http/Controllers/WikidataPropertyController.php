@@ -17,32 +17,51 @@ class WikidataPropertyController extends Controller
      */
     public function getByQNumber($qNumber, $language = "de")
     {
-        $client = new Client();
-        $url = "https://www.wikidata.org/w/api.php";
+        try {
+            $client = new Client();
+            $url = "https://www.wikidata.org/w/api.php";
 
-        $response = $client->request("GET", $url, [
-            "query" => [
-                "action" => "wbgetentities",
-                "ids" => $qNumber,
-                "languages" => $language,
-                "format" => "json",
-            ],
-        ]);
+            $response = $client->request("GET", $url, [
+                "query" => [
+                    "action" => "wbgetentities",
+                    "ids" => $qNumber,
+                    "languages" => $language,
+                    "format" => "json",
+                ],
+                "timeout" => 10,
+                "connect_timeout" => 5,
+            ]);
 
-        $data = json_decode($response->getBody(), true);
+            $data = json_decode($response->getBody(), true);
 
-        if (isset($data["entities"][$qNumber])) {
-            $entity = $data["entities"][$qNumber];
+            if (isset($data["entities"][$qNumber])) {
+                $entity = $data["entities"][$qNumber];
+
+                return [
+                    "id" => $qNumber,
+                    "label" =>
+                        $entity["labels"][$language]["value"] ?? $qNumber,
+                    "description" =>
+                        $entity["descriptions"][$language]["value"] ?? null,
+                ];
+            }
 
             return [
                 "id" => $qNumber,
-                "label" => $entity["labels"][$language]["value"] ?? $qNumber,
-                "description" =>
-                    $entity["descriptions"][$language]["value"] ?? null,
+                "label" => $qNumber,
+                "description" => null,
+            ];
+        } catch (\Exception $e) {
+            Log::error(
+                "Error fetching Wikidata entity {$qNumber}: " .
+                    $e->getMessage(),
+            );
+            return [
+                "id" => $qNumber,
+                "label" => $qNumber,
+                "description" => null,
             ];
         }
-
-        return ["id" => $qNumber, "label" => $qNumber, "description" => null];
     }
 
     /**
@@ -58,28 +77,31 @@ class WikidataPropertyController extends Controller
         if (!$qNumber || !preg_match('/^Q\d+$/', $qNumber)) {
             return $qNumber;
         }
-        
+
         // Cache-Key erstellen
         $cacheKey = "wikidata_label_{$qNumber}_{$language}";
-        
+
         // Aus Cache abrufen, wenn vorhanden
         if (Cache::has($cacheKey)) {
             return Cache::get($cacheKey);
         }
-        
+
         try {
             // Neue Instanz des Controllers erstellen für den API-Aufruf
             $controller = new self();
             $data = $controller->getByQNumber($qNumber, $language);
-            
-            $label = $data['label'] ?? $qNumber;
-            
+
+            $label = $data["label"] ?? $qNumber;
+
             // Im Cache speichern (für 7 Tage)
             Cache::put($cacheKey, $label, 60 * 24 * 7);
-            
+
             return $label;
         } catch (\Exception $e) {
-            Log::error("Fehler beim Abrufen des Labels für {$qNumber}: " . $e->getMessage());
+            Log::error(
+                "Fehler beim Abrufen des Labels für {$qNumber}: " .
+                    $e->getMessage(),
+            );
             return $qNumber;
         }
     }
@@ -124,7 +146,7 @@ class WikidataPropertyController extends Controller
     public static function getFormattedProperty(
         $data,
         $propertyId,
-        $isWikidataId = true
+        $isWikidataId = true,
     ) {
         if (!isset($data[$propertyId]) || empty($data[$propertyId])) {
             return null;

@@ -69,10 +69,10 @@ use function App\Helpers\formatWikidataProperty;
         @if(($request->status == 'error' || $request->status == 'wikidata_failed') && $request->error_message)
             <div class="mt-2">
                 <strong>Fehlermeldung:</strong> {{ $request->error_message }}
-                <form action="/api/wikidata/requests/{{ $request->id }}/retry" method="POST" class="d-inline ml-2">
+                <form action="/api/wikidata/requests/{{ $request->id }}/retry" method="POST" class="d-inline ml-2 retry-form">
                     @csrf
                     <input type="hidden" name="redirect" value="{{ route('admin.requests.show', $request->id) }}">
-                    <button type="submit" class="btn btn-sm btn-warning">
+                    <button type="submit" class="btn btn-sm btn-warning retry-button">
                         <i class="bi bi-arrow-repeat me-1"></i> Wiederholen
                     </button>
                 </form>
@@ -188,6 +188,32 @@ use function App\Helpers\formatWikidataProperty;
                 <div class="card-body">
                     <!-- Ereignis (Q6983405) -->
                     @if($request->type == 'Q6983405')
+                        @php
+                            function formatDateBasedOnPrecision($dateString) {
+                                if (!$dateString) return '';
+
+                                // Check format to determine precision
+                                if (preg_match('/^\d{4}$/', $dateString)) {
+                                    // Year only
+                                    return $dateString;
+                                } else if (preg_match('/^\d{4}-\d{2}$/', $dateString)) {
+                                    // Year and month
+                                    $date = \Carbon\Carbon::parse($dateString);
+                                    $monthNames = [
+                                        '01' => 'Januar', '02' => 'Februar', '03' => 'März',
+                                        '04' => 'April', '05' => 'Mai', '06' => 'Juni',
+                                        '07' => 'Juli', '08' => 'August', '09' => 'September',
+                                        '10' => 'Oktober', '11' => 'November', '12' => 'Dezember'
+                                    ];
+                                    $month = $date->format('m');
+                                    $year = $date->format('Y');
+                                    return $monthNames[$month] . ' ' . $year;
+                                } else {
+                                    // Full date
+                                    return \Carbon\Carbon::parse($dateString)->format('d.m.Y');
+                                }
+                            }
+                        @endphp
                         @if($request->time_point || $request->time_period_start)
                             <div class="mb-3">
                                 <strong>
@@ -195,19 +221,19 @@ use function App\Helpers\formatWikidataProperty;
                                 </strong>
                                 @if($request->time_point)
                                     <p>
-                                        {{ \Carbon\Carbon::parse($request->time_point)->format('d.m.Y') }}
+                                        {{ formatDateBasedOnPrecision($request->time_point) }}
                                         @if($request->time_point_qualifier)
                                             @include('admin.partials.qualifier', ['qualifier' => $request->time_point_qualifier])
                                         @endif
                                     </p>
                                 @else
                                     <p>
-                                        Von: {{ \Carbon\Carbon::parse($request->time_period_start)->format('d.m.Y') }}
+                                        Von: {{ formatDateBasedOnPrecision($request->time_period_start) }}
                                         @if($request->time_period_start_qualifier)
                                             @include('admin.partials.qualifier', ['qualifier' => $request->time_period_start_qualifier])
                                         @endif
                                         @if($request->time_period_end)
-                                            bis: {{ \Carbon\Carbon::parse($request->time_period_end)->format('d.m.Y') }}
+                                            bis: {{ formatDateBasedOnPrecision($request->time_period_end) }}
                                             @if($request->time_period_end_qualifier)
                                                 @include('admin.partials.qualifier', ['qualifier' => $request->time_period_end_qualifier])
                                             @endif
@@ -324,16 +350,15 @@ Victims: {{ var_export($request->victims, true) }}</pre>
 
 
                         @if($request->selected_causes)
-                            <div class="mb-3">
-                                <strong>Ursachen der Verfolgung:</strong>
-                                @php
-                                    // Versuche JSON zu parsen
-                                    $causes = json_decode($request->selected_causes, true);
-                                    // Wenn es kein gu00fcltiges JSON ist, als Text behandeln
-                                    $isJson = json_last_error() === JSON_ERROR_NONE && is_array($causes);
-                                @endphp
-
-                                @if($isJson && count($causes) > 0)
+                            @php
+                                // Versuche JSON zu parsen
+                                $causes = json_decode($request->selected_causes, true);
+                                // Wenn es kein gu00fcltiges JSON ist, als Text behandeln
+                                $isJson = json_last_error() === JSON_ERROR_NONE && is_array($causes);
+                            @endphp
+                            @if($isJson && count($causes) > 0)
+                                <div class="mb-3">
+                                    <strong>Ursachen der Verfolgung:</strong>
                                     <div class="list-group mt-2">
                                         @foreach($causes as $cause)
                                             <div class="list-group-item">
@@ -353,10 +378,8 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                                             </div>
                                         @endforeach
                                     </div>
-                                @else
-                                    <p>{{ $request->selected_causes }}</p>
-                                @endif
-                            </div>
+                                </div>
+                            @endif
                         @endif
 
 
@@ -551,11 +574,14 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                 <div class="collapse" id="collapseWikidataDebug">
                     <div class="card-body">
                         @php
-                            // Wir benötigen den WikidataFormatterModels direkt
-                            $formatter = app(\App\Services\Wikidata\WikidataFormatterModels::class);
+                            // Wir benötigen den WikibaseFormatterModels direkt
+                            $formatter = app(\App\Services\Wikibase\WikibaseFormatterModels::class);
 
                             // Deaktiviere Debug-Modus für Formatierung (um vollständige Daten zu erhalten)
                             $formatter->setDebugMode(false);
+
+                            // Stelle sicher, dass auch der globale Wikibase Debug-Modus deaktiviert ist
+                            config(['wikibase.debug_mode' => false]);
 
                             // Relevante Daten extrahieren
                             $requestData = [];
@@ -568,22 +594,100 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                                 }
                             }
 
+                            // JSON-codierte Felder dekodieren
+                            $jsonFields = ['coordinates', 'selected_causes', 'victims', 'perpetrators', 'sources', 'status_history', 'created_entities'];
+                            foreach ($jsonFields as $field) {
+                                if (isset($requestData[$field]) && is_string($requestData[$field])) {
+                                    try {
+                                        // Nur dekodieren, wenn es wie JSON aussieht
+                                        if (str_starts_with(trim($requestData[$field]), '[') || str_starts_with(trim($requestData[$field]), '{')) {
+                                            $decoded = json_decode($requestData[$field], true);
+                                            if ($decoded !== null) {
+                                                $requestData[$field] = $decoded;
+                                                // Log für Debug-Zwecke
+                                                error_log("Decoded JSON field {$field}: " . json_encode($decoded));
+                                            }
+                                        }
+                                    } catch (\Exception $e) {
+                                        // Bei Fehler beim Dekodieren einfach den Original-String behalten
+                                        error_log("Error decoding JSON field {$field}: " . $e->getMessage());
+                                    }
+                                }
+                            }
+
+                            // Koordinaten speziell behandeln, falls als String im Format "lat, lng" angegeben
+                            if (isset($requestData['coordinates']) && is_string($requestData['coordinates'])) {
+                                if (preg_match('/^\s*([0-9.\-]+)\s*,\s*([0-9.\-]+)\s*$/', $requestData['coordinates'], $matches)) {
+                                    $requestData['coordinates'] = [
+                                        'lat' => (float)$matches[1],
+                                        'lng' => (float)$matches[2]
+                                    ];
+                                    error_log("Parsed coordinates: " . json_encode($requestData['coordinates']));
+                                }
+                            }
+
+                            // Spezialfall: Die causes bereinigen, falls als Array von JSON-Strings vorhanden
+                            if (isset($requestData['selected_causes']) && is_array($requestData['selected_causes'])) {
+                                foreach ($requestData['selected_causes'] as $index => $cause) {
+                                    if (is_string($cause) && (str_starts_with(trim($cause), '{') || str_starts_with(trim($cause), '['))) {
+                                        $requestData['selected_causes'][$index] = json_decode($cause, true) ?: $cause;
+                                    }
+                                }
+                            }
+
                             // Formatierte Daten für Wikibase vorbereiten
+                            // Debug-Ausgabe der Eingabedaten
+                            error_log("Data sent to formatter: " . json_encode(array_keys($requestData)));
+                            error_log("Type sent to formatter: " . $request->type);
+
                             $result = $formatter->formatEntityData($requestData, $request->type, false); // false = keine Entities erstellen
 
                             // Nach unseren Änderungen gibt formatEntityData ein Array mit zwei Schlüsseln zurück
                             if (is_array($result) && isset($result['formattedData'])) {
                                 $formattedData = $result['formattedData'];
                                 $updatedRequestData = $result['updatedData'];
+                                error_log("Formatted data claims count: " . (isset($formattedData['claims']) ? count($formattedData['claims']) : 0));
                             } else {
                                 $formattedData = $result; // Fallback für alte Struktur
                                 $updatedRequestData = $requestData;
+                                error_log("Using fallback result structure");
                             }
                         @endphp
 
                         <div class="mb-4">
                             <h6>Aufbereitete Daten für Wikidata API:</h6>
                             <pre class="bg-light p-3" style="max-height: 400px; overflow-y: auto;">{{ json_encode($formattedData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6>Verarbeitete Eingangsdaten:</h6>
+                            <pre class="bg-light p-3" style="max-height: 200px; overflow-y: auto;">{{ json_encode($requestData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6>Debug-Informationen:</h6>
+                            <table class="table table-sm table-bordered">
+                                <tr>
+                                    <th>Formatter Debug-Modus</th>
+                                    <td>{{ $formatter->isDebugMode() ? 'Ein' : 'Aus' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Wikibase Debug-Modus (Config)</th>
+                                    <td>{{ config('wikibase.debug_mode') ? 'Ein' : 'Aus' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Entity-Typ</th>
+                                    <td>{{ $request->type }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Anzahl der Claims</th>
+                                    <td>{{ count($formattedData['claims'] ?? []) }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Erkannte Properties</th>
+                                    <td>{{ implode(', ', array_keys($formattedData['claims'] ?? [])) }}</td>
+                                </tr>
+                            </table>
                         </div>
 
                         <div class="alert alert-info">
@@ -654,11 +758,11 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                         </div>
                     @endif
 
-                    @if($request->status == 'error')
-                        <form action="/api/wikidata/requests/{{ $request->id }}/retry" method="POST">
+                    @if($request->status == 'error' || $request->status == 'wikidata_failed')
+                        <form action="/api/wikidata/requests/{{ $request->id }}/retry" method="POST" id="retryForm">
                             @csrf
                             <input type="hidden" name="redirect" value="{{ route('admin.requests.show', $request->id) }}">
-                            <button type="submit" class="btn btn-warning w-100 mb-2">
+                            <button type="submit" class="btn btn-warning w-100 mb-2" id="retryButton">
                                 <i class="bi bi-arrow-repeat me-1"></i> Erneut versuchen
                             </button>
                         </form>
@@ -866,11 +970,75 @@ Victims: {{ var_export($request->victims, true) }}</pre>
         });
     });
 </script>
+
+<script>
+    $(document).ready(function() {
+        // Handle form submission for retry buttons
+        $('form[action*="/retry"]').on('submit', function(e) {
+            e.preventDefault();
+
+            var form = $(this);
+            var submitBtn = form.find('button[type="submit"]');
+            var originalBtnText = submitBtn.html();
+
+            // Change button text and disable it
+            submitBtn.html('<i class="bi bi-hourglass-split me-1"></i> Verarbeite...').prop('disabled', true);
+
+            // Submit the form via AJAX
+            $.ajax({
+                url: form.attr('action'),
+                type: 'POST',
+                data: form.serialize(),
+                dataType: 'json',
+                success: function(response) {
+                    // If the response contains a redirect URL, navigate to it
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
+                    } else {
+                        // Show success message
+                        alert('Erfolgreich zur Warteschlange hinzugefügt. Bitte aktualisieren Sie die Seite.');
+                        location.reload();
+                    }
+                },
+                error: function(xhr) {
+                    // Reset button
+                    submitBtn.html(originalBtnText).prop('disabled', false);
+
+                    // Show error message
+                    let errorMsg = 'Ein Fehler ist aufgetreten.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+                    alert(errorMsg);
+                }
+            });
+        });
+    });
+</script>
+
 <style>
     #map-container {
         height: 300px;
         width: 100%;
         border-radius: 4px;
+    }
+
+    /* Person image preview styles */
+    .person-thumbnail {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .image-link:hover .person-thumbnail {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2) !important;
+    }
+
+    .image-link:hover .image-overlay {
+        opacity: 1 !important;
+    }
+
+    .image-container {
+        margin-bottom: 10px;
     }
 </style>
 @endpush

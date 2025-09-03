@@ -12,6 +12,7 @@
                     :loading="loading"
                     :disabled="loading"
                     clearable
+                    hint="Beispiel: Holocaust memorial"
                 ></v-text-field>
 
                 <!-- Suchergebnisse -->
@@ -31,7 +32,8 @@
                     class="mb-3"
                 >
                     Keine Bilder gefunden. Versuchen Sie einen anderen
-                    Suchbegriff.
+                    Suchbegriff oder verwenden Sie englische Begriffe (z.B.
+                    "Holocaust memorial").
                 </v-alert>
 
                 <!-- Bilder Grid -->
@@ -117,12 +119,14 @@ const searchPerformed = ref(false);
 
 const searchImages = async () => {
     if (!searchQuery.value || searchQuery.value.trim() === "") {
-        error.value = "Bitte geben Sie einen Suchbegriff ein.";
+        error.value = "Bitte gebe einen Suchbegriff ein.";
         return;
     }
 
     loading.value = true;
     error.value = null;
+    images.value = [];
+    searchPerformed.value = true;
 
     try {
         const response = await axios.get(`/api/wikimedia/images`, {
@@ -133,8 +137,7 @@ const searchImages = async () => {
         });
 
         if (response.data.success) {
-            images.value = response.data.images;
-            searchPerformed.value = true;
+            images.value = response.data.images || [];
         } else {
             error.value = response.data.message || "Fehler bei der Bildsuche";
         }
@@ -148,7 +151,6 @@ const searchImages = async () => {
 };
 
 const selectImage = (image) => {
-    console.log("Image selected:", image.title);
     selectedImage.value = image;
 };
 

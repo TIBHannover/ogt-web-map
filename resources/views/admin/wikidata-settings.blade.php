@@ -49,17 +49,17 @@
 
                     <div class="mb-3">
                         <strong>Erfolgreich erstellt:</strong>
-                        {{ App\Models\WikidataEntryRequest::where('status', 'approved')->whereNotNull('wikidata_id')->count() }}
+                        {{ App\Models\WikibaseEntryRequest::where('status', 'approved')->whereNotNull('wikidata_id')->count() }}
                     </div>
 
                     <div class="mb-3">
                         <strong>Fehler aufgetreten:</strong>
-                        {{ App\Models\WikidataEntryRequest::where('status', 'error')->count() }}
+                        {{ App\Models\WikibaseEntryRequest::where('status', 'error')->count() }}
                     </div>
 
                     <div class="mb-3">
                         <strong>Gesamt genehmigt:</strong>
-                        {{ App\Models\WikidataEntryRequest::where('status', 'approved')->count() }}
+                        {{ App\Models\WikibaseEntryRequest::where('status', 'approved')->count() }}
                     </div>
                 </div>
             </div>

@@ -1,5 +1,5 @@
 @php
-    use App\Services\Wikidata\WikidataFormatterModels;
+    use App\Services\Wikibase\WikibaseFormatterModels;
     use App\Helpers\EntityTypeHelper;
 
     // Define status badge colors and labels

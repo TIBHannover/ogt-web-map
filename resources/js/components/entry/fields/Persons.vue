@@ -1,4 +1,5 @@
 <template>
+    <!-- Component name should be multi-word: PersonsField -->
     <div class="persons-section container-section">
         <div class="section-header">
             <label :for="fieldId" class="section-label">{{ label }}:</label>
@@ -12,20 +13,47 @@
             </button>
         </div>
 
-        <div class="add-person-container">
+        <div class="persons-container">
+            <!-- Add Person button -->
+            <v-btn
+                color="primary"
+                class="mt-2 mb-4 button bg-secondary"
+                @click="
+                    (e) => {
+                        forceResetAndOpen(false, e);
+                    }
+                "
+                prepend-icon="mdi-account-plus"
+                :data-action="'add-person'"
+                id="add-person-button"
+            >
+                {{ label.includes("*") ? label.replace("*", "") : label }}
+                Person hinzufügen
+            </v-btn>
+
+            <br />
+
+            <!-- Add Organization button -->
             <v-btn
                 color="primary"
                 class="mt-2 button bg-secondary"
-                @click="dialogOpen = true"
-                prepend-icon="mdi-account-plus"
+                @click="
+                    (e) => {
+                        forceResetAndOpen(true, e);
+                    }
+                "
+                prepend-icon="mdi-domain-plus"
+                :data-action="'add-organization'"
+                id="add-organization-button"
             >
-                {{ label }} hinzufügen
+                {{ label.includes("*") ? label.replace("*", "") : label }}
+                Organisation hinzufügen
             </v-btn>
         </div>
 
         <ValidationError
             :show="showValidationErrors && !isValid"
-            :message="`Bitte fügen Sie mindestens einen Eintrag für ${label} hinzu.`"
+            :message="`Bitte füge mindestens einen Eintrag für ${label} hinzu.`"
             showIcon
         />
 
@@ -73,17 +101,21 @@
                         Wikidata
                     </a>
                     <button
-                        v-if="!person.id || (person.id && !person.id.startsWith('Q'))"
+                        v-if="
+                            !person.id ||
+                            (person.id && !person.id.startsWith('Q'))
+                        "
                         type="button"
                         class="edit-person"
                         @click="
-                            onEditPerson(person);
+                            onEditPerson(person, $event);
                             console.log(
                                 'Edit button clicked for person:',
                                 person,
                             );
                         "
                         title="Person bearbeiten"
+                        data-action="edit-person"
                     >
                         <v-icon size="small">mdi-pencil</v-icon>
                     </button>
@@ -103,7 +135,11 @@
         <v-dialog v-model="dialogOpen" max-width="600px">
             <v-card>
                 <v-card-title>{{
-                    editMode ? `${label} bearbeiten` : `${label} hinzufügen`
+                    editMode
+                        ? `${label} bearbeiten`
+                        : organizationMode
+                          ? `${label} Organisation hinzufügen`
+                          : `${label} Person hinzufügen`
                 }}</v-card-title>
                 <v-card-text class="overlay-content">
                     <!-- Search UI Container - only shown when not adding a new person -->
@@ -112,7 +148,11 @@
                         <div class="persons-search">
                             <div class="search-input-container">
                                 <v-text-field
-                                    :placeholder="`Namen der ${label} oder einer Organisation suchen...`"
+                                    :placeholder="
+                                        organizationMode
+                                            ? `Namen der Organisation suchen...`
+                                            : `Namen der Person suchen...`
+                                    "
                                     v-model="searchQuery"
                                     append-inner-icon="mdi-magnify"
                                     @click:append-inner="
@@ -168,9 +208,21 @@
                                 v-if="
                                     !isSearchLoading &&
                                     !searchQuery.trim() &&
-                                    label === 'Täter*In *'
+                                    label === 'Täter*In *' &&
+                                    !organizationMode
                                 "
                                 :q-ids="['Q106625639']"
+                                endpoint="people"
+                                @select="onSelectPerson"
+                            />
+                            <wikidata-suggestions
+                                v-if="
+                                    !isSearchLoading &&
+                                    !searchQuery.trim() &&
+                                    label === 'Täter*In *' &&
+                                    organizationMode
+                                "
+                                :q-ids="['Q380622']"
                                 endpoint="people"
                                 @select="onSelectPerson"
                             />
@@ -178,12 +230,12 @@
 
                         <!-- Suchergebnisse für Personen -->
                         <v-list
-                            v-if="peopleSearchResults.length > 0"
+                            v-if="filteredSearchResults.length > 0"
                             class="search-results mt-3"
                             density="compact"
                         >
                             <v-list-item
-                                v-for="person in peopleSearchResults"
+                                v-for="person in filteredSearchResults"
                                 :key="person.id"
                                 @click="onSelectPerson(person)"
                                 class="search-result-item"
@@ -194,6 +246,14 @@
                                 <v-list-item-subtitle v-if="person.description">
                                     {{ person.description }}
                                 </v-list-item-subtitle>
+                                <v-chip
+                                    v-if="person.isOrganization"
+                                    size="small"
+                                    color="primary"
+                                    class="ml-2 mb-1"
+                                >
+                                    Organisation
+                                </v-chip>
                                 <v-list-item-subtitle
                                     v-if="person.birth || person.death"
                                     class="result-metadata"
@@ -223,7 +283,9 @@
                                     {{
                                         isAuthorForm
                                             ? "Autor*In nicht gefunden? Neu anlegen"
-                                            : "Person/Organisation nicht gefunden? Neu anlegen"
+                                            : organizationMode
+                                              ? "Organisation nicht gefunden? Neu anlegen"
+                                              : "Person nicht gefunden? Neu anlegen"
                                     }}
                                 </v-btn>
                             </div>
@@ -238,9 +300,12 @@
                                     ? "Eintrag bearbeiten"
                                     : isAuthorForm
                                       ? "Neue/n Autor*In anlegen"
-                                      : "Neuen Eintrag anlegen"
+                                      : organizationMode
+                                        ? "Neue Organisation anlegen"
+                                        : "Neue Person anlegen"
                             }}
                         </h4>
+                        <!--
                         <div class="form-group" v-if="!hideIsOrganisation">
                             <v-checkbox
                                 v-model="newPersonLocal.isOrganization"
@@ -249,6 +314,7 @@
                                 class="mb-3"
                             ></v-checkbox>
                         </div>
+                        -->
                         <div class="form-group">
                             <v-text-field
                                 v-model="newPersonLocal.firstName"
@@ -280,7 +346,7 @@
                             ></v-text-field>
                         </div>
                         <div class="form-group">
-                            <v-textarea
+                            <text-area
                                 v-model="newPersonLocal.description"
                                 :label="
                                     isAuthorForm
@@ -294,9 +360,51 @@
                                 "
                                 rows="3"
                                 :rules="[rules.required]"
-                                required
-                            ></v-textarea>
+                                :required="true"
+                            ></text-area>
                         </div>
+
+                        <!-- Geburtsname / Birth name (P1477) -->
+                        <div
+                            class="form-group"
+                            v-if="!newPersonLocal.isOrganization"
+                        >
+                            <text-field
+                                v-model="newPersonLocal.birthName"
+                                label="Geburtsname"
+                                placeholder="Geburtsname, falls abweichend vom aktuellen Namen"
+                            >
+                            </text-field>
+                        </div>
+
+                        <!-- Arbeitgeber / Employer (P108) - only for perpetrators -->
+                        <div
+                            class="form-group"
+                            v-if="
+                                !newPersonLocal.isOrganization &&
+                                (newPersonLocal.role === 'perpetrator' ||
+                                    props.label.toLowerCase().includes('täter'))
+                            "
+                        >
+                            <wikidata-selector
+                                v-model="newPersonLocal.employer"
+                                label="Arbeitgeber"
+                                dialog-title="Arbeitgeber auswählen"
+                                search-label="Organisation suchen..."
+                                :search-results="
+                                    wikidataSearchResults.employer || []
+                                "
+                                :is-loading="isWikidataSearchLoading.employer"
+                                :search-performed="
+                                    wikidataSearchPerformed.employer
+                                "
+                                endpoint="people"
+                                @search="
+                                    searchWikidataItems('employer', $event)
+                                "
+                            ></wikidata-selector>
+                        </div>
+
                         <!-- Geschlecht / Gender (P21) -->
                         <div class="form-group">
                             <gender-selector
@@ -426,6 +534,23 @@
                                     )
                                 "
                             ></wikidata-selector>
+
+                            <!-- Image field -->
+                            <div class="form-group">
+                                <image-selector
+                                    :image-url="newPersonLocal.imageUrl"
+                                    :image-filename="
+                                        newPersonLocal.imageFilename
+                                    "
+                                    @update:image-url="
+                                        newPersonLocal.imageUrl = $event
+                                    "
+                                    @update:image-filename="
+                                        newPersonLocal.imageFilename = $event
+                                    "
+                                >
+                                </image-selector>
+                            </div>
                         </div>
                     </div>
                 </v-card-text>
@@ -437,8 +562,19 @@
                         color="primary"
                         @click="editMode ? onUpdatePerson() : onAddNewPerson()"
                         :disabled="!canAddNewPerson"
+                        :id="
+                            editMode
+                                ? 'update-person-button'
+                                : 'save-new-person-button'
+                        "
                     >
-                        {{ editMode ? "Speichern" : "Person hinzufügen" }}
+                        {{
+                            editMode
+                                ? "Speichern"
+                                : organizationMode
+                                  ? "Organisation hinzufügen"
+                                  : "Person hinzufügen"
+                        }}
                     </v-btn>
                 </v-card-actions>
             </v-card>
@@ -447,11 +583,14 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { ref, computed, watch, toRefs, nextTick, onMounted } from "vue";
 import WikidataSelector from "./common/WikidataSelector.vue";
 import GenderSelector from "./GenderSelector.vue";
 import WikidataSuggestions from "./common/WikidataSuggestions.vue";
 import ValidationError from "../../helpers/ValidationError.vue";
+import TextField from "./common/TextField.vue";
+import TextArea from "./common/TextArea.vue";
+import ImageSelector from "./ImageSelector.vue";
 import { useValidation } from "../../../composables/useValidation";
 
 const props = defineProps({
@@ -483,6 +622,10 @@ const props = defineProps({
             birthDate: null,
             deathDate: null,
             description: "",
+            birthName: "", // Added for P1477 Geburtsname
+            imageUrl: null, // Image URL for display
+            imageFilename: null, // Image filename for Wikidata
+            employer: null, // Added for P108 Arbeitgeber
             isOrganization: false,
             gender: null,
             nationality: null,
@@ -521,6 +664,8 @@ const props = defineProps({
     },
 });
 
+// Composables
+
 // Emits für Ereignisse
 const emit = defineEmits([
     "searchPeople",
@@ -541,7 +686,136 @@ const dialogOpen = ref(false);
 const searchQuery = ref("");
 const editMode = ref(false);
 const editingPersonId = ref(null);
-const newPersonLocal = computed(() => props.newPerson);
+const organizationMode = ref(false);
+// Initialize with a deep clone of the newPerson object
+const newPersonLocal = ref(JSON.parse(JSON.stringify(props.newPerson)));
+
+// Debug log function
+const logDebug = (message, data = null) => {
+    console.log(`[Persons] ${message}`, data || "");
+};
+
+// Filter search results based on organization mode
+const filteredSearchResults = computed(() => {
+    if (!props.peopleSearchResults || props.peopleSearchResults.length === 0) {
+        return [];
+    }
+
+    // Filter results based on organization mode
+    if (organizationMode.value) {
+        // If we're in organization mode, prioritize organizations
+        return [...props.peopleSearchResults].sort((a, b) => {
+            if (a.isOrganization && !b.isOrganization) return -1;
+            if (!a.isOrganization && b.isOrganization) return 1;
+            return 0;
+        });
+    } else {
+        // If we're in person mode, prioritize persons
+        return [...props.peopleSearchResults].sort((a, b) => {
+            if (!a.isOrganization && b.isOrganization) return -1;
+            if (a.isOrganization && !b.isOrganization) return 1;
+            return 0;
+        });
+    }
+});
+
+// Hard reset all dialog state and form data
+const resetDialogState = () => {
+    // Reset all state variables
+    searchQuery.value = "";
+    editMode.value = false;
+    editingPersonId.value = null;
+    organizationMode.value = false;
+    dialogOpen.value = false;
+
+    // Create a fresh copy of the default person data
+    const defaultPersonData = JSON.parse(JSON.stringify(props.newPerson));
+
+    // Completely replace the object - don't mutate it
+    newPersonLocal.value = defaultPersonData;
+
+    // Notify parent components
+    emit("update:newPerson", defaultPersonData);
+
+    // If we were in new person form mode, cancel it
+    if (props.showNewPersonForm) {
+        emit("cancelNewPersonForm");
+    }
+
+    // Clear any search results
+    emit("searchPeople", "");
+};
+
+// Force a reset and then open dialog for adding new person
+const forceResetAndOpen = (isOrg, event) => {
+    // Prevent event propagation
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+
+    // First close and reset everything
+    resetDialogState();
+
+    // Then use setTimeout to ensure complete reset before opening again
+    setTimeout(() => {
+        // Make sure the parent component is not in new person form mode
+        if (props.showNewPersonForm) {
+            emit("cancelNewPersonForm");
+        }
+
+        // Reset the newPersonLocal value to default
+        newPersonLocal.value = JSON.parse(JSON.stringify(props.newPerson));
+
+        // Open the dialog in the correct mode (will show search form)
+        openPersonDialog(isOrg);
+    }, 50);
+};
+
+// Function to open the dialog with the correct mode
+const openPersonDialog = (isOrg, event) => {
+    // Check if we have an event and prevent it from bubbling up
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+
+    // Reset edit-specific state
+    editMode.value = false;
+    editingPersonId.value = null;
+    searchQuery.value = "";
+
+    // Make a deep clone to avoid reference issues
+    const basePersonData = JSON.parse(JSON.stringify(props.newPerson));
+
+    // Set the organization flag in the new person object - completely replace the object
+    newPersonLocal.value = {
+        ...basePersonData,
+        isOrganization: isOrg,
+        // Set role based on the label if available
+        role: props.label.toLowerCase().includes("täter")
+            ? "perpetrator"
+            : props.label.toLowerCase().includes("opfer")
+              ? "victim"
+              : "",
+    };
+
+    // Force update to parent component before opening dialog
+    emit("update:newPerson", newPersonLocal.value);
+
+    // Now open the dialog and set the organization mode
+    dialogOpen.value = true;
+    organizationMode.value = isOrg;
+
+    // Make sure we're NOT in new person form mode - we want to show the search first
+    // This is critical for showing the search form instead of the edit form
+    if (props.showNewPersonForm) {
+        emit("cancelNewPersonForm");
+    }
+
+    // Clear search results to start fresh
+    emit("searchPeople", "");
+};
 
 // Computed property to check if selection is valid
 const isValid = computed(() => {
@@ -570,6 +844,7 @@ const wikidataSearchResults = ref({
     place_of_birth: [],
     place_of_death: [],
     place_of_detention: [],
+    employer: [], // Added for P108 Arbeitgeber
 });
 
 const isWikidataSearchLoading = ref({
@@ -577,6 +852,7 @@ const isWikidataSearchLoading = ref({
     place_of_birth: false,
     place_of_death: false,
     place_of_detention: false,
+    employer: false, // Added for P108 Arbeitgeber
 });
 
 const wikidataSearchPerformed = ref({
@@ -584,6 +860,7 @@ const wikidataSearchPerformed = ref({
     place_of_birth: false,
     place_of_death: false,
     place_of_detention: false,
+    employer: false, // Added for P108 Arbeitgeber
 });
 
 // Predefined gender options with Wikidata IDs
@@ -614,6 +891,7 @@ const canAddNewPerson = computed(() => {
 // Event handlers
 const onSearchPeople = (query) => {
     if (!query || query.trim() === "") return;
+    searchQuery.value = query; // Store the search query locally
     emit("searchPeople", query);
 };
 
@@ -623,7 +901,48 @@ const onSelectPerson = (person) => {
 };
 
 const onStartNewPersonForm = () => {
-    editMode.value = false; // Stelle sicher, dass wir nicht im Bearbeitungsmodus sind
+    // Reset edit mode and any editing state
+    editMode.value = false;
+    editingPersonId.value = null;
+
+    // Reset newPersonLocal to default before setting values
+    const basePersonData = JSON.parse(JSON.stringify(props.newPerson));
+
+    // Preserve organization mode setting
+    basePersonData.isOrganization = organizationMode.value;
+
+    // Set role based on label
+    const role = props.label.toLowerCase().includes("täter")
+        ? "perpetrator"
+        : props.label.toLowerCase().includes("opfer")
+          ? "victim"
+          : "";
+
+    // Set both role and relationship_type to ensure consistency
+    basePersonData.role = role;
+    basePersonData.relationship_type = role;
+
+    // Log the role assignment for debugging
+    console.log(`Setting role and relationship_type for new person: ${role}`);
+
+    // Use the search query to prefill name fields
+    if (searchQuery.value) {
+        const parts = searchQuery.value.trim().split(" ");
+        if (parts.length > 1) {
+            basePersonData.firstName = parts[0];
+            basePersonData.lastName = parts.slice(1).join(" ");
+        } else {
+            basePersonData.lastName = parts[0];
+        }
+    }
+
+    // Set the newPersonLocal with our prepared data
+    newPersonLocal.value = basePersonData;
+
+    // Update parent data
+    emit("update:newPerson", basePersonData);
+
+    // Emit the event to show the form
     emit("startNewPersonForm");
 };
 
@@ -634,49 +953,100 @@ const onCancelNewPersonForm = () => {
 };
 
 const onAddNewPerson = () => {
-    emit("update:newPerson", newPersonLocal.value);
+    // Store a local copy of the current data before any changes
+    const dataToAdd = JSON.parse(JSON.stringify(newPersonLocal.value));
+
+    // Ensure both role and relationship_type are set consistently
+    if (dataToAdd.role && !dataToAdd.relationship_type) {
+        dataToAdd.relationship_type = dataToAdd.role;
+    } else if (dataToAdd.relationship_type && !dataToAdd.role) {
+        dataToAdd.role = dataToAdd.relationship_type;
+    }
+
+    // For debugging - log the role assignment
+    console.log(
+        `Adding new person with role: ${dataToAdd.role}, relationship_type: ${dataToAdd.relationship_type}`,
+    );
+
+    // Update parent with data to add (do this before resetting)
+    emit("update:newPerson", dataToAdd);
+
+    // Signal to add the new person
     emit("addNewPerson");
-    dialogOpen.value = false;
+
+    // Reset dialog state completely
+    resetDialogState();
 };
 
-const onEditPerson = (person) => {
-    // Aktiviere den Bearbeitungsmodus
-    editMode.value = true;
-    editingPersonId.value = person.id || person.tempId;
+const onEditPerson = (person, event) => {
+    // Prevent event propagation if event exists
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
 
-    // Fu00fclle das Formular mit den Daten der Person
+    // Clear any existing search results
+    searchQuery.value = "";
+
+    // First, reset form state completely
+    const cleanStartingState = JSON.parse(JSON.stringify(props.newPerson));
+    newPersonLocal.value = cleanStartingState;
+
+    // Now prepare the edit data before setting edit mode
     const personData = {
         firstName: person.firstName || "",
         lastName: person.lastName || "",
         birthDate: person.birthDate || null,
         deathDate: person.deathDate || null,
         description: person.description || "",
+        birthName: person.birthName || "",
         isOrganization: person.isOrganization || false,
         gender: person.gender || null,
         nationality: person.nationality || null,
         place_of_birth: person.place_of_birth || null,
         place_of_death: person.place_of_death || null,
         place_of_detention: person.place_of_detention || null,
-        // Bewahre die ID und andere wichtige Eigenschaften
+        imageUrl: person.imageUrl || null,
+        imageFilename: person.imageFilename || person.image || null,
+        employer: person.employer || null,
+        role: person.role || null,
+        // Preserve important properties
         id: person.id,
         tempId: person.tempId,
         label: person.label,
     };
 
-    // Aktualisiere die newPerson-Daten
-    emit("update:newPerson", personData);
-
-    // Starte das Formular für die Person
-    emit("startNewPersonForm");
-
-    // u00d6ffne den Dialog
+    // Force dialog to open first
     dialogOpen.value = true;
+
+    // Use nextTick to ensure the dialog is mounted before updating form data
+    nextTick(() => {
+        // Wait briefly for dialog rendering
+        setTimeout(() => {
+            // Completely replace the newPersonLocal object
+            newPersonLocal.value = personData;
+
+            // Now set the edit mode flags AFTER data is prepared
+            editMode.value = true;
+            editingPersonId.value = person.id || person.tempId;
+            organizationMode.value = personData.isOrganization || false;
+
+            // Update parent component data
+            emit("update:newPerson", personData);
+
+            // Trigger form state in parent - this shows the edit form instead of search
+            emit("startNewPersonForm");
+        }, 50);
+    });
 };
 
 const onUpdatePerson = () => {
-    if (!canAddNewPerson.value) return;
+    if (!canAddNewPerson.value) {
+        console.warn("Cannot update person: validation failed");
+        return;
+    }
 
-    // Fu00fcge die ID des bearbeiteten Eintrags hinzu
+    // Füge die ID des bearbeiteten Eintrags hinzu
     const updatedPerson = {
         ...newPersonLocal.value,
         id: editingPersonId.value,
@@ -685,10 +1055,11 @@ const onUpdatePerson = () => {
     // Aktualisiere die Person
     emit("updatePerson", updatedPerson);
 
-    // Schlieu00dfe den Dialog und setze den Bearbeitungsmodus zuru00fcck
+    // Schließe den Dialog und setze den Bearbeitungsmodus zurück
     dialogOpen.value = false;
     editMode.value = false;
     editingPersonId.value = null;
+    organizationMode.value = false;
 
     // Formular zurücksetzen
     emit("cancelNewPersonForm");
@@ -698,15 +1069,25 @@ const onRemovePerson = (id) => {
     emit("removePerson", id);
 };
 
+// Add initialization on component mount
+onMounted(() => {
+    // Ensure we start with a clean state
+    resetDialogState();
+});
+
 const onInfoButtonClick = () => {
     emit("infoButtonClick", props.fieldId);
 };
 
 const closeDialog = () => {
-    dialogOpen.value = false;
-    searchQuery.value = "";
-    editMode.value = false;
-    editingPersonId.value = null;
+    // Use the centralized reset function
+    resetDialogState();
+
+    // Ensure we're not in new person form mode when dialog closes
+    if (props.showNewPersonForm) {
+        emit("cancelNewPersonForm");
+    }
+
     if (props.showNewPersonForm) {
         onCancelNewPersonForm();
     }

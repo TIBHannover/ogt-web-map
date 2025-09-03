@@ -4,16 +4,22 @@ find /var/www/html/storage -type d -exec chmod 775 {} \;
 find /var/www/html/storage -type f -exec chmod 664 {} \;
 
 # Check and create database file if needed
-if [ ! -f /var/www/html/storage/app/database.sqlite ]; then
+DB_PATH="/var/www/html/storage/app/database.sqlite"
+if [ ! -f "$DB_PATH" ]; then
     echo "Creating SQLite database file"
-    touch /var/www/html/storage/app/database.sqlite
-    chmod 664 /var/www/html/storage/app/database.sqlite
-fi
+    mkdir -p /var/www/html/storage/app
+    touch "$DB_PATH"
+    chmod 664 "$DB_PATH"
 
-# Check if the database is empty (file size = 0)
-if [ ! -s /var/www/html/storage/app/database.sqlite ]; then
-    echo "Database file is empty, running migrations"
-    php artisan migrate --force
+    # Initialize database with SQL file if it exists
+    if [ -f /var/www/html/database/init.sql ]; then
+        echo "Initializing database with schema and initial data..."
+        sqlite3 "$DB_PATH" < /var/www/html/database/init.sql
+        echo "Database initialized with schema and default admin user."
+    else
+        echo "Database file is empty, running migrations"
+        php artisan migrate --force
+    fi
 fi
 
 # Generate key if not set

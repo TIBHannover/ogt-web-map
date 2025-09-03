@@ -30,6 +30,23 @@
                     enthalten weiterführende Informationen und illustrieren das
                     vorgestellte Thema.
                 </p>
+                <p>
+                    Alle Kacheln sind als
+                    <a
+                        href="https://oer-faq.de/faq/was-ist-oer-2/"
+                        target="_blank"
+                        >offene Bildungsmaterialien (OER)</a
+                    >
+                    frei nutzbar und können für eigene Zwecke weiterverwendet
+                    werden. Die Beschreibung zur Erstellung eigener Kacheln als
+                    OER findest du auch in der
+                    <a
+                        href="./resources/tiles/Anleitung_Erinnerungskacheln_compressed.pdf"
+                        target="_blank"
+                        >Anleitung</a
+                    >
+                    (PDF).
+                </p>
             </v-col>
         </v-row>
 

@@ -13,21 +13,31 @@
         <div class="map-search">
             <input
                 :value="locationSearch"
-                @input="$emit('update:locationSearch', $event.target.value)"
+                @input="handleInputChange($event)"
                 type="text"
                 class="map-search-input"
                 placeholder="Adresse oder Ort suchen..."
-                @keydown.enter.prevent="$emit('searchLocation')"
+                @keydown.enter.prevent="handleSearchLocation"
                 @focus="$emit('fieldFocus', 'location')"
             />
-            <button type="button" @click="$emit('searchLocation')">
-                Suchen
-            </button>
+            <button type="button" @click="handleSearchLocation">Suchen</button>
         </div>
 
         <ValidationError
+            :show="searchErrorMessage !== ''"
+            :message="searchErrorMessage"
+            showIcon
+        />
+
+        <ValidationError
+            :show="noResultsError"
+            message="Keine Ergebnisse gefunden"
+            showIcon
+        />
+
+        <ValidationError
             :show="showValidationErrors && !isValid"
-            message="Bitte wählen Sie einen Standort auf der Karte aus."
+            message="Bitte wähle einen Standort auf der Karte aus."
             showIcon
         />
 
@@ -75,13 +85,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import * as L from "leaflet";
 import { LMap, LTileLayer, LMarker } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
 import ValidationError from "../../helpers/ValidationError.vue";
 import LocationQualifier from "./common/LocationQualifier.vue";
 import { useValidation } from "../../../composables/useValidation";
+
+// State for search error messages
+const searchErrorMessage = ref("");
+const noResultsError = ref(false);
+
+// Original alert function reference for the monkey patch
+let originalAlert;
 
 const props = defineProps({
     mapZoom: {
@@ -117,6 +134,7 @@ const emit = defineEmits([
     "fieldFocus",
     "infoButtonClick",
     "validation",
+    "searchError",
 ]);
 
 // Map reference und Initialisierung
@@ -137,11 +155,26 @@ const { isValid, showValidationErrors, validate, showErrors } = useValidation(
     },
 );
 
-// Export validation methods
+// Method to set search error message
+const setSearchError = (message) => {
+    searchErrorMessage.value = message;
+    emit("searchError", message);
+};
+
+// Method to clear search error
+const clearSearchError = () => {
+    searchErrorMessage.value = "";
+    noResultsError.value = false;
+    emit("searchError", "");
+};
+
+// Export validation methods and search error handling
 defineExpose({
     isValid,
     validate,
     showValidationErrors: showErrors,
+    setSearchError,
+    clearSearchError,
 });
 
 // Benutzerdefiniertes Marker-Icon erstellen
@@ -242,7 +275,44 @@ const applyLeafletCSS = () => {
     document.head.appendChild(style);
 };
 
+// Input change handler to clear error message when typing
+const handleInputChange = (event) => {
+    // Clear error messages when user types
+    clearSearchError();
+
+    // Update the search text
+    emit("update:locationSearch", event.target.value);
+};
+
+// Handler for search button click or enter key
+const handleSearchLocation = () => {
+    // Check for empty search input
+    if (!props.locationSearch || props.locationSearch.trim() === "") {
+        setSearchError("Bitte gib eine Adresse oder einen Ort ein.");
+        return;
+    }
+
+    // Clear any previous error
+    clearSearchError();
+
+    // Forward the search event to parent
+    emit("searchLocation");
+};
+
+// Watch for selectedLocation changes to clear error
+watch(
+    () => props.selectedLocation,
+    (newValue) => {
+        if (newValue) {
+            clearSearchError();
+        }
+    },
+);
+
 const onMapClick = (e) => {
+    // Clear any search errors when clicking on map
+    clearSearchError();
+
     emit("handleMapClick", e);
 
     // Zusätzlich, falls wir lokale Map-Aktualisierungen benötigen
@@ -270,6 +340,32 @@ onMounted(() => {
         shadowUrl:
             "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
     });
+
+    // Setup to intercept "Keine Ergebnisse gefunden" alerts
+    originalAlert = window.alert;
+    window.alert = function (message) {
+        // If it's the specific error message about no results, show it in our validation error
+        if (message === "Keine Ergebnisse gefunden") {
+            noResultsError.value = true;
+            return; // Don't show the alert
+        }
+
+        // If it's an error with the search, show as validation error
+        if (message === "Fehler bei der Suche") {
+            searchErrorMessage.value = message;
+            return; // Don't show the alert
+        }
+
+        // For other messages, show the original alert
+        originalAlert.call(window, message);
+    };
+});
+
+// Restore original alert function when component is unmounted
+onUnmounted(() => {
+    if (originalAlert) {
+        window.alert = originalAlert;
+    }
 });
 </script>
 <style>
