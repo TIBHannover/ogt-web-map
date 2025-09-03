@@ -26,6 +26,10 @@ Route::get("/wikidata/persons/cache", [
     "getCachedPersons",
 ]);
 Route::get("/wikidata/places", [WikidataController::class, "getPlaces"]);
+Route::get("/wikidata/places/cache", [
+    WikidataController::class,
+    "getCachedPlaces",
+]);
 
 Route::get("/wikidata/entities", [
     WikidataSearchController::class,
