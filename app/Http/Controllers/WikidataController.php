@@ -52,25 +52,30 @@ class WikidataController extends Controller
         if ($validator->fails()) {
             Log::warning(
                 "Validation of Wikidata persons response failed.",
-                $validator->errors()->all()
+                $validator->errors()->all(),
             );
 
             return response([], Response::HTTP_NO_CONTENT);
         }
 
         $persons = $wikidataClient->mergeItemsData(
-            $personsResponse["results"]["bindings"]
+            $personsResponse["results"]["bindings"],
         );
         $groupedPersons = $wikidataClient->groupItemsByProperty(
             $persons,
             WikidataClient::PERSON_GROUPS_IDS,
-            "P2868"
+            "P2868",
         );
 
-        Storage::disk("local")->put(
-            config("wikidata.cachedPersonsFile"),
-            json_encode($groupedPersons)
-        );
+        // Ensure the directory exists
+        $filePath = config("wikidata.cachedPersonsFile");
+        $directory = dirname($filePath);
+
+        if ($directory !== "." && !Storage::disk("local")->exists($directory)) {
+            Storage::disk("local")->makeDirectory($directory);
+        }
+
+        Storage::disk("local")->put($filePath, json_encode($groupedPersons));
 
         return response($groupedPersons, Response::HTTP_OK);
     }
@@ -85,15 +90,19 @@ class WikidataController extends Controller
     {
         $groupedPersons = array_fill_keys(
             array_keys(WikidataClient::PERSON_GROUPS_IDS),
-            []
+            [],
         );
 
         if (
             Storage::disk("local")->exists(config("wikidata.cachedPersonsFile"))
         ) {
-            $groupedPersons = Storage::disk("local")->get(
-                config("wikidata.cachedPersonsFile")
-            );
+            $groupedPersons =
+                json_decode(
+                    Storage::disk("local")->get(
+                        config("wikidata.cachedPersonsFile"),
+                    ),
+                    true,
+                ) ?? $groupedPersons;
         }
 
         return response($groupedPersons, Response::HTTP_OK);
@@ -137,20 +146,58 @@ class WikidataController extends Controller
         if ($validator->fails()) {
             Log::warning(
                 "Validation of Wikidata places response failed.",
-                $validator->errors()->all()
+                $validator->errors()->all(),
             );
 
             return response([], Response::HTTP_NO_CONTENT);
         }
 
         $locations = $wikidataClient->mergeItemsData(
-            $placesResponse["results"]["bindings"]
+            $placesResponse["results"]["bindings"],
         );
         $groupedLocations = $wikidataClient->groupItemsByProperty(
             $locations,
             WikidataClient::PLACE_GROUPS_IDS,
-            "P31"
+            "P31",
         );
+
+        // Ensure the directory exists
+        $filePath = config("wikidata.cachedPlacesFile");
+        $directory = dirname($filePath);
+
+        if ($directory !== "." && !Storage::disk("local")->exists($directory)) {
+            Storage::disk("local")->makeDirectory($directory);
+        }
+
+        Storage::disk("local")->put($filePath, json_encode($groupedLocations));
+
+        return response($groupedLocations, Response::HTTP_OK);
+    }
+
+    /**
+     * Get cached Wikidata places data from file.
+     *
+     * @return Response
+     * @throws FileNotFoundException
+     */
+    public function getCachedPlaces(): Response
+    {
+        $groupedLocations = array_fill_keys(
+            array_keys(WikidataClient::PLACE_GROUPS_IDS),
+            [],
+        );
+
+        if (
+            Storage::disk("local")->exists(config("wikidata.cachedPlacesFile"))
+        ) {
+            $groupedLocations =
+                json_decode(
+                    Storage::disk("local")->get(
+                        config("wikidata.cachedPlacesFile"),
+                    ),
+                    true,
+                ) ?? $groupedLocations;
+        }
 
         return response($groupedLocations, Response::HTTP_OK);
     }
