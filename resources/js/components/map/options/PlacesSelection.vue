@@ -1,5 +1,5 @@
 <template>
-    <v-container fluid class="placeselection-div">
+    <v-container fluid class="placeselection-div glossary-buttons-parent">
         <!-- selection for location groups -->
         <v-row>
             <v-col class="py-0" style="max-width: 60px"></v-col>
@@ -37,7 +37,10 @@
                 ></v-checkbox>
             </v-col>
 
-            <v-col class="py-0" style="max-width: 55px">
+            <v-col
+                class="py-0 glossary-buttons-area glossary-buttons-column"
+                style="max-width: 55px; position: relative; z-index: 10"
+            >
                 <v-tooltip
                     :color="groupedPlaces[groupName].color"
                     location="left"
@@ -51,7 +54,10 @@
                             :to="{ name: 'glossary', hash: '#' + groupName }"
                             v-bind="props"
                         >
-                            <v-icon :color="groupedPlaces[groupName].color">
+                            <v-icon
+                                :color="groupedPlaces[groupName].color"
+                                style="position: relative; z-index: 10001"
+                            >
                                 mdi-information-outline
                             </v-icon>
                         </v-btn>
@@ -202,5 +208,29 @@ watch(checkedPlaceLayerGroups, (newGroups) => {
 }
 .pa-0 {
     padding-left: 0 !important;
+}
+
+.glossary-buttons-area {
+    position: relative;
+    z-index: 1000;
+}
+
+.glossary-buttons-column {
+    display: flex;
+    flex-direction: column;
+    pointer-events: auto !important;
+}
+
+.glossary-buttons-parent .glossary-button {
+    transition: transform 0.2s ease;
+    position: relative;
+    z-index: 10001 !important;
+    pointer-events: auto !important;
+}
+
+.glossary-buttons-parent .glossary-button:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 10px rgba(255, 82, 82, 0.8);
+    z-index: 10002 !important;
 }
 </style>
