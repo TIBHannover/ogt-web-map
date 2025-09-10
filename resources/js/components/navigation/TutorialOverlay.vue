@@ -1,8 +1,12 @@
 <template>
     <div>
-        <!-- Help button to start tutorial -->
+        <!--
+          Help button to start tutorial
+          Always visible unless the tutorial is currently active
+          Will remain visible after tutorial completion
+        -->
         <v-btn
-            v-if="!active && !isFirstVisit"
+            v-if="!active"
             icon
             color="primary"
             class="tutorial-button"
@@ -234,6 +238,8 @@ const props = defineProps({
 
 const emit = defineEmits(["complete", "skip", "start"]);
 
+// Controls whether the tutorial overlay is active
+// When false, the tutorial button becomes visible
 const active = ref(false);
 const isFirstVisit = ref(false);
 const currentChapterIndex = ref(0);
@@ -270,7 +276,9 @@ const chapters = [
                     transform: "translate(-50%, -50%)",
                 },
                 highlightClass: "highlight-tutorial",
-                onStepStart: null,
+                onStepPrepare: null,
+                onStepShow: null,
+                onStepNext: null,
             },
             {
                 title: "Tutorial-Anleitung",
@@ -279,7 +287,9 @@ const chapters = [
                 highlightSelector: ".tutorial-button",
                 position: { bottom: "100px", left: "80px" },
                 highlightClass: "highlight-tutorial",
-                onStepStart: null,
+                onStepPrepare: null,
+                onStepShow: null,
+                onStepNext: null,
             },
             {
                 title: "Tutorial-Anleitung",
@@ -291,7 +301,9 @@ const chapters = [
                     transform: "translate(-50%, -50%)",
                 },
                 highlightClass: "highlight-tutorial",
-                onStepStart: null,
+                onStepPrepare: null,
+                onStepShow: null,
+                onStepNext: null,
             },
         ],
     },
@@ -304,9 +316,10 @@ const chapters = [
                     "Hier kannst Du das Menü für Kartenoptionen öffnen.",
                 highlightSelector: ".map-options-button", // Selector for the Map Options button
                 position: { top: "100px", right: "80px" },
-                onShowAction: null, // Don't trigger twice
                 highlightClass: "highlight-tutorial",
-                onStepStart: "closeMapOptions",
+                onStepPrepare: "closeMapOptions",
+                onStepShow: null,
+                onStepNext: null,
             },
             {
                 title: "Kartenoptionen-Menü",
@@ -314,37 +327,54 @@ const chapters = [
                     "In den Kartenoptionen siehst du die einzelnen Kategorien, die auf der Karte angezeigt werden.",
                 highlightSelector: null, // Selector for the Map Options button
                 position: { top: "100px", right: "400px" },
-                onShowAction: null, // Don't trigger twice
                 highlightClass: "highlight-tutorial",
-                onStepStart: "openMapOptions",
+                onStepPrepare: "openMapOptions",
+                onStepShow: null,
+                onStepNext: null,
             },
             {
                 title: "Glossareinträge",
                 description:
-                    "Über diese Icons gelangst Du zu den Glossareinträgen der jeweiligen Kategorien. Als Beispiel öffnen wir den Glossareintrag zu den Arbeitserziehungslagern.",
-                highlightSelector: ".glossary-buttons-column", // Selector for the column of glossary buttons
+                    "Die Icons neben den Kategorien führen zu Glossareinträgen. Hier erfährst du Hintergrundinformationen zu den verschiedenen Orten und Begriffen.",
+                highlightSelector: ".glossary-buttons-column", // Selector for the glossary buttons column
                 position: { top: "150px", right: "400px" },
-                onShowAction: "openGlossaryEntry",
-                highlightClass: "highlight-tutorial",
-                onStepStart: "openMapOptions",
+                highlightClass: "highlight-tutorial-column",
+                onStepPrepare: "openMapOptions",
+                onStepShow: null,
+                onStepNext: null,
+            },
+            {
+                title: "Glossareinträge öffnen",
+                description:
+                    "Klicke auf eines der Glossar-Icons (🔍), um einen Eintrag zu öffnen. Hier findest du detaillierte Erklärungen zu historischen Begriffen und Orten.",
+                highlightSelector: ".glossary-buttons-column", // Selector for the glossary buttons column
+                position: { top: "150px", right: "400px" },
+                highlightClass: "highlight-tutorial-column",
+                onStepPrepare: "openMapOptions",
+                onStepShow: null,
+                onStepNext: "openGlossaryEntry",
             },
             {
                 title: "Weitere Schlüsselbegriffe",
                 description:
                     "Hier findest Du auch weitere Schlüsselbegriffe zur Geschichte der Gestapo.",
                 highlightSelector: ".glossary-content", // Selector for the Glossary content
-                position: { top: "200px", right: "400px" },
+                position: { top: "100px", right: "80px" },
                 highlightClass: "highlight-tutorial",
-                onStepStart: "openMapOptions",
+                onStepPrepare: "closeMapOptions",
+                onStepShow: null,
+                onStepNext: null,
             },
             {
                 title: "Filteroptionen",
                 description:
                     "Hier kannst Du auswählen, welche Kategorien auf der Karte angezeigt werden sollen.",
                 highlightSelector: ".filter-options", // Selector for the Filter options
-                position: { top: "120px", right: "400px" },
+                position: { top: "100px", right: "400px" },
                 highlightClass: "highlight-tutorial",
-                onStepStart: "openMapOptions",
+                onStepPrepare: "openMapOptions",
+                onStepShow: null,
+                onStepNext: null,
             },
             {
                 title: "Alle Filter",
@@ -580,7 +610,9 @@ const chapters = [
                 highlightSelector: ".tutorial-button", // Selector for tutorial button
                 position: { bottom: "100px", left: "80px" },
                 highlightClass: "highlight-tutorial",
-                onStepStart: null,
+                onStepPrepare: null,
+                onStepShow: null,
+                onStepNext: null,
             },
             {
                 title: "Vielen Dank",
@@ -669,11 +701,13 @@ const glossaryHighlightStyle = computed(() => {
         height: `${glossaryButtonsCoords.value.height}px`,
         borderRadius: "8px",
         position: "absolute",
-        zIndex: 3500, // Above the sidebar but below the buttons
-        border: "3px solid #ff5252",
-        boxShadow: "0 0 15px 5px rgba(255, 82, 82, 0.7)",
-        backgroundColor: "transparent", // Make the background transparent
+        zIndex: 3500, // Above the sidebar (3000) but below the buttons (10000)
+        border: "4px solid #ff5252",
+        boxShadow: "0 0 20px 8px rgba(255, 82, 82, 0.7)",
+        backgroundColor: "rgba(255, 82, 82, 0.15)", // Slight red background for better visibility
         pointerEvents: "none",
+        animation: "pulse 2s infinite",
+        transition: "all 0.3s ease-in-out",
     };
 });
 
@@ -703,6 +737,20 @@ const updateHighlightElement = () => {
                 let maxRight = 0;
 
                 buttons.forEach((button) => {
+                    // Apply a class to the button to ensure it's above the highlight
+                    button.classList.add("glossary-button-highlighted");
+
+                    // Ensure the z-index is above the highlight
+                    button.style.zIndex = "10000"; // Higher than glossary highlight (3500)
+                    button.style.position = "relative";
+                    button.style.transform = "scale(1.2)"; // Make buttons larger for better visibility
+                    button.style.transition = "all 0.3s ease-in-out";
+                    button.style.boxShadow =
+                        "0 0 12px 4px rgba(255, 82, 82, 0.8)";
+                    button.style.animation = "pulse-button 1.5s infinite";
+                    button.style.border = "2px solid #ff5252";
+                    button.style.cursor = "pointer";
+
                     const btnRect = button.getBoundingClientRect();
                     minTop = Math.min(minTop, btnRect.top);
                     maxBottom = Math.max(maxBottom, btnRect.bottom);
@@ -757,32 +805,42 @@ const nextStep = () => {
         console.log("Moving to next step:", currentStep.value?.title);
 
         setTimeout(() => {
-            // Execute the step start action if defined - with a delay to ensure Vue has updated
-            if (currentStep.value?.onStepStart) {
+            // Execute the onStepPrepare action if defined - runs before the step is shown
+            if (currentStep.value?.onStepPrepare) {
                 console.log(
-                    "Executing onStepStart action:",
-                    currentStep.value.onStepStart,
+                    "Executing onStepPrepare action:",
+                    currentStep.value.onStepPrepare,
                 );
-                if (currentStep.value?.onStepStart) {
-                    console.log(
-                        "Executing onStepStart:",
-                        currentStep.value.onStepStart,
-                    );
-                    // Execute the action
-                    executeAction(currentStep.value.onStepStart);
+                // Execute the preparation action
+                executeAction(currentStep.value.onStepPrepare);
 
-                    // Add a more substantial delay for updating the highlight
-                    // This ensures the menu has time to open fully
-                    setTimeout(updateHighlightElement, 1000);
-                }
+                // Add a more substantial delay for updating the highlight
+                // This ensures the menu has time to open fully
+                setTimeout(updateHighlightElement, 1000);
             }
 
             updateHighlightElement();
             applyHighlightClass();
 
-            // Execute onShowAction after a slight delay
+            // Execute onStepShow action after a slight delay - primary action when step is visible
             setTimeout(() => {
-                executeAction(currentStep.value?.onShowAction);
+                executeAction(currentStep.value?.onStepShow);
+
+                // Execute onStepNext action after a further delay - secondary action
+                setTimeout(() => {
+                    executeAction(currentStep.value?.onStepNext);
+
+                    // Update highlight element again after onStepNext executes
+                    if (
+                        currentStep.value?.highlightSelector ===
+                        ".glossary-buttons-column"
+                    ) {
+                        setTimeout(() => {
+                            updateHighlightElement();
+                            applyHighlightClass();
+                        }, 500);
+                    }
+                }, 500);
             }, 200);
         }, 100);
     } else if (currentChapterIndex.value < chapters.length - 1) {
@@ -852,9 +910,17 @@ const prevChapter = () => {
         currentChapterIndex.value--;
         currentStepIndexInChapter.value = currentChapter.value.steps.length - 1;
 
-        // Execute the step start action if defined
-        if (currentStep.value?.onStepStart) {
-            executeAction(currentStep.value.onStepStart);
+        // Execute the step prepare action if defined
+        if (currentStep.value?.onStepPrepare) {
+            executeAction(currentStep.value.onStepPrepare);
+
+            // Add a delay for updating the highlight if it's a glossary step
+            if (
+                currentStep.value?.highlightSelector ===
+                ".glossary-buttons-column"
+            ) {
+                setTimeout(updateHighlightElement, 1000);
+            }
         }
 
         setTimeout(() => {
@@ -896,8 +962,19 @@ const executeAction = (actionName) => {
     }
 
     console.log("Executing action:", actionName);
+    // Ensure highlight elements are updated with every action
+    setTimeout(() => {
+        updateHighlightElement();
+        applyHighlightClass();
+    }, 300);
+    // Update again after a longer delay to catch async UI changes
+    setTimeout(() => {
+        updateHighlightElement();
+        applyHighlightClass();
+    }, 800);
     setTimeout(() => {
         switch (actionName) {
+            // Navigation Control Actions
             case "resetAllNavigation":
                 if (props.resetAllNavigation) props.resetAllNavigation();
                 break;
@@ -925,7 +1002,7 @@ const executeAction = (actionName) => {
                     }
                 }
                 break;
-            // Already handled elsewhere
+            // Map Options Actions
             case "openMapOptions":
                 if (props.openMapOptions) {
                     props.openMapOptions();
@@ -958,9 +1035,16 @@ const executeAction = (actionName) => {
                     }
                 }
                 break;
+            // Glossary Actions
             case "openGlossaryEntry":
-                if (props.openGlossaryEntry)
-                    props.openGlossaryEntry("Arbeitserziehungslager");
+                if (props.openGlossaryEntry) {
+                    props.openGlossaryEntry("Gestapo");
+                    // Update highlight after opening glossary entry
+                    setTimeout(() => {
+                        updateHighlightElement();
+                        applyHighlightClass();
+                    }, 500);
+                }
                 break;
             case "handleMapOptions":
                 if (props.toggleMapOptions) {
@@ -1001,9 +1085,16 @@ const executeAction = (actionName) => {
                 }
                 break;
             case "handleGlossaryEntry":
-                if (props.openGlossaryEntry)
-                    props.openGlossaryEntry("Arbeitserziehungslager");
+                if (props.openGlossaryEntry) {
+                    props.openGlossaryEntry("Gestapo");
+                    // Update highlight after opening glossary entry
+                    setTimeout(() => {
+                        updateHighlightElement();
+                        applyHighlightClass();
+                    }, 500);
+                }
                 break;
+            // Filter Actions
             case "activateFilter":
                 if (props.activateFilter)
                     props.activateFilter("Staatspolizeileitstellen");
@@ -1011,13 +1102,16 @@ const executeAction = (actionName) => {
             case "deactivateAllFilters":
                 if (props.deactivateAllFilters) props.deactivateAllFilters();
                 break;
+            // Location Actions
             case "selectLocation":
                 if (props.selectLocation) props.selectLocation("Hannover");
                 break;
+            // Person Details Actions
             case "openPersonDetails":
                 if (props.openPersonDetails)
                     props.openPersonDetails("Walter Blume");
                 break;
+            // Navigation Actions
             case "goBack":
                 if (props.goBack) props.goBack();
                 break;
@@ -1027,6 +1121,7 @@ const executeAction = (actionName) => {
             case "openMainMenu":
                 if (props.openMainMenu) props.openMainMenu();
                 break;
+            // Time Filter Actions
             case "setTimeFilter":
                 if (props.setTimeFilter)
                     props.setTimeFilter({ start: "1933-08", end: "1945-03" });
@@ -1075,17 +1170,44 @@ const startTutorial = () => {
 };
 
 const completeTutorial = () => {
+    // Set active to false to hide the tutorial overlay and show the tutorial button
     active.value = false;
     isFirstVisit.value = false;
     emit("complete");
     localStorage.setItem("tutorialCompleted", "true");
+    // Remove all highlight classes
+    document.querySelectorAll(".glossary-button-highlighted").forEach((el) => {
+        el.classList.remove("glossary-button-highlighted");
+        el.style.zIndex = "";
+        el.style.position = "";
+        el.style.transform = "";
+        el.style.boxShadow = "";
+        el.style.transition = "";
+        el.style.animation = "";
+        el.style.border = "";
+        el.style.cursor = "";
+        el.style.borderRadius = "";
+    });
 };
 
 const skipTutorial = () => {
+    // Set active to false to hide the tutorial overlay and show the tutorial button
     active.value = false;
     isFirstVisit.value = false;
     emit("skip");
     localStorage.setItem("tutorialCompleted", "true");
+    // Remove all highlight classes
+    document.querySelectorAll(".glossary-button-highlighted").forEach((el) => {
+        el.classList.remove("glossary-button-highlighted");
+        el.style.zIndex = "";
+        el.style.position = "";
+        el.style.transform = "";
+        el.style.boxShadow = "";
+        el.style.transition = "";
+        el.style.animation = "";
+        el.style.border = "";
+        el.style.borderRadius = "";
+    });
 };
 
 // Apply highlighting class to the target element
@@ -1254,16 +1376,41 @@ onMounted(() => {
 </script>
 
 <style scoped>
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 20px 8px rgba(255, 82, 82, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 25px 10px rgba(255, 82, 82, 0.9);
+        border-color: #ff8080;
+    }
+    100% {
+        box-shadow: 0 0 20px 8px rgba(255, 82, 82, 0.7);
+    }
+}
+
+@keyframes pulse-button {
+    0% {
+        box-shadow: 0 0 12px 4px rgba(255, 82, 82, 0.8);
+    }
+    50% {
+        box-shadow: 0 0 16px 6px rgba(255, 82, 82, 1);
+    }
+    100% {
+        box-shadow: 0 0 12px 4px rgba(255, 82, 82, 0.8);
+    }
+}
+
 .tutorial-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1000; /* Lower z-index to allow sidebar to appear above it */
-    pointer-events: none;
+    z-index: 1000; /* Base z-index for the tutorial overlay */
+    pointer-events: none; /* Let clicks through by default */
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.3s ease-in-out;
 }
 
 .tutorial-overlay.active {
@@ -1277,18 +1424,21 @@ onMounted(() => {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    //backdrop-filter: blur(2px);
+    background-color: rgba(0, 0, 0, 0.6);
+    pointer-events: auto; /* Capture clicks */
+    z-index: 900;
+    backdrop-filter: blur(2px);
 }
 
 .tutorial-content {
     position: absolute;
+    padding: 24px;
     background-color: white;
-    padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    max-width: 350px;
-    z-index: 10000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    min-width: 300px;
+    max-width: 400px;
+    z-index: 1000;
 }
 
 .tutorial-highlight {
@@ -1298,16 +1448,41 @@ onMounted(() => {
     z-index: 1100; /* Higher than backdrop but lower than sidebar */
     pointer-events: none;
     animation: pulse 2s infinite;
+    transition: all 0.3s ease-in-out;
+    border-radius: 4px;
+}
+
+.highlight-tutorial {
+    position: absolute;
+    box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.7);
+    border: 3px solid #ff5252;
+    z-index: 1100; /* Higher than backdrop but lower than sidebar */
+    pointer-events: none;
+    animation: pulse 2s infinite;
+    border-radius: 4px;
+}
+
+.highlight-tutorial-column {
+    position: absolute;
+    box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.7);
+    border: 3px solid #ff5252;
+    z-index: 1100;
+    pointer-events: none;
+    animation: pulse 2s infinite;
+    background-color: rgba(255, 82, 82, 0.1);
+    transition: all 0.3s ease-in-out;
+    border-radius: 8px;
 }
 
 .glossary-area-highlight {
     position: absolute;
     z-index: 3500 !important; /* Above sidebar but below buttons */
     pointer-events: none;
-    animation: tutorial-pulse 2s infinite;
-    border: 3px solid #ff5252;
-    box-shadow: 0 0 15px 5px rgba(255, 82, 82, 0.7);
+    animation: pulse 2s infinite;
+    border: 4px solid #ff5252;
+    box-shadow: 0 0 20px 8px rgba(255, 82, 82, 0.7);
     border-radius: 8px;
+    background-color: rgba(255, 82, 82, 0.15);
 }
 
 /* Make sure the tutorial backdrop doesn't cover highlighted elements */
@@ -1333,12 +1508,7 @@ onMounted(() => {
     margin-top: 20px;
 }
 
-.tutorial-button {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    z-index: 100 !important;
-}
+/* Replaced by new definition below */
 
 .chapter-indicator {
     display: flex;
@@ -1361,6 +1531,27 @@ onMounted(() => {
     bottom: 20px;
     left: 20px;
     z-index: 10001;
+}
+
+.tutorial-button {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 950;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+    background-color: #1976d2 !important; /* Primary blue color */
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+    pointer-events: auto !important;
+}
+
+.tutorial-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .chapter-menu-panel {
@@ -1432,6 +1623,18 @@ onMounted(() => {
 /* Make the glossary buttons visible above everything */
 :deep(.glossary-button) {
     z-index: 10000 !important;
+    transition: all 0.3s ease-in-out;
+    position: relative;
+}
+
+:deep(.glossary-button-highlighted) {
+    z-index: 10000 !important;
+    transform: scale(1.2);
+    box-shadow: 0 0 12px 4px rgba(255, 82, 82, 0.8);
+    animation: pulse-button 1.5s infinite;
+    border: 2px solid #ff5252;
+    cursor: pointer;
+    position: relative;
 }
 
 /* Special styling for glossary buttons column in tutorial */
