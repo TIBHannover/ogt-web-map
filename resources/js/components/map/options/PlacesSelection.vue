@@ -1,81 +1,95 @@
 <template>
     <v-container fluid class="placeselection-div glossary-buttons-parent">
         <!-- selection for location groups -->
-        <v-row>
-            <v-col class="py-0" style="max-width: 60px"></v-col>
-            <v-col class="pa-0">
-                <v-checkbox
-                    :model-value="allSelected"
-                    color="grey-darken-2"
-                    density="compact"
-                    hide-details
-                    label="Alle"
-                    @click="selectAll()"
-                ></v-checkbox>
-            </v-col>
-        </v-row>
-        <div class="placetype-filter">
-            <!-- Special highlight element for tutorial - positioned relative to placetype-filter -->
+        <div class="position-relative">
             <div
-                id="glossary-column-highlight"
-                class="glossary-column-highlight"
+                id="filter-row-highlight"
+                class="filter-row-highlight tutorial-rectangle-highlight"
                 style="display: none"
             ></div>
-            <v-row
-                v-for="groupName in groupedPlacesOrder"
-                class="pt-1"
-                :key="groupName + '-row'"
-            >
-                <v-col class="py-0" style="max-width: 60px">
-                    <v-img
-                        :max-width="34"
-                        :src="`${ogtGlobals?.proxyPath}${mapMarkerIconsPath}${groupedPlaces[groupName].iconName}`"
-                    ></v-img>
-                </v-col>
-
+            <v-row class="position-relative">
+                <div
+                    id="filter-checkbox-all-highlight"
+                    class="filter-checkbox-all-highlight tutorial-rectangle-highlight"
+                    style="display: none"
+                ></div>
+                <v-col class="py-0" style="max-width: 60px"></v-col>
                 <v-col class="pa-0">
                     <v-checkbox
-                        v-model="checkedPlaceLayerGroups"
-                        :color="groupedPlaces[groupName].color"
+                        :model-value="allSelected"
+                        color="grey-darken-2"
                         density="compact"
                         hide-details
-                        :label="groupedPlaces[groupName].layerName"
-                        :value="groupName"
+                        label="Alle"
+                        @click="selectAll()"
                     ></v-checkbox>
                 </v-col>
-
-                <v-col
-                    class="py-0 glossary-buttons-area glossary-buttons-column"
-                    style="max-width: 55px; position: relative; z-index: 10"
-                >
-                    <v-tooltip
-                        :color="groupedPlaces[groupName].color"
-                        location="left"
-                    >
-                        <template v-slot:activator="{ props }">
-                            <v-btn
-                                icon
-                                rounded="circle"
-                                size="26px"
-                                class="mt-1 glossary-button"
-                                :to="{
-                                    name: 'glossary',
-                                    hash: '#' + groupName,
-                                }"
-                                v-bind="props"
-                            >
-                                <v-icon
-                                    :color="groupedPlaces[groupName].color"
-                                    style="position: relative; z-index: 10001"
-                                >
-                                    mdi-information-outline
-                                </v-icon>
-                            </v-btn>
-                        </template>
-                        <span>Im Glossar anzeigen</span>
-                    </v-tooltip>
-                </v-col>
             </v-row>
+            <div class="placetype-filter">
+                <div
+                    id="glossary-column-highlight"
+                    class="glossary-column-highlight tutorial-rectangle-highlight"
+                    style="display: none"
+                ></div>
+                <v-row
+                    v-for="groupName in groupedPlacesOrder"
+                    class="pt-1"
+                    :key="groupName + '-row'"
+                >
+                    <v-col class="py-0" style="max-width: 60px">
+                        <v-img
+                            :max-width="34"
+                            :src="`${ogtGlobals?.proxyPath}${mapMarkerIconsPath}${groupedPlaces[groupName].iconName}`"
+                        ></v-img>
+                    </v-col>
+
+                    <v-col class="pa-0">
+                        <v-checkbox
+                            v-model="checkedPlaceLayerGroups"
+                            :color="groupedPlaces[groupName].color"
+                            density="compact"
+                            hide-details
+                            :label="groupedPlaces[groupName].layerName"
+                            :value="groupName"
+                        ></v-checkbox>
+                    </v-col>
+
+                    <v-col
+                        class="py-0 glossary-buttons-area glossary-buttons-column"
+                        style="max-width: 55px; position: relative; z-index: 10"
+                    >
+                        <v-tooltip
+                            :color="groupedPlaces[groupName].color"
+                            location="left"
+                        >
+                            <template v-slot:activator="{ props }">
+                                <v-btn
+                                    icon
+                                    rounded="circle"
+                                    size="26px"
+                                    class="mt-1 glossary-button"
+                                    :to="{
+                                        name: 'glossary',
+                                        hash: '#' + groupName,
+                                    }"
+                                    v-bind="props"
+                                >
+                                    <v-icon
+                                        :color="groupedPlaces[groupName].color"
+                                        style="
+                                            position: relative;
+                                            z-index: 10001;
+                                        "
+                                    >
+                                        mdi-information-outline
+                                    </v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Im Glossar anzeigen</span>
+                        </v-tooltip>
+                    </v-col>
+                </v-row>
+            </div>
         </div>
 
         <v-divider class="mt-4"></v-divider>
@@ -138,39 +152,56 @@ const ogtGlobals = inject("ogtGlobals");
 const checkedPlaceLayerGroups = ref(Object.keys(props.groupedPlaces));
 const emit = defineEmits(["update-layer-groups"]);
 
-// Function to show the glossary highlight
-const showGlossaryHighlight = () => {
-    const highlight = document.getElementById("glossary-column-highlight");
-
+const showTutorialHighlight = (highlightId) => {
+    const highlight = document.getElementById(highlightId);
     if (highlight) {
-        // The highlight is inside the placetype-filter div, so its positioning is already correct
         highlight.style.display = "block";
     }
 };
 
-// Function to hide the glossary column highlight
-const hideGlossaryHighlight = () => {
-    const highlight = document.getElementById("glossary-column-highlight");
+const hideTutorialHighlight = (highlightId) => {
+    const highlight = document.getElementById(highlightId);
     if (highlight) {
         highlight.style.display = "none";
     }
 };
 
-// Add event listeners for tutorial events
+const showGlossaryHandler = () =>
+    showTutorialHighlight("glossary-column-highlight");
+const hideGlossaryHandler = () =>
+    hideTutorialHighlight("glossary-column-highlight");
+const showFiltersHandler = () => showTutorialHighlight("filter-row-highlight");
+const hideFiltersHandler = () => hideTutorialHighlight("filter-row-highlight");
+const showCheckboxAll = () =>
+    showTutorialHighlight("filter-checkbox-all-highlight");
+const hideCheckboxAll = () =>
+    hideTutorialHighlight("filter-checkbox-all-highlight");
+
 onMounted(() => {
-    window.addEventListener("show-glossary-highlight", showGlossaryHighlight);
-    window.addEventListener("hide-glossary-highlight", hideGlossaryHighlight);
+    window.addEventListener("show-glossary-highlight", showGlossaryHandler);
+    window.addEventListener("hide-glossary-highlight", hideGlossaryHandler);
+    window.addEventListener("show-filters-row-highlight", showFiltersHandler);
+    window.addEventListener("hide-filters-row-highlight", hideFiltersHandler);
+    window.addEventListener(
+        "show-filters-checkbox-all-highlight",
+        showCheckboxAll,
+    );
+    window.addEventListener(
+        "hide-filters-checkbox-all-highlight",
+        hideCheckboxAll,
+    );
 });
 
-// Clean up event listeners
 onBeforeUnmount(() => {
+    window.removeEventListener("show-glossary-highlight", showGlossaryHandler);
+    window.removeEventListener("hide-glossary-highlight", hideGlossaryHandler);
     window.removeEventListener(
-        "show-glossary-highlight",
-        showGlossaryHighlight,
+        "show-filters-row-highlight",
+        showFiltersHandler,
     );
     window.removeEventListener(
-        "hide-glossary-highlight",
-        hideGlossaryHighlight,
+        "hide-filters-row-highlight",
+        hideFiltersHandler,
     );
 });
 
@@ -293,11 +324,9 @@ watch(checkedPlaceLayerGroups, (newGroups) => {
     z-index: 10002 !important;
 }
 
-.glossary-column-highlight {
+.tutorial-rectangle-highlight {
     position: absolute;
     top: 0;
-    right: -15px;
-    width: 70px;
     height: 100%;
     border: 6px solid #ff0000;
     box-shadow: 0 0 30px 10px rgba(255, 0, 0, 0.7);
@@ -305,10 +334,25 @@ watch(checkedPlaceLayerGroups, (newGroups) => {
     pointer-events: none;
     z-index: 9999;
     border-radius: 8px;
-    animation: glossary-highlight-pulse 2s infinite;
+    animation: rectangle-highlight-pulse 2s infinite;
 }
 
-@keyframes glossary-highlight-pulse {
+.filter-row-highlight {
+    left: -15px;
+    width: calc(100% - 20px);
+}
+
+.filter-checkbox-all-highlight {
+    left: 0px;
+    width: calc(100% - 40px);
+}
+
+.glossary-column-highlight {
+    right: -15px;
+    width: 70px;
+}
+
+@keyframes rectangle-highlight-pulse {
     0% {
         box-shadow: 0 0 20px 10px rgba(255, 0, 0, 0.7);
         border-color: #ff0000;

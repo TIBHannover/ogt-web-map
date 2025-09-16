@@ -365,20 +365,20 @@ const chapters = [
                 highlightSelector: ".filter-options", // Selector for the Filter options
                 position: { top: "100px", right: "400px" },
                 highlightClass: "highlight-tutorial",
-                onStepPrepare: "hideGlossaryHighlight",
-                onStepShow: null,
+                onStepPrepare: "openMapOptions",
+                onStepShow: "showFiltersRowHighlight",
                 onStepNext: null,
             },
             {
                 title: "Alle Filter",
                 description:
-                    "In der Grundeinstellung werden alle Kategorien angezeigt. Hier kannst Du festlegen, ob alle oder keine Kategorien dargestellt werden sollen.",
+                    "In der Grundeinstellung werden alle Kategorien angezeigt. Hier kannst Du festlegen, ob alle oder keine Kategorien dargestellt werden sollen. <br> Wir deaktivieren einmal alle Kategorien.",
                 highlightSelector: ".all-filters", // Selector for "All Filters"
                 position: { top: "150px", right: "400px" },
-                onStepShow: "deactivateAllFilters",
+                onStepShow: "showFiltersCheckboxAllHighlight",
                 highlightClass: "highlight-tutorial",
                 onStepPrepare: "openMapOptions",
-                onStepNext: null,
+                onStepNext: "deactivateAllFilters",
             },
             {
                 title: "Kategorie auswählen",
@@ -959,12 +959,28 @@ const executeAction = (actionName) => {
     // No need to update the highlight here as we're using custom events
     setTimeout(() => {
         switch (actionName) {
-            // Custom actions for glossary highlight
+            // Custom actions for tutorial highlights
             case "showGlossaryHighlight":
                 window.dispatchEvent(new Event("show-glossary-highlight"));
                 break;
             case "hideGlossaryHighlight":
                 window.dispatchEvent(new Event("hide-glossary-highlight"));
+                break;
+            case "showFiltersRowHighlight":
+                window.dispatchEvent(new Event("show-filters-row-highlight"));
+                break;
+            case "hideFiltersRowHighlight":
+                window.dispatchEvent(new Event("hide-filters-row-highlight"));
+                break;
+            case "showFiltersCheckboxAllHighlight":
+                window.dispatchEvent(
+                    new Event("show-filters-checkbox-all-highlight"),
+                );
+                break;
+            case "hideFiltersCheckboxAllHighlight":
+                window.dispatchEvent(
+                    new Event("hide-filters-checkbox-all-highlight"),
+                );
                 break;
             // Navigation Control Actions
             case "resetAllNavigation":
@@ -998,33 +1014,13 @@ const executeAction = (actionName) => {
             case "openMapOptions":
                 if (props.openMapOptions) {
                     props.openMapOptions();
-                    // Update highlight element after opening with longer delay
+                    resetHighlights();
                     setTimeout(updateHighlightElement, 800);
-                } else if (props.toggleMapOptions) {
-                    // Try multiple selectors to find the map options sidebar
-                    const isMapOptionsOpen = document.querySelector(
-                        ".menuOptionsidebar.v-navigation-drawer--active, .map-options-sidebar.v-navigation-drawer--active",
-                    );
-                    if (!isMapOptionsOpen) {
-                        console.log("Opening map options via toggleMapOptions");
-                        props.toggleMapOptions();
-                        // Update highlight element after opening with longer delay
-                        setTimeout(updateHighlightElement, 800);
-                    }
                 }
                 break;
             case "closeMapOptions":
                 if (props.closeMapOptions) {
                     props.closeMapOptions();
-                } else if (props.toggleMapOptions) {
-                    // Try multiple selectors to find the map options sidebar
-                    const isMapOptionsOpen = document.querySelector(
-                        ".menuOptionsidebar.v-navigation-drawer--active, .map-options-sidebar.v-navigation-drawer--active",
-                    );
-                    if (isMapOptionsOpen) {
-                        console.log("Closing map options via toggleMapOptions");
-                        props.toggleMapOptions();
-                    }
                 }
                 break;
             case "handleMapOptions":
@@ -1123,6 +1119,13 @@ const executeAction = (actionName) => {
     }, 100); // Small delay to ensure UI is ready
 };
 
+const resetHighlights = () => {
+    // MapOption Highlights
+    window.dispatchEvent(new Event("hide-filters-row-highlight"));
+    window.dispatchEvent(new Event("hide-glossary-highlight"));
+    window.dispatchEvent(new Event("hide-filters-checkbox-all-highlight"));
+};
+
 // Tutorial control methods
 const startTutorial = () => {
     closeAllNavigation();
@@ -1169,8 +1172,9 @@ const completeTutorial = () => {
     emit("complete");
     localStorage.setItem("tutorialCompleted", "true");
 
-    // Hide the glossary highlight
+    // Hide any active tutorial highlights
     window.dispatchEvent(new Event("hide-glossary-highlight"));
+    window.dispatchEvent(new Event("hide-filters-row-highlight"));
 };
 
 const skipTutorial = () => {
@@ -1179,8 +1183,9 @@ const skipTutorial = () => {
     emit("skip");
     localStorage.setItem("tutorialCompleted", "true");
 
-    // Hide the glossary highlight
+    // Hide any active tutorial highlights
     window.dispatchEvent(new Event("hide-glossary-highlight"));
+    window.dispatchEvent(new Event("hide-filters-row-highlight"));
 };
 
 // Apply highlighting class to the target element
@@ -1356,8 +1361,9 @@ onMounted(() => {
 
 // Clean up on component unmount
 onUnmounted(() => {
-    // Hide the glossary highlight
+    // Hide any active tutorial highlights
     window.dispatchEvent(new Event("hide-glossary-highlight"));
+    window.dispatchEvent(new Event("hide-filters-row-highlight"));
 
     // Clear the update interval
     if (window.tutorialHighlightInterval) {
