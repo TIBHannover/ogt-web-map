@@ -30,7 +30,6 @@
                 'mobile-drawer': isMobile,
                 'v-navigation-drawer--closed': !isMapOptionsOpen && isMobile,
             }"
-            style="z-index: 3000 !important"
         >
             <!-- map options header -->
             <v-list-item class="position-relative py-3">

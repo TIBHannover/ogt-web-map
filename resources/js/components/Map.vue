@@ -49,6 +49,7 @@
             :open-map-options="openMapOptions"
             :close-map-options="closeMapOptions"
             :toggle-map-options="toggleMapOptions"
+            :set-map-view="setMapView"
             @complete="completeTutorial"
             @skip="skipTutorial"
             @start="startTutorial"

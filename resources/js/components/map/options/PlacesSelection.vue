@@ -31,6 +31,11 @@
                     class="glossary-column-highlight tutorial-rectangle-highlight"
                     style="display: none"
                 ></div>
+                <div
+                    id="filter-checkbox-staatspolizeileitstellen-highlight"
+                    class="filter-checkbox-staatspolizeileitstellen-highlight tutorial-rectangle-highlight"
+                    style="display: none"
+                ></div>
                 <v-row
                     v-for="groupName in groupedPlacesOrder"
                     class="pt-1"
@@ -93,31 +98,38 @@
         </div>
 
         <v-divider class="mt-4"></v-divider>
-        <v-list-subheader>Erfasste Gestapo Terror Orte</v-list-subheader>
-        <v-autocomplete
-            v-for="groupName in groupedPlacesOrder"
-            v-model="selectedPlaces[groupName]"
-            v-show="checkedPlaceLayerGroups.includes(groupName)"
-            class="mx-4 my-2"
-            color="grey-darken-4"
-            density="compact"
-            hide-details
-            item-title="placeLabelWithIndex"
-            :items="groupedPlaces[groupName].placesByCoordinates"
-            :key="groupName"
-            :label="groupedPlaces[groupName].layerName"
-            :data-label="groupedPlaces[groupName].layerName"
-            :data-groupName="groupName"
-            :ref="
-                (el) => {
-                    if (el) autoCompleteRefs[groupName] = el;
-                }
-            "
-            variant="outlined"
-            return-object
-            rounded
-            clearable
-        ></v-autocomplete>
+        <div class="position-relative">
+            <div
+                id="filter-dropdowns-highlight"
+                class="filter-dropdowns-highlight tutorial-rectangle-highlight"
+                style="display: none"
+            ></div>
+            <v-list-subheader>Erfasste Gestapo Terror Orte</v-list-subheader>
+            <v-autocomplete
+                v-for="groupName in groupedPlacesOrder"
+                v-model="selectedPlaces[groupName]"
+                v-show="checkedPlaceLayerGroups.includes(groupName)"
+                class="mx-4 my-2"
+                color="grey-darken-4"
+                density="compact"
+                hide-details
+                item-title="placeLabelWithIndex"
+                :items="groupedPlaces[groupName].placesByCoordinates"
+                :key="groupName"
+                :label="groupedPlaces[groupName].layerName"
+                :data-label="groupedPlaces[groupName].layerName"
+                :data-groupName="groupName"
+                :ref="
+                    (el) => {
+                        if (el) autoCompleteRefs[groupName] = el;
+                    }
+                "
+                variant="outlined"
+                return-object
+                rounded
+                clearable
+            ></v-autocomplete>
+        </div>
     </v-container>
 </template>
 
@@ -177,6 +189,14 @@ const showFilterCheckboxAllHandler = () =>
     showTutorialHighlight("filter-checkbox-all-highlight");
 const hideFilterCheckboxAllHandler = () =>
     hideTutorialHighlight("filter-checkbox-all-highlight");
+const showFilterStaatspolizeileitstellenHandler = () =>
+    showTutorialHighlight("filter-checkbox-staatspolizeileitstellen-highlight");
+const hideFilterStaatspolizeileitstellenHandler = () =>
+    hideTutorialHighlight("filter-checkbox-staatspolizeileitstellen-highlight");
+const showFilterDropdownHandler = () =>
+    showTutorialHighlight("filter-dropdowns-highlight");
+const hideFilterDropdownHandler = () =>
+    hideTutorialHighlight("filter-dropdowns-highlight");
 
 onMounted(() => {
     // Highlight events
@@ -191,6 +211,22 @@ onMounted(() => {
     window.addEventListener(
         "hide-filters-checkbox-all-highlight",
         hideFilterCheckboxAllHandler,
+    );
+    window.addEventListener(
+        "show-filter-checkbox-staatspolizeileitstellen-highlight",
+        showFilterStaatspolizeileitstellenHandler,
+    );
+    window.addEventListener(
+        "hide-filter-checkbox-staatspolizeileitstellen-highlight",
+        hideFilterStaatspolizeileitstellenHandler,
+    );
+    window.addEventListener(
+        "show-filter-dropdown-highlight",
+        showFilterDropdownHandler,
+    );
+    window.addEventListener(
+        "hide-filter-dropdown-highlight",
+        hideFilterDropdownHandler,
     );
 
     // Filter action events
@@ -406,6 +442,20 @@ watch(checkedPlaceLayerGroups, (newGroups) => {
     z-index: 9999;
     border-radius: 8px;
     animation: rectangle-highlight-pulse 2s infinite;
+}
+
+.filter-dropdowns-highlight {
+    width: calc(100% + 20px);
+    height: calc(100% + 20px);
+    top: -10px;
+    left: -10px;
+}
+
+.filter-checkbox-staatspolizeileitstellen-highlight {
+    height: 55px;
+    top: -5px;
+    left: -15px;
+    width: calc(100% - 20px);
 }
 
 .filter-row-highlight {

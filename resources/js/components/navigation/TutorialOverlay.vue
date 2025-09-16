@@ -190,6 +190,10 @@ const props = defineProps({
         type: Function,
         required: false,
     },
+    setMapView: {
+        type: Function,
+        required: false,
+    },
     resetAllNavigation: {
         type: Function,
         required: false,
@@ -309,7 +313,7 @@ const chapters = [
                 position: { top: "100px", right: "80px" },
                 highlightClass: "highlight-tutorial",
                 onStepPrepare: "closeMapOptions",
-                onStepShow: null,
+                onStepShow: "setMapToCenter",
                 onStepNext: null,
             },
             {
@@ -354,7 +358,7 @@ const chapters = [
                 position: { top: "100px", right: "80px" },
                 highlightClass: "highlight-tutorial",
                 onStepPrepare: "closeMapOptions",
-                onStepShow: null,
+                onStepShow: "setMapToCenter",
                 onStepNext: null,
             },
             */
@@ -386,7 +390,8 @@ const chapters = [
                     "Jetzt kannst Du gezielt eine Kategorie auswählen. In diesem Beispiel aktivieren wir nur die Kategorie 'Staatspolizeileitstellen'.",
                 highlightSelector: ".filter-staatspolizeileitstellen", // Selector for the specific filter
                 position: { top: "180px", right: "400px" },
-                onStepShow: null,
+                onStepShow:
+                    "showFilterCheckboxStaatspolizeileitstelleHighlight",
                 highlightClass: "highlight-tutorial",
                 onStepPrepare: "openMapOptions",
                 onStepNext: "activateStaatspolizeileitstellen",
@@ -408,7 +413,7 @@ const chapters = [
                 position: { bottom: "150px", right: "400px" },
                 highlightClass: "highlight-tutorial",
                 onStepPrepare: "openMapOptions",
-                onStepShow: null,
+                onStepShow: "showFiltersDropdownHighlight",
                 onStepNext: null,
             },
         ],
@@ -959,7 +964,6 @@ const executeAction = (actionName) => {
     // No need to update the highlight here as we're using custom events
     setTimeout(() => {
         switch (actionName) {
-            // Custom actions for tutorial highlights
             case "showGlossaryHighlight":
                 window.dispatchEvent(new Event("show-glossary-highlight"));
                 break;
@@ -982,25 +986,43 @@ const executeAction = (actionName) => {
                     new Event("hide-filters-checkbox-all-highlight"),
                 );
                 break;
+            case "showFilterCheckboxStaatspolizeileitstelleHighlight":
+                window.dispatchEvent(
+                    new Event(
+                        "show-filter-checkbox-staatspolizeileitstellen-highlight",
+                    ),
+                );
+                break;
+            case "hideFilterCheckboxStaatspolizeileitstelleHighlight":
+                window.dispatchEvent(
+                    new Event(
+                        "hide-filter-checkbox-staatspolizeileitstellen-highlight",
+                    ),
+                );
+                break;
+            case "showFiltersDropdownHighlight":
+                window.dispatchEvent(
+                    new Event("show-filter-dropdown-highlight"),
+                );
+                break;
+            case "hideFiltersDropdownHighlight":
+                window.dispatchEvent(
+                    new Event("hide-filter-dropdown-highlight"),
+                );
+                break;
             // Filter actions
             case "deactivateAllFilters":
-                console.log("Executing deactivateAllFilters");
-                // First show the highlight to make it visible
                 window.dispatchEvent(
                     new Event("show-filters-checkbox-all-highlight"),
                 );
-                // Then dispatch the actual filter deactivation
                 setTimeout(() => {
                     window.dispatchEvent(new Event("deactivate-all-filters"));
                 }, 500);
                 break;
             case "activateStaatspolizeileitstellen":
-                console.log("Executing activateStaatspolizeileitstellen");
-                // First hide any previous highlights
                 window.dispatchEvent(
                     new Event("hide-filters-checkbox-all-highlight"),
                 );
-                // Then dispatch the filter activation
                 setTimeout(() => {
                     window.dispatchEvent(
                         new Event("activate-staatspolizeileitstellen"),
@@ -1135,6 +1157,11 @@ const executeAction = (actionName) => {
                 if (props.switchTimeFilterMode)
                     props.switchTimeFilterMode("point");
                 break;
+            case "setMapToCenter":
+                if (props.setMapView) {
+                    props.setMapView([52.8398667, 9.0759744], 8);
+                }
+                break;
             default:
                 console.warn(`Unbekannte Aktion: ${actionName}`);
         }
@@ -1146,6 +1173,10 @@ const resetHighlights = () => {
     window.dispatchEvent(new Event("hide-filters-row-highlight"));
     window.dispatchEvent(new Event("hide-glossary-highlight"));
     window.dispatchEvent(new Event("hide-filters-checkbox-all-highlight"));
+    window.dispatchEvent(
+        new Event("hide-filter-checkbox-staatspolizeileitstellen-highlight"),
+    );
+    window.dispatchEvent(new Event("hide-filter-dropdown-highlight"));
 };
 
 // Tutorial control methods
