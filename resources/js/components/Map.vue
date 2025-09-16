@@ -50,6 +50,7 @@
             :close-map-options="closeMapOptions"
             :toggle-map-options="toggleMapOptions"
             :set-map-view="setMapView"
+            :select-location="selectLocation"
             @complete="completeTutorial"
             @skip="skipTutorial"
             @start="startTutorial"
@@ -2849,6 +2850,23 @@ export default {
                 console.error("Error in switchLocation:", error);
             }
         };
+
+        /**
+         * Selects a location by its Wikidata ID
+         * Used by the tutorial to select specific locations
+         * @param {string} locationId - Wikidata ID of the location to select
+         */
+        const selectLocation = (locationId) => {
+            try {
+                console.log("Selecting location:", locationId);
+                switchLocation({
+                    locationId: locationId,
+                    zoom: 14,
+                });
+            } catch (error) {
+                console.error("Error in selectLocation:", error);
+            }
+        };
         /**
          * Show person data in map info sidebar.
          *
@@ -3436,6 +3454,7 @@ export default {
             closeMapOptions,
             toggleMapOptions,
             switchLocation,
+            selectLocation,
             toggleShowPlaceInfoSidebar,
             restoreCachedMapView,
             setMapView,

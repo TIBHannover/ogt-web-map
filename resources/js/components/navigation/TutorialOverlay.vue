@@ -245,7 +245,7 @@ const glossaryButtonsCoords = ref({ top: 0, left: 0, width: 0, height: 0 });
 // Define chapters and steps based on the document
 const chapters = [
     {
-        title: "Willkommensansprache und Tutorial",
+        title: "Einführung",
         steps: [
             {
                 title: "Willkommen",
@@ -422,10 +422,10 @@ const chapters = [
         title: "Standortdetails",
         steps: [
             {
-                title: "Detailansicht Hannover",
+                title: "Detailansicht Staatspolizeileitstelle",
                 description:
-                    "Wir haben nun den Standort der Staatspolizeileitstelle Hannover ausgewählt und können uns diesen im Detail ansehen.",
-                highlightSelector: ".location-hannover", // Selector for Hannover location
+                    "Wir haben nun den Standort der Staatspolizeileitstelle ausgewählt und können uns diesen im Detail ansehen.",
+                highlightSelector: ".location-detail", // Generic selector for location detail
                 position: {
                     top: "150px",
                     left: "50%",
@@ -446,6 +446,7 @@ const chapters = [
                     left: "50%",
                     transform: "translateX(-50%)",
                 },
+                onStepPrepare: "initDetailOptionsHighlights",
                 highlightClass: "highlight-tutorial",
             },
             {
@@ -453,6 +454,8 @@ const chapters = [
                 description:
                     "Alle unterstrichenen Angaben sind klickbar. Hier springen wir z. B. zu einem weiteren Standort der Staatspolizeileitstelle Hannover.",
                 highlightSelector: ".standort-links", // Selector for location links
+                onStepPrepare: "initDetailOptionsHighlights",
+                onStepShow: "showInformationAddressHighlight",
                 position: {
                     top: "250px",
                     left: "50%",
@@ -463,7 +466,9 @@ const chapters = [
                 title: "Personal-Informationen",
                 description:
                     "Per Klick kannst Du auch Informationen über das Personal abrufen.",
-                highlightSelector: ".personal-section", // Selector for the personnel section
+                highlightSelector: ".personal-section",
+                onStepPrepare: "initDetailOptionsHighlights",
+                onStepShow: "showInformationPersonalHighlight",
                 position: {
                     top: "300px",
                     left: "50%",
@@ -964,6 +969,7 @@ const executeAction = (actionName) => {
     // No need to update the highlight here as we're using custom events
     setTimeout(() => {
         switch (actionName) {
+            // MapOptions Highlights
             case "showGlossaryHighlight":
                 window.dispatchEvent(new Event("show-glossary-highlight"));
                 break;
@@ -1010,6 +1016,28 @@ const executeAction = (actionName) => {
                     new Event("hide-filter-dropdown-highlight"),
                 );
                 break;
+            // Place Detail Highlights
+            case "showInformationAddressHighlight":
+                window.dispatchEvent(
+                    new Event("show-information-address-highlight"),
+                );
+                break;
+            case "hideInformationAddressHighlight":
+                window.dispatchEvent(
+                    new Event("hide-information-address-highlight"),
+                );
+                break;
+            case "showInformationPersonalHighlight":
+                window.dispatchEvent(
+                    new Event("show-information-personal-highlight"),
+                );
+                break;
+            case "hideInformationPersonalHighlight":
+                window.dispatchEvent(
+                    new Event("hide-information-personal-highlight"),
+                );
+                break;
+
             // Filter actions
             case "deactivateAllFilters":
                 window.dispatchEvent(
@@ -1131,12 +1159,14 @@ const executeAction = (actionName) => {
                 break;
             // Location Actions
             case "selectLocation":
-                if (props.selectLocation) props.selectLocation("Hannover");
+                if (props.selectLocation) props.selectLocation("Q106625639");
                 break;
             // Person Details Actions
             case "openPersonDetails":
-                if (props.openPersonDetails)
-                    props.openPersonDetails("Walter Blume");
+                if (props.openPersonDetails) props.openPersonDetails("Q68656");
+                break;
+            case "initDetailOptionsHighlights":
+                initDetailOptionsHighlights();
                 break;
             // Navigation Actions
             case "goBack":
@@ -1177,6 +1207,11 @@ const resetHighlights = () => {
         new Event("hide-filter-checkbox-staatspolizeileitstellen-highlight"),
     );
     window.dispatchEvent(new Event("hide-filter-dropdown-highlight"));
+};
+
+const initDetailOptionsHighlights = () => {
+    window.dispatchEvent(new Event("hide-information-address-highlight"));
+    window.dispatchEvent(new Event("hide-information-personal-highlight"));
 };
 
 // Tutorial control methods
