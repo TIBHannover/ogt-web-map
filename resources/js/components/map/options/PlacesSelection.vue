@@ -293,16 +293,15 @@ watch(checkedPlaceLayerGroups, (newGroups) => {
     z-index: 10002 !important;
 }
 
-/* Highlight for the glossary column - controlled by tutorial */
 .glossary-column-highlight {
     position: absolute;
     top: 0;
-    right: 0;
+    right: -15px;
     width: 70px;
-    height: 100%; /* Cover the entire height of placetype-filter */
+    height: 100%;
     border: 6px solid #ff0000;
     box-shadow: 0 0 30px 10px rgba(255, 0, 0, 0.7);
-    background-color: rgba(255, 0, 0, 0.2);
+    background-color: transparent;
     pointer-events: none;
     z-index: 9999;
     border-radius: 8px;
@@ -311,16 +310,15 @@ watch(checkedPlaceLayerGroups, (newGroups) => {
 
 @keyframes glossary-highlight-pulse {
     0% {
-        box-shadow: 0 0 30px 10px rgba(255, 0, 0, 0.7);
+        box-shadow: 0 0 20px 10px rgba(255, 0, 0, 0.7);
         border-color: #ff0000;
     }
     50% {
-        box-shadow: 0 0 40px 15px rgba(255, 0, 0, 0.9);
+        box-shadow: 0 0 25px 15px rgba(255, 0, 0, 0.7);
         border-color: #ff5555;
-        background-color: rgba(255, 0, 0, 0.3);
     }
     100% {
-        box-shadow: 0 0 30px 10px rgba(255, 0, 0, 0.7);
+        box-shadow: 0 0 20px 10px rgba(255, 0, 0, 0.7);
         border-color: #ff0000;
     }
 }

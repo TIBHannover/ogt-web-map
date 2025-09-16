@@ -252,7 +252,9 @@ const chapters = [
                     left: "50%",
                     transform: "translate(-50%, -50%)",
                 },
-                onStepStart: null,
+                onStepPrepare: null,
+                onStepShow: null,
+                onStepNext: null,
             },
             {
                 title: "Tutorial-Anleitung",
@@ -270,7 +272,7 @@ const chapters = [
                 onStepNext: null,
             },
             {
-                title: "Tutorial-Anleitung",
+                title: "Kapitel-Menü",
                 description:
                     "Über diesen Button erreichst du das Kapitel-Menü des Tutorials. <br> Dort kannst du zwischen den einzelnen Kapiteln springen.",
                 highlightSelector: ".tutorial-button",
@@ -281,7 +283,7 @@ const chapters = [
                 onStepNext: null,
             },
             {
-                title: "Tutorial-Anleitung",
+                title: "Los gehts",
                 description: "Dann fangen wir an mit dem zweiten Kapitel",
                 highlightSelector: null,
                 position: {
@@ -324,7 +326,7 @@ const chapters = [
             {
                 title: "Glossareinträge",
                 description:
-                    "In der rot markierten Spalte rechts findest du Glossar-Icons (🔍). Diese bieten dir Zugang zu Hintergrundinformationen über die verschiedenen Orte und Begriffe.",
+                    "In der rot markierten Spalte rechts findest du Glossar-Icons. Diese bieten dir Zugang zu Hintergrundinformationen über die verschiedenen Orte und Begriffe.",
                 highlightSelector: null, // Not using highlight selector anymore
                 position: { top: "120px", right: "400px" },
                 highlightClass: null, // Not using highlight class anymore
@@ -372,36 +374,42 @@ const chapters = [
                 description:
                     "In der Grundeinstellung werden alle Kategorien angezeigt. Hier kannst Du festlegen, ob alle oder keine Kategorien dargestellt werden sollen.",
                 highlightSelector: ".all-filters", // Selector for "All Filters"
-                position: { top: "150px", right: "80px" },
-                onShowAction: "deactivateAllFilters",
+                position: { top: "150px", right: "400px" },
+                onStepShow: "deactivateAllFilters",
                 highlightClass: "highlight-tutorial",
-                onStepStart: "openMapOptions",
+                onStepPrepare: "openMapOptions",
+                onStepNext: null,
             },
             {
                 title: "Kategorie auswählen",
                 description:
                     "Jetzt kannst Du gezielt eine Kategorie auswählen. In diesem Beispiel aktivieren wir nur die Kategorie 'Staatspolizeileitstellen'.",
                 highlightSelector: ".filter-staatspolizeileitstellen", // Selector for the specific filter
-                position: { top: "180px", right: "80px" },
-                onShowAction: "activateFilter",
+                position: { top: "180px", right: "400px" },
+                onStepShow: "activateFilter",
                 highlightClass: "highlight-tutorial",
-                onStepStart: "openMapOptions",
+                onStepPrepare: "openMapOptions",
+                onStepNext: null,
             },
             {
                 title: "Gefilterte Anzeige",
                 description:
                     "Nun werden ausschließlich Staatspolizeileitstellen auf der Karte angezeigt.",
-                position: { top: "200px", right: "80px" },
-                onStepStart: "openMapOptions",
+                position: { top: "200px", right: "400px" },
+                onStepPrepare: "openMapOptions",
+                onStepShow: null,
+                onStepNext: null,
             },
             {
                 title: "Standorte auswählen",
                 description:
                     "Du kannst Dir jetzt alle Standorte der Staatspolizeileitstellen auf der Karte ansehen oder über das Dropdown-Menü einen bestimmten Standort auswählen bzw. nach einem suchen.",
                 highlightSelector: ".location-filters", // Selector for the location filters
-                position: { bottom: "150px", right: "80px" },
+                position: { bottom: "150px", right: "400px" },
                 highlightClass: "highlight-tutorial",
-                onStepStart: "openMapOptions",
+                onStepPrepare: "openMapOptions",
+                onStepShow: null,
+                onStepNext: null,
             },
         ],
     },
@@ -418,9 +426,10 @@ const chapters = [
                     left: "50%",
                     transform: "translateX(-50%)",
                 },
-                onShowAction: "selectLocation",
+                onStepShow: "selectLocation",
                 highlightClass: "highlight-tutorial",
-                onStepStart: "selectLocation",
+                onStepPrepare: "selectLocation",
+                onStepNext: null,
             },
             {
                 title: "Informationsübersicht",
@@ -466,7 +475,8 @@ const chapters = [
                     left: "50%",
                     transform: "translateX(-50%)",
                 },
-                onShowAction: "openPersonDetails",
+                onStepShow: "openPersonDetails",
+                onStepNext: null,
             },
             {
                 title: "Navigation zurück",
@@ -474,7 +484,8 @@ const chapters = [
                     "Mit diesem Button gelangst Du zurück zur Staatspolizeileitstelle Hannover.",
                 highlightSelector: ".back-button", // Selector for back button
                 position: { top: "150px", left: "100px" },
-                onShowAction: "goBack",
+                onStepShow: "goBack",
+                onStepNext: null,
             },
             {
                 title: "Ereignisse",
@@ -515,7 +526,8 @@ const chapters = [
                     "Hier kannst Du die Detailansicht des Standorts wieder schließen.",
                 highlightSelector: ".close-button", // Selector for close button
                 position: { top: "100px", right: "100px" },
-                onShowAction: "closeDetails",
+                onStepShow: "closeDetails",
+                onStepNext: null,
             },
             {
                 title: "Hauptmenü",
@@ -523,7 +535,8 @@ const chapters = [
                     "Über diesen Button kannst Du das Hauptmenü öffnen und z. B. direkt ins Glossar wechseln.",
                 highlightSelector: ".main-menu-button", // Selector for main menu button
                 position: { top: "50px", left: "100px" },
-                onShowAction: "openMainMenu",
+                onStepShow: "openMainMenu",
+                onStepNext: null,
             },
         ],
     },
@@ -536,8 +549,9 @@ const chapters = [
                     "Hier kannst Du den Zeitfilter aktivieren, um gezielt nach Zeiträumen oder Zeitpunkten zu filtern.",
                 highlightSelector: ".timeline-button", // Selector for timeline button
                 position: { bottom: "100px", right: "100px" },
-                onShowAction: null,
-                onStepStart: "openTimeline",
+                onStepShow: null,
+                onStepPrepare: "openTimeline",
+                onStepNext: null,
             },
             {
                 title: "Zeitfilter deaktivieren",
@@ -559,7 +573,8 @@ const chapters = [
                     "In diesem Modus kannst Du einen Zeitraum festlegen – mit den beiden roten Reglern links und rechts.",
                 highlightSelector: ".timeline-range-sliders", // Selector for timeline range sliders
                 position: { bottom: "250px", right: "100px" },
-                onShowAction: "setTimeFilter",
+                onStepShow: "setTimeFilter",
+                onStepNext: null,
             },
             {
                 title: "Zeitraumfilterung",
@@ -573,7 +588,8 @@ const chapters = [
                 description: "Wechseln wir nun in den Modus 'Zeitpunkt'.",
                 highlightSelector: ".timeline-point-mode", // Selector for timeline point mode
                 position: { bottom: "350px", right: "100px" },
-                onShowAction: "switchTimeFilterMode",
+                onStepShow: "switchTimeFilterMode",
+                onStepNext: null,
             },
             {
                 title: "Zeitpunkt wählen",
@@ -776,19 +792,26 @@ const prevStep = () => {
             updateHighlightElement();
             applyHighlightClass();
 
-            // Execute step start action if defined
-            if (currentStep.value?.onStepStart) {
+            // Execute onStepPrepare action if defined
+            if (currentStep.value?.onStepPrepare) {
                 console.log(
-                    "Executing onStepStart in prevStep:",
-                    currentStep.value.onStepStart,
+                    "Executing onStepPrepare in prevStep:",
+                    currentStep.value.onStepPrepare,
                 );
-                executeAction(currentStep.value.onStepStart);
+                executeAction(currentStep.value.onStepPrepare);
 
-                // Execute onShowAction after the action has taken effect
+                // Execute onStepShow after the preparation action has taken effect
                 setTimeout(() => {
-                    if (currentStep.value?.onShowAction) {
-                        executeAction(currentStep.value?.onShowAction);
+                    if (currentStep.value?.onStepShow) {
+                        executeAction(currentStep.value?.onStepShow);
                     }
+
+                    // Execute onStepNext after a further delay
+                    setTimeout(() => {
+                        if (currentStep.value?.onStepNext) {
+                            executeAction(currentStep.value?.onStepNext);
+                        }
+                    }, 500);
                 }, 500);
             }
         }, 200);
@@ -806,19 +829,26 @@ const nextChapter = () => {
             updateHighlightElement();
             applyHighlightClass();
 
-            // Execute step start action if defined
-            if (currentStep.value?.onStepStart) {
+            // Execute onStepPrepare action if defined
+            if (currentStep.value?.onStepPrepare) {
                 console.log(
-                    "Executing onStepStart in nextChapter:",
-                    currentStep.value.onStepStart,
+                    "Executing onStepPrepare in nextChapter:",
+                    currentStep.value.onStepPrepare,
                 );
-                executeAction(currentStep.value.onStepStart);
+                executeAction(currentStep.value.onStepPrepare);
 
-                // Execute onShowAction after the action has taken effect
+                // Execute onStepShow after the preparation action has taken effect
                 setTimeout(() => {
-                    if (currentStep.value?.onShowAction) {
-                        executeAction(currentStep.value?.onShowAction);
+                    if (currentStep.value?.onStepShow) {
+                        executeAction(currentStep.value?.onStepShow);
                     }
+
+                    // Execute onStepNext after a further delay
+                    setTimeout(() => {
+                        if (currentStep.value?.onStepNext) {
+                            executeAction(currentStep.value?.onStepNext);
+                        }
+                    }, 500);
                 }, 500);
             }
         }, 200);
@@ -856,18 +886,43 @@ const goToChapter = (chapterIndex) => {
         currentChapterIndex.value = chapterIndex;
         currentStepIndexInChapter.value = 0;
 
-        // Execute the step start action if defined
+        // Execute the preparation action if defined
         const targetChapter = chapters[chapterIndex];
         const targetStep = targetChapter.steps[0];
-        if (targetStep.onStepStart) {
-            executeAction(targetStep.onStepStart);
+        if (targetStep.onStepPrepare) {
+            executeAction(targetStep.onStepPrepare);
         }
+
+        // Execute the show action after a delay
+        setTimeout(() => {
+            if (targetStep.onStepShow) {
+                executeAction(targetStep.onStepShow);
+            }
+
+            // Execute the next action after a further delay
+            setTimeout(() => {
+                if (targetStep.onStepNext) {
+                    executeAction(targetStep.onStepNext);
+                }
+            }, 500);
+        }, 500);
 
         setTimeout(() => {
             updateHighlightElement();
             applyHighlightClass();
-        }, 100);
-        executeAction(currentStep.value?.onShowAction);
+
+            // Execute onStepShow action
+            if (currentStep.value?.onStepShow) {
+                executeAction(currentStep.value.onStepShow);
+
+                // Execute onStepNext after a delay
+                setTimeout(() => {
+                    if (currentStep.value?.onStepNext) {
+                        executeAction(currentStep.value.onStepNext);
+                    }
+                }, 500);
+            }
+        }, 500);
     }
 };
 
@@ -969,30 +1024,6 @@ const executeAction = (actionName) => {
                     if (isMapOptionsOpen) {
                         console.log("Closing map options via toggleMapOptions");
                         props.toggleMapOptions();
-                    }
-                }
-                break;
-            // Glossary Actions
-            case "openGlossaryEntry":
-                if (props.openGlossaryEntry) {
-                    console.log("Opening glossary entry: Gestapo");
-                    props.openGlossaryEntry("Gestapo");
-
-                    // Create a series of update attempts to ensure the highlight is visible
-                    // This handles asynchronous UI changes that might affect positioning
-                    for (let i = 1; i <= 10; i++) {
-                        setTimeout(() => {
-                            console.log(
-                                `Updating highlight after glossary entry - ${i * 200}ms`,
-                            );
-                            updateHighlightElement();
-                            applyHighlightClass();
-
-                            // We will use our custom event to ensure the highlight stays visible
-                            window.dispatchEvent(
-                                new Event("show-glossary-highlight"),
-                            );
-                        }, i * 200);
                     }
                 }
                 break;
@@ -1107,19 +1138,26 @@ const startTutorial = () => {
         updateHighlightElement();
         applyHighlightClass();
 
-        // Execute step start action if defined
-        if (currentStep.value?.onStepStart) {
+        // Execute onStepPrepare action if defined
+        if (currentStep.value?.onStepPrepare) {
             console.log(
-                "Executing onStepStart in startTutorial:",
-                currentStep.value.onStepStart,
+                "Executing onStepPrepare in startTutorial:",
+                currentStep.value.onStepPrepare,
             );
-            executeAction(currentStep.value.onStepStart);
+            executeAction(currentStep.value.onStepPrepare);
 
-            // Execute onShowAction after a slight delay if it exists
+            // Execute onStepShow after a slight delay
             setTimeout(() => {
-                if (currentStep.value?.onShowAction) {
-                    executeAction(currentStep.value?.onShowAction);
+                if (currentStep.value?.onStepShow) {
+                    executeAction(currentStep.value.onStepShow);
                 }
+
+                // Execute onStepNext after a further delay
+                setTimeout(() => {
+                    if (currentStep.value?.onStepNext) {
+                        executeAction(currentStep.value.onStepNext);
+                    }
+                }, 500);
             }, 500);
         }
     }, 200);
@@ -1257,7 +1295,13 @@ watch(
 watch([active, isFirstVisit], ([activeValue, firstVisitValue]) => {
     if (activeValue || firstVisitValue) {
         setTimeout(updateHighlightElement, 100);
-        executeAction(currentStep.value?.onShowAction);
+        executeAction(currentStep.value?.onStepShow);
+        // Execute onStepNext after a delay
+        setTimeout(() => {
+            if (currentStep.value?.onStepNext) {
+                executeAction(currentStep.value.onStepNext);
+            }
+        }, 500);
         setTimeout(applyHighlightClass, 100);
     }
 });
@@ -1348,7 +1392,6 @@ onUnmounted(() => {
     50% {
         box-shadow: 0 0 40px 20px rgba(255, 0, 0, 1);
         border-color: #ff5555;
-        background-color: rgba(255, 0, 0, 0.4);
     }
     100% {
         box-shadow: 0 0 30px 15px rgba(255, 0, 0, 0.8);
@@ -1409,8 +1452,8 @@ onUnmounted(() => {
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    min-width: 300px;
-    max-width: 400px;
+    min-width: 450px;
+    max-width: 500px;
     z-index: 1000;
     border-left: 4px solid #1976d2;
     margin-right: 20px;
@@ -1454,9 +1497,6 @@ onUnmounted(() => {
     backdrop-filter: none !important;
 }
 
-/* No longer needed as we're using the highlight in PlacesSelection.vue */
-
-/* Make sure the tutorial backdrop doesn't cover highlighted elements */
 .tutorial-backdrop {
     z-index: 900; /* Lower z-index to allow sidebar to appear above it */
     pointer-events: auto;
@@ -1478,8 +1518,6 @@ onUnmounted(() => {
     display: flex;
     margin-top: 20px;
 }
-
-/* Replaced by new definition below */
 
 .chapter-indicator {
     display: flex;
@@ -1513,7 +1551,7 @@ onUnmounted(() => {
     transition:
         transform 0.2s ease,
         box-shadow 0.2s ease;
-    background-color: #1976d2 !important; /* Primary blue color */
+    background-color: #1976d2 !important;
     opacity: 1 !important;
     visibility: visible !important;
     display: flex !important;
@@ -1558,24 +1596,20 @@ onUnmounted(() => {
     overflow-y: auto;
 }
 
-/* Highlighting styles */
 .highlight-tutorial {
-    /* Preserve original positioning properties */
-    z-index: 2200 !important; /* Higher than the backdrop, lower than sidebar content */
+    z-index: 2200 !important;
     transform: scale(1.05);
     transition: all 0.3s ease;
     box-shadow: 0 0 15px 5px rgba(255, 82, 82, 0.7);
     border-radius: 4px;
     animation: tutorial-pulse 2s infinite;
     pointer-events: auto !important;
-    /* Ensure button stays clickable */
     cursor: pointer;
-    position: relative !important; /* Add positioning context */
+    position: relative !important;
 }
 
-/* Make all glossary buttons super visible during tutorial */
 .tutorial-overlay.active .glossary-button {
-    z-index: 10000 !important; /* Very high to ensure visibility */
+    z-index: 10000 !important;
     position: relative !important;
     pointer-events: auto !important;
     transform: scale(1.05);
@@ -1587,18 +1621,15 @@ onUnmounted(() => {
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.7) !important;
 }
 
-/* Make map options sidebar appear above tutorial overlay */
 :deep(.menuOptionsidebar.v-navigation-drawer) {
-    z-index: 3000 !important; /* Higher than tutorial backdrop */
+    z-index: 3000 !important;
 }
 
-/* Make the glossary button column visible */
 :deep(.glossary-buttons-column) {
     position: relative;
     z-index: 1000 !important;
 }
 
-/* Individual glossary buttons should still be above the highlight */
 :deep(.glossary-button) {
     z-index: 10000 !important;
     position: relative;
@@ -1610,7 +1641,6 @@ onUnmounted(() => {
     transform: scale(1.1);
 }
 
-/* Make sure all elements in the sidebar are visible and interactive */
 :deep(.v-navigation-drawer--active) {
     z-index: 3000 !important;
     overflow: visible !important;
@@ -1619,25 +1649,23 @@ onUnmounted(() => {
 
 :deep(.v-navigation-drawer--active *) {
     position: relative !important;
-    z-index: 20000 !important; /* High z-index but below the highlight */
+    z-index: 20000 !important;
     opacity: 1 !important;
     visibility: visible !important;
 }
 
 :deep(.glossary-button) {
-    z-index: 20000 !important; /* Make sure these are extra visible but below the highlight */
+    z-index: 20000 !important;
     position: relative !important;
     cursor: pointer !important;
     border: 2px dashed transparent !important;
 }
 
-/* Special styling for glossary column when highlighted */
 .glossary-buttons-column.highlight-tutorial {
     position: relative;
     z-index: 1000 !important;
 }
 
-/* Special styling for glossary buttons column in tutorial */
 .glossary-buttons-column.highlight-tutorial {
     z-index: 100001 !important;
     box-shadow: 0 0 20px 10px rgba(255, 82, 82, 0.9) !important;
@@ -1645,7 +1673,6 @@ onUnmounted(() => {
     border-radius: 8px !important;
 }
 
-/* Special styling for glossary buttons area in tutorial */
 .highlight-tutorial-column {
     z-index: 100001 !important;
     position: absolute !important;
@@ -1668,19 +1695,16 @@ onUnmounted(() => {
     }
 }
 
-/* Individual glossary buttons still clickable inside highlighted area */
 .glossary-button {
-    z-index: 100002 !important; /* High z-index for glossary buttons */
+    z-index: 100002 !important;
     position: relative !important;
 }
 
-/* Make glossary buttons stand out during tutorial */
 .tutorial-overlay.active .glossary-button {
     pointer-events: auto !important;
     transition: transform 0.3s ease !important;
 }
 
-/* Highlighted state for glossary buttons */
 .tutorial-overlay.active .glossary-button:hover {
     transform: scale(1.2) !important;
     box-shadow: 0 0 10px 5px rgba(255, 255, 255, 0.5) !important;
