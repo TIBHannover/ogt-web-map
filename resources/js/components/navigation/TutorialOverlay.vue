@@ -373,7 +373,7 @@ const chapters = [
                 title: "Alle Filter",
                 description:
                     "In der Grundeinstellung werden alle Kategorien angezeigt. Hier kannst Du festlegen, ob alle oder keine Kategorien dargestellt werden sollen. <br> Wir deaktivieren einmal alle Kategorien.",
-                highlightSelector: ".all-filters", // Selector for "All Filters"
+                highlightSelector: ".filter-checkbox-all", // Selector for "All Filters" checkbox
                 position: { top: "150px", right: "400px" },
                 onStepShow: "showFiltersCheckboxAllHighlight",
                 highlightClass: "highlight-tutorial",
@@ -386,10 +386,10 @@ const chapters = [
                     "Jetzt kannst Du gezielt eine Kategorie auswählen. In diesem Beispiel aktivieren wir nur die Kategorie 'Staatspolizeileitstellen'.",
                 highlightSelector: ".filter-staatspolizeileitstellen", // Selector for the specific filter
                 position: { top: "180px", right: "400px" },
-                onStepShow: "activateFilter",
+                onStepShow: null,
                 highlightClass: "highlight-tutorial",
                 onStepPrepare: "openMapOptions",
-                onStepNext: null,
+                onStepNext: "activateStaatspolizeileitstellen",
             },
             {
                 title: "Gefilterte Anzeige",
@@ -982,6 +982,31 @@ const executeAction = (actionName) => {
                     new Event("hide-filters-checkbox-all-highlight"),
                 );
                 break;
+            // Filter actions
+            case "deactivateAllFilters":
+                console.log("Executing deactivateAllFilters");
+                // First show the highlight to make it visible
+                window.dispatchEvent(
+                    new Event("show-filters-checkbox-all-highlight"),
+                );
+                // Then dispatch the actual filter deactivation
+                setTimeout(() => {
+                    window.dispatchEvent(new Event("deactivate-all-filters"));
+                }, 500);
+                break;
+            case "activateStaatspolizeileitstellen":
+                console.log("Executing activateStaatspolizeileitstellen");
+                // First hide any previous highlights
+                window.dispatchEvent(
+                    new Event("hide-filters-checkbox-all-highlight"),
+                );
+                // Then dispatch the filter activation
+                setTimeout(() => {
+                    window.dispatchEvent(
+                        new Event("activate-staatspolizeileitstellen"),
+                    );
+                }, 500);
+                break;
             // Navigation Control Actions
             case "resetAllNavigation":
                 if (props.resetAllNavigation) props.resetAllNavigation();
@@ -1082,9 +1107,6 @@ const executeAction = (actionName) => {
                 if (props.activateFilter)
                     props.activateFilter("Staatspolizeileitstellen");
                 break;
-            case "deactivateAllFilters":
-                if (props.deactivateAllFilters) props.deactivateAllFilters();
-                break;
             // Location Actions
             case "selectLocation":
                 if (props.selectLocation) props.selectLocation("Hannover");
@@ -1175,6 +1197,7 @@ const completeTutorial = () => {
     // Hide any active tutorial highlights
     window.dispatchEvent(new Event("hide-glossary-highlight"));
     window.dispatchEvent(new Event("hide-filters-row-highlight"));
+    window.dispatchEvent(new Event("hide-filters-checkbox-all-highlight"));
 };
 
 const skipTutorial = () => {
@@ -1364,6 +1387,7 @@ onUnmounted(() => {
     // Hide any active tutorial highlights
     window.dispatchEvent(new Event("hide-glossary-highlight"));
     window.dispatchEvent(new Event("hide-filters-row-highlight"));
+    window.dispatchEvent(new Event("hide-filters-checkbox-all-highlight"));
 
     // Clear the update interval
     if (window.tutorialHighlightInterval) {

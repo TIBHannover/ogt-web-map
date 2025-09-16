@@ -166,33 +166,44 @@ const hideTutorialHighlight = (highlightId) => {
     }
 };
 
+// Create handler functions that we can reference for both adding and removing
 const showGlossaryHandler = () =>
     showTutorialHighlight("glossary-column-highlight");
 const hideGlossaryHandler = () =>
     hideTutorialHighlight("glossary-column-highlight");
 const showFiltersHandler = () => showTutorialHighlight("filter-row-highlight");
 const hideFiltersHandler = () => hideTutorialHighlight("filter-row-highlight");
-const showCheckboxAll = () =>
+const showFilterCheckboxAllHandler = () =>
     showTutorialHighlight("filter-checkbox-all-highlight");
-const hideCheckboxAll = () =>
+const hideFilterCheckboxAllHandler = () =>
     hideTutorialHighlight("filter-checkbox-all-highlight");
 
 onMounted(() => {
+    // Highlight events
     window.addEventListener("show-glossary-highlight", showGlossaryHandler);
     window.addEventListener("hide-glossary-highlight", hideGlossaryHandler);
     window.addEventListener("show-filters-row-highlight", showFiltersHandler);
     window.addEventListener("hide-filters-row-highlight", hideFiltersHandler);
     window.addEventListener(
         "show-filters-checkbox-all-highlight",
-        showCheckboxAll,
+        showFilterCheckboxAllHandler,
     );
     window.addEventListener(
         "hide-filters-checkbox-all-highlight",
-        hideCheckboxAll,
+        hideFilterCheckboxAllHandler,
+    );
+
+    // Filter action events
+    window.addEventListener("deactivate-all-filters", deactivateAllFilters);
+    window.addEventListener(
+        "activate-staatspolizeileitstellen",
+        activateStaatspolizeileitstellen,
     );
 });
 
+// Clean up event listeners
 onBeforeUnmount(() => {
+    // Remove all event listeners using the same handler references
     window.removeEventListener("show-glossary-highlight", showGlossaryHandler);
     window.removeEventListener("hide-glossary-highlight", hideGlossaryHandler);
     window.removeEventListener(
@@ -202,6 +213,21 @@ onBeforeUnmount(() => {
     window.removeEventListener(
         "hide-filters-row-highlight",
         hideFiltersHandler,
+    );
+    window.removeEventListener(
+        "show-filters-checkbox-all-highlight",
+        showFilterCheckboxAllHandler,
+    );
+    window.removeEventListener(
+        "hide-filters-checkbox-all-highlight",
+        hideFilterCheckboxAllHandler,
+    );
+
+    // Remove filter action event listeners
+    window.removeEventListener("deactivate-all-filters", deactivateAllFilters);
+    window.removeEventListener(
+        "activate-staatspolizeileitstellen",
+        activateStaatspolizeileitstellen,
     );
 });
 
@@ -259,8 +285,25 @@ const selectAll = () => {
             : [];
 };
 
+// Function to deactivate all filters - called from tutorial
+const deactivateAllFilters = () => {
+    // Set to empty array to deselect all filters
+    checkedPlaceLayerGroups.value = [];
+};
+
+// Function to activate only Staatspolizeileitstellen filter - called from tutorial
+const activateStaatspolizeileitstellen = () => {
+    // First clear all filters
+    checkedPlaceLayerGroups.value = [];
+
+    // Then add only the Staatspolizeileitstellen filter
+    // Using a slight delay to ensure UI updates properly
+    setTimeout(() => {
+        checkedPlaceLayerGroups.value = ["statePoliceHeadquarters"];
+    }, 100);
+};
+
 // Watchers
-//
 groupedPlacesOrder.forEach((groupName) => {
     watch(
         () => selectedPlaces.value[groupName],
@@ -284,6 +327,34 @@ watch(checkedPlaceLayerGroups, (newGroups) => {
 /* set width of drop-down-lists of selectable places */
 .v-autocomplete__content {
     max-width: 307px;
+}
+
+/* Style for the filter checkbox highlight */
+.filter-checkbox-all-highlight {
+    position: absolute;
+    border: 6px solid #ff0000;
+    box-shadow: 0 0 30px 10px rgba(255, 0, 0, 0.7);
+    background-color: rgba(255, 0, 0, 0.2);
+    pointer-events: none;
+    z-index: 9999;
+    border-radius: 8px;
+    animation: tutorial-highlight-pulse 2s infinite;
+}
+
+@keyframes tutorial-highlight-pulse {
+    0% {
+        box-shadow: 0 0 30px 10px rgba(255, 0, 0, 0.7);
+        border-color: #ff0000;
+    }
+    50% {
+        box-shadow: 0 0 40px 15px rgba(255, 0, 0, 0.9);
+        border-color: #ff5555;
+        background-color: rgba(255, 0, 0, 0.3);
+    }
+    100% {
+        box-shadow: 0 0 30px 10px rgba(255, 0, 0, 0.7);
+        border-color: #ff0000;
+    }
 }
 </style>
 
