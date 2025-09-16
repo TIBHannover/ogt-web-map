@@ -176,7 +176,7 @@
                     )
                 "
                 :selectedPerson="selectedPlace"
-                :hasPreviousLocation="hasHistory"
+                :hasPreviousLocation="hasHistory || props.tutorialMode"
                 @switchLocation="$emit('switchLocation', $event)"
                 @goBack="goBack"
             ></person>
@@ -220,7 +220,11 @@ const emits = defineEmits([
 // Function to handle navigation to a person
 const navigateToPerson = (person) => {
     // Save current place ID to history before navigating
-    if (props.selectedPlace && props.selectedPlace.id && navigationHistory.value) {
+    if (
+        props.selectedPlace &&
+        props.selectedPlace.id &&
+        navigationHistory.value
+    ) {
         navigationHistory.value.push(props.selectedPlace.id);
     }
     emits("showPerson", person);
@@ -258,6 +262,10 @@ const props = defineProps({
     showPlaceInfoSidebar: {
         type: Boolean,
         required: true,
+    },
+    tutorialMode: {
+        type: Boolean,
+        default: false,
     },
 });
 

@@ -32,8 +32,10 @@
         ></map-timeline>
 
         <place-info-sidebar
+            ref="placeInfoSidebar"
             :selectedPlace="selectedPlace"
             :showPlaceInfoSidebar="showPlaceInfoSidebar"
+            :tutorialMode="showTutorial"
             @hidePlaceInfoSidebar="toggleShowPlaceInfoSidebar(false)"
             @showPerson="showPerson"
             @switchLocation="switchLocation"
@@ -51,6 +53,7 @@
             :toggle-map-options="toggleMapOptions"
             :set-map-view="setMapView"
             :select-location="selectLocation"
+            :openPersonDetails="showPerson"
             @complete="completeTutorial"
             @skip="skipTutorial"
             @start="startTutorial"
@@ -112,6 +115,7 @@ export default {
         const rawMap = ref(null);
         const rawGroupedPlaces = ref({});
         const markers = ref([]);
+        const placeInfoSidebar = ref(null);
         const {
             isTimelineOpen,
             isMapOptionsOpen,
@@ -2854,15 +2858,38 @@ export default {
         /**
          * Selects a location by its Wikidata ID
          * Used by the tutorial to select specific locations
-         * @param {string} locationId - Wikidata ID of the location to select
+         * @param {string|object} locationInfo - Wikidata ID of the location to select or object with location details
          */
-        const selectLocation = (locationId) => {
+        const selectLocation = (locationInfo) => {
             try {
-                console.log("Selecting location:", locationId);
-                switchLocation({
-                    locationId: locationId,
-                    zoom: 14,
-                });
+                if (typeof locationInfo === "string") {
+                    // If just a location ID is provided
+                    console.log("Selecting location by ID:", locationInfo);
+                    switchLocation({
+                        locationId: locationInfo,
+                        zoom: 14,
+                    });
+                } else {
+                    // If a location object with coordinates is provided
+                    console.log(
+                        "Selecting location with coordinates:",
+                        locationInfo,
+                    );
+                    const latLng =
+                        locationInfo.latLng ||
+                        (locationInfo.lat && locationInfo.lng
+                            ? {
+                                  lat: parseFloat(locationInfo.lat),
+                                  lng: parseFloat(locationInfo.lng),
+                              }
+                            : null);
+
+                    switchLocation({
+                        locationId: locationInfo.locationId,
+                        latLng: latLng,
+                        zoom: locationInfo.zoom || 14,
+                    });
+                }
             } catch (error) {
                 console.error("Error in selectLocation:", error);
             }
@@ -2925,6 +2952,19 @@ export default {
                 console.error("Error in showPerson:", error);
                 toggleShowPlaceInfoSidebar(false);
             }
+        };
+
+        /**
+         * Sets up navigation history for the tutorial to enable back button in person view
+         * This is kept for compatibility but no longer needed since we use tutorialMode flag
+         * @param {string} locationId - The ID of the location to add to navigation history
+         */
+        const setupPersonNavigationHistory = (locationId) => {
+            // No longer needed as we use tutorialMode flag to show back button
+            console.log(
+                "setupPersonNavigationHistory is called but not needed anymore",
+            );
+            return;
         };
         /**
          * Set the perpetrator data of the selected person to be displayed in the map info sidebar.
@@ -3458,6 +3498,7 @@ export default {
             toggleShowPlaceInfoSidebar,
             restoreCachedMapView,
             setMapView,
+            setupPersonNavigationHistory,
             handleLayerGroupsUpdate,
             handleTimelineUpdate,
             MapTimeline,

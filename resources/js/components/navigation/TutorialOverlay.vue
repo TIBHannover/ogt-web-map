@@ -428,8 +428,7 @@ const chapters = [
                 highlightSelector: ".location-detail", // Generic selector for location detail
                 position: {
                     top: "150px",
-                    left: "50%",
-                    transform: "translateX(-50%)",
+                    left: "400px",
                 },
                 onStepShow: "selectLocation",
                 highlightClass: "highlight-tutorial",
@@ -443,36 +442,33 @@ const chapters = [
                 highlightSelector: ".detail-scroll-area", // Selector for the scroll area
                 position: {
                     top: "200px",
-                    left: "50%",
-                    transform: "translateX(-50%)",
+                    left: "400px",
                 },
                 onStepPrepare: "initDetailOptionsHighlights",
                 highlightClass: "highlight-tutorial",
             },
             {
-                title: "Verlinkungen",
+                title: "Standorte",
                 description:
-                    "Alle unterstrichenen Angaben sind klickbar. Hier springen wir z. B. zu einem weiteren Standort der Staatspolizeileitstelle Hannover.",
+                    "Die Staatspolizeileitstelle Hannover hatte mehrere Standorte. Hier siehst du den Standort in der Schlägerstraße. Alle unterstrichenen Angaben sind klickbar.",
                 highlightSelector: ".standort-links", // Selector for location links
                 onStepPrepare: "initDetailOptionsHighlights",
                 onStepShow: "showInformationAddressHighlight",
                 position: {
                     top: "250px",
-                    left: "50%",
-                    transform: "translateX(-50%)",
+                    left: "400px",
                 },
             },
             {
                 title: "Personal-Informationen",
                 description:
-                    "Per Klick kannst Du auch Informationen über das Personal abrufen.",
+                    "Per Klick kannst Du auch Informationen über das Personal abrufen. Wir klicken beispielsweise auf die Person 'Walter Blume'.",
                 highlightSelector: ".personal-section",
                 onStepPrepare: "initDetailOptionsHighlights",
                 onStepShow: "showInformationPersonalHighlight",
                 position: {
                     top: "300px",
-                    left: "50%",
-                    transform: "translateX(-50%)",
+                    left: "400px",
                 },
             },
             {
@@ -482,8 +478,7 @@ const chapters = [
                 highlightSelector: ".person-details", // Selector for person details
                 position: {
                     top: "350px",
-                    left: "50%",
-                    transform: "translateX(-50%)",
+                    left: "400px",
                 },
                 onStepShow: "openPersonDetails",
                 onStepNext: null,
@@ -493,7 +488,7 @@ const chapters = [
                 description:
                     "Mit diesem Button gelangst Du zurück zur Staatspolizeileitstelle Hannover.",
                 highlightSelector: ".back-button", // Selector for back button
-                position: { top: "150px", left: "100px" },
+                position: { top: "150px", left: "400px" },
                 onStepShow: "goBack",
                 onStepNext: null,
             },
@@ -504,7 +499,7 @@ const chapters = [
                 highlightSelector: ".events-section", // Selector for events section
                 position: {
                     top: "400px",
-                    left: "50%",
+                    left: "400px",
                     transform: "translateX(-50%)",
                 },
             },
@@ -515,7 +510,7 @@ const chapters = [
                 highlightSelector: ".perpetrator-link", // Selector for perpetrator link
                 position: {
                     top: "450px",
-                    left: "50%",
+                    left: "400px",
                     transform: "translateX(-50%)",
                 },
             },
@@ -526,7 +521,7 @@ const chapters = [
                 highlightSelector: ".related-organizations", // Selector for related organizations
                 position: {
                     top: "500px",
-                    left: "50%",
+                    left: "400px",
                     transform: "translateX(-50%)",
                 },
             },
@@ -535,7 +530,7 @@ const chapters = [
                 description:
                     "Hier kannst Du die Detailansicht des Standorts wieder schließen.",
                 highlightSelector: ".close-button", // Selector for close button
-                position: { top: "100px", right: "100px" },
+                position: { top: "100px", left: "400px" },
                 onStepShow: "closeDetails",
                 onStepNext: null,
             },
@@ -1018,9 +1013,21 @@ const executeAction = (actionName) => {
                 break;
             // Place Detail Highlights
             case "showInformationAddressHighlight":
-                window.dispatchEvent(
-                    new Event("show-information-address-highlight"),
-                );
+                // First switch to the specific address (Schlägerstr.)
+                if (props.selectLocation) {
+                    props.selectLocation({
+                        locationId: "Q106625639",
+                        lat: 52.364983111,
+                        lng: 9.748284833,
+                        zoom: 16,
+                    });
+                }
+                // Then show the highlight
+                setTimeout(() => {
+                    window.dispatchEvent(
+                        new Event("show-information-address-highlight"),
+                    );
+                }, 500);
                 break;
             case "hideInformationAddressHighlight":
                 window.dispatchEvent(
@@ -1163,7 +1170,12 @@ const executeAction = (actionName) => {
                 break;
             // Person Details Actions
             case "openPersonDetails":
-                if (props.openPersonDetails) props.openPersonDetails("Q68656");
+                if (props.openPersonDetails) {
+                    props.openPersonDetails({
+                        id: "Q68656",
+                        group: "perpetrators",
+                    });
+                }
                 break;
             case "initDetailOptionsHighlights":
                 initDetailOptionsHighlights();
