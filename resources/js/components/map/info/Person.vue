@@ -116,7 +116,12 @@
         ></sources>
 
         <!-- Back button to return to previous item (only shown if we have a previous location) -->
-        <div v-if="hasPreviousLocation">
+        <div v-if="hasPreviousLocation" class="position-relative">
+            <div
+                id="information-back-highlight"
+                class="information-back-highlight tutorial-rectangle-highlight"
+                style="display: none"
+            ></div>
             <v-list-item density="compact" class="mt-3" style="border: 0">
                 <v-btn
                     prepend-icon="mdi-arrow-left"
@@ -134,10 +139,53 @@
 </template>
 
 <script setup>
+import { defineProps, defineEmits, onMounted, onBeforeUnmount } from "vue";
 import Perpetrator from "./Perpetrator";
 import SignificantEvent from "./SignificantEvent";
 import Sources from "./Sources";
 import Victim from "./Victim";
+
+const showTutorialHighlight = (highlightId) => {
+    const highlight = document.getElementById(highlightId);
+    if (highlight) {
+        highlight.style.display = "block";
+    }
+};
+
+const hideTutorialHighlight = (highlightId) => {
+    const highlight = document.getElementById(highlightId);
+    if (highlight) {
+        highlight.style.display = "none";
+    }
+};
+
+const showInformationBackHighlightHandler = () =>
+    showTutorialHighlight("information-back-highlight");
+const hideInformationBackHighlightHandler = () =>
+    hideTutorialHighlight("information-back-highlight");
+
+onMounted(() => {
+    // Highlight events
+    window.addEventListener(
+        "show-information-back-highlight",
+        showInformationBackHighlightHandler,
+    );
+    window.addEventListener(
+        "hide-information-back-highlight",
+        hideInformationBackHighlightHandler,
+    );
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener(
+        "show-information-back-highlight",
+        showInformationBackHighlightHandler,
+    );
+    window.removeEventListener(
+        "hide-information-back-highlight",
+        hideInformationBackHighlightHandler,
+    );
+});
 
 const props = defineProps({
     selectedPerson: {
@@ -153,4 +201,39 @@ const props = defineProps({
 defineEmits(["switchLocation", "goBack"]);
 </script>
 
-<style scoped></style>
+<style scoped>
+.tutorial-rectangle-highlight {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    border: 6px solid #ff0000;
+    box-shadow: 0 0 30px 10px rgba(255, 0, 0, 0.7);
+    background-color: transparent;
+    pointer-events: none;
+    z-index: 9999;
+    border-radius: 8px;
+    animation: rectangle-highlight-pulse 2s infinite;
+}
+
+.information-back-highlight {
+    width: calc(100% + 20px);
+    height: calc(100% + 20px);
+    top: -10px;
+    left: -10px;
+}
+
+@keyframes rectangle-highlight-pulse {
+    0% {
+        box-shadow: 0 0 20px 10px rgba(255, 0, 0, 0.7);
+        border-color: #ff0000;
+    }
+    50% {
+        box-shadow: 0 0 25px 15px rgba(255, 0, 0, 0.7);
+        border-color: #ff5555;
+    }
+    100% {
+        box-shadow: 0 0 20px 10px rgba(255, 0, 0, 0.7);
+        border-color: #ff0000;
+    }
+}
+</style>

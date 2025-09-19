@@ -409,7 +409,7 @@ const chapters = [
                 title: "Standorte auswählen",
                 description:
                     "Du kannst Dir jetzt alle Standorte der Staatspolizeileitstellen auf der Karte ansehen oder über das Dropdown-Menü einen bestimmten Standort auswählen bzw. nach einem suchen.",
-                highlightSelector: ".location-filters", // Selector for the location filters
+                highlightSelector: null,
                 position: { bottom: "150px", right: "400px" },
                 highlightClass: "highlight-tutorial",
                 onStepPrepare: "openMapOptions",
@@ -425,7 +425,7 @@ const chapters = [
                 title: "Detailansicht Staatspolizeileitstelle",
                 description:
                     "Wir haben nun den Standort der Staatspolizeileitstelle ausgewählt und können uns diesen im Detail ansehen.",
-                highlightSelector: ".location-detail", // Generic selector for location detail
+                highlightSelector: null,
                 position: {
                     top: "150px",
                     left: "400px",
@@ -439,7 +439,7 @@ const chapters = [
                 title: "Informationsübersicht",
                 description:
                     "Hier findest Du verschiedene Informationen – z. B. zur Laufzeit, zu den einzelnen Standorten, zum Personal der Gestapostelle, zu Ereignissen mit Beteiligung der Gestapostelle sowie zu nachgeordneten Gestapo-Orten und heutigen Erinnerungsorten.",
-                highlightSelector: ".detail-scroll-area", // Selector for the scroll area
+                highlightSelector: null,
                 position: {
                     top: "200px",
                     left: "400px",
@@ -451,7 +451,7 @@ const chapters = [
                 title: "Standorte",
                 description:
                     "Die Staatspolizeileitstelle Hannover hatte mehrere Standorte. Hier siehst du den Standort in der Schlägerstraße. Alle unterstrichenen Angaben sind klickbar.",
-                highlightSelector: ".standort-links", // Selector for location links
+                highlightSelector: null,
                 onStepPrepare: "initDetailOptionsHighlights",
                 onStepShow: "showInformationAddressHighlight",
                 position: {
@@ -463,7 +463,7 @@ const chapters = [
                 title: "Personal-Informationen",
                 description:
                     "Per Klick kannst Du auch Informationen über das Personal abrufen. Wir klicken beispielsweise auf die Person 'Walter Blume'.",
-                highlightSelector: ".personal-section",
+                highlightSelector: null,
                 onStepPrepare: "initDetailOptionsHighlights",
                 onStepShow: "showInformationPersonalHighlight",
                 position: {
@@ -475,11 +475,12 @@ const chapters = [
                 title: "Personendetails",
                 description:
                     "Hier siehst Du die Detailinformationen zur Person.",
-                highlightSelector: ".person-details", // Selector for person details
+                highlightSelector: null,
                 position: {
                     top: "350px",
                     left: "400px",
                 },
+                onStepPrepare: "initDetailOptionsHighlights",
                 onStepShow: "openPersonDetails",
                 onStepNext: null,
             },
@@ -487,20 +488,34 @@ const chapters = [
                 title: "Navigation zurück",
                 description:
                     "Mit diesem Button gelangst Du zurück zur Staatspolizeileitstelle Hannover.",
-                highlightSelector: ".back-button", // Selector for back button
+                highlightSelector: null,
                 position: { top: "150px", left: "400px" },
-                onStepShow: "goBack",
+                onStepPrepare: "initDetailOptionsHighlights",
+                onStepShow: "showInformationBackHighlight",
                 onStepNext: null,
             },
             {
                 title: "Ereignisse",
                 description:
                     "Hier findest Du Ereignisse, an denen die Staatspolizeileitstelle Hannover als Täterinstitution beteiligt war. In diesem Beispiel: die Überwachung des sogenannten 'Judenhauses' in der Knochenhauerstraße 61.",
-                highlightSelector: ".events-section", // Selector for events section
+                highlightSelector: null, // Selector for events section
+                onStepPrepare: "selectLocation",
+                onStepShow: "showInformationEventsHighlight",
                 position: {
                     top: "400px",
                     left: "400px",
-                    transform: "translateX(-50%)",
+                },
+            },
+            {
+                title: "Ereignisse Details",
+                description:
+                    "Hier stehen alle Detail Informationen über die entsprechenden Ereignisse.",
+                highlightSelector: null,
+                onStepShow: "openEvent",
+                onStepPrepare: "initDetailOptionsHighlights",
+                position: {
+                    top: "450px",
+                    left: "400px",
                 },
             },
             {
@@ -508,21 +523,22 @@ const chapters = [
                 description:
                     "Über einen Klick auf die Täterinstitution – in diesem Fall die Staatspolizeileitstelle Hannover – kommst Du zurück zum entsprechenden Eintrag.",
                 highlightSelector: ".perpetrator-link", // Selector for perpetrator link
+                onStepPrepare: "initDetailOptionsHighlights",
+                onStepShow: "showInformationInstitutionsHighlight",
                 position: {
                     top: "450px",
                     left: "400px",
-                    transform: "translateX(-50%)",
                 },
             },
             {
                 title: "Verknüpfte Organisationen",
                 description:
                     "Auch nachgeordnete Organisationen, Vorgängerorganisation (zeitlich) und Erinnerungsorte sind anklickbar.",
-                highlightSelector: ".related-organizations", // Selector for related organizations
+                onStepPrepare: "selectLocation",
+                onStepShow: "showInformationOrganisationsHighlight",
                 position: {
                     top: "500px",
                     left: "400px",
-                    transform: "translateX(-50%)",
                 },
             },
             {
@@ -530,7 +546,8 @@ const chapters = [
                 description:
                     "Hier kannst Du die Detailansicht des Standorts wieder schließen.",
                 highlightSelector: ".close-button", // Selector for close button
-                position: { top: "100px", left: "400px" },
+                position: { top: "0px", left: "400px" },
+                onStepPrepare: "initDetailOptionsHighlights",
                 onStepShow: "closeDetails",
                 onStepNext: null,
             },
@@ -539,7 +556,7 @@ const chapters = [
                 description:
                     "Über diesen Button kannst Du das Hauptmenü öffnen und z. B. direkt ins Glossar wechseln.",
                 highlightSelector: ".main-menu-button", // Selector for main menu button
-                position: { top: "50px", left: "100px" },
+                position: { top: "50px", left: "400px" },
                 onStepShow: "openMainMenu",
                 onStepNext: null,
             },
@@ -1014,19 +1031,18 @@ const executeAction = (actionName) => {
             // Place Detail Highlights
             case "showInformationAddressHighlight":
                 // First switch to the specific address (Schlägerstr.)
-                if (props.selectLocation) {
-                    props.selectLocation({
-                        locationId: "Q106625639",
-                        lat: 52.364983111,
-                        lng: 9.748284833,
-                        zoom: 16,
-                    });
-                }
-                // Then show the highlight
+                window.dispatchEvent(
+                    new Event("show-information-address-highlight"),
+                );
                 setTimeout(() => {
-                    window.dispatchEvent(
-                        new Event("show-information-address-highlight"),
-                    );
+                    if (props.selectLocation) {
+                        props.selectLocation({
+                            locationId: "Q106625639",
+                            lat: 52.364983111,
+                            lng: 9.748284833,
+                            zoom: 16,
+                        });
+                    }
                 }, 500);
                 break;
             case "hideInformationAddressHighlight":
@@ -1044,7 +1060,36 @@ const executeAction = (actionName) => {
                     new Event("hide-information-personal-highlight"),
                 );
                 break;
-
+            case "showInformationBackHighlight":
+                window.dispatchEvent(
+                    new Event("show-information-back-highlight"),
+                );
+                break;
+            case "hideInformationBackHighlight":
+                window.dispatchEvent(
+                    new Event("show-information-back-highlight"),
+                );
+                break;
+            case "showInformationEventsHighlight":
+                window.dispatchEvent(
+                    new Event("show-information-events-highlight"),
+                );
+                break;
+            case "hideInformationEventsHighlight":
+                window.dispatchEvent(
+                    new Event("show-information-events-highlight"),
+                );
+                break;
+            case "showInformationInstitutionsHighlight":
+                window.dispatchEvent(
+                    new Event("show-information-institutions-highlight"),
+                );
+                break;
+            case "hideInformationInstitutionsHighlight":
+                window.dispatchEvent(
+                    new Event("hide-information-institutions-highlight"),
+                );
+                break;
             // Filter actions
             case "deactivateAllFilters":
                 window.dispatchEvent(
@@ -1096,7 +1141,7 @@ const executeAction = (actionName) => {
             case "openMapOptions":
                 if (props.openMapOptions) {
                     props.openMapOptions();
-                    resetHighlights();
+                    resetMapOptionsHighlights();
                     setTimeout(updateHighlightElement, 800);
                 }
                 break;
@@ -1168,6 +1213,11 @@ const executeAction = (actionName) => {
             case "selectLocation":
                 if (props.selectLocation) props.selectLocation("Q106625639");
                 break;
+            // Opens Event Q134597104: "Überwachung des 'Judenhauses' in der Brabeckstraße 86"
+            case "openEvent":
+                if (props.selectLocation) props.selectLocation("Q134597104");
+                initDetailOptionsHighlights();
+                break;
             // Person Details Actions
             case "openPersonDetails":
                 if (props.openPersonDetails) {
@@ -1181,9 +1231,6 @@ const executeAction = (actionName) => {
                 initDetailOptionsHighlights();
                 break;
             // Navigation Actions
-            case "goBack":
-                if (props.goBack) props.goBack();
-                break;
             case "closeDetails":
                 if (props.closeDetails) props.closeDetails();
                 break;
@@ -1210,7 +1257,7 @@ const executeAction = (actionName) => {
     }, 100); // Small delay to ensure UI is ready
 };
 
-const resetHighlights = () => {
+const resetMapOptionsHighlights = () => {
     // MapOption Highlights
     window.dispatchEvent(new Event("hide-filters-row-highlight"));
     window.dispatchEvent(new Event("hide-glossary-highlight"));
@@ -1224,6 +1271,14 @@ const resetHighlights = () => {
 const initDetailOptionsHighlights = () => {
     window.dispatchEvent(new Event("hide-information-address-highlight"));
     window.dispatchEvent(new Event("hide-information-personal-highlight"));
+    window.dispatchEvent(new Event("hide-information-back-highlight"));
+    window.dispatchEvent(new Event("hide-information-events-highlight"));
+    window.dispatchEvent(new Event("hide-information-institutions-highlight"));
+};
+
+const closeAllHighlights = () => {
+    initDetailOptionsHighlights();
+    resetMapOptionsHighlights();
 };
 
 // Tutorial control methods
@@ -1283,10 +1338,7 @@ const skipTutorial = () => {
     isFirstVisit.value = false;
     emit("skip");
     localStorage.setItem("tutorialCompleted", "true");
-
-    // Hide any active tutorial highlights
-    window.dispatchEvent(new Event("hide-glossary-highlight"));
-    window.dispatchEvent(new Event("hide-filters-row-highlight"));
+    closeAllHighlights();
 };
 
 // Apply highlighting class to the target element

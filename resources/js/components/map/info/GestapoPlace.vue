@@ -213,197 +213,215 @@
         ></significant-event>
 
         <!-- parent organizations (time period) - https://www.wikidata.org/wiki/Property:P749 -->
-        <template v-if="selectedPlace.parentOrganizations.length > 0">
-            <v-list-item density="compact">
-                <v-list-item-title
-                    >Übergeordnete Organisation</v-list-item-title
-                >
-                <v-list-item-subtitle class="white-space-normal">
-                    <div
-                        v-for="parentOrganization in selectedPlace.parentOrganizations"
-                        class="mb-3"
+        <div class="position-relative">
+            <div
+                id="information-organisations-highlight"
+                class="information-organisations-highlight tutorial-rectangle-highlight"
+                style="display: none"
+            ></div>
+            <template v-if="selectedPlace.parentOrganizations.length > 0">
+                <v-list-item density="compact">
+                    <v-list-item-title
+                        >Übergeordnete Organisation</v-list-item-title
                     >
-                        <a
-                            v-if="parentOrganization.hasLocationMarker"
-                            @click.stop="
-                                $emit('switchLocation', {
-                                    locationId: parentOrganization.id,
-                                })
-                            "
-                            href="#"
-                        >
-                            {{ parentOrganization.label }}
-                        </a>
-                        <template v-else>
-                            {{ parentOrganization.label }}
-                        </template>
-                        <ul
-                            v-if="
-                                parentOrganization.startDate ||
-                                parentOrganization.endDate
-                            "
-                        >
-                            <li>
-                                <template v-if="parentOrganization.startDate">
-                                    von
-                                    {{ parentOrganization.startDate.locale }}
-                                </template>
-                                <template v-if="parentOrganization.endDate">
-                                    bis {{ parentOrganization.endDate.locale }}
-                                </template>
-                            </li>
-                        </ul>
-                    </div>
-                </v-list-item-subtitle>
-            </v-list-item>
-            <v-divider></v-divider>
-        </template>
-
-        <!-- child organizations (time period) - https://www.wikidata.org/wiki/Property:P355 -->
-        <template v-if="selectedPlace.childOrganizations.length > 0">
-            <v-list-item density="compact">
-                <v-list-item-title
-                    >Nachgeordnete Organisation</v-list-item-title
-                >
-                <v-list-item-subtitle class="white-space-normal">
-                    <div
-                        v-for="childOrganization in selectedPlace.childOrganizations"
-                        class="mb-3"
-                    >
-                        <a
-                            v-if="childOrganization.hasLocationMarker"
-                            @click.stop="
-                                $emit('switchLocation', {
-                                    locationId: childOrganization.id,
-                                })
-                            "
-                            href="#"
-                        >
-                            {{ childOrganization.label }}
-                        </a>
-                        <template v-else>
-                            {{ childOrganization.label }}
-                        </template>
-                        <ul
-                            v-if="
-                                childOrganization.startDate ||
-                                childOrganization.endDate
-                            "
-                        >
-                            <li>
-                                <template v-if="childOrganization.startDate">
-                                    von {{ childOrganization.startDate.locale }}
-                                </template>
-                                <template v-if="childOrganization.endDate">
-                                    bis {{ childOrganization.endDate.locale }}
-                                </template>
-                            </li>
-                        </ul>
-                    </div>
-                </v-list-item-subtitle>
-            </v-list-item>
-            <v-divider></v-divider>
-        </template>
-
-        <!-- replaces (point in time) - https://www.wikidata.org/wiki/Property:P1365 -->
-        <template v-if="props.selectedPlace.predecessors.length > 0">
-            <v-list-item density="compact">
-                <v-list-item-title
-                    >Vorgängerorganisation (zeitlich)</v-list-item-title
-                >
-                <v-list-item-subtitle class="white-space-normal">
-                    <div
-                        v-for="predecessor in props.selectedPlace.predecessors"
-                        class="mb-3"
-                    >
-                        <a
-                            v-if="predecessor.hasLocationMarker"
-                            @click.stop="
-                                $emit('switchLocation', {
-                                    locationId: predecessor.id,
-                                })
-                            "
-                            href="#"
-                        >
-                            {{ predecessor.label }}
-                        </a>
-                        <div v-else>
-                            {{ predecessor.label }}
-                        </div>
-                        <ul v-if="predecessor.pointInTime">
-                            <li>bis {{ predecessor.pointInTime.locale }}</li>
-                        </ul>
-                    </div>
-                </v-list-item-subtitle>
-            </v-list-item>
-            <v-divider></v-divider>
-        </template>
-
-        <!-- replaced by (point in time) - https://www.wikidata.org/wiki/Property:P1366 -->
-        <template v-if="props.selectedPlace.successors.length > 0">
-            <v-list-item density="compact">
-                <v-list-item-title
-                    >Nachfolgeorganisation (zeitlich)</v-list-item-title
-                >
-                <v-list-item-subtitle class="white-space-normal">
-                    <div
-                        v-for="successor in props.selectedPlace.successors"
-                        class="mb-3"
-                    >
-                        <a
-                            v-if="successor.hasLocationMarker"
-                            @click.stop="
-                                $emit('switchLocation', {
-                                    locationId: successor.id,
-                                })
-                            "
-                            href="#"
-                        >
-                            {{ successor.label }}
-                        </a>
-                        <div v-else>
-                            {{ successor.label }}
-                        </div>
-                        <ul v-if="successor.pointInTime">
-                            <li>ab {{ successor.pointInTime.locale }}</li>
-                        </ul>
-                    </div>
-                </v-list-item-subtitle>
-            </v-list-item>
-            <v-divider></v-divider>
-        </template>
-
-        <!-- location commemorated by -->
-        <template v-if="props.selectedPlace.commemoratedBy.length > 0">
-            <v-list-item density="compact">
-                <v-list-item-title>Erinnerungsort</v-list-item-title>
-                <v-list-item-subtitle>
-                    <ul>
-                        <li
-                            v-for="commemoratedBy in props.selectedPlace
-                                .commemoratedBy"
+                    <v-list-item-subtitle class="white-space-normal">
+                        <div
+                            v-for="parentOrganization in selectedPlace.parentOrganizations"
+                            class="mb-3"
                         >
                             <a
-                                v-if="commemoratedBy.hasLocationMarker"
+                                v-if="parentOrganization.hasLocationMarker"
                                 @click.stop="
                                     $emit('switchLocation', {
-                                        locationId: commemoratedBy.id,
+                                        locationId: parentOrganization.id,
                                     })
                                 "
                                 href="#"
                             >
-                                {{ commemoratedBy.name }}
+                                {{ parentOrganization.label }}
+                            </a>
+                            <template v-else>
+                                {{ parentOrganization.label }}
+                            </template>
+                            <ul
+                                v-if="
+                                    parentOrganization.startDate ||
+                                    parentOrganization.endDate
+                                "
+                            >
+                                <li>
+                                    <template
+                                        v-if="parentOrganization.startDate"
+                                    >
+                                        von
+                                        {{
+                                            parentOrganization.startDate.locale
+                                        }}
+                                    </template>
+                                    <template v-if="parentOrganization.endDate">
+                                        bis
+                                        {{ parentOrganization.endDate.locale }}
+                                    </template>
+                                </li>
+                            </ul>
+                        </div>
+                    </v-list-item-subtitle>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
+
+            <!-- child organizations (time period) - https://www.wikidata.org/wiki/Property:P355 -->
+            <template v-if="selectedPlace.childOrganizations.length > 0">
+                <v-list-item density="compact">
+                    <v-list-item-title
+                        >Nachgeordnete Organisation</v-list-item-title
+                    >
+                    <v-list-item-subtitle class="white-space-normal">
+                        <div
+                            v-for="childOrganization in selectedPlace.childOrganizations"
+                            class="mb-3"
+                        >
+                            <a
+                                v-if="childOrganization.hasLocationMarker"
+                                @click.stop="
+                                    $emit('switchLocation', {
+                                        locationId: childOrganization.id,
+                                    })
+                                "
+                                href="#"
+                            >
+                                {{ childOrganization.label }}
+                            </a>
+                            <template v-else>
+                                {{ childOrganization.label }}
+                            </template>
+                            <ul
+                                v-if="
+                                    childOrganization.startDate ||
+                                    childOrganization.endDate
+                                "
+                            >
+                                <li>
+                                    <template
+                                        v-if="childOrganization.startDate"
+                                    >
+                                        von
+                                        {{ childOrganization.startDate.locale }}
+                                    </template>
+                                    <template v-if="childOrganization.endDate">
+                                        bis
+                                        {{ childOrganization.endDate.locale }}
+                                    </template>
+                                </li>
+                            </ul>
+                        </div>
+                    </v-list-item-subtitle>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
+
+            <!-- replaces (point in time) - https://www.wikidata.org/wiki/Property:P1365 -->
+            <template v-if="props.selectedPlace.predecessors.length > 0">
+                <v-list-item density="compact">
+                    <v-list-item-title
+                        >Vorgängerorganisation (zeitlich)</v-list-item-title
+                    >
+                    <v-list-item-subtitle class="white-space-normal">
+                        <div
+                            v-for="predecessor in props.selectedPlace
+                                .predecessors"
+                            class="mb-3"
+                        >
+                            <a
+                                v-if="predecessor.hasLocationMarker"
+                                @click.stop="
+                                    $emit('switchLocation', {
+                                        locationId: predecessor.id,
+                                    })
+                                "
+                                href="#"
+                            >
+                                {{ predecessor.label }}
                             </a>
                             <div v-else>
-                                {{ commemoratedBy.name }}
+                                {{ predecessor.label }}
                             </div>
-                        </li>
-                    </ul>
-                </v-list-item-subtitle>
-            </v-list-item>
-            <v-divider></v-divider>
-        </template>
+                            <ul v-if="predecessor.pointInTime">
+                                <li>
+                                    bis {{ predecessor.pointInTime.locale }}
+                                </li>
+                            </ul>
+                        </div>
+                    </v-list-item-subtitle>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
 
+            <!-- replaced by (point in time) - https://www.wikidata.org/wiki/Property:P1366 -->
+            <template v-if="props.selectedPlace.successors.length > 0">
+                <v-list-item density="compact">
+                    <v-list-item-title
+                        >Nachfolgeorganisation (zeitlich)</v-list-item-title
+                    >
+                    <v-list-item-subtitle class="white-space-normal">
+                        <div
+                            v-for="successor in props.selectedPlace.successors"
+                            class="mb-3"
+                        >
+                            <a
+                                v-if="successor.hasLocationMarker"
+                                @click.stop="
+                                    $emit('switchLocation', {
+                                        locationId: successor.id,
+                                    })
+                                "
+                                href="#"
+                            >
+                                {{ successor.label }}
+                            </a>
+                            <div v-else>
+                                {{ successor.label }}
+                            </div>
+                            <ul v-if="successor.pointInTime">
+                                <li>ab {{ successor.pointInTime.locale }}</li>
+                            </ul>
+                        </div>
+                    </v-list-item-subtitle>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
+
+            <!-- location commemorated by -->
+            <template v-if="props.selectedPlace.commemoratedBy.length > 0">
+                <v-list-item density="compact">
+                    <v-list-item-title>Erinnerungsort</v-list-item-title>
+                    <v-list-item-subtitle>
+                        <ul>
+                            <li
+                                v-for="commemoratedBy in props.selectedPlace
+                                    .commemoratedBy"
+                            >
+                                <a
+                                    v-if="commemoratedBy.hasLocationMarker"
+                                    @click.stop="
+                                        $emit('switchLocation', {
+                                            locationId: commemoratedBy.id,
+                                        })
+                                    "
+                                    href="#"
+                                >
+                                    {{ commemoratedBy.name }}
+                                </a>
+                                <div v-else>
+                                    {{ commemoratedBy.name }}
+                                </div>
+                            </li>
+                        </ul>
+                    </v-list-item-subtitle>
+                </v-list-item>
+                <v-divider></v-divider>
+            </template>
+        </div>
         <sources
             v-if="
                 props.selectedPlace.sources.length > 0 ||
@@ -447,6 +465,10 @@ const showInformationPersonalHighlightHandler = () =>
     showTutorialHighlight("information-personal-highlight");
 const hideInformationPersonalHighlightHandler = () =>
     hideTutorialHighlight("information-personal-highlight");
+const showInformationOrganisationsHighlightHandler = () =>
+    showTutorialHighlight("information-organisations-highlight");
+const hideInformationOrganisationsHighlightHandler = () =>
+    hideTutorialHighlight("information-organisations-highlight");
 
 onMounted(() => {
     window.addEventListener(
@@ -456,6 +478,14 @@ onMounted(() => {
     window.addEventListener(
         "hide-information-personal-highlight",
         hideInformationPersonalHighlightHandler,
+    );
+    window.addEventListener(
+        "show-information-organisations-highlight",
+        showInformationOrganisationsHighlightHandler,
+    );
+    window.addEventListener(
+        "hide-information-organisations-highlight",
+        hideInformationOrganisationsHighlightHandler,
     );
 });
 
@@ -467,6 +497,14 @@ onBeforeUnmount(() => {
     window.removeEventListener(
         "hide-information-personal-highlight",
         hideInformationPersonalHighlightHandler,
+    );
+    window.removeEventListener(
+        "show-information-organisations-highlight",
+        showInformationOrganisationsHighlightHandler,
+    );
+    window.removeEventListener(
+        "hide-information-organisations-highlight",
+        hideInformationOrganisationsHighlightHandler,
     );
 });
 
@@ -497,7 +535,8 @@ defineEmits([
     animation: rectangle-highlight-pulse 2s infinite;
 }
 
-.information-personal-highlight {
+.information-personal-highlight,
+.information-organisations-highlight {
     width: calc(100% + 20px);
     height: calc(100% + 20px);
     top: -10px;
