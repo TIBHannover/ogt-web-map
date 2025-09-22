@@ -226,7 +226,7 @@ const currentStepIndexInChapter = ref(0);
 const highlightElement = ref(null);
 const chapterMenuOpen = ref(false);
 const glossaryButtonsFound = ref(false);
-const glossaryButtonsCoords = ref({ top: 0, left: 0, width: 0, height: 0 });
+// const glossaryButtonsCoords = ref({ top: 0, left: 0, width: 0, height: 0 });
 
 // Define chapters and steps based on the document
 const chapters = [
@@ -565,7 +565,19 @@ const chapters = [
                     "Hier kannst Du den Zeitfilter aktivieren, um gezielt nach Zeiträumen oder Zeitpunkten zu filtern.",
                 highlightSelector: ".button-timeline", // Selector for timeline button
                 position: { bottom: "100px", right: "100px" },
+                highlightClass: "highlight-tutorial",
                 onStepShow: null,
+                onStepPrepare: "closeAllNavigation",
+                onStepNext: null,
+            },
+            {
+                title: "Zeitfilter öffnen",
+                description:
+                    "Klicke auf den Zeitfilter-Button, um die Filteroption zu öffnen.",
+                highlightSelector: ".button-timeline", // Selector for timeline button
+                position: { bottom: "100px", right: "100px" },
+                highlightClass: "highlight-tutorial",
+                onStepShow: "openTimeline",
                 onStepPrepare: "closeAllNavigation",
                 onStepNext: null,
             },
@@ -707,12 +719,6 @@ const highlightStyle = computed(() => {
     };
 });
 
-// We don't need this computed property anymore as we're using a fixed element
-const glossaryHighlightStyle = computed(() => {
-    // Return empty style
-    return { display: "none" };
-});
-
 // Methods for navigation
 // Function to update the highlight element when the step changes
 const updateHighlightElement = () => {
@@ -722,8 +728,6 @@ const updateHighlightElement = () => {
         return;
     }
 
-    // We're using custom events for the glossary highlight now, so we don't need this code
-
     // Use querySelectorAll to handle multiple elements matching the selector
     const elements = document.querySelectorAll(
         currentStep.value.highlightSelector,
@@ -732,17 +736,39 @@ const updateHighlightElement = () => {
     // If we have at least one matching element, use the first one
     if (elements.length > 0) {
         highlightElement.value = elements[0];
+        console.log(
+            "Found highlight element:",
+            currentStep.value.highlightSelector,
+        );
+
+        // Special case for timeline button to ensure visibility
+        if (currentStep.value.highlightSelector === ".button-timeline") {
+            // Force higher z-index for the button
+            highlightElement.value.style.zIndex = "10001";
+        }
+
+        // If we found the element, no need to retry
+        if (
+            currentStep.value?.highlightSelector === ".glossary-buttons-column"
+        ) {
+            glossaryButtonsFound.value = true;
+        }
     } else {
         highlightElement.value = null;
-    }
+        console.warn(
+            "No element found for selector:",
+            currentStep.value.highlightSelector,
+        );
 
-    // If we're highlighting glossary buttons but can't find them yet,
-    // try again after a delay (map options might still be opening)
-    if (
-        currentStep.value?.highlightSelector === ".glossary-buttons-column" &&
-        !glossaryButtonsFound.value
-    ) {
-        setTimeout(updateHighlightElement, 500);
+        // Only retry once if needed for special cases
+        if (
+            currentStep.value?.highlightSelector ===
+                ".glossary-buttons-column" &&
+            !glossaryButtonsFound.value
+        ) {
+            glossaryButtonsFound.value = true; // Mark as tried
+            setTimeout(updateHighlightElement, 500);
+        }
     }
 };
 
@@ -754,46 +780,42 @@ const nextStep = () => {
         currentStepIndexInChapter.value++;
         console.log("Moving to next step:", currentStep.value?.title);
 
-        // The glossary highlight is now handled by custom events
-
+        // Simplify the execution flow to reduce multiple calls
         setTimeout(() => {
-            // Execute the onStepPrepare action if defined - runs before the step is shown
+            // First, handle onStepPrepare action if defined
             if (currentStep.value?.onStepPrepare) {
                 console.log(
                     "Executing onStepPrepare action:",
                     currentStep.value.onStepPrepare,
                 );
-                // Execute the preparation action
                 executeAction(currentStep.value.onStepPrepare);
-
-                // Add a more substantial delay for updating the highlight
-                // This ensures the menu has time to open fully
-                setTimeout(updateHighlightElement, 1000);
             }
 
-            updateHighlightElement();
-            applyHighlightClass();
-
-            // Execute onStepShow action after a slight delay - primary action when step is visible
+            // Then update highlights and handle onStepShow after preparation completes
             setTimeout(() => {
-                executeAction(currentStep.value?.onStepShow);
+                updateHighlightElement();
+                applyHighlightClass();
 
-                // Execute onStepNext action after a further delay - secondary action
-                setTimeout(() => {
-                    executeAction(currentStep.value?.onStepNext);
+                // Handle onStepShow action
+                if (currentStep.value?.onStepShow) {
+                    console.log(
+                        "Executing onStepShow action:",
+                        currentStep.value.onStepShow,
+                    );
+                    executeAction(currentStep.value.onStepShow);
+                }
 
-                    // Update highlight element again after onStepNext executes
-                    if (
-                        currentStep.value?.highlightSelector ===
-                        ".glossary-buttons-column"
-                    ) {
-                        setTimeout(() => {
-                            updateHighlightElement();
-                            applyHighlightClass();
-                        }, 500);
-                    }
-                }, 500);
-            }, 200);
+                // Handle onStepNext action with delay
+                if (currentStep.value?.onStepNext) {
+                    setTimeout(() => {
+                        console.log(
+                            "Executing onStepNext action:",
+                            currentStep.value.onStepNext,
+                        );
+                        executeAction(currentStep.value.onStepNext);
+                    }, 500);
+                }
+            }, 600);
         }, 100);
     } else if (currentChapterIndex.value < chapters.length - 1) {
         nextChapter();
@@ -953,24 +975,10 @@ const executeAction = (actionName) => {
     }
 
     console.log("Executing action:", actionName);
-    // Ensure highlight elements are updated with every action
     setTimeout(() => {
-        console.log("Updating highlight elements - first pass");
         updateHighlightElement();
         applyHighlightClass();
-    }, 300);
-    // Update again after a longer delay to catch async UI changes
-    setTimeout(() => {
-        console.log("Updating highlight elements - second pass");
-        updateHighlightElement();
-        applyHighlightClass();
-    }, 800);
-    // Add a third update pass with even longer delay
-    setTimeout(() => {
-        console.log("Updating highlight elements - third pass");
-        updateHighlightElement();
-        applyHighlightClass();
-    }, 1500);
+    }, 500);
 
     // No need to update the highlight here as we're using custom events
     setTimeout(() => {
@@ -1124,26 +1132,69 @@ const executeAction = (actionName) => {
                 }, 500);
                 break;
             case "openTimeline":
-                if (props.openTimeline) {
+                // Try to use the direct button approach first as it's most reliable
+                const timelineButton =
+                    document.querySelector(".button-timeline");
+                if (timelineButton) {
+                    console.log("Opening timeline by clicking button");
+                    timelineButton.click();
+
+                    // Clear any previous highlights
+                    closeAllHighlights();
+
+                    // Update highlight elements after timeline is open
+                    setTimeout(() => {
+                        updateHighlightElement();
+                        applyHighlightClass();
+                    }, 800);
+                }
+                // Fall back to function approach if button not found
+                else if (props.openTimeline) {
+                    console.log("Opening timeline using openTimeline function");
                     props.openTimeline();
-                } else if (props.toggleTimeline) {
-                    const isTimelineOpen = document.querySelector(
-                        ".timeline-drawer.v-navigation-drawer--active",
+
+                    // Clear any previous highlights
+                    closeAllHighlights();
+
+                    // Update highlight elements after timeline is open
+                    setTimeout(() => {
+                        updateHighlightElement();
+                        applyHighlightClass();
+                    }, 800);
+                }
+                // Last resort - try toggle function
+                else if (props.toggleTimeline) {
+                    console.log(
+                        "Opening timeline using toggleTimeline function",
                     );
-                    if (!isTimelineOpen) {
-                        props.toggleTimeline();
-                    }
+                    props.toggleTimeline();
+
+                    // Clear any previous highlights
+                    closeAllHighlights();
+
+                    // Update highlight elements after timeline is open
+                    setTimeout(() => {
+                        updateHighlightElement();
+                        applyHighlightClass();
+                    }, 800);
+                } else {
+                    console.error("No timeline control available!");
                 }
                 break;
             case "closeTimeline":
                 if (props.closeTimeline) {
+                    console.log("Closing timeline...");
                     props.closeTimeline();
+                    closeAllHighlights();
+                    setTimeout(updateHighlightElement, 500);
                 } else if (props.toggleTimeline) {
                     const isTimelineOpen = document.querySelector(
-                        ".timeline-drawer.v-navigation-drawer--active",
+                        ".timeline-toolbar.isOpen",
                     );
                     if (isTimelineOpen) {
                         props.toggleTimeline();
+                        closeAllHighlights();
+                        setTimeout(updateHighlightElement, 500);
                     }
                 }
                 break;
@@ -1292,8 +1343,11 @@ const initDetailOptionsHighlights = () => {
 };
 
 const closeAllHighlights = () => {
+    // Execute these functions only once to avoid multiple DOM operations
     initDetailOptionsHighlights();
     resetMapOptionsHighlights();
+    // Reset highlight element
+    highlightElement.value = null;
 };
 
 // Tutorial control methods
@@ -1395,10 +1449,10 @@ const isAnyNavigationOpen = () => {
             return true;
         }
 
-        const timelineDrawer = document.querySelector(
-            ".timeline-drawer.v-navigation-drawer--active",
+        const timelineToolbar = document.querySelector(
+            ".timeline-toolbar.isOpen",
         );
-        if (timelineDrawer) {
+        if (timelineToolbar) {
             return true;
         }
 
@@ -1457,25 +1511,41 @@ const closeNavigationDirectly = () => {
     }
 };
 
-// Watch for changes and update UI
+// Watch for changes and update UI - with optimized execution
 watch(
-    () => currentStep.value.highlightSelector,
-    () => {
-        updateHighlightElement();
-        setTimeout(applyHighlightClass, 50);
+    () => currentStep.value?.highlightSelector,
+    (newSelector) => {
+        if (newSelector) {
+            // Single update when selector changes
+            setTimeout(() => {
+                updateHighlightElement();
+                applyHighlightClass();
+            }, 100);
+        }
     },
 );
+
+// Only run actions once when tutorial becomes active
 watch([active, isFirstVisit], ([activeValue, firstVisitValue]) => {
     if (activeValue || firstVisitValue) {
-        setTimeout(updateHighlightElement, 100);
-        executeAction(currentStep.value?.onStepShow);
-        // Execute onStepNext after a delay
+        // Use a single timeout to handle all initial actions
         setTimeout(() => {
-            if (currentStep.value?.onStepNext) {
-                executeAction(currentStep.value.onStepNext);
+            // Update highlight first
+            updateHighlightElement();
+            applyHighlightClass();
+
+            // Execute initial actions in sequence with proper timing
+            if (currentStep.value?.onStepShow) {
+                executeAction(currentStep.value.onStepShow);
+
+                // Only execute next action if it exists and after show action completes
+                if (currentStep.value?.onStepNext) {
+                    setTimeout(() => {
+                        executeAction(currentStep.value.onStepNext);
+                    }, 800);
+                }
             }
-        }, 500);
-        setTimeout(applyHighlightClass, 100);
+        }, 200);
     }
 });
 
@@ -1485,26 +1555,22 @@ const closeAllNavigation = () => {
     if (props.resetAllNavigation) {
         try {
             props.resetAllNavigation();
-        } catch {
-            // Silently handle error
+        } catch (e) {
+            console.warn("Error resetting navigation:", e);
         }
-    } else {
-        // No reset function available
     }
 
-    // Then use direct DOM method as backup
-    const isOpen = isAnyNavigationOpen();
-
-    if (isOpen) {
+    // Use direct DOM method as backup - only once
+    if (isAnyNavigationOpen()) {
         closeNavigationDirectly();
-    }
 
-    setTimeout(() => {
-        if (isAnyNavigationOpen()) {
-            if (props.resetAllNavigation) props.resetAllNavigation();
-            closeNavigationDirectly();
-        }
-    }, 200);
+        // Add a final check after a small delay to ensure everything is closed
+        setTimeout(() => {
+            if (isAnyNavigationOpen()) {
+                closeNavigationDirectly();
+            }
+        }, 250);
+    }
 };
 
 // On component mount
@@ -1638,10 +1704,9 @@ onUnmounted(() => {
     position: absolute;
     box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.7);
     border: 3px solid #ff5252;
-    z-index: 1100; /* Higher than backdrop but lower than sidebar */
+    z-index: 10000; /* Higher z-index to ensure visibility over other elements */
     pointer-events: none;
     animation: pulse 2s infinite;
-    transition: all 0.3s ease-in-out;
     border-radius: 4px;
 }
 
@@ -1649,7 +1714,7 @@ onUnmounted(() => {
     position: absolute;
     box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.7);
     border: 3px solid #ff5252;
-    z-index: 1100; /* Higher than backdrop but lower than sidebar */
+    z-index: 10000; /* Higher than backdrop but lower than sidebar */
     pointer-events: none;
     animation: pulse 2s infinite;
     border-radius: 4px;

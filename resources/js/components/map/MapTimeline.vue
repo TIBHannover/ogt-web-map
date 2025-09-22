@@ -8,7 +8,7 @@
             class="mb-5 mr-5 z-index-4 button-timeline"
             color="white"
             v-show="!isTimelineOpen"
-            @click.stop="toggleTimeline"
+            @click.stop="handleToggleTimeline"
         >
             <v-icon>mdi-timeline</v-icon>
             <span v-if="$vuetify.display.smAndUp" class="ml-2 text-none"
@@ -22,7 +22,7 @@
             :class="{ isOpen: isTimelineOpen }"
         >
             <v-btn
-                @click.stop="toggleTimeline"
+                @click.stop="handleToggleTimeline"
                 icon
                 class="close-button position-absolute right-0 top-0 mr-5 mt-5"
             >
@@ -137,17 +137,17 @@
 
 <script setup>
 import { ref, onMounted, watch, toRaw } from "vue";
-
-const emit = defineEmits(["updateTimeLine", "timelineFilterEnabledChange"]);
 import NavigationHelpers from "../helpers/NavigationHelpers";
+
+const emit = defineEmits([
+    "updateTimeLine",
+    "timelineFilterEnabledChange",
+    "closeMapOptions",
+]);
 
 const props = defineProps({
     groupedPlaces: Object,
     map: Object,
-});
-
-defineExpose({
-    toggleTimeline,
 });
 
 const YEAR_RANGE = [1933, new Date().getFullYear()];
@@ -159,12 +159,40 @@ const STATE = {
 // old handle gap - 0.155,
 const MIN_HANDLE_GAP = 0.155;
 
-const { isTimelineOpen } = NavigationHelpers();
+const {
+    isTimelineOpen,
+    openTimeline,
+    closeTimeline,
+    toggleTimeline: navToggleTimeline,
+} = NavigationHelpers();
 const timelineModeSingleHandle = ref(false);
 const isTimelineFilterEnabled = ref(false);
 
+// Expose NavigationHelpers functions for external use
+defineExpose({
+    toggleTimeline: navToggleTimeline,
+    openTimeline,
+    closeTimeline,
+});
+
 const timelineModeToggle = ref("range");
 let timelineOpenedInt = 0;
+
+// Custom handler that calls the NavigationHelpers toggleTimeline and emits events
+const handleToggleTimeline = () => {
+    // Before toggle
+    const wasOpen = isTimelineOpen.value;
+
+    // Call the navigation helper toggle function
+    navToggleTimeline();
+
+    // After toggle - if it's now open and wasn't before
+    if (isTimelineOpen.value && !wasOpen) {
+        // Timeline was just opened
+        handleTimelineOpen();
+        emit("closeMapOptions");
+    }
+};
 
 watch(timelineModeSingleHandle, (newValue) => {
     timelineModeToggle.value = newValue ? "single" : "range";
@@ -189,21 +217,18 @@ watch(isTimelineFilterEnabled, (newValue) => {
     }
 });
 
-const toggleTimeline = () => {
-    if (!isTimelineOpen.value) {
-        if (timelineOpenedInt === 0) {
-            isTimelineFilterEnabled.value = true;
-            timelineOpenedInt++;
-        }
-
-        if (STATE.left && STATE.right) {
-            setTimeout(() => {
-                updateTimeLine(STATE.left, STATE.right);
-            }, 50);
-        }
+// This function manages additional timeline state when opening
+const handleTimelineOpen = () => {
+    if (timelineOpenedInt === 0) {
+        isTimelineFilterEnabled.value = true;
+        timelineOpenedInt++;
     }
 
-    isTimelineOpen.value = !isTimelineOpen.value;
+    if (STATE.left && STATE.right) {
+        setTimeout(() => {
+            updateTimeLine(STATE.left, STATE.right);
+        }, 50);
+    }
 };
 
 const handleModeChange = () => {

@@ -47,7 +47,9 @@
             :active="showTutorial"
             :steps="tutorialSteps"
             :tutorial-completed="tutorialCompleted"
-            :toggle-timeline="toggleTimelineForTutorial"
+            :toggle-timeline="toggleTimeline"
+            :open-timeline="openTimeline"
+            :close-timeline="closeTimeline"
             :open-map-options="openMapOptions"
             :close-map-options="closeMapOptions"
             :toggle-map-options="toggleMapOptions"
@@ -115,7 +117,7 @@ export default {
         const rawMap = ref(null);
         const rawGroupedPlaces = ref({});
         const markers = ref([]);
-        const placeInfoSidebar = ref(null);
+        const placeInfoSidebar = ref(null); // Used for tutorial navigation history
         const {
             isTimelineOpen,
             isMapOptionsOpen,
@@ -125,6 +127,9 @@ export default {
             openPlaceInfo,
             closePlaceInfo,
             toggleMapOptions,
+            openTimeline,
+            closeTimeline,
+            toggleTimeline,
         } = NavigationHelpers();
         const minDate = ref({
             year: -Infinity,
@@ -571,14 +576,10 @@ export default {
                     left: "50%",
                     transform: "translateX(-50%)",
                 },
-                // Diese Funktion würde den Zeitstrahl automatisch öffnen
-                onShowAction: "toggleTimelineForTutorial",
-                onShow: () => {
-                    console.log("here");
-                    if (!isTimelineOpen.value) {
-                        toggleTimelineForTutorial();
-                    }
-                },
+                // Open the timeline automatically
+                onStepShow: "openTimeline",
+                onStepPrepare: "closeAllNavigation",
+                onStepNext: null,
             },
             {
                 title: "Zeitstrahl aktivieren/deaktivieren",
@@ -739,12 +740,6 @@ export default {
         };
 
         const timelineComponentRef = ref(null);
-        const toggleTimelineForTutorial = () => {
-            // Hier auf die MapTimeline-Komponente zugreifen
-            if (timelineComponentRef.value) {
-                timelineComponentRef.value.toggleTimeline();
-            }
-        };
 
         onUnmounted(() => {
             if (map.value) {
@@ -3493,6 +3488,9 @@ export default {
             openMapOptions,
             closeMapOptions,
             toggleMapOptions,
+            openTimeline,
+            closeTimeline,
+            toggleTimeline,
             switchLocation,
             selectLocation,
             toggleShowPlaceInfoSidebar,
@@ -3513,7 +3511,6 @@ export default {
             startTutorial,
             completeTutorial,
             skipTutorial,
-            toggleTimelineForTutorial,
             timelineComponentRef,
             isLoading,
         };
