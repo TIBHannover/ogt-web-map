@@ -7,25 +7,35 @@
         -->
         <v-btn
             v-if="!active"
-            icon
-            color="primary"
+            position="fixed"
+            location="bottom left"
             class="tutorial-button"
-            size="large"
+            :rounded="$vuetify.display.smAndUp ? 'pill' : 'circle'"
+            :size="$vuetify.display.smAndUp ? 'default' : '56px'"
+            color="primary"
             @click="startTutorial"
         >
             <v-icon>mdi-help-circle</v-icon>
+            <span v-if="$vuetify.display.smAndUp" class="ml-2 text-none"
+                >Tutorial</span
+            >
         </v-btn>
 
         <!-- Chapter menu button -->
         <v-btn
             v-if="active && !chapterMenuOpen"
-            icon
+            position="fixed"
+            location="bottom left"
+            :rounded="$vuetify.display.smAndUp ? 'pill' : 'circle'"
+            :size="$vuetify.display.smAndUp ? 'default' : '56px'"
             color="secondary"
             class="chapter-menu-button"
-            size="large"
             @click="toggleChapterMenu"
         >
             <v-icon>mdi-menu-open</v-icon>
+            <span v-if="$vuetify.display.smAndUp" class="ml-2 text-none"
+                >Kapitel</span
+            >
         </v-btn>
 
         <!-- Chapter menu panel -->
@@ -1695,18 +1705,14 @@ onUnmounted(() => {
 }
 
 .chapter-menu-button {
+    margin: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
     z-index: 10001;
 }
 
 .tutorial-button {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
     z-index: 950;
+    margin: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     transition:
         transform 0.2s ease,
