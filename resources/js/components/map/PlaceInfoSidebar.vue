@@ -40,6 +40,16 @@
                 <v-list-item-action
                     class="position-absolute top-0 right-0 mr-3 mt-3 d-flex flex-column ga-3"
                 >
+                    <div
+                        id="information-button-back-highlight"
+                        class="information-button-back-highlight tutorial-rectangle-highlight"
+                        style="display: none"
+                    ></div>
+                    <div
+                        id="information-wikidata-highlight"
+                        class="information-wikidata-highlight tutorial-rectangle-highlight"
+                        style="display: none"
+                    ></div>
                     <v-btn
                         @click="$emit('hidePlaceInfoSidebar')"
                         icon
@@ -217,6 +227,29 @@ const emits = defineEmits([
     "goBack",
 ]);
 
+const showTutorialHighlight = (highlightId) => {
+    const highlight = document.getElementById(highlightId);
+    if (highlight) {
+        highlight.style.display = "block";
+    }
+};
+
+const hideTutorialHighlight = (highlightId) => {
+    const highlight = document.getElementById(highlightId);
+    if (highlight) {
+        highlight.style.display = "none";
+    }
+};
+
+const showBackButtonInformationHandler = () =>
+    showTutorialHighlight("information-button-back-highlight");
+const hideBackButtonInformationHandler = () =>
+    hideTutorialHighlight("information-button-back-highlight");
+const showWikidataInformationHandler = () =>
+    showTutorialHighlight("information-wikidata-highlight");
+const hideWikidataInformationHandler = () =>
+    hideTutorialHighlight("information-wikidata-highlight");
+
 // Function to handle navigation to a person
 const navigateToPerson = (person) => {
     // Save current place ID to history before navigating
@@ -346,10 +379,42 @@ onMounted(() => {
     if (!props.showPlaceInfoSidebar) {
         closePlaceInfo();
     }
+    window.addEventListener(
+        "show-information-close-button-highlight",
+        showBackButtonInformationHandler,
+    );
+    window.addEventListener(
+        "hide-information-close-button-highlight",
+        hideBackButtonInformationHandler,
+    );
+    window.addEventListener(
+        "show-information-wikidata-highlight",
+        showWikidataInformationHandler,
+    );
+    window.addEventListener(
+        "hide-information-wikidata-highlight",
+        hideWikidataInformationHandler,
+    );
 });
 
 onUnmounted(() => {
     window.removeEventListener("resize", handleResize);
+    window.removeEventListener(
+        "show-information-close-button-highlight",
+        showBackButtonInformationHandler,
+    );
+    window.removeEventListener(
+        "hide-information-close-button-highlight",
+        hideBackButtonInformationHandler,
+    );
+    window.removeEventListener(
+        "show-information-wikidata-highlight",
+        showWikidataInformationHandler,
+    );
+    window.removeEventListener(
+        "hide-information-wikidata-highlight",
+        hideWikidataInformationHandler,
+    );
 });
 </script>
 
@@ -418,6 +483,27 @@ onUnmounted(() => {
 .v-navigation-drawer--closed {
     transform: translateY(100%) !important;
     visibility: hidden !important;
+}
+
+.tutorial-rectangle-highlight {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    border: 6px solid #ff0000;
+    box-shadow: 0 0 30px 10px rgba(255, 0, 0, 0.7);
+    background-color: transparent;
+    pointer-events: none;
+    z-index: 9999;
+    border-radius: 8px;
+    animation: rectangle-highlight-pulse 2s infinite;
+}
+
+.information-button-back-highlight,
+.information-wikidata-highlight {
+    width: calc(100% + 20px);
+    height: calc(100% + 20px);
+    top: -10px;
+    left: -10px;
 }
 
 @media (max-width: 600px) {

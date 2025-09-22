@@ -5,7 +5,7 @@
             location="bottom right"
             :rounded="$vuetify.display.smAndUp ? 'pill' : 'circle'"
             :size="$vuetify.display.smAndUp ? 'default' : '56px'"
-            class="mb-5 mr-5 z-index-4"
+            class="mb-5 mr-5 z-index-4 button-timeline"
             color="white"
             v-show="!isTimelineOpen"
             @click.stop="toggleTimeline"

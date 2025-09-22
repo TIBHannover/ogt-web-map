@@ -204,30 +204,6 @@ const props = defineProps({
         type: Function,
         required: false,
     },
-    resetAllNavigation: {
-        type: Function,
-        required: false,
-        default: () => {
-            console.warn(
-                "Default resetAllNavigation called - props not properly passed",
-            );
-            // Try direct DOM manipulation as fallback
-            try {
-                const mapOptionsButton = document.querySelector(
-                    ".map-options-button",
-                );
-                const closeButton = document.querySelector(
-                    ".v-navigation-drawer .v-btn .mdi-close",
-                );
-                if (mapOptionsButton && closeButton) {
-                    console.log("Found close button, clicking as fallback");
-                    closeButton.click();
-                }
-            } catch (e) {
-                console.error("Fallback close failed:", e);
-            }
-        },
-    },
     zoomToLocation: Function,
     openGlossaryEntry: Function,
     activateFilter: Function,
@@ -552,22 +528,30 @@ const chapters = [
                 },
             },
             {
+                title: "Wikidata",
+                description:
+                    "Hier kannst Du die Detailansicht des Standorts wieder schließen.",
+                position: { top: "0px", left: "400px" },
+                onStepPrepare: "initDetailOptionsHighlights",
+                onStepShow: "showWikidataButtonHighlight",
+                onStepNext: null,
+            },
+            {
                 title: "Ansicht schließen",
                 description:
                     "Hier kannst Du die Detailansicht des Standorts wieder schließen.",
-                highlightSelector: ".close-button", // Selector for close button
                 position: { top: "0px", left: "400px" },
                 onStepPrepare: "initDetailOptionsHighlights",
-                onStepShow: "closeDetails",
+                onStepShow: "showInformationCloseButtonHighlight",
                 onStepNext: null,
             },
             {
                 title: "Hauptmenü",
                 description:
-                    "Über diesen Button kannst Du das Hauptmenü öffnen und z. B. direkt ins Glossar wechseln.",
+                    "Über diesen Button kannst Du das Hauptmenü öffnen.",
                 highlightSelector: ".main-menu-button", // Selector for main menu button
                 position: { top: "50px", left: "400px" },
-                onStepShow: "openMainMenu",
+                onStepPrepare: "closeAllNavigation",
                 onStepNext: null,
             },
         ],
@@ -579,10 +563,10 @@ const chapters = [
                 title: "Zeitfilter aktivieren",
                 description:
                     "Hier kannst Du den Zeitfilter aktivieren, um gezielt nach Zeiträumen oder Zeitpunkten zu filtern.",
-                highlightSelector: ".timeline-button", // Selector for timeline button
+                highlightSelector: ".button-timeline", // Selector for timeline button
                 position: { bottom: "100px", right: "100px" },
                 onStepShow: null,
-                onStepPrepare: "openTimeline",
+                onStepPrepare: "closeAllNavigation",
                 onStepNext: null,
             },
             {
@@ -1100,6 +1084,26 @@ const executeAction = (actionName) => {
                     new Event("hide-information-institutions-highlight"),
                 );
                 break;
+            case "showInformationCloseButtonHighlight":
+                window.dispatchEvent(
+                    new Event("show-information-close-button-highlight"),
+                );
+                break;
+            case "hideInformationCloseButtonHighlight":
+                window.dispatchEvent(
+                    new Event("hide-information-close-button-highlight"),
+                );
+                break;
+            case "showInformationWikidatanHighlight":
+                window.dispatchEvent(
+                    new Event("show-information-wikidata-highlight"),
+                );
+                break;
+            case "hideInformationWikidatanHighlight":
+                window.dispatchEvent(
+                    new Event("hide-information-wikidata-highlight"),
+                );
+                break;
             // Filter actions
             case "deactivateAllFilters":
                 window.dispatchEvent(
@@ -1118,10 +1122,6 @@ const executeAction = (actionName) => {
                         new Event("activate-staatspolizeileitstellen"),
                     );
                 }, 500);
-                break;
-            // Navigation Control Actions
-            case "resetAllNavigation":
-                if (props.resetAllNavigation) props.resetAllNavigation();
                 break;
             case "openTimeline":
                 if (props.openTimeline) {
@@ -1159,6 +1159,9 @@ const executeAction = (actionName) => {
                 if (props.closeMapOptions) {
                     props.closeMapOptions();
                 }
+                break;
+            case "closeAllNavigation":
+                closeAllNavigation();
                 break;
             case "handleMapOptions":
                 if (props.toggleMapOptions) {
@@ -1284,6 +1287,8 @@ const initDetailOptionsHighlights = () => {
     window.dispatchEvent(new Event("hide-information-back-highlight"));
     window.dispatchEvent(new Event("hide-information-events-highlight"));
     window.dispatchEvent(new Event("hide-information-institutions-highlight"));
+    window.dispatchEvent(new Event("hide-information-back-button-highlight"));
+    window.dispatchEvent(new Event("hide-information-wikidata-highlight"));
 };
 
 const closeAllHighlights = () => {
