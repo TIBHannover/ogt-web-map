@@ -38,7 +38,7 @@ class UserStatusLinkNotification extends Mailable
 
         // Generate the status tracking URL
         $baseUrl = config("app.url");
-        $this->statusUrl = "{$baseUrl}/entry-status?id={$entryRequest->status_token}";
+        $this->statusUrl = "{$baseUrl}/eintrag-status?id={$entryRequest->status_token}";
     }
 
     /**

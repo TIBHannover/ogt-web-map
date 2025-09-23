@@ -46,7 +46,7 @@ if [ -z "$APP_URL" ]; then
     APP_URL="http://localhost:8000"
 fi
 
-API_URL="${APP_URL}/api/entry-status/send-manual-notification"
+API_URL="${APP_URL}/api/eintrag-status/send-manual-notification"
 
 echo -e "${YELLOW}Sending manual $TYPE notification for token: $TOKEN${NC}"
 echo "API URL: $API_URL"

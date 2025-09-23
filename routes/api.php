@@ -100,7 +100,7 @@ Route::get("/wikidata/search/cause", [
 ]);
 
 // Route for checking entry status
-Route::get("/entry-status/{token}", [
+Route::get("/eintrag-status/{token}", [
     App\Http\Controllers\EntryStatusController::class,
     "getStatus",
 ]);
@@ -133,19 +133,19 @@ Route::post("/wikidata/entity", [
 ]);
 
 // Route for sending status link to user via email
-Route::post("/entry-status/send-email", [
+Route::post("/eintrag-status/send-email", [
     App\Http\Controllers\EntryStatusController::class,
     "sendStatusLinkToUser",
 ]);
 
 // Route for manually triggering notifications (for testing)
-Route::post("/entry-status/send-manual-notification", [
+Route::post("/eintrag-status/send-manual-notification", [
     App\Http\Controllers\EntryStatusController::class,
     "sendManualNotification",
 ]);
 
 // Route for checking if email notifications are enabled for an entry
-Route::get("/entry-status/check-notifications/{token}", [
+Route::get("/eintrag-status/check-notifications/{token}", [
     App\Http\Controllers\EntryStatusController::class,
     "checkNotificationStatus",
 ]);

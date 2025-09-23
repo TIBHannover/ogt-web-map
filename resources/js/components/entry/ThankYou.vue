@@ -146,7 +146,7 @@ const isValidEmail = computed(() => {
 const statusUrl = computed(() => {
     if (!statusToken.value) return "";
     // Ensure consistent URL format with the EntryStatus component's expectation
-    const url = `${window.location.origin}/entry-status?id=${statusToken.value}`;
+    const url = `${window.location.origin}/eintrag-status?id=${statusToken.value}`;
     console.log("Generated status URL:", url);
     return url;
 });
@@ -199,7 +199,7 @@ const goToHome = () => {
 };
 
 const addAnother = () => {
-    router.push("/entry");
+    router.push("/neuer-eintrag");
 };
 
 const goToStatusPage = () => {
@@ -211,7 +211,7 @@ const goToStatusPage = () => {
     console.log("Navigating to status page with token:", statusToken.value);
     // Use the same query parameter format that EntryStatus expects
     router.push({
-        path: "/entry-status",
+        path: "/eintrag-status",
         query: { id: statusToken.value },
     });
 };
@@ -248,7 +248,7 @@ const sendStatusEmail = async () => {
     emailSent.value = false;
 
     try {
-        const response = await fetch("/api/entry-status/send-email", {
+        const response = await fetch("/api/eintrag-status/send-email", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

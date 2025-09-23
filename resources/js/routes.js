@@ -81,8 +81,8 @@ export const routes = [
         },
     },
     {
-        name: "entry-status",
-        path: "/entry-status",
+        name: "Eintrag Status",
+        path: "/eintrag-status",
         component: EntryStatus,
         props: (route) => ({ tokenId: route.query.id }),
         meta: {
