@@ -73,8 +73,8 @@ export const routes = [
         },
     },
     {
-        name: "entry",
-        path: "/entry",
+        name: "Neuer Eintrag",
+        path: "/neuer-eintrag",
         component: Entry,
         meta: {
             title: "Neuen Eintrag anlegen für: Gestapo. Terror. Orte",
