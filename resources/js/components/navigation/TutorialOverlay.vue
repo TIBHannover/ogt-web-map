@@ -68,7 +68,11 @@
             class="tutorial-overlay"
             :class="{ active: active || isFirstVisit }"
         >
-            <div class="tutorial-backdrop" @click="skipTutorial"></div>
+            <div
+                class="tutorial-backdrop"
+                @click="skipTutorial"
+                :style="backdropStyle"
+            ></div>
 
             <div class="tutorial-content" :style="positionStyle">
                 <div class="tutorial-step">
@@ -223,6 +227,7 @@ const active = ref(false);
 const isFirstVisit = ref(false);
 const currentChapterIndex = ref(0);
 const currentStepIndexInChapter = ref(0);
+const customBackdropOpacity = ref(0.5); // Default backdrop opacity
 const highlightElement = ref(null);
 const chapterMenuOpen = ref(false);
 const glossaryButtonsFound = ref(false);
@@ -312,6 +317,8 @@ const chapters = [
                 onStepPrepare: "openMapOptions",
                 onStepShow: "hideGlossaryHighlight",
                 onStepNext: null,
+                backdropOpacity: 30,
+                backdropBlur: 0,
             },
             {
                 title: "Glossareinträge",
@@ -668,6 +675,33 @@ const currentChapter = computed(() => {
     return chapters[currentChapterIndex.value] || {};
 });
 
+// Compute the backdrop style with opacity and blur based on the current step
+const backdropStyle = computed(() => {
+    let opacity = 0.5; // Default 50% opacity
+    let blur = 2; // Default 2px blur
+
+    // Set custom opacity if provided
+    if (
+        currentStep.value &&
+        typeof currentStep.value.backdropOpacity !== "undefined"
+    ) {
+        opacity = currentStep.value.backdropOpacity / 100;
+    }
+
+    // Set custom blur if provided
+    if (
+        currentStep.value &&
+        typeof currentStep.value.backdropBlur !== "undefined"
+    ) {
+        blur = currentStep.value.backdropBlur;
+    }
+
+    return {
+        backgroundColor: `rgba(0, 0, 0, ${opacity})`,
+        backdropFilter: blur === 0 ? "none" : `blur(${blur}px)`,
+    };
+});
+
 const currentChapterSteps = computed(() => {
     return currentChapter.value.steps || [];
 });
@@ -780,6 +814,7 @@ const nextStep = () => {
         currentStepIndexInChapter.value++;
         console.log("Moving to next step:", currentStep.value?.title);
 
+        // Proceed with normal tutorial flow
         // Simplify the execution flow to reduce multiple calls
         setTimeout(() => {
             // First, handle onStepPrepare action if defined
@@ -1681,10 +1716,11 @@ onUnmounted(() => {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
     pointer-events: auto; /* Capture clicks */
     z-index: 900;
-    backdrop-filter: blur(2px);
+    transition:
+        background-color 0.3s ease,
+        backdrop-filter 0.3s ease;
 }
 
 .tutorial-content {
