@@ -569,22 +569,11 @@ const chapters = [
             {
                 title: "Zeitfilter aktivieren",
                 description:
-                    "Hier kannst Du den Zeitfilter aktivieren, um gezielt nach Zeiträumen oder Zeitpunkten zu filtern.",
+                    "Hier kannst Du den Zeitfilter aktivieren, um gezielt nach Zeiträumen oder Zeitpunkten zu filtern. <br> Wir klicken auf den Zeitfilter-Button, um die Filteroption zu öffnen.",
                 highlightSelector: ".button-timeline", // Selector for timeline button
                 position: { bottom: "100px", right: "100px" },
                 highlightClass: "highlight-tutorial",
-                onStepShow: null,
-                onStepPrepare: "closeAllNavigation",
-                onStepNext: null,
-            },
-            {
-                title: "Zeitfilter öffnen",
-                description:
-                    "Klicke auf den Zeitfilter-Button, um die Filteroption zu öffnen.",
-                highlightSelector: ".button-timeline", // Selector for timeline button
-                position: { bottom: "100px", right: "100px" },
-                highlightClass: "highlight-tutorial",
-                onStepShow: "openTimeline",
+                onStepShow: "closeTimeline",
                 onStepPrepare: "closeAllNavigation",
                 onStepNext: null,
             },
@@ -593,7 +582,8 @@ const chapters = [
                 description:
                     "Hier kannst Du den Zeitfilter wieder deaktivieren und alle Ereignisse ohne zeitliche Einschränkung anzeigen lassen.",
                 highlightSelector: ".timeline-disable-button", // Selector for timeline disable button
-                position: { bottom: "150px", right: "100px" },
+                onStepPrepare: "openTimeline",
+                position: { bottom: "200px", right: "100px" },
             },
             {
                 title: "Filtermodus",
@@ -607,7 +597,7 @@ const chapters = [
                 description:
                     "In diesem Modus kannst Du einen Zeitraum festlegen – mit den beiden roten Reglern links und rechts.",
                 highlightSelector: ".timeline-range-sliders", // Selector for timeline range sliders
-                position: { bottom: "250px", right: "100px" },
+                position: { bottom: "200px", right: "100px" },
                 onStepShow: "setTimeFilter",
                 onStepNext: null,
             },
@@ -616,13 +606,13 @@ const chapters = [
                 description:
                     "Die Karte zeigt nun alle Ereignisse und Orte, die im gewählten Zeitraum relevant sind.",
                 highlightSelector: ".timeline-display", // Selector for timeline display
-                position: { bottom: "300px", right: "100px" },
+                position: { bottom: "200px", right: "100px" },
             },
             {
                 title: "Zeitpunkt-Modus",
                 description: "Wechseln wir nun in den Modus 'Zeitpunkt'.",
                 highlightSelector: ".timeline-point-mode", // Selector for timeline point mode
-                position: { bottom: "350px", right: "100px" },
+                position: { bottom: "200px", right: "100px" },
                 onStepShow: "switchTimeFilterMode",
                 onStepNext: null,
             },
@@ -631,14 +621,14 @@ const chapters = [
                 description:
                     "In diesem Modus kannst Du gezielt zu einem bestimmten Zeitpunkt springen.",
                 highlightSelector: ".timeline-point-slider", // Selector for timeline point slider
-                position: { bottom: "400px", right: "100px" },
+                position: { bottom: "200px", right: "100px" },
             },
             {
                 title: "Ereignisse im Zeitpunkt",
                 description:
                     "Jetzt werden nur noch die Ereignisse angezeigt, die im Oktober 1936 stattgefunden haben – zum Beispiel zur Verfolgung der Sozialistischen Front.",
                 highlightSelector: ".timeline-events", // Selector for timeline events
-                position: { bottom: "450px", right: "100px" },
+                position: { bottom: "200px", right: "100px" },
             },
         ],
     },
@@ -1167,25 +1157,11 @@ const executeAction = (actionName) => {
                 }, 500);
                 break;
             case "openTimeline":
-                // Try to use the direct button approach first as it's most reliable
-                const timelineButton =
-                    document.querySelector(".button-timeline");
-                if (timelineButton) {
-                    console.log("Opening timeline by clicking button");
-                    timelineButton.click();
-
-                    // Clear any previous highlights
-                    closeAllHighlights();
-
-                    // Update highlight elements after timeline is open
-                    setTimeout(() => {
-                        updateHighlightElement();
-                        applyHighlightClass();
-                    }, 800);
-                }
-                // Fall back to function approach if button not found
-                else if (props.openTimeline) {
-                    console.log("Opening timeline using openTimeline function");
+                // Always use NavigationHelper function directly
+                if (props.openTimeline) {
+                    console.log(
+                        "Opening timeline using NavigationHelper function",
+                    );
                     props.openTimeline();
 
                     // Clear any previous highlights
@@ -1196,95 +1172,97 @@ const executeAction = (actionName) => {
                         updateHighlightElement();
                         applyHighlightClass();
                     }, 800);
-                }
-                // Last resort - try toggle function
-                else if (props.toggleTimeline) {
-                    console.log(
-                        "Opening timeline using toggleTimeline function",
-                    );
-                    props.toggleTimeline();
-
-                    // Clear any previous highlights
-                    closeAllHighlights();
-
-                    // Update highlight elements after timeline is open
-                    setTimeout(() => {
-                        updateHighlightElement();
-                        applyHighlightClass();
-                    }, 800);
                 } else {
-                    console.error("No timeline control available!");
+                    console.error("Timeline control function not available!");
                 }
                 break;
             case "closeTimeline":
                 if (props.closeTimeline) {
-                    console.log("Closing timeline...");
+                    console.log(
+                        "Closing timeline using NavigationHelper function",
+                    );
                     props.closeTimeline();
                     closeAllHighlights();
                     setTimeout(updateHighlightElement, 500);
-                } else if (props.toggleTimeline) {
-                    const isTimelineOpen = document.querySelector(
-                        ".timeline-toolbar.isOpen",
-                    );
-                    if (isTimelineOpen) {
-                        props.toggleTimeline();
-                        closeAllHighlights();
-                        setTimeout(updateHighlightElement, 500);
-                    }
+                } else {
+                    console.error("Timeline close function not available!");
                 }
                 break;
             // Map Options Actions
             case "openMapOptions":
                 if (props.openMapOptions) {
+                    console.log(
+                        "Opening map options using NavigationHelper function",
+                    );
                     props.openMapOptions();
                     resetMapOptionsHighlights();
-                    setTimeout(updateHighlightElement, 800);
+                    setTimeout(() => {
+                        updateHighlightElement();
+                        applyHighlightClass();
+                    }, 500);
+                } else {
+                    console.error(
+                        "Map options control function not available!",
+                    );
                 }
                 break;
             case "closeMapOptions":
                 if (props.closeMapOptions) {
+                    console.log(
+                        "Closing map options using NavigationHelper function",
+                    );
                     props.closeMapOptions();
+                    closeAllHighlights();
+                    setTimeout(updateHighlightElement, 500);
+                } else {
+                    console.error("Map options close function not available!");
                 }
                 break;
             case "closeAllNavigation":
                 closeAllNavigation();
                 break;
             case "handleMapOptions":
-                if (props.toggleMapOptions) {
-                    props.toggleMapOptions();
-                } else if (props.openMapOptions) {
+                if (props.openMapOptions) {
+                    console.log("Handling map options with openMapOptions");
                     props.openMapOptions();
-                } else {
-                    // Try direct DOM approach
-                    const mapOptionsButton = document.querySelector(
-                        ".map-options-button",
+                    resetMapOptionsHighlights();
+                    setTimeout(updateHighlightElement, 500);
+                } else if (props.toggleMapOptions) {
+                    console.log(
+                        "Handling map options with toggleMapOptions (fallback)",
                     );
-                    if (mapOptionsButton) {
-                        mapOptionsButton.click();
-                    }
+                    props.toggleMapOptions();
+                    resetMapOptionsHighlights();
+                    setTimeout(updateHighlightElement, 500);
+                } else {
+                    console.error(
+                        "No map options control functions available!",
+                    );
                 }
                 break;
             case "handleCloseMapOptions":
                 if (props.closeMapOptions) {
+                    console.log(
+                        "Closing map options using NavigationHelper function",
+                    );
                     props.closeMapOptions();
-                } else if (props.toggleMapOptions) {
-                    props.toggleMapOptions();
+                    closeAllHighlights();
+                    setTimeout(updateHighlightElement, 500);
+                } else {
+                    console.error("Map options close function not available!");
                 }
                 break;
             // This case was already handled earlier in the switch statement
             case "handleDuplicateMapOptions":
                 if (props.openMapOptions) {
-                    props.openMapOptions();
-                } else if (props.toggleMapOptions) {
-                    props.toggleMapOptions();
-                } else {
-                    // Try direct DOM approach
-                    const mapOptionsButton = document.querySelector(
-                        ".map-options-button",
+                    console.log(
+                        "Opening map options using NavigationHelper function",
                     );
-                    if (mapOptionsButton) {
-                        mapOptionsButton.click();
-                    }
+                    props.openMapOptions();
+                    resetMapOptionsHighlights();
+                    setTimeout(updateHighlightElement, 500);
+                } else {
+                    console.error("Map options function not available!");
                 }
                 break;
             case "handleGlossaryEntry":
