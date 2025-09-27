@@ -14,8 +14,8 @@ build:
         URL: "https://www.gestapo-terror-orte.de"
     - if: $CI_COMMIT_BRANCH =~ /^(develop|feature\/.*)$/
       variables:
-        IMAGE_TAG: "develop"
-        WEBHOOK_URL: "http://ogt11.test.service.tib.eu:9000/hooks/pull-latest-image" # Development webhook
+        IMAGE_TAG: "testing"
+        WEBHOOK_URL: "http://ogt11.test.service.tib.eu:9000/hooks/pull-latest-image" # Testing webhook
         URL: "https://test.gestapo-terror-orte.de"
   script:
     - /kaniko/executor
