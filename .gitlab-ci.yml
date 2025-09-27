@@ -12,7 +12,7 @@ build:
         IMAGE_TAG: "stable"
         WEBHOOK_URL: "http://ogt21.service.tib.eu:9000/hooks/pull-latest-image" # Production webhook
         URL: "https://www.gestapo-terror-orte.de"
-    - if: $CI_COMMIT_BRANCH == "develop"
+    - if: $CI_COMMIT_BRANCH =~ /^(develop|feature\/.*)$/
       variables:
         IMAGE_TAG: "develop"
         WEBHOOK_URL: "http://ogt11.test.service.tib.eu:9000/hooks/pull-latest-image" # Development webhook
