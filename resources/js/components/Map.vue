@@ -141,6 +141,14 @@ export default {
                 places: {},
                 placesByCoordinates: [],
             },
+            persecutionOfSocialistFront: {
+                color: "#8c1f21",
+                iconName: "events.svg",
+                layerGroup: null,
+                layerName: "Verfolgung der Sozialistischen Front",
+                places: {},
+                placesByCoordinates: [],
+            },
             extPolicePrisons: {
                 color: "#3d3b3d",
                 iconName: "extPolicePrisons.svg",

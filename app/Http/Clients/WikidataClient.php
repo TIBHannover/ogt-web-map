@@ -70,6 +70,13 @@ class WikidataClient
         ],
     ];
 
+    const PLACE_SUBGROUP_MAPPINGS = [
+        "persecutionOfSocialistFront" => [
+            "mainGroup" => "events",
+            "mainItemId" => "Q133303308", // https://www.wikidata.org/wiki/Q133303308   Persecution of the Socialist Front by the Gestapo
+        ],
+    ];
+
     /**
      * Wikidata's properties of a queried locations and associated property labels.
      */
@@ -539,6 +546,41 @@ class WikidataClient
         }
 
         return $groupedItems;
+    }
+
+    /**
+     * Subgroup items by a main item ID of a Wikidata property.
+     * Items are assigned to the first subgroup found.
+     *
+     * @param array  $mainGroups         Wikidata items grouped by main groups.
+     * @param array  $subGroups          Valid available subgroups.
+     * @param string $subgroupPropertyId Wikidata property id, e.g. P361, used to group items by an item ID into a subgroup.
+     *
+     * @return array
+     */
+    public function subgroupItems(array $mainGroups, array $subGroups, string $subgroupPropertyId): array {
+        $propertyLabel = self::PROPERTY_LABEL_OF_ID[$subgroupPropertyId];
+
+        foreach ($subGroups as $subGroupName => $subGroupConfig) {
+            $mainGroups[$subGroupName] = [];
+            $mainGroup = $subGroupConfig["mainGroup"];
+            $mainItemId = $subGroupConfig["mainItemId"];
+
+            foreach ($mainGroups[$mainGroup] as $itemId => $item) {
+                if (!isset($item[$propertyLabel])) {
+                    continue;
+                }
+
+                $propertyItemIds = Arr::pluck($item[$propertyLabel], "id");
+
+                if (in_array($mainItemId, $propertyItemIds)) {
+                    $mainGroups[$subGroupName][$itemId] = $item;
+                    unset($mainGroups[$mainGroup][$itemId]);
+                }
+            }
+        }
+
+        return $mainGroups;
     }
 
     /**
