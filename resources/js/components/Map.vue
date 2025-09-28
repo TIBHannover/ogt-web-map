@@ -399,6 +399,12 @@ export default {
             gender: "",
             givenName: "",
             groupName: "",
+            hasParts: [
+                {
+                    id: "",
+                    label: "",
+                },
+            ],
             hasUses: [],
             id: "",
             inceptionDate: {
@@ -438,6 +444,12 @@ export default {
                         locale: "",
                         value: null,
                     },
+                },
+            ],
+            partOfs: [
+                {
+                    id: "",
+                    label: "",
                 },
             ],
             perpetrators: [
@@ -1591,6 +1603,15 @@ export default {
                         });
                     }
                 }
+
+                selectedPlace.value.hasParts = Object.values(place.hasParts || {})
+                    .filter(item => locationMarkers.value[item.id])
+                    .map(item => ({ id: item.id, label: item.value }))
+                    .sort((a, b) => a.label.localeCompare(b.label, "de"));
+
+                selectedPlace.value.partOfs = Object.values(place.partOfs || {})
+                    .filter(item => locationMarkers.value[item.id])
+                    .map(item => ({ id: item.id, label: item.value }));
 
                 selectedPlace.value.parentOrganizations = [];
 

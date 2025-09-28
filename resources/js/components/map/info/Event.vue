@@ -194,6 +194,25 @@
             <v-divider></v-divider>
         </template>
 
+        <!-- has part(s) - https://www.wikidata.org/wiki/Property:P527 -->
+        <template v-if="selectedPlace.hasParts.length > 0">
+            <v-list-item density="compact">
+                <v-list-item-title>Zugeordnete Ereignisse</v-list-item-title>
+                <v-list-item-subtitle>
+                    <ul class="hyphens-auto white-space-normal" lang="de">
+                        <li v-for="event in selectedPlace.hasParts">
+                            <a @click.stop="$emit('switchLocation', { locationId: event.id })"
+                               href="#"
+                            >
+                                {{ event.label }}
+                            </a>
+                        </li>
+                    </ul>
+                </v-list-item-subtitle>
+            </v-list-item>
+            <v-divider></v-divider>
+        </template>
+
         <!-- victims - https://www.wikidata.org/wiki/Property:P8032
              number of casualties - https://www.wikidata.org/wiki/Property:P1590
         -->
@@ -329,6 +348,25 @@
             :selectedPlace="selectedPlace"
             @showPerson="$emit('showPerson', $event)"
         ></prisoners>
+
+        <!-- part of - https://www.wikidata.org/wiki/Property:P361 -->
+        <template v-if="selectedPlace.partOfs.length > 0">
+            <v-list-item density="compact">
+                <v-list-item-title>Übergeordnetes Ereignis</v-list-item-title>
+                <v-list-item-subtitle>
+                    <ul class="hyphens-auto white-space-normal" lang="de">
+                        <li v-for="event in selectedPlace.partOfs">
+                            <a @click.stop="$emit('switchLocation', { locationId: event.id })"
+                               href="#"
+                            >
+                                {{ event.label }}
+                            </a>
+                        </li>
+                    </ul>
+                </v-list-item-subtitle>
+            </v-list-item>
+            <v-divider></v-divider>
+        </template>
 
         <sources
             v-if="

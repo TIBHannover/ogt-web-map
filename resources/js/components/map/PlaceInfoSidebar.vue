@@ -144,7 +144,11 @@
             </template>
 
             <event
-                v-if="selectedPlace.groupName == 'events'"
+                v-if="
+                    ['events', 'persecutionOfSocialistFront'].includes(
+                        selectedPlace.groupName,
+                    )
+                "
                 :selectedPlace="selectedPlace"
                 @showPerson="navigateToPerson"
                 @switchLocation="$emit('switchLocation', $event)"
