@@ -19,11 +19,16 @@
             class="pt-1"
             :key="groupName + '-row'"
         >
-            <v-col class="py-0" style="max-width: 60px">
+            <v-col v-if="groupedPlaces[groupName].linkedMainGroupItem" class="py-0" style="max-width: 55px"></v-col>
+            <v-col v-else class="py-0" style="max-width: 60px">
                 <v-img
                     :max-width="34"
                     :src="`${ogtGlobals?.proxyPath}${mapMarkerIconsPath}${groupedPlaces[groupName].iconName}`"
                 ></v-img>
+            </v-col>
+
+            <v-col v-if="groupedPlaces[groupName].linkedMainGroupItem" class="py-0" style="max-width: 35px; font-size: 30px;">
+                +
             </v-col>
 
             <v-col class="pa-0">
@@ -125,6 +130,7 @@ const groupedPlacesOrder = [
     "extPolicePrisons",
     "laborEducationCamps",
     "events",
+    "persecutionOfSocialistFront",
     "memorials",
 ];
 
