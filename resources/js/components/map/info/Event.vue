@@ -91,7 +91,7 @@
                         class="flex-direction-row ml-0 my-0 ga-2"
                     >
                         <v-btn
-                            @click.stop="$emit('zoomIntoPlace')"
+                            @click.stop="emit('zoomIntoPlace')"
                             variant="outlined"
                             size="x-small"
                             icon
@@ -99,7 +99,7 @@
                             <v-icon>mdi-magnify-plus</v-icon>
                         </v-btn>
                         <v-btn
-                            @click.stop="$emit('undoZoomIntoPlace')"
+                            @click.stop="emit('undoZoomIntoPlace')"
                             variant="outlined"
                             size="x-small"
                             icon
@@ -160,7 +160,7 @@
                                 <a
                                     v-if="perpetrator.hasPersonData"
                                     @click.stop="
-                                        $emit('showPerson', {
+                                        emit('showPerson', {
                                             id: perpetrator.id,
                                             group: 'perpetrators',
                                         })
@@ -175,7 +175,7 @@
                                 <a
                                     v-if="perpetrator.hasLocationMarker"
                                     @click.stop="
-                                        $emit('switchLocation', {
+                                        emit('switchLocation', {
                                             locationId: perpetrator.id,
                                         })
                                     "
@@ -201,7 +201,7 @@
                 <v-list-item-subtitle>
                     <ul class="hyphens-auto white-space-normal" lang="de">
                         <li v-for="event in selectedPlace.hasParts">
-                            <a @click.stop="$emit('switchLocation', { locationId: event.id })"
+                            <a @click.stop="emit('switchLocation', { locationId: event.id })"
                                href="#"
                             >
                                 {{ event.label }}
@@ -248,7 +248,7 @@
                                 <a
                                     v-if="victim.hasPersonData"
                                     @click.stop="
-                                        $emit('showPerson', {
+                                        emit('showPerson', {
                                             id: victim.id,
                                             group: 'victims',
                                         })
@@ -346,7 +346,7 @@
 
         <prisoners
             :selectedPlace="selectedPlace"
-            @showPerson="$emit('showPerson', $event)"
+            @showPerson="emit('showPerson', $event)"
         ></prisoners>
 
         <!-- part of - https://www.wikidata.org/wiki/Property:P361 -->
@@ -356,7 +356,7 @@
                 <v-list-item-subtitle>
                     <ul class="hyphens-auto white-space-normal" lang="de">
                         <li v-for="event in selectedPlace.partOfs">
-                            <a @click.stop="$emit('switchLocation', { locationId: event.id })"
+                            <a @click.stop="emit('switchLocation', { locationId: event.id })"
                                href="#"
                             >
                                 {{ event.label }}
@@ -378,15 +378,19 @@
     </div>
 </template>
 
-<script>
+<script setup>
 import Prisoners from "./Prisoners";
 import Sources from "./Sources";
 
-export default {
-    name: "Event",
-    components: { Prisoners, Sources },
-    props: ["selectedPlace"],
-};
+const props = defineProps({
+    selectedPlace: {
+        type: Object,
+        required: true,
+        default: () => ({}),
+    },
+});
+
+const emit = defineEmits(["showPerson", "switchLocation", "undoZoomIntoPlace", "zoomIntoPlace"]);
 </script>
 
 <style scoped>
