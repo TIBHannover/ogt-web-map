@@ -18,7 +18,7 @@
             </v-col>
         </v-row>
 
-        <v-row>
+        <v-row v-if="currentStep === 1">
             <v-col>
                 <div class="forms-container">
                     <h2 class="step-title">
@@ -64,6 +64,21 @@
                                                 updateTypeInfo();
                                             "
                                         >
+                                            <div
+                                                class="info-icon-container d-lg-none"
+                                                @click.stop="
+                                                    showTypeInfoPopup(
+                                                        'Q6983405',
+                                                    )
+                                                "
+                                                title="Mehr Informationen"
+                                            >
+                                                <v-icon
+                                                    color="primary"
+                                                    size="small"
+                                                    >mdi-information-outline</v-icon
+                                                >
+                                            </div>
                                             <input
                                                 v-model="formsType"
                                                 name="type"
@@ -86,6 +101,26 @@
                                                     Historische Geschehnisse im
                                                     Zeitraum 1933-1945
                                                 </div>
+                                                <div
+                                                    class="type-action-container"
+                                                >
+                                                    <transition name="fade">
+                                                        <button
+                                                            v-if="
+                                                                formsType ===
+                                                                'Q6983405'
+                                                            "
+                                                            class="type-action-button"
+                                                            type="button"
+                                                            @click="
+                                                                openTitleOverlay
+                                                            "
+                                                        >
+                                                            Jetzt ein Ereignis
+                                                            anlegen
+                                                        </button>
+                                                    </transition>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -101,6 +136,21 @@
                                                 updateTypeInfo();
                                             "
                                         >
+                                            <div
+                                                class="info-icon-container d-lg-none"
+                                                @click.stop="
+                                                    showTypeInfoPopup(
+                                                        'Q5003624',
+                                                    )
+                                                "
+                                                title="Mehr Informationen"
+                                            >
+                                                <v-icon
+                                                    color="primary"
+                                                    size="small"
+                                                    >mdi-information-outline</v-icon
+                                                >
+                                            </div>
                                             <input
                                                 v-model="formsType"
                                                 name="type"
@@ -124,6 +174,27 @@
                                                     Opfer des
                                                     Nationalsozialismus erinnern
                                                 </div>
+                                                <div
+                                                    class="type-action-container"
+                                                >
+                                                    <transition name="fade">
+                                                        <button
+                                                            v-if="
+                                                                formsType ===
+                                                                'Q5003624'
+                                                            "
+                                                            class="type-action-button"
+                                                            type="button"
+                                                            @click="
+                                                                openTitleOverlay
+                                                            "
+                                                        >
+                                                            Jetzt einen
+                                                            Erinnerungsort
+                                                            anlegen
+                                                        </button>
+                                                    </transition>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -139,6 +210,21 @@
                                                 updateTypeInfo();
                                             "
                                         >
+                                            <div
+                                                class="info-icon-container d-lg-none"
+                                                @click.stop="
+                                                    showTypeInfoPopup(
+                                                        'Q108047567',
+                                                    )
+                                                "
+                                                title="Mehr Informationen"
+                                            >
+                                                <v-icon
+                                                    color="primary"
+                                                    size="small"
+                                                    >mdi-information-outline</v-icon
+                                                >
+                                            </div>
                                             <input
                                                 v-model="formsType"
                                                 name="type"
@@ -161,6 +247,27 @@
                                                     Regionale Dienstellen der
                                                     Geheimen Staatspolizei
                                                 </div>
+                                                <div
+                                                    class="type-action-container"
+                                                >
+                                                    <transition name="fade">
+                                                        <button
+                                                            v-if="
+                                                                formsType ===
+                                                                'Q108047567'
+                                                            "
+                                                            class="type-action-button"
+                                                            type="button"
+                                                            @click="
+                                                                openTitleOverlay
+                                                            "
+                                                        >
+                                                            Jetzt eine
+                                                            Staatspolizeistelle
+                                                            anlegen
+                                                        </button>
+                                                    </transition>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -176,6 +283,21 @@
                                                 updateTypeInfo();
                                             "
                                         >
+                                            <div
+                                                class="info-icon-container d-lg-none d-lg-none"
+                                                @click.stop="
+                                                    showTypeInfoPopup(
+                                                        'Q108047541',
+                                                    )
+                                                "
+                                                title="Mehr Informationen"
+                                            >
+                                                <v-icon
+                                                    color="primary"
+                                                    size="small"
+                                                    >mdi-information-outline</v-icon
+                                                >
+                                            </div>
                                             <input
                                                 v-model="formsType"
                                                 name="type"
@@ -198,6 +320,27 @@
                                                     Lokale Zweigstellen einer
                                                     Staatspolizeistelle
                                                 </div>
+                                                <div
+                                                    class="type-action-container"
+                                                >
+                                                    <transition name="fade">
+                                                        <button
+                                                            v-if="
+                                                                formsType ===
+                                                                'Q108047541'
+                                                            "
+                                                            class="type-action-button"
+                                                            type="button"
+                                                            @click="
+                                                                openTitleOverlay
+                                                            "
+                                                        >
+                                                            Jetzt eine
+                                                            Staatspolizeiaußenstelle
+                                                            anlegen
+                                                        </button>
+                                                    </transition>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -213,6 +356,19 @@
                                                 updateTypeInfo();
                                             "
                                         >
+                                            <div
+                                                class="info-icon-container d-lg-none"
+                                                @click.stop="
+                                                    showTypeInfoPopup('Q277565')
+                                                "
+                                                title="Mehr Informationen"
+                                            >
+                                                <v-icon
+                                                    color="primary"
+                                                    size="small"
+                                                    >mdi-information-outline</v-icon
+                                                >
+                                            </div>
                                             <input
                                                 v-model="formsType"
                                                 name="type"
@@ -236,6 +392,27 @@
                                                     während des
                                                     Nationalsozialismus
                                                 </div>
+                                                <div
+                                                    class="type-action-container"
+                                                >
+                                                    <transition name="fade">
+                                                        <button
+                                                            v-if="
+                                                                formsType ===
+                                                                'Q277565'
+                                                            "
+                                                            class="type-action-button"
+                                                            type="button"
+                                                            @click="
+                                                                openTitleOverlay
+                                                            "
+                                                        >
+                                                            Jetzt ein
+                                                            Arbeitserziehungslager
+                                                            anlegen
+                                                        </button>
+                                                    </transition>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -251,6 +428,19 @@
                                                 updateTypeInfo();
                                             "
                                         >
+                                            <div
+                                                class="info-icon-container d-lg-none"
+                                                @click.stop="
+                                                    showTypeInfoPopup('Q40357')
+                                                "
+                                                title="Mehr Informationen"
+                                            >
+                                                <v-icon
+                                                    color="primary"
+                                                    size="small"
+                                                    >mdi-information-outline</v-icon
+                                                >
+                                            </div>
                                             <input
                                                 v-model="formsType"
                                                 name="type"
@@ -272,13 +462,33 @@
                                                 <div class="type-description">
                                                     Haftanstalten, die während
                                                     der NS-Zeit für politische
-                                                    Gefangene genutzt wurden
+                                                    Gegner genutzt wurden
+                                                </div>
+                                                <div
+                                                    class="type-action-container"
+                                                >
+                                                    <transition name="fade">
+                                                        <button
+                                                            v-if="
+                                                                formsType ===
+                                                                'Q40357'
+                                                            "
+                                                            class="type-action-button"
+                                                            type="button"
+                                                            @click="
+                                                                openTitleOverlay
+                                                            "
+                                                        >
+                                                            Jetzt ein Gefängnis
+                                                            anlegen
+                                                        </button>
+                                                    </transition>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </fieldset>
-                                <div class="button-container">
+                                <div class="button-container" v-if="!formsType">
                                     <button
                                         class="button"
                                         type="button"
@@ -497,18 +707,18 @@
     <!-- Mobile Info-Overlay -->
     <div
         class="mobile-info-overlay"
-        v-if="showMobileInfoOverlay && isMobileView"
+        v-if="showMobileInfoOverlay"
         @click="closeMobileInfoOverlay"
     >
         <div class="overlay-content" @click.stop>
             <div class="overlay-header">
                 <h3>{{ getTypeInfoTitle() }}</h3>
                 <button class="close-overlay" @click="closeMobileInfoOverlay">
-                    &times;
+                    <v-icon>mdi-close</v-icon>
                 </button>
             </div>
             <div class="overlay-body">
-                <div v-html="typeInfoContent"></div>
+                <div v-html="typeInfoContent" class="info-content"></div>
             </div>
         </div>
     </div>
@@ -546,7 +756,7 @@ const props = defineProps({
 const router = useRouter();
 const freeClientWidth = ref(document.documentElement.clientWidth);
 const error = ref(null);
-const formsType = ref("Q6983405");
+const formsType = ref("");
 const formsTitle = ref(null);
 const formsDescription = ref(null);
 const isSubmitting = ref(false);
@@ -676,7 +886,26 @@ const checkScreenSize = () => {
 const typeInfoContent = ref("");
 const showMobileInfoOverlay = ref(false);
 
-const updateTypeInfo = () => {
+const showTypeInfoPopup = (typeValue) => {
+    // Temporarily set the type to generate content
+    const originalType = formsType.value;
+    formsType.value = typeValue;
+
+    // Generate the info content
+    updateTypeInfoContent();
+
+    // Show the popup
+    showMobileInfoOverlay.value = true;
+
+    // Restore the original selection after a short delay
+    setTimeout(() => {
+        if (originalType) {
+            formsType.value = originalType;
+        }
+    }, 100);
+};
+
+const updateTypeInfoContent = () => {
     const typeToGlossaryMapping = {
         Q6983405: "Ereignis",
         Q5003624: "Erinnerungsort",
@@ -699,7 +928,7 @@ const updateTypeInfo = () => {
             if (typeof desc === "string") {
                 content += `<p>${desc}</p>`;
             } else if (Array.isArray(desc)) {
-                content += "<ul>";
+                content += "<ul class='info-list'>";
                 desc.forEach((item) => {
                     content += `<li>${item}</li>`;
                 });
@@ -711,10 +940,14 @@ const updateTypeInfo = () => {
     } else {
         typeInfoContent.value = "";
     }
+};
 
-    if (isMobileView.value && typeInfoContent.value) {
-        showMobileInfoOverlay.value = true;
-    }
+const updateTypeInfo = () => {
+    // Update the info content
+    updateTypeInfoContent();
+
+    // No longer automatically showing overlay on type selection
+    // Info icon will be used instead
 };
 
 // Close mobile info overlay
@@ -1504,6 +1737,152 @@ onUnmounted(() => {
 @import "./entry/styles/form-styles.css";
 
 /* Type Selection Styling */
+.info-icon-container {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 5;
+    cursor: pointer;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    padding: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.info-icon-container d-lg-none:hover {
+    background-color: rgba(33, 150, 243, 0.1);
+    transform: scale(1.1);
+}
+
+/* Mobile info overlay styling */
+.mobile-info-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.overlay-content {
+    background-color: white;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.overlay-header {
+    padding: 16px;
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+}
+
+.overlay-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.close-overlay {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+}
+
+.close-overlay:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.overlay-body {
+    padding: 16px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.info-content p {
+    margin-bottom: 12px;
+    line-height: 1.6;
+}
+
+.info-content .info-list {
+    margin-bottom: 15px;
+    padding-left: 25px;
+}
+
+.info-content .info-list li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.type-action-container {
+    margin-top: 10px;
+    width: 100%;
+    min-height: 40px; /* Reserve space for the button */
+    position: relative;
+}
+
+.type-action-button {
+    background-color: #2196f3;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    width: 100%;
+}
+
+.type-action-button:hover {
+    background-color: #1976d2;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* Fade transition for button appearance */
+.fade-enter-active,
+.fade-leave-active {
+    transition:
+        opacity 0.3s ease,
+        transform 0.3s ease;
+    position: absolute;
+    width: 100%; /* Full width of the container */
+    left: 0;
+    right: 0;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+    transform: translateY(0);
+}
+
+/* Type Selection Styling */
 .info-section {
     margin-bottom: 20px;
     padding: 15px;
@@ -1530,7 +1909,7 @@ onUnmounted(() => {
     cursor: pointer;
     transition: all 0.2s ease-in-out;
     position: relative;
-    width: 100%;
+    overflow: visible; /* Ensure the info icon is visible */
 }
 
 .type-box:hover {
@@ -1587,11 +1966,17 @@ onUnmounted(() => {
 }
 
 .step-container {
-    width: 50%;
 }
+
 .info-box {
-    width: 50%;
     margin-top: 0;
+}
+
+@media (max-width: 768px) {
+    .step-container,
+    .info-box {
+        width: 100%;
+    }
 }
 </style>
 
