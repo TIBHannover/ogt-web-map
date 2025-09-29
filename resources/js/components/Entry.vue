@@ -488,16 +488,6 @@
                                         </div>
                                     </div>
                                 </fieldset>
-                                <div class="button-container" v-if="!formsType">
-                                    <button
-                                        class="button"
-                                        type="button"
-                                        @click="openTitleOverlay"
-                                        :disabled="!formsType"
-                                    >
-                                        Weiter
-                                    </button>
-                                </div>
                             </form>
                         </div>
 
@@ -712,7 +702,7 @@
     >
         <div class="overlay-content" @click.stop>
             <div class="overlay-header">
-                <h3>{{ getTypeInfoTitle() }}</h3>
+                <h3 class="text-black">{{ getTypeInfoTitle() }}</h3>
                 <button class="close-overlay" @click="closeMobileInfoOverlay">
                     <v-icon>mdi-close</v-icon>
                 </button>
@@ -887,25 +877,52 @@ const typeInfoContent = ref("");
 const showMobileInfoOverlay = ref(false);
 
 const showTypeInfoPopup = (typeValue) => {
-    // Temporarily set the type to generate content
-    const originalType = formsType.value;
-    formsType.value = typeValue;
+    // Store the type we're showing info for
+    displayedInfoType.value = typeValue;
 
-    // Generate the info content
-    updateTypeInfoContent();
+    // Get content for the clicked type without changing selection
+    const typeToGlossaryMapping = {
+        Q6983405: "Ereignis",
+        Q5003624: "Erinnerungsort",
+        Q108047567: "Staatspolizeistelle",
+        Q108047541: "Außendienststelle", // Im Glossar als "Außendienststelle"
+        Q277565: "Arbeitserziehungslager",
+        Q40357: "Gefängnis",
+    };
+
+    // Get the corresponding glossary item key for the clicked type
+    const glossaryKey = typeToGlossaryMapping[typeValue];
+
+    // Get the glossary item if it exists
+    const glossaryItem = glossaryKey ? glossaryItems[glossaryKey] : null;
+
+    if (glossaryItem) {
+        let content = "";
+
+        glossaryItem.descriptions.forEach((desc) => {
+            if (typeof desc === "string") {
+                content += `<p>${desc}</p>`;
+            } else if (Array.isArray(desc)) {
+                content += "<ul class='info-list'>";
+                desc.forEach((item) => {
+                    content += `<li>${item}</li>`;
+                });
+                content += "</ul>";
+            }
+        });
+
+        typeInfoContent.value = content;
+    } else {
+        typeInfoContent.value = "";
+    }
 
     // Show the popup
     showMobileInfoOverlay.value = true;
-
-    // Restore the original selection after a short delay
-    setTimeout(() => {
-        if (originalType) {
-            formsType.value = originalType;
-        }
-    }, 100);
 };
 
 const updateTypeInfoContent = () => {
+    // This function is now only used when updating the type selection
+    // The showTypeInfoPopup function handles the popup content directly
     const typeToGlossaryMapping = {
         Q6983405: "Ereignis",
         Q5003624: "Erinnerungsort",
@@ -943,7 +960,7 @@ const updateTypeInfoContent = () => {
 };
 
 const updateTypeInfo = () => {
-    // Update the info content
+    // Update the info content for the currently selected type
     updateTypeInfoContent();
 
     // No longer automatically showing overlay on type selection
@@ -953,7 +970,11 @@ const updateTypeInfo = () => {
 // Close mobile info overlay
 const closeMobileInfoOverlay = () => {
     showMobileInfoOverlay.value = false;
+    displayedInfoType.value = ""; // Reset the displayed info type
 };
+
+// Reference to store which type's info is currently being displayed
+const displayedInfoType = ref("");
 
 const getTypeInfoTitle = () => {
     const typeTitles = {
@@ -965,7 +986,11 @@ const getTypeInfoTitle = () => {
         Q40357: "Gefängnis",
     };
 
-    return typeTitles[formsType.value] || "Eintragstyp";
+    // Use displayedInfoType for popups, otherwise use the selected formsType
+    const typeToUse = showMobileInfoOverlay.value
+        ? displayedInfoType.value
+        : formsType.value;
+    return typeTitles[typeToUse] || "Eintragstyp";
 };
 
 const showTitleOverlay = ref(false);
@@ -1792,12 +1817,6 @@ onUnmounted(() => {
     justify-content: space-between;
     align-items: center;
     color: #fff;
-}
-
-.overlay-header h3 {
-    margin: 0;
-    font-size: 1.2rem;
-    color: #333;
 }
 
 .close-overlay {
