@@ -243,7 +243,10 @@
 .forms fieldset div {
     display: flex;
     flex-direction: row;
-    align-items: center;
+}
+
+.forms fieldset div.type-selection-grid {
+    flex-direction: column;
 }
 
 .forms fieldset div input {

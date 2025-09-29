@@ -16,6 +16,7 @@ const Materials = () => import("./components/Materials.vue");
 const Forschungsdaten = () => import("./components/ResearchData.vue");
 const ThankYou = () => import("./components/entry/ThankYou.vue");
 const EntryStatus = () => import("./components/entry/EntryStatus.vue");
+const EntryInfo = () => import("./components/entry/EntryInfo.vue");
 
 export const routes = [
     {
@@ -70,6 +71,14 @@ export const routes = [
         component: Counts,
         meta: {
             title: "Zahlen: Gestapo. Terror. Orte",
+        },
+    },
+    {
+        name: "Eintrag Info",
+        path: "/eintrag-informationen",
+        component: EntryInfo,
+        meta: {
+            title: "Informationen zum Anlegen eines Eintrags: Gestapo. Terror. Orte",
         },
     },
     {

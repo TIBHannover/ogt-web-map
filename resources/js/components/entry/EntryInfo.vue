@@ -1,0 +1,402 @@
+<template>
+    <v-container id="container" class="mb-110">
+        <v-row>
+            <v-col>
+                <h1
+                    class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-h4 text-md-h3"
+                    lang="de"
+                >
+                    Lege einen neuen Eintrag an
+                </h1>
+            </v-col>
+        </v-row>
+
+        <v-row>
+            <v-col>
+                <div class="entry-info-container">
+                    <div class="intro-section">
+                        <h2 class="section-title">
+                            Du möchtest einen neuen Eintrag anlegen?
+                        </h2>
+                        <p>
+                            Trage deinen Beitrag dazu bei die Karte zu
+                            erweitern.
+                        </p>
+                        <p>
+                            Auf dieser Seite erfährst du wie du bei der Karte
+                            beisteuern kannst und wie du direkt loslegst!
+                        </p>
+                    </div>
+
+                    <div class="intro-section">
+                        <h2 class="section-title">
+                            Wie funktioniert der Prozess?
+                        </h2>
+                        <p>
+                            Getsapo.Terror.Orte dokumentiert historische
+                            Ereignisse, Orte und Institutionen im Zusammenhang
+                            mit der Geschichte der Gestapo in Niedersachsen.
+                            <br />
+                            Um die Integrität und Qualität unserer Daten zu
+                            gewährleisten, werden alle Einträge vor der
+                            Veröffentlichung geprüft.
+                        </p>
+                        <p>
+                            Mit diesem Formular kannst du einen neuen Eintrag
+                            für die Karte vorschlagen. Nach der Einreichung wird
+                            dein Eintrag von unserem Team gesichtet und geprüft.
+                            Bei positiver Bewertung wird der Eintrag
+                            freigeschaltet und auf der Karte sichtbar.
+                        </p>
+                        <div class="important-note">
+                            <v-icon color="warning" class="mr-2"
+                                >mdi-alert</v-icon
+                            >
+                            <span
+                                ><strong>Wichtig:</strong> Quellenangaben sind
+                                verpflichtend für jeden Eintrag. Ohne
+                                ausreichende wissenschaftliche Belege kann dein
+                                Vorschlag nicht genehmigt werden.</span
+                            >
+                        </div>
+                    </div>
+
+                    <div class="requirements-section">
+                        <h2 class="section-title">
+                            Was benötigst du für einen Eintrag?
+                        </h2>
+                        <ul class="requirements-list">
+                            <li>
+                                <v-icon color="primary" class="mr-2"
+                                    >mdi-file-document-outline</v-icon
+                                >
+                                <strong
+                                    >Wissenschaftliche Informationen:</strong
+                                >
+                                Gut recherchierte Fakten aus vertrauenswürdigen
+                                Quellen (Bücher, Archive, wissenschaftliche
+                                Artikel).
+                            </li>
+                            <li>
+                                <v-icon color="primary" class="mr-2"
+                                    >mdi-bookmark-outline</v-icon
+                                >
+                                <strong>Quellenangaben:</strong> Vollständige
+                                bibliografische Informationen zu Ihren Quellen
+                                (Autor, Titel, Jahr, Seite etc.).
+                            </li>
+                            <li>
+                                <v-icon color="primary" class="mr-2"
+                                    >mdi-map-marker</v-icon
+                                >
+                                <strong>Geographische Daten:</strong> Genaue
+                                Standortinformationen oder bestmögliche
+                                Annäherung.
+                            </li>
+                            <li>
+                                <v-icon color="primary" class="mr-2"
+                                    >mdi-calendar-range</v-icon
+                                >
+                                <strong>Zeitliche Einordnung:</strong> Datum
+                                oder Zeitraum des Ereignisses bzw. der Existenz
+                                des Ortes.
+                            </li>
+                            <li>
+                                <v-icon color="primary" class="mr-2"
+                                    >mdi-image-outline</v-icon
+                                >
+                                <strong>Optional: Bildmaterial</strong> mit
+                                Angaben zur Quelle und Rechteinhaber. Die Bilder
+                                müssen bei &nbsp;
+                                <a
+                                    href="https://commons.wikimedia.org/wiki/Main_Page"
+                                    target="_blank"
+                                    >Wikimedia Comons</a
+                                >
+                                &nbsp;hochgeladen werden.
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="process-section">
+                        <h2 class="section-title">Der Prozess im Überblick</h2>
+                        <div class="process-timeline">
+                            <div class="timeline-step">
+                                <div class="step-number">1</div>
+                                <div class="step-content">
+                                    <h3>Materialsammlung</h3>
+                                    <p>
+                                        Recherchiere Informationen aus Büchern,
+                                        Archiven, wissenschaftlichen
+                                        Online-Quellen und anderen
+                                        vertrauenswürdigen Materialien.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="timeline-step">
+                                <div class="step-number">2</div>
+                                <div class="step-content">
+                                    <h3>Eintragstyp auswählen</h3>
+                                    <p>
+                                        Wähle den passenden Typ für deinen
+                                        Eintrag:
+                                    </p>
+                                    <ul class="entry-types-list">
+                                        <li>
+                                            <strong>Ereignis:</strong>
+                                            Historische Vorkommnisse wie
+                                            Verhaftungen, Widerstandsaktionen
+                                            oder Deportationen
+                                        </li>
+                                        <li>
+                                            <strong>Erinnerungsort:</strong>
+                                            Gedenkstätten, Mahnmale oder andere
+                                            Orte des Gedenkens
+                                        </li>
+                                        <li>
+                                            <strong
+                                                >Staatspolizeistelle:</strong
+                                            >
+                                            Hauptsitze der Gestapo
+                                        </li>
+                                        <li>
+                                            <strong
+                                                >Staatspolizeiaußenstelle:</strong
+                                            >
+                                            Regionale Außenposten
+                                        </li>
+                                        <li>
+                                            <strong
+                                                >Arbeitserziehungslager:</strong
+                                            >
+                                            Orte der Zwangsarbeit und
+                                            "Umerziehung"
+                                        </li>
+                                        <li>
+                                            <strong>Gefängnis:</strong>
+                                            Haftanstalten im Zusammenhang mit
+                                            Gestapo-Aktivitäten
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="timeline-step">
+                                <div class="step-number">3</div>
+                                <div class="step-content">
+                                    <h3>Informationen eintragen</h3>
+                                    <p>
+                                        Fülle das Formular mit allen relevanten
+                                        Informationen aus. Je detaillierter und
+                                        präziser, desto besser.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="timeline-step">
+                                <div class="step-number">4</div>
+                                <div class="step-content">
+                                    <h3>Quellenangaben hinzufügen</h3>
+                                    <p>
+                                        Füge alle Quellen hinzu, aus denen du
+                                        Informationen bezogen hast. Vollständige
+                                        bibliografische Angaben sind notwendig.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="timeline-step">
+                                <div class="step-number">5</div>
+                                <div class="step-content">
+                                    <h3>Eintrag einreichen</h3>
+                                    <p>
+                                        Sende deinen Antrag zur Prüfung ein. Du
+                                        kannst auswählen, ob du per E-Mail über
+                                        den Status informiert werden möchtest.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="timeline-step">
+                                <div class="step-number">6</div>
+                                <div class="step-content">
+                                    <h3>Prüfung abwarten</h3>
+                                    <p>
+                                        Dein Eintrag wird von unserem Team
+                                        geprüft. Dies kann einige Tage in
+                                        Anspruch nehmen. Du kannst den Status
+                                        jederzeit über den Link in der
+                                        Bestätigungsnachricht abrufen.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="timeline-step">
+                                <div class="step-number">7</div>
+                                <div class="step-content">
+                                    <h3>Eintrag auf der Karte anschauen</h3>
+                                    <p>
+                                        Nach der Freischaltung wird dein Eintrag
+                                        auf der Karte sichtbar und Teil unserer
+                                        Dokumentation.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="action-section">
+                        <h2 class="section-title">
+                            Bereit, einen Eintrag zu erstellen?
+                        </h2>
+                        <p>
+                            Wenn Sie alle notwendigen Informationen gesammelt
+                            haben, können Sie mit der Erstellung beginnen.
+                        </p>
+                        <div class="button-container">
+                            <router-link
+                                to="/neuer-eintrag"
+                                class="entry-button"
+                            >
+                                <v-btn color="primary" size="large">
+                                    Neuen Eintrag anlegen
+                                    <v-icon right class="ml-2"
+                                        >mdi-arrow-right</v-icon
+                                    >
+                                </v-btn>
+                            </router-link>
+                        </div>
+                    </div>
+                </div>
+            </v-col>
+        </v-row>
+    </v-container>
+</template>
+
+<script setup>
+// No additional script needed for this informational page
+</script>
+
+<style>
+.font-family-special-elite {
+    font-family: "Special Elite" !important;
+}
+
+.hyphens-auto {
+    hyphens: auto;
+}
+
+.entry-info-container {
+    max-width: 1000px;
+}
+
+.intro-section,
+.requirements-section,
+.process-section,
+.action-section {
+    margin-bottom: 40px;
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #2196f3;
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.important-note {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: rgba(255, 193, 7, 0.1);
+    border-left: 4px solid #ffc107;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+}
+
+.requirements-list li {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.entry-types-list li {
+    margin-bottom: 8px;
+}
+
+.process-timeline {
+    position: relative;
+}
+
+.process-timeline:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 19px;
+    height: 100%;
+    width: 2px;
+    background: #2196f3;
+}
+
+.timeline-step {
+    position: relative;
+    padding-left: 60px;
+    margin-bottom: 30px;
+}
+
+.timeline-step:last-child {
+    margin-bottom: 0;
+}
+
+.step-number {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 40px;
+    height: 40px;
+    background-color: #2196f3;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    z-index: 2;
+}
+
+.step-content {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.step-content h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+    .process-timeline:before {
+        left: 15px;
+    }
+
+    .timeline-step {
+        padding-left: 50px;
+    }
+
+    .step-number {
+        width: 30px;
+        height: 30px;
+        font-size: 1rem;
+    }
+}
+</style>

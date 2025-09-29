@@ -21,96 +21,261 @@
         <v-row>
             <v-col>
                 <div class="forms-container">
+                    <h2 class="step-title">
+                        Du möchtest uns helfen? So funktioniert's!
+                    </h2>
+                    <div class="info-section">
+                        <p>
+                            Bitte wähle den Eintragstyp aus, welchen du anlegen
+                            möchtest. Die verschiedenen Typen werden auf der
+                            Karte mit unterschiedlichen Markierungen angezeigt.
+                        </p>
+                        <p>
+                            Jeder Eintragstyp ermöglicht es dir, spezifische
+                            historische Informationen zu dokumentieren. Wähle
+                            den Typ, der am besten zu deinem Eintrag passt.
+                        </p>
+                    </div>
+                </div>
+            </v-col>
+        </v-row>
+
+        <v-row>
+            <v-col>
+                <div class="forms-container">
                     <!-- Schritt 1: Eintragstyp wählen -->
                     <div v-if="currentStep === 1" class="entry-form-wrapper">
                         <div class="step-container">
                             <h2 class="step-title">
                                 Schritt 1: Wähle den Eintragstyp
                             </h2>
-                            <p>
-                                Bitte wähle den Eintragstyp aus welchen du
-                                anlegen möchtest.
-                            </p>
                             <form class="forms">
                                 <fieldset>
-                                    <legend for="type">Eintrag-Typ</legend>
-                                    <div>
-                                        <input
-                                            v-model="formsType"
-                                            name="type"
-                                            type="radio"
-                                            value="Q6983405"
-                                            id="type-Q6983405"
-                                            @change="updateTypeInfo"
-                                        />
-                                        <label for="type-Q6983405"
-                                            >Ereignis</label
+                                    <div class="type-selection-grid">
+                                        <!-- Ereignis -->
+                                        <div
+                                            class="type-box"
+                                            :class="{
+                                                selected:
+                                                    formsType === 'Q6983405',
+                                            }"
+                                            @click="
+                                                formsType = 'Q6983405';
+                                                updateTypeInfo();
+                                            "
                                         >
-                                    </div>
-                                    <div>
-                                        <input
-                                            v-model="formsType"
-                                            name="type"
-                                            type="radio"
-                                            value="Q5003624"
-                                            id="type-Q5003624"
-                                            @change="updateTypeInfo"
-                                        />
-                                        <label for="type-Q5003624"
-                                            >Erinnerungsort</label
+                                            <input
+                                                v-model="formsType"
+                                                name="type"
+                                                type="radio"
+                                                value="Q6983405"
+                                                id="type-Q6983405"
+                                                class="type-radio"
+                                            />
+                                            <div class="type-icon">
+                                                <img
+                                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/events.svg`"
+                                                    alt="Ereignis Icon"
+                                                />
+                                            </div>
+                                            <div class="type-data">
+                                                <div class="type-label">
+                                                    Ereignis
+                                                </div>
+                                                <div class="type-description">
+                                                    Historische Geschehnisse im
+                                                    Zeitraum 1933-1945
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Erinnerungsort -->
+                                        <div
+                                            class="type-box"
+                                            :class="{
+                                                selected:
+                                                    formsType === 'Q5003624',
+                                            }"
+                                            @click="
+                                                formsType = 'Q5003624';
+                                                updateTypeInfo();
+                                            "
                                         >
-                                    </div>
-                                    <div>
-                                        <input
-                                            v-model="formsType"
-                                            name="type"
-                                            type="radio"
-                                            value="Q108047567"
-                                            id="type-Q108047567"
-                                            @change="updateTypeInfo"
-                                        />
-                                        <label for="type-Q108047567"
-                                            >Staatspolizeistelle</label
+                                            <input
+                                                v-model="formsType"
+                                                name="type"
+                                                type="radio"
+                                                value="Q5003624"
+                                                id="type-Q5003624"
+                                                class="type-radio"
+                                            />
+                                            <div class="type-icon">
+                                                <img
+                                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/memorials.svg`"
+                                                    alt="Erinnerungsort Icon"
+                                                />
+                                            </div>
+                                            <div class="type-data">
+                                                <div class="type-label">
+                                                    Erinnerungsort
+                                                </div>
+                                                <div class="type-description">
+                                                    Physische Orte, die an die
+                                                    Opfer des
+                                                    Nationalsozialismus erinnern
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Staatspolizeistelle -->
+                                        <div
+                                            class="type-box"
+                                            :class="{
+                                                selected:
+                                                    formsType === 'Q108047567',
+                                            }"
+                                            @click="
+                                                formsType = 'Q108047567';
+                                                updateTypeInfo();
+                                            "
                                         >
-                                    </div>
-                                    <div>
-                                        <input
-                                            v-model="formsType"
-                                            name="type"
-                                            type="radio"
-                                            value="Q108047541"
-                                            id="type-Q108047541"
-                                            @change="updateTypeInfo"
-                                        />
-                                        <label for="type-Q108047541"
-                                            >Staatspolizeiaußenstelle</label
+                                            <input
+                                                v-model="formsType"
+                                                name="type"
+                                                type="radio"
+                                                value="Q108047567"
+                                                id="type-Q108047567"
+                                                class="type-radio"
+                                            />
+                                            <div class="type-icon">
+                                                <img
+                                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/statePoliceOffices.svg`"
+                                                    alt="Staatspolizeistelle Icon"
+                                                />
+                                            </div>
+                                            <div class="type-data">
+                                                <div class="type-label">
+                                                    Staatspolizeistelle
+                                                </div>
+                                                <div class="type-description">
+                                                    Regionale Dienstellen der
+                                                    Geheimen Staatspolizei
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Staatspolizeiaußenstelle -->
+                                        <div
+                                            class="type-box"
+                                            :class="{
+                                                selected:
+                                                    formsType === 'Q108047541',
+                                            }"
+                                            @click="
+                                                formsType = 'Q108047541';
+                                                updateTypeInfo();
+                                            "
                                         >
-                                    </div>
-                                    <div>
-                                        <input
-                                            v-model="formsType"
-                                            name="type"
-                                            type="radio"
-                                            value="Q277565"
-                                            id="type-Q277565"
-                                            @change="updateTypeInfo"
-                                        />
-                                        <label for="type-Q277565"
-                                            >Arbeitserziehungslager</label
+                                            <input
+                                                v-model="formsType"
+                                                name="type"
+                                                type="radio"
+                                                value="Q108047541"
+                                                id="type-Q108047541"
+                                                class="type-radio"
+                                            />
+                                            <div class="type-icon">
+                                                <img
+                                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/fieldOffices.svg`"
+                                                    alt="Staatspolizeiaußenstelle Icon"
+                                                />
+                                            </div>
+                                            <div class="type-data">
+                                                <div class="type-label">
+                                                    Staatspolizeiaußenstelle
+                                                </div>
+                                                <div class="type-description">
+                                                    Lokale Zweigstellen einer
+                                                    Staatspolizeistelle
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Arbeitserziehungslager -->
+                                        <div
+                                            class="type-box"
+                                            :class="{
+                                                selected:
+                                                    formsType === 'Q277565',
+                                            }"
+                                            @click="
+                                                formsType = 'Q277565';
+                                                updateTypeInfo();
+                                            "
                                         >
-                                    </div>
-                                    <div>
-                                        <input
-                                            v-model="formsType"
-                                            name="type"
-                                            type="radio"
-                                            value="Q40357"
-                                            id="type-Q40357"
-                                            @change="updateTypeInfo"
-                                        />
-                                        <label for="type-Q40357"
-                                            >Gefängnis</label
+                                            <input
+                                                v-model="formsType"
+                                                name="type"
+                                                type="radio"
+                                                value="Q277565"
+                                                id="type-Q277565"
+                                                class="type-radio"
+                                            />
+                                            <div class="type-icon">
+                                                <img
+                                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/laborEducationCamps.svg`"
+                                                    alt="Arbeitserziehungslager Icon"
+                                                />
+                                            </div>
+                                            <div class="type-data">
+                                                <div class="type-label">
+                                                    Arbeitserziehungslager
+                                                </div>
+                                                <div class="type-description">
+                                                    Haftsystem der Gestapo
+                                                    während des
+                                                    Nationalsozialismus
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Gefängnis -->
+                                        <div
+                                            class="type-box"
+                                            :class="{
+                                                selected:
+                                                    formsType === 'Q40357',
+                                            }"
+                                            @click="
+                                                formsType = 'Q40357';
+                                                updateTypeInfo();
+                                            "
                                         >
+                                            <input
+                                                v-model="formsType"
+                                                name="type"
+                                                type="radio"
+                                                value="Q40357"
+                                                id="type-Q40357"
+                                                class="type-radio"
+                                            />
+                                            <div class="type-icon">
+                                                <img
+                                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/prisons.svg`"
+                                                    alt="Gefängnis Icon"
+                                                />
+                                            </div>
+                                            <div class="type-data">
+                                                <div class="type-label">
+                                                    Gefängnis
+                                                </div>
+                                                <div class="type-description">
+                                                    Haftanstalten, die während
+                                                    der NS-Zeit für politische
+                                                    Gefangene genutzt wurden
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </fieldset>
                                 <div class="button-container">
@@ -298,6 +463,33 @@
                     </div>
                 </div>
                 <br /><br /><br /><br />
+            </v-col>
+        </v-row>
+        <v-row>
+            <v-col>
+                <div class="forms-container">
+                    <div class="info-section">
+                        <h2 class="step-title">Du brauchst Hilfe?</h2>
+                        <p>
+                            Hier findest du alle Informationen zum Anlegen eines
+                            neuen Eintrags
+                        </p>
+
+                        <div class="button-container">
+                            <router-link
+                                to="/eintrag-informationen"
+                                class="entry-button"
+                            >
+                                <v-btn color="primary" size="large">
+                                    <v-icon class="mr-2"
+                                        >mdi-information</v-icon
+                                    >
+                                    Wie lege ich einen Eintrag an
+                                </v-btn>
+                            </router-link>
+                        </div>
+                    </div>
+                </div>
             </v-col>
         </v-row>
     </v-container>
@@ -1310,6 +1502,97 @@ onUnmounted(() => {
 
 <style>
 @import "./entry/styles/form-styles.css";
+
+/* Type Selection Styling */
+.info-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-left: 3px solid #2196f3;
+    border-radius: 4px;
+}
+
+.type-selection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.type-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    gap: 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    position: relative;
+    width: 100%;
+}
+
+.type-box:hover {
+    border-color: #2196f3;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+}
+
+.type-box.selected {
+    border-color: #2196f3;
+    background-color: rgba(33, 150, 243, 0.1);
+    box-shadow: 0 3px 10px rgba(33, 150, 243, 0.3);
+}
+
+.type-radio {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.type-icon {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 60px;
+}
+
+.type-icon img {
+    height: 100%;
+    width: auto;
+}
+
+.forms fieldset div.type-label {
+    font-weight: 500;
+    text-align: center;
+    margin-top: 0;
+}
+
+.forms fieldset div.type-data {
+    align-items: unset;
+    flex-direction: column;
+    margin-top: 0;
+}
+
+.forms fieldset div.type-description {
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .type-selection-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+}
+
+.step-container {
+    width: 50%;
+}
+.info-box {
+    width: 50%;
+    margin-top: 0;
+}
 </style>
 
 <style scoped></style>
