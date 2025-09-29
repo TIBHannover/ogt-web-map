@@ -1783,66 +1783,6 @@ onUnmounted(() => {
     transform: scale(1.1);
 }
 
-/* Mobile info overlay styling */
-.mobile-info-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.overlay-content {
-    background-color: white;
-    width: 90%;
-    max-width: 500px;
-    max-height: 80vh;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-.overlay-header {
-    padding: 16px;
-    background-color: #f5f5f5;
-    border-bottom: 1px solid #e0e0e0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: #fff;
-}
-
-.close-overlay {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #666;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-}
-
-.close-overlay:hover {
-    background-color: rgba(0, 0, 0, 0.1);
-}
-
-.overlay-body {
-    padding: 16px;
-    overflow-y: auto;
-    flex: 1;
-}
-
 .info-content p {
     margin-bottom: 12px;
     line-height: 1.6;
