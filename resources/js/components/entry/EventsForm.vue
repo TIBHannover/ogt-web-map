@@ -393,19 +393,19 @@ const props = defineProps({
     },
     victimCount: {
         type: Number,
-        default: 0,
+        default: null,
     },
     survivorCount: {
         type: Number,
-        default: 0,
+        default: null,
     },
     deathCount: {
         type: Number,
-        default: 0,
+        default: null,
     },
     arrestCount: {
         type: Number,
-        default: 0,
+        default: null,
     },
     victimCountQualifier: {
         type: String,
@@ -1238,11 +1238,23 @@ const getData = () => {
                 ? eventEndDateQualifierValue.value
                 : "",
 
-        // Counts - convert to numbers (safe conversion handling)
-        victim_count: Number(victimCountValue.value) || 0,
-        survivor_count: Number(survivorCountValue.value) || 0,
-        death_count: Number(deathCountValue.value) || 0,
-        arrest_count: Number(arrestCountValue.value) || 0,
+        // Counts - handle null values (only include if not null)
+        victim_count:
+            victimCountValue.value !== null
+                ? Number(victimCountValue.value)
+                : null,
+        survivor_count:
+            survivorCountValue.value !== null
+                ? Number(survivorCountValue.value)
+                : null,
+        death_count:
+            deathCountValue.value !== null
+                ? Number(deathCountValue.value)
+                : null,
+        arrest_count:
+            arrestCountValue.value !== null
+                ? Number(arrestCountValue.value)
+                : null,
 
         // Qualifiers
         victim_count_qualifier: victimCountQualifierValue.value || "",

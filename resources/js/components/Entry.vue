@@ -804,10 +804,10 @@ const eventStartDateQualifier = ref("");
 const eventEndDate = ref(null);
 const eventEndDateQualifier = ref("");
 
-const victimCount = ref(0);
-const survivorCount = ref(0);
-const deathCount = ref(0);
-const arrestCount = ref(0);
+const victimCount = ref(null);
+const survivorCount = ref(null);
+const deathCount = ref(null);
+const arrestCount = ref(null);
 const victimCountQualifier = ref("");
 const survivorCountQualifier = ref("");
 const deathCountQualifier = ref("");
@@ -1696,10 +1696,10 @@ const clearForm = () => {
     eventStartDate.value = null;
     eventEndDate.value = null;
 
-    victimCount.value = 0;
-    survivorCount.value = 0;
-    deathCount.value = 0;
-    arrestCount.value = 0;
+    victimCount.value = null;
+    survivorCount.value = null;
+    deathCount.value = null;
+    arrestCount.value = null;
     victimCountQualifier.value = "";
     survivorCountQualifier.value = "";
     deathCountQualifier.value = "";
