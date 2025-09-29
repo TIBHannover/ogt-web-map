@@ -548,7 +548,13 @@ const title = computed({
 
 const description = computed({
     get: () => props.formsDescription,
-    set: (value) => emit("update:formsDescription", value),
+    set: (value) => {
+        // Ensure description doesn't exceed 250 characters
+        if (value && value.length > 250) {
+            value = value.substring(0, 250);
+        }
+        emit("update:formsDescription", value);
+    },
 });
 
 // Zugriff auf übergebene Werte durch Computed Properties (nur lesen)

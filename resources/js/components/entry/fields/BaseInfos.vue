@@ -76,9 +76,9 @@
         <label for="description" class="mt-3 d-block">Kurzbeschreibung *</label>
         <textarea
             :value="description"
-            @input="$emit('update:description', $event.target.value)"
+            @input="handleDescriptionInput"
             name="description"
-            maxlength="750"
+            maxlength="250"
             placeholder="z.B. vom NS-Regime gelenkte Gewaltmaßnahmen gegen Juden in Osnabrück."
             @focus="$emit('fieldFocus', 'title')"
         ></textarea>
@@ -88,11 +88,22 @@
             message="Bitte gebe eine Kurzbeschreibung ein."
             showIcon
         />
+        <ValidationError
+            :show="descriptionTooLong"
+            message="Die Beschreibung darf maximal 250 Zeichen enthalten."
+            showIcon
+        />
+        <div
+            class="character-counter"
+            :class="{ 'text-danger': descriptionTooLong }"
+        >
+            {{ props.description ? props.description.length : 0 }}/250
+        </div>
     </div>
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import ValidationError from "../../helpers/ValidationError.vue";
 import { useValidation } from "../../../composables/useValidation";
 import TitleSearchOverlay from "./TitleSearchOverlay.vue";
@@ -182,13 +193,46 @@ const createFromOverlay = (title) => {
     closeTitleOverlay();
 };
 
+// Description length check
+const descriptionTooLong = ref(false);
+
+const handleDescriptionInput = (event) => {
+    const value = event.target.value;
+    descriptionTooLong.value = value.length > 250;
+
+    if (descriptionTooLong.value) {
+        // Truncate if too long
+        event.target.value = value.substring(0, 250);
+    }
+
+    emit("update:description", event.target.value);
+};
+
+// Watch for external description changes
+watch(
+    () => props.description,
+    (newValue) => {
+        if (newValue && newValue.length > 250) {
+            descriptionTooLong.value = true;
+            // Notify parent to truncate
+            emit("update:description", newValue.substring(0, 250));
+        } else {
+            descriptionTooLong.value = false;
+        }
+    },
+);
+
 // Computed properties for validation
 const isTitleValid = computed(() => {
     return props.title && props.title.trim().length > 0;
 });
 
 const isDescriptionValid = computed(() => {
-    return props.description && props.description.trim().length > 0;
+    return (
+        props.description &&
+        props.description.trim().length > 0 &&
+        !descriptionTooLong.value
+    );
 });
 
 // Validation function
@@ -250,6 +294,19 @@ defineExpose({
 
 .search-button:hover {
     background-color: #1565c0;
+}
+
+.character-counter {
+    text-align: right;
+    font-size: 0.85rem;
+    color: #757575;
+    margin-top: -0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.character-counter.text-danger {
+    color: #f44336;
+    font-weight: bold;
 }
 
 /* Search Info Box */
