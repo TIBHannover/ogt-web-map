@@ -762,14 +762,16 @@ const newVictim = ref({
     deathDate: null,
     description: "",
     birthName: "",
-    imageUrl: null,
-    imageFilename: null,
     isOrganization: false,
     gender: null,
     nationality: null,
     place_of_birth: null,
     place_of_death: null,
     place_of_detention: [],
+    place_of_residence: null,
+    occupation: null,
+    imageUrl: null,
+    imageFilename: null,
 });
 const lastSearchQuery = ref("");
 
@@ -785,14 +787,16 @@ const newPerpetrator = ref({
     deathDate: null,
     description: "",
     birthName: "",
-    imageUrl: null,
-    imageFilename: null,
     isOrganization: false,
     gender: null,
     nationality: null,
     place_of_birth: null,
     place_of_death: null,
     place_of_detention: [],
+    place_of_residence: null,
+    occupation: null,
+    imageUrl: null,
+    imageFilename: null,
 });
 const lastPerpetratorSearchQuery = ref("");
 
@@ -1226,14 +1230,16 @@ const resetNewVictimForm = () => {
         deathDate: null,
         description: "",
         birthName: "",
-        imageUrl: null,
-        imageFilename: null,
         isOrganization: false,
         gender: null,
         nationality: null,
         place_of_birth: null,
         place_of_death: null,
         place_of_detention: [],
+        place_of_residence: null,
+        occupation: null,
+        imageUrl: null,
+        imageFilename: null,
     };
     lastSearchQuery.value = "";
 };
@@ -1257,6 +1263,8 @@ const addNewVictim = () => {
         place_of_birth: newVictim.value.place_of_birth || null,
         place_of_death: newVictim.value.place_of_death || null,
         place_of_detention: newVictim.value.place_of_detention || [],
+        place_of_residence: newVictim.value.place_of_residence || null,
+        occupation: newVictim.value.occupation || null,
     });
 
     showNewVictimForm.value = false;
@@ -1338,14 +1346,16 @@ const resetNewPerpetratorForm = () => {
         deathDate: null,
         description: "",
         birthName: "",
-        imageUrl: null,
-        imageFilename: null,
         isOrganization: false,
         gender: null,
         nationality: null,
         place_of_birth: null,
         place_of_death: null,
         place_of_detention: [],
+        place_of_residence: null,
+        occupation: null,
+        imageUrl: null,
+        imageFilename: null,
     };
     lastPerpetratorSearchQuery.value = "";
 };
@@ -1369,6 +1379,8 @@ const addNewPerpetrator = () => {
         place_of_birth: newPerpetrator.value.place_of_birth || null,
         place_of_death: newPerpetrator.value.place_of_death || null,
         place_of_detention: newPerpetrator.value.place_of_detention || [],
+        place_of_residence: newPerpetrator.value.place_of_residence || null,
+        occupation: newPerpetrator.value.occupation || null,
     });
 
     showNewPerpetratorForm.value = false;
@@ -1666,11 +1678,17 @@ const clearForm = () => {
         birthDate: null,
         deathDate: null,
         description: "",
+        birthName: "",
         isOrganization: false,
         gender: null,
         nationality: null,
         place_of_birth: null,
         place_of_death: null,
+        place_of_detention: [],
+        place_of_residence: null,
+        occupation: null,
+        imageUrl: null,
+        imageFilename: null,
         place_of_detention: [],
     };
     showNewVictimForm.value = false;
@@ -1682,6 +1700,17 @@ const clearForm = () => {
         birthDate: null,
         deathDate: null,
         description: "",
+        birthName: "",
+        isOrganization: false,
+        gender: null,
+        nationality: null,
+        place_of_birth: null,
+        place_of_death: null,
+        place_of_detention: [],
+        place_of_residence: null,
+        occupation: null,
+        imageUrl: null,
+        imageFilename: null,
         isOrganization: false,
         gender: null,
         nationality: null,

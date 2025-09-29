@@ -76,6 +76,75 @@
                         Keine Ergebnisse gefunden
                     </div>
 
+                    <!-- Suggestions for nationalities -->
+                    <div
+                        v-else-if="
+                            endpoint === 'nationalities' &&
+                            !searchPerformed &&
+                            !searchQuery
+                        "
+                    >
+                        <div class="pa-2 text-body-2 font-weight-medium">
+                            Vorschläge:
+                        </div>
+                        <v-list density="compact" class="search-results">
+                            <v-list-item
+                                @click="
+                                    selectItem({
+                                        id: 'Q1206012',
+                                        label: 'Deutsches Reich',
+                                        description:
+                                            'deutscher Nationalstaat (1871-1945)',
+                                    })
+                                "
+                                class="search-result-item"
+                            >
+                                <v-list-item-title
+                                    >Deutsches Reich</v-list-item-title
+                                >
+                                <v-list-item-subtitle
+                                    >deutscher Nationalstaat
+                                    (1871-1945)</v-list-item-subtitle
+                                >
+                                <template v-slot:append>
+                                    <v-chip
+                                        size="small"
+                                        variant="text"
+                                        color="grey"
+                                        >Q1206012</v-chip
+                                    >
+                                </template>
+                            </v-list-item>
+                            <v-list-item
+                                @click="
+                                    selectItem({
+                                        id: 'Q183',
+                                        label: 'Deutschland',
+                                        description:
+                                            'demokratischer und föderativer Staat in Mitteleuropa',
+                                    })
+                                "
+                                class="search-result-item"
+                            >
+                                <v-list-item-title
+                                    >Deutschland</v-list-item-title
+                                >
+                                <v-list-item-subtitle
+                                    >demokratischer und föderativer Staat in
+                                    Mitteleuropa</v-list-item-subtitle
+                                >
+                                <template v-slot:append>
+                                    <v-chip
+                                        size="small"
+                                        variant="text"
+                                        color="grey"
+                                        >Q183</v-chip
+                                    >
+                                </template>
+                            </v-list-item>
+                        </v-list>
+                    </div>
+
                     <!-- Search results -->
                     <v-list
                         v-else-if="searchResults.length > 0"
@@ -160,7 +229,15 @@ const props = defineProps({
         type: String,
         default: "people",
         validator: (value) =>
-            ["people", "places", "cause", "books", "archives"].includes(value),
+            [
+                "people",
+                "places",
+                "cause",
+                "books",
+                "archives",
+                "occupations",
+                "nationalities",
+            ].includes(value),
     },
 });
 
@@ -287,6 +364,11 @@ const openDialog = () => {
     if (props.disabled) return;
     dialogOpen.value = true;
     searchQuery.value = "";
+
+    // If this is the nationality field, automatically suggest Deutsches Reich
+    if (props.endpoint === "nationalities" && !searchQuery.value) {
+        // No need to trigger a search here as the suggested items are shown in the template
+    }
 };
 
 const performSearch = () => {

@@ -52,7 +52,7 @@
         </div>
 
         <ValidationError
-            :show="showValidationErrors && !isValid"
+            :show="showValidationErrors && !validationResult"
             :message="`Bitte füge mindestens einen Eintrag für ${label} hinzu.`"
             showIcon
         />
@@ -470,12 +470,55 @@
                                 :search-performed="
                                     wikidataSearchPerformed.nationality
                                 "
-                                endpoint="places"
+                                endpoint="nationalities"
                                 @search="
                                     searchWikidataItems('nationality', $event)
                                 "
                             ></wikidata-selector>
 
+                            <!-- Beruf / Occupation (P106) -->
+                            <wikidata-selector
+                                v-model="newPersonLocal.occupation"
+                                label="Beruf"
+                                dialog-title="Beruf auswählen"
+                                search-label="Beruf suchen..."
+                                :search-results="
+                                    wikidataSearchResults.occupation || []
+                                "
+                                :is-loading="isWikidataSearchLoading.occupation"
+                                :search-performed="
+                                    wikidataSearchPerformed.occupation
+                                "
+                                endpoint="occupations"
+                                @search="
+                                    searchWikidataItems('occupation', $event)
+                                "
+                            ></wikidata-selector>
+
+                            <!-- Wohnort / Place of Residence (P551) -->
+                            <wikidata-selector
+                                v-model="newPersonLocal.place_of_residence"
+                                label="Wohnort"
+                                dialog-title="Wohnort auswählen"
+                                search-label="Ort suchen..."
+                                :search-results="
+                                    wikidataSearchResults.place_of_residence ||
+                                    []
+                                "
+                                :is-loading="
+                                    isWikidataSearchLoading.place_of_residence
+                                "
+                                :search-performed="
+                                    wikidataSearchPerformed.place_of_residence
+                                "
+                                endpoint="places"
+                                @search="
+                                    searchWikidataItems(
+                                        'place_of_residence',
+                                        $event,
+                                    )
+                                "
+                            ></wikidata-selector>
                             <!-- Geburtsort / Place of birth (P19) -->
                             <wikidata-selector
                                 v-model="newPersonLocal.place_of_birth"
@@ -649,6 +692,8 @@ const props = defineProps({
             place_of_birth: null,
             place_of_death: null,
             place_of_detention: [],
+            place_of_residence: null,
+            occupation: null,
         }),
     },
     isSearchLoading: {
@@ -680,8 +725,6 @@ const props = defineProps({
         default: false,
     },
 });
-
-// Composables
 
 // Emits für Ereignisse
 const emit = defineEmits([
@@ -846,8 +889,7 @@ const validatePersons = () => {
 
 // Use the validation composable
 const {
-    isValid: isValidResult,
-    showValidationErrors,
+    isValid: validationResult,
     validate: validateForm,
     showErrors,
 } = useValidation(validatePersons, {
@@ -862,6 +904,8 @@ const wikidataSearchResults = ref({
     place_of_death: [],
     place_of_detention: [],
     employer: [], // Added for P108 Arbeitgeber
+    occupation: [], // P106 Beruf
+    place_of_residence: [], // P551 Wohnort
 });
 
 const isWikidataSearchLoading = ref({
@@ -870,6 +914,8 @@ const isWikidataSearchLoading = ref({
     place_of_death: false,
     place_of_detention: false,
     employer: false, // Added for P108 Arbeitgeber
+    occupation: false, // P106 Beruf
+    place_of_residence: false, // P551 Wohnort
 });
 
 const wikidataSearchPerformed = ref({
@@ -878,6 +924,8 @@ const wikidataSearchPerformed = ref({
     place_of_death: false,
     place_of_detention: false,
     employer: false, // Added for P108 Arbeitgeber
+    occupation: false, // P106 Beruf
+    place_of_residence: false, // P551 Wohnort
 });
 
 // Predefined gender options with Wikidata IDs
@@ -1015,6 +1063,9 @@ const onAddNewPerson = () => {
 };
 
 const onEditPerson = (person, event) => {
+    // Reset dialog state first to clear any previous data
+    resetDialogState();
+
     // Prevent event propagation if event exists
     if (event) {
         event.stopPropagation();
@@ -1027,8 +1078,6 @@ const onEditPerson = (person, event) => {
     // First, reset form state completely
     const cleanStartingState = JSON.parse(JSON.stringify(props.newPerson));
     newPersonLocal.value = cleanStartingState;
-
-    // Now prepare the edit data before setting edit mode
     const personData = {
         firstName: person.firstName || "",
         lastName: person.lastName || "",
@@ -1042,14 +1091,16 @@ const onEditPerson = (person, event) => {
         place_of_birth: person.place_of_birth || null,
         place_of_death: person.place_of_death || null,
         place_of_detention: person.place_of_detention || [],
-        imageUrl: person.imageUrl || null,
-        imageFilename: person.imageFilename || person.image || null,
+        place_of_residence: person.place_of_residence || null,
+        occupation: person.occupation || null,
         employer: person.employer || null,
         role: person.role || null,
         // Preserve important properties
         id: person.id,
         tempId: person.tempId,
         label: person.label,
+        imageUrl: person.imageUrl || null,
+        imageFilename: person.imageFilename || person.image || null,
     };
 
     // Force dialog to open first
@@ -1156,12 +1207,16 @@ const searchWikidataItems = async (field, query, endpoint = null) => {
             // Sonst bestimme den Endpunkt basierend auf dem Feldtyp
             switch (field) {
                 case "nationality":
-                    apiEndpoint = "places"; // Staatsangehörigkeit ist ein Land, daher places-Endpunkt
+                    apiEndpoint = "nationalities"; // Verwende den nationalities-Endpunkt für Staatsangehörigkeiten
                     break;
                 case "place_of_birth":
                 case "place_of_death":
                 case "place_of_detention":
-                    apiEndpoint = "places"; // Verwende den neuen places-Endpunkt für Orte
+                case "place_of_residence":
+                    apiEndpoint = "places"; // Verwende den places-Endpunkt für Orte
+                    break;
+                case "occupation":
+                    apiEndpoint = "occupations"; // Verwende den occupations-Endpunkt für Berufe
                     break;
                 default:
                     apiEndpoint = "people";
@@ -1203,7 +1258,7 @@ const handleWikidataResults = (field, results) => {
 defineExpose({
     isValid,
     validate: validateForm,
-    showValidationErrors: showErrors,
+    showErrors,
 });
 </script>
 

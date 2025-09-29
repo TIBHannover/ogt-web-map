@@ -17,7 +17,10 @@ class Person extends BaseEntity
     protected $deathDate;
     protected $placeOfBirth;
     protected $placeOfDeath;
+    protected $placeOfDetention;
+    protected $placeOfResidence;
     protected $occupation;
+    protected $nationality;
     protected $role;
     protected $birthName;
     protected $employer;
@@ -68,6 +71,10 @@ class Person extends BaseEntity
                 ? json_encode($data["place_of_death"])
                 : "Not set",
             "has_place_of_death" => isset($data["place_of_death"]),
+            "place_of_residence" => isset($data["place_of_residence"])
+                ? json_encode($data["place_of_residence"])
+                : "Not set",
+            "has_place_of_residence" => isset($data["place_of_residence"]),
             "occupation" => isset($data["occupation"])
                 ? json_encode($data["occupation"])
                 : "Not set",
@@ -232,11 +239,34 @@ class Person extends BaseEntity
                     }
                     if (!empty($placeIds)) {
                         $person->setPlaceOfDetention($placeIds);
-                        Log::info("Set multiple places of detention", [
+                        Log::info("Set place of detention from array", [
                             "place_ids" => $placeIds,
                         ]);
                     }
                 }
+            }
+        }
+
+        // Set place of residence - handle both string and object formats
+        if (!empty($data["place_of_residence"])) {
+            if (
+                is_string($data["place_of_residence"]) &&
+                substr($data["place_of_residence"], 0, 1) === "Q"
+            ) {
+                // Direct Q-ID string
+                $person->setPlaceOfResidence($data["place_of_residence"]);
+                Log::info("Set place of residence from string value", [
+                    "place_id" => $data["place_of_residence"],
+                ]);
+            } elseif (
+                is_array($data["place_of_residence"]) &&
+                !empty($data["place_of_residence"]["id"])
+            ) {
+                // Object with id field
+                $person->setPlaceOfResidence($data["place_of_residence"]["id"]);
+                Log::info("Set place of residence from object value", [
+                    "place_id" => $data["place_of_residence"]["id"],
+                ]);
             }
         }
 
@@ -643,6 +673,82 @@ class Person extends BaseEntity
                 "mainsnak" => [
                     "snaktype" => "value",
                     "property" => $placeOfDeathProperty, // Place of death
+                    "datavalue" => [
+                        "value" => [
+                            "entity-type" => "item",
+                            "id" => $placeId,
+                            "numeric-id" => intval(substr($placeId, 1)),
+                        ],
+                        "type" => "wikibase-entityid",
+                    ],
+                ],
+                "type" => "statement",
+                "rank" => "normal",
+            ],
+        ];
+    }
+
+    /**
+     * Set the place of residence
+     *
+     * @param string $placeId The Wikidata Q-number for the residence place
+     * @return void
+     */
+    public function setPlaceOfResidence(string $placeId): void
+    {
+        $this->place_of_residence = $placeId;
+
+        if (empty($placeId) || substr($placeId, 0, 1) !== "Q") {
+            return;
+        }
+
+        $residenceProperty = $this->mappingProvider->getPropertyId(
+            "PLACE_OF_RESIDENCE",
+        ); // Should map to P551
+
+        $this->data["claims"][$residenceProperty] = [
+            [
+                "mainsnak" => [
+                    "snaktype" => "value",
+                    "property" => $residenceProperty,
+                    "datavalue" => [
+                        "value" => [
+                            "entity-type" => "item",
+                            "id" => $placeId,
+                            "numeric-id" => intval(substr($placeId, 1)),
+                        ],
+                        "type" => "wikibase-entityid",
+                    ],
+                ],
+                "type" => "statement",
+                "rank" => "normal",
+            ],
+        ];
+    }
+
+    /**
+     * Set the place of residence
+     *
+     * @param string $placeId The Wikidata Q-number for the residence place
+     * @return void
+     */
+    public function setPlaceOfResidence(string $placeId): void
+    {
+        $this->place_of_residence = $placeId;
+
+        if (empty($placeId) || substr($placeId, 0, 1) !== "Q") {
+            return;
+        }
+
+        $residenceProperty = $this->mappingProvider->getPropertyId(
+            "PLACE_OF_RESIDENCE",
+        ); // Should map to P551
+
+        $this->data["claims"][$residenceProperty] = [
+            [
+                "mainsnak" => [
+                    "snaktype" => "value",
+                    "property" => $residenceProperty,
                     "datavalue" => [
                         "value" => [
                             "entity-type" => "item",
