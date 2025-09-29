@@ -265,9 +265,24 @@
                                         >† {{ person.death }}</span
                                     >
                                 </v-list-item-subtitle>
-                                <v-list-item-subtitle class="result-id">{{
-                                    person.id
-                                }}</v-list-item-subtitle>
+                                <v-list-item-subtitle class="result-id">
+                                    <a
+                                        v-if="
+                                            person.id &&
+                                            person.id.startsWith('Q')
+                                        "
+                                        :href="`https://www.wikidata.org/wiki/${person.id}`"
+                                        target="_blank"
+                                        class="text-decoration-none"
+                                        @click.stop
+                                    >
+                                        {{ person.id }}
+                                        <v-icon size="x-small"
+                                            >mdi-open-in-new</v-icon
+                                        >
+                                    </a>
+                                    <span v-else>{{ person.id }}</span>
+                                </v-list-item-subtitle>
                             </v-list-item>
                         </v-list>
 
@@ -359,8 +374,9 @@
                                         : 'Beispiel: deutscher Widerstandskämpfer... / Opfer des Nationalsozialismus'
                                 "
                                 rows="3"
-                                :rules="[rules.required]"
+                                :rules="[rules.required, rules.maxLength]"
                                 :required="true"
+                                counter="250"
                             ></text-area>
                         </div>
 
@@ -510,11 +526,11 @@
                             ></wikidata-selector>
 
                             <!-- Haftort / Place of detention (P2632) -->
-                            <wikidata-selector
+                            <multiple-wikidata-selector
                                 v-if="!hidePlaceOfDetention"
                                 v-model="newPersonLocal.place_of_detention"
-                                label="Haftort"
-                                dialog-title="Haftort auswählen"
+                                label="Haftort(e)"
+                                dialog-title="Haftorte auswählen"
                                 search-label="Ort suchen..."
                                 :search-results="
                                     wikidataSearchResults.place_of_detention ||
@@ -533,7 +549,7 @@
                                         $event,
                                     )
                                 "
-                            ></wikidata-selector>
+                            ></multiple-wikidata-selector>
 
                             <!-- Image field -->
                             <div class="form-group">
@@ -585,6 +601,7 @@
 <script setup>
 import { ref, computed, watch, toRefs, nextTick, onMounted } from "vue";
 import WikidataSelector from "./common/WikidataSelector.vue";
+import MultipleWikidataSelector from "./common/MultipleWikidataSelector.vue";
 import GenderSelector from "./GenderSelector.vue";
 import WikidataSuggestions from "./common/WikidataSuggestions.vue";
 import ValidationError from "../../helpers/ValidationError.vue";
@@ -631,7 +648,7 @@ const props = defineProps({
             nationality: null,
             place_of_birth: null,
             place_of_death: null,
-            place_of_detention: null,
+            place_of_detention: [],
         }),
     },
     isSearchLoading: {
@@ -876,10 +893,19 @@ const genderOptions = [
 // Validierungsregeln
 const rules = {
     required: (v) => !!v || "Dieses Feld ist erforderlich",
+    maxLength: (v) => !v || v.length <= 250 || "Maximal 250 Zeichen erlaubt",
 };
 
 // Computed für die Prüfung, ob eine neue Person hinzugefügt werden kann
 const canAddNewPerson = computed(() => {
+    // Prüfen, ob die Beschreibung vorhanden ist und die maximale Länge nicht überschreitet
+    const isDescriptionValid =
+        !!newPersonLocal.value.description &&
+        newPersonLocal.value.description.length <= 250;
+
+    // Wenn die Beschreibung ungültig ist, sofort false zurückgeben
+    if (!isDescriptionValid) return false;
+
     // Bei Organisationen brauchen wir nur einen Nachnamen/Organisationsnamen
     if (newPersonLocal.value.isOrganization) {
         return !!newPersonLocal.value.lastName;
@@ -953,6 +979,21 @@ const onCancelNewPersonForm = () => {
 };
 
 const onAddNewPerson = () => {
+    // Check validation before attempting to add
+    if (!canAddNewPerson.value) {
+        console.warn("Cannot add new person: validation failed");
+        // Check if the description is the issue
+        if (
+            newPersonLocal.value.description &&
+            newPersonLocal.value.description.length > 250
+        ) {
+            alert("Die Beschreibung darf maximal 250 Zeichen lang sein.");
+        } else if (!newPersonLocal.value.description) {
+            alert("Bitte geben Sie eine Beschreibung ein.");
+        }
+        return;
+    }
+
     // Store a local copy of the current data before any changes
     const dataToAdd = JSON.parse(JSON.stringify(newPersonLocal.value));
 
@@ -1000,7 +1041,7 @@ const onEditPerson = (person, event) => {
         nationality: person.nationality || null,
         place_of_birth: person.place_of_birth || null,
         place_of_death: person.place_of_death || null,
-        place_of_detention: person.place_of_detention || null,
+        place_of_detention: person.place_of_detention || [],
         imageUrl: person.imageUrl || null,
         imageFilename: person.imageFilename || person.image || null,
         employer: person.employer || null,
@@ -1038,6 +1079,15 @@ const onEditPerson = (person, event) => {
 const onUpdatePerson = () => {
     if (!canAddNewPerson.value) {
         console.warn("Cannot update person: validation failed");
+        // Check if the description is the issue
+        if (
+            newPersonLocal.value.description &&
+            newPersonLocal.value.description.length > 250
+        ) {
+            alert("Die Beschreibung darf maximal 250 Zeichen lang sein.");
+        } else if (!newPersonLocal.value.description) {
+            alert("Bitte geben Sie eine Beschreibung ein.");
+        }
         return;
     }
 

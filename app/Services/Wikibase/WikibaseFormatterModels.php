@@ -943,7 +943,7 @@ class WikibaseFormatterModels
             "gender" => $entity["gender"] ?? null,
             "place_of_birth" => $entity["place_of_birth"] ?? null,
             "place_of_death" => $entity["place_of_death"] ?? null,
-            "place_of_detention" => $entity["place_of_detention"] ?? null,
+            "place_of_detention" => $entity["place_of_detention"] ?? [],
             "role" => $role,
             "_add_role_claim" => true,
             "relationship" => $role,

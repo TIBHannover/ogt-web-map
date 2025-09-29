@@ -1,0 +1,502 @@
+<template>
+  <div class="multiple-wikidata-selector">
+    <!-- Input field with dropdown trigger -->
+    <div class="selected-items-container" @click="openDialog">
+      <v-text-field
+        :label="label"
+        readonly
+        :disabled="disabled"
+        append-inner-icon="mdi-magnify"
+        @click:append-inner="openDialog"
+        variant="outlined"
+        placeholder="Auswählen..."
+      >
+        <template v-slot:prepend>
+          <v-icon v-if="selectedItems.length > 0" color="primary">
+            mdi-check-circle
+          </v-icon>
+        </template>
+      </v-text-field>
+
+      <div v-if="selectedItems.length > 0" class="selected-chips-container">
+        <v-chip
+          v-for="item in selectedItems"
+          :key="item.id"
+          size="small"
+          closable
+          class="mb-1 mr-1"
+          @click:close="removeItem(item)"
+        >
+          {{ item.label }}
+          <span class="wikidata-id-chip">{{ item.id }}</span>
+        </v-chip>
+      </div>
+    </div>
+
+    <!-- Dialog for selecting values -->
+    <v-dialog v-model="dialogOpen" max-width="600px">
+      <v-card>
+        <v-card-title>{{ dialogTitle }}</v-card-title>
+        <v-card-text>
+          <!-- Search field -->
+          <div class="search-container mb-4">
+            <v-text-field
+              v-model="searchQuery"
+              :label="searchLabel"
+              append-inner-icon="mdi-magnify"
+              @click:append-inner="performSearch"
+              @keydown.enter="performSearch"
+              variant="outlined"
+              clearable
+              :loading="isLoading"
+              autofocus
+            ></v-text-field>
+            <v-btn
+              color="primary"
+              class="ml-2"
+              @click="performSearch"
+              :disabled="!searchQuery.trim() || isLoading"
+              :loading="isLoading"
+            >
+              Suchen
+            </v-btn>
+          </div>
+
+          <!-- Currently selected items summary -->
+          <div v-if="selectedItems.length > 0" class="selected-summary mb-3">
+            <v-alert
+              type="info"
+              density="compact"
+              variant="tonal"
+              title="Ausgewählte Einträge"
+              class="mb-0"
+            >
+              <div class="selected-items-list">
+                <div v-for="item in selectedItems" :key="item.id" class="selected-item-row">
+                  <div class="d-flex align-center justify-space-between">
+                    <div>
+                      <strong>{{ item.label }}</strong>
+                      <small v-if="item.description" class="text-caption d-block text-grey">{{ item.description }}</small>
+                    </div>
+                    <v-btn size="x-small" icon @click="removeItem(item)" color="error" variant="text">
+                      <v-icon>mdi-close-circle</v-icon>
+                    </v-btn>
+                  </div>
+                </div>
+              </div>
+            </v-alert>
+          </div>
+
+          <!-- Loading indicator -->
+          <div
+            v-if="isLoading"
+            class="d-flex justify-center align-center pa-4"
+          >
+            <v-progress-circular
+              indeterminate
+              color="primary"
+            ></v-progress-circular>
+            <span class="ml-2">Suche läuft...</span>
+          </div>
+
+          <!-- No results message -->
+          <div
+            v-else-if="
+              searchPerformed && filteredSearchResults.length === 0
+            "
+            class="pa-4 text-center"
+          >
+            Keine Ergebnisse gefunden
+          </div>
+
+          <!-- Search results -->
+          <v-list
+            v-else-if="filteredSearchResults.length > 0"
+            density="compact"
+            class="search-results"
+          >
+            <v-list-item
+              v-for="item in filteredSearchResults"
+              :key="item.id"
+              @click="selectItem(item)"
+              class="search-result-item"
+              :class="{
+                'search-result-selected': isItemSelected(item)
+              }"
+            >
+              <template v-slot:prepend>
+                <v-icon v-if="isItemSelected(item)" color="primary">
+                  mdi-check-circle
+                </v-icon>
+                <v-icon v-else color="grey">
+                  mdi-plus-circle-outline
+                </v-icon>
+              </template>
+
+              <v-list-item-title>{{ item.label }}</v-list-item-title>
+              <v-list-item-subtitle v-if="item.description">{{
+                item.description
+              }}</v-list-item-subtitle>
+
+              <template v-slot:append>
+                <v-chip
+                  size="small"
+                  variant="text"
+                  color="grey"
+                >
+                  {{ item.id }}
+                </v-chip>
+              </template>
+            </v-list-item>
+          </v-list>
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="grey" @click="dialogOpen = false">Abbrechen</v-btn>
+          <v-btn color="primary" @click="confirmSelection">Bestätigen</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </div>
+</template>
+
+<script setup>
+import { ref, watch, computed, onMounted } from "vue";
+import axios from "axios";
+
+const props = defineProps({
+  modelValue: {
+    type: Array,
+    default: () => []
+  },
+  label: {
+    type: String,
+    required: true
+  },
+  disabled: {
+    type: Boolean,
+    default: false
+  },
+  dialogTitle: {
+    type: String,
+    default: "Wikidata-Einträge auswählen"
+  },
+  searchLabel: {
+    type: String,
+    default: "Suchen..."
+  },
+  searchResults: {
+    type: Array,
+    default: () => []
+  },
+  isLoading: {
+    type: Boolean,
+    default: false
+  },
+  searchPerformed: {
+    type: Boolean,
+    default: false
+  },
+  endpoint: {
+    type: String,
+    default: "places",
+    validator: (value) =>
+      ["people", "places", "cause", "books", "archives"].includes(value)
+  },
+  maxSelections: {
+    type: Number,
+    default: 0 // 0 means unlimited
+  }
+});
+
+const emit = defineEmits(["update:modelValue", "search"]);
+
+// Local state
+const dialogOpen = ref(false);
+const searchQuery = ref("");
+const entityLabels = ref({});
+const loadingEntities = ref(false);
+const tempSelectedItems = ref([]); // For storing selections temporarily during dialog session
+
+// Filter search results to hide already selected items
+const filteredSearchResults = computed(() => {
+  return props.searchResults;
+});
+
+// Function to fetch entity labels from Wikidata for multiple IDs
+const fetchEntityLabels = async (entityIds) => {
+  if (!entityIds || entityIds.length === 0) return;
+
+  const missingIds = entityIds.filter(id => !entityLabels.value[id]);
+  if (missingIds.length === 0) return;
+
+  loadingEntities.value = true;
+
+  try {
+    // Batch requests to API - first try local API
+    const chunks = [];
+    for (let i = 0; i < missingIds.length; i += 50) {
+      chunks.push(missingIds.slice(i, i + 50));
+    }
+
+    for (const chunk of chunks) {
+      const ids = chunk.join("|");
+      // First try the local API
+      try {
+        const response = await axios.get(`/api/wikidata/entities?ids=${ids}`);
+        if (response.data && response.data.entities) {
+          for (const [id, entity] of Object.entries(response.data.entities)) {
+            entityLabels.value[id] = {
+              label: entity.label || id,
+              description: entity.description || ""
+            };
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching entity labels from local API:", error);
+
+        // If local API fails, try Wikidata API directly
+        try {
+          const wikidataResponse = await axios.get(
+            `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${ids}&format=json&languages=de|en&props=labels|descriptions&origin=*`
+          );
+
+          if (
+            wikidataResponse.data &&
+            wikidataResponse.data.entities
+          ) {
+            const entities = wikidataResponse.data.entities;
+
+            for (const [id, entity] of Object.entries(entities)) {
+              let label = "";
+              let description = "";
+
+              // Try to get German label first, fall back to English
+              if (entity.labels && entity.labels.de) {
+                label = entity.labels.de.value;
+              } else if (entity.labels && entity.labels.en) {
+                label = entity.labels.en.value;
+              } else {
+                label = id; // Fallback to ID if no label found
+              }
+
+              // Try to get German description first, fall back to English
+              if (entity.descriptions && entity.descriptions.de) {
+                description = entity.descriptions.de.value;
+              } else if (entity.descriptions && entity.descriptions.en) {
+                description = entity.descriptions.en.value;
+              }
+
+              entityLabels.value[id] = {
+                label: label,
+                description: description
+              };
+            }
+          }
+        } catch (wikidataError) {
+          console.error("Error fetching from Wikidata API:", wikidataError);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching entity labels:", error);
+  } finally {
+    loadingEntities.value = false;
+  }
+};
+
+// Get item objects with complete information from IDs
+const selectedItems = computed(() => {
+  const modelValue = Array.isArray(props.modelValue) ? props.modelValue : [];
+
+  // If model value contains objects, return them directly
+  if (modelValue.length > 0 && typeof modelValue[0] === 'object') {
+    return modelValue;
+  }
+
+  // If model value contains IDs, convert to objects
+  return modelValue.map(id => {
+    // If ID is already an object with id property
+    if (typeof id === 'object' && id?.id) {
+      return id;
+    }
+
+    // If it's a string (Wikidata ID)
+    if (typeof id === 'string' && id.startsWith("Q")) {
+      // Find in search results
+      const foundItem = props.searchResults.find(item => item.id === id);
+      if (foundItem) return foundItem;
+
+      // If we've fetched the label, use that
+      if (entityLabels.value[id]) {
+        return {
+          id: id,
+          label: entityLabels.value[id].label,
+          description: entityLabels.value[id].description
+        };
+      }
+
+      // If all else fails, just show the ID as a fallback
+      return { id: id, label: id };
+    }
+
+    return null;
+  }).filter(Boolean); // Remove any null values
+});
+
+// Methods
+const openDialog = () => {
+  if (props.disabled) return;
+
+  // Initialize temp selections with current selections
+  tempSelectedItems.value = [...selectedItems.value];
+
+  dialogOpen.value = true;
+  searchQuery.value = "";
+};
+
+const performSearch = () => {
+  if (!searchQuery.value.trim()) return;
+  emit("search", searchQuery.value, props.endpoint);
+};
+
+const isItemSelected = (item) => {
+  return tempSelectedItems.value.some(selected => selected.id === item.id);
+};
+
+const selectItem = (item) => {
+  // Toggle selection
+  if (isItemSelected(item)) {
+    // Remove item if already selected
+    tempSelectedItems.value = tempSelectedItems.value.filter(
+      selected => selected.id !== item.id
+    );
+  } else {
+    // Add item if not selected and under max limit (if specified)
+    if (props.maxSelections === 0 || tempSelectedItems.value.length < props.maxSelections) {
+      tempSelectedItems.value.push(item);
+    }
+  }
+};
+
+const removeItem = (item) => {
+  tempSelectedItems.value = tempSelectedItems.value.filter(
+    selected => selected.id !== item.id
+  );
+
+  // If dialog is closed, also update the model value
+  if (!dialogOpen.value) {
+    updateModelValue();
+  }
+};
+
+const confirmSelection = () => {
+  updateModelValue();
+  dialogOpen.value = false;
+};
+
+const updateModelValue = () => {
+  // Extract just the IDs for the model value
+  const ids = tempSelectedItems.value.map(item => item.id);
+  emit("update:modelValue", ids);
+};
+
+// Watch for changes to modelValue and fetch the labels if needed
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    if (Array.isArray(newValue)) {
+      const ids = newValue
+        .filter(item => typeof item === 'string' && item.startsWith("Q"))
+        .filter(id => !entityLabels.value[id]);
+
+      if (ids.length > 0) {
+        fetchEntityLabels(ids);
+      }
+    }
+  },
+  { immediate: true, deep: true }
+);
+
+// When component mounts, fetch any missing entity labels
+onMounted(() => {
+  if (Array.isArray(props.modelValue)) {
+    const ids = props.modelValue
+      .filter(item => typeof item === 'string' && item.startsWith("Q"))
+      .filter(id => !entityLabels.value[id]);
+
+    if (ids.length > 0) {
+      fetchEntityLabels(ids);
+    }
+  }
+});
+</script>
+
+<style scoped>
+.multiple-wikidata-selector {
+  margin-bottom: 16px;
+}
+
+.selected-items-container {
+  cursor: pointer;
+}
+
+.selected-chips-container {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+}
+
+.search-result-item {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.search-result-item:hover {
+  background-color: #f5f5f5;
+}
+
+.search-result-selected {
+  background-color: rgba(33, 150, 243, 0.08);
+}
+
+.search-results {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+
+.wikidata-id-chip {
+  font-size: 0.7rem;
+  color: #666;
+  margin-left: 4px;
+}
+
+.selected-summary {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.selected-items-list {
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.selected-item-row {
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.selected-item-row:last-child {
+  border-bottom: none;
+}
+</style>

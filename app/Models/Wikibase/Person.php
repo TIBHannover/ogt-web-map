@@ -200,6 +200,46 @@ class Person extends BaseEntity
             }
         }
 
+        // Set place of detention - can be single value or array
+        if (isset($data["place_of_detention"])) {
+            if (
+                is_string($data["place_of_detention"]) &&
+                substr($data["place_of_detention"], 0, 1) === "Q"
+            ) {
+                // Direct Q-ID string
+                $person->setPlaceOfDetention($data["place_of_detention"]);
+                Log::info("Set place of detention from string value", [
+                    "place_id" => $data["place_of_detention"],
+                ]);
+            } elseif (is_array($data["place_of_detention"])) {
+                if (isset($data["place_of_detention"]["id"])) {
+                    // Single object with id field
+                    $person->setPlaceOfDetention(
+                        $data["place_of_detention"]["id"],
+                    );
+                    Log::info("Set place of detention from object value", [
+                        "place_id" => $data["place_of_detention"]["id"],
+                    ]);
+                } else {
+                    // Array of IDs or objects
+                    $placeIds = [];
+                    foreach ($data["place_of_detention"] as $place) {
+                        if (is_string($place) && substr($place, 0, 1) === "Q") {
+                            $placeIds[] = $place;
+                        } elseif (is_array($place) && isset($place["id"])) {
+                            $placeIds[] = $place["id"];
+                        }
+                    }
+                    if (!empty($placeIds)) {
+                        $person->setPlaceOfDetention($placeIds);
+                        Log::info("Set multiple places of detention", [
+                            "place_ids" => $placeIds,
+                        ]);
+                    }
+                }
+            }
+        }
+
         // Set nationality - handle both string and object formats
         if (!empty($data["nationality"])) {
             if (
@@ -616,6 +656,59 @@ class Person extends BaseEntity
                 "rank" => "normal",
             ],
         ];
+    }
+
+    /**
+     * Set the place of detention
+     *
+     * @param string|array $placeIds The Wikidata Q-number(s) for the detention place(s)
+     * @return void
+     */
+    public function setPlaceOfDetention($placeIds): void
+    {
+        $detentionProperty = $this->mappingProvider->getPropertyId(
+            "PLACE_OF_DETENTION",
+        ); // Should map to P2632
+
+        // Initialize the array if it doesn't exist
+        if (!isset($this->data["claims"][$detentionProperty])) {
+            $this->data["claims"][$detentionProperty] = [];
+        }
+
+        // Handle both single ID and array of IDs
+        $placeIdArray = is_array($placeIds) ? $placeIds : [$placeIds];
+
+        foreach ($placeIdArray as $placeId) {
+            if (empty($placeId) || substr($placeId, 0, 1) !== "Q") {
+                Log::warning("Invalid place of detention ID provided", [
+                    "id" => $placeId,
+                ]);
+                continue;
+            }
+
+            // Add the place of detention claim
+            $this->data["claims"][$detentionProperty][] = [
+                "mainsnak" => [
+                    "snaktype" => "value",
+                    "property" => $detentionProperty,
+                    "datavalue" => [
+                        "value" => [
+                            "entity-type" => "item",
+                            "id" => $placeId,
+                            "numeric-id" => intval(substr($placeId, 1)),
+                        ],
+                        "type" => "wikibase-entityid",
+                    ],
+                ],
+                "type" => "statement",
+                "rank" => "normal",
+            ];
+
+            Log::info("Added place of detention to person", [
+                "property" => $detentionProperty,
+                "place_id" => $placeId,
+            ]);
+        }
     }
 
     /**

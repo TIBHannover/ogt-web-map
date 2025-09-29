@@ -769,7 +769,7 @@ const newVictim = ref({
     nationality: null,
     place_of_birth: null,
     place_of_death: null,
-    place_of_detention: null,
+    place_of_detention: [],
 });
 const lastSearchQuery = ref("");
 
@@ -792,7 +792,7 @@ const newPerpetrator = ref({
     nationality: null,
     place_of_birth: null,
     place_of_death: null,
-    place_of_detention: null,
+    place_of_detention: [],
 });
 const lastPerpetratorSearchQuery = ref("");
 
@@ -1233,7 +1233,7 @@ const resetNewVictimForm = () => {
         nationality: null,
         place_of_birth: null,
         place_of_death: null,
-        place_of_detention: null,
+        place_of_detention: [],
     };
     lastSearchQuery.value = "";
 };
@@ -1256,7 +1256,7 @@ const addNewVictim = () => {
         nationality: newVictim.value.nationality || null,
         place_of_birth: newVictim.value.place_of_birth || null,
         place_of_death: newVictim.value.place_of_death || null,
-        place_of_detention: newVictim.value.place_of_detention || null,
+        place_of_detention: newVictim.value.place_of_detention || [],
     });
 
     showNewVictimForm.value = false;
@@ -1345,7 +1345,7 @@ const resetNewPerpetratorForm = () => {
         nationality: null,
         place_of_birth: null,
         place_of_death: null,
-        place_of_detention: null,
+        place_of_detention: [],
     };
     lastPerpetratorSearchQuery.value = "";
 };
@@ -1368,7 +1368,7 @@ const addNewPerpetrator = () => {
         nationality: newPerpetrator.value.nationality || null,
         place_of_birth: newPerpetrator.value.place_of_birth || null,
         place_of_death: newPerpetrator.value.place_of_death || null,
-        place_of_detention: newPerpetrator.value.place_of_detention || null,
+        place_of_detention: newPerpetrator.value.place_of_detention || [],
     });
 
     showNewPerpetratorForm.value = false;
@@ -1671,7 +1671,7 @@ const clearForm = () => {
         nationality: null,
         place_of_birth: null,
         place_of_death: null,
-        place_of_detention: null,
+        place_of_detention: [],
     };
     showNewVictimForm.value = false;
 
@@ -1687,7 +1687,7 @@ const clearForm = () => {
         nationality: null,
         place_of_birth: null,
         place_of_death: null,
-        place_of_detention: null,
+        place_of_detention: [],
     };
     showNewPerpetratorForm.value = false;
 

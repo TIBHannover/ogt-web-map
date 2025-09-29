@@ -37,6 +37,7 @@ class WikidataEntityMappingProvider implements EntityMappingProviderInterface
         "DEATH_DATE" => "P570",
         "PLACE_OF_BIRTH" => "P19",
         "PLACE_OF_DEATH" => "P20",
+        "PLACE_OF_DETENTION" => "P2632",
         "OCCUPATION" => "P106",
         "SUBJECT_HAS_ROLE" => "P2868",
         "SIGNIFICANT_EVENT" => "P793",
