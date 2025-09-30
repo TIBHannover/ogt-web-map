@@ -32,6 +32,7 @@
         ></map-timeline>
 
         <place-info-sidebar
+            v-model:groupedPlacesShownOnMap="groupedPlacesShownOnMap"
             :selectedPlace="selectedPlace"
             :showPlaceInfoSidebar="showPlaceInfoSidebar"
             @hidePlaceInfoSidebar="toggleShowPlaceInfoSidebar(false)"

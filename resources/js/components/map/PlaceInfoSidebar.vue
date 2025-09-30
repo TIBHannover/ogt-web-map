@@ -149,6 +149,7 @@
                         selectedPlace.groupName,
                     )
                 "
+                v-model:groupedPlacesShownOnMap="proxyGroupedPlacesShownOnMap"
                 :selectedPlace="selectedPlace"
                 @showPerson="navigateToPerson"
                 @switchLocation="emit('switchLocation', $event)"
@@ -212,14 +213,36 @@ const {
     adjustPlaceInfoPosition, // Neue computed property importieren
 } = NavigationHelpers();
 
+const props = defineProps({
+    groupedPlacesShownOnMap: {
+        type: Array,
+        default: () => [],
+    },
+    selectedPlace: {
+        type: Object,
+        required: true,
+        default: () => ({}),
+    },
+    showPlaceInfoSidebar: {
+        type: Boolean,
+        required: true,
+    },
+});
+
 const emit = defineEmits([
     "hidePlaceInfoSidebar",
     "showPerson",
     "switchLocation",
     "undoZoomIntoPlace",
+    "update:groupedPlacesShownOnMap",
     "zoomIntoPlace",
     "goBack",
 ]);
+
+const proxyGroupedPlacesShownOnMap = computed({
+    get: () => props.groupedPlacesShownOnMap,
+    set: (value) => emit("update:groupedPlacesShownOnMap", value),
+});
 
 // Function to handle navigation to a person
 const navigateToPerson = (person) => {
@@ -251,18 +274,6 @@ const sidebarStyles = computed(() => {
         };
     }
     return {};
-});
-
-const props = defineProps({
-    selectedPlace: {
-        type: Object,
-        required: true,
-        default: () => ({}),
-    },
-    showPlaceInfoSidebar: {
-        type: Boolean,
-        required: true,
-    },
 });
 
 const itemDescriptionPanel = ref([]);

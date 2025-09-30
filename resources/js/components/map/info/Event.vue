@@ -198,6 +198,14 @@
         <template v-if="selectedPlace.hasParts.length > 0">
             <v-list-item density="compact">
                 <v-list-item-title>Zugeordnete Ereignisse</v-list-item-title>
+                <v-switch
+                    v-if="selectedPlace.id in MAIN_EVENT_IDS_TO_SUB_EVENTS_GROUP"
+                    v-model="showSubEventSwitch"
+                    density="compact"
+                    color="#8c1f21"
+                    :label="`Ereignisse auf Karte anzeigen: ${showSubEventSwitch ? 'an' : 'aus'}`"
+                    hide-details
+                ></v-switch>
                 <v-list-item-subtitle>
                     <ul class="hyphens-auto white-space-normal" lang="de">
                         <li v-for="event in selectedPlace.hasParts">
@@ -379,10 +387,19 @@
 </template>
 
 <script setup>
+import { computed } from "vue";
 import Prisoners from "./Prisoners";
 import Sources from "./Sources";
 
+const MAIN_EVENT_IDS_TO_SUB_EVENTS_GROUP = {
+    Q133303308: "persecutionOfSocialistFront", // https://www.wikidata.org/wiki/Q133303308
+};
+
 const props = defineProps({
+    groupedPlacesShownOnMap: {
+        type: Array,
+        default: () => [],
+    },
     selectedPlace: {
         type: Object,
         required: true,
@@ -390,7 +407,26 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(["showPerson", "switchLocation", "undoZoomIntoPlace", "zoomIntoPlace"]);
+const emit = defineEmits(["zoomIntoPlace", "undoZoomIntoPlace", "showPerson", "switchLocation", "update:groupedPlacesShownOnMap"]);
+
+const showSubEventSwitch = computed({
+    get() {
+        const subEventGroup = MAIN_EVENT_IDS_TO_SUB_EVENTS_GROUP[props.selectedPlace.id];
+        return props.groupedPlacesShownOnMap.includes(subEventGroup);
+    },
+    set(value) {
+        const subEventGroup = MAIN_EVENT_IDS_TO_SUB_EVENTS_GROUP[props.selectedPlace.id];
+        let groupedPlacesShownOnMapCopy = [...props.groupedPlacesShownOnMap];
+
+        if (value && !groupedPlacesShownOnMapCopy.includes(subEventGroup)) {
+            groupedPlacesShownOnMapCopy.push(subEventGroup);
+        } else if (!value) {
+            groupedPlacesShownOnMapCopy = groupedPlacesShownOnMapCopy.filter((item) => item !== subEventGroup);
+        }
+
+        emit("update:groupedPlacesShownOnMap", groupedPlacesShownOnMapCopy);
+    },
+});
 </script>
 
 <style scoped>
