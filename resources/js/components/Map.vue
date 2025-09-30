@@ -215,6 +215,19 @@ export default {
                 placesByCoordinates: [],
             },
         });
+
+        const groupedPlacesShownOnMap = ref([
+            "events",
+            //"persecutionOfSocialistFront", // initially hidden on map
+            "extPolicePrisons",
+            "fieldOffices",
+            "laborEducationCamps",
+            "memorials",
+            "prisons",
+            "statePoliceHeadquarters",
+            "statePoliceOffices",
+        ]);
+
         var currentGroupedPlaces = ref([]);
         const layers = ref(null);
         const locationMarkers = ref([]);
@@ -1089,6 +1102,8 @@ export default {
                     let placeMarkers = createPlaceMarkers(group, places);
                     createPlacesLayerGroups(group, placeMarkers);
                 }
+
+                handleLayerGroupsUpdate(groupedPlacesShownOnMap.value);
             } catch (error) {
                 console.error("Error in visualizePlaces:", error);
             }
