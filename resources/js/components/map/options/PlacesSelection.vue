@@ -14,7 +14,7 @@
             </v-col>
         </v-row>
         <v-row
-            v-for="groupName in groupedPlacesOrder"
+            v-for="groupName in orderedGroupPlaceNames"
             class="pt-1"
             :key="groupName + '-row'"
         >
@@ -68,7 +68,7 @@
         <v-divider class="mt-4"></v-divider>
         <v-list-subheader>Erfasste Gestapo Terror Orte</v-list-subheader>
         <v-autocomplete
-            v-for="groupName in groupedPlacesOrder"
+            v-for="groupName in orderedGroupPlaceNames"
             v-model="selectedPlaces[groupName]"
             v-show="proxyGroupedPlacesShownOnMap.includes(groupName)"
             class="mx-4 my-2"
@@ -134,21 +134,18 @@ const areAllGroupedPlacesShownOnMap = computed({
     },
 });
 
-const groupedPlacesOrder = [
-    "statePoliceHeadquarters",
-    "statePoliceOffices",
-    "fieldOffices",
-    "prisons",
-    "extPolicePrisons",
-    "laborEducationCamps",
-    "events",
-    "persecutionOfSocialistFront",
-    "memorials",
-];
+const orderedGroupPlaceNames = computed(() => {
+    return Object.keys(props.groupedPlaces)
+    .sort(
+        (a, b) =>
+            props.groupedPlaces[a].displayOrder -
+            props.groupedPlaces[b].displayOrder,
+    );
+});
 
 const selectedPlaces = ref({});
 const autoCompleteRefs = ref({});
-groupedPlacesOrder.forEach((groupName) => {
+orderedGroupPlaceNames.value.forEach((groupName) => {
     selectedPlaces.value[groupName] = null;
 });
 
@@ -176,7 +173,7 @@ const clearFocus = () => {
 
 // Watchers
 //
-groupedPlacesOrder.forEach((groupName) => {
+orderedGroupPlaceNames.value.forEach((groupName) => {
     watch(
         () => selectedPlaces.value[groupName],
         (newPlace) => {

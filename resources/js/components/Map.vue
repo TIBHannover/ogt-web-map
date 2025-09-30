@@ -136,6 +136,7 @@ export default {
         const groupedPlaces = ref({
             events: {
                 color: "#8c1f21",
+                displayOrder: 6,
                 iconName: "events.svg",
                 layerGroup: null,
                 layerName: "Ereignisse",
@@ -145,6 +146,7 @@ export default {
             },
             persecutionOfSocialistFront: {
                 color: "#8c1f21",
+                displayOrder: 7,
                 iconName: "events.svg",
                 layerGroup: null,
                 layerName: "Verfolgung der Sozialistischen Front",
@@ -154,6 +156,7 @@ export default {
             },
             extPolicePrisons: {
                 color: "#3d3b3d",
+                displayOrder: 4,
                 iconName: "extPolicePrisons.svg",
                 layerGroup: null,
                 layerName: "Erweiterte Polizeigefängnisse",
@@ -163,6 +166,7 @@ export default {
             },
             fieldOffices: {
                 color: "#456879",
+                displayOrder: 2,
                 iconName: "fieldOffices.svg",
                 layerGroup: null,
                 layerName: "Außendienststellen",
@@ -172,6 +176,7 @@ export default {
             },
             laborEducationCamps: {
                 color: "#3d3b3d",
+                displayOrder: 5,
                 iconName: "laborEducationCamps.svg",
                 layerGroup: null,
                 layerName: "Arbeitserziehungslager",
@@ -181,6 +186,7 @@ export default {
             },
             memorials: {
                 color: "#f3a923",
+                displayOrder: 8,
                 iconName: "memorials.svg",
                 layerGroup: null,
                 layerName: "Erinnerungsorte",
@@ -190,6 +196,7 @@ export default {
             },
             prisons: {
                 color: "#3d3b3d",
+                displayOrder: 3,
                 iconName: "prisons.svg",
                 layerGroup: null,
                 layerName: "Gefängnisse",
@@ -199,6 +206,7 @@ export default {
             },
             statePoliceHeadquarters: {
                 color: "#456879",
+                displayOrder: 0,
                 iconName: "statePoliceHeadquarters.svg",
                 layerGroup: null,
                 layerName: "Staatspolizeileitstellen",
@@ -208,6 +216,7 @@ export default {
             },
             statePoliceOffices: {
                 color: "#456879",
+                displayOrder: 1,
                 iconName: "statePoliceOffices.svg",
                 layerGroup: null,
                 layerName: "Staatspolizeistellen",
