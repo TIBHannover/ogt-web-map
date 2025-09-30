@@ -16,10 +16,10 @@
 
         <map-options-sidebar
             v-if="map"
+            v-model:groupedPlacesShownOnMap="groupedPlacesShownOnMap"
             :groupedPlaces="groupedPlaces"
             :map="map"
             :mapMarkerIconsPath="mapMarkerIconsPath"
-            @update-layer-groups="handleLayerGroupsUpdate"
             ref="optionsSidebar"
         ></map-options-sidebar>
 
@@ -227,6 +227,13 @@ export default {
             "statePoliceHeadquarters",
             "statePoliceOffices",
         ]);
+
+        watch(
+            groupedPlacesShownOnMap,
+            (newValue) => {
+                handleLayerGroupsUpdate(newValue);
+            },
+        );
 
         var currentGroupedPlaces = ref([]);
         const layers = ref(null);
@@ -3325,6 +3332,7 @@ export default {
         return {
             map,
             groupedPlaces,
+            groupedPlacesShownOnMap,
             mapMarkerIconsPath,
             showPlaceInfoSidebar,
             selectedPlace,

@@ -5,12 +5,11 @@
             <v-col class="py-0" style="max-width: 60px"></v-col>
             <v-col class="pa-0">
                 <v-checkbox
-                    :model-value="allSelected"
+                    v-model="areAllGroupedPlacesShownOnMap"
                     color="grey-darken-2"
                     density="compact"
                     hide-details
                     label="Alle"
-                    @click="selectAll()"
                 ></v-checkbox>
             </v-col>
         </v-row>
@@ -33,7 +32,7 @@
 
             <v-col class="pa-0">
                 <v-checkbox
-                    v-model="checkedPlaceLayerGroups"
+                    v-model="proxyGroupedPlacesShownOnMap"
                     :color="groupedPlaces[groupName].color"
                     density="compact"
                     hide-details
@@ -71,7 +70,7 @@
         <v-autocomplete
             v-for="groupName in groupedPlacesOrder"
             v-model="selectedPlaces[groupName]"
-            v-show="checkedPlaceLayerGroups.includes(groupName)"
+            v-show="proxyGroupedPlacesShownOnMap.includes(groupName)"
             class="mx-4 my-2"
             color="grey-darken-4"
             density="compact"
@@ -103,6 +102,10 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    groupedPlacesShownOnMap: {
+        type: Array,
+        default: () => [],
+    },
     map: {
         type: Object,
         required: true,
@@ -115,11 +118,20 @@ const props = defineProps({
 
 const ogtGlobals = inject("ogtGlobals");
 
-const checkedPlaceLayerGroups = ref(Object.keys(props.groupedPlaces));
-const emit = defineEmits(["update-layer-groups"]);
+const emit = defineEmits(["update:groupedPlacesShownOnMap"]);
 
-const allSelected = computed(() => {
-    return checkedPlaceLayerGroups.value.length === Object.keys(props.groupedPlaces).length;
+const proxyGroupedPlacesShownOnMap = computed({
+    get: () => props.groupedPlacesShownOnMap,
+    set: (value) => emit("update:groupedPlacesShownOnMap", value),
+});
+
+const areAllGroupedPlacesShownOnMap = computed({
+    get() {
+        return proxyGroupedPlacesShownOnMap.value.length === Object.keys(props.groupedPlaces).length;
+    },
+    set(value) {
+        proxyGroupedPlacesShownOnMap.value = value ? Object.keys(props.groupedPlaces) : [];
+    },
 });
 
 const groupedPlacesOrder = [
@@ -162,14 +174,6 @@ const clearFocus = () => {
     }
 };
 
-const selectAll = () => {
-    checkedPlaceLayerGroups.value =
-        checkedPlaceLayerGroups.value.length !==
-        Object.keys(props.groupedPlaces).length
-            ? Object.keys(props.groupedPlaces)
-            : [];
-};
-
 // Watchers
 //
 groupedPlacesOrder.forEach((groupName) => {
@@ -183,11 +187,6 @@ groupedPlacesOrder.forEach((groupName) => {
             }
         },
     );
-});
-
-watch(checkedPlaceLayerGroups, (newGroups) => {
-    // Emit event to parent instead of directly accessing it
-    emit("update-layer-groups", newGroups);
 });
 </script>
 
