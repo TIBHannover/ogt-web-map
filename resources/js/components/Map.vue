@@ -1215,7 +1215,7 @@ export default {
                                 getDateProp("startTime") ??
                                 new Date("1945-05-08").toDateString()
                             );
-                        } else if (placeGroupName === "events") {
+                        } else if (["events", "persecutionOfSocialistFront"].includes(placeGroupName)) {
                             return (
                                 getDateProp("pointInTime") ??
                                 getDateProp("startTime") ??
@@ -1237,7 +1237,7 @@ export default {
                                 getDateProp("endTime") ??
                                 new Date().toDateString()
                             );
-                        } else if (placeGroupName === "events") {
+                        } else if (["events", "persecutionOfSocialistFront"].includes(placeGroupName)) {
                             return (
                                 getDateProp("pointInTime") ??
                                 getDateProp("endTime") ??
