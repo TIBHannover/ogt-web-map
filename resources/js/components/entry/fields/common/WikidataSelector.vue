@@ -66,6 +66,14 @@
                         <span class="ml-2">Suche läuft...</span>
                     </div>
 
+                    <!-- Suggestions -->
+                    <wikidata-suggestions
+                        v-if="props.suggestions && props.suggestions.length > 0"
+                        :q-ids="props.suggestions"
+                        :endpoint="props.endpoint"
+                        @select="selectItem"
+                    ></wikidata-suggestions>
+
                     <!-- No results message -->
                     <div
                         v-else-if="
@@ -76,75 +84,6 @@
                         Keine Ergebnisse gefunden
                     </div>
 
-                    <!-- Suggestions for nationalities -->
-                    <div
-                        v-else-if="
-                            endpoint === 'nationalities' &&
-                            !searchPerformed &&
-                            !searchQuery
-                        "
-                    >
-                        <div class="pa-2 text-body-2 font-weight-medium">
-                            Vorschläge:
-                        </div>
-                        <v-list density="compact" class="search-results">
-                            <v-list-item
-                                @click="
-                                    selectItem({
-                                        id: 'Q1206012',
-                                        label: 'Deutsches Reich',
-                                        description:
-                                            'deutscher Nationalstaat (1871-1945)',
-                                    })
-                                "
-                                class="search-result-item"
-                            >
-                                <v-list-item-title
-                                    >Deutsches Reich</v-list-item-title
-                                >
-                                <v-list-item-subtitle
-                                    >deutscher Nationalstaat
-                                    (1871-1945)</v-list-item-subtitle
-                                >
-                                <template v-slot:append>
-                                    <v-chip
-                                        size="small"
-                                        variant="text"
-                                        color="grey"
-                                        >Q1206012</v-chip
-                                    >
-                                </template>
-                            </v-list-item>
-                            <v-list-item
-                                @click="
-                                    selectItem({
-                                        id: 'Q183',
-                                        label: 'Deutschland',
-                                        description:
-                                            'demokratischer und föderativer Staat in Mitteleuropa',
-                                    })
-                                "
-                                class="search-result-item"
-                            >
-                                <v-list-item-title
-                                    >Deutschland</v-list-item-title
-                                >
-                                <v-list-item-subtitle
-                                    >demokratischer und föderativer Staat in
-                                    Mitteleuropa</v-list-item-subtitle
-                                >
-                                <template v-slot:append>
-                                    <v-chip
-                                        size="small"
-                                        variant="text"
-                                        color="grey"
-                                        >Q183</v-chip
-                                    >
-                                </template>
-                            </v-list-item>
-                        </v-list>
-                    </div>
-
                     <!-- Search results -->
                     <v-list
                         v-else-if="searchResults.length > 0"
@@ -153,25 +92,35 @@
                     >
                         <v-list-item
                             v-for="item in searchResults"
-                            :key="item.id"
-                            @click="selectItem(item)"
+                            :key="item.id || 'error'"
+                            @click="!item.isError && selectItem(item)"
                             class="search-result-item"
+                            :class="{ 'error-item': item.isError }"
+                            :disabled="item.isError"
                         >
                             <v-list-item-title>{{
                                 item.label
                             }}</v-list-item-title>
-                            <v-list-item-subtitle v-if="item.description">{{
-                                item.description
-                            }}</v-list-item-subtitle>
+                            <v-list-item-subtitle
+                                v-if="item.description"
+                                :class="{ 'error-message': item.isError }"
+                                >{{ item.description }}</v-list-item-subtitle
+                            >
 
                             <template v-slot:append>
                                 <v-chip
+                                    v-if="!item.isError && item.id"
                                     size="small"
                                     variant="text"
                                     color="grey"
                                 >
                                     {{ item.id }}
                                 </v-chip>
+                                <v-icon
+                                    v-else-if="item.isError"
+                                    color="error"
+                                    icon="mdi-alert-circle"
+                                ></v-icon>
                             </template>
                         </v-list-item>
                     </v-list>
@@ -191,6 +140,7 @@
 <script setup>
 import { ref, watch, computed, onMounted } from "vue";
 import axios from "axios";
+import WikidataSuggestions from "./WikidataSuggestions.vue";
 
 const props = defineProps({
     modelValue: {
@@ -238,6 +188,10 @@ const props = defineProps({
                 "occupations",
                 "nationalities",
             ].includes(value),
+    },
+    suggestions: {
+        type: Array,
+        default: () => [],
     },
 });
 
@@ -365,10 +319,8 @@ const openDialog = () => {
     dialogOpen.value = true;
     searchQuery.value = "";
 
-    // If this is the nationality field, automatically suggest Deutsches Reich
-    if (props.endpoint === "nationalities" && !searchQuery.value) {
-        // No need to trigger a search here as the suggested items are shown in the template
-    }
+    // Suggestions will be shown via the WikidataSuggestions component
+    // No need to trigger a search here as the suggested items are shown in the template
 };
 
 const performSearch = () => {
@@ -377,7 +329,13 @@ const performSearch = () => {
 };
 
 const selectItem = (item) => {
-    emit("update:modelValue", item.id);
+    // Store the complete entity object instead of just the ID
+    // This ensures we have the label available immediately
+    emit("update:modelValue", {
+        id: item.id,
+        label: item.label,
+        description: item.description || "",
+    });
     dialogOpen.value = false;
 };
 
@@ -420,7 +378,15 @@ onMounted(() => {
 
 .search-result-item {
     cursor: pointer;
-    transition: background-color 0.2s;
+}
+
+.search-result-item.error-item {
+    cursor: not-allowed;
+    background-color: rgba(244, 67, 54, 0.05);
+}
+
+.error-message {
+    color: #f44336;
 }
 
 .search-result-item:hover {

@@ -52,7 +52,13 @@
         </div>
 
         <ValidationError
-            :show="showValidationErrors && !validationResult"
+            :show="
+                showValidationErrors &&
+                !isValid &&
+                (label.includes('Täter') ||
+                    (label.includes('Geschädigte') &&
+                        selectedPersons.length === 0))
+            "
             :message="`Bitte füge mindestens einen Eintrag für ${label} hinzu.`"
             showIcon
         />
@@ -471,6 +477,7 @@
                                     wikidataSearchPerformed.nationality
                                 "
                                 endpoint="nationalities"
+                                :suggestions="['Q1206012', 'Q183']"
                                 @search="
                                     searchWikidataItems('nationality', $event)
                                 "
@@ -879,12 +886,20 @@ const openPersonDialog = (isOrg, event) => {
 
 // Computed property to check if selection is valid
 const isValid = computed(() => {
-    return props.selectedPersons && props.selectedPersons.length > 0;
+    // Nur bei Tätern zwingend erforderlich, bei Geschädigten optional
+    if (props.label.includes("Täter")) {
+        return props.selectedPersons && props.selectedPersons.length > 0;
+    }
+    return true; // Bei Geschädigten immer valide
 });
 
 // Validation function
 const validatePersons = () => {
-    return props.selectedPersons && props.selectedPersons.length > 0;
+    // Nur bei Tätern zwingend erforderlich, bei Geschädigten optional
+    if (props.label.includes("Täter")) {
+        return props.selectedPersons && props.selectedPersons.length > 0;
+    }
+    return true; // Bei Geschädigten immer valide
 };
 
 // Use the validation composable
@@ -892,6 +907,7 @@ const {
     isValid: validationResult,
     validate: validateForm,
     showErrors,
+    showValidationErrors,
 } = useValidation(validatePersons, {
     emit,
     watchCallback: () => [props.selectedPersons],
@@ -1244,13 +1260,45 @@ const searchWikidataItems = async (field, query, endpoint = null) => {
     } catch (error) {
         console.error(`Error searching Wikidata for ${field}:`, error);
         wikidataSearchResults.value[field] = [];
+
+        // Show error notification or feedback to the user
+        const fieldDisplayNames = {
+            nationality: "Staatsangehörigkeit",
+            place_of_birth: "Geburtsort",
+            place_of_death: "Sterbeort",
+            place_of_detention: "Haftort",
+            place_of_residence: "Wohnort",
+            occupation: "Beruf",
+            employer: "Arbeitgeber",
+        };
+
+        const fieldName = fieldDisplayNames[field] || field;
+        // Add an empty result with an error message that will be shown to the user
+        wikidataSearchResults.value[field] = [
+            {
+                id: null,
+                label: `Fehler bei der Suche nach "${fieldName}"`,
+                description:
+                    "Bitte versuchen Sie es später erneut oder wenden Sie sich an den Support.",
+                isError: true,
+            },
+        ];
     } finally {
         isWikidataSearchLoading.value[field] = false;
     }
 };
 
 const handleWikidataResults = (field, results) => {
-    wikidataSearchResults.value[field] = results || [];
+    // Check if results contains the success property and results array
+    if (results && results.success === true && Array.isArray(results.results)) {
+        wikidataSearchResults.value[field] = results.results;
+    } else if (results && Array.isArray(results)) {
+        // Support for legacy response format
+        wikidataSearchResults.value[field] = results;
+    } else {
+        // Empty or invalid results
+        wikidataSearchResults.value[field] = [];
+    }
     isWikidataSearchLoading.value[field] = false;
 };
 

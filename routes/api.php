@@ -139,6 +139,12 @@ Route::get("/wikidata/search/nationalities", [
     "searchNationalities",
 ]);
 
+// Endpoint for occupations search
+Route::get("/wikidata/search/occupations", [
+    WikidataSearchController::class,
+    "searchOccupations",
+]);
+
 // General Wikidata search route
 Route::get("/wikidata/search", [WikidataSearchController::class, "search"]);
 
