@@ -9,7 +9,7 @@
                     color="grey-darken-2"
                     density="compact"
                     hide-details
-                    label="Alle"
+                    label="Alle auswählen"
                 ></v-checkbox>
             </v-col>
         </v-row>
