@@ -5,30 +5,34 @@
             <v-col class="py-0" style="max-width: 60px"></v-col>
             <v-col class="pa-0">
                 <v-checkbox
-                    :model-value="allSelected"
+                    v-model="areAllGroupedPlacesShownOnMap"
                     color="grey-darken-2"
                     density="compact"
                     hide-details
-                    label="Alle"
-                    @click="selectAll()"
+                    label="Alle auswählen"
                 ></v-checkbox>
             </v-col>
         </v-row>
         <v-row
-            v-for="groupName in groupedPlacesOrder"
+            v-for="groupName in orderedGroupPlaceNames"
             class="pt-1"
             :key="groupName + '-row'"
         >
-            <v-col class="py-0" style="max-width: 60px">
+            <v-col v-if="groupedPlaces[groupName].linkedMainGroupItem" class="py-0" style="max-width: 55px"></v-col>
+            <v-col v-else class="py-0" style="max-width: 60px">
                 <v-img
                     :max-width="34"
                     :src="`${ogtGlobals?.proxyPath}${mapMarkerIconsPath}${groupedPlaces[groupName].iconName}`"
                 ></v-img>
             </v-col>
 
+            <v-col v-if="groupedPlaces[groupName].linkedMainGroupItem" class="py-0" style="max-width: 35px; font-size: 30px;">
+                +
+            </v-col>
+
             <v-col class="pa-0">
                 <v-checkbox
-                    v-model="checkedPlaceLayerGroups"
+                    v-model="proxyGroupedPlacesShownOnMap"
                     :color="groupedPlaces[groupName].color"
                     density="compact"
                     hide-details
@@ -64,9 +68,9 @@
         <v-divider class="mt-4"></v-divider>
         <v-list-subheader>Erfasste Gestapo Terror Orte</v-list-subheader>
         <v-autocomplete
-            v-for="groupName in groupedPlacesOrder"
+            v-for="groupName in orderedGroupPlaceNames"
             v-model="selectedPlaces[groupName]"
-            v-show="checkedPlaceLayerGroups.includes(groupName)"
+            v-show="proxyGroupedPlacesShownOnMap.includes(groupName)"
             class="mx-4 my-2"
             color="grey-darken-4"
             density="compact"
@@ -98,6 +102,10 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    groupedPlacesShownOnMap: {
+        type: Array,
+        default: () => [],
+    },
     map: {
         type: Object,
         required: true,
@@ -110,27 +118,34 @@ const props = defineProps({
 
 const ogtGlobals = inject("ogtGlobals");
 
-const checkedPlaceLayerGroups = ref(Object.keys(props.groupedPlaces));
-const emit = defineEmits(["update-layer-groups"]);
+const emit = defineEmits(["update:groupedPlacesShownOnMap"]);
 
-const allSelected = computed(() => {
-    return checkedPlaceLayerGroups.value.length === Object.keys(props.groupedPlaces).length;
+const proxyGroupedPlacesShownOnMap = computed({
+    get: () => props.groupedPlacesShownOnMap,
+    set: (value) => emit("update:groupedPlacesShownOnMap", value),
 });
 
-const groupedPlacesOrder = [
-    "statePoliceHeadquarters",
-    "statePoliceOffices",
-    "fieldOffices",
-    "prisons",
-    "extPolicePrisons",
-    "laborEducationCamps",
-    "events",
-    "memorials",
-];
+const areAllGroupedPlacesShownOnMap = computed({
+    get() {
+        return proxyGroupedPlacesShownOnMap.value.length === Object.keys(props.groupedPlaces).length;
+    },
+    set(value) {
+        proxyGroupedPlacesShownOnMap.value = value ? Object.keys(props.groupedPlaces) : [];
+    },
+});
+
+const orderedGroupPlaceNames = computed(() => {
+    return Object.keys(props.groupedPlaces)
+    .sort(
+        (a, b) =>
+            props.groupedPlaces[a].displayOrder -
+            props.groupedPlaces[b].displayOrder,
+    );
+});
 
 const selectedPlaces = ref({});
 const autoCompleteRefs = ref({});
-groupedPlacesOrder.forEach((groupName) => {
+orderedGroupPlaceNames.value.forEach((groupName) => {
     selectedPlaces.value[groupName] = null;
 });
 
@@ -156,17 +171,9 @@ const clearFocus = () => {
     }
 };
 
-const selectAll = () => {
-    checkedPlaceLayerGroups.value =
-        checkedPlaceLayerGroups.value.length !==
-        Object.keys(props.groupedPlaces).length
-            ? Object.keys(props.groupedPlaces)
-            : [];
-};
-
 // Watchers
 //
-groupedPlacesOrder.forEach((groupName) => {
+orderedGroupPlaceNames.value.forEach((groupName) => {
     watch(
         () => selectedPlaces.value[groupName],
         (newPlace) => {
@@ -177,11 +184,6 @@ groupedPlacesOrder.forEach((groupName) => {
             }
         },
     );
-});
-
-watch(checkedPlaceLayerGroups, (newGroups) => {
-    // Emit event to parent instead of directly accessing it
-    emit("update-layer-groups", newGroups);
 });
 </script>
 

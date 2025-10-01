@@ -221,6 +221,11 @@ class WikidataController extends Controller
             WikidataClient::PLACE_GROUPS_IDS,
             "P31",
         );
+        $groupedLocations = $wikidataClient->subgroupItems(
+            $groupedLocations,
+            WikidataClient::PLACE_SUBGROUP_MAPPINGS,
+            "P361",
+        );
 
         // Ensure the directory exists
         $filePath = config("wikidata.cachedPlacesFile");
@@ -296,6 +301,11 @@ class WikidataController extends Controller
                     $locations,
                     WikidataClient::PLACE_GROUPS_IDS,
                     "P31",
+                );
+                $groupedLocations = $wikidataClient->subgroupItems(
+                    $groupedLocations,
+                    WikidataClient::PLACE_SUBGROUP_MAPPINGS,
+                    "P361",
                 );
 
                 // Ensure the directory exists
