@@ -70,6 +70,13 @@ class WikidataClient
         ],
     ];
 
+    const PLACE_SUBGROUP_MAPPINGS = [
+        "persecutionOfSocialistFront" => [
+            "mainGroup" => "events",
+            "mainItemId" => "Q133303308", // https://www.wikidata.org/wiki/Q133303308   Persecution of the Socialist Front by the Gestapo
+        ],
+    ];
+
     /**
      * Wikidata's properties of a queried locations and associated property labels.
      */
@@ -84,7 +91,9 @@ class WikidataClient
         "P137" => "operators", // https://www.wikidata.org/wiki/Property:P137
         "P276" => "locations", // https://www.wikidata.org/wiki/Property:P276
         "P355" => "subsidiaries", // https://www.wikidata.org/wiki/Property:P355
+        "P361" => "partOfs", // https://www.wikidata.org/wiki/Property:P361
         "P366" => "hasUses", // https://www.wikidata.org/wiki/Property:P366
+        "P527" => "hasParts", // https://www.wikidata.org/wiki/Property:P527
         "P533" => "targets", // https://www.wikidata.org/wiki/Property:P533
         "P547" => "commemorates", // https://www.wikidata.org/wiki/Property:P547
         "P569" => "dateOfBirth", // https://www.wikidata.org/wiki/Property:P569
@@ -184,9 +193,9 @@ class WikidataClient
                 {
                     ?property wikibase:propertyType ?propertyType.
                     FILTER(?property IN(
-                        wd:P18, wd:P31, wd:P137, wd:P276, wd:P355, wd:P366, wd:P533, wd:P547, wd:P625, wd:P749, wd:P793,
-                        wd:P856, wd:P1037, wd:P1120, wd:P1128, wd:P1343, wd:P973, wd:P1365, wd:P1366, wd:P1427, wd:P1444, wd:P1561,
-                        wd:P1590, wd:P5582, wd:P5630, wd:P6375, wd:P7153, wd:P8031, wd:P8032
+                        wd:P18, wd:P31, wd:P137, wd:P276, wd:P355, wd:P361, wd:P366, wd:P527, wd:P533, wd:P547, wd:P625,
+                        wd:P749, wd:P793, wd:P856, wd:P1037, wd:P1120, wd:P1128, wd:P1343, wd:P973, wd:P1365, wd:P1366,
+                        wd:P1427, wd:P1444, wd:P1561, wd:P1590, wd:P5582, wd:P5630, wd:P6375, wd:P7153, wd:P8031, wd:P8032
                     ))
                     FILTER(?propertyType != wikibase:Time)
                     ?property wikibase:statementProperty ?ps.
@@ -537,6 +546,41 @@ class WikidataClient
         }
 
         return $groupedItems;
+    }
+
+    /**
+     * Subgroup items by a main item ID of a Wikidata property.
+     * Items are assigned to the first subgroup found.
+     *
+     * @param array  $mainGroups         Wikidata items grouped by main groups.
+     * @param array  $subGroups          Valid available subgroups.
+     * @param string $subgroupPropertyId Wikidata property id, e.g. P361, used to group items by an item ID into a subgroup.
+     *
+     * @return array
+     */
+    public function subgroupItems(array $mainGroups, array $subGroups, string $subgroupPropertyId): array {
+        $propertyLabel = self::PROPERTY_LABEL_OF_ID[$subgroupPropertyId];
+
+        foreach ($subGroups as $subGroupName => $subGroupConfig) {
+            $mainGroups[$subGroupName] = [];
+            $mainGroup = $subGroupConfig["mainGroup"];
+            $mainItemId = $subGroupConfig["mainItemId"];
+
+            foreach ($mainGroups[$mainGroup] as $itemId => $item) {
+                if (!isset($item[$propertyLabel])) {
+                    continue;
+                }
+
+                $propertyItemIds = Arr::pluck($item[$propertyLabel], "id");
+
+                if (in_array($mainItemId, $propertyItemIds)) {
+                    $mainGroups[$subGroupName][$itemId] = $item;
+                    unset($mainGroups[$mainGroup][$itemId]);
+                }
+            }
+        }
+
+        return $mainGroups;
     }
 
     /**
