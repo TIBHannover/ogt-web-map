@@ -16,7 +16,6 @@
                         {{ entity.description }}
                     </v-list-item-subtitle>
                     <v-list-item-subtitle class="result-id">
-                        {{ entity.id }}
                     </v-list-item-subtitle>
                 </div>
                 <div>
@@ -26,7 +25,8 @@
                         class="source-link"
                     >
                         <v-icon size="x-small mr-1">mdi-open-in-new</v-icon>
-                        Wikidata
+                        Wikidata:
+                        <span class="grey-darken-1">{{ entity.id }}</span>
                     </a>
                 </div>
             </v-list-item>

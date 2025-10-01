@@ -279,10 +279,12 @@
                                         "
                                         :href="`https://www.wikidata.org/wiki/${person.id}`"
                                         target="_blank"
-                                        class="text-decoration-none"
+                                        class="wikidata-link"
                                         @click.stop
                                     >
-                                        {{ person.id }}
+                                        <span class="grey-darken-1"
+                                            >Wikidata: </span
+                                        >{{ person.id }}
                                         <v-icon size="x-small"
                                             >mdi-open-in-new</v-icon
                                         >

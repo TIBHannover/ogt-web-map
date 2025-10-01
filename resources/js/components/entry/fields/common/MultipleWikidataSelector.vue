@@ -59,50 +59,6 @@
                         </v-btn>
                     </div>
 
-                    <!-- Currently selected items summary -->
-                    <div
-                        v-if="selectedItems.length > 0"
-                        class="selected-summary mb-3"
-                    >
-                        <v-alert
-                            type="info"
-                            density="compact"
-                            variant="tonal"
-                            title="Ausgewählte Einträge"
-                            class="mb-0"
-                        >
-                            <div class="selected-items-list">
-                                <div
-                                    v-for="item in selectedItems"
-                                    :key="item.id"
-                                    class="selected-item-row"
-                                >
-                                    <div
-                                        class="d-flex align-center justify-space-between"
-                                    >
-                                        <div>
-                                            <strong>{{ item.label }}</strong>
-                                            <small
-                                                v-if="item.description"
-                                                class="text-caption d-block text-grey"
-                                                >{{ item.description }}</small
-                                            >
-                                        </div>
-                                        <v-btn
-                                            size="x-small"
-                                            icon
-                                            @click="removeItem(item)"
-                                            color="error"
-                                            variant="text"
-                                        >
-                                            <v-icon>mdi-close-circle</v-icon>
-                                        </v-btn>
-                                    </div>
-                                </div>
-                            </div>
-                        </v-alert>
-                    </div>
-
                     <!-- Loading indicator -->
                     <div
                         v-if="isLoading"
@@ -138,12 +94,6 @@
                             @click="selectItemAndClose(item)"
                             class="search-result-item"
                         >
-                            <template v-slot:prepend>
-                                <v-icon color="grey">
-                                    mdi-plus-circle-outline
-                                </v-icon>
-                            </template>
-
                             <v-list-item-title>{{
                                 item.label
                             }}</v-list-item-title>
@@ -280,6 +230,7 @@ const fetchEntityLabels = async (entityIds) => {
         // For each missing ID, set a default value first to prevent multiple fetches
         missingIds.forEach((id) => {
             entityLabels.value[id] = {
+                id: id,
                 label: id, // Use ID as default label
                 description: "",
             };
@@ -305,6 +256,7 @@ const fetchEntityLabels = async (entityIds) => {
                             response.data.entities,
                         )) {
                             entityLabels.value[id] = {
+                                id: id,
                                 label: entity.label || id,
                                 description: entity.description || "",
                             };
@@ -318,17 +270,10 @@ const fetchEntityLabels = async (entityIds) => {
                             window.failedEntityIds.add(id.trim());
                         });
                     }
-                    // Silently continue, we already have default labels
                 }
-
-                // We'll skip Wikidata direct API for now due to CORS issues
-                // If we need it in the future, it should be handled through a backend proxy
-            } catch (error) {
-                // Silently handle errors - we already have default values
-            }
+            } catch (error) {}
         }
     } catch (error) {
-        // Silently handle errors - we already have default values
     } finally {
         loadingEntities.value = false;
     }
@@ -398,6 +343,7 @@ const selectItemAndClose = (item) => {
             tempSelectedItems.value.length < props.maxSelections
         ) {
             tempSelectedItems.value.push(item);
+            // Update with just IDs to ensure compatibility with backend
             updateModelValue();
         }
     }
@@ -448,7 +394,7 @@ const confirmSelection = () => {
 };
 
 const updateModelValue = () => {
-    // Extract just the IDs for the model value
+    // Extract just the IDs for the model value to ensure compatibility with backend
     const ids = tempSelectedItems.value.map((item) => item.id);
     emit("update:modelValue", ids);
 };

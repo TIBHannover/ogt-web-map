@@ -114,7 +114,19 @@
                                     variant="text"
                                     color="grey"
                                 >
-                                    {{ item.id }}
+                                    <a
+                                        :href="`https://www.wikidata.org/wiki/${entity.id}`"
+                                        target="_blank"
+                                        class="source-link"
+                                    >
+                                        <v-icon size="x-small mr-1"
+                                            >mdi-open-in-new</v-icon
+                                        >
+                                        Wikidata:
+                                        <span class="grey-darken-1">{{
+                                            entity.id
+                                        }}</span>
+                                    </a>
                                 </v-chip>
                                 <v-icon
                                     v-else-if="item.isError"
