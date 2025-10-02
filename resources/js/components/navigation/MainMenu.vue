@@ -80,13 +80,13 @@ const menuItems = ref([
         show: true,
         toMenu: "mainMenu",
     },
-    /* {
-        title: 'Eintrag anlegen',
-        icon: 'mdi-plus',
-        path: '/entry',
+    {
+        title: "Eintrag anlegen",
+        icon: "mdi-plus",
+        path: "/neuer-eintrag",
         show: true,
-        toMenu: 'mainMenu',
-    }, */
+        toMenu: "mainMenu",
+    },
     {
         title: "Mitforschen: Werkstätten",
         icon: "mdi-pencil-outline",
