@@ -77,7 +77,9 @@
                     <!-- No results message -->
                     <div
                         v-else-if="
-                            searchPerformed && searchResults.length === 0
+                            searchPerformed &&
+                            searchResults &&
+                            searchResults.length === 0
                         "
                         class="pa-4 text-center"
                     >
@@ -86,50 +88,40 @@
 
                     <!-- Search results -->
                     <v-list
-                        v-else-if="searchResults.length > 0"
+                        v-else-if="searchResults && searchResults.length > 0"
                         density="compact"
                         class="search-results"
                     >
                         <v-list-item
-                            v-for="item in searchResults"
-                            :key="item.id || 'error'"
-                            @click="!item.isError && selectItem(item)"
+                            v-for="(item, index) in searchResults || []"
+                            :key="item && item.id ? item.id : 'error-' + index"
+                            @click="item && !item.isError && selectItem(item)"
                             class="search-result-item"
-                            :class="{ 'error-item': item.isError }"
-                            :disabled="item.isError"
+                            :class="{ 'error-item': item && item.isError }"
+                            :disabled="!item || (item && item.isError)"
                         >
                             <v-list-item-title>{{
-                                item.label
+                                item && item.label ? item.label : ""
                             }}</v-list-item-title>
                             <v-list-item-subtitle
-                                v-if="item.description"
-                                :class="{ 'error-message': item.isError }"
+                                v-if="item && item.description"
+                                :class="{
+                                    'error-message': item && item.isError,
+                                }"
                                 >{{ item.description }}</v-list-item-subtitle
                             >
 
                             <template v-slot:append>
                                 <v-chip
-                                    v-if="!item.isError && item.id"
+                                    v-if="item && !item.isError && item.id"
                                     size="small"
                                     variant="text"
                                     color="grey"
                                 >
-                                    <a
-                                        :href="`https://www.wikidata.org/wiki/${entity.id}`"
-                                        target="_blank"
-                                        class="source-link"
-                                    >
-                                        <v-icon size="x-small mr-1"
-                                            >mdi-open-in-new</v-icon
-                                        >
-                                        Wikidata:
-                                        <span class="grey-darken-1">{{
-                                            entity.id
-                                        }}</span>
-                                    </a>
+                                    {{ item.id }}
                                 </v-chip>
                                 <v-icon
-                                    v-else-if="item.isError"
+                                    v-else-if="item && item.isError"
                                     color="error"
                                     icon="mdi-alert-circle"
                                 ></v-icon>
@@ -289,9 +281,12 @@ const selectedItem = computed(() => {
         props.modelValue.startsWith("Q")
     ) {
         // Find in search results
-        const foundItem = props.searchResults.find(
-            (item) => item.id === props.modelValue,
-        );
+        const foundItem =
+            props.searchResults && Array.isArray(props.searchResults)
+                ? props.searchResults.find(
+                      (item) => item && item.id && item.id === props.modelValue,
+                  )
+                : null;
         if (foundItem) return foundItem;
 
         // If not found in results, fetch the entity from the API
@@ -341,11 +336,14 @@ const performSearch = () => {
 };
 
 const selectItem = (item) => {
+    // Guard against null or invalid items
+    if (!item || !item.id) return;
+
     // Store the complete entity object instead of just the ID
     // This ensures we have the label available immediately
     emit("update:modelValue", {
         id: item.id,
-        label: item.label,
+        label: item.label || item.id || "",
         description: item.description || "",
     });
     dialogOpen.value = false;
