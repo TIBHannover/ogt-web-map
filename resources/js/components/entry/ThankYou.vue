@@ -39,6 +39,7 @@
                 </div>
 
                 <!-- Email notification form -->
+                <!--
                 <div v-if="statusToken" class="email-notification-form">
                     <h3>Per E-Mail über den Status informiert werden</h3>
                     <p>
@@ -96,8 +97,8 @@
                     Hinweis: Der Status Ihres Eintrags kann derzeit nicht
                     verfolgt werden. Bitte kontaktiere uns bei Fragen.
                 </p>
+                -->
             </div>
-
             <div class="actions">
                 <v-btn color="primary" @click="goToHome"
                     >Zurück zur Startseite</v-btn

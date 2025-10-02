@@ -47,6 +47,7 @@
                                             >Ereignis</label
                                         >
                                     </div>
+                                    <!--
                                     <div>
                                         <input
                                             v-model="formsType"
@@ -112,6 +113,7 @@
                                             >Gefängnis</label
                                         >
                                     </div>
+                                    -->
                                 </fieldset>
                                 <div class="button-container">
                                     <button
