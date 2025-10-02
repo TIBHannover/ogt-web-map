@@ -71,10 +71,10 @@
 
             <!-- places selection options -->
             <places-selection
+                v-model:groupedPlacesShownOnMap="proxyGroupedPlacesShownOnMap"
                 :groupedPlaces="groupedPlaces"
                 :map="map"
                 :mapMarkerIconsPath="mapMarkerIconsPath"
-                @update-layer-groups="updateLayerGroups"
             ></places-selection>
         </v-navigation-drawer>
     </div>
@@ -92,6 +92,10 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    groupedPlacesShownOnMap: {
+        type: Array,
+        default: () => [],
+    },
     map: {
         type: Object,
         required: true,
@@ -102,7 +106,13 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(["update-layer-groups"]);
+const emit = defineEmits(["update:groupedPlacesShownOnMap"]);
+
+const proxyGroupedPlacesShownOnMap = computed({
+    get: () => props.groupedPlacesShownOnMap,
+    set: (value) => emit("update:groupedPlacesShownOnMap", value),
+});
+
 const { isMapOptionsOpen, toggleMapOptions, closeMapOptions } =
     NavigationHelpers();
 
@@ -139,10 +149,6 @@ onMounted(() => {
 onUnmounted(() => {
     window.removeEventListener("resize", handleResize);
 });
-
-const updateLayerGroups = (value) => {
-    emit("update-layer-groups", value);
-};
 </script>
 
 <style scoped>

@@ -3,7 +3,7 @@
         <!-- place info sidebar -->
         <v-navigation-drawer
             :model-value="drawerModel"
-            @update:model-value="$emit('hidePlaceInfoSidebar')"
+            @update:model-value="emit('hidePlaceInfoSidebar')"
             absolute
             class="z-index-5 placeInfoSidebar"
             :location="isMobile ? 'bottom' : 'left'"
@@ -41,7 +41,7 @@
                     class="position-absolute top-0 right-0 mr-3 mt-3 d-flex flex-column ga-3"
                 >
                     <v-btn
-                        @click="$emit('hidePlaceInfoSidebar')"
+                        @click="emit('hidePlaceInfoSidebar')"
                         icon
                         variant="outlined"
                         size="small"
@@ -144,29 +144,34 @@
             </template>
 
             <event
-                v-if="selectedPlace.groupName == 'events'"
+                v-if="
+                    ['events', 'persecutionOfSocialistFront'].includes(
+                        selectedPlace.groupName,
+                    )
+                "
+                v-model:groupedPlacesShownOnMap="proxyGroupedPlacesShownOnMap"
                 :selectedPlace="selectedPlace"
                 @showPerson="navigateToPerson"
-                @switchLocation="$emit('switchLocation', $event)"
-                @undoZoomIntoPlace="$emit('undoZoomIntoPlace')"
-                @zoomIntoPlace="$emit('zoomIntoPlace')"
+                @switchLocation="emit('switchLocation', $event)"
+                @undoZoomIntoPlace="emit('undoZoomIntoPlace')"
+                @zoomIntoPlace="emit('zoomIntoPlace')"
             ></event>
 
             <gestapo-place
                 v-else-if="gestapoPlaceGroups.includes(selectedPlace.groupName)"
                 :selectedPlace="selectedPlace"
                 @showPerson="navigateToPerson"
-                @switchLocation="$emit('switchLocation', $event)"
-                @undoZoomIntoPlace="$emit('undoZoomIntoPlace')"
-                @zoomIntoPlace="$emit('zoomIntoPlace')"
+                @switchLocation="emit('switchLocation', $event)"
+                @undoZoomIntoPlace="emit('undoZoomIntoPlace')"
+                @zoomIntoPlace="emit('zoomIntoPlace')"
             ></gestapo-place>
 
             <memorial-place
                 v-else-if="selectedPlace.groupName == 'memorials'"
                 :selectedPlace="selectedPlace"
-                @switchLocation="$emit('switchLocation', $event)"
-                @undoZoomIntoPlace="$emit('undoZoomIntoPlace')"
-                @zoomIntoPlace="$emit('zoomIntoPlace')"
+                @switchLocation="emit('switchLocation', $event)"
+                @undoZoomIntoPlace="emit('undoZoomIntoPlace')"
+                @zoomIntoPlace="emit('zoomIntoPlace')"
             ></memorial-place>
 
             <person
@@ -177,7 +182,7 @@
                 "
                 :selectedPerson="selectedPlace"
                 :hasPreviousLocation="hasHistory"
-                @switchLocation="$emit('switchLocation', $event)"
+                @switchLocation="emit('switchLocation', $event)"
                 @goBack="goBack"
             ></person>
         </v-navigation-drawer>
@@ -208,14 +213,36 @@ const {
     adjustPlaceInfoPosition, // Neue computed property importieren
 } = NavigationHelpers();
 
-const emits = defineEmits([
+const props = defineProps({
+    groupedPlacesShownOnMap: {
+        type: Array,
+        default: () => [],
+    },
+    selectedPlace: {
+        type: Object,
+        required: true,
+        default: () => ({}),
+    },
+    showPlaceInfoSidebar: {
+        type: Boolean,
+        required: true,
+    },
+});
+
+const emit = defineEmits([
     "hidePlaceInfoSidebar",
     "showPerson",
     "switchLocation",
     "undoZoomIntoPlace",
+    "update:groupedPlacesShownOnMap",
     "zoomIntoPlace",
     "goBack",
 ]);
+
+const proxyGroupedPlacesShownOnMap = computed({
+    get: () => props.groupedPlacesShownOnMap,
+    set: (value) => emit("update:groupedPlacesShownOnMap", value),
+});
 
 // Function to handle navigation to a person
 const navigateToPerson = (person) => {
@@ -223,7 +250,7 @@ const navigateToPerson = (person) => {
     if (props.selectedPlace && props.selectedPlace.id && navigationHistory.value) {
         navigationHistory.value.push(props.selectedPlace.id);
     }
-    emits("showPerson", person);
+    emit("showPerson", person);
 };
 
 // Function to handle back navigation
@@ -233,7 +260,7 @@ const goBack = () => {
         const previousPlaceId = navigationHistory.value.pop();
         // Navigate back to it using the same format as other location links
         if (previousPlaceId) {
-            emits("switchLocation", { locationId: previousPlaceId });
+            emit("switchLocation", { locationId: previousPlaceId });
         }
     }
 };
@@ -247,18 +274,6 @@ const sidebarStyles = computed(() => {
         };
     }
     return {};
-});
-
-const props = defineProps({
-    selectedPlace: {
-        type: Object,
-        required: true,
-        default: () => ({}),
-    },
-    showPlaceInfoSidebar: {
-        type: Boolean,
-        required: true,
-    },
 });
 
 const itemDescriptionPanel = ref([]);
@@ -277,7 +292,7 @@ const drawerModel = computed({
     get: () => props.showPlaceInfoSidebar,
     set: (value) => {
         if (!value) {
-            emits("hidePlaceInfoSidebar");
+            emit("hidePlaceInfoSidebar");
             closePlaceInfo();
         }
     },
@@ -316,7 +331,7 @@ watch(
 
 watch(isPlaceInfoOpen, (newValue) => {
     if (!newValue && props.showPlaceInfoSidebar) {
-        emits("hidePlaceInfoSidebar");
+        emit("hidePlaceInfoSidebar");
     }
 });
 
