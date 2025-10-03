@@ -68,7 +68,13 @@
 
                     <!-- Suggestions -->
                     <wikidata-suggestions
-                        v-if="props.suggestions && props.suggestions.length > 0"
+                        v-if="
+                            props.suggestions &&
+                            props.suggestions.length > 0 &&
+                            !searchQuery.trim() &&
+                            (!searchPerformed ||
+                                (searchResults && searchResults.length === 0))
+                        "
                         :q-ids="props.suggestions"
                         :endpoint="props.endpoint"
                         @select="selectItem"
@@ -78,8 +84,10 @@
                     <div
                         v-else-if="
                             searchPerformed &&
+                            searchQuery.trim() &&
                             searchResults &&
-                            searchResults.length === 0
+                            searchResults.length === 0 &&
+                            !isLoading
                         "
                         class="pa-4 text-center"
                     >
@@ -88,7 +96,11 @@
 
                     <!-- Search results -->
                     <v-list
-                        v-else-if="searchResults && searchResults.length > 0"
+                        v-else-if="
+                            searchQuery.trim() &&
+                            searchResults &&
+                            searchResults.length > 0
+                        "
                         density="compact"
                         class="search-results"
                     >
