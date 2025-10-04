@@ -1280,8 +1280,7 @@ const searchWikidataItems = async (field, query, endpoint = null) => {
             {
                 id: null,
                 label: `Fehler bei der Suche nach "${fieldName}"`,
-                description:
-                    "Bitte versuchen Sie es später erneut oder wenden Sie sich an den Support.",
+                description: "Bitte versuchen Sie es erneut.",
                 isError: true,
             },
         ];

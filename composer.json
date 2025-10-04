@@ -56,7 +56,8 @@
             "Database\\Seeders\\": "database/seeders/"
         },
         "files": [
-            "app/Helpers/WikidataHelpers.php"
+            "app/Helpers/WikidataHelpers.php",
+            "app/Helpers/DateFormatting.php"
         ]
     },
     "autoload-dev": {

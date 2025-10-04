@@ -726,43 +726,7 @@ class Person extends BaseEntity
         ];
     }
 
-    /**
-     * Set the place of residence
-     *
-     * @param string $placeId The Wikidata Q-number for the residence place
-     * @return void
-     */
-    public function setPlaceOfResidence(string $placeId): void
-    {
-        $this->place_of_residence = $placeId;
-
-        if (empty($placeId) || substr($placeId, 0, 1) !== "Q") {
-            return;
-        }
-
-        $residenceProperty = $this->mappingProvider->getPropertyId(
-            "PLACE_OF_RESIDENCE",
-        ); // Should map to P551
-
-        $this->data["claims"][$residenceProperty] = [
-            [
-                "mainsnak" => [
-                    "snaktype" => "value",
-                    "property" => $residenceProperty,
-                    "datavalue" => [
-                        "value" => [
-                            "entity-type" => "item",
-                            "id" => $placeId,
-                            "numeric-id" => intval(substr($placeId, 1)),
-                        ],
-                        "type" => "wikibase-entityid",
-                    ],
-                ],
-                "type" => "statement",
-                "rank" => "normal",
-            ],
-        ];
-    }
+    // Duplicate setPlaceOfResidence method removed - already defined at line 697
 
     /**
      * Set the place of detention

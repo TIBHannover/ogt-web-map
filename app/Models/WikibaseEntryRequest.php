@@ -50,6 +50,7 @@ class WikibaseEntryRequest extends Model
         "cause",
         "selected_causes",
         "sources",
+        "occupation",
     ];
 
     protected $casts = [
@@ -60,6 +61,7 @@ class WikibaseEntryRequest extends Model
         "status_history" => "array",
         "notify_on_publish" => "boolean",
         "notification_sent_at" => "datetime",
+        "place_of_detention" => "array",
     ];
 
     protected $table = "wikidata_entry_requests";
