@@ -72,11 +72,13 @@ $wikidataFields = ['gender', 'place_of_birth', 'place_of_death', 'place_of_deten
                             @if(is_array($person[$field]) && isset($person[$field]['id']))
                                 <a href="https://www.wikidata.org/wiki/{{ $person[$field]['id'] }}" target="_blank" class="text-decoration-none">
                                     {{ WikidataPropertyController::getQLabel($person[$field]['id']) }}
+                                    <span class="badge bg-secondary text-white ms-1">{{ $person[$field]['id'] }}</span>
                                     <i class="bi bi-box-arrow-up-right ms-1 small"></i>
                                 </a>
                             @elseif(is_string($person[$field]) && preg_match('/^Q\d+$/', $person[$field]))
                                 <a href="https://www.wikidata.org/wiki/{{ $person[$field] }}" target="_blank" class="text-decoration-none">
                                     {{ WikidataPropertyController::getQLabel($person[$field]) }}
+                                    <span class="badge bg-secondary text-white ms-1">{{ $person[$field] }}</span>
                                     <i class="bi bi-box-arrow-up-right ms-1 small"></i>
                                 </a>
                             @else
@@ -87,11 +89,13 @@ $wikidataFields = ['gender', 'place_of_birth', 'place_of_death', 'place_of_deten
                                                 @if(is_string($item) && preg_match('/^Q\d+$/', $item))
                                                     <a href="https://www.wikidata.org/wiki/{{ $item }}" target="_blank" class="text-decoration-none">
                                                         {{ WikidataPropertyController::getQLabel($item) }}
+                                                        <span class="badge bg-secondary text-white ms-1">{{ $item }}</span>
                                                         <i class="bi bi-box-arrow-up-right ms-1 small"></i>
                                                     </a>
                                                 @elseif(is_array($item) && isset($item['id']) && preg_match('/^Q\d+$/', $item['id']))
                                                     <a href="https://www.wikidata.org/wiki/{{ $item['id'] }}" target="_blank" class="text-decoration-none">
                                                         {{ WikidataPropertyController::getQLabel($item['id']) }}
+                                                        <span class="badge bg-secondary text-white ms-1">{{ $item['id'] }}</span>
                                                         <i class="bi bi-box-arrow-up-right ms-1 small"></i>
                                                     </a>
                                                 @else
@@ -118,8 +122,10 @@ $wikidataFields = ['gender', 'place_of_birth', 'place_of_death', 'place_of_deten
                             <strong>{{ WikidataPropertyController::translatePropertyLabel($key) }}:</strong>
                             @if(is_string($value) && preg_match('/^Q\d+$/', $value))
                                 {{ WikidataPropertyController::getQLabel($value) }}
+                                <span class="badge bg-secondary text-white ms-1">{{ $value }}</span>
                             @elseif(is_array($value) && isset($value['id']) && preg_match('/^Q\d+$/', $value['id']))
                                 {{ WikidataPropertyController::getQLabel($value['id']) }}
+                                <span class="badge bg-secondary text-white ms-1">{{ $value['id'] }}</span>
                             @else
                                 @if(is_array($value) && !isset($value['id']))
                                     @if(count($value) > 0)
