@@ -125,6 +125,7 @@
                                         </div>
 
                                         <!-- Erinnerungsort -->
+                                        <!--
                                         <div
                                             class="type-box"
                                             :class="{
@@ -197,8 +198,9 @@
                                                 </div>
                                             </div>
                                         </div>
-
+                                        -->
                                         <!-- Staatspolizeistelle -->
+                                        <!--
                                         <div
                                             class="type-box"
                                             :class="{
@@ -270,8 +272,9 @@
                                                 </div>
                                             </div>
                                         </div>
-
+-->
                                         <!-- Staatspolizeiaußenstelle -->
+                                        <!--
                                         <div
                                             class="type-box"
                                             :class="{
@@ -343,8 +346,9 @@
                                                 </div>
                                             </div>
                                         </div>
-
+-->
                                         <!-- Arbeitserziehungslager -->
+                                        <!--
                                         <div
                                             class="type-box"
                                             :class="{
@@ -415,8 +419,9 @@
                                                 </div>
                                             </div>
                                         </div>
-
+-->
                                         <!-- Gefängnis -->
+                                        <!--
                                         <div
                                             class="type-box"
                                             :class="{
@@ -486,6 +491,7 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        -->
                                     </div>
                                 </fieldset>
                             </form>

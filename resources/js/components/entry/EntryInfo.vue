@@ -73,47 +73,59 @@
                                 <strong
                                     >Wissenschaftliche Informationen:</strong
                                 >
-                                Gut recherchierte Fakten aus vertrauenswürdigen
-                                Quellen (Bücher, Archive, wissenschaftliche
-                                Artikel).
+                                <p>
+                                    Gut recherchierte Fakten aus
+                                    vertrauenswürdigen Quellen
+                                    (wissenschaftliche Bücher, Archive,
+                                    wissenschaftliche Artikel).
+                                </p>
                             </li>
                             <li>
                                 <v-icon color="primary" class="mr-2"
                                     >mdi-bookmark-outline</v-icon
                                 >
-                                <strong>Quellenangaben:</strong> Vollständige
-                                bibliografische Informationen zu Ihren Quellen
-                                (Autor, Titel, Jahr, Seite etc.).
+                                <strong>Quellenangaben:</strong>
+                                <p>
+                                    Vollständige bibliografische Informationen
+                                    zu Ihren Quellen (Autor, Titel, Jahr, Seite
+                                    etc.).
+                                </p>
                             </li>
                             <li>
                                 <v-icon color="primary" class="mr-2"
                                     >mdi-map-marker</v-icon
                                 >
-                                <strong>Geographische Daten:</strong> Genaue
-                                Standortinformationen oder bestmögliche
-                                Annäherung.
+                                <strong>Geographische Daten:</strong>
+                                <p>
+                                    Genaue Standortinformationen oder
+                                    bestmögliche Annäherung.
+                                </p>
                             </li>
                             <li>
                                 <v-icon color="primary" class="mr-2"
                                     >mdi-calendar-range</v-icon
                                 >
-                                <strong>Zeitliche Einordnung:</strong> Datum
-                                oder Zeitraum des Ereignisses bzw. der Existenz
-                                des Ortes.
+                                <strong>Zeitliche Einordnung:</strong>
+                                <p>
+                                    Datum oder Zeitraum des Ereignisses bzw. der
+                                    Existenz des Ortes.
+                                </p>
                             </li>
                             <li>
                                 <v-icon color="primary" class="mr-2"
                                     >mdi-image-outline</v-icon
                                 >
-                                <strong>Optional: Bildmaterial</strong> mit
-                                Angaben zur Quelle und Rechteinhaber. Die Bilder
-                                müssen bei &nbsp;
-                                <a
-                                    href="https://commons.wikimedia.org/wiki/Main_Page"
-                                    target="_blank"
-                                    >Wikimedia Comons</a
-                                >
-                                &nbsp;hochgeladen werden.
+                                <strong>Optional: Bildmaterial</strong>
+                                <p>
+                                    mit Angaben zur Quelle und Rechteinhaber.
+                                    Die Bilder müssen bei &nbsp;
+                                    <a
+                                        href="https://commons.wikimedia.org/wiki/Main_Page"
+                                        target="_blank"
+                                        >Wikimedia Comons</a
+                                    >
+                                    &nbsp;hochgeladen werden.
+                                </p>
                             </li>
                         </ul>
                     </div>
@@ -319,6 +331,10 @@
     display: flex;
     align-items: flex-start;
 }
+.requirements-list li strong {
+    width: 200px;
+    min-width: 200px;
+}
 
 .entry-types-list li {
     margin-bottom: 8px;
@@ -385,6 +401,15 @@
 }
 
 @media (max-width: 768px) {
+    .requirements-list li {
+        flex-wrap: wrap;
+    }
+
+    .requirements-list li strong {
+        min-width: 250px;
+        width: 250px;
+    }
+
     .process-timeline:before {
         left: 15px;
     }
