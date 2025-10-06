@@ -16,7 +16,7 @@ class PasswordController extends Controller
      */
     public function showChangePasswordForm()
     {
-        return view('auth.change-password');
+        return view("auth.change-password");
     }
 
     /**
@@ -28,11 +28,20 @@ class PasswordController extends Controller
     public function changePassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'current_password' => ['required', 'string'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            "current_password" => ["required", "string"],
+            "password" => ["required", "string", "min:8", "confirmed"],
         ]);
 
         if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(
+                    [
+                        "success" => false,
+                        "errors" => $validator->errors(),
+                    ],
+                    422,
+                );
+            }
             return back()->withErrors($validator)->withInput();
         }
 
@@ -40,8 +49,24 @@ class PasswordController extends Controller
 
         // Check if current password is correct
         if (!Hash::check($request->current_password, $user->password)) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(
+                    [
+                        "success" => false,
+                        "errors" => [
+                            "current_password" => [
+                                "Das aktuelle Passwort ist nicht korrekt.",
+                            ],
+                        ],
+                    ],
+                    422,
+                );
+            }
             return back()
-                ->withErrors(['current_password' => 'Das aktuelle Passwort ist nicht korrekt.'])
+                ->withErrors([
+                    "current_password" =>
+                        "Das aktuelle Passwort ist nicht korrekt.",
+                ])
                 ->withInput();
         }
 
@@ -49,9 +74,16 @@ class PasswordController extends Controller
         $user->password = Hash::make($request->password);
         $user->save();
 
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                "success" => true,
+                "message" => "Passwort wurde erfolgreich geändert.",
+            ]);
+        }
+
         return redirect()
-            ->route('profile')
-            ->with('success', 'Passwort wurde erfolgreich geändert.');
+            ->route("profile")
+            ->with("success", "Passwort wurde erfolgreich geändert.");
     }
 
     /**
@@ -64,15 +96,24 @@ class PasswordController extends Controller
     public function adminResetPassword(Request $request, $id)
     {
         // Check if user is admin
-        if (!Auth::user()->isAdmin()) {
-            abort(403, 'Unauthorized');
+        if (!Auth::user() || !Auth::user()->is_admin) {
+            abort(403, "Unauthorized");
         }
 
         $validator = Validator::make($request->all(), [
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            "password" => ["required", "string", "min:8", "confirmed"],
         ]);
 
         if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(
+                    [
+                        "success" => false,
+                        "errors" => $validator->errors(),
+                    ],
+                    422,
+                );
+            }
             return back()->withErrors($validator)->withInput();
         }
 
@@ -80,6 +121,16 @@ class PasswordController extends Controller
         $user->password = Hash::make($request->password);
         $user->save();
 
-        return back()->with('success', "Passwort für {$user->name} wurde zurückgesetzt.");
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                "success" => true,
+                "message" => "Passwort für {$user->name} wurde zurückgesetzt.",
+            ]);
+        }
+
+        return back()->with(
+            "success",
+            "Passwort für {$user->name} wurde zurückgesetzt.",
+        );
     }
 }
