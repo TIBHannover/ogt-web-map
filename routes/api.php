@@ -31,6 +31,17 @@ Route::get("/wikidata/places/cache", [
     "getCachedPlaces",
 ]);
 
+// Occupation search endpoint
+Route::get("/wikidata/occupations", [
+    WikidataSearchController::class,
+    "searchOccupations",
+]);
+
+Route::get("/wikidata/nationalities", [
+    WikidataSearchController::class,
+    "searchNationalities",
+]);
+
 Route::get("/wikidata/entities", [
     WikidataSearchController::class,
     "searchByTitle",
@@ -121,6 +132,17 @@ Route::get("/wikidata/search/archives", [
 Route::get("/wikidata/search/places", [
     WikidataSearchController::class,
     "searchPlaces",
+]);
+
+Route::get("/wikidata/search/nationalities", [
+    WikidataSearchController::class,
+    "searchNationalities",
+]);
+
+// Endpoint for occupations search
+Route::get("/wikidata/search/occupations", [
+    WikidataSearchController::class,
+    "searchOccupations",
 ]);
 
 // General Wikidata search route

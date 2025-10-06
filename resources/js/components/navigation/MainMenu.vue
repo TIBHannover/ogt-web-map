@@ -83,7 +83,7 @@ const menuItems = ref([
     {
         title: "Eintrag anlegen",
         icon: "mdi-plus",
-        path: "/neuer-eintrag",
+        path: "/eintrag-informationen",
         show: true,
         toMenu: "mainMenu",
     },

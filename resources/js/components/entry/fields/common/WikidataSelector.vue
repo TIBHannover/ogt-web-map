@@ -66,10 +66,28 @@
                         <span class="ml-2">Suche läuft...</span>
                     </div>
 
+                    <!-- Suggestions -->
+                    <wikidata-suggestions
+                        v-if="
+                            props.suggestions &&
+                            props.suggestions.length > 0 &&
+                            !searchQuery.trim() &&
+                            (!searchPerformed ||
+                                (searchResults && searchResults.length === 0))
+                        "
+                        :q-ids="props.suggestions"
+                        :endpoint="props.endpoint"
+                        @select="selectItem"
+                    ></wikidata-suggestions>
+
                     <!-- No results message -->
                     <div
                         v-else-if="
-                            searchPerformed && searchResults.length === 0
+                            searchPerformed &&
+                            searchQuery.trim() &&
+                            searchResults &&
+                            searchResults.length === 0 &&
+                            !isLoading
                         "
                         class="pa-4 text-center"
                     >
@@ -78,31 +96,47 @@
 
                     <!-- Search results -->
                     <v-list
-                        v-else-if="searchResults.length > 0"
+                        v-else-if="
+                            searchQuery.trim() &&
+                            searchResults &&
+                            searchResults.length > 0
+                        "
                         density="compact"
                         class="search-results"
                     >
                         <v-list-item
-                            v-for="item in searchResults"
-                            :key="item.id"
-                            @click="selectItem(item)"
+                            v-for="(item, index) in searchResults || []"
+                            :key="item && item.id ? item.id : 'error-' + index"
+                            @click="item && !item.isError && selectItem(item)"
                             class="search-result-item"
+                            :class="{ 'error-item': item && item.isError }"
+                            :disabled="!item || (item && item.isError)"
                         >
                             <v-list-item-title>{{
-                                item.label
+                                item && item.label ? item.label : ""
                             }}</v-list-item-title>
-                            <v-list-item-subtitle v-if="item.description">{{
-                                item.description
-                            }}</v-list-item-subtitle>
+                            <v-list-item-subtitle
+                                v-if="item && item.description"
+                                :class="{
+                                    'error-message': item && item.isError,
+                                }"
+                                >{{ item.description }}</v-list-item-subtitle
+                            >
 
                             <template v-slot:append>
                                 <v-chip
+                                    v-if="item && !item.isError && item.id"
                                     size="small"
                                     variant="text"
                                     color="grey"
                                 >
                                     {{ item.id }}
                                 </v-chip>
+                                <v-icon
+                                    v-else-if="item && item.isError"
+                                    color="error"
+                                    icon="mdi-alert-circle"
+                                ></v-icon>
                             </template>
                         </v-list-item>
                     </v-list>
@@ -122,6 +156,7 @@
 <script setup>
 import { ref, watch, computed, onMounted } from "vue";
 import axios from "axios";
+import WikidataSuggestions from "./WikidataSuggestions.vue";
 
 const props = defineProps({
     modelValue: {
@@ -160,7 +195,19 @@ const props = defineProps({
         type: String,
         default: "people",
         validator: (value) =>
-            ["people", "places", "cause", "books", "archives"].includes(value),
+            [
+                "people",
+                "places",
+                "cause",
+                "books",
+                "archives",
+                "occupations",
+                "nationalities",
+            ].includes(value),
+    },
+    suggestions: {
+        type: Array,
+        default: () => [],
     },
 });
 
@@ -246,9 +293,12 @@ const selectedItem = computed(() => {
         props.modelValue.startsWith("Q")
     ) {
         // Find in search results
-        const foundItem = props.searchResults.find(
-            (item) => item.id === props.modelValue,
-        );
+        const foundItem =
+            props.searchResults && Array.isArray(props.searchResults)
+                ? props.searchResults.find(
+                      (item) => item && item.id && item.id === props.modelValue,
+                  )
+                : null;
         if (foundItem) return foundItem;
 
         // If not found in results, fetch the entity from the API
@@ -287,6 +337,9 @@ const openDialog = () => {
     if (props.disabled) return;
     dialogOpen.value = true;
     searchQuery.value = "";
+
+    // Suggestions will be shown via the WikidataSuggestions component
+    // No need to trigger a search here as the suggested items are shown in the template
 };
 
 const performSearch = () => {
@@ -295,7 +348,16 @@ const performSearch = () => {
 };
 
 const selectItem = (item) => {
-    emit("update:modelValue", item.id);
+    // Guard against null or invalid items
+    if (!item || !item.id) return;
+
+    // Store the complete entity object instead of just the ID
+    // This ensures we have the label available immediately
+    emit("update:modelValue", {
+        id: item.id,
+        label: item.label || item.id || "",
+        description: item.description || "",
+    });
     dialogOpen.value = false;
 };
 
@@ -338,7 +400,15 @@ onMounted(() => {
 
 .search-result-item {
     cursor: pointer;
-    transition: background-color 0.2s;
+}
+
+.search-result-item.error-item {
+    cursor: not-allowed;
+    background-color: rgba(244, 67, 54, 0.05);
+}
+
+.error-message {
+    color: #f44336;
 }
 
 .search-result-item:hover {

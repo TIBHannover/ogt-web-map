@@ -21,16 +21,29 @@ class AdminMiddleware
                 ->route("login")
                 ->with(
                     "error",
-                    "Sie müssen angemeldet sein, um auf den Admin-Bereich zuzugreifen."
+                    "Sie müssen angemeldet sein, um auf den Admin-Bereich zuzugreifen.",
                 );
         }
 
-        if (!Auth::user()->isAdmin()) {
+        // Check if user has admin rights - handle both object and boolean properties
+        $user = Auth::user();
+        $isAdmin = false;
+
+        if (method_exists($user, "isAdmin")) {
+            $isAdmin = $user->isAdmin();
+        } elseif (
+            property_exists($user, "is_admin") ||
+            isset($user->is_admin)
+        ) {
+            $isAdmin = (bool) $user->is_admin;
+        }
+
+        if (!$isAdmin) {
             return redirect()
                 ->route("home")
                 ->with(
                     "error",
-                    "Sie haben keine Berechtigung, auf den Admin-Bereich zuzugreifen."
+                    "Sie haben keine Berechtigung, auf den Admin-Bereich zuzugreifen.",
                 );
         }
 

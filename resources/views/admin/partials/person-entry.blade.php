@@ -72,15 +72,44 @@ $wikidataFields = ['gender', 'place_of_birth', 'place_of_death', 'place_of_deten
                             @if(is_array($person[$field]) && isset($person[$field]['id']))
                                 <a href="https://www.wikidata.org/wiki/{{ $person[$field]['id'] }}" target="_blank" class="text-decoration-none">
                                     {{ WikidataPropertyController::getQLabel($person[$field]['id']) }}
+                                    <span class="badge bg-secondary text-white ms-1">{{ $person[$field]['id'] }}</span>
                                     <i class="bi bi-box-arrow-up-right ms-1 small"></i>
                                 </a>
                             @elseif(is_string($person[$field]) && preg_match('/^Q\d+$/', $person[$field]))
                                 <a href="https://www.wikidata.org/wiki/{{ $person[$field] }}" target="_blank" class="text-decoration-none">
                                     {{ WikidataPropertyController::getQLabel($person[$field]) }}
+                                    <span class="badge bg-secondary text-white ms-1">{{ $person[$field] }}</span>
                                     <i class="bi bi-box-arrow-up-right ms-1 small"></i>
                                 </a>
                             @else
-                                {{ $person[$field] }}
+                                @if(is_array($person[$field]) && !isset($person[$field]['id']))
+                                    @if(count($person[$field]) > 0)
+                                        <div class="d-inline-block">
+                                            @foreach($person[$field] as $index => $item)
+                                                @if(is_string($item) && preg_match('/^Q\d+$/', $item))
+                                                    <a href="https://www.wikidata.org/wiki/{{ $item }}" target="_blank" class="text-decoration-none">
+                                                        {{ WikidataPropertyController::getQLabel($item) }}
+                                                        <span class="badge bg-secondary text-white ms-1">{{ $item }}</span>
+                                                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                                    </a>
+                                                @elseif(is_array($item) && isset($item['id']) && preg_match('/^Q\d+$/', $item['id']))
+                                                    <a href="https://www.wikidata.org/wiki/{{ $item['id'] }}" target="_blank" class="text-decoration-none">
+                                                        {{ WikidataPropertyController::getQLabel($item['id']) }}
+                                                        <span class="badge bg-secondary text-white ms-1">{{ $item['id'] }}</span>
+                                                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                                    </a>
+                                                @else
+                                                    {{ is_string($item) ? $item : json_encode($item) }}
+                                                @endif
+                                                @if($index < count($person[$field]) - 1), @endif
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                @else
+                                    {{ is_string($person[$field]) ? $person[$field] : json_encode($person[$field]) }}
+                                @endif
                             @endif
                         </div>
                     @endif
@@ -93,10 +122,37 @@ $wikidataFields = ['gender', 'place_of_birth', 'place_of_death', 'place_of_deten
                             <strong>{{ WikidataPropertyController::translatePropertyLabel($key) }}:</strong>
                             @if(is_string($value) && preg_match('/^Q\d+$/', $value))
                                 {{ WikidataPropertyController::getQLabel($value) }}
+                                <span class="badge bg-secondary text-white ms-1">{{ $value }}</span>
                             @elseif(is_array($value) && isset($value['id']) && preg_match('/^Q\d+$/', $value['id']))
                                 {{ WikidataPropertyController::getQLabel($value['id']) }}
+                                <span class="badge bg-secondary text-white ms-1">{{ $value['id'] }}</span>
                             @else
-                                {{ $value }}
+                                @if(is_array($value) && !isset($value['id']))
+                                    @if(count($value) > 0)
+                                        <div class="d-inline-block">
+                                            @foreach($value as $index => $item)
+                                                @if(is_string($item) && preg_match('/^Q\d+$/', $item))
+                                                    <a href="https://www.wikidata.org/wiki/{{ $item }}" target="_blank" class="text-decoration-none">
+                                                        {{ WikidataPropertyController::getQLabel($item) }}
+                                                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                                    </a>
+                                                @elseif(is_array($item) && isset($item['id']) && preg_match('/^Q\d+$/', $item['id']))
+                                                    <a href="https://www.wikidata.org/wiki/{{ $item['id'] }}" target="_blank" class="text-decoration-none">
+                                                        {{ WikidataPropertyController::getQLabel($item['id']) }}
+                                                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                                    </a>
+                                                @else
+                                                    {{ is_string($item) ? $item : json_encode($item) }}
+                                                @endif
+                                                @if($index < count($value) - 1), @endif
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                @else
+                                    {{ is_string($value) ? $value : json_encode($value) }}
+                                @endif
                             @endif
                         </div>
                     @endif

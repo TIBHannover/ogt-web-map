@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\WikidataAuthController;
 use App\Http\Controllers\WikidataController;
 use App\Http\Controllers\WikidataPropertyController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\PasswordController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -65,6 +67,16 @@ Route::middleware(["auth"])->group(function () {
         return view("profile");
     })->name("profile");
 
+    // Password management
+    Route::get("/password/change", [
+        PasswordController::class,
+        "showChangePasswordForm",
+    ])->name("password.form");
+    Route::post("/password/change", [
+        PasswordController::class,
+        "changePassword",
+    ])->name("password.change");
+
     Route::get("/connect/wikidata", [
         WikidataAuthController::class,
         "connectAccount",
@@ -104,9 +116,33 @@ Route::prefix("admin")
             DashboardController::class,
             "updateRequest",
         ])->name("admin.requests.update");
-        Route::get("/users", [DashboardController::class, "users"])->name(
+        // User management routes
+        Route::get("/users", [UserController::class, "index"])->name(
             "admin.users",
         );
+        Route::get("/users/create", [UserController::class, "create"])->name(
+            "admin.users.create",
+        );
+        Route::post("/users", [UserController::class, "store"])->name(
+            "admin.users.store",
+        );
+
+        // User role management
+        Route::post("/users/{id}/promote", [
+            UserController::class,
+            "promote",
+        ])->name("admin.user.promote");
+
+        Route::delete("/users/{id}/demote", [
+            UserController::class,
+            "demote",
+        ])->name("admin.user.demote");
+
+        // Admin password reset
+        Route::post("/users/{id}/reset-password", [
+            UserController::class,
+            "resetPassword",
+        ])->name("admin.users.reset-password");
 
         // Jobs management routes
         Route::get("/jobs", [

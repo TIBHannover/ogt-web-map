@@ -40,6 +40,7 @@ class FactGridEntityMappingProvider implements EntityMappingProviderInterface
         "DEATH_DATE" => "F570", // Example ID - replace with actual FactGrid ID
         "PLACE_OF_BIRTH" => "F19", // Example ID - replace with actual FactGrid ID
         "PLACE_OF_DEATH" => "F20", // Example ID - replace with actual FactGrid ID
+        "PLACE_OF_RESIDENCE" => "F551", // Example ID - replace with actual FactGrid ID
         "OCCUPATION" => "F106", // Example ID - replace with actual FactGrid ID
         "SUBJECT_HAS_ROLE" => "F2868", // Example ID - replace with actual FactGrid ID
         "SIGNIFICANT_EVENT" => "F793", // Example ID - replace with actual FactGrid ID

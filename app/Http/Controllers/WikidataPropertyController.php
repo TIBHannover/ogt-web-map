@@ -15,18 +15,43 @@ class WikidataPropertyController extends Controller
      * @param string $language The language code (default: 'de')
      * @return array The entity data with label and description
      */
+    /**
+     * Static version of getByQNumber for direct usage without instantiating the controller
+     *
+     * @param string $qNumber The Wikidata Q number
+     * @param string $language The preferred language
+     * @return array The entity data with label and description
+     */
+    public static function getEntityData($qNumber, $language = "de")
+    {
+        // Create a controller instance and delegate to instance method
+        $controller = new self();
+        return $controller->getByQNumber($qNumber, $language);
+    }
+
     public function getByQNumber($qNumber, $language = "de")
     {
         try {
             $client = new Client();
             $url = "https://www.wikidata.org/w/api.php";
 
+            // Log the request we're making
+            Log::info("Fetching Wikidata entity", [
+                "qNumber" => $qNumber,
+                "language" => $language,
+            ]);
+
             $response = $client->request("GET", $url, [
                 "query" => [
                     "action" => "wbgetentities",
                     "ids" => $qNumber,
-                    "languages" => $language,
+                    "languages" => "{$language}|en", // Try both German and English as fallback
                     "format" => "json",
+                    "origin" => "*", // Required for CORS
+                ],
+                "headers" => [
+                    "User-Agent" =>
+                        "OGT-API/1.0 (https://www.gestapo-terror-orte.de/; admin@gestapo-terror-orte.de)",
                 ],
                 "timeout" => 10,
                 "connect_timeout" => 5,
@@ -34,15 +59,43 @@ class WikidataPropertyController extends Controller
 
             $data = json_decode($response->getBody(), true);
 
+            // Log response success
+            Log::debug("Wikidata API response received", [
+                "qNumber" => $qNumber,
+                "hasEntity" => isset($data["entities"][$qNumber]),
+            ]);
+
             if (isset($data["entities"][$qNumber])) {
                 $entity = $data["entities"][$qNumber];
 
+                // Try to get label in preferred language, then English, then any available language
+                $label = $qNumber;
+                if (isset($entity["labels"][$language]["value"])) {
+                    $label = $entity["labels"][$language]["value"];
+                } elseif (isset($entity["labels"]["en"]["value"])) {
+                    $label = $entity["labels"]["en"]["value"];
+                } elseif (!empty($entity["labels"])) {
+                    // Get first available label if preferred languages not found
+                    $firstLang = array_key_first($entity["labels"]);
+                    $label = $entity["labels"][$firstLang]["value"] ?? $qNumber;
+                }
+
+                // Same approach for description
+                $description = null;
+                if (isset($entity["descriptions"][$language]["value"])) {
+                    $description = $entity["descriptions"][$language]["value"];
+                } elseif (isset($entity["descriptions"]["en"]["value"])) {
+                    $description = $entity["descriptions"]["en"]["value"];
+                } elseif (!empty($entity["descriptions"])) {
+                    $firstLang = array_key_first($entity["descriptions"]);
+                    $description =
+                        $entity["descriptions"][$firstLang]["value"] ?? null;
+                }
+
                 return [
                     "id" => $qNumber,
-                    "label" =>
-                        $entity["labels"][$language]["value"] ?? $qNumber,
-                    "description" =>
-                        $entity["descriptions"][$language]["value"] ?? null,
+                    "label" => $label,
+                    "description" => $description,
                 ];
             }
 
@@ -78,20 +131,36 @@ class WikidataPropertyController extends Controller
             return $qNumber;
         }
 
-        // Cache-Key erstellen
-        $cacheKey = "wikidata_label_{$qNumber}_{$language}";
+        // Cache-Key erstellen - using a common cache key regardless of language
+        // to ensure we get at least some label
+        $cacheKey = "wikidata_label_{$qNumber}";
 
         // Aus Cache abrufen, wenn vorhanden
         if (Cache::has($cacheKey)) {
-            return Cache::get($cacheKey);
+            $label = Cache::get($cacheKey);
+            Log::debug("Retrieved label from cache", [
+                "qNumber" => $qNumber,
+                "label" => $label,
+            ]);
+            return $label;
         }
 
         try {
-            // Neue Instanz des Controllers erstellen für den API-Aufruf
-            $controller = new self();
-            $data = $controller->getByQNumber($qNumber, $language);
+            // Use static method for convenience
+            $data = self::getEntityData($qNumber, $language);
 
             $label = $data["label"] ?? $qNumber;
+
+            // Log successful label retrieval
+            if ($label !== $qNumber) {
+                Log::info(
+                    "Successfully retrieved label for {$qNumber}: {$label}",
+                );
+            } else {
+                Log::warning(
+                    "Could not retrieve proper label for {$qNumber}, using Q number as fallback",
+                );
+            }
 
             // Im Cache speichern (für 7 Tage)
             Cache::put($cacheKey, $label, 60 * 24 * 7);
@@ -101,8 +170,17 @@ class WikidataPropertyController extends Controller
             Log::error(
                 "Fehler beim Abrufen des Labels für {$qNumber}: " .
                     $e->getMessage(),
+                [
+                    "qNumber" => $qNumber,
+                    "trace" => $e->getTraceAsString(),
+                ],
             );
-            return $qNumber;
+
+            // Store the error in cache to avoid repeated failed requests
+            // but with a shorter expiration (1 hour)
+            Cache::put($cacheKey, $qNumber, 60);
+
+            return "{$qNumber}"; // Return as string to ensure it's displayed properly
         }
     }
 

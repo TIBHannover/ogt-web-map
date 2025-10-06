@@ -246,6 +246,10 @@
     align-items: center;
 }
 
+.forms fieldset div.type-selection-grid {
+    flex-direction: column;
+}
+
 .forms fieldset div input {
     margin-right: 0.75rem;
     width: 1rem;
@@ -418,6 +422,9 @@
     font-size: 0.8rem;
     display: inline-flex;
     align-items: center;
+}
+.source-link:hover {
+    text-decoration: underline;
 }
 
 .remove-source {
@@ -1276,6 +1283,13 @@ label.section-label {
 
 .result-metadata span {
     margin-right: 0.75rem;
+}
+
+.wikidata-link {
+    text-decoration: none;
+}
+.wikidata-link:hover {
+    text-decoration: underline;
 }
 
 @media (max-width: 1200px) {

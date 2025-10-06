@@ -6,6 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\WikibaseEntryRequest;
 use App\Services\Wikibase\WikibaseService;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -14,30 +18,33 @@ class DashboardController extends Controller
      *
      * @return \Illuminate\View\View
      */
-    public function index()
+    public function index(): View
     {
         // Statistiken für das Dashboard abrufen
         $stats = [
-            "pending_requests" => WikibaseEntryRequest::where(
+            "pending_requests" => \App\Models\WikibaseEntryRequest::where(
                 "status",
-                "pending"
+                "pending",
             )->count(),
-            "approved_requests" => WikibaseEntryRequest::where(
+            "approved_requests" => \App\Models\WikibaseEntryRequest::where(
                 "status",
-                "approved"
+                "approved",
             )->count(),
-            "rejected_requests" => WikibaseEntryRequest::where(
+            "rejected_requests" => \App\Models\WikibaseEntryRequest::where(
                 "status",
-                "rejected"
+                "rejected",
             )->count(),
-            "error_requests" => WikibaseEntryRequest::where(
+            "error_requests" => \App\Models\WikibaseEntryRequest::where(
                 "status",
-                "error"
+                "error",
             )->count(),
         ];
 
         // Letzte Anfragen abrufen
-        $latestRequests = WikibaseEntryRequest::orderBy("created_at", "desc")
+        $latestRequests = \App\Models\WikibaseEntryRequest::orderBy(
+            "created_at",
+            "desc",
+        )
             ->limit(5)
             ->get();
 
@@ -53,7 +60,7 @@ class DashboardController extends Controller
      * @param WikibaseService $wikidataService
      * @return \Illuminate\View\View
      */
-    public function wikidataSettings(WikibaseService $wikidataService)
+    public function wikidataSettings(WikibaseService $wikidataService): View
     {
         $hasCredentials = $wikidataService->hasValidCredentials();
 
@@ -68,7 +75,7 @@ class DashboardController extends Controller
      * @param Request $request
      * @return \Illuminate\View\View
      */
-    public function requests(Request $request)
+    public function requests(Request $request): View
     {
         $status = $request->input("status", "all");
         $query = WikibaseEntryRequest::query();
@@ -90,10 +97,10 @@ class DashboardController extends Controller
      *
      * @return \Illuminate\View\View
      */
-    public function users()
+    public function users(): View
     {
-        // Nur für Super-Admin zugu00e4nglich
-        if (!auth()->user()->isAdmin()) {
+        // Nur für Super-Admin zugänglich
+        if (!Auth::check() || !Auth::user()->is_admin) {
             abort(403, "Unbefugter Zugriff");
         }
 
@@ -108,7 +115,7 @@ class DashboardController extends Controller
      * @param int $id Die ID der Anfrage
      * @return \Illuminate\View\View
      */
-    public function showRequest($id)
+    public function showRequest($id): View
     {
         $request = WikibaseEntryRequest::findOrFail($id);
 
@@ -123,7 +130,7 @@ class DashboardController extends Controller
      * @param int $id Die ID der Anfrage
      * @return \Illuminate\View\View
      */
-    public function editRequest($id)
+    public function editRequest($id): View
     {
         $request = WikibaseEntryRequest::findOrFail($id);
 
@@ -139,146 +146,201 @@ class DashboardController extends Controller
      * @param int $id Die ID der Anfrage
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function updateRequest(Request $request, $id)
-    {
+    public function updateRequest(
+        Request $request,
+        $id,
+    ): RedirectResponse|JsonResponse {
         try {
             $entryRequest = WikibaseEntryRequest::findOrFail($id);
-            
+
             // Debug information
-            \Log::info('Update request data', [
-                'request_data' => $request->all(),
-                'id' => $id,
-                'content_type' => $request->header('Content-Type')
+            \Log::info("Update request data", [
+                "request_data" => $request->all(),
+                "id" => $id,
+                "content_type" => $request->header("Content-Type"),
             ]);
-            
+
             // Data processing depends on content type
             $data = $request->all();
-            
+
             // If we're receiving JSON data
-            if ($request->header('Content-Type') == 'application/json') {
+            if ($request->header("Content-Type") == "application/json") {
                 // Parse array fields from strings if needed
-                $jsonFields = ['victims', 'perpetrators', 'selected_causes', 'sources', 'coordinates'];
-                
+                $jsonFields = [
+                    "victims",
+                    "perpetrators",
+                    "selected_causes",
+                    "sources",
+                    "coordinates",
+                ];
+
                 foreach ($jsonFields as $field) {
                     if (isset($data[$field]) && is_string($data[$field])) {
                         try {
                             $data[$field] = json_decode($data[$field], true);
-                            \Log::info("Decoded JSON string {$field}", ['value' => $data[$field]]);
-                        } catch (\Exception $e) {
-                            \Log::warning("Failed to decode JSON string {$field}", [
-                                'error' => $e->getMessage(),
-                                'value' => $data[$field]
+                            \Log::info("Decoded JSON string {$field}", [
+                                "value" => $data[$field],
                             ]);
+                        } catch (\Exception $e) {
+                            \Log::warning(
+                                "Failed to decode JSON string {$field}",
+                                [
+                                    "error" => $e->getMessage(),
+                                    "value" => $data[$field],
+                                ],
+                            );
                         }
                     }
                 }
             } else {
                 // Handle form data - similar to before
-                $jsonFields = ['victims', 'perpetrators', 'selected_causes', 'sources'];
-                
+                $jsonFields = [
+                    "victims",
+                    "perpetrators",
+                    "selected_causes",
+                    "sources",
+                ];
+
                 foreach ($jsonFields as $field) {
                     if (isset($data[$field]) && is_string($data[$field])) {
                         try {
                             // Only decode if it's a string and appears to be JSON
-                            if (str_starts_with(trim($data[$field]), '[') || str_starts_with(trim($data[$field]), '{')) {
-                                $data[$field] = json_decode($data[$field], true);
-                                \Log::info("Decoded {$field}", ['value' => $data[$field]]);
+                            if (
+                                str_starts_with(trim($data[$field]), "[") ||
+                                str_starts_with(trim($data[$field]), "{")
+                            ) {
+                                $data[$field] = json_decode(
+                                    $data[$field],
+                                    true,
+                                );
+                                \Log::info("Decoded {$field}", [
+                                    "value" => $data[$field],
+                                ]);
                             }
                         } catch (\Exception $jsonEx) {
                             \Log::warning("Failed to decode {$field}", [
-                                'error' => $jsonEx->getMessage(),
-                                'value' => $data[$field]
+                                "error" => $jsonEx->getMessage(),
+                                "value" => $data[$field],
                             ]);
                         }
                     }
                 }
-                
+
                 // Handle coordinates special case
-                if (isset($data['coordinates']) && is_string($data['coordinates'])) {
+                if (
+                    isset($data["coordinates"]) &&
+                    is_string($data["coordinates"])
+                ) {
                     try {
-                        if (str_starts_with(trim($data['coordinates']), '{') || 
-                            str_starts_with(trim($data['coordinates']), '[')) {
-                            $data['coordinates'] = json_decode($data['coordinates'], true);
-                            \Log::info("Decoded coordinates", ['value' => $data['coordinates']]);
+                        if (
+                            str_starts_with(trim($data["coordinates"]), "{") ||
+                            str_starts_with(trim($data["coordinates"]), "[")
+                        ) {
+                            $data["coordinates"] = json_decode(
+                                $data["coordinates"],
+                                true,
+                            );
+                            \Log::info("Decoded coordinates", [
+                                "value" => $data["coordinates"],
+                            ]);
                         }
                     } catch (\Exception $coordEx) {
                         \Log::warning("Failed to decode coordinates", [
-                            'error' => $coordEx->getMessage(),
-                            'value' => $data['coordinates']
+                            "error" => $coordEx->getMessage(),
+                            "value" => $data["coordinates"],
                         ]);
                     }
                 }
             }
-            
+
             // Handle numeric fields
-            $numericFields = ['victim_count', 'survivor_count', 'death_count', 'arrest_count'];
+            $numericFields = [
+                "victim_count",
+                "survivor_count",
+                "death_count",
+                "arrest_count",
+            ];
             foreach ($numericFields as $field) {
                 if (isset($data[$field])) {
                     // Convert to integer for numeric fields
                     $data[$field] = intval($data[$field]);
-                    \Log::info("Converted {$field} to integer", ['value' => $data[$field]]);
+                    \Log::info("Converted {$field} to integer", [
+                        "value" => $data[$field],
+                    ]);
                 }
             }
-            
+
             // Handle text fields - ensure they're properly handled as strings
-            $textFields = ['title', 'description'];
+            $textFields = ["title", "description"];
             foreach ($textFields as $field) {
                 if (isset($data[$field])) {
                     // Ensure it's a string
-                    $data[$field] = (string)$data[$field];
-                    \Log::info("Ensured {$field} is string", ['value' => $data[$field]]);
+                    $data[$field] = (string) $data[$field];
+                    \Log::info("Ensured {$field} is string", [
+                        "value" => $data[$field],
+                    ]);
                 }
             }
-            
+
             // Re-encode JSON fields for storage
             foreach ($jsonFields as $field) {
                 if (isset($data[$field]) && is_array($data[$field])) {
                     $data[$field] = json_encode($data[$field]);
-                    \Log::info("Re-encoded {$field} for storage", ['field' => $field]);
+                    \Log::info("Re-encoded {$field} for storage", [
+                        "field" => $field,
+                    ]);
                 }
             }
-            
+
             // Re-encode coordinates for storage
-            if (isset($data['coordinates']) && is_array($data['coordinates'])) {
-                $data['coordinates'] = json_encode($data['coordinates']);
+            if (isset($data["coordinates"]) && is_array($data["coordinates"])) {
+                $data["coordinates"] = json_encode($data["coordinates"]);
                 \Log::info("Re-encoded coordinates for storage");
             }
-            
+
             // Use direct DB update instead of Eloquent to bypass any potential issues
-            $updateResult = \DB::table('wikidata_entry_requests')
-                ->where('id', $id)
+            $updateResult = \DB::table("wikidata_entry_requests")
+                ->where("id", $id)
                 ->update($data);
-                
-            \Log::info('Update result via direct DB query', ['result' => $updateResult]);
-            
-            // Refresh the model from the database to ensure we have the latest data
-            $entryRequest = WikibaseEntryRequest::findOrFail($id);
-            
-            // Log some fields to verify they were updated
-            \Log::info('Field values after update', [
-                'title' => $entryRequest->title,
-                'description' => $entryRequest->description,
-                'victim_count' => $entryRequest->victim_count,
-                'survivor_count' => $entryRequest->survivor_count,
-                'death_count' => $entryRequest->death_count,
-                'arrest_count' => $entryRequest->arrest_count
+
+            \Log::info("Update result via direct DB query", [
+                "result" => $updateResult,
             ]);
 
-            \Log::info('Request updated successfully', ['id' => $id]);
-            
+            // Refresh the model from the database to ensure we have the latest data
+            $entryRequest = WikibaseEntryRequest::findOrFail($id);
+
+            // Log some fields to verify they were updated
+            \Log::info("Field values after update", [
+                "title" => $entryRequest->title,
+                "description" => $entryRequest->description,
+                "victim_count" => $entryRequest->victim_count,
+                "survivor_count" => $entryRequest->survivor_count,
+                "death_count" => $entryRequest->death_count,
+                "arrest_count" => $entryRequest->arrest_count,
+            ]);
+
+            \Log::info("Request updated successfully", ["id" => $id]);
+
             // Return with a cache-busting parameter
             return redirect()
-                ->route('admin.requests.show', ['id' => $id, 'refresh' => time()])
-                ->with('success', 'Die Anfrage wurde erfolgreich aktualisiert.');
+                ->route("admin.requests.show", [
+                    "id" => $id,
+                    "refresh" => time(),
+                ])
+                ->with(
+                    "success",
+                    "Die Anfrage wurde erfolgreich aktualisiert.",
+                );
         } catch (\Exception $e) {
-            \Log::error('Error updating request', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'request_data' => $request->all(),
-                'id' => $id
+            \Log::error("Error updating request", [
+                "error" => $e->getMessage(),
+                "trace" => $e->getTraceAsString(),
+                "request_data" => $request->all(),
+                "id" => $id,
             ]);
-            
-            return response()->json(['error' => $e->getMessage()], 500);
+
+            return response()->json(["error" => $e->getMessage()], 500);
         }
     }
 }

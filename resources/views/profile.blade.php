@@ -34,6 +34,10 @@
                         <input type="email" class="form-control" value="{{ Auth::user()->email }}" readonly>
                     </div>
 
+                    <div class="mb-3">
+                        <a href="{{ route('password.form') }}" class="btn btn-primary">Passwort ändern</a>
+                    </div>
+
                     <hr>
 
                     <h4>Wikidata-Verbindung</h4>

@@ -18,6 +18,28 @@
             </v-col>
         </v-row>
 
+        <v-row v-if="currentStep === 1">
+            <v-col>
+                <div class="forms-container">
+                    <h2 class="step-title">
+                        Du möchtest uns helfen? So funktioniert's!
+                    </h2>
+                    <div class="info-section">
+                        <p>
+                            Bitte wähle den Eintragstyp aus, welchen du anlegen
+                            möchtest. Die verschiedenen Typen werden auf der
+                            Karte mit unterschiedlichen Markierungen angezeigt.
+                        </p>
+                        <p>
+                            Jeder Eintragstyp ermöglicht es dir, spezifische
+                            historische Informationen zu dokumentieren. Wähle
+                            den Typ, der am besten zu deinem Eintrag passt.
+                        </p>
+                    </div>
+                </div>
+            </v-col>
+        </v-row>
+
         <v-row>
             <v-col>
                 <div class="forms-container">
@@ -27,104 +49,451 @@
                             <h2 class="step-title">
                                 Schritt 1: Wähle den Eintragstyp
                             </h2>
-                            <p>
-                                Bitte wähle den Eintragstyp aus welchen du
-                                anlegen möchtest.
-                            </p>
                             <form class="forms">
                                 <fieldset>
-                                    <legend for="type">Eintrag-Typ</legend>
-                                    <div>
-                                        <input
-                                            v-model="formsType"
-                                            name="type"
-                                            type="radio"
-                                            value="Q6983405"
-                                            id="type-Q6983405"
-                                            @change="updateTypeInfo"
-                                        />
-                                        <label for="type-Q6983405"
-                                            >Ereignis</label
+                                    <div class="type-selection-grid">
+                                        <!-- Ereignis -->
+                                        <div
+                                            class="type-box"
+                                            :class="{
+                                                selected:
+                                                    formsType === 'Q6983405',
+                                            }"
+                                            @click="
+                                                formsType = 'Q6983405';
+                                                updateTypeInfo();
+                                            "
                                         >
-                                    </div>
-                                    <!--
-                                    <div>
-                                        <input
-                                            v-model="formsType"
-                                            name="type"
-                                            type="radio"
-                                            value="Q5003624"
-                                            id="type-Q5003624"
-                                            @change="updateTypeInfo"
-                                        />
-                                        <label for="type-Q5003624"
-                                            >Erinnerungsort</label
+                                            <div
+                                                class="info-icon-container d-lg-none"
+                                                @click.stop="
+                                                    showTypeInfoPopup(
+                                                        'Q6983405',
+                                                    )
+                                                "
+                                                title="Mehr Informationen"
+                                            >
+                                                <v-icon
+                                                    color="primary"
+                                                    size="small"
+                                                    >mdi-information-outline</v-icon
+                                                >
+                                            </div>
+                                            <input
+                                                v-model="formsType"
+                                                name="type"
+                                                type="radio"
+                                                value="Q6983405"
+                                                id="type-Q6983405"
+                                                class="type-radio"
+                                            />
+                                            <div class="type-icon">
+                                                <img
+                                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/events.svg`"
+                                                    alt="Ereignis Icon"
+                                                />
+                                            </div>
+                                            <div class="type-data">
+                                                <div class="type-label">
+                                                    Ereignis
+                                                </div>
+                                                <div class="type-description">
+                                                    Historische Geschehnisse im
+                                                    Zeitraum 1933-1945
+                                                </div>
+                                                <div
+                                                    class="type-action-container"
+                                                >
+                                                    <transition name="fade">
+                                                        <button
+                                                            v-if="
+                                                                formsType ===
+                                                                'Q6983405'
+                                                            "
+                                                            class="type-action-button"
+                                                            type="button"
+                                                            @click="
+                                                                openTitleOverlay
+                                                            "
+                                                        >
+                                                            Jetzt ein Ereignis
+                                                            anlegen
+                                                        </button>
+                                                    </transition>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Erinnerungsort -->
+                                        <!--
+                                        <div
+                                            class="type-box"
+                                            :class="{
+                                                selected:
+                                                    formsType === 'Q5003624',
+                                            }"
+                                            @click="
+                                                formsType = 'Q5003624';
+                                                updateTypeInfo();
+                                            "
                                         >
-                                    </div>
-                                    <div>
-                                        <input
-                                            v-model="formsType"
-                                            name="type"
-                                            type="radio"
-                                            value="Q108047567"
-                                            id="type-Q108047567"
-                                            @change="updateTypeInfo"
-                                        />
-                                        <label for="type-Q108047567"
-                                            >Staatspolizeistelle</label
+                                            <div
+                                                class="info-icon-container d-lg-none"
+                                                @click.stop="
+                                                    showTypeInfoPopup(
+                                                        'Q5003624',
+                                                    )
+                                                "
+                                                title="Mehr Informationen"
+                                            >
+                                                <v-icon
+                                                    color="primary"
+                                                    size="small"
+                                                    >mdi-information-outline</v-icon
+                                                >
+                                            </div>
+                                            <input
+                                                v-model="formsType"
+                                                name="type"
+                                                type="radio"
+                                                value="Q5003624"
+                                                id="type-Q5003624"
+                                                class="type-radio"
+                                            />
+                                            <div class="type-icon">
+                                                <img
+                                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/memorials.svg`"
+                                                    alt="Erinnerungsort Icon"
+                                                />
+                                            </div>
+                                            <div class="type-data">
+                                                <div class="type-label">
+                                                    Erinnerungsort
+                                                </div>
+                                                <div class="type-description">
+                                                    Physische Orte, die an die
+                                                    Opfer des
+                                                    Nationalsozialismus erinnern
+                                                </div>
+                                                <div
+                                                    class="type-action-container"
+                                                >
+                                                    <transition name="fade">
+                                                        <button
+                                                            v-if="
+                                                                formsType ===
+                                                                'Q5003624'
+                                                            "
+                                                            class="type-action-button"
+                                                            type="button"
+                                                            @click="
+                                                                openTitleOverlay
+                                                            "
+                                                        >
+                                                            Jetzt einen
+                                                            Erinnerungsort
+                                                            anlegen
+                                                        </button>
+                                                    </transition>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        -->
+                                        <!-- Staatspolizeistelle -->
+                                        <!--
+                                        <div
+                                            class="type-box"
+                                            :class="{
+                                                selected:
+                                                    formsType === 'Q108047567',
+                                            }"
+                                            @click="
+                                                formsType = 'Q108047567';
+                                                updateTypeInfo();
+                                            "
                                         >
-                                    </div>
-                                    <div>
-                                        <input
-                                            v-model="formsType"
-                                            name="type"
-                                            type="radio"
-                                            value="Q108047541"
-                                            id="type-Q108047541"
-                                            @change="updateTypeInfo"
-                                        />
-                                        <label for="type-Q108047541"
-                                            >Staatspolizeiaußenstelle</label
+                                            <div
+                                                class="info-icon-container d-lg-none"
+                                                @click.stop="
+                                                    showTypeInfoPopup(
+                                                        'Q108047567',
+                                                    )
+                                                "
+                                                title="Mehr Informationen"
+                                            >
+                                                <v-icon
+                                                    color="primary"
+                                                    size="small"
+                                                    >mdi-information-outline</v-icon
+                                                >
+                                            </div>
+                                            <input
+                                                v-model="formsType"
+                                                name="type"
+                                                type="radio"
+                                                value="Q108047567"
+                                                id="type-Q108047567"
+                                                class="type-radio"
+                                            />
+                                            <div class="type-icon">
+                                                <img
+                                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/statePoliceOffices.svg`"
+                                                    alt="Staatspolizeistelle Icon"
+                                                />
+                                            </div>
+                                            <div class="type-data">
+                                                <div class="type-label">
+                                                    Staatspolizeistelle
+                                                </div>
+                                                <div class="type-description">
+                                                    Regionale Dienstellen der
+                                                    Geheimen Staatspolizei
+                                                </div>
+                                                <div
+                                                    class="type-action-container"
+                                                >
+                                                    <transition name="fade">
+                                                        <button
+                                                            v-if="
+                                                                formsType ===
+                                                                'Q108047567'
+                                                            "
+                                                            class="type-action-button"
+                                                            type="button"
+                                                            @click="
+                                                                openTitleOverlay
+                                                            "
+                                                        >
+                                                            Jetzt eine
+                                                            Staatspolizeistelle
+                                                            anlegen
+                                                        </button>
+                                                    </transition>
+                                                </div>
+                                            </div>
+                                        </div>
+-->
+                                        <!-- Staatspolizeiaußenstelle -->
+                                        <!--
+                                        <div
+                                            class="type-box"
+                                            :class="{
+                                                selected:
+                                                    formsType === 'Q108047541',
+                                            }"
+                                            @click="
+                                                formsType = 'Q108047541';
+                                                updateTypeInfo();
+                                            "
                                         >
-                                    </div>
-                                    <div>
-                                        <input
-                                            v-model="formsType"
-                                            name="type"
-                                            type="radio"
-                                            value="Q277565"
-                                            id="type-Q277565"
-                                            @change="updateTypeInfo"
-                                        />
-                                        <label for="type-Q277565"
-                                            >Arbeitserziehungslager</label
+                                            <div
+                                                class="info-icon-container d-lg-none d-lg-none"
+                                                @click.stop="
+                                                    showTypeInfoPopup(
+                                                        'Q108047541',
+                                                    )
+                                                "
+                                                title="Mehr Informationen"
+                                            >
+                                                <v-icon
+                                                    color="primary"
+                                                    size="small"
+                                                    >mdi-information-outline</v-icon
+                                                >
+                                            </div>
+                                            <input
+                                                v-model="formsType"
+                                                name="type"
+                                                type="radio"
+                                                value="Q108047541"
+                                                id="type-Q108047541"
+                                                class="type-radio"
+                                            />
+                                            <div class="type-icon">
+                                                <img
+                                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/fieldOffices.svg`"
+                                                    alt="Staatspolizeiaußenstelle Icon"
+                                                />
+                                            </div>
+                                            <div class="type-data">
+                                                <div class="type-label">
+                                                    Staatspolizeiaußenstelle
+                                                </div>
+                                                <div class="type-description">
+                                                    Lokale Zweigstellen einer
+                                                    Staatspolizeistelle
+                                                </div>
+                                                <div
+                                                    class="type-action-container"
+                                                >
+                                                    <transition name="fade">
+                                                        <button
+                                                            v-if="
+                                                                formsType ===
+                                                                'Q108047541'
+                                                            "
+                                                            class="type-action-button"
+                                                            type="button"
+                                                            @click="
+                                                                openTitleOverlay
+                                                            "
+                                                        >
+                                                            Jetzt eine
+                                                            Staatspolizeiaußenstelle
+                                                            anlegen
+                                                        </button>
+                                                    </transition>
+                                                </div>
+                                            </div>
+                                        </div>
+-->
+                                        <!-- Arbeitserziehungslager -->
+                                        <!--
+                                        <div
+                                            class="type-box"
+                                            :class="{
+                                                selected:
+                                                    formsType === 'Q277565',
+                                            }"
+                                            @click="
+                                                formsType = 'Q277565';
+                                                updateTypeInfo();
+                                            "
                                         >
-                                    </div>
-                                    <div>
-                                        <input
-                                            v-model="formsType"
-                                            name="type"
-                                            type="radio"
-                                            value="Q40357"
-                                            id="type-Q40357"
-                                            @change="updateTypeInfo"
-                                        />
-                                        <label for="type-Q40357"
-                                            >Gefängnis</label
+                                            <div
+                                                class="info-icon-container d-lg-none"
+                                                @click.stop="
+                                                    showTypeInfoPopup('Q277565')
+                                                "
+                                                title="Mehr Informationen"
+                                            >
+                                                <v-icon
+                                                    color="primary"
+                                                    size="small"
+                                                    >mdi-information-outline</v-icon
+                                                >
+                                            </div>
+                                            <input
+                                                v-model="formsType"
+                                                name="type"
+                                                type="radio"
+                                                value="Q277565"
+                                                id="type-Q277565"
+                                                class="type-radio"
+                                            />
+                                            <div class="type-icon">
+                                                <img
+                                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/laborEducationCamps.svg`"
+                                                    alt="Arbeitserziehungslager Icon"
+                                                />
+                                            </div>
+                                            <div class="type-data">
+                                                <div class="type-label">
+                                                    Arbeitserziehungslager
+                                                </div>
+                                                <div class="type-description">
+                                                    Haftsystem der Gestapo
+                                                    während des
+                                                    Nationalsozialismus
+                                                </div>
+                                                <div
+                                                    class="type-action-container"
+                                                >
+                                                    <transition name="fade">
+                                                        <button
+                                                            v-if="
+                                                                formsType ===
+                                                                'Q277565'
+                                                            "
+                                                            class="type-action-button"
+                                                            type="button"
+                                                            @click="
+                                                                openTitleOverlay
+                                                            "
+                                                        >
+                                                            Jetzt ein
+                                                            Arbeitserziehungslager
+                                                            anlegen
+                                                        </button>
+                                                    </transition>
+                                                </div>
+                                            </div>
+                                        </div>
+-->
+                                        <!-- Gefängnis -->
+                                        <!--
+                                        <div
+                                            class="type-box"
+                                            :class="{
+                                                selected:
+                                                    formsType === 'Q40357',
+                                            }"
+                                            @click="
+                                                formsType = 'Q40357';
+                                                updateTypeInfo();
+                                            "
                                         >
+                                            <div
+                                                class="info-icon-container d-lg-none"
+                                                @click.stop="
+                                                    showTypeInfoPopup('Q40357')
+                                                "
+                                                title="Mehr Informationen"
+                                            >
+                                                <v-icon
+                                                    color="primary"
+                                                    size="small"
+                                                    >mdi-information-outline</v-icon
+                                                >
+                                            </div>
+                                            <input
+                                                v-model="formsType"
+                                                name="type"
+                                                type="radio"
+                                                value="Q40357"
+                                                id="type-Q40357"
+                                                class="type-radio"
+                                            />
+                                            <div class="type-icon">
+                                                <img
+                                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/prisons.svg`"
+                                                    alt="Gefängnis Icon"
+                                                />
+                                            </div>
+                                            <div class="type-data">
+                                                <div class="type-label">
+                                                    Gefängnis
+                                                </div>
+                                                <div class="type-description">
+                                                    Haftanstalten, die während
+                                                    der NS-Zeit für politische
+                                                    Gegner genutzt wurden
+                                                </div>
+                                                <div
+                                                    class="type-action-container"
+                                                >
+                                                    <transition name="fade">
+                                                        <button
+                                                            v-if="
+                                                                formsType ===
+                                                                'Q40357'
+                                                            "
+                                                            class="type-action-button"
+                                                            type="button"
+                                                            @click="
+                                                                openTitleOverlay
+                                                            "
+                                                        >
+                                                            Jetzt ein Gefängnis
+                                                            anlegen
+                                                        </button>
+                                                    </transition>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        -->
                                     </div>
-                                    -->
                                 </fieldset>
-                                <div class="button-container">
-                                    <button
-                                        class="button"
-                                        type="button"
-                                        @click="openTitleOverlay"
-                                        :disabled="!formsType"
-                                    >
-                                        Weiter
-                                    </button>
-                                </div>
                             </form>
                         </div>
 
@@ -302,23 +671,50 @@
                 <br /><br /><br /><br />
             </v-col>
         </v-row>
+        <v-row>
+            <v-col>
+                <div class="forms-container">
+                    <div class="info-section">
+                        <h2 class="step-title">Du brauchst Hilfe?</h2>
+                        <p>
+                            Hier findest du alle Informationen zum Anlegen eines
+                            neuen Eintrags
+                        </p>
+
+                        <div class="button-container">
+                            <router-link
+                                to="/eintrag-informationen"
+                                class="entry-button"
+                            >
+                                <v-btn color="primary" size="large">
+                                    <v-icon class="mr-2"
+                                        >mdi-information</v-icon
+                                    >
+                                    Wie lege ich einen Eintrag an
+                                </v-btn>
+                            </router-link>
+                        </div>
+                    </div>
+                </div>
+            </v-col>
+        </v-row>
     </v-container>
 
     <!-- Mobile Info-Overlay -->
     <div
         class="mobile-info-overlay"
-        v-if="showMobileInfoOverlay && isMobileView"
+        v-if="showMobileInfoOverlay"
         @click="closeMobileInfoOverlay"
     >
         <div class="overlay-content" @click.stop>
             <div class="overlay-header">
-                <h3>{{ getTypeInfoTitle() }}</h3>
+                <h3 class="text-black">{{ getTypeInfoTitle() }}</h3>
                 <button class="close-overlay" @click="closeMobileInfoOverlay">
-                    &times;
+                    <v-icon>mdi-close</v-icon>
                 </button>
             </div>
             <div class="overlay-body">
-                <div v-html="typeInfoContent"></div>
+                <div v-html="typeInfoContent" class="info-content"></div>
             </div>
         </div>
     </div>
@@ -356,7 +752,7 @@ const props = defineProps({
 const router = useRouter();
 const freeClientWidth = ref(document.documentElement.clientWidth);
 const error = ref(null);
-const formsType = ref("Q6983405");
+const formsType = ref("");
 const formsTitle = ref(null);
 const formsDescription = ref(null);
 const isSubmitting = ref(false);
@@ -372,14 +768,16 @@ const newVictim = ref({
     deathDate: null,
     description: "",
     birthName: "",
-    imageUrl: null,
-    imageFilename: null,
     isOrganization: false,
     gender: null,
     nationality: null,
     place_of_birth: null,
     place_of_death: null,
-    place_of_detention: null,
+    place_of_detention: [],
+    place_of_residence: null,
+    occupation: null,
+    imageUrl: null,
+    imageFilename: null,
 });
 const lastSearchQuery = ref("");
 
@@ -395,14 +793,16 @@ const newPerpetrator = ref({
     deathDate: null,
     description: "",
     birthName: "",
-    imageUrl: null,
-    imageFilename: null,
     isOrganization: false,
     gender: null,
     nationality: null,
     place_of_birth: null,
     place_of_death: null,
-    place_of_detention: null,
+    place_of_detention: [],
+    place_of_residence: null,
+    occupation: null,
+    imageUrl: null,
+    imageFilename: null,
 });
 const lastPerpetratorSearchQuery = ref("");
 
@@ -414,10 +814,10 @@ const eventStartDateQualifier = ref("");
 const eventEndDate = ref(null);
 const eventEndDateQualifier = ref("");
 
-const victimCount = ref(0);
-const survivorCount = ref(0);
-const deathCount = ref(0);
-const arrestCount = ref(0);
+const victimCount = ref(null);
+const survivorCount = ref(null);
+const deathCount = ref(null);
+const arrestCount = ref(null);
 const victimCountQualifier = ref("");
 const survivorCountQualifier = ref("");
 const deathCountQualifier = ref("");
@@ -486,7 +886,53 @@ const checkScreenSize = () => {
 const typeInfoContent = ref("");
 const showMobileInfoOverlay = ref(false);
 
-const updateTypeInfo = () => {
+const showTypeInfoPopup = (typeValue) => {
+    // Store the type we're showing info for
+    displayedInfoType.value = typeValue;
+
+    // Get content for the clicked type without changing selection
+    const typeToGlossaryMapping = {
+        Q6983405: "Ereignis",
+        Q5003624: "Erinnerungsort",
+        Q108047567: "Staatspolizeistelle",
+        Q108047541: "Außendienststelle", // Im Glossar als "Außendienststelle"
+        Q277565: "Arbeitserziehungslager",
+        Q40357: "Gefängnis",
+    };
+
+    // Get the corresponding glossary item key for the clicked type
+    const glossaryKey = typeToGlossaryMapping[typeValue];
+
+    // Get the glossary item if it exists
+    const glossaryItem = glossaryKey ? glossaryItems[glossaryKey] : null;
+
+    if (glossaryItem) {
+        let content = "";
+
+        glossaryItem.descriptions.forEach((desc) => {
+            if (typeof desc === "string") {
+                content += `<p>${desc}</p>`;
+            } else if (Array.isArray(desc)) {
+                content += "<ul class='info-list'>";
+                desc.forEach((item) => {
+                    content += `<li>${item}</li>`;
+                });
+                content += "</ul>";
+            }
+        });
+
+        typeInfoContent.value = content;
+    } else {
+        typeInfoContent.value = "";
+    }
+
+    // Show the popup
+    showMobileInfoOverlay.value = true;
+};
+
+const updateTypeInfoContent = () => {
+    // This function is now only used when updating the type selection
+    // The showTypeInfoPopup function handles the popup content directly
     const typeToGlossaryMapping = {
         Q6983405: "Ereignis",
         Q5003624: "Erinnerungsort",
@@ -509,7 +955,7 @@ const updateTypeInfo = () => {
             if (typeof desc === "string") {
                 content += `<p>${desc}</p>`;
             } else if (Array.isArray(desc)) {
-                content += "<ul>";
+                content += "<ul class='info-list'>";
                 desc.forEach((item) => {
                     content += `<li>${item}</li>`;
                 });
@@ -521,16 +967,24 @@ const updateTypeInfo = () => {
     } else {
         typeInfoContent.value = "";
     }
+};
 
-    if (isMobileView.value && typeInfoContent.value) {
-        showMobileInfoOverlay.value = true;
-    }
+const updateTypeInfo = () => {
+    // Update the info content for the currently selected type
+    updateTypeInfoContent();
+
+    // No longer automatically showing overlay on type selection
+    // Info icon will be used instead
 };
 
 // Close mobile info overlay
 const closeMobileInfoOverlay = () => {
     showMobileInfoOverlay.value = false;
+    displayedInfoType.value = ""; // Reset the displayed info type
 };
+
+// Reference to store which type's info is currently being displayed
+const displayedInfoType = ref("");
 
 const getTypeInfoTitle = () => {
     const typeTitles = {
@@ -542,7 +996,11 @@ const getTypeInfoTitle = () => {
         Q40357: "Gefängnis",
     };
 
-    return typeTitles[formsType.value] || "Eintragstyp";
+    // Use displayedInfoType for popups, otherwise use the selected formsType
+    const typeToUse = showMobileInfoOverlay.value
+        ? displayedInfoType.value
+        : formsType.value;
+    return typeTitles[typeToUse] || "Eintragstyp";
 };
 
 const showTitleOverlay = ref(false);
@@ -778,14 +1236,16 @@ const resetNewVictimForm = () => {
         deathDate: null,
         description: "",
         birthName: "",
-        imageUrl: null,
-        imageFilename: null,
         isOrganization: false,
         gender: null,
         nationality: null,
         place_of_birth: null,
         place_of_death: null,
-        place_of_detention: null,
+        place_of_detention: [],
+        place_of_residence: null,
+        occupation: null,
+        imageUrl: null,
+        imageFilename: null,
     };
     lastSearchQuery.value = "";
 };
@@ -808,7 +1268,9 @@ const addNewVictim = () => {
         nationality: newVictim.value.nationality || null,
         place_of_birth: newVictim.value.place_of_birth || null,
         place_of_death: newVictim.value.place_of_death || null,
-        place_of_detention: newVictim.value.place_of_detention || null,
+        place_of_detention: newVictim.value.place_of_detention || [],
+        place_of_residence: newVictim.value.place_of_residence || null,
+        occupation: newVictim.value.occupation || null,
     });
 
     showNewVictimForm.value = false;
@@ -890,14 +1352,16 @@ const resetNewPerpetratorForm = () => {
         deathDate: null,
         description: "",
         birthName: "",
-        imageUrl: null,
-        imageFilename: null,
         isOrganization: false,
         gender: null,
         nationality: null,
         place_of_birth: null,
         place_of_death: null,
-        place_of_detention: null,
+        place_of_detention: [],
+        place_of_residence: null,
+        occupation: null,
+        imageUrl: null,
+        imageFilename: null,
     };
     lastPerpetratorSearchQuery.value = "";
 };
@@ -920,7 +1384,9 @@ const addNewPerpetrator = () => {
         nationality: newPerpetrator.value.nationality || null,
         place_of_birth: newPerpetrator.value.place_of_birth || null,
         place_of_death: newPerpetrator.value.place_of_death || null,
-        place_of_detention: newPerpetrator.value.place_of_detention || null,
+        place_of_detention: newPerpetrator.value.place_of_detention || [],
+        place_of_residence: newPerpetrator.value.place_of_residence || null,
+        occupation: newPerpetrator.value.occupation || null,
     });
 
     showNewPerpetratorForm.value = false;
@@ -1218,12 +1684,18 @@ const clearForm = () => {
         birthDate: null,
         deathDate: null,
         description: "",
+        birthName: "",
         isOrganization: false,
         gender: null,
         nationality: null,
         place_of_birth: null,
         place_of_death: null,
-        place_of_detention: null,
+        place_of_detention: [],
+        place_of_residence: null,
+        occupation: null,
+        imageUrl: null,
+        imageFilename: null,
+        place_of_detention: [],
     };
     showNewVictimForm.value = false;
 
@@ -1234,12 +1706,23 @@ const clearForm = () => {
         birthDate: null,
         deathDate: null,
         description: "",
+        birthName: "",
         isOrganization: false,
         gender: null,
         nationality: null,
         place_of_birth: null,
         place_of_death: null,
-        place_of_detention: null,
+        place_of_detention: [],
+        place_of_residence: null,
+        occupation: null,
+        imageUrl: null,
+        imageFilename: null,
+        isOrganization: false,
+        gender: null,
+        nationality: null,
+        place_of_birth: null,
+        place_of_death: null,
+        place_of_detention: [],
     };
     showNewPerpetratorForm.value = false;
 
@@ -1248,10 +1731,10 @@ const clearForm = () => {
     eventStartDate.value = null;
     eventEndDate.value = null;
 
-    victimCount.value = 0;
-    survivorCount.value = 0;
-    deathCount.value = 0;
-    arrestCount.value = 0;
+    victimCount.value = null;
+    survivorCount.value = null;
+    deathCount.value = null;
+    arrestCount.value = null;
     victimCountQualifier.value = "";
     survivorCountQualifier.value = "";
     deathCountQualifier.value = "";
@@ -1312,6 +1795,184 @@ onUnmounted(() => {
 
 <style>
 @import "./entry/styles/form-styles.css";
+
+/* Type Selection Styling */
+.info-icon-container {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 5;
+    cursor: pointer;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    padding: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.info-icon-container d-lg-none:hover {
+    background-color: rgba(33, 150, 243, 0.1);
+    transform: scale(1.1);
+}
+
+.info-content p {
+    margin-bottom: 12px;
+    line-height: 1.6;
+}
+
+.info-content .info-list {
+    margin-bottom: 15px;
+    padding-left: 25px;
+}
+
+.info-content .info-list li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.type-action-container {
+    margin-top: 10px;
+    width: 100%;
+    min-height: 40px; /* Reserve space for the button */
+    position: relative;
+}
+
+.type-action-button {
+    background-color: #2196f3;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    width: 100%;
+}
+
+.type-action-button:hover {
+    background-color: #1976d2;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* Fade transition for button appearance */
+.fade-enter-active,
+.fade-leave-active {
+    transition:
+        opacity 0.3s ease,
+        transform 0.3s ease;
+    position: absolute;
+    width: 100%; /* Full width of the container */
+    left: 0;
+    right: 0;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+    transform: translateY(0);
+}
+
+/* Type Selection Styling */
+.info-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-left: 3px solid #2196f3;
+    border-radius: 4px;
+}
+
+.type-selection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.type-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding: 15px;
+    gap: 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    position: relative;
+    overflow: visible; /* Ensure the info icon is visible */
+}
+
+.type-box:hover {
+    border-color: #2196f3;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+}
+
+.type-box.selected {
+    border-color: #2196f3;
+    background-color: rgba(33, 150, 243, 0.1);
+    box-shadow: 0 3px 10px rgba(33, 150, 243, 0.3);
+}
+
+.type-radio {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.type-icon {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 60px;
+}
+
+.type-icon img {
+    height: 100%;
+    width: auto;
+}
+
+.forms fieldset div.type-label {
+    font-weight: 500;
+    text-align: center;
+    margin-top: 0;
+}
+
+.forms fieldset div.type-data {
+    align-items: unset;
+    flex-direction: column;
+    margin-top: 0;
+}
+
+.forms fieldset div.type-description {
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .type-selection-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+}
+
+.step-container {
+}
+
+.info-box {
+    margin-top: 0;
+}
+
+@media (max-width: 768px) {
+    .step-container,
+    .info-box {
+        width: 100%;
+    }
+}
 </style>
 
 <style scoped></style>

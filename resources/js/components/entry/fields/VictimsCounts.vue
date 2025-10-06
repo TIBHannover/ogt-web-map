@@ -17,14 +17,10 @@
                     <input
                         type="number"
                         id="victim-count"
-                        :value="victimCount"
-                        @input="
-                            $emit(
-                                'update:victimCount',
-                                Number($event.target.value),
-                            )
-                        "
+                        :value="victimCount !== null ? victimCount : ''"
+                        @input="handleVictimCountChange($event)"
                         min="0"
+                        placeholder="Keine Angabe"
                         @focus="$emit('fieldFocus', 'victim-count')"
                     />
                     <IntegerQualifier
@@ -42,14 +38,10 @@
                     <input
                         type="number"
                         id="survivor-count"
-                        :value="survivorCount"
-                        @input="
-                            $emit(
-                                'update:survivorCount',
-                                Number($event.target.value),
-                            )
-                        "
+                        :value="survivorCount !== null ? survivorCount : ''"
+                        @input="handleSurvivorCountChange($event)"
                         min="0"
+                        placeholder="Keine Angabe"
                         @focus="$emit('fieldFocus', 'victim-count')"
                     />
                     <IntegerQualifier
@@ -67,14 +59,10 @@
                     <input
                         type="number"
                         id="death-count"
-                        :value="deathCount"
-                        @input="
-                            $emit(
-                                'update:deathCount',
-                                Number($event.target.value),
-                            )
-                        "
+                        :value="deathCount !== null ? deathCount : ''"
+                        @input="handleDeathCountChange($event)"
                         min="0"
+                        placeholder="Keine Angabe"
                         @focus="$emit('fieldFocus', 'victim-count')"
                     />
                     <IntegerQualifier
@@ -92,14 +80,10 @@
                     <input
                         type="number"
                         id="arrest-count"
-                        :value="arrestCount"
-                        @input="
-                            $emit(
-                                'update:arrestCount',
-                                Number($event.target.value),
-                            )
-                        "
+                        :value="arrestCount !== null ? arrestCount : ''"
+                        @input="handleArrestCountChange($event)"
                         min="0"
+                        placeholder="Keine Angabe"
                         @focus="$emit('fieldFocus', 'victim-count')"
                     />
                     <IntegerQualifier
@@ -118,22 +102,22 @@
 <script setup>
 import IntegerQualifier from "./common/IntegerQualifier.vue";
 
-defineProps({
+const props = defineProps({
     victimCount: {
         type: Number,
-        default: 0,
+        default: null,
     },
     survivorCount: {
         type: Number,
-        default: 0,
+        default: null,
     },
     deathCount: {
         type: Number,
-        default: 0,
+        default: null,
     },
     arrestCount: {
         type: Number,
-        default: 0,
+        default: null,
     },
     victimCountQualifier: {
         type: String,
@@ -153,7 +137,7 @@ defineProps({
     },
 });
 
-defineEmits([
+const emit = defineEmits([
     "update:victimCount",
     "update:survivorCount",
     "update:deathCount",
@@ -165,6 +149,28 @@ defineEmits([
     "fieldFocus",
     "infoButtonClick",
 ]);
+
+// Handle count changes
+const handleVictimCountChange = (event) => {
+    const value = event.target.value;
+    // If empty string (Keine Angabe), emit null
+    emit("update:victimCount", value === "" ? null : Number(value));
+};
+
+const handleSurvivorCountChange = (event) => {
+    const value = event.target.value;
+    emit("update:survivorCount", value === "" ? null : Number(value));
+};
+
+const handleDeathCountChange = (event) => {
+    const value = event.target.value;
+    emit("update:deathCount", value === "" ? null : Number(value));
+};
+
+const handleArrestCountChange = (event) => {
+    const value = event.target.value;
+    emit("update:arrestCount", value === "" ? null : Number(value));
+};
 </script>
 
 <style scoped>
@@ -235,5 +241,11 @@ defineEmits([
     outline: none;
     border-color: #1976d2;
     box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
+}
+
+/* Placeholder styling */
+.form-group input::placeholder {
+    color: #999;
+    font-style: italic;
 }
 </style>

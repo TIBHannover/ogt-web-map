@@ -42,6 +42,325 @@ class WikidataSearchController extends Controller
     }
 
     /**
+     * Search for occupations (professions) in Wikidata
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function searchOccupations(Request $request): JsonResponse
+    {
+        $request->validate([
+            "query" => "required|string|min:2",
+        ]);
+
+        $query = $request->input("query");
+        $limit = $request->input("limit", 10);
+
+        try {
+            // Check if it's a direct Q-ID query
+            if (preg_match('/^Q\d+$/', $query)) {
+                $entity = $this->getEntityDetails($query);
+
+                if ($entity) {
+                    $resultObj = ["id" => $query];
+
+                    $label = $this->getPrioritizedLabel($entity, $resultObj);
+                    $description = $this->getPrioritizedDescription(
+                        $entity,
+                        $resultObj,
+                    );
+
+                    return response()->json([
+                        "success" => true,
+                        "results" => [
+                            [
+                                "id" => $query,
+                                "label" => $label,
+                                "description" => $description,
+                            ],
+                        ],
+                    ]);
+                }
+            }
+
+            // SPARQL query to search for occupations (P31=Q28640 instance of occupation)
+            $sparqlQuery =
+                'SELECT DISTINCT ?item ?itemLabel ?itemDescription
+                WHERE {
+                  ?item wdt:P31 wd:Q28640.
+                  SERVICE wikibase:label {
+                    bd:serviceParam wikibase:language "de,en".
+                    ?item rdfs:label ?itemLabel.
+                    ?item schema:description ?itemDescription.
+                  }
+                  FILTER(CONTAINS(LCASE(?itemLabel), LCASE("' .
+                $query .
+                '")))
+                  FILTER(LANG(?itemLabel) = "de" || LANG(?itemLabel) = "en")
+                }
+                LIMIT ' .
+                $limit;
+
+            $response = $this->getSparqlClient()->get(
+                "https://query.wikidata.org/sparql",
+                [
+                    "query" => $sparqlQuery,
+                ],
+            );
+
+            if (!$response->successful()) {
+                Log::error("SPARQL query failed", [
+                    "status" => $response->status(),
+                    "body" => $response->body(),
+                ]);
+                return response()->json(
+                    [
+                        "success" => false,
+                        "message" => "Fehler bei der Suche",
+                    ],
+                    500,
+                );
+            }
+
+            $data = $response->json();
+            $results = [];
+
+            if (
+                isset($data["results"]["bindings"]) &&
+                count($data["results"]["bindings"]) > 0
+            ) {
+                foreach ($data["results"]["bindings"] as $binding) {
+                    $id = basename($binding["item"]["value"]);
+                    $label = $binding["itemLabel"]["value"] ?? $id;
+                    $description = $binding["itemDescription"]["value"] ?? "";
+
+                    $results[] = [
+                        "id" => $id,
+                        "label" => $label,
+                        "description" => $description,
+                    ];
+                }
+            }
+
+            return response()->json([
+                "success" => true,
+                "results" => $results,
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error searching for occupations", [
+                "query" => $query,
+                "error" => $e->getMessage(),
+                "trace" => $e->getTraceAsString(),
+            ]);
+
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" =>
+                        "Ein Fehler ist aufgetreten: " . $e->getMessage(),
+                ],
+                500,
+            );
+        }
+    }
+
+    /**
+     * Search for nationalities in Wikidata
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function searchNationalities(Request $request): JsonResponse
+    {
+        $request->validate([
+            "query" => "required|string|min:2",
+        ]);
+
+        $query = $request->input("query");
+        $limit = $request->input("limit", 10);
+
+        try {
+            // Check if it's a direct Q-ID query
+            if (preg_match('/^Q\d+$/', $query)) {
+                $entity = $this->getEntityDetails($query);
+
+                if ($entity) {
+                    $resultObj = ["id" => $query];
+
+                    $label = $this->getPrioritizedLabel($entity, $resultObj);
+                    $description = $this->getPrioritizedDescription(
+                        $entity,
+                        $resultObj,
+                    );
+
+                    return response()->json([
+                        "success" => true,
+                        "results" => [
+                            [
+                                "id" => $query,
+                                "label" => $label,
+                                "description" => $description,
+                            ],
+                        ],
+                    ]);
+                }
+            }
+
+            // For an empty query or very short query, return some predefined nationalities including Deutsches Reich
+            if (strlen($query) < 3) {
+                $predefinedNationalities = [
+                    [
+                        "id" => "Q1206012",
+                        "label" => "Deutsches Reich",
+                        "description" => "deutscher Nationalstaat (1871-1945)",
+                    ],
+                    [
+                        "id" => "Q183",
+                        "label" => "Deutschland",
+                        "description" =>
+                            "demokratischer und föderativer Staat in Mitteleuropa",
+                    ],
+                    [
+                        "id" => "Q40",
+                        "label" => "Österreich",
+                        "description" => "Staat in Mitteleuropa",
+                    ],
+                    [
+                        "id" => "Q39",
+                        "label" => "Schweiz",
+                        "description" => "Staat in Mitteleuropa",
+                    ],
+                ];
+
+                // If we have a query, filter the predefined results
+                if (!empty($query)) {
+                    $predefinedNationalities = array_filter(
+                        $predefinedNationalities,
+                        function ($nationality) use ($query) {
+                            return stripos($nationality["label"], $query) !==
+                                false;
+                        },
+                    );
+                }
+
+                return response()->json([
+                    "success" => true,
+                    "results" => array_values($predefinedNationalities),
+                ]);
+            }
+
+            // SPARQL query to search for countries and historical countries
+            $sparqlQuery =
+                'SELECT DISTINCT ?item ?itemLabel ?itemDescription
+                WHERE {
+                  {
+                    ?item wdt:P31 wd:Q6256.   # instance of country
+                  } UNION {
+                    ?item wdt:P31 wd:Q3024240. # instance of historical country
+                  } UNION {
+                    ?item wdt:P31 wd:Q1206012. # specifically include Deutsches Reich
+                  }
+                  SERVICE wikibase:label {
+                    bd:serviceParam wikibase:language "de,en".
+                    ?item rdfs:label ?itemLabel.
+                    ?item schema:description ?itemDescription.
+                  }
+                  FILTER(CONTAINS(LCASE(?itemLabel), LCASE("' .
+                $query .
+                '")))
+                  FILTER(LANG(?itemLabel) = "de" || LANG(?itemLabel) = "en")
+                }
+                LIMIT ' .
+                $limit;
+
+            $response = $this->getSparqlClient()->get(
+                "https://query.wikidata.org/sparql",
+                [
+                    "query" => $sparqlQuery,
+                ],
+            );
+
+            if (!$response->successful()) {
+                Log::error("SPARQL query failed", [
+                    "status" => $response->status(),
+                    "body" => $response->body(),
+                ]);
+                return response()->json(
+                    [
+                        "success" => false,
+                        "message" => "Fehler bei der Suche",
+                    ],
+                    500,
+                );
+            }
+
+            $data = $response->json();
+            $results = [];
+
+            if (
+                isset($data["results"]["bindings"]) &&
+                count($data["results"]["bindings"]) > 0
+            ) {
+                foreach ($data["results"]["bindings"] as $binding) {
+                    $id = basename($binding["item"]["value"]);
+                    $label = $binding["itemLabel"]["value"] ?? $id;
+                    $description = $binding["itemDescription"]["value"] ?? "";
+
+                    $results[] = [
+                        "id" => $id,
+                        "label" => $label,
+                        "description" => $description,
+                    ];
+                }
+            }
+
+            // Always ensure Deutsches Reich is in results if query matches
+            $includeReich = false;
+            if (stripos("deutsches reich", $query) !== false) {
+                $includeReich = true;
+
+                // Check if it's already in results
+                $reichExists = false;
+                foreach ($results as $result) {
+                    if ($result["id"] === "Q1206012") {
+                        $reichExists = true;
+                        break;
+                    }
+                }
+
+                // Add if not already there
+                if (!$reichExists) {
+                    array_unshift($results, [
+                        "id" => "Q1206012",
+                        "label" => "Deutsches Reich",
+                        "description" => "deutscher Nationalstaat (1871-1945)",
+                    ]);
+                }
+            }
+
+            return response()->json([
+                "success" => true,
+                "results" => $results,
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error searching for nationalities", [
+                "query" => $query,
+                "error" => $e->getMessage(),
+                "trace" => $e->getTraceAsString(),
+            ]);
+
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" =>
+                        "Ein Fehler ist aufgetreten: " . $e->getMessage(),
+                ],
+                500,
+            );
+        }
+    }
+
+    /**
      * Search for people, organizations, and Gestapo terror sites in Wikidata
      *
      * @param Request $request

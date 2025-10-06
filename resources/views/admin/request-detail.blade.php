@@ -3,6 +3,34 @@
 @php
 use App\Http\Controllers\WikidataPropertyController;
 use function App\Helpers\formatWikidataProperty;
+
+// Define the formatDateBasedOnPrecision function if it doesn't exist yet
+if (!function_exists('formatDateBasedOnPrecision')) {
+    function formatDateBasedOnPrecision($dateString) {
+        if (!$dateString) return '';
+
+        // Check format to determine precision
+        if (preg_match('/^\d{4}$/', $dateString)) {
+            // Year only
+            return $dateString;
+        } else if (preg_match('/^\d{4}-\d{2}$/', $dateString)) {
+            // Year and month
+            $date = \Carbon\Carbon::parse($dateString);
+            $monthNames = [
+                '01' => 'Januar', '02' => 'Februar', '03' => 'März',
+                '04' => 'April', '05' => 'Mai', '06' => 'Juni',
+                '07' => 'Juli', '08' => 'August', '09' => 'September',
+                '10' => 'Oktober', '11' => 'November', '12' => 'Dezember'
+            ];
+            $month = $date->format('m');
+            $year = $date->format('Y');
+            return $monthNames[$month] . ' ' . $year;
+        } else {
+            // Full date
+            return \Carbon\Carbon::parse($dateString)->format('d.m.Y');
+        }
+    }
+}
 @endphp
 
 @section('content')
@@ -188,32 +216,6 @@ use function App\Helpers\formatWikidataProperty;
                 <div class="card-body">
                     <!-- Ereignis (Q6983405) -->
                     @if($request->type == 'Q6983405')
-                        @php
-                            function formatDateBasedOnPrecision($dateString) {
-                                if (!$dateString) return '';
-
-                                // Check format to determine precision
-                                if (preg_match('/^\d{4}$/', $dateString)) {
-                                    // Year only
-                                    return $dateString;
-                                } else if (preg_match('/^\d{4}-\d{2}$/', $dateString)) {
-                                    // Year and month
-                                    $date = \Carbon\Carbon::parse($dateString);
-                                    $monthNames = [
-                                        '01' => 'Januar', '02' => 'Februar', '03' => 'März',
-                                        '04' => 'April', '05' => 'Mai', '06' => 'Juni',
-                                        '07' => 'Juli', '08' => 'August', '09' => 'September',
-                                        '10' => 'Oktober', '11' => 'November', '12' => 'Dezember'
-                                    ];
-                                    $month = $date->format('m');
-                                    $year = $date->format('Y');
-                                    return $monthNames[$month] . ' ' . $year;
-                                } else {
-                                    // Full date
-                                    return \Carbon\Carbon::parse($dateString)->format('d.m.Y');
-                                }
-                            }
-                        @endphp
                         @if($request->time_point || $request->time_period_start)
                             <div class="mb-3">
                                 <strong>

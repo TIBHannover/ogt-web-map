@@ -97,7 +97,7 @@
                                                 <span class="badge bg-info">In Wikidata veröffentlicht</span>
                                             @endif
                                         </td>
-                                        <td>{{ $request->created_at->format('d.m.Y H:i') }}</td>
+                                        <td>{{ is_string($request->created_at) ? date('d.m.Y H:i', strtotime($request->created_at)) : $request->created_at->format('d.m.Y H:i') }}</td>
                                         <td>{{ $request->wikidata_id ?? '-' }}</td>
                                         <td>
                                             <a href="{{ route('admin.requests.show', $request->id) }}" class="btn btn-sm btn-primary">
