@@ -60,9 +60,6 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url('/map') }}">Karte</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url('/entry') }}">Eintrag</a>
-                    </li>
                     @auth
                         @if(Auth::user()->is_admin)
                             <li class="nav-item">
@@ -118,15 +115,19 @@
                         <a href="{{ route('admin.requests') }}" class="{{ request()->routeIs('admin.requests') ? 'active' : '' }}">
                             Anfragen
                         </a>
+                        <!--
                         <a href="{{ route('admin.wikidata.settings') }}" class="{{ request()->routeIs('admin.wikidata.settings') ? 'active' : '' }}">
                             Wikidata-Einstellungen
                         </a>
+                        -->
                         <a href="{{ route('admin.users') }}" class="{{ request()->routeIs('admin.users') ? 'active' : '' }}">
                             Benutzer
                         </a>
+                        <!--
                         <a href="{{ route('admin.jobs.index') }}" class="{{ request()->routeIs('admin.jobs.index') ? 'active' : '' }}">
                             Jobs
                         </a>
+                        -->
                     </div>
                     <div class="col-md-10 main-content">
                         @yield('content')

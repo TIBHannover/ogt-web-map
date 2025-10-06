@@ -17,14 +17,14 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'is_admin',
-        'wikidata_id',
-        'wikidata_username',
-        'wikidata_token',
-        'wikidata_token_secret',
+        "name",
+        "email",
+        "password",
+        "is_admin",
+        "wikidata_id",
+        "wikidata_username",
+        "wikidata_token",
+        "wikidata_token_secret",
     ];
 
     /**
@@ -33,10 +33,10 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password',
-        'remember_token',
-        'wikidata_token',
-        'wikidata_token_secret',
+        "password",
+        "remember_token",
+        "wikidata_token",
+        "wikidata_token_secret",
     ];
 
     /**
@@ -45,18 +45,18 @@ class User extends Authenticatable
      * @var array
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'is_admin' => 'boolean',
+        "email_verified_at" => "datetime",
+        "is_admin" => "boolean",
     ];
 
     /**
-     * Pru00fcft, ob der Benutzer ein Administrator ist.
+     * Prüft, ob der Benutzer ein Administrator ist.
      *
      * @return bool
      */
     public function isAdmin()
     {
-        return $this->is_admin === true;
+        return $this->is_admin == true;
     }
 
     /**
