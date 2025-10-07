@@ -13,24 +13,24 @@
 
         <label for="title" class="">Titel *</label>
         <div class="title-input-container">
-            <input
-                :value="title"
-                @input="$emit('update:title', $event.target.value)"
+            <v-text-field
+                :model-value="title"
+                @update:model-value="$emit('update:title', $event)"
                 name="title"
-                type="text"
                 maxlength="250"
                 placeholder="z.B. Novemberpogrom 1938 in Osnabrück"
                 @focus="openTitleOverlay"
                 @focus.once="$emit('fieldFocus', 'title')"
-            />
-            <button
-                type="button"
-                class="search-button"
-                @click="openTitleOverlay"
-                title="Titel überprüfen"
-            >
-                <v-icon>mdi-magnify</v-icon>
-            </button>
+                append-inner-icon="mdi-magnify"
+                @click:append-inner="openTitleOverlay"
+                variant="outlined"
+                density="comfortable"
+                hide-details
+                single-line
+                color="primary"
+                bg-color="white"
+                class="title-search-field"
+            ></v-text-field>
         </div>
 
         <ValidationError
@@ -159,37 +159,13 @@ const updateTitleFromOverlay = (newTitle) => {
     console.log("BaseInfos: Title updated from overlay:", newTitle);
     // Do not mutate props directly
     emit("update:title", newTitle);
-
-    // Force immediate update on the input field
-    setTimeout(() => {
-        const titleInput = document.querySelector(
-            ".title-input-container input",
-        );
-        if (titleInput) {
-            titleInput.value = newTitle;
-            // Trigger an input event to ensure Vue's reactivity catches this
-            titleInput.dispatchEvent(new Event("input", { bubbles: true }));
-        }
-    }, 0);
+    closeTitleOverlay();
 };
 
 // Handle create from overlay
 const createFromOverlay = (title) => {
     console.log("BaseInfos: Title created from overlay:", title);
     emit("update:title", title);
-
-    // Force immediate update on the input field
-    setTimeout(() => {
-        const titleInput = document.querySelector(
-            ".title-input-container input",
-        );
-        if (titleInput) {
-            titleInput.value = title;
-            // Trigger an input event to ensure Vue's reactivity catches this
-            titleInput.dispatchEvent(new Event("input", { bubbles: true }));
-        }
-    }, 0);
-
     closeTitleOverlay();
 };
 
@@ -263,8 +239,40 @@ defineExpose({
 </script>
 
 <!-- Global form styles -->
-<style>
+<style scoped>
 @import "../styles/form-styles.css";
+
+.title-input-container {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.title-search-field {
+    width: 100%;
+}
+
+:deep(.title-search-field .v-field__append-inner) {
+    cursor: pointer;
+}
+
+:deep(.title-search-field .v-field__input) {
+    padding: 8px 16px;
+    min-height: 48px;
+}
+
+:deep(.title-search-field .v-icon) {
+    color: #1976d2;
+}
+
+:deep(.title-search-field .v-field--focused) {
+    border-color: #1976d2 !important;
+}
+
+:deep(.title-search-field .v-field) {
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: white;
+}
 </style>
 
 <style scoped>

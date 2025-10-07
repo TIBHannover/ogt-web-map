@@ -17,7 +17,7 @@
             <!-- Add Person button -->
             <v-btn
                 color="primary"
-                class="mt-2 mb-4 button bg-secondary"
+                class="mt-2 mb-4 button bg-secondary person-button"
                 @click="
                     (e) => {
                         forceResetAndOpen(false, e);
@@ -27,8 +27,10 @@
                 :data-action="'add-person'"
                 id="add-person-button"
             >
-                {{ label.includes("*") ? label.replace("*", "") : label }}
-                Person hinzufügen
+                <span class="button-text">
+                    {{ label.includes("*") ? label.replace("*", "") : label }}
+                    <span class="ms-1">Person hinzufügen</span>
+                </span>
             </v-btn>
 
             <br />
@@ -36,7 +38,7 @@
             <!-- Add Organization button -->
             <v-btn
                 color="primary"
-                class="mt-2 button bg-secondary"
+                class="mt-2 button bg-secondary person-button"
                 @click="
                     (e) => {
                         forceResetAndOpen(true, e);
@@ -46,8 +48,10 @@
                 :data-action="'add-organization'"
                 id="add-organization-button"
             >
-                {{ label.includes("*") ? label.replace("*", "") : label }}
-                Organisation hinzufügen
+                <span class="button-text">
+                    {{ label.includes("*") ? label.replace("*", "") : label }}
+                    <span class="ms-1">Organisation hinzufügen</span>
+                </span>
             </v-btn>
         </div>
 
@@ -1311,4 +1315,39 @@ defineExpose({
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+.search-button {
+    height: 56px;
+}
+
+.person-button {
+    white-space: normal !important;
+    height: auto !important;
+    min-height: 48px !important;
+    padding: 8px 16px !important;
+    line-height: 1.2 !important;
+    text-align: left !important;
+    word-break: break-word !important;
+}
+
+.button-text {
+    display: inline-block !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    hyphens: auto !important;
+}
+
+@media (max-width: 600px) {
+    .search-button {
+        display: none;
+    }
+
+    .person-button {
+        width: 100% !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        justify-content: center !important;
+        padding: 12px 16px !important;
+    }
+}
+</style>

@@ -1,7 +1,7 @@
 <template>
     <div class="container-section image-section">
         <div class="section-header">
-            <label class="section-label">Bild:</label>
+            <label class="section-label">Bild aus Wikimedia-Commons:</label>
             <button
                 type="button"
                 class="info-icon"
@@ -23,7 +23,7 @@
                     typeof imageUrl === "string" &&
                     imageUrl.trim() !== ""
                         ? "Bild ändern"
-                        : "Bild aus Wikimedia Commons auswählen"
+                        : "Bild auswählen"
                 }}
             </v-btn>
 

@@ -18,11 +18,11 @@
                 color="primary"
                 class="time-toggle"
             >
-                <v-btn value="point">
+                <v-btn value="point" class="time-type-btn">
                     <v-icon start>mdi-clock</v-icon>
                     Zeitpunkt
                 </v-btn>
-                <v-btn value="range">
+                <v-btn value="range" class="time-type-btn">
                     <v-icon start>mdi-calendar-range</v-icon>
                     Zeitraum
                 </v-btn>
@@ -388,7 +388,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import ValidationError from "../../helpers/ValidationError.vue";
 import DateQualifier from "./common/DateQualifier.vue";
 import { useValidation } from "../../../composables/useValidation";
@@ -458,6 +458,7 @@ const emit = defineEmits([
 
 // Local state for v-btn-toggle
 const localEventTimeType = ref(props.eventTimeType);
+const isMobileView = ref(window.innerWidth <= 600);
 
 // Local state for date fields
 const eventDate = ref(props.eventDate);
@@ -980,6 +981,20 @@ watch(localEventTimeType, (newValue) => {
     showValidationErrors.value = false;
 });
 
+const updateViewportState = () => {
+    isMobileView.value = window.innerWidth <= 600;
+};
+
+// Track window resize to update mobile view state
+onMounted(() => {
+    updateViewportState();
+    window.addEventListener("resize", updateViewportState);
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener("resize", updateViewportState);
+});
+
 watch(eventDate, (newValue) => {
     emit("update:eventDate", newValue);
 });
@@ -1159,6 +1174,16 @@ defineExpose({
     font-weight: 500;
 }
 
+.time-type-btn {
+    min-width: 120px;
+}
+
+@media (max-width: 600px) {
+    .time-type-btn {
+        justify-content: flex-start;
+    }
+}
+
 .info-icon {
     width: 24px;
     height: 24px;
@@ -1276,8 +1301,25 @@ input.v-field__input {
         margin-right: 0;
     }
 
+    .v-btn-group--density-comfortable.v-btn-group {
+        height: auto;
+    }
+
     .time-toggle {
         width: 100%;
+        flex-direction: column;
+    }
+
+    .time-toggle .v-btn {
+        width: 100%;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        height: 50px !important;
+        min-height: 50px !important;
+        padding: 10px !important;
+    }
+
+    .time-toggle .v-btn:last-child {
+        border-bottom: none;
     }
 
     .date-field-container {

@@ -1,4 +1,7 @@
-/* Base form styles */
+#container {
+    padding: 0.5rem;
+}
+
 .font-family-special-elite {
     font-family: "Special Elite" !important;
 }

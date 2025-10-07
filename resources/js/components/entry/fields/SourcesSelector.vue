@@ -1097,10 +1097,6 @@ const closeDialog = () => {
 </script>
 
 <style scoped>
-.sources-selector {
-    min-width: 500px;
-}
-
 .overlay-content {
     max-height: 80vh;
     overflow-y: auto;

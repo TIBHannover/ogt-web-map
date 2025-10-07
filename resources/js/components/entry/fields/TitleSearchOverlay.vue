@@ -3,7 +3,7 @@
         <div class="overlay-content">
             <div class="overlay-header">
                 <h3>{{ title }}</h3>
-                <button class="close-overlay" @click="$emit('close')">
+                <button class="close-overlay" @click="handleClose">
                     &times;
                 </button>
             </div>
@@ -15,11 +15,10 @@
                     <div class="input-group">
                         <label for="entry-title">Titel des Eintrags</label>
                         <div class="search-input-container">
-                            <input
+                            <v-text-field
                                 id="entry-title"
-                                type="text"
                                 v-model="localTitle"
-                                @input="onInput"
+                                @update:model-value="onInput"
                                 @keydown.enter="
                                     (e) => {
                                         e.preventDefault();
@@ -29,18 +28,31 @@
                                 placeholder="Titel eingeben..."
                                 maxlength="250"
                                 autocomplete="off"
-                                autofocus
-                            />
-                            <button
-                                class="button search-button"
-                                @click="performSearch"
-                                :disabled="!localTitle || localTitle.length < 3"
-                            >
-                                <v-icon size="small" class="me-1"
-                                    >mdi-magnify</v-icon
-                                >
-                                Suchen
-                            </button>
+                                append-inner-icon="mdi-magnify"
+                                @click:append-inner="
+                                    () => {
+                                        if (
+                                            localTitle &&
+                                            localTitle.length >= 3
+                                        ) {
+                                            performSearch();
+                                        }
+                                    }
+                                "
+                                :class="{
+                                    'disabled-icon':
+                                        !localTitle || localTitle.length < 3,
+                                }"
+                                ref="titleInput"
+                                variant="outlined"
+                                density="comfortable"
+                                hide-details
+                                single-line
+                                color="primary"
+                                bg-color="white"
+                                class="title-overlay-search-field"
+                                clearable
+                            ></v-text-field>
                         </div>
                     </div>
                     <div class="search-info-box">
@@ -194,7 +206,6 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from "vue";
-import { debounce } from "lodash";
 import axios from "axios";
 
 const props = defineProps({
@@ -226,6 +237,19 @@ const searchPerformed = ref(false);
 const noExistingEntry = ref(false);
 const isMobileView = ref(false);
 
+// Watch for changes to initialTitle
+watch(
+    () => props.initialTitle,
+    (newValue) => {
+        localTitle.value = newValue || "";
+        // Reset search state when initial title changes
+        searchResults.value = [];
+        searchPerformed.value = false;
+        noExistingEntry.value = false;
+    },
+    { immediate: true },
+);
+
 // Check screen size for responsive design
 const checkScreenSize = () => {
     isMobileView.value = window.innerWidth < 1200;
@@ -235,6 +259,22 @@ const checkScreenSize = () => {
 onMounted(() => {
     checkScreenSize();
     window.addEventListener("resize", checkScreenSize);
+
+    // Reset search state on mount
+    searchResults.value = [];
+    searchPerformed.value = false;
+    noExistingEntry.value = false;
+
+    // Focus and select the text field
+    setTimeout(() => {
+        const input = document.querySelector(
+            ".title-overlay-search-field .v-field__input",
+        );
+        if (input) {
+            input.focus();
+            input.select();
+        }
+    }, 300);
 });
 
 onUnmounted(() => {
@@ -252,6 +292,16 @@ const performSearch = async (event) => {
     if (!localTitle.value || localTitle.value.length < 3) {
         return;
     }
+
+    // Focus back on the input after search
+    setTimeout(() => {
+        const input = document.querySelector(
+            ".title-overlay-search-field .v-field__input",
+        );
+        if (input) {
+            input.focus();
+        }
+    }, 50);
 
     searchResults.value = [];
     isLoading.value = true;
@@ -285,16 +335,28 @@ const performSearch = async (event) => {
 };
 
 // Update title when input changes
-const onInput = () => {
-    if (props.context === "update") {
-        emit("update:title", localTitle.value);
+const onInput = (value) => {
+    // Always emit update event regardless of context
+    emit("update:title", value);
+
+    // Clear any previous search results when typing
+    if (searchResults.value.length > 0 && value !== props.initialTitle) {
+        searchPerformed.value = false;
+        searchResults.value = [];
     }
-    // Search no longer triggered automatically on input
 };
 
 // Open wikidata entry in new tab
 const openWikidata = (id) => {
     window.open(`https://www.wikidata.org/wiki/${id}`, "_blank");
+};
+
+// Clean up state when dialog is closed
+const handleClose = () => {
+    searchResults.value = [];
+    searchPerformed.value = false;
+    noExistingEntry.value = false;
+    emit("close");
 };
 
 // Get the type info title based on entry type
@@ -358,6 +420,43 @@ watch(
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.search-input-container {
+    width: 100%;
+    position: relative;
+}
+
+.title-overlay-search-field {
+    width: 100%;
+}
+
+:deep(.title-overlay-search-field .v-field__append-inner) {
+    cursor: pointer;
+}
+
+:deep(.disabled-icon .v-field__append-inner) {
+    opacity: 0.5;
+    cursor: default;
+}
+
+:deep(.title-overlay-search-field .v-field__input) {
+    padding: 8px 16px;
+    min-height: 48px;
+}
+
+:deep(.title-overlay-search-field .v-icon) {
+    color: #1976d2;
+}
+
+:deep(.title-overlay-search-field .v-field--focused) {
+    border-color: #1976d2 !important;
+}
+
+:deep(.title-overlay-search-field .v-field) {
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: white;
 }
 
 .overlay-content {

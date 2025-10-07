@@ -11,16 +11,22 @@
             </button>
         </div>
         <div class="map-search">
-            <input
-                :value="locationSearch"
-                @input="handleInputChange($event)"
-                type="text"
-                class="map-search-input"
+            <v-text-field
+                v-model="localLocationSearch"
+                class="map-search-input location-search-field"
                 placeholder="Adresse oder Ort suchen..."
                 @keydown.enter.prevent="handleSearchLocation"
                 @focus="$emit('fieldFocus', 'location')"
+                append-inner-icon="mdi-magnify"
+                @click:append-inner="handleSearchLocation"
+                density="comfortable"
+                variant="outlined"
+                hide-details
+                color="primary"
+                bg-color="white"
+                single-line
+                @update:model-value="handleInputChange"
             />
-            <button type="button" @click="handleSearchLocation">Suchen</button>
         </div>
 
         <ValidationError
@@ -85,7 +91,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, watch } from "vue";
+import { ref, onMounted, onUnmounted, watch } from "vue";
 import * as L from "leaflet";
 import { LMap, LTileLayer, LMarker } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -96,6 +102,7 @@ import { useValidation } from "../../../composables/useValidation";
 // State for search error messages
 const searchErrorMessage = ref("");
 const noResultsError = ref(false);
+const localLocationSearch = ref("");
 
 // Original alert function reference for the monkey patch
 let originalAlert;
@@ -136,6 +143,11 @@ const emit = defineEmits([
     "validation",
     "searchError",
 ]);
+
+// Initialize local search value from prop
+onMounted(() => {
+    localLocationSearch.value = props.locationSearch || "";
+});
 
 // Map reference und Initialisierung
 const mapRef = ref(null);
@@ -276,18 +288,29 @@ const applyLeafletCSS = () => {
 };
 
 // Input change handler to clear error message when typing
-const handleInputChange = (event) => {
+const handleInputChange = (newValue) => {
     // Clear error messages when user types
     clearSearchError();
 
-    // Update the search text
-    emit("update:locationSearch", event.target.value);
+    // Update the parent with new value
+    emit("update:locationSearch", newValue);
 };
+
+// Watch for prop changes and update local value
+watch(
+    () => props.locationSearch,
+    (newValue) => {
+        if (newValue !== localLocationSearch.value) {
+            localLocationSearch.value = newValue || "";
+            clearSearchError();
+        }
+    },
+);
 
 // Handler for search button click or enter key
 const handleSearchLocation = () => {
     // Check for empty search input
-    if (!props.locationSearch || props.locationSearch.trim() === "") {
+    if (!localLocationSearch.value || localLocationSearch.value.trim() === "") {
         setSearchError("Bitte gib eine Adresse oder einen Ort ein.");
         return;
     }
@@ -295,7 +318,8 @@ const handleSearchLocation = () => {
     // Clear any previous error
     clearSearchError();
 
-    // Forward the search event to parent
+    // Update parent and trigger search
+    emit("update:locationSearch", localLocationSearch.value);
     emit("searchLocation");
 };
 
@@ -368,6 +392,42 @@ onUnmounted(() => {
     }
 });
 </script>
-<style>
+<style scoped>
 @import "../styles/form-styles.css";
+
+.map-search {
+    margin: 0.5rem 0;
+    width: 100%;
+    position: relative;
+    z-index: 10;
+    max-width: 600px;
+}
+
+.location-search-field {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+:deep(.location-search-field .v-field__append-inner) {
+    cursor: pointer;
+}
+
+:deep(.location-search-field .v-field__input) {
+    padding: 8px 16px;
+    min-height: 48px;
+}
+
+:deep(.location-search-field .v-icon) {
+    color: #1976d2;
+}
+
+:deep(.location-search-field .v-field--focused) {
+    border-color: #1976d2 !important;
+}
+
+:deep(.location-search-field .v-field) {
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: white;
+}
 </style>
