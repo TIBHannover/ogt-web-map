@@ -39,6 +39,7 @@ class WikidataEntityController extends Controller
             "coordinates_qualifier" => "nullable|string",
             "victims" => "nullable|array",
             "perpetrators" => "nullable|array",
+            "isStandalonePerson" => "nullable|boolean",
             "eventTimeType" => "nullable|string|in:point,range",
             "eventDate" => "nullable|string",
             "eventDateQualifier" => "nullable|string",
@@ -77,6 +78,8 @@ class WikidataEntityController extends Controller
                 $validated["coordinates_qualifier"] ?? null;
             $entryRequest->victims = $validated["victims"] ?? null;
             $entryRequest->perpetrators = $validated["perpetrators"] ?? null;
+            $entryRequest->is_standalone_person =
+                $validated["isStandalonePerson"] ?? false;
             $entryRequest->gender = $validated["gender"] ?? null;
             $entryRequest->nationality = $validated["nationality"] ?? null;
             $entryRequest->place_of_birth =

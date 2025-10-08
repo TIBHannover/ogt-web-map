@@ -87,7 +87,7 @@
                                 <div class="result-id">{{ result.id }}</div>
                                 <button
                                     class="open-wikidata-button"
-                                    @click="openWikidata(result.id)"
+                                    @click.stop="openWikidata(result.id)"
                                 >
                                     <v-icon size="small"
                                         >mdi-open-in-new</v-icon
@@ -207,6 +207,10 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from "vue";
 import axios from "axios";
+import { computed } from "vue";
+
+// Add debugging
+console.log("TitleSearchOverlay component loading");
 
 const props = defineProps({
     initialTitle: {
@@ -229,6 +233,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:title", "close", "create"]);
+console.log("TitleSearchOverlay props:", props);
 
 const localTitle = ref(props.initialTitle || "");
 const searchResults = ref([]);
@@ -352,16 +357,19 @@ const openWikidata = (id) => {
 };
 
 // Clean up state when dialog is closed
-const handleClose = () => {
+const handleClose = (emitClose = true) => {
     searchResults.value = [];
     searchPerformed.value = false;
     noExistingEntry.value = false;
-    emit("close");
+    if (emitClose) {
+        emit("close");
+    }
 };
 
 // Get the type info title based on entry type
 const getTypeInfoTitle = () => {
     const typeTitles = {
+        Q5: "Person",
         Q6983405: "Ereignis",
         Q5003624: "Erinnerungsort",
         Q108047567: "Staatspolizeistelle",
@@ -370,33 +378,63 @@ const getTypeInfoTitle = () => {
         Q40357: "Gefängnis",
     };
 
-    return typeTitles[props.entryType] || "Eintragstyp";
+    console.log(
+        "TitleSearchOverlay getTypeInfoTitle for entry type:",
+        props.entryType,
+    );
+    const result = typeTitles[props.entryType] || "Eintragstyp";
+    console.log("Type info title result:", result);
+    return result;
 };
 
 // Get the create button text based on entry type and context
+// Get the button text based on context
 const getCreateButtonText = () => {
+    console.log("getCreateButtonText called, context:", props.context);
     if (props.context === "update") {
         return "Titel anpassen";
     }
-    return `${getTypeInfoTitle()} erstellen`;
+    const buttonText = `${getTypeInfoTitle()} erstellen`;
+    console.log("Button text:", buttonText);
+    return buttonText;
 };
 
 // Create the entry and proceed to the next step
+// Create or update entry
 const createEntry = () => {
+    console.log("createEntry called with title:", localTitle.value);
+    console.log(
+        "Context:",
+        props.context,
+        "noExistingEntry:",
+        noExistingEntry.value,
+    );
+
     if (!localTitle.value || localTitle.value.length < 3) {
+        console.log("Title is invalid, not proceeding");
         return;
     }
 
     // In update context, don't require the noExistingEntry checkbox
     if (props.context !== "update" && !noExistingEntry.value) {
+        console.log("Not in update context and checkbox not checked");
         return;
     }
 
-    // Make sure the title gets emitted properly
-    emit("update:title", localTitle.value);
+    // First close the overlay to prevent any interference with state
+    handleClose(false);
 
-    // Also emit the create event which is what BaseInfos.vue listens for
-    emit("create", localTitle.value);
+    // Make sure the title gets emitted properly after overlay is closed
+    setTimeout(() => {
+        console.log("Emitting update:title event with:", localTitle.value);
+        emit("update:title", localTitle.value);
+
+        // Also emit the create event which is what BaseInfos.vue listens for
+        console.log("Emitting create event with:", localTitle.value);
+        emit("create", localTitle.value);
+
+        console.log("Entry creation events emitted");
+    }, 0);
 };
 
 // Update local title when prop changes
@@ -632,7 +670,7 @@ watch(
 }
 
 .search-result-item:hover {
-    background-color: #f9f9f9;
+    background-color: #f8f8f8;
 }
 
 .result-title {
@@ -651,6 +689,7 @@ watch(
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: 6px;
 }
 
 .result-id {

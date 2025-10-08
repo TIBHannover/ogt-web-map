@@ -37,16 +37,16 @@
                             :label="searchLabel"
                             append-inner-icon="mdi-magnify"
                             @click:append-inner="performSearch"
-                            @keydown.enter="performSearch"
+                            @keydown.enter.prevent="(e) => performSearch()"
                             variant="outlined"
                             clearable
                             :loading="isLoading"
-                            autofocus
+                            ref="searchInputRef"
                         ></v-text-field>
                         <v-btn
                             color="primary"
                             class="ml-2"
-                            @click="performSearch"
+                            @click="() => performSearch()"
                             :disabled="!searchQuery.trim() || isLoading"
                             :loading="isLoading"
                         >
@@ -64,6 +64,21 @@
                             color="primary"
                         ></v-progress-circular>
                         <span class="ml-2">Suche läuft...</span>
+                    </div>
+
+                    <!-- Error message -->
+                    <div
+                        v-if="searchError"
+                        class="error-message-container pa-4 mb-4"
+                    >
+                        <v-alert
+                            type="warning"
+                            variant="tonal"
+                            density="compact"
+                            class="mb-0"
+                        >
+                            {{ searchError }}
+                        </v-alert>
                     </div>
 
                     <!-- Suggestions -->
@@ -211,13 +226,16 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(["update:modelValue", "search"]);
+const emit = defineEmits(["update:modelValue", "search", "search-error"]);
 
 // Local state
 const dialogOpen = ref(false);
 const searchQuery = ref("");
 const entityLabels = ref({});
 const loadingEntity = ref(false);
+const searchError = ref(null);
+const searchInputRef = ref(null);
+let searchDebounceTimer = null;
 
 // Function to fetch entity label from Wikidata
 const fetchEntityLabel = async (entityId) => {
@@ -237,42 +255,56 @@ const fetchEntityLabel = async (entityId) => {
         }
 
         // If that fails, try the Wikidata API directly
-        const wikidataResponse = await axios.get(
-            `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${entityId}&format=json&languages=de|en&props=labels|descriptions&origin=*`,
-        );
+        try {
+            const wikidataResponse = await axios.get(
+                `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${entityId}&format=json&languages=de|en&props=labels|descriptions&origin=*`,
+            );
 
-        if (
-            wikidataResponse.data &&
-            wikidataResponse.data.entities &&
-            wikidataResponse.data.entities[entityId]
-        ) {
-            const entity = wikidataResponse.data.entities[entityId];
-            let label = "";
-            let description = "";
+            if (
+                wikidataResponse.data &&
+                wikidataResponse.data.entities &&
+                wikidataResponse.data.entities[entityId]
+            ) {
+                const entity = wikidataResponse.data.entities[entityId];
+                let label = "";
+                let description = "";
 
-            // Try to get German label first, fall back to English
-            if (entity.labels && entity.labels.de) {
-                label = entity.labels.de.value;
-            } else if (entity.labels && entity.labels.en) {
-                label = entity.labels.en.value;
-            } else {
-                label = entityId; // Fallback to ID if no label found
+                // Try to get German label first, fall back to English
+                if (entity.labels && entity.labels.de) {
+                    label = entity.labels.de.value;
+                } else if (entity.labels && entity.labels.en) {
+                    label = entity.labels.en.value;
+                } else {
+                    label = entityId; // Fallback to ID if no label found
+                }
+
+                // Try to get German description first, fall back to English
+                if (entity.descriptions && entity.descriptions.de) {
+                    description = entity.descriptions.de.value;
+                } else if (entity.descriptions && entity.descriptions.en) {
+                    description = entity.descriptions.en.value;
+                }
+
+                entityLabels.value[entityId] = {
+                    label: label,
+                    description: description,
+                };
             }
-
-            // Try to get German description first, fall back to English
-            if (entity.descriptions && entity.descriptions.de) {
-                description = entity.descriptions.de.value;
-            } else if (entity.descriptions && entity.descriptions.en) {
-                description = entity.descriptions.en.value;
-            }
-
+        } catch (wikidataError) {
+            console.error("Error accessing Wikidata API:", wikidataError);
+            // Create a fallback entry with just the ID
             entityLabels.value[entityId] = {
-                label: label,
-                description: description,
+                label: entityId,
+                description: "Konnte Daten nicht laden",
             };
         }
     } catch (error) {
         console.error("Error fetching entity label:", error);
+        // Create a fallback entry with just the ID
+        entityLabels.value[entityId] = {
+            label: entityId,
+            description: "Fehler beim Laden",
+        };
     } finally {
         loadingEntity.value = false;
     }
@@ -337,14 +369,61 @@ const openDialog = () => {
     if (props.disabled) return;
     dialogOpen.value = true;
     searchQuery.value = "";
+    searchError.value = null; // Clear any previous errors
+
+    // Focus the search field after the dialog is fully rendered
+    setTimeout(() => {
+        if (searchInputRef.value && searchInputRef.value.$el) {
+            const input = searchInputRef.value.$el.querySelector("input");
+            if (input) input.focus();
+        }
+    }, 100);
 
     // Suggestions will be shown via the WikidataSuggestions component
     // No need to trigger a search here as the suggested items are shown in the template
 };
 
 const performSearch = () => {
-    if (!searchQuery.value.trim()) return;
-    emit("search", searchQuery.value, props.endpoint);
+    // Clear any existing debounce timer
+    if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+    }
+
+    if (!searchQuery.value || !searchQuery.value.trim()) {
+        return;
+    }
+
+    // Debounce the search to prevent multiple rapid calls
+    searchDebounceTimer = setTimeout(() => {
+        searchError.value = null; // Clear previous errors
+
+        try {
+            emit("search", searchQuery.value.trim(), props.endpoint);
+        } catch (error) {
+            console.error("Error in search operation:", error);
+
+            // Set error message
+            searchError.value =
+                "Fehler bei der Suche. Bitte versuchen Sie es erneut.";
+
+            // Add fallback error item to search results if there's an error during search emission
+            const errorItem = {
+                id: "error",
+                label: "Fehler bei der Suche",
+                description:
+                    "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
+                isError: true,
+            };
+
+            if (
+                !Array.isArray(props.searchResults) ||
+                props.searchResults.length === 0
+            ) {
+                // Only show error if no results are available
+                emit("search-error", errorItem);
+            }
+        }
+    }, 300); // 300ms debounce
 };
 
 const selectItem = (item) => {
@@ -378,6 +457,51 @@ watch(
         }
     },
     { immediate: true },
+);
+
+// Watch for isLoading changes to clear error when loading starts
+watch(
+    () => props.isLoading,
+    (newValue) => {
+        if (newValue === true) {
+            searchError.value = null;
+        }
+    },
+);
+
+// Watch for search results to clear error when results arrive
+watch(
+    () => props.searchResults,
+    (newValue) => {
+        if (newValue && Array.isArray(newValue) && newValue.length > 0) {
+            searchError.value = null;
+        }
+    },
+);
+
+// Watch for dialog opening/closing
+watch(
+    () => dialogOpen.value,
+    (newValue) => {
+        if (newValue === false) {
+            // Clear search state when dialog closes
+            if (searchDebounceTimer) {
+                clearTimeout(searchDebounceTimer);
+                searchDebounceTimer = null;
+            }
+            searchError.value = null;
+            searchQuery.value = "";
+        } else {
+            // When dialog opens, focus on search field after a short delay
+            setTimeout(() => {
+                if (searchInputRef.value && searchInputRef.value.$el) {
+                    const input =
+                        searchInputRef.value.$el.querySelector("input");
+                    if (input) input.focus();
+                }
+            }, 300);
+        }
+    },
 );
 
 // When component mounts, fetch any missing entity labels
@@ -425,5 +549,22 @@ onMounted(() => {
 .wikidata-id-chip {
     font-size: 0.7rem;
     color: #666;
+}
+
+.error-message-container {
+    border-left: 3px solid #fb8c00;
+    background-color: #fff3e0;
+    margin: 8px 0;
+    border-radius: 4px;
+}
+
+.v-overlay__content {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Ensure the search input is properly visible */
+.search-container .v-field__input {
+    min-height: 44px !important;
 }
 </style>

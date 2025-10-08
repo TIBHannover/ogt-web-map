@@ -13,6 +13,23 @@ const glossaryItems = {
         ],
     },
     */
+    Person: {
+        id: "person",
+        descriptions: [
+            "Eine Person im Kontext der NS-Zeit kann sowohl Opfer, Täter, Mitläufer, als auch Widerständige sein.",
+            "Mit diesem Eintragstyp können Sie historische Personen oder Organisationen in unsere Datenbank eintragen.",
+            "Bitte geben Sie möglichst genaue biografische Daten an:",
+            [
+                "Name und Geburtsname",
+                "Geburtsdatum und -ort",
+                "Sterbedatum und -ort",
+                "Nationalität",
+                "Beruf/Tätigkeit",
+            ],
+            "Bei Personen mit Hafterfahrung können Sie auch die Haftorte angeben.",
+        ],
+        sources: ["Dokumentationsprojekt zu Personen der NS-Zeit"],
+    },
     Arbeitserziehungslager: {
         id: "laborEducationCamps",
         descriptions: [

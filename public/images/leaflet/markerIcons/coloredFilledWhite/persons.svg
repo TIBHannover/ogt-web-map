@@ -1,0 +1,31 @@
+<svg id="Ebene_1" data-name="Ebene 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="83" height="100" viewBox="0 0 83 100">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+      }
+
+      .cls-2 {
+        clip-path: url(#clip-path);
+      }
+
+      .cls-3 {
+        fill: #2c5c82;
+      }
+
+      .cls-4 {
+        fill: #fff;
+      }
+    </style>
+    <clipPath id="clip-path">
+      <rect class="cls-1" x="0.48" y="0.49" width="82.05" height="99.02"/>
+    </clipPath>
+  </defs>
+  <g class="cls-2">
+    <path class="cls-3" d="M71.52,69.45a41.06,41.06,0,1,0-59.29.73v0l.19.18.28.27L41.86,98.91,70,71c.31-.29.61-.58.9-.89l.58-.57ZM41.5,8.87c18,0,32.4,14.68,32.65,32.65S59.5,74.16,41.5,74.16,8.61,59.52,8.85,41.52A32.87,32.87,0,0,1,41.5,8.87Z"/>
+  </g>
+  <circle class="cls-3" cx="41.5" cy="30" r="10"/>
+  <path class="cls-3" d="M58,62.5c0-9.11-7.39-16.5-16.5-16.5S25,53.39,25,62.5c0,0,5,6,16.5,6S58,62.5,58,62.5Z"/>
+  <circle class="cls-4" cx="41.5" cy="30" r="8"/>
+  <path class="cls-4" d="M41.5,48c-9.11,0-14.5,6.04-14.5,14.5,0,0,5,4,14.5,4s14.5-4,14.5-4C56,54.04,50.61,48,41.5,48Z"/>
+</svg>

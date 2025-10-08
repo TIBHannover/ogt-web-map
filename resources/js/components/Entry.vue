@@ -49,9 +49,95 @@
                             <h2 class="step-title">
                                 Schritt 1: Wähle den Eintragstyp
                             </h2>
+                            <div class="type-action-container mb-4">
+                                <button
+                                    type="button"
+                                    class="type-action-button"
+                                    @click="
+                                        formsType = 'Q5';
+                                        updateTypeInfo();
+                                        openPersonSearchOverlay();
+                                    "
+                                >
+                                    <v-icon class="mr-2"
+                                        >mdi-account-plus</v-icon
+                                    >
+                                    Person erstellen
+                                </button>
+                            </div>
                             <form class="forms">
                                 <fieldset>
                                     <div class="type-selection-grid">
+                                        <!-- Person -->
+                                        <div
+                                            class="type-box"
+                                            :class="{
+                                                selected: formsType === 'Q5',
+                                            }"
+                                            @click="
+                                                formsType = 'Q5';
+                                                updateTypeInfo();
+                                                openPersonSearchOverlay();
+                                            "
+                                        >
+                                            <div
+                                                class="info-icon-container d-lg-none"
+                                                @click.stop="
+                                                    showTypeInfoPopup('Q5')
+                                                "
+                                                title="Mehr Informationen"
+                                            >
+                                                <v-icon
+                                                    color="primary"
+                                                    size="small"
+                                                    >mdi-information-outline</v-icon
+                                                >
+                                            </div>
+                                            <input
+                                                v-model="formsType"
+                                                name="type"
+                                                type="radio"
+                                                value="Q5"
+                                                id="type-Q5"
+                                                class="type-radio"
+                                            />
+                                            <div class="type-icon">
+                                                <img
+                                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/persons.svg`"
+                                                    alt="Person Icon"
+                                                />
+                                            </div>
+                                            <div class="type-data">
+                                                <div class="type-label">
+                                                    Person
+                                                </div>
+                                                <div class="type-description">
+                                                    Historische Personen und
+                                                    Organisationen
+                                                </div>
+                                                <div
+                                                    class="type-action-container"
+                                                >
+                                                    <transition name="fade">
+                                                        <button
+                                                            v-if="
+                                                                formsType ===
+                                                                'Q5'
+                                                            "
+                                                            class="type-action-button"
+                                                            type="button"
+                                                            @click="
+                                                                openTitleOverlay
+                                                            "
+                                                        >
+                                                            Jetzt eine Person
+                                                            anlegen
+                                                        </button>
+                                                    </transition>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <!-- Ereignis -->
                                         <div
                                             class="type-box"
@@ -569,86 +655,113 @@
                     </div>
 
                     <!-- Schritt 2: Ereignis-Formular -->
-                    <EventsForm
-                        ref="eventsFormRef"
-                        v-if="currentStep === 2 && formsType === 'Q6983405'"
-                        v-model:formsTitle="formsTitle"
-                        v-model:formsDescription="formsDescription"
-                        v-model:wikidataResults="wikidataResults"
-                        v-model:peopleSearchResults="peopleSearchResults"
-                        v-model:selectedVictims="selectedVictims"
-                        v-model:showNewVictimForm="showNewVictimForm"
-                        v-model:newVictim="newVictim"
-                        v-model:perpetratorsSearchResults="
-                            perpetratorsSearchResults
-                        "
-                        v-model:selectedPerpetrators="selectedPerpetrators"
-                        v-model:showNewPerpetratorForm="showNewPerpetratorForm"
-                        v-model:newPerpetrator="newPerpetrator"
-                        v-model:eventTimeType="eventTimeType"
-                        v-model:eventDate="eventDate"
-                        v-model:eventDateQualifier="eventDateQualifier"
-                        v-model:eventStartDate="eventStartDate"
-                        v-model:eventStartDateQualifier="
-                            eventStartDateQualifier
-                        "
-                        v-model:eventEndDate="eventEndDate"
-                        v-model:eventEndDateQualifier="eventEndDateQualifier"
-                        v-model:victimCount="victimCount"
-                        v-model:survivorCount="survivorCount"
-                        v-model:deathCount="deathCount"
-                        v-model:arrestCount="arrestCount"
-                        v-model:victimCountQualifier="victimCountQualifier"
-                        v-model:survivorCountQualifier="survivorCountQualifier"
-                        v-model:deathCountQualifier="deathCountQualifier"
-                        v-model:arrestCountQualifier="arrestCountQualifier"
-                        v-model:causeSearchResults="causeSearchResults"
-                        v-model:selectedCauses="selectedCauses"
-                        v-model:mapZoom="mapZoom"
-                        v-model:mapCenter="mapCenter"
-                        v-model:selectedLocation="selectedLocation"
-                        v-model:locationSearch="locationSearch"
-                        v-model:locationQualifier="locationQualifier"
-                        v-model:error="error"
-                        v-model:imageUrl="imageUrl"
-                        v-model:imageFilename="imageFilename"
-                        v-model:selectedSources="selectedSources"
-                        @searchWikidataEntities="searchWikidataEntities"
-                        @selectExistingEntity="selectExistingEntity"
-                        @update:eventTimeType="eventTimeType = $event"
-                        @searchPeople="searchPeople"
-                        @selectVictim="selectVictim"
-                        @startNewVictimForm="startNewVictimForm"
-                        @cancelNewVictimForm="cancelNewVictimForm"
-                        @addNewVictim="addNewVictim"
-                        @removeVictim="removeVictim"
-                        @updateVictim="updateVictim"
-                        @startAddingAnotherVictim="startAddingAnotherVictim"
-                        @searchPerpetrators="searchPerpetrators"
-                        @selectPerpetrator="selectPerpetrator"
-                        @startNewPerpetratorForm="startNewPerpetratorForm"
-                        @cancelNewPerpetratorForm="cancelNewPerpetratorForm"
-                        @addNewPerpetrator="addNewPerpetrator"
-                        @removePerpetrator="removePerpetrator"
-                        @updatePerpetrator="updatePerpetrator"
-                        @startAddingAnotherPerpetrator="
-                            startAddingAnotherPerpetrator
-                        "
-                        @searchCause="searchCause"
-                        @selectCause="selectCause"
-                        @removeCause="removeCause"
-                        @searchLocation="searchLocation"
-                        @handleMapClick="handleMapClick"
-                        @goToStep="goToStep"
-                        @submit="resetForm"
-                    />
+                    <ErrorBoundary>
+                        <EventsForm
+                            ref="eventsFormRef"
+                            v-if="currentStep === 2 && formsType === 'Q6983405'"
+                            key="events-form"
+                            v-model:formsTitle="formsTitle"
+                            v-model:formsDescription="formsDescription"
+                            v-model:wikidataResults="wikidataResults"
+                            v-model:peopleSearchResults="peopleSearchResults"
+                            v-model:selectedVictims="selectedVictims"
+                            v-model:showNewVictimForm="showNewVictimForm"
+                            v-model:newVictim="newVictim"
+                            v-model:perpetratorsSearchResults="
+                                perpetratorsSearchResults
+                            "
+                            v-model:selectedPerpetrators="selectedPerpetrators"
+                            v-model:showNewPerpetratorForm="
+                                showNewPerpetratorForm
+                            "
+                            v-model:newPerpetrator="newPerpetrator"
+                            v-model:eventTimeType="eventTimeType"
+                            v-model:eventDate="eventDate"
+                            v-model:eventDateQualifier="eventDateQualifier"
+                            v-model:eventStartDate="eventStartDate"
+                            v-model:eventStartDateQualifier="
+                                eventStartDateQualifier
+                            "
+                            v-model:eventEndDate="eventEndDate"
+                            v-model:eventEndDateQualifier="
+                                eventEndDateQualifier
+                            "
+                            v-model:victimCount="victimCount"
+                            v-model:survivorCount="survivorCount"
+                            v-model:deathCount="deathCount"
+                            v-model:arrestCount="arrestCount"
+                            v-model:victimCountQualifier="victimCountQualifier"
+                            v-model:survivorCountQualifier="
+                                survivorCountQualifier
+                            "
+                            v-model:deathCountQualifier="deathCountQualifier"
+                            v-model:arrestCountQualifier="arrestCountQualifier"
+                            v-model:causeSearchResults="causeSearchResults"
+                            v-model:selectedCauses="selectedCauses"
+                            v-model:mapZoom="mapZoom"
+                            v-model:mapCenter="mapCenter"
+                            v-model:selectedLocation="selectedLocation"
+                            v-model:locationSearch="locationSearch"
+                            v-model:locationQualifier="locationQualifier"
+                            v-model:error="error"
+                            v-model:imageUrl="imageUrl"
+                            v-model:imageFilename="imageFilename"
+                            v-model:selectedSources="selectedSources"
+                            @searchWikidataEntities="searchWikidataEntities"
+                            @selectExistingEntity="selectExistingEntity"
+                            @update:eventTimeType="eventTimeType = $event"
+                            @searchPeople="searchPeople"
+                            @selectVictim="selectVictim"
+                            @startNewVictimForm="startNewVictimForm"
+                            @cancelNewVictimForm="cancelNewVictimForm"
+                            @addNewVictim="addNewVictim"
+                            @removeVictim="removeVictim"
+                            @updateVictim="updateVictim"
+                            @startAddingAnotherVictim="startAddingAnotherVictim"
+                            @searchPerpetrators="searchPerpetrators"
+                            @selectPerpetrator="selectPerpetrator"
+                            @startNewPerpetratorForm="startNewPerpetratorForm"
+                            @cancelNewPerpetratorForm="cancelNewPerpetratorForm"
+                            @addNewPerpetrator="addNewPerpetrator"
+                            @removePerpetrator="removePerpetrator"
+                            @updatePerpetrator="updatePerpetrator"
+                            @startAddingAnotherPerpetrator="
+                                startAddingAnotherPerpetrator
+                            "
+                            @searchCause="searchCause"
+                            @selectCause="selectCause"
+                            @removeCause="removeCause"
+                            @searchLocation="searchLocation"
+                            @handleMapClick="handleMapClick"
+                            @goToStep="goToStep"
+                            @submit="resetForm"
+                        />
+                    </ErrorBoundary>
+
+                    <!-- Schritt 2: Personen-Formular -->
+                    <ErrorBoundary>
+                        <SimplePersonForm
+                            ref="personFormRef"
+                            v-if="currentStep === 2 && formsType === 'Q5'"
+                            :entry-type="formsType"
+                            :title="formsTitle"
+                            :description="formsDescription"
+                            :temp-person-data="tempPersonData"
+                            v-model:selectedSources="selectedSources"
+                            @update:title="formsTitle = $event"
+                            @update:description="formsDescription = $event"
+                            @goToStep="goToStep"
+                            @submit="resetForm"
+                            key="person-form"
+                        />
+                    </ErrorBoundary>
 
                     <!-- Fügen Sie hier weitere Formulare für andere Typen hinzu -->
                     <!-- Für andere Typen können ähnliche Formulare mit spezifischen Anforderungen erstellt werden -->
                     <div
                         v-if="
                             currentStep === 2 &&
-                            !['Q6983405', 'Q5003624'].includes(formsType)
+                            !['Q6983405', 'Q5', 'Q5003624'].includes(formsType)
                         "
                         class="step-container"
                     >
@@ -724,10 +837,25 @@
         v-if="showTitleOverlay"
         :initial-title="formsTitle"
         :entry-type="formsType"
-        :title="'Neuen ' + getTypeInfoTitle() + ' anlegen'"
+        :title="`Neuen ${getTypeInfoTitle()} anlegen`"
+        :context="'create'"
         @update:title="updateTitle"
         @close="cancelTitleOverlay"
         @create="createWithTitle"
+        key="title-search-overlay"
+    />
+
+    <!-- Person Search Overlay -->
+    <PersonSearchOverlay
+        v-if="showPersonSearchOverlay"
+        :initial-name="formsTitle"
+        :entry-type="formsType"
+        :title="`Person suchen oder anlegen`"
+        :context="'create'"
+        @close="cancelPersonSearchOverlay"
+        @select-person="selectExistingPerson"
+        @create-new-person="createNewPerson"
+        key="person-search-overlay"
     />
 </template>
 
@@ -741,7 +869,44 @@ import { debounce } from "lodash";
 import { useRouter } from "vue-router";
 import EventsForm from "./entry/EventsForm.vue";
 import TitleSearchOverlay from "./entry/fields/TitleSearchOverlay.vue";
+import PersonSearchOverlay from "./entry/fields/PersonSearchOverlay.vue";
 import glossaryItems from "../data/glossaryData";
+import { defineAsyncComponent, h } from "vue";
+import SimplePersonForm from "./entry/SimplePersonForm.vue";
+
+// Use SimplePersonForm directly instead of async loading
+const resolvePersonForm = SimplePersonForm;
+
+// Simple error boundary component
+const ErrorBoundary = {
+    data() {
+        return {
+            error: null,
+        };
+    },
+    errorCaptured(err, vm, info) {
+        console.error("Component error captured:", err, info);
+        this.error = `${err}`;
+        return false;
+    },
+    render() {
+        if (this.error) {
+            return h("div", { class: "error-boundary" }, [
+                h("h3", { style: "color: red;" }, "Error loading component"),
+                h("p", {}, this.error),
+                h(
+                    "button",
+                    {
+                        style: "padding: 8px 16px; margin-top: 10px;",
+                        onClick: () => window.location.reload(),
+                    },
+                    "Reload page",
+                ),
+            ]);
+        }
+        return this.$slots.default ? this.$slots.default() : null;
+    },
+};
 
 // Props
 const props = defineProps({
@@ -761,6 +926,8 @@ const peopleSearchResults = ref([]);
 const selectedVictims = ref([]);
 const currentStep = ref(1);
 const showNewVictimForm = ref(false);
+const showPersonSearchOverlay = ref(false);
+const tempPersonData = ref(null);
 const newVictim = ref({
     firstName: "",
     lastName: "",
@@ -786,6 +953,7 @@ const perpetratorsSearchResults = ref([]);
 const selectedPerpetrators = ref([]);
 const showNewPerpetratorForm = ref(false);
 const eventsFormRef = ref(null);
+const personFormRef = ref(null);
 const newPerpetrator = ref({
     firstName: "",
     lastName: "",
@@ -851,6 +1019,7 @@ const createCustomIcon = (type) => {
 
 const markerIcon = computed(() => {
     if (formsType.value === "Q6983405") return createCustomIcon("events");
+    if (formsType.value === "Q5") return createCustomIcon("persons");
     if (formsType.value === "Q5003624") return createCustomIcon("memorials");
     if (formsType.value === "Q108047567")
         return createCustomIcon("statePoliceOffices");
@@ -890,8 +1059,11 @@ const showTypeInfoPopup = (typeValue) => {
     // Store the type we're showing info for
     displayedInfoType.value = typeValue;
 
+    console.log("showTypeInfoPopup called for type:", typeValue);
+
     // Get content for the clicked type without changing selection
     const typeToGlossaryMapping = {
+        Q5: "Person",
         Q6983405: "Ereignis",
         Q5003624: "Erinnerungsort",
         Q108047567: "Staatspolizeistelle",
@@ -902,28 +1074,36 @@ const showTypeInfoPopup = (typeValue) => {
 
     // Get the corresponding glossary item key for the clicked type
     const glossaryKey = typeToGlossaryMapping[typeValue];
+    console.log("Glossary key for type:", typeValue, "is:", glossaryKey);
 
     // Get the glossary item if it exists
     const glossaryItem = glossaryKey ? glossaryItems[glossaryKey] : null;
+    console.log("Glossary item found:", !!glossaryItem);
 
     if (glossaryItem) {
         let content = "";
 
-        glossaryItem.descriptions.forEach((desc) => {
-            if (typeof desc === "string") {
-                content += `<p>${desc}</p>`;
-            } else if (Array.isArray(desc)) {
-                content += "<ul class='info-list'>";
-                desc.forEach((item) => {
-                    content += `<li>${item}</li>`;
-                });
-                content += "</ul>";
-            }
-        });
+        if (Array.isArray(glossaryItem.descriptions)) {
+            glossaryItem.descriptions.forEach((desc) => {
+                if (typeof desc === "string") {
+                    content += `<p>${desc}</p>`;
+                } else if (Array.isArray(desc)) {
+                    content += "<ul class='info-list'>";
+                    desc.forEach((item) => {
+                        if (typeof item === "string") {
+                            content += `<li>${item}</li>`;
+                        }
+                    });
+                    content += "</ul>";
+                }
+            });
+        }
 
         typeInfoContent.value = content;
+        console.log("Generated typeInfoContent:", content);
     } else {
         typeInfoContent.value = "";
+        console.log("No content generated, setting empty typeInfoContent");
     }
 
     // Show the popup
@@ -934,6 +1114,7 @@ const updateTypeInfoContent = () => {
     // This function is now only used when updating the type selection
     // The showTypeInfoPopup function handles the popup content directly
     const typeToGlossaryMapping = {
+        Q5: "Person",
         Q6983405: "Ereignis",
         Q5003624: "Erinnerungsort",
         Q108047567: "Staatspolizeistelle",
@@ -951,17 +1132,23 @@ const updateTypeInfoContent = () => {
     if (glossaryItem) {
         let content = "";
 
-        glossaryItem.descriptions.forEach((desc) => {
-            if (typeof desc === "string") {
-                content += `<p>${desc}</p>`;
-            } else if (Array.isArray(desc)) {
-                content += "<ul class='info-list'>";
-                desc.forEach((item) => {
-                    content += `<li>${item}</li>`;
-                });
-                content += "</ul>";
-            }
-        });
+        if (Array.isArray(glossaryItem.descriptions)) {
+            glossaryItem.descriptions.forEach((desc) => {
+                if (typeof desc === "string") {
+                    content += `<p>${desc}</p>`;
+                    console.log("Added string desc:", desc);
+                } else if (Array.isArray(desc)) {
+                    content += "<ul class='info-list'>";
+                    console.log("Added array desc, items:", desc.length);
+                    desc.forEach((item) => {
+                        if (typeof item === "string") {
+                            content += `<li>${item}</li>`;
+                        }
+                    });
+                    content += "</ul>";
+                }
+            });
+        }
 
         typeInfoContent.value = content;
     } else {
@@ -988,6 +1175,7 @@ const displayedInfoType = ref("");
 
 const getTypeInfoTitle = () => {
     const typeTitles = {
+        Q5: "Person",
         Q6983405: "Ereignis",
         Q5003624: "Erinnerungsort",
         Q108047567: "Staatspolizeistelle",
@@ -1000,12 +1188,38 @@ const getTypeInfoTitle = () => {
     const typeToUse = showMobileInfoOverlay.value
         ? displayedInfoType.value
         : formsType.value;
-    return typeTitles[typeToUse] || "Eintragstyp";
+
+    // Handle null/undefined cases
+    if (!typeToUse) {
+        console.log("Warning: typeToUse is undefined or null");
+        return "Eintragstyp";
+    }
+
+    const title = typeTitles[typeToUse] || "Eintragstyp";
+    console.log("Type title for", typeToUse, ":", title);
+    return title;
 };
 
 const showTitleOverlay = ref(false);
 
+// Person search overlay functions
+const openPersonSearchOverlay = () => {
+    // Clear any previous title to start fresh
+    formsTitle.value = "";
+    showPersonSearchOverlay.value = true;
+};
+
 const openTitleOverlay = () => {
+    console.log(
+        "Opening title overlay for type:",
+        formsType.value,
+        "title:",
+        getTypeInfoTitle(),
+    );
+    console.log("Glossary data available for Person:", glossaryItems["Person"]);
+    console.log("Current typeInfoContent:", typeInfoContent.value);
+    // Always use TitleSearchOverlay here as this is coming from the BaseInfos component
+    // The direct Person type selection uses openPersonSearchOverlay instead
     showTitleOverlay.value = true;
 };
 
@@ -1013,14 +1227,111 @@ const cancelTitleOverlay = () => {
     showTitleOverlay.value = false;
 };
 
+const cancelPersonSearchOverlay = () => {
+    showPersonSearchOverlay.value = false;
+};
+
 const updateTitle = (newTitle) => {
     formsTitle.value = newTitle;
 };
 
-const createWithTitle = (title) => {
-    formsTitle.value = title;
-    showTitleOverlay.value = false;
+// Handle selecting an existing person from the search overlay
+const selectExistingPerson = (person) => {
+    console.log("Selected existing person:", person);
+
+    // Update title with the selected person's name
+    formsTitle.value = person.label || "";
+
+    // Extract name parts from label to use in the form
+    if (person.firstName) {
+        // If API already provides firstName, use that
+        formsDescription.value = person.description || "";
+    } else if (person.label) {
+        // If no firstName but we have a label, try to extract firstName/lastName
+        const nameParts = person.label.split(" ");
+        if (nameParts.length > 1) {
+            // Assume last word is lastName, rest is firstName
+            formsDescription.value = person.description || "";
+        }
+    }
+
+    // Don't proceed to step 2 - this function now just shows the Wikidata entry details
+    // User must click "create new person" button explicitly to proceed to step 2
+};
+
+// Handle creating a new person when none is found
+const createNewPerson = (name, personData = null) => {
+    console.log("Creating new person with name:", name);
+    console.log("Person data:", personData);
+
+    // Set the form title to the provided name
+    formsTitle.value = name;
+
+    // Set default description if needed
+    if (!formsDescription.value) {
+        formsDescription.value = "";
+    }
+
+    // Store person data in a ref that can be accessed by the SimplePersonForm
+    if (personData) {
+        tempPersonData.value = JSON.stringify(personData);
+    }
+
+    // Move to step 2 to complete the person details
     currentStep.value = 2;
+};
+
+const createWithTitle = (title) => {
+    console.log("Creating with title:", title, "for type:", formsType.value);
+    try {
+        // First set the title
+        formsTitle.value = title;
+
+        // Then close both overlays
+        showTitleOverlay.value = false;
+        showPersonSearchOverlay.value = false;
+
+        // Use setTimeout to ensure the overlay is fully closed before changing state
+        // This prevents any potential race conditions or state conflicts
+        setTimeout(() => {
+            try {
+                // Validate that we have the required data for step 2
+                if (!formsType.value) {
+                    console.error("Form type is missing before step change");
+                    error.value = "Bitte wähle einen Eintragstyp aus";
+                    return;
+                }
+
+                // Clear any previous error state
+                error.value = null;
+
+                // Move to step 2
+                currentStep.value = 2;
+
+                console.log(
+                    "Successfully changed to step 2 with form type:",
+                    formsType.value,
+                );
+                // Check which form component should be rendered
+                console.log(
+                    "PersonForm should render:",
+                    currentStep.value === 2 && formsType.value === "Q5",
+                );
+                console.log(
+                    "EventsForm should render:",
+                    currentStep.value === 2 && formsType.value === "Q6983405",
+                );
+            } catch (innerError) {
+                console.error("Error during step change:", innerError);
+                error.value =
+                    "Fehler beim Laden des Formulars. Bitte versuchen Sie es erneut.";
+            }
+        }, 10);
+    } catch (error) {
+        console.error("Error in createWithTitle:", error);
+        error.value =
+            "Fehler beim Erstellen des Eintrags. Bitte versuchen Sie es erneut.";
+    }
 };
 
 const resetMapView = () => {
@@ -1502,18 +1813,34 @@ const removeCause = (causeId) => {
 };
 
 const resetForm = async () => {
+    console.log("resetForm called with formType:", formsType.value);
     error.value = null;
     isSubmitting.value = true;
 
-    // Trigger validation in TimeSelector and other form components
-    if (
-        eventsFormRef.value &&
-        typeof eventsFormRef.value.validateForm === "function"
-    ) {
-        eventsFormRef.value.validateForm();
+    // Trigger validation based on form type
+    if (formsType.value === "Q6983405") {
+        // Validate Events form
+        if (
+            eventsFormRef.value &&
+            typeof eventsFormRef.value.validateForm === "function"
+        ) {
+            eventsFormRef.value.validateForm();
+        }
+    } else if (formsType.value === "Q5") {
+        // Validate Person form
+        if (
+            personFormRef.value &&
+            typeof personFormRef.value.validateForm === "function"
+        ) {
+            personFormRef.value.validateForm();
+        }
     }
 
     try {
+        console.log("Validating form with type:", formsType.value);
+        console.log("Current title:", formsTitle.value);
+        console.log("Current description:", formsDescription.value);
+
         const missingFields = [];
 
         if (!(formsTitle.value || "").trim()) {
@@ -1524,35 +1851,46 @@ const resetForm = async () => {
             missingFields.push("Kurzbeschreibung");
         }
 
-        if (formsType.value === "Q6983405" && !selectedLocation.value) {
-            missingFields.push("Standort");
-        }
+        // Common validations for all form types ended here
 
-        // Pru00fcfe, ob Zeitpunkt/Zeitraum angegeben wurde
-        if (
-            formsType.value === "Q6983405" &&
-            ((eventTimeType.value === "point" && !eventDate.value) ||
+        // Form-specific validations below
+
+        if (formsType.value === "Q6983405") {
+            // Event-specific validations
+            if (!selectedLocation.value) {
+                missingFields.push("Standort");
+            }
+
+            // Pru00fcfe, ob Zeitpunkt/Zeitraum angegeben wurde
+            if (
+                (eventTimeType.value === "point" && !eventDate.value) ||
                 (eventTimeType.value === "range" &&
-                    (!eventStartDate.value || !eventEndDate.value)))
-        ) {
-            missingFields.push("Zeitpunkt / Zeitraum");
-        }
+                    (!eventStartDate.value || !eventEndDate.value))
+            ) {
+                missingFields.push("Zeitpunkt / Zeitraum");
+            }
 
-        // Prüfe, ob mindestens ein Täter vorhanden ist
-        if (
-            formsType.value === "Q6983405" &&
-            (!selectedPerpetrators.value ||
-                selectedPerpetrators.value.length === 0)
-        ) {
-            missingFields.push("Täter*In");
+            // Prüfe, ob mindestens ein Täter vorhanden ist
+            if (
+                !selectedPerpetrators.value ||
+                selectedPerpetrators.value.length === 0
+            ) {
+                missingFields.push("Täter*In");
+            }
+        } else if (formsType.value === "Q5") {
+            // Person-specific validations
+            // These are mostly handled in the PersonForm component
+            // We'll rely on the validation there
         }
 
         // Prüfe, ob mindestens eine Quelle vorhanden ist
         if (
-            formsType.value === "Q6983405" &&
+            (formsType.value === "Q6983405" ||
+                formsType.value === "Q5" ||
+                formsType.value === "Q5003624") &&
             (!selectedSources.value || selectedSources.value.length === 0)
         ) {
-            missingFields.push("Quelle");
+            missingFields.push("Quellen");
         }
 
         if (missingFields.length) {
@@ -1583,92 +1921,145 @@ const resetForm = async () => {
 
         // Function to prepare form data for submission - helps avoid circular references
         const prepareFormData = () => {
-            return {
+            console.log("Preparing form data for type:", formsType.value);
+
+            // Base form data for all entry types
+            const baseData = {
                 title: formsTitle.value?.trim() || "",
                 description: formsDescription.value?.trim() || "",
                 type: formsType.value,
-                coordinates: coordinates,
-                coordinates_qualifier: locationQualifier.value, // Use .value to avoid circular references
-                victims: selectedVictims.value,
-                perpetrators: selectedPerpetrators.value,
-                eventTimeType: eventTimeType.value,
-                eventDate: eventDate.value,
-                eventDateQualifier: eventDateQualifier.value,
-                eventStartDate: eventStartDate.value,
-                eventStartDateQualifier: eventStartDateQualifier.value,
-                eventEndDate: eventEndDate.value,
-                eventEndDateQualifier: eventEndDateQualifier.value,
-                victimCount: victimCount.value,
-                survivorCount: survivorCount.value,
-                deathCount: deathCount.value,
-                arrestCount: arrestCount.value,
-                victimCountQualifier: victimCountQualifier.value,
-                survivorCountQualifier: survivorCountQualifier.value,
-                deathCountQualifier: deathCountQualifier.value,
-                arrestCountQualifier: arrestCountQualifier.value,
-                causes: selectedCauses.value,
-                imageUrl: imageUrl.value,
-                imageFilename: imageFilename.value,
                 sources: selectedSources.value,
                 statusToken: secureToken,
             };
+
+            console.log("Base form data prepared:", baseData);
+
+            // Add specific fields based on entry type
+            if (formsType.value === "Q5") {
+                // Person form - get data from personFormRef
+                return {
+                    ...baseData,
+                    isStandalonePerson: true,
+                    // These will be populated by backend based on personForm data
+                    // Additional person data is sent directly from the PersonForm component
+                };
+            } else {
+                // Event form or others
+                return {
+                    ...baseData,
+                    coordinates: coordinates,
+                    coordinates_qualifier: locationQualifier.value, // Use .value to avoid circular references
+                    victims: selectedVictims.value,
+                    perpetrators: selectedPerpetrators.value,
+                    eventTimeType: eventTimeType.value,
+                    eventDate: eventDate.value,
+                    eventDateQualifier: eventDateQualifier.value,
+                    eventStartDate: eventStartDate.value,
+                    eventStartDateQualifier: eventStartDateQualifier.value,
+                    eventEndDate: eventEndDate.value,
+                    eventEndDateQualifier: eventEndDateQualifier.value,
+                    victimCount: victimCount.value,
+                    survivorCount: survivorCount.value,
+                    deathCount: deathCount.value,
+                    arrestCount: arrestCount.value,
+                    victimCountQualifier: victimCountQualifier.value,
+                    survivorCountQualifier: survivorCountQualifier.value,
+                    deathCountQualifier: deathCountQualifier.value,
+                    arrestCountQualifier: arrestCountQualifier.value,
+                    causes: selectedCauses.value,
+                    imageUrl: imageUrl.value,
+                    imageFilename: imageFilename.value,
+                    isStandalonePerson: false,
+                };
+            }
         };
 
-        // Debug log for location qualifier
-        console.log("Submitting location qualifier:", {
-            locationQualifierValue: locationQualifier.value,
-            rawValue:
-                typeof locationQualifier.value === "object"
-                    ? JSON.stringify(locationQualifier.value)
-                    : locationQualifier.value,
-        });
+        // Debug log for submission data
+        console.log("Form type:", formsType.value);
+
+        // Only log location qualifier for event forms
+        if (formsType.value === "Q6983405") {
+            console.log("Submitting location qualifier:", {
+                locationQualifierValue: locationQualifier.value,
+                rawValue:
+                    typeof locationQualifier.value === "object"
+                        ? JSON.stringify(locationQualifier.value)
+                        : locationQualifier.value,
+            });
+        }
 
         // Get prepared form data
         const formData = prepareFormData();
 
         // Complete log of submission data
         console.log("Full submission data:", formData);
+        console.log("Form type:", formsType.value);
+        console.log("Is person form:", formsType.value === "Q5");
 
-        const response = await axios.post("/api/wikidata/entities", formData, {
-            headers: {
-                "X-CSRF-TOKEN": csrfToken,
-            },
-        });
+        try {
+            const response = await axios.post(
+                "/api/wikidata/entities",
+                formData,
+                {
+                    headers: {
+                        "X-CSRF-TOKEN": csrfToken,
+                    },
+                },
+            );
 
-        if (response.data.success) {
-            // Debug logging
-            console.log("Response data:", response.data);
-            console.log("Submitted qualifier values:", {
-                victimCountQualifier: victimCountQualifier.value,
-                survivorCountQualifier: survivorCountQualifier.value,
-                deathCountQualifier: deathCountQualifier.value,
-                arrestCountQualifier: arrestCountQualifier.value,
-            });
+            if (response.data.success) {
+                // Debug logging
+                console.log(
+                    "Submission successful! Response data:",
+                    response.data,
+                );
+                console.log("Form type that was submitted:", formsType.value);
 
-            // Use the token as the requestId for the thank-you page
-            const requestId = secureToken || response.data.requestId;
-            console.log("Sending to thank-you page with requestId:", requestId);
+                if (formsType.value === "Q6983405") {
+                    console.log("Submitted qualifier values for event:", {
+                        victimCountQualifier: victimCountQualifier.value,
+                        survivorCountQualifier: survivorCountQualifier.value,
+                        deathCountQualifier: deathCountQualifier.value,
+                        arrestCountQualifier: arrestCountQualifier.value,
+                    });
+                }
 
-            // Store token in localStorage for better persistence
-            if (requestId) {
-                localStorage.setItem("entryStatusToken", requestId);
+                // Use the token as the requestId for the thank-you page
+                const requestId = secureToken || response.data.requestId;
+                console.log(
+                    "Sending to thank-you page with requestId:",
+                    requestId,
+                );
+
+                // Store token in localStorage for better persistence
+                if (requestId) {
+                    localStorage.setItem("entryStatusToken", requestId);
+                }
+
+                // Redirect to thank-you page with request ID
+                router.push({
+                    name: "thank-you",
+                    params: { requestId: requestId },
+                    query: { token: requestId }, // Add as query param for better compatibility
+                });
+            } else {
+                error.value =
+                    response.data.message ||
+                    "Fehler bei der Erstellung des Eintrags";
             }
-
-            // Redirect to thank-you page with request ID
-            router.push({
-                name: "thank-you",
-                params: { requestId: requestId },
-                query: { token: requestId }, // Add as query param for better compatibility
-            });
-        } else {
-            error.value =
-                response.data.message ||
-                "Fehler bei der Erstellung des Eintrags";
+        } catch (err) {
+            console.error("Fehler bei der API-Anfrage:", err);
+            error.value = `Fehler: ${err.response?.data?.message || err.message}`;
+        } finally {
+            isSubmitting.value = false;
+            console.log(
+                "Form submission completed with type:",
+                formsType.value,
+            );
         }
-    } catch (err) {
-        console.error("Fehler bei der API-Anfrage:", err);
-        error.value = `Fehler: ${err.response?.data?.message || err.message}`;
-    } finally {
+    } catch (outerError) {
+        console.error("Outer try/catch error in resetForm:", outerError);
+        error.value = `Kritischer Fehler: ${outerError.message}`;
         isSubmitting.value = false;
     }
 };
