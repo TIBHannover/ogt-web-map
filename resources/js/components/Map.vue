@@ -1236,7 +1236,7 @@ export default {
                                 getDateProp("startTime") ??
                                 new Date("1945-05-08").toDateString()
                             );
-                        } else if (["events", "operationLauterbacher", "persecutionOfSocialistFront"].includes(placeGroupName)) {
+                        } else if (placeGroupName === "events" || Object.hasOwn(groupedPlaces.value[placeGroupName].linkedMainGroupItem ?? {}, "events")) {
                             return (
                                 getDateProp("pointInTime") ??
                                 getDateProp("startTime") ??
@@ -1258,7 +1258,7 @@ export default {
                                 getDateProp("endTime") ??
                                 new Date().toDateString()
                             );
-                        } else if (["events", "operationLauterbacher", "persecutionOfSocialistFront"].includes(placeGroupName)) {
+                        } else if (placeGroupName === "events" || Object.hasOwn(groupedPlaces.value[placeGroupName].linkedMainGroupItem ?? {}, "events")) {
                             return (
                                 getDateProp("pointInTime") ??
                                 getDateProp("endTime") ??
