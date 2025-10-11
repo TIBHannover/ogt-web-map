@@ -167,56 +167,58 @@ const filterGlossaryItems = (glossaryItemLabel, glossaryItemDescriptions) => {
 };
 
 const linkGlossaryItems = () => {
-    const searchTerms = [];
-    for (const [label, data] of Object.entries(glossaryDataRef.value)) {
-        searchTerms.push({
-            label,
-            regex: label.replace(/s /g, "[ens]{0,3} ") + "[ens]{0,3}",
-            id: data.id,
+    const glossaryTermsToLink = [];
+
+    // collect all terms, which should be linked to another glossary entry
+    Object.entries(glossaryDataRef.value).forEach(([glossaryLabel, glossaryItem], index) => {
+        glossaryTermsToLink.push({
+            term: glossaryLabel,
+            termItemId: glossaryItem.id,
+            termItemIndex: index,
+            termLabelKey: glossaryLabel,
         });
-    }
 
-    const newGlossaryData = {};
+        glossaryItem.aliases.forEach(alias => {
+            glossaryTermsToLink.push({
+                term: alias,
+                termItemId: glossaryItem.id,
+                termItemIndex: index,
+                termLabelKey: glossaryLabel,
+            });
+        });
+    });
 
-    for (const [label, data] of Object.entries(glossaryDataRef.value)) {
-        const newItemData = {
-            ...data,
-            descriptions: [...data.descriptions],
-            sources: [...data.sources],
-        };
+    // search and link all terms in descriptions for each glossary entry and update text links to HTML links in sources
+    for (const [glossaryLabelKey, glossaryItem] of Object.entries(glossaryDataRef.value)) {
+        glossaryItem.descriptions = glossaryItem.descriptions.map(description => {
+            if (Array.isArray(description)) return description; // skip description arrays
 
-        newItemData.descriptions = newItemData.descriptions.map((desc) => {
-            if (Array.isArray(desc)) return desc; // Skip arrays
+            let replacedDescription = description;
 
-            let processedDesc = desc;
-            for (const [idx, term] of searchTerms.entries()) {
-                if (term.label === label) continue;
+            for (const { term, termItemId, termItemIndex, termLabelKey } of glossaryTermsToLink) {
+                // do not link glossary item to self
+                if (glossaryLabelKey === termLabelKey) continue;
 
-                const regex = new RegExp(
-                    `(^| |\\.|\\()(${term.regex})( |,|\\.|$|\\))`,
-                    "gi",
-                );
+                // there must be no (german) letters, numbers, umlauts or symbols (>') before the term
+                // there must be no (german) letters, numbers, umlauts or symbols (<') after the term
+                const regex = new RegExp(`(?<![\\wÄÖÜäöüß>'])(${term})(?![\\wÄÖÜäöüß<'])`, "gi");
 
-                processedDesc = processedDesc.replace(
+                replacedDescription = replacedDescription.replace(
                     regex,
-                    `$1<a href='#${term.id}' class='glossary-link' data-glossary-index='${idx}' data-search-term='${term.label}'>$2</a>$3`,
+                    `<a href="#${termItemId}" class="glossary-link" data-glossary-index='${termItemIndex}' data-search-term='${termLabelKey}'>$1</a>`
                 );
             }
 
-            return processedDesc;
+            return replacedDescription;
         });
 
-        newItemData.sources = newItemData.sources.map((source) => {
+        glossaryItem.sources = glossaryItem.sources.map((source) => {
             return source.replace(
                 /(^https?:\/\/[^ ]*)/i,
                 "<a href='$1' target='_blank'>$1</a>",
             );
         });
-
-        newGlossaryData[label] = newItemData;
     }
-
-    glossaryDataRef.value = newGlossaryData;
 };
 
 const showGlossaryItemByUrlHash = () => {

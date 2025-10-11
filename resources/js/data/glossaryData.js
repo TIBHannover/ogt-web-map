@@ -1,6 +1,7 @@
 const glossaryItems = {
     /* template
     '': {
+        aliases: [""],
         id: '',
         descriptions: [
             ``,
@@ -14,6 +15,7 @@ const glossaryItems = {
     },
     */
     "Aktion Lauterbacher": {
+        aliases: [],
         id: "operationLauterbacher",
         descriptions: [
             `Die „Aktion Lauterbacher“ bezeichnet die Zwangsghettoisierung der jüdischen Bevölkerung in Hannover in
@@ -40,6 +42,7 @@ const glossaryItems = {
         ],
     },
     Arbeitserziehungslager: {
+        aliases: ["Arbeitserziehungslagern"],
         id: "laborEducationCamps",
         descriptions: [
             `Arbeitserziehungslager (AEL) waren neben Konzentrationslagern, Erweiterten Polizeigefängnissen und anderen
@@ -79,6 +82,7 @@ const glossaryItems = {
         ],
     },
     Außendienststelle: {
+        aliases: [],
         id: "fieldOffices",
         descriptions: [
             `(Staatspolizei-)außendienststellen waren Zweigstellen der Gestapo. Außendienststellen waren
@@ -94,6 +98,7 @@ const glossaryItems = {
         sources: [],
     },
     Denunziation: {
+        aliases: ["Denunziationen"],
         id: "denunciation",
         descriptions: [
             `Denunziation bedeutet das Erstatten einer Anzeige durch einen Denunzianten aus meist persönlichen,
@@ -123,6 +128,7 @@ const glossaryItems = {
         ],
     },
     Deportation: {
+        aliases: ["Deportationen"],
         id: "deportation",
         descriptions: [
             `Deportation bedeutet die zwangsweise Verschickung von Menschen von ihren Wohnsitzen zu vorbestimmten
@@ -156,6 +162,7 @@ const glossaryItems = {
         ],
     },
     Ereignis: {
+        aliases: ["Ereignisse", "Ereignissen"],
         id: "events",
         descriptions: [
             `Die konkreten Tätigkeiten der Gestapo werden als Ereignisse dargestellt. Es handelt sich hierbei um von der
@@ -167,6 +174,7 @@ const glossaryItems = {
         sources: [],
     },
     Erinnerungsort: {
+        aliases: [],
         id: "memorials",
         descriptions: [
             `Der Begriff Erinnerungsort wurde von dem französischen Historiker Pierre Nora (*1931) geprägt. Er basiert
@@ -187,6 +195,7 @@ const glossaryItems = {
         ],
     },
     "Erweitertes Polizeigefängnis": {
+        aliases: ["Erweiterte Polizeigefängnisse", "Erweiterten Polizeigefängnissen"],
         id: "extPolicePrisons",
         descriptions: [
             `Seit 1941 lassen sich Gründungen eines neuen Lagertyps unter der Leitung der Gestapo sowohl in den
@@ -225,6 +234,7 @@ const glossaryItems = {
         ],
     },
     Gefängnis: {
+        aliases: [],
         id: "prisons",
         descriptions: [
             `Die Gefängnisse der Gestapo waren neben den Konzentrationslagern zentrale Orte des Terrors gegen
@@ -248,6 +258,7 @@ const glossaryItems = {
         ],
     },
     Gestapa: {
+        aliases: [],
         id: "gestapa",
         descriptions: [
             `Das Geheime Staatspolizeiamt, kurz Gestapa, war eine Landesbehörde mit Sitz in der Prinz-Albrecht-Straße 8
@@ -271,6 +282,7 @@ const glossaryItems = {
         ],
     },
     Gestapo: {
+        aliases: [],
         id: "gestapo",
         descriptions: [
             `Die Gestapo (kurz für Geheime Staatspolizei) war die Politische Polizei des NS-Regimes. In fast allen
@@ -311,6 +323,7 @@ const glossaryItems = {
         ],
     },
     "Hauptamt Sicherheitspolizei": {
+        aliases: [],
         id: "mainOfficeSecurityPolice",
         descriptions: [
             `Am 26. Juni 1936 wurde das Hauptamt Sicherheitspolizei gegründet. Die Gründung des Hauptamts
@@ -341,6 +354,7 @@ const glossaryItems = {
         ],
     },
     "Heutiges Niedersachsen": {
+        aliases: ["heutigen Niedersachsens"],
         id: "todayLowerSaxony",
         descriptions: [
             `Das heutige Bundesland Niedersachsen in der Bundesrepublik Deutschland entstand am 1. November 1946 aus dem
@@ -368,6 +382,7 @@ const glossaryItems = {
         ],
     },
     Judenhaus: {
+        aliases: ["Judenhäuser", "Judenhäusern"],
         id: "jewHouse",
         descriptions: [
             `Als „Judenhäuser“ werden Häuser bezeichnet, in denen Jüdinnen und Juden im nationalsozialistischen Deutschland zwangsweise untergebracht wurden. Ab etwa 1939 ordneten kommunale Behörden und die Gestapo in vielen Städten die Zusammenlegung jüdischer Menschen in bestimmten Gebäuden an.`,
@@ -385,6 +400,7 @@ const glossaryItems = {
         ],
     },
     Polizeigefängnis: {
+        aliases: ["Polizeigefängnisse", "Polizeigefängnissen"],
         id: "policePrison",
         descriptions: [
             `Das Polizeigefängnis diente zur Zeit der Weimarer Republik zur kurzfristigen Inhaftierung. Es galt als
@@ -413,6 +429,7 @@ const glossaryItems = {
         ],
     },
     Reichspogromnacht: {
+        aliases: [],
         id: "novemberPogroms",
         descriptions: [
             `Ein Pogrom ist eine gewalttätige Aktion gegen Minderheiten, meist religiöse, ethnische oder politische. Die
@@ -449,6 +466,7 @@ const glossaryItems = {
         ],
     },
     RSHA: {
+        aliases: [],
         id: "rsha",
         descriptions: [
             `Das Reichssicherheitshauptamt, abgekürzt RSHA, war eine nationalsozialistische Institution, welche
@@ -492,6 +510,7 @@ const glossaryItems = {
         ],
     },
     Staatspolizeistelle: {
+        aliases: ["Staatspolizeistellen"],
         id: "statePoliceOffices",
         descriptions: [
             `Staatspolizeistellen waren regionale Dienststellen der Gestapo, die in der hierarchischen Struktur der
@@ -505,6 +524,7 @@ const glossaryItems = {
         sources: [],
     },
     Staatspolizeileitstelle: {
+        aliases: ["Staatspolizeileitstellen"],
         id: "statePoliceHeadquarters",
         descriptions: [
             `Staatspolizeileitstellen waren regionale Dienststellen der Gestapo, die als Leitstellen von regionalen
@@ -548,6 +568,7 @@ const glossaryItems = {
         ],
     },
     Tätersprache: {
+        aliases: [],
         id: "taeterSprache",
         descriptions: [
             `Als Tätersprache bezeichnet man die Sprache des nationalsozialistischen Regimes, insbesondere Begriffe und Formulierungen, mit denen Gewalt, Verfolgung und Vernichtung verschleiert, beschönigt oder bürokratisch entpersonalisiert wurden. Viele dieser Ausdrücke stammen aus dem Verwaltungs- und Polizeijargon der NS-Zeit.`,
@@ -564,6 +585,7 @@ const glossaryItems = {
         ],
     },
     Terror: {
+        aliases: ["Terrors"],
         id: "terror",
         descriptions: [
             `Terror bezeichnet die systematische Verbreitung von Angst und Schrecken durch ausgeübte oder angedrohte
@@ -584,6 +606,7 @@ const glossaryItems = {
         ],
     },
     "Verfolgung der Sozialistischen Front": {
+        aliases: [],
         id: "persecutionOfSocialistFront",
         descriptions: [
             `Die Sozialistische Front war eine der größten und bedeutendsten Widerstandsgruppen gegen den
