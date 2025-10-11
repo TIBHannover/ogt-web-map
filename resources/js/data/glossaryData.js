@@ -13,6 +13,32 @@ const glossaryItems = {
         ],
     },
     */
+    "Aktion Lauterbacher": {
+        id: "operationLauterbacher",
+        descriptions: [
+            `Die „Aktion Lauterbacher“ bezeichnet die Zwangsghettoisierung der jüdischen Bevölkerung in Hannover in
+            sogenannten „Judenhäusern“.`,
+            `Namensgeber der Aktion war Hartmann Lauterbacher, NSDAP-Gauleiter des Gaus Süd-Hannover-Braunschweig und
+            Oberpräsident der preußischen Provinz Hannover. Auf seine Initiative hin erarbeitete die Stadtverwaltung
+            Hannover, ein Konzept zur Zwangseinweisung jüdischer Menschen in Häuser jüdischer Eigentümerinnen und
+            Eigentümer. Ziel war es, die jüdische Bevölkerung auf möglichst engem Raum zu konzentrieren, ihre
+            Lebensverhältnisse weiter zu verschlechtern und sie besser kontrollieren zu können.`,
+            `Am Morgen des 3. Septembers 1941 erhielten rund 1 200 Jüdinnen und Juden in Hannover eine Verfügung, die
+            ihnen befahl, ihre bisherigen Wohnungen bis spätestens 18 Uhr des Folgetages zu verlassen. Als neue
+            Unterkünfte wurden ihnen Plätze in 15 sogenannten „Judenhäusern” zugewiesen.`,
+            `Die Zwangsghettoisierung bedeutete eine drastische Verschlechterung der Lebensbedingungen. Die Betroffenen
+            konnten nur wenige Besitztümer aus ihren früheren Wohnungen mitnehmen und lebten unter sehr beengten sowie
+            katastrophalen hygienischen Verhältnissen. Zudem führte die Gestapo Hannover regelmäßig gewaltsame
+            Kontrollen in den Häusern durch.`,
+            `Mit der „Aktion Lauterbacher“ erfolgte der Übergang von Diskriminierung und Entrechtung zur systematischen
+            Vernichtung: Bereits am 15. Dezember 1941 begann mit dem ersten Deportationszug nach Riga die organisierte
+            Verschleppung der hannoverschen Jüdinnen und Juden in Ghettos und Vernichtungslager.`,
+        ],
+        sources: [
+            `Buchholz, Marlis: Die hannoverschen Judenhäuser. Zur Situation der Juden in der Zeit der Ghettoisierung
+            und Verfolgung 1941 bis 1945. Hildesheim 1987.`,
+        ],
+    },
     Arbeitserziehungslager: {
         id: "laborEducationCamps",
         descriptions: [

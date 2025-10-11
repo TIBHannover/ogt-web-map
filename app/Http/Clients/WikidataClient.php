@@ -75,6 +75,10 @@ class WikidataClient
             "mainGroup" => "events",
             "mainItemId" => "Q133303308", // https://www.wikidata.org/wiki/Q133303308   Persecution of the Socialist Front by the Gestapo
         ],
+        "operationLauterbacher" => [
+            "mainGroup" => "events",
+            "mainItemId" => "Q134587748", // https://www.wikidata.org/wiki/Q134587748   Operation Lauterbacher and the surveillance of the "Jewish houses" in Hanover
+        ],
     ];
 
     /**

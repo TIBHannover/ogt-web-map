@@ -145,7 +145,7 @@
 
             <event
                 v-if="
-                    ['events', 'persecutionOfSocialistFront'].includes(
+                    ['events', 'operationLauterbacher', 'persecutionOfSocialistFront'].includes(
                         selectedPlace.groupName,
                     )
                 "
