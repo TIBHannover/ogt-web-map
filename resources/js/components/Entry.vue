@@ -49,22 +49,6 @@
                             <h2 class="step-title">
                                 Schritt 1: Wähle den Eintragstyp
                             </h2>
-                            <div class="type-action-container mb-4">
-                                <button
-                                    type="button"
-                                    class="type-action-button"
-                                    @click="
-                                        formsType = 'Q5';
-                                        updateTypeInfo();
-                                        openPersonSearchOverlay();
-                                    "
-                                >
-                                    <v-icon class="mr-2"
-                                        >mdi-account-plus</v-icon
-                                    >
-                                    Person erstellen
-                                </button>
-                            </div>
                             <form class="forms">
                                 <fieldset>
                                     <div class="type-selection-grid">
@@ -77,7 +61,6 @@
                                             @click="
                                                 formsType = 'Q5';
                                                 updateTypeInfo();
-                                                openPersonSearchOverlay();
                                             "
                                         >
                                             <div
@@ -127,7 +110,7 @@
                                                             class="type-action-button"
                                                             type="button"
                                                             @click="
-                                                                openTitleOverlay
+                                                                openPersonSearchOverlay()
                                                             "
                                                         >
                                                             Jetzt eine Person
