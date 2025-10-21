@@ -146,7 +146,6 @@ const emit = defineEmits([
 // Form state
 const title = ref(props.title || "");
 const description = ref(props.description || "");
-const sources = ref([]);
 const isSubmitting = ref(false);
 const activeSection = ref("title");
 const baseInfosRef = ref(null);
@@ -252,9 +251,13 @@ const validateForm = async () => {
         isValid = false;
     }
 
-    // Validate sources
+    // Validate sources - make sure to check props.selectedSources
     const sourcesValid = await validateField(sourcesRef);
-    if (!sourcesValid) {
+    if (
+        !sourcesValid ||
+        !props.selectedSources ||
+        props.selectedSources.length === 0
+    ) {
         isValid = false;
     }
 
@@ -427,18 +430,20 @@ const validateAndSubmit = async () => {
         missingFields.push("Titel");
     }
 
-    if (!description.value.trim()) {
+    if (!description.value || !description.value.trim()) {
         missingFields.push("Kurzbeschreibung");
     }
 
-    if (!sources.value || sources.value.length === 0) {
+    if (!props.selectedSources || props.selectedSources.length === 0) {
         missingFields.push("Quelle");
     }
 
+    // Check for the first name (only required if not an organization)
     if (!personData.value.firstName && !personData.value.isOrganization) {
         missingFields.push("Vorname");
     }
 
+    // Check for the last name or organization name
     if (!personData.value.lastName) {
         missingFields.push(
             personData.value.isOrganization
@@ -552,13 +557,36 @@ onMounted(() => {
 });
 
 // Watchers for title and description to emit updates
-if (title.value !== props.title) {
-    emit("update:title", title.value);
-}
+watch(title, (newValue) => {
+    if (newValue !== props.title) {
+        emit("update:title", newValue);
+    }
+});
 
-if (description.value !== props.description) {
-    emit("update:description", description.value);
-}
+watch(description, (newValue) => {
+    if (newValue !== props.description) {
+        emit("update:description", newValue);
+    }
+});
+
+// Watch props.description and props.title for changes
+watch(
+    () => props.description,
+    (newValue) => {
+        if (newValue !== description.value) {
+            description.value = newValue;
+        }
+    },
+);
+
+watch(
+    () => props.title,
+    (newValue) => {
+        if (newValue !== title.value) {
+            title.value = newValue;
+        }
+    },
+);
 </script>
 
 <style scoped>
