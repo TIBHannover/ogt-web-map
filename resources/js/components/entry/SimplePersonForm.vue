@@ -28,10 +28,13 @@
                 </div>
 
                 <SourcesField
-                    ref="sourcesRef"
-                    v-model="sources"
-                    @validation="onSourcesValidation"
+                    ref="sourcesFieldRef"
+                    :selectedSources="selectedSourcesValue"
+                    @update:selectedSources="selectedSourcesValue = $event"
+                    @fieldFocus="setActiveField"
                     @infoButtonClick="openSectionInfo"
+                    @validation="onSourcesValidation"
+                    :required="true"
                 />
 
                 <div class="actions-row">
@@ -104,11 +107,10 @@ const showToast = (message, type = "error") => {
         ](message);
     }
 };
-
 const props = defineProps({
     entryType: {
         type: String,
-        default: "Q5", // Q5 is "human" in Wikidata
+        default: "Q5",
     },
     isAdminView: {
         type: Boolean,
@@ -126,6 +128,10 @@ const props = defineProps({
         type: String,
         default: null,
     },
+    selectedSources: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 const emit = defineEmits([
@@ -134,6 +140,7 @@ const emit = defineEmits([
     "submit",
     "update:title",
     "update:description",
+    "update:selectedSources",
 ]);
 
 // Form state
@@ -229,6 +236,11 @@ const onBaseInfoValidation = (valid) => {
 const onSourcesValidation = (valid) => {
     isValid.value.sources = valid;
 };
+
+const selectedSourcesValue = computed({
+    get: () => props.selectedSources,
+    set: (value) => emit("update:selectedSources", value),
+});
 
 // This is called by the parent component when form validation is needed
 const validateForm = async () => {
