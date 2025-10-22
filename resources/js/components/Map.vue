@@ -149,7 +149,7 @@ export default {
                 displayOrder: 7,
                 iconName: "events.svg",
                 layerGroup: null,
-                layerName: "Operation Lauterbacher",
+                layerName: "Aktion Lauterbacher",
                 linkedMainGroupItem: { "events": "Q134587748" },
                 places: {},
                 placesByCoordinates: [],
