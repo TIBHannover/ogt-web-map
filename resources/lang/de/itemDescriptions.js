@@ -91,6 +91,15 @@ export const itemDescriptions = {
             "Im Sommer 1936 gelang es der Gestapo, einen Spitzel in die Organisation einzuschleusen. In der Folge wurde nahezu das gesamte Lese- und Verteilernetz enttarnt. Mindestens 420 Personen wurden verhaftet und verhört. Insgesamt verhängten die NS-Justizbehörden 105 Zuchthaus- und 134 Gefängnisstrafen. Mehrere Engagierte verloren im Zusammenhang mit ihrem Widerstand ihr Leben.",
         ],
     },
+    Q134587748: {
+        textParts: [
+            "Die „Aktion Lauterbacher“ bezeichnet die Zwangsghettoisierung der jüdischen Bevölkerung in Hannover in sogenannten „Judenhäusern“.",
+            "Namensgeber der Aktion war Hartmann Lauterbacher, NSDAP-Gauleiter des Gaus Süd-Hannover-Braunschweig und Oberpräsident der preußischen Provinz Hannover. Auf seine Initiative hin erarbeitete die Stadtverwaltung Hannover, ein Konzept zur Zwangseinweisung jüdischer Menschen in Häuser jüdischer Eigentümerinnen und Eigentümer. Ziel war es, die jüdische Bevölkerung auf möglichst engem Raum zu konzentrieren, ihre Lebensverhältnisse weiter zu verschlechtern und sie besser kontrollieren zu können.",
+            "Am Morgen des 3. Septembers 1941 erhielten rund 1 200 Jüdinnen und Juden in Hannover eine Verfügung, die ihnen befahl, ihre bisherigen Wohnungen bis spätestens 18 Uhr des Folgetages zu verlassen. Als neue Unterkünfte wurden ihnen Plätze in 15 sogenannten „Judenhäusern” zugewiesen.",
+            "Die Zwangsghettoisierung bedeutete eine drastische Verschlechterung der Lebensbedingungen. Die Betroffenen konnten nur wenige Besitztümer aus ihren früheren Wohnungen mitnehmen und lebten unter sehr beengten sowie katastrophalen hygienischen Verhältnissen. Zudem führte die Gestapo Hannover regelmäßig gewaltsame Kontrollen in den Häusern durch.",
+            "Mit der „Aktion Lauterbacher“ erfolgte der Übergang von Diskriminierung und Entrechtung zur systematischen Vernichtung: Bereits am 15. Dezember 1941 begann mit dem ersten Deportationszug nach Riga die organisierte Verschleppung der hannoverschen Jüdinnen und Juden in Ghettos und Vernichtungslager.",
+        ],
+    },
     Q108127303: {
         textParts: [
             "Die Staatspolizeistelle Hildesheim wurde am 31. Juli 1935 gegründet. Zuvor war die Staatspolizeistelle Hannover für die beiden Regierungsbezirke Hannover und Hildesheim zuständig. 1941 wurde die Staatspolizeistelle Hildesheim zur Außendienststelle der Staatspolizeistelle Hannover herabgestuft. Die Staatspolizeistelle Hildesheim war zunächst im Regierungsgebäude am Domhof 1 untergebracht. 1938 bezog sie ein eigenes Gebäude in der Gartenstraße 20, das bei einem Luftangriff am 22. März 1945 zerstört und nicht wiederaufgebaut wurde. ",
