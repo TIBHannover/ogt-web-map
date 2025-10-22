@@ -144,9 +144,19 @@ export default {
                 places: {},
                 placesByCoordinates: [],
             },
-            persecutionOfSocialistFront: {
+            operationLauterbacher: {
                 color: "#8c1f21",
                 displayOrder: 7,
+                iconName: "events.svg",
+                layerGroup: null,
+                layerName: "Aktion Lauterbacher",
+                linkedMainGroupItem: { "events": "Q134587748" },
+                places: {},
+                placesByCoordinates: [],
+            },
+            persecutionOfSocialistFront: {
+                color: "#8c1f21",
+                displayOrder: 8,
                 iconName: "events.svg",
                 layerGroup: null,
                 layerName: "Verfolgung der Sozialistischen Front",
@@ -186,7 +196,7 @@ export default {
             },
             memorials: {
                 color: "#f3a923",
-                displayOrder: 8,
+                displayOrder: 9,
                 iconName: "memorials.svg",
                 layerGroup: null,
                 layerName: "Erinnerungsorte",
@@ -229,6 +239,7 @@ export default {
         const groupedPlacesShownOnMap = ref([
             "events",
             //"persecutionOfSocialistFront", // initially hidden on map
+            //"operationLauterbacher", // initially hidden on map
             "extPolicePrisons",
             "fieldOffices",
             "laborEducationCamps",
@@ -1225,7 +1236,7 @@ export default {
                                 getDateProp("startTime") ??
                                 new Date("1945-05-08").toDateString()
                             );
-                        } else if (["events", "persecutionOfSocialistFront"].includes(placeGroupName)) {
+                        } else if (placeGroupName === "events" || Object.hasOwn(groupedPlaces.value[placeGroupName].linkedMainGroupItem ?? {}, "events")) {
                             return (
                                 getDateProp("pointInTime") ??
                                 getDateProp("startTime") ??
@@ -1247,7 +1258,7 @@ export default {
                                 getDateProp("endTime") ??
                                 new Date().toDateString()
                             );
-                        } else if (["events", "persecutionOfSocialistFront"].includes(placeGroupName)) {
+                        } else if (placeGroupName === "events" || Object.hasOwn(groupedPlaces.value[placeGroupName].linkedMainGroupItem ?? {}, "events")) {
                             return (
                                 getDateProp("pointInTime") ??
                                 getDateProp("endTime") ??
