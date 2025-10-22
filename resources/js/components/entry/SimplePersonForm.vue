@@ -25,12 +25,52 @@
                         :hide-place-of-detention="false"
                         @search-wikidata-items="searchWikidataItems"
                     />
+
+                    <!-- Validation errors -->
+                    <div v-if="showPersonValidationErrors">
+                        <!-- First name validation error -->
+                        <ValidationError
+                            v-if="firstNameError"
+                            message="Vorname ist ein Pflichtfeld."
+                            showIcon
+                            customClass="mt-2"
+                        />
+
+                        <!-- Last name validation error -->
+                        <ValidationError
+                            v-if="lastNameError"
+                            :message="
+                                personData.value &&
+                                personData.value.isOrganization
+                                    ? 'Name der Organisation ist ein Pflichtfeld.'
+                                    : 'Nachname ist ein Pflichtfeld.'
+                            "
+                            showIcon
+                            customClass="mt-2"
+                        />
+
+                        <!-- Description validation error -->
+                        <ValidationError
+                            v-if="descriptionError"
+                            message="Kurzbeschreibung ist ein Pflichtfeld."
+                            showIcon
+                            customClass="mt-2"
+                        />
+
+                        <!-- Source validation error -->
+                        <ValidationError
+                            v-if="sourceError"
+                            message="Mindestens eine Quelle ist erforderlich."
+                            showIcon
+                            customClass="mt-2"
+                        />
+                    </div>
                 </div>
 
                 <SourcesField
                     ref="sourcesFieldRef"
                     :selectedSources="selectedSourcesValue"
-                    @update:selectedSources="selectedSourcesValue = $event"
+                    @update:selectedSources="handleSourcesUpdate"
                     @fieldFocus="setActiveField"
                     @infoButtonClick="openSectionInfo"
                     @validation="onSourcesValidation"
@@ -60,6 +100,7 @@ import { ref, computed, onMounted, inject, watch } from "vue";
 import { useRouter } from "vue-router";
 import SourcesField from "./fields/SourcesField.vue";
 import PersonFormFields from "./fields/partials/PersonFormFields.vue";
+import ValidationError from "../helpers/ValidationError.vue";
 import axios from "axios";
 
 const router = useRouter();
@@ -150,6 +191,16 @@ const isSubmitting = ref(false);
 const activeSection = ref("title");
 const baseInfosRef = ref(null);
 const sourcesRef = ref(null);
+const showPersonValidationErrors = ref(false);
+const firstNameError = ref(false);
+const lastNameError = ref(false);
+const sourceError = ref(false);
+const descriptionError = ref(false);
+// Instead of using an object with refs that can cause undefined errors,
+// we use individual refs for each validation field
+const baseInfosValid = ref(false);
+const sourcesValid = ref(false);
+
 const isValid = ref({
     baseInfos: false,
     sources: false,
@@ -178,6 +229,95 @@ const personData = ref({
     imageFilename: null,
     role: "standalone", // Used to identify this as a standalone person, not a victim/perpetrator
 });
+
+// Person data validation computed property
+const isPersonDetailsValid = computed(() => {
+    if (!personData.value) return false;
+
+    // First name is required unless it's an organization
+    const firstNameValid =
+        personData.value.isOrganization ||
+        (personData.value.firstName &&
+            personData.value.firstName.trim().length > 0);
+
+    // Last name is always required (or organization name)
+    const lastNameValid =
+        personData.value.lastName &&
+        personData.value.lastName.trim().length > 0;
+
+    // Description is required
+    const descriptionValid =
+        personData.value.description &&
+        personData.value.description.trim().length > 0;
+
+    // Return true only if all required fields are valid
+    return firstNameValid && lastNameValid && descriptionValid;
+});
+
+// Watchers to update validation error states when personData changes
+// Update error states based on validation results
+const updateValidationErrors = () => {
+    if (!personData.value) return;
+
+    // First name validation
+    const firstNameValid =
+        personData.value.isOrganization ||
+        (personData.value.firstName &&
+            personData.value.firstName.trim().length > 0);
+    firstNameError.value = !firstNameValid && !personData.value.isOrganization;
+
+    // Last name validation
+    const lastNameValid =
+        personData.value.lastName &&
+        personData.value.lastName.trim().length > 0;
+    lastNameError.value = !lastNameValid;
+
+    // Description validation - check both the personData.description and the component's description prop
+    const descriptionInPersonData =
+        personData.value.description &&
+        personData.value.description.trim().length > 0;
+    const descriptionInProps =
+        description.value && description.value.trim().length > 0;
+    const descriptionValid = descriptionInPersonData || descriptionInProps;
+
+    descriptionError.value = !descriptionValid;
+};
+
+watch(
+    () => personData.value?.firstName,
+    () => {
+        if (showPersonValidationErrors.value) {
+            updateValidationErrors();
+        }
+    },
+);
+
+watch(
+    () => personData.value?.description,
+    () => {
+        if (showPersonValidationErrors.value) {
+            updateValidationErrors();
+        }
+    },
+);
+
+watch(
+    () => personData.value?.lastName,
+    () => {
+        if (showPersonValidationErrors.value) {
+            updateValidationErrors();
+        }
+    },
+);
+
+watch(
+    () => personData.value?.isOrganization,
+    () => {
+        if (showPersonValidationErrors.value) {
+            updateValidationErrors();
+        }
+    },
+);
 
 // Wikidata search states
 const wikidataSearchResults = ref({
@@ -229,49 +369,100 @@ const openSectionInfo = (section) => {
 };
 
 const onBaseInfoValidation = (valid) => {
-    isValid.value.baseInfos = valid;
+    baseInfosValid.value = valid;
+    // Reset validation errors when field becomes valid
+    if (valid && isPersonDetailsValid.value) {
+        showPersonValidationErrors.value = false;
+    }
+};
+
+const handleSourcesUpdate = (newSources) => {
+    selectedSourcesValue.value = newSources;
+    showPersonValidationErrors.value = false;
+    sourceError.value = newSources.length === 0;
 };
 
 const onSourcesValidation = (valid) => {
-    isValid.value.sources = valid;
+    sourcesValid.value = valid;
+    // Reset validation errors when field becomes valid
+    if (
+        valid &&
+        props &&
+        props.selectedSources &&
+        props.selectedSources.length > 0
+    ) {
+        showPersonValidationErrors.value = false;
+        sourceError.value = false;
+    } else {
+        sourceError.value = true;
+    }
 };
 
 const selectedSourcesValue = computed({
-    get: () => props.selectedSources,
-    set: (value) => emit("update:selectedSources", value),
+    get: () => (props && props.selectedSources ? props.selectedSources : []),
+    set: (value) => {
+        if (props && typeof emit === "function") {
+            emit("update:selectedSources", value);
+        }
+    },
 });
 
 // This is called by the parent component when form validation is needed
 const validateForm = async () => {
     let isValid = true;
 
-    // Validate base info (title, description)
-    const baseInfoValid = await validateField(baseInfosRef);
-    if (!baseInfoValid) {
-        isValid = false;
+    let formIsValid = true;
+
+    try {
+        const isBaseInfoValid = await validateField(baseInfosRef);
+        if (!isBaseInfoValid) {
+            formIsValid = false;
+        }
+
+        // Update our local ref safely
+        baseInfosValid.value = !!isBaseInfoValid;
+
+        // Validate sources
+        const areSourcesValid = await validateField(sourcesRef);
+        if (
+            !areSourcesValid ||
+            !props.selectedSources ||
+            props.selectedSources.length === 0
+        ) {
+            formIsValid = false;
+        }
+
+        // Update our local ref safely
+        sourcesValid.value = !!areSourcesValid;
+    } catch (error) {
+        console.error("Error validating form:", error);
+        formIsValid = false;
     }
 
-    // Validate sources - make sure to check props.selectedSources
-    const sourcesValid = await validateField(sourcesRef);
-    if (
-        !sourcesValid ||
-        !props.selectedSources ||
-        props.selectedSources.length === 0
-    ) {
-        isValid = false;
-    }
-
-    return isValid;
+    return formIsValid;
 };
 
-// Expose the validateForm method to the parent component
-defineExpose({ validateForm });
+defineExpose({
+    validateForm,
+    isValid: {
+        get baseInfos() {
+            return baseInfosValid.value;
+        },
+        get sources() {
+            return sourcesValid.value;
+        },
+    },
+});
 
-// Helper function to validate a field with a ref
-const validateField = async (fieldRef) => {
-    if (fieldRef.value && typeof fieldRef.value.validate === "function") {
-        return await fieldRef.value.validate();
+// Helper function to validate form sections
+const validateField = async (ref) => {
+    if (!ref || !ref.value) return true;
+
+    // Check if the ref has a validate function
+    if (typeof ref.value.validate === "function") {
+        return await ref.value.validate();
     }
+
     return true;
 };
 
@@ -407,81 +598,147 @@ const goToPreviousStep = () => {
     emit("goToStep", 1);
 };
 
+// Form validation and submission handler
 const validateAndSubmit = async () => {
-    // Trigger validation in child components
-    if (
-        baseInfosRef.value &&
-        typeof baseInfosRef.value.validateForm === "function"
-    ) {
-        baseInfosRef.value.validateForm();
-    }
+    try {
+        // Ensure personData is valid to prevent undefined errors
+        if (!personData.value) {
+            personData.value = {
+                firstName: "",
+                lastName: "",
+                description: "",
+                isOrganization: false,
+                // Add other default fields
+            };
+        }
 
-    if (
-        sourcesRef.value &&
-        typeof sourcesRef.value.validateForm === "function"
-    ) {
-        sourcesRef.value.validateForm();
-    }
+        // Show validation errors
+        showPersonValidationErrors.value = true;
 
-    // Check if all form sections are valid
-    const missingFields = [];
+        // Update all validation error states
+        updateValidationErrors();
 
-    if (!title.value.trim()) {
-        missingFields.push("Titel");
-    }
+        // Trigger validation in child components
+        if (baseInfosRef?.value?.validateForm) {
+            await baseInfosRef.value.validateForm();
+        }
 
-    if (!description.value || !description.value.trim()) {
-        missingFields.push("Kurzbeschreibung");
-    }
+        if (sourcesRef?.value?.validateForm) {
+            await sourcesRef.value.validateForm();
+        }
 
-    if (!props.selectedSources || props.selectedSources.length === 0) {
-        missingFields.push("Quelle");
-    }
+        // Collect missing fields for error message
+        const missingFields = [];
 
-    // Check for the first name (only required if not an organization)
-    if (!personData.value.firstName && !personData.value.isOrganization) {
-        missingFields.push("Vorname");
-    }
+        if (!title.value || !title.value.trim()) {
+            missingFields.push("Titel");
+        }
 
-    // Check for the last name or organization name
-    if (!personData.value.lastName) {
-        missingFields.push(
-            personData.value.isOrganization
-                ? "Name der Organisation"
-                : "Nachname",
-        );
-    }
+        // Check for description in either the form description or personData description
+        const hasDescription =
+            (description?.value && description.value.trim()) ||
+            (personData?.value?.description &&
+                personData.value.description.trim());
 
-    if (missingFields.length) {
+        // Update description error state
+        descriptionError.value = !hasDescription;
+
+        if (!hasDescription) {
+            missingFields.push("Kurzbeschreibung");
+        }
+
+        // Check if sources are missing
+        const sourceMissing = !props?.selectedSources?.length;
+        sourceError.value = sourceMissing;
+
+        if (sourceMissing) {
+            missingFields.push("Quelle");
+        }
+
+        // Check for the first name (only required if not an organization)
+        const firstNameRequired =
+            personData?.value && !personData.value.isOrganization;
+        const firstNameMissing =
+            !personData.value.firstName ||
+            personData.value.firstName.trim().length <= 0;
+
+        const isFirstNameInvalid = firstNameRequired && firstNameMissing;
+        // Update validation error state
+        firstNameError.value = isFirstNameInvalid;
+
+        if (isFirstNameInvalid) {
+            missingFields.push("Vorname");
+        }
+
+        // Check for the last name or organization name
+        const lastNameMissing =
+            personData?.value &&
+            (!personData.value.lastName || !personData.value.lastName.trim());
+
+        // Update validation error state
+        lastNameError.value = lastNameMissing;
+
+        if (lastNameMissing) {
+            missingFields.push(
+                personData.value.isOrganization
+                    ? "Name der Organisation"
+                    : "Nachname",
+            );
+        }
+
+        // Check overall form validity
+        const formIsValid =
+            baseInfosValid.value &&
+            sourcesValid.value &&
+            isPersonDetailsValid.value &&
+            props?.selectedSources?.length > 0 &&
+            missingFields.length === 0;
+
+        if (!formIsValid) {
+            showToast(
+                `Fehlende Pflichtfelder: ${missingFields.length ? missingFields.join(", ") : "Bitte überprüfen Sie Ihre Eingaben"}`,
+                "error",
+            );
+            return;
+        }
+
+        // Form is valid, hide validation errors
+        showPersonValidationErrors.value = false;
+        isSubmitting.value = true;
+    } catch (error) {
+        console.error("Error during form validation:", error);
         showToast(
-            `Fehlende Pflichtfelder: ${missingFields.join(", ")}`,
+            "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
             "error",
         );
         return;
     }
 
-    isSubmitting.value = true;
-
     try {
         // Prepare form data for submission
         const formData = {
-            title: title.value.trim(),
-            description: description.value.trim(),
-            type: props.entryType, // Q5 for human
-            sources: sources.value,
+            title: title.value ? title.value.trim() : "",
+            description:
+                (description.value ? description.value.trim() : "") ||
+                (personData.value.description
+                    ? personData.value.description.trim()
+                    : ""),
+            type: props.entryType || "Q5", // Q5 for human
+            sources: props.selectedSources || [],
             person: {
-                firstName: personData.value.firstName,
-                lastName: personData.value.lastName,
+                firstName: personData.value.firstName || "",
+                lastName: personData.value.lastName || "",
                 birthDate: personData.value.birthDate,
                 deathDate: personData.value.deathDate,
-                birthName: personData.value.birthName,
-                description: personData.value.description || description.value,
-                isOrganization: personData.value.isOrganization,
+                birthName: personData.value.birthName || "",
+                description:
+                    personData.value.description || description.value || "",
+                isOrganization: !!personData.value.isOrganization,
                 gender: personData.value.gender,
                 nationality: personData.value.nationality,
                 place_of_birth: personData.value.place_of_birth,
                 place_of_death: personData.value.place_of_death,
-                place_of_detention: personData.value.place_of_detention,
+                place_of_detention: personData.value.place_of_detention || [],
                 place_of_residence: personData.value.place_of_residence,
                 occupation: personData.value.occupation,
                 role: "standalone", // Mark as standalone person
@@ -553,7 +810,26 @@ onMounted(() => {
     }
     if (props.description) {
         description.value = props.description;
+        // Also initialize personData.description if needed
+        if (personData.value && !personData.value.description) {
+            personData.value.description = props.description;
+        }
     }
+
+    // Initialize from any temp data
+    initializeFromTitle();
+
+    // Reset validation state on component mount
+    showPersonValidationErrors.value = false;
+    baseInfosValid.value = true; // Start with true validation state
+    sourcesValid.value = true; // Start with true validation state
+    firstNameError.value = false;
+    lastNameError.value = false;
+    sourceError.value = false;
+    descriptionError.value = false;
+
+    // Don't show errors on initial load, but prepare the validation state
+    updateValidationErrors();
 });
 
 // Watchers for title and description to emit updates
@@ -563,11 +839,45 @@ watch(title, (newValue) => {
     }
 });
 
+// Watch for changes in selectedSources
+watch(
+    () => props.selectedSources,
+    (newSources) => {
+        if (newSources && showPersonValidationErrors.value) {
+            sourceError.value = newSources.length === 0;
+        }
+    },
+    { deep: true },
+);
+
+// Watch for changes in the description field
 watch(description, (newValue) => {
     if (newValue !== props.description) {
         emit("update:description", newValue);
+
+        // Update description error state when description changes
+        const hasDescription = newValue && newValue.trim().length > 0;
+        if (showPersonValidationErrors.value) {
+            descriptionError.value = !hasDescription;
+        }
     }
 });
+
+// Watch for changes in props.description
+watch(
+    () => props.description,
+    (newValue) => {
+        if (newValue !== description.value) {
+            description.value = newValue;
+
+            // Update description validation state
+            if (showPersonValidationErrors.value) {
+                // Call updateValidationErrors to check both description fields
+                updateValidationErrors();
+            }
+        }
+    },
+);
 
 // Watch props.description and props.title for changes
 watch(
