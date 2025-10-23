@@ -15,38 +15,200 @@
                         </button>
                     </div>
 
-                    <PersonFormFields
-                        :person-data="personData"
-                        :wikidata-search-results="wikidataSearchResults"
-                        :is-wikidata-search-loading="isWikidataSearchLoading"
-                        :wikidata-search-performed="wikidataSearchPerformed"
-                        :role-label="''"
-                        :hide-is-organisation="false"
-                        :hide-place-of-detention="false"
-                        @search-wikidata-items="searchWikidataItems"
-                    />
+                    <!-- Person form fields with sections -->
+                    <div class="person-form-fields">
+                        <!-- Required Information Section -->
+                        <div class="form-section">
+                            <h3 class="section-subtitle">
+                                Erforderliche Informationen
+                            </h3>
+
+                            <!-- Role selection -->
+                            <div class="form-group">
+                                <v-select
+                                    v-model="personData.role"
+                                    label="Rolle (P2868) *"
+                                    :items="roleOptions"
+                                    item-title="label"
+                                    item-value="value"
+                                    variant="outlined"
+                                    class="mb-3"
+                                    hint="Definiert die Beziehung zur historischen Begebenheit (Wikidata-Property P2868)"
+                                    persistent-hint
+                                ></v-select>
+                                <div
+                                    class="role-description"
+                                    v-if="personData.role"
+                                >
+                                    {{ getRoleDescription(personData.role) }}
+                                </div>
+                            </div>
+
+                            <!-- Name fields -->
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <v-text-field
+                                        v-model="personData.firstName"
+                                        label="Vorname *"
+                                        :rules="[rules.required]"
+                                        required
+                                        variant="outlined"
+                                        class="mb-3"
+                                    ></v-text-field>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <v-text-field
+                                        v-model="personData.lastName"
+                                        label="Nachname *"
+                                        :rules="[rules.required]"
+                                        required
+                                        variant="outlined"
+                                        class="mb-3"
+                                    ></v-text-field>
+                                </div>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="form-group">
+                                <v-textarea
+                                    v-model="personData.description"
+                                    label="Kurze Beschreibung *"
+                                    placeholder="Beispiel: deutscher Widerstandskämpfer... / Opfer des Nationalsozialismus"
+                                    rows="3"
+                                    :rules="[rules.required, rules.maxLength]"
+                                    required
+                                    counter="250"
+                                    variant="outlined"
+                                    class="mb-4"
+                                ></v-textarea>
+                            </div>
+                        </div>
+
+                        <!-- Personal Details Section -->
+                        <div class="form-section">
+                            <h3 class="section-subtitle">Persönliche Daten</h3>
+
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <v-text-field
+                                        v-model="personData.birthName"
+                                        label="Geburtsname"
+                                        placeholder="Falls abweichend vom aktuellen Namen"
+                                        variant="outlined"
+                                        class="mb-3"
+                                    ></v-text-field>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <v-select
+                                        v-model="personData.gender"
+                                        label="Geschlecht"
+                                        :items="genderOptions"
+                                        item-title="label"
+                                        item-value="value"
+                                        variant="outlined"
+                                        class="mb-3"
+                                    ></v-select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <!-- Birth/Death dates -->
+                                <div class="form-group col-md-6">
+                                    <v-text-field
+                                        v-model="personData.birthDate"
+                                        label="Geburtsdatum"
+                                        type="date"
+                                        variant="outlined"
+                                        class="mb-3"
+                                    ></v-text-field>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <v-text-field
+                                        v-model="personData.deathDate"
+                                        label="Sterbedatum"
+                                        type="date"
+                                        variant="outlined"
+                                        class="mb-3"
+                                    ></v-text-field>
+                                </div>
+                            </div>
+
+                            <!-- Nationality & Occupation -->
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <v-combobox
+                                        v-model="personData.nationality"
+                                        label="Staatsangehörigkeit"
+                                        :items="nationalityOptions"
+                                        variant="outlined"
+                                        class="mb-3"
+                                    ></v-combobox>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <v-combobox
+                                        v-model="personData.occupation"
+                                        label="Beruf"
+                                        :items="occupationOptions"
+                                        variant="outlined"
+                                        class="mb-3"
+                                    ></v-combobox>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Places Section -->
+                        <div class="form-section">
+                            <h3 class="section-subtitle">Ortsangaben</h3>
+
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <v-text-field
+                                        v-model="personData.place_of_birth"
+                                        label="Geburtsort"
+                                        variant="outlined"
+                                        class="mb-3"
+                                    ></v-text-field>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <v-text-field
+                                        v-model="personData.place_of_death"
+                                        label="Sterbeort"
+                                        variant="outlined"
+                                        class="mb-3"
+                                    ></v-text-field>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <v-text-field
+                                    v-model="personData.place_of_residence"
+                                    label="Wohnort"
+                                    variant="outlined"
+                                    class="mb-3"
+                                ></v-text-field>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Validation errors -->
-                    <div v-if="showPersonValidationErrors">
+                    <div
+                        v-if="showPersonValidationErrors"
+                        class="validation-errors-container"
+                    >
                         <!-- First name validation error -->
                         <ValidationError
                             v-if="firstNameError"
                             message="Vorname ist ein Pflichtfeld."
                             showIcon
-                            customClass="mt-2"
+                            customClass="validation-error"
                         />
 
                         <!-- Last name validation error -->
                         <ValidationError
                             v-if="lastNameError"
-                            :message="
-                                personData.value &&
-                                personData.value.isOrganization
-                                    ? 'Name der Organisation ist ein Pflichtfeld.'
-                                    : 'Nachname ist ein Pflichtfeld.'
-                            "
+                            message="Nachname ist ein Pflichtfeld."
                             showIcon
-                            customClass="mt-2"
+                            customClass="validation-error"
                         />
 
                         <!-- Description validation error -->
@@ -54,15 +216,15 @@
                             v-if="descriptionError"
                             message="Kurzbeschreibung ist ein Pflichtfeld."
                             showIcon
-                            customClass="mt-2"
+                            customClass="validation-error"
                         />
 
                         <!-- Source validation error -->
                         <ValidationError
                             v-if="sourceError"
-                            message="Mindestens eine Quelle ist erforderlich."
+                            message="Bitte geben Sie mindestens eine Quelle an."
                             showIcon
-                            customClass="mt-2"
+                            customClass="validation-error"
                         />
                     </div>
                 </div>
@@ -99,7 +261,6 @@
 import { ref, computed, onMounted, inject, watch } from "vue";
 import { useRouter } from "vue-router";
 import SourcesField from "./fields/SourcesField.vue";
-import PersonFormFields from "./fields/partials/PersonFormFields.vue";
 import ValidationError from "../helpers/ValidationError.vue";
 import axios from "axios";
 
@@ -123,6 +284,12 @@ const parseNameFromTitle = (fullName) => {
         const firstName = parts.join(" ");
         return { firstName, lastName };
     }
+};
+
+// Helper function to format a title from first and last name
+const formatTitleFromName = (firstName, lastName) => {
+    if (!firstName && !lastName) return "";
+    return `${firstName || ""} ${lastName || ""}`.trim();
 };
 
 // Helper function to show toast messages if available, otherwise use console
@@ -156,6 +323,12 @@ const props = defineProps({
     isAdminView: {
         type: Boolean,
         default: false,
+    },
+    personRole: {
+        type: String,
+        default: "standalone",
+        validator: (value) =>
+            ["victim", "perpetrator", "standalone"].includes(value),
     },
     title: {
         type: String,
@@ -213,11 +386,10 @@ const isValid = ref({
 const personData = ref({
     firstName: "",
     lastName: "",
+    birthName: "",
+    description: props.description || "",
     birthDate: null,
     deathDate: null,
-    description: "",
-    birthName: "",
-    isOrganization: false,
     gender: null,
     nationality: null,
     place_of_birth: null,
@@ -226,9 +398,134 @@ const personData = ref({
     place_of_residence: null,
     occupation: null,
     imageUrl: null,
-    imageFilename: null,
-    role: "standalone", // Used to identify this as a standalone person, not a victim/perpetrator
+    role: props.personRole || "victim", // Default to "victim" (Geschädigter, Q2026714) if not specified
+    // We don't need these arrays since they're handled by the parent component
 });
+
+// Options for dropdown selections
+const roleOptions = ref([
+    { label: "Geschädigter (Q2026714)", value: "victim", wikidata: "Q2026714" },
+    {
+        label: "Täter (Q111080573)",
+        value: "perpetrator",
+        wikidata: "Q111080573",
+    },
+]);
+
+// Function to get role descriptions for display
+const getRoleDescription = (role) => {
+    switch (role) {
+        case "victim":
+            return "Diese Person wurde im Nationalsozialismus verfolgt, inhaftiert oder ermordet (Wikidata-Property P2868 → Q2026714)";
+        case "perpetrator":
+            return "Diese Person war an der Verfolgung, Inhaftierung oder Ermordung von NS-Opfern beteiligt (Wikidata-Property P2868 → Q111080573)";
+        default:
+            return "";
+    }
+};
+
+const genderOptions = ref([
+    { label: "Männlich", value: "male" },
+    { label: "Weiblich", value: "female" },
+    { label: "Divers", value: "diverse" },
+]);
+
+const nationalityOptions = ref([
+    "Deutsch",
+    "Österreichisch",
+    "Schweizerisch",
+    "Polnisch",
+    "Tschechisch",
+    "Französisch",
+    "Niederländisch",
+    "Belgisch",
+    "Dänisch",
+    "Luxemburgisch",
+]);
+
+const occupationOptions = ref([
+    "Lehrer/in",
+    "Arzt/Ärztin",
+    "Rechtsanwalt/Rechtsanwältin",
+    "Journalist/in",
+    "Politiker/in",
+    "Arbeiter/in",
+    "Angestellte/r",
+    "Student/in",
+    "Bauer/Bäuerin",
+    "Soldat/in",
+    "Beamte/r",
+]);
+
+// We don't need validationStatus ref since we handle validation directly
+
+// Form validation rules
+const rules = {
+    required: (value) => !!value || "Dieses Feld ist erforderlich",
+    maxLength: (value) => {
+        return !value || value.length <= 250 || "Maximal 250 Zeichen erlaubt";
+    },
+};
+
+// Watch for changes in person's name and update title accordingly
+// Added a guard to prevent infinite loop when both firstName and lastName are empty
+watch(
+    () => [personData.value.firstName, personData.value.lastName],
+    ([newFirstName, newLastName], oldValues) => {
+        // Only proceed if we have actual values to work with
+        // or if this isn't the initial watch trigger with empty values
+        const newTitle = formatTitleFromName(newFirstName, newLastName);
+        const oldFirstName = oldValues ? oldValues[0] : null;
+        const oldLastName = oldValues ? oldValues[1] : null;
+
+        console.log(
+            `Name changed to: ${newFirstName || ""} ${newLastName || ""}`,
+        );
+
+        // Skip update if both values are empty and this isn't the result of a real change
+        if (newFirstName || newLastName || oldFirstName || oldLastName) {
+            console.log(
+                `Name changed - updating title to: "${newTitle}" from firstName: "${newFirstName}", lastName: "${newLastName}"`,
+            );
+            title.value = newTitle;
+        } else {
+            console.log("Skipping empty name update to prevent recursion");
+        }
+    },
+);
+
+// Watch for changes in personData description
+watch(
+    () => personData.value.description,
+    (newDescription) => {
+        // Safety check to ensure we don't cause a recursion
+        const safeNewDesc =
+            typeof newDescription === "string" ? newDescription : "";
+        if (safeNewDesc !== description.value) {
+            console.log(`Description changed in personData: "${safeNewDesc}"`);
+            description.value = safeNewDesc;
+        }
+    },
+);
+
+// Watch for changes in component description
+watch(
+    () => description.value,
+    (newDescription) => {
+        // Safety check to ensure we don't cause a recursion
+        const safeNewDesc =
+            typeof newDescription === "string" ? newDescription : "";
+        const currentDesc =
+            typeof personData.value.description === "string"
+                ? personData.value.description
+                : "";
+
+        if (safeNewDesc !== currentDesc) {
+            console.log(`Description changed in component: "${safeNewDesc}"`);
+            personData.value.description = safeNewDesc;
+        }
+    },
+);
 
 // Person data validation computed property
 const isPersonDetailsValid = computed(() => {
@@ -260,32 +557,70 @@ const updateValidationErrors = () => {
     if (!personData.value) return;
 
     // First name validation
-    const firstNameValid =
-        personData.value.isOrganization ||
-        (personData.value.firstName &&
-            personData.value.firstName.trim().length > 0);
-    firstNameError.value = !firstNameValid && !personData.value.isOrganization;
+    const firstName = personData.value.firstName?.trim() || "";
+    const firstNameValid = firstName.length > 0;
+    firstNameError.value = !firstNameValid;
+
+    console.log("First name validation:", {
+        firstName: firstName,
+        valid: firstNameValid,
+        error: firstNameError.value,
+    });
 
     // Last name validation
-    const lastNameValid =
-        personData.value.lastName &&
-        personData.value.lastName.trim().length > 0;
+    const lastName = personData.value.lastName?.trim() || "";
+    const lastNameValid = lastName.length > 0;
     lastNameError.value = !lastNameValid;
 
-    // Description validation - check both the personData.description and the component's description prop
+    console.log("Last name validation:", {
+        lastName: lastName,
+        valid: lastNameValid,
+        error: lastNameError.value,
+    });
+
+    // Log the actual value to help with debugging
+    console.log("Last name validation:", {
+        value: lastName,
+        valid: lastNameValid,
+        error: lastNameError.value,
+    });
+
+    // Description validation - check both personData.description and component description
     const descriptionInPersonData =
-        personData.value.description &&
-        personData.value.description.trim().length > 0;
-    const descriptionInProps =
-        description.value && description.value.trim().length > 0;
+        (personData.value.description?.trim() || "").length > 0;
+    const descriptionInProps = (description.value?.trim() || "").length > 0;
     const descriptionValid = descriptionInPersonData || descriptionInProps;
+
+    console.log("updateValidationErrors - Description check:", {
+        descriptionInPersonData,
+        descriptionInProps,
+        descriptionValid,
+        personDataDesc: personData.value.description || "",
+        descriptionProp: description.value || "",
+    });
+
+    // Sync description between the two fields to ensure consistency
+    if (descriptionInPersonData && !descriptionInProps) {
+        description.value = personData.value.description?.trim() || "";
+    } else if (!descriptionInPersonData && descriptionInProps) {
+        personData.value.description = description.value?.trim() || "";
+    }
+
+    console.log("Description validation:", {
+        description: personData.value.description || "",
+        descriptionProp: description.value || "",
+        valid: descriptionValid,
+        error: !descriptionValid,
+    });
 
     descriptionError.value = !descriptionValid;
 };
 
+// Watchers to update validation error states when personData changes
 watch(
     () => personData.value?.firstName,
-    () => {
+    (newValue) => {
+        console.log(`First name changed to: "${newValue}"`);
         if (showPersonValidationErrors.value) {
             updateValidationErrors();
         }
@@ -294,7 +629,8 @@ watch(
 
 watch(
     () => personData.value?.description,
-    () => {
+    (newValue) => {
+        console.log(`Description changed to: "${newValue}"`);
         if (showPersonValidationErrors.value) {
             updateValidationErrors();
         }
@@ -303,16 +639,8 @@ watch(
 
 watch(
     () => personData.value?.lastName,
-    () => {
-        if (showPersonValidationErrors.value) {
-            updateValidationErrors();
-        }
-    },
-);
-
-watch(
-    () => personData.value?.isOrganization,
-    () => {
+    (newValue) => {
+        console.log(`Last name changed to: "${newValue}"`);
         if (showPersonValidationErrors.value) {
             updateValidationErrors();
         }
@@ -376,10 +704,13 @@ const onBaseInfoValidation = (valid) => {
     }
 };
 
+// Removed updatePersonData function as it's not needed
+
 const handleSourcesUpdate = (newSources) => {
     selectedSourcesValue.value = newSources;
     showPersonValidationErrors.value = false;
-    sourceError.value = newSources.length === 0;
+    // Update the validation state
+    sourceError.value = !newSources.length;
 };
 
 const onSourcesValidation = (valid) => {
@@ -409,35 +740,40 @@ const selectedSourcesValue = computed({
 
 // This is called by the parent component when form validation is needed
 const validateForm = async () => {
-    let isValid = true;
+    // Show validation errors during form validation
+    showPersonValidationErrors.value = true;
 
-    let formIsValid = true;
+    // Run validation on all required fields
+    updateValidationErrors();
 
-    try {
-        const isBaseInfoValid = await validateField(baseInfosRef);
-        if (!isBaseInfoValid) {
-            formIsValid = false;
-        }
-
-        // Update our local ref safely
-        baseInfosValid.value = !!isBaseInfoValid;
-
-        // Validate sources
-        const areSourcesValid = await validateField(sourcesRef);
-        if (
-            !areSourcesValid ||
-            !props.selectedSources ||
-            props.selectedSources.length === 0
-        ) {
-            formIsValid = false;
-        }
-
-        // Update our local ref safely
-        sourcesValid.value = !!areSourcesValid;
-    } catch (error) {
-        console.error("Error validating form:", error);
-        formIsValid = false;
+    // Check sources validation
+    if (!props.selectedSources || props.selectedSources.length === 0) {
+        sourceError.value = true;
+    } else {
+        sourceError.value = false;
     }
+
+    // Check if the form is valid overall
+    const firstName = personData.value.firstName?.trim() || "";
+    const lastName = personData.value.lastName?.trim() || "";
+    const descriptionValue = personData.value.description?.trim() || "";
+
+    const formIsValid =
+        firstName.length > 0 &&
+        lastName.length > 0 &&
+        descriptionValue.length > 0 &&
+        props.selectedSources &&
+        props.selectedSources.length > 0;
+
+    console.log("Form validation complete:", {
+        firstName: { value: firstName, valid: !!firstName },
+        lastName: { value: lastName, valid: !!lastName },
+        description: { value: descriptionValue, valid: !!descriptionValue },
+        sources: {
+            valid: props.selectedSources && props.selectedSources.length > 0,
+        },
+        overall: formIsValid,
+    });
 
     return formIsValid;
 };
@@ -480,12 +816,58 @@ const initializeFromTitle = () => {
     if (props.tempPersonData) {
         try {
             const tempData = JSON.parse(props.tempPersonData);
-            if (tempData.firstName !== undefined) {
-                personData.value.firstName = tempData.firstName || "";
-            }
-            if (tempData.lastName !== undefined) {
-                personData.value.lastName = tempData.lastName || "";
-            }
+            console.log("Initializing from temp data:", tempData);
+
+            // Create complete person data from temp data
+            const updates = {
+                firstName: tempData.firstName || "",
+                lastName: tempData.lastName || "",
+                description: tempData.description || "",
+                role: tempData.role || personData.value.role,
+                birthName:
+                    tempData.birthName || personData.value.birthName || "",
+                birthDate:
+                    tempData.birthDate || personData.value.birthDate || null,
+                deathDate:
+                    tempData.deathDate || personData.value.deathDate || null,
+                gender: tempData.gender || personData.value.gender || null,
+                nationality:
+                    tempData.nationality ||
+                    personData.value.nationality ||
+                    null,
+                place_of_birth:
+                    tempData.place_of_birth ||
+                    personData.value.place_of_birth ||
+                    null,
+                place_of_death:
+                    tempData.place_of_death ||
+                    personData.value.place_of_death ||
+                    null,
+                place_of_detention:
+                    tempData.place_of_detention ||
+                    personData.value.place_of_detention ||
+                    [],
+                place_of_residence:
+                    tempData.place_of_residence ||
+                    personData.value.place_of_residence ||
+                    null,
+                occupation:
+                    tempData.occupation || personData.value.occupation || null,
+                imageUrl:
+                    tempData.imageUrl || personData.value.imageUrl || null,
+            };
+
+            // Apply all updates at once to minimize reactivity issues
+            Object.assign(personData.value, updates);
+
+            // Sync component description
+            description.value = updates.description;
+
+            console.log("Set personData from tempData:", updates);
+
+            // Title will be automatically updated by the watcher
+            console.log("Name fields updated, title should update via watcher");
+
             return; // Skip the title parsing if we used temp data
         } catch (e) {
             console.error("Failed to parse temporary person data:", e);
@@ -495,16 +877,55 @@ const initializeFromTitle = () => {
     // Fall back to parsing from title if no temp data
     if (props.title) {
         const { firstName, lastName } = parseNameFromTitle(props.title);
-        personData.value.firstName = firstName;
-        personData.value.lastName = lastName;
-        personData.value.description = props.description || "";
+
+        // Initialize with default empty values to avoid undefined issues
+        personData.value = {
+            firstName: firstName || "",
+            lastName: lastName || "",
+            birthName: "",
+            description: props.description || "",
+            birthDate: null,
+            deathDate: null,
+            gender: null,
+            nationality: null,
+            place_of_birth: null,
+            place_of_death: null,
+            place_of_detention: [],
+            place_of_residence: null,
+            occupation: null,
+            imageUrl: null,
+            role: props.personRole || "victim", // Default to "victim" (Geschädigter, Q2026714)
+        };
+
+        // Set description from props if available
+        if (props.description) {
+            personData.value.description = props.description;
+            description.value = props.description;
+        }
+
+        // Log the initialization
+        console.log("Initialized from title:", {
+            title: props.title,
+            firstName: personData.value.firstName,
+            lastName: personData.value.lastName,
+            description: personData.value.description,
+        });
     }
 };
 
 // Watch for changes to title or tempPersonData
-watch([() => props.title, () => props.tempPersonData], () => {
-    initializeFromTitle();
-});
+watch(
+    [() => props.title, () => props.tempPersonData],
+    ([newTitle, newTempData], [oldTitle, oldTempData]) => {
+        // Only initialize if we have real data to work with
+        // Skip initialization if title is empty and we had no previous title
+        if (newTitle || oldTitle || newTempData) {
+            initializeFromTitle();
+        } else {
+            console.log("Skipping initialization with empty data");
+        }
+    },
+);
 
 const searchWikidataItems = async ({ field, query }) => {
     if (!query || !query.trim()) return;
@@ -606,10 +1027,22 @@ const validateAndSubmit = async () => {
             personData.value = {
                 firstName: "",
                 lastName: "",
-                description: "",
+                description: description.value || "",
                 isOrganization: false,
                 // Add other default fields
             };
+        }
+
+        // Ensure description is a string
+        if (
+            personData.value.description === null ||
+            personData.value.description === undefined
+        ) {
+            personData.value.description = "";
+        }
+
+        if (description.value === null || description.value === undefined) {
+            description.value = "";
         }
 
         // Show validation errors
@@ -634,11 +1067,97 @@ const validateAndSubmit = async () => {
             missingFields.push("Titel");
         }
 
+        // Ensure description is synchronized between both fields
+        try {
+            let descriptionHasValue = false;
+            try {
+                descriptionHasValue =
+                    description.value !== null &&
+                    description.value !== undefined &&
+                    typeof description.value === "string" &&
+                    description.value.trim().length > 0;
+            } catch (e) {
+                console.error("Error checking description value:", e);
+            }
+
+            let personDataDescriptionEmpty = true;
+            try {
+                personDataDescriptionEmpty =
+                    !personData.value.description ||
+                    personData.value.description === null ||
+                    personData.value.description === undefined ||
+                    typeof personData.value.description !== "string" ||
+                    personData.value.description.trim().length === 0;
+            } catch (e) {
+                console.error("Error checking personData description:", e);
+            }
+
+            if (descriptionHasValue && personDataDescriptionEmpty) {
+                personData.value.description = String(description.value || "");
+            }
+
+            let personDataDescriptionHasValue = false;
+            try {
+                personDataDescriptionHasValue =
+                    personData.value.description !== null &&
+                    personData.value.description !== undefined &&
+                    typeof personData.value.description === "string" &&
+                    personData.value.description.trim().length > 0;
+            } catch (e) {
+                console.error(
+                    "Error checking personData description value:",
+                    e,
+                );
+            }
+
+            let descriptionEmpty = true;
+            try {
+                descriptionEmpty =
+                    !description.value ||
+                    description.value === null ||
+                    description.value === undefined ||
+                    typeof description.value !== "string" ||
+                    description.value.trim().length === 0;
+            } catch (e) {
+                console.error("Error checking if description is empty:", e);
+            }
+
+            if (personDataDescriptionHasValue && descriptionEmpty) {
+                description.value = String(personData.value.description || "");
+            }
+        } catch (e) {
+            console.error("Error synchronizing description fields:", e);
+        }
+
         // Check for description in either the form description or personData description
-        const hasDescription =
-            (description?.value && description.value.trim()) ||
-            (personData?.value?.description &&
-                personData.value.description.trim());
+        let hasDescription = false;
+        try {
+            hasDescription =
+                (description?.value &&
+                    typeof description.value === "string" &&
+                    description.value.trim().length > 0) ||
+                (personData?.value?.description &&
+                    typeof personData.value.description === "string" &&
+                    personData.value.description.trim().length > 0) ||
+                false;
+        } catch (e) {
+            console.error("Error checking for description:", e);
+            // Default to false if there's an error
+            hasDescription = false;
+        }
+
+        console.log("Description validation:", {
+            descriptionProp: description.value,
+            personDataDescription: personData?.value?.description,
+            hasDescription: hasDescription,
+        });
+
+        // Debug description validation
+        console.log("Description validation debug:", {
+            hasDescription,
+            descriptionValue: description.value,
+            personDataDesc: personData?.value?.description,
+        });
 
         // Update description error state
         descriptionError.value = !hasDescription;
@@ -715,36 +1234,186 @@ const validateAndSubmit = async () => {
     }
 
     try {
+        // Format the title properly from first and last name
+        const formattedTitle =
+            formatTitleFromName(
+                personData.value.firstName,
+                personData.value.lastName,
+            ) || (title.value ? title.value.trim() : "");
+
+        console.log("Submitting person form with role:", personData.value.role);
+
+        // Make sure the role is properly set
+        // The parent component (Entry.vue) will handle adding this person to
+        // the proper victims or perpetrators array based on this role
+
+        // Ensure role is either "victim" or "perpetrator" (default to "victim")
+        if (!personData.value.role || personData.value.role === "standalone") {
+            personData.value.role = "victim";
+            console.log("Setting default role to victim");
+        }
+
+        console.log(`Submitting person with role: ${personData.value.role}`);
+
+        // Ensure the description is properly copied between fields
+        // If both have values, prefer the non-empty one
+        try {
+            let descriptionHasValue = false;
+            try {
+                descriptionHasValue =
+                    description.value !== null &&
+                    description.value !== undefined &&
+                    typeof description.value === "string" &&
+                    description.value.trim().length > 0;
+            } catch (e) {
+                console.error("Error checking if description has value:", e);
+            }
+
+            if (descriptionHasValue) {
+                personData.value.description = String(description.value || "");
+            } else {
+                let personDataDescriptionHasValue = false;
+                try {
+                    personDataDescriptionHasValue =
+                        personData.value.description !== null &&
+                        personData.value.description !== undefined &&
+                        typeof personData.value.description === "string" &&
+                        personData.value.description.trim().length > 0;
+                } catch (e) {
+                    console.error(
+                        "Error checking if personData description has value:",
+                        e,
+                    );
+                }
+
+                if (personDataDescriptionHasValue) {
+                    description.value = String(
+                        personData.value.description || "",
+                    );
+                }
+            }
+        } catch (e) {
+            console.error("Error copying description between fields:", e);
+        }
+
+        // If neither has a value, set a default
+        if (
+            (!description.value ||
+                typeof description.value !== "string" ||
+                !description.value.trim()) &&
+            (!personData.value.description ||
+                typeof personData.value.description !== "string" ||
+                !personData.value.description.trim())
+        ) {
+            const defaultDesc = "Opfer des Nationalsozialismus.";
+            description.value = defaultDesc;
+            personData.value.description = defaultDesc;
+            console.log("Setting default description:", defaultDesc);
+        }
+
+        console.log("Submitting with first name:", personData.value.firstName);
+        console.log("Submitting with last name:", personData.value.lastName);
+        console.log("Formatted title:", formattedTitle);
+        console.log("Description value:", description.value);
+        console.log("personData description:", personData.value.description);
+
+        // Get role from personData or props
+        const role = personData.value.role || props.personRole || "standalone";
+        console.log("Person role:", role);
+
+        // Prepare the person data object
+        const personDataObj = {
+            firstName: personData.value.firstName || "",
+            lastName: personData.value.lastName || "",
+            title: formattedTitle,
+            birthDate: personData.value.birthDate,
+            deathDate: personData.value.deathDate,
+            birthName: personData.value.birthName || "",
+            description:
+                personData.value.description || description.value || "",
+            isOrganization: !!personData.value.isOrganization,
+            gender: personData.value.gender,
+            nationality: personData.value.nationality,
+            place_of_birth: personData.value.place_of_birth,
+            place_of_death: personData.value.place_of_death,
+            place_of_detention: personData.value.place_of_detention || [],
+            place_of_residence: personData.value.place_of_residence,
+            occupation: personData.value.occupation,
+            role: role, // Use the determined role
+            wikidataId: personData.value.wikidataId,
+            type: "Q5", // Always mark as person type
+        };
+
+        // Make sure description is consistent
+        let finalDescription = "";
+        try {
+            // Use description.value if it exists and is non-empty
+            if (description.value !== null && description.value !== undefined) {
+                const descStr =
+                    typeof description.value === "string"
+                        ? description.value
+                        : String(description.value);
+                if (descStr.trim().length > 0) {
+                    finalDescription = descStr;
+                }
+            }
+
+            // If we still don't have a description, try personData.description
+            if (
+                !finalDescription &&
+                personData.value.description !== null &&
+                personData.value.description !== undefined
+            ) {
+                const personDataDesc =
+                    typeof personData.value.description === "string"
+                        ? personData.value.description
+                        : String(personData.value.description);
+                if (personDataDesc.trim().length > 0) {
+                    finalDescription = personDataDesc;
+                }
+            }
+
+            // If still no description, use default
+            if (!finalDescription) {
+                finalDescription = "Opfer des Nationalsozialismus.";
+            }
+
+            // Ensure both values are set to the same string
+            description.value = finalDescription;
+            personData.value.description = finalDescription;
+
+            console.log("Final description set to:", finalDescription);
+        } catch (err) {
+            console.error("Error finalizing description:", err);
+            // Set fallback values in case of error
+            finalDescription = "Opfer des Nationalsozialismus.";
+            description.value = finalDescription;
+            personData.value.description = finalDescription;
+        }
+
         // Prepare form data for submission
         const formData = {
-            title: title.value ? title.value.trim() : "",
-            description:
-                (description.value ? description.value.trim() : "") ||
-                (personData.value.description
-                    ? personData.value.description.trim()
-                    : ""),
+            title: formattedTitle,
+            description: finalDescription,
             type: props.entryType || "Q5", // Q5 for human
             sources: props.selectedSources || [],
-            person: {
-                firstName: personData.value.firstName || "",
-                lastName: personData.value.lastName || "",
-                birthDate: personData.value.birthDate,
-                deathDate: personData.value.deathDate,
-                birthName: personData.value.birthName || "",
-                description:
-                    personData.value.description || description.value || "",
-                isOrganization: !!personData.value.isOrganization,
-                gender: personData.value.gender,
-                nationality: personData.value.nationality,
-                place_of_birth: personData.value.place_of_birth,
-                place_of_death: personData.value.place_of_death,
-                place_of_detention: personData.value.place_of_detention || [],
-                place_of_residence: personData.value.place_of_residence,
-                occupation: personData.value.occupation,
-                role: "standalone", // Mark as standalone person
-                wikidataId: personData.value.wikidataId, // If we selected an existing person
-            },
+            // Only set standalone if role is "standalone"
+            is_standalone_person: role === "standalone",
+            // Add to victims or perpetrators array based on role
+            victims: role === "victim" ? [personDataObj] : null,
+            perpetrators: role === "perpetrator" ? [personDataObj] : null,
+            // Keep person data for backward compatibility
+            person: personDataObj,
         };
+
+        console.log(
+            "Form data being submitted:",
+            JSON.stringify(formData, null, 2),
+        );
+        console.log("Final description being submitted:", formData.description);
+        console.log("is_standalone_person:", formData.is_standalone_person);
+        console.log("victims array:", formData.victims);
+        console.log("perpetrators array:", formData.perpetrators);
 
         // Generate a secure random token for the entry
         const generateSecureToken = () => {
@@ -774,6 +1443,9 @@ const validateAndSubmit = async () => {
             // Handle successful submission
             const requestId = secureToken || response.data.requestId;
             localStorage.setItem("entryStatusToken", requestId);
+
+            console.log("Submission successful with ID:", requestId);
+            console.log("Response data:", response.data);
 
             // Signal completion to parent
             emit("submit");
@@ -833,8 +1505,11 @@ onMounted(() => {
 });
 
 // Watchers for title and description to emit updates
-watch(title, (newValue) => {
-    if (newValue !== props.title) {
+watch(title, (newValue, oldValue) => {
+    // Only emit updates when we have meaningful changes
+    // This prevents propagating empty title updates that can cause infinite loops
+    if (newValue !== props.title && (newValue || oldValue)) {
+        console.log(`Emitting title update: "${newValue}"`);
         emit("update:title", newValue);
     }
 });
@@ -892,7 +1567,12 @@ watch(
 watch(
     () => props.title,
     (newValue) => {
-        if (newValue !== title.value) {
+        // Prevent infinite loops by not updating title when it's empty
+        // unless current title has an actual value
+        if (newValue !== title.value && (newValue || title.value)) {
+            console.log(
+                `Props title changed to "${newValue}" from "${title.value}"`,
+            );
             title.value = newValue;
         }
     },
@@ -986,5 +1666,85 @@ watch(
     display: flex;
     justify-content: space-between;
     margin-top: 2rem;
+}
+
+/* Styles for person form fields */
+.person-form-fields {
+    margin-bottom: 1rem;
+}
+
+.form-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.section-subtitle {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -15px;
+    margin-left: -15px;
+}
+
+.col-md-6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.role-description {
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: #666;
+    font-style: italic;
+    padding-left: 0.5rem;
+    border-left: 3px solid #4caf50;
+}
+
+.validation-errors-container {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background-color: #fff8f8;
+    border-left: 4px solid #e53935;
+    border-radius: 4px;
+}
+
+.validation-error {
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.validation-error:last-child {
+    margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+    .col-md-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    .form-section {
+        padding: 1rem;
+    }
 }
 </style>

@@ -30,6 +30,13 @@ class WikidataEntityController extends Controller
      */
     public function create(Request $request): JsonResponse
     {
+        // Log the incoming request data for debugging
+        Log::debug("Incoming entity create request:", [
+            "data" => $request->all(),
+            "type" => $request->get("type"),
+            "is_person" => $request->get("type") === "Q5",
+        ]);
+
         // Daten validieren
         $validated = $request->validate([
             "title" => "required|string|max:250",
@@ -38,7 +45,20 @@ class WikidataEntityController extends Controller
             "coordinates" => "nullable|string",
             "coordinates_qualifier" => "nullable|string",
             "victims" => "nullable|array",
+            "victims.*.firstName" => "nullable|string",
+            "victims.*.lastName" => "nullable|string",
+            "victims.*.title" => "nullable|string",
+            "victims.*.description" => "nullable|string",
+            "victims.*.type" => "nullable|string",
+            "victims.*.role" => "nullable|string",
             "perpetrators" => "nullable|array",
+            "perpetrators.*.firstName" => "nullable|string",
+            "perpetrators.*.lastName" => "nullable|string",
+            "perpetrators.*.title" => "nullable|string",
+            "perpetrators.*.description" => "nullable|string",
+            "perpetrators.*.type" => "nullable|string",
+            "perpetrators.*.role" => "nullable|string",
+            "is_standalone_person" => "nullable|boolean",
             "isStandalonePerson" => "nullable|boolean",
             "eventTimeType" => "nullable|string|in:point,range",
             "eventDate" => "nullable|string",
@@ -76,10 +96,71 @@ class WikidataEntityController extends Controller
             $entryRequest->coordinates = $validated["coordinates"] ?? null;
             $entryRequest->coordinates_qualifier =
                 $validated["coordinates_qualifier"] ?? null;
+            // Handle victims with proper formatting
+            if (
+                !empty($validated["victims"]) &&
+                is_array($validated["victims"])
+            ) {
+                // Ensure each victim has proper structure
+                foreach ($validated["victims"] as &$victim) {
+                    if (
+                        !isset($victim["title"]) &&
+                        isset($victim["firstName"], $victim["lastName"])
+                    ) {
+                        // Generate title from first and last name if missing
+                        $victim["title"] = trim(
+                            $victim["firstName"] . " " . $victim["lastName"],
+                        );
+                    }
+                    // Set type as Q5 if not specified
+                    if (!isset($victim["type"])) {
+                        $victim["type"] = "Q5";
+                    }
+                    // Set role as victim if not specified
+                    if (!isset($victim["role"])) {
+                        $victim["role"] = "victim";
+                    }
+                }
+            }
             $entryRequest->victims = $validated["victims"] ?? null;
+
+            // Handle perpetrators with proper formatting
+            if (
+                !empty($validated["perpetrators"]) &&
+                is_array($validated["perpetrators"])
+            ) {
+                // Ensure each perpetrator has proper structure
+                foreach ($validated["perpetrators"] as &$perpetrator) {
+                    if (
+                        !isset($perpetrator["title"]) &&
+                        isset(
+                            $perpetrator["firstName"],
+                            $perpetrator["lastName"],
+                        )
+                    ) {
+                        // Generate title from first and last name if missing
+                        $perpetrator["title"] = trim(
+                            $perpetrator["firstName"] .
+                                " " .
+                                $perpetrator["lastName"],
+                        );
+                    }
+                    // Set type as Q5 if not specified
+                    if (!isset($perpetrator["type"])) {
+                        $perpetrator["type"] = "Q5";
+                    }
+                    // Set role as perpetrator if not specified
+                    if (!isset($perpetrator["role"])) {
+                        $perpetrator["role"] = "perpetrator";
+                    }
+                }
+            }
             $entryRequest->perpetrators = $validated["perpetrators"] ?? null;
-            $entryRequest->is_standalone_person =
-                $validated["isStandalonePerson"] ?? false;
+            // Allow both is_standalone_person and isStandalonePerson for backward compatibility
+            $isStandalone =
+                $validated["is_standalone_person"] ??
+                ($validated["isStandalonePerson"] ?? false);
+            $entryRequest->is_standalone_person = $isStandalone;
             $entryRequest->gender = $validated["gender"] ?? null;
             $entryRequest->nationality = $validated["nationality"] ?? null;
             $entryRequest->place_of_birth =
@@ -162,6 +243,109 @@ class WikidataEntityController extends Controller
             $entryRequest->image_filename = $validated["imageFilename"] ?? null;
 
             $entryRequest->status = "pending";
+
+            // If this is a person entry, handle person data specifically
+            if ($validated["type"] === "Q5") {
+                // Make sure is_standalone_person is set correctly
+                if ($entryRequest->victims || $entryRequest->perpetrators) {
+                    $entryRequest->is_standalone_person = false;
+                    Log::debug(
+                        "Setting is_standalone_person to false because victims or perpetrators are present",
+                        [
+                            "victims" => $entryRequest->victims,
+                            "perpetrators" => $entryRequest->perpetrators,
+                        ],
+                    );
+                }
+
+                // If person data is provided in the request but not properly formatted
+                if (
+                    isset($validated["person"]) &&
+                    is_array($validated["person"])
+                ) {
+                    $person = $validated["person"];
+
+                    // Add person fields directly to the entry request
+                    $entryRequest->gender = $person["gender"] ?? null;
+                    $entryRequest->nationality = $person["nationality"] ?? null;
+                    $entryRequest->place_of_birth =
+                        $person["place_of_birth"] ?? null;
+                    $entryRequest->place_of_death =
+                        $person["place_of_death"] ?? null;
+                    $entryRequest->place_of_detention =
+                        $person["place_of_detention"] ?? null;
+                    $entryRequest->occupation = $person["occupation"] ?? null;
+
+                    // Log the person data for debugging
+                    Log::debug("Person data processed:", [
+                        "firstName" => $person["firstName"] ?? null,
+                        "lastName" => $person["lastName"] ?? null,
+                        "fullName" => $validated["title"] ?? null,
+                        "role" => $person["role"] ?? "standalone",
+                        "is_standalone_person" =>
+                            $entryRequest->is_standalone_person,
+                        "gender" => $person["gender"] ?? null,
+                        "nationality" => $person["nationality"] ?? null,
+                    ]);
+                }
+
+                // If this person should be added to victims array
+                if (
+                    !empty($validated["victims"]) &&
+                    is_array($validated["victims"])
+                ) {
+                    // If we have gender and other data in the first person, use it for the main record too
+                    $firstVictim = $validated["victims"][0] ?? null;
+                    if ($firstVictim && is_array($firstVictim)) {
+                        $entryRequest->gender =
+                            $firstVictim["gender"] ?? $entryRequest->gender;
+                        $entryRequest->nationality =
+                            $firstVictim["nationality"] ??
+                            $entryRequest->nationality;
+                        $entryRequest->place_of_birth =
+                            $firstVictim["place_of_birth"] ??
+                            $entryRequest->place_of_birth;
+                        $entryRequest->place_of_death =
+                            $firstVictim["place_of_death"] ??
+                            $entryRequest->place_of_death;
+                        $entryRequest->place_of_detention =
+                            $firstVictim["place_of_detention"] ??
+                            $entryRequest->place_of_detention;
+                        $entryRequest->occupation =
+                            $firstVictim["occupation"] ??
+                            $entryRequest->occupation;
+                    }
+                }
+
+                // If this person should be added to perpetrators array
+                if (
+                    !empty($validated["perpetrators"]) &&
+                    is_array($validated["perpetrators"])
+                ) {
+                    // If we have gender and other data in the first person, use it for the main record too
+                    $firstPerpetrator = $validated["perpetrators"][0] ?? null;
+                    if ($firstPerpetrator && is_array($firstPerpetrator)) {
+                        $entryRequest->gender =
+                            $firstPerpetrator["gender"] ??
+                            $entryRequest->gender;
+                        $entryRequest->nationality =
+                            $firstPerpetrator["nationality"] ??
+                            $entryRequest->nationality;
+                        $entryRequest->place_of_birth =
+                            $firstPerpetrator["place_of_birth"] ??
+                            $entryRequest->place_of_birth;
+                        $entryRequest->place_of_death =
+                            $firstPerpetrator["place_of_death"] ??
+                            $entryRequest->place_of_death;
+                        $entryRequest->place_of_detention =
+                            $firstPerpetrator["place_of_detention"] ??
+                            $entryRequest->place_of_detention;
+                        $entryRequest->occupation =
+                            $firstPerpetrator["occupation"] ??
+                            $entryRequest->occupation;
+                    }
+                }
+            }
 
             // Initialize status history
             $statusHistory = [

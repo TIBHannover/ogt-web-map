@@ -558,7 +558,11 @@ class WikidataClient
      *
      * @return array
      */
-    public function subgroupItems(array $mainGroups, array $subGroups, string $subgroupPropertyId): array {
+    public function subgroupItems(
+        array $mainGroups,
+        array $subGroups,
+        string $subgroupPropertyId,
+    ): array {
         $propertyLabel = self::PROPERTY_LABEL_OF_ID[$subgroupPropertyId];
 
         foreach ($subGroups as $subGroupName => $subGroupConfig) {

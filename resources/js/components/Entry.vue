@@ -730,8 +730,14 @@
                             :title="formsTitle"
                             :description="formsDescription"
                             :temp-person-data="tempPersonData"
+                            :person-role="props.role || 'standalone'"
                             v-model:selectedSources="selectedSources"
-                            @update:title="formsTitle = $event"
+                            @update:title="
+                                (val) => {
+                                    if (val || formsTitle.value)
+                                        formsTitle = val;
+                                }
+                            "
                             @update:description="formsDescription = $event"
                             @goToStep="goToStep"
                             @submit="resetForm"
@@ -1247,21 +1253,45 @@ const createNewPerson = (name, personData = null) => {
     console.log("Creating new person with name:", name);
     console.log("Person data:", personData);
 
-    // Set the form title to the provided name
-    formsTitle.value = name;
+    // Guard against empty name to prevent recursion
+    if (name && name.trim()) {
+        // Set the form title to the provided name
+        formsTitle.value = name;
+    } else {
+        console.log("Skipping update with empty name");
+        // Use a non-empty default to prevent recursion
+        if (!formsTitle.value) {
+            formsTitle.value = "Neue Person";
+        }
+    }
 
     // Set default description if needed
     if (!formsDescription.value) {
         formsDescription.value = "";
     }
 
+    // Add role if available from props to personData
+    if (personData && props.role) {
+        personData.role = props.role;
+        console.log(`Setting person role from props: ${props.role}`);
+    }
+
     // Store person data in a ref that can be accessed by the SimplePersonForm
     if (personData) {
         tempPersonData.value = JSON.stringify(personData);
+        console.log(`tempPersonData set to: ${tempPersonData.value}`);
     }
 
     // Move to step 2 to complete the person details
     currentStep.value = 2;
+
+    // Reset tempPersonData to avoid reinitializing again if the component rerenders
+    setTimeout(() => {
+        if (tempPersonData.value) {
+            console.log("Clearing tempPersonData after initialization");
+            tempPersonData.value = null;
+        }
+    }, 500);
 };
 
 const createWithTitle = (title) => {
@@ -1546,10 +1576,17 @@ const resetNewVictimForm = () => {
 
 const addNewVictim = () => {
     const tempId = "new_" + Date.now();
+    const firstName = newVictim.value.firstName || "";
+    const lastName = newVictim.value.lastName || "";
+
+    // Create formatted name for title
+    const formattedTitle = `${firstName} ${lastName}`.trim();
+
     selectedVictims.value.push({
         tempId: tempId,
-        firstName: newVictim.value.firstName,
-        lastName: newVictim.value.lastName,
+        firstName: firstName,
+        lastName: lastName,
+        title: formattedTitle, // Add title field with formatted name
         birthDate: newVictim.value.birthDate,
         deathDate: newVictim.value.deathDate,
         description: newVictim.value.description,
@@ -1565,6 +1602,8 @@ const addNewVictim = () => {
         place_of_detention: newVictim.value.place_of_detention || [],
         place_of_residence: newVictim.value.place_of_residence || null,
         occupation: newVictim.value.occupation || null,
+        type: "Q5", // Add type field to identify this as a person
+        role: "victim", // Explicitly set the role
     });
 
     showNewVictimForm.value = false;
@@ -1662,10 +1701,17 @@ const resetNewPerpetratorForm = () => {
 
 const addNewPerpetrator = () => {
     const tempId = "new_" + Date.now();
+    const firstName = newPerpetrator.value.firstName || "";
+    const lastName = newPerpetrator.value.lastName || "";
+
+    // Create formatted name for title
+    const formattedTitle = `${firstName} ${lastName}`.trim();
+
     selectedPerpetrators.value.push({
         tempId: tempId,
-        firstName: newPerpetrator.value.firstName,
-        lastName: newPerpetrator.value.lastName,
+        firstName: firstName,
+        lastName: lastName,
+        title: formattedTitle, // Add title field with formatted name
         birthDate: newPerpetrator.value.birthDate,
         deathDate: newPerpetrator.value.deathDate,
         description: newPerpetrator.value.description,
@@ -1681,6 +1727,8 @@ const addNewPerpetrator = () => {
         place_of_detention: newPerpetrator.value.place_of_detention || [],
         place_of_residence: newPerpetrator.value.place_of_residence || null,
         occupation: newPerpetrator.value.occupation || null,
+        type: "Q5", // Add type field to identify this as a person
+        role: "perpetrator", // Explicitly set the role
     });
 
     showNewPerpetratorForm.value = false;
@@ -1919,13 +1967,65 @@ const resetForm = async () => {
 
             // Add specific fields based on entry type
             if (formsType.value === "Q5") {
-                // Person form - get data from personFormRef
-                return {
-                    ...baseData,
-                    isStandalonePerson: true,
-                    // These will be populated by backend based on personForm data
-                    // Additional person data is sent directly from the PersonForm component
+                // Determine role from props
+                const role = props.role || "standalone";
+                console.log(`Person submission - role: ${role}`);
+
+                // Get person data from form if available
+                let personDetails = {};
+                if (
+                    personFormRef.value &&
+                    personFormRef.value.personData &&
+                    personFormRef.value.personData.value
+                ) {
+                    personDetails = { ...personFormRef.value.personData.value };
+                }
+
+                // Base person object with properly formatted name
+                const personObject = {
+                    firstName: personDetails.firstName || "",
+                    lastName: personDetails.lastName || "",
+                    title: baseData.title,
+                    description: baseData.description,
+                    type: "Q5",
+                    role: role,
+                    gender: personDetails.gender || null,
+                    nationality: personDetails.nationality || null,
+                    birthDate: personDetails.birthDate || null,
+                    deathDate: personDetails.deathDate || null,
+                    birthName: personDetails.birthName || "",
+                    place_of_birth: personDetails.place_of_birth || null,
+                    place_of_death: personDetails.place_of_death || null,
+                    place_of_detention: personDetails.place_of_detention || [],
+                    place_of_residence:
+                        personDetails.place_of_residence || null,
+                    occupation: personDetails.occupation || null,
                 };
+
+                // For a standalone person entry
+                const personData = {
+                    ...baseData,
+                    is_standalone_person: role === "standalone",
+                    // Add fields from person details
+                    gender: personObject.gender,
+                    nationality: personObject.nationality,
+                    place_of_birth: personObject.place_of_birth,
+                    place_of_death: personObject.place_of_death,
+                    place_of_detention: personObject.place_of_detention,
+                    occupation: personObject.occupation,
+                    // Store the full person object for reference
+                    person: personObject,
+                };
+
+                // Add to the appropriate array based on role
+                if (role === "victim") {
+                    personData.victims = [personObject];
+                } else if (role === "perpetrator") {
+                    personData.perpetrators = [personObject];
+                }
+
+                console.log(`Person form data being submitted:`, personData);
+                return personData;
             } else {
                 // Event form or others
                 return {
@@ -2129,6 +2229,15 @@ const clearForm = () => {
 
 watch(currentStep, (newStep) => {
     if (newStep === 2) {
+        // If switching to step 2 (person form) ensure we have a title to prevent infinite loops
+        if (
+            formsType.value === "Q5" &&
+            (!formsTitle.value || !formsTitle.value.trim())
+        ) {
+            console.log("Setting default title for person form");
+            formsTitle.value = "Neue Person";
+        }
+
         setTimeout(() => {
             reinitializeMap();
         }, 300);
