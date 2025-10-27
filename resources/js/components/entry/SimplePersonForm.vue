@@ -10,9 +10,30 @@
                             type="button"
                             class="info-icon"
                             @click="openSectionInfo('person-entry')"
+                            title="Informationen zu Person-Details"
                         >
                             <v-icon>mdi-information-variant</v-icon>
                         </button>
+                    </div>
+
+                    <!-- Mobile Info Overlay -->
+                    <div
+                        v-if="showMobileInfoOverlay"
+                        class="mobile-info-overlay"
+                        @click.self="closeMobileInfoOverlay"
+                    >
+                        <div class="mobile-info-content">
+                            <div class="mobile-info-header">
+                                <h3>{{ getInfoTitle(lastActiveField) }}</h3>
+                                <button @click="closeMobileInfoOverlay">
+                                    <v-icon>mdi-close</v-icon>
+                                </button>
+                            </div>
+                            <div
+                                class="mobile-info-body"
+                                v-html="getInfoContent(lastActiveField)"
+                            ></div>
+                        </div>
                     </div>
 
                     <!-- Person form fields with sections -->
@@ -27,21 +48,16 @@
                             <div class="form-group">
                                 <v-select
                                     v-model="personData.role"
-                                    label="Rolle (P2868) *"
+                                    label="Rolle*"
                                     :items="roleOptions"
                                     item-title="label"
                                     item-value="value"
                                     variant="outlined"
                                     class="mb-3"
-                                    hint="Definiert die Beziehung zur historischen Begebenheit (Wikidata-Property P2868)"
-                                    persistent-hint
+                                    @click:append-inner="
+                                        openSectionInfo('role')
+                                    "
                                 ></v-select>
-                                <div
-                                    class="role-description"
-                                    v-if="personData.role"
-                                >
-                                    {{ getRoleDescription(personData.role) }}
-                                </div>
                             </div>
 
                             <!-- Name fields -->
@@ -86,7 +102,19 @@
 
                         <!-- Personal Details Section -->
                         <div class="form-section">
-                            <h3 class="section-subtitle">Persönliche Daten</h3>
+                            <div class="section-header">
+                                <h3 class="section-subtitle">
+                                    Persönliche Daten
+                                </h3>
+                                <button
+                                    type="button"
+                                    class="info-icon"
+                                    @click="openSectionInfo('personal-data')"
+                                    title="Informationen zu persönlichen Daten"
+                                >
+                                    <v-icon>mdi-information-variant</v-icon>
+                                </button>
+                            </div>
 
                             <div class="form-row">
                                 <div class="form-group col-md-6">
@@ -158,7 +186,17 @@
 
                         <!-- Places Section -->
                         <div class="form-section">
-                            <h3 class="section-subtitle">Ortsangaben</h3>
+                            <div class="section-header">
+                                <h3 class="section-subtitle">Ortsangaben</h3>
+                                <button
+                                    type="button"
+                                    class="info-icon"
+                                    @click="openSectionInfo('locations')"
+                                    title="Informationen zu Ortsangaben"
+                                >
+                                    <v-icon>mdi-information-variant</v-icon>
+                                </button>
+                            </div>
 
                             <div class="form-row">
                                 <div class="form-group col-md-6">
@@ -234,7 +272,7 @@
                     :selectedSources="selectedSourcesValue"
                     @update:selectedSources="handleSourcesUpdate"
                     @fieldFocus="setActiveField"
-                    @infoButtonClick="openSectionInfo"
+                    @infoButtonClick="openSectionInfo('sources')"
                     @validation="onSourcesValidation"
                     :required="true"
                 />
@@ -254,11 +292,23 @@
                 </div>
             </form>
         </div>
+        <!-- Info-Box (Desktop) -->
+        <div
+            class="info-box desktop-info"
+            v-if="activeField && !isMobileView && !isAdminView"
+        >
+            <div class="info-box-header">
+                <h3>{{ getInfoTitle(activeField) }}</h3>
+            </div>
+            <div class="info-box-content">
+                <div v-html="getInfoContent(activeField)"></div>
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, inject, watch } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, inject, watch } from "vue";
 import { useRouter } from "vue-router";
 import SourcesField from "./fields/SourcesField.vue";
 import ValidationError from "../helpers/ValidationError.vue";
@@ -266,11 +316,6 @@ import axios from "axios";
 
 const router = useRouter();
 const ogtGlobals = inject("ogtGlobals");
-
-// Initialize form on mount
-onMounted(() => {
-    initializeFromTitle();
-});
 
 // Parse title into first and last name
 const parseNameFromTitle = (fullName) => {
@@ -361,7 +406,6 @@ const emit = defineEmits([
 const title = ref(props.title || "");
 const description = ref(props.description || "");
 const isSubmitting = ref(false);
-const activeSection = ref("title");
 const baseInfosRef = ref(null);
 const sourcesRef = ref(null);
 const showPersonValidationErrors = ref(false);
@@ -398,7 +442,7 @@ const personData = ref({
     place_of_residence: null,
     occupation: null,
     imageUrl: null,
-    role: props.personRole || "victim", // Default to "victim" (Geschädigter, Q2026714) if not specified
+    role: "victim", // Default to "victim" (Geschädigter, Q2026714)
     // We don't need these arrays since they're handled by the parent component
 });
 
@@ -412,17 +456,96 @@ const roleOptions = ref([
     },
 ]);
 
-// Function to get role descriptions for display
-const getRoleDescription = (role) => {
-    switch (role) {
-        case "victim":
-            return "Diese Person wurde im Nationalsozialismus verfolgt, inhaftiert oder ermordet (Wikidata-Property P2868 → Q2026714)";
-        case "perpetrator":
-            return "Diese Person war an der Verfolgung, Inhaftierung oder Ermordung von NS-Opfern beteiligt (Wikidata-Property P2868 → Q111080573)";
-        default:
-            return "";
+// Info-Box Funktionalität
+const activeField = ref(null);
+const activeSection = ref("title");
+const showMobileInfoOverlay = ref(false);
+const isMobileView = ref(false);
+const lastActiveField = ref(null);
+
+const setActiveField = (fieldName) => {
+    activeField.value = fieldName;
+    lastActiveField.value = fieldName;
+};
+
+const checkScreenSize = () => {
+    isMobileView.value = window.innerWidth < 1200;
+};
+
+const openSectionInfo = (sectionName) => {
+    lastActiveField.value = sectionName;
+    activeField.value = sectionName;
+    showMobileInfoOverlay.value = true;
+};
+
+const closeMobileInfoOverlay = () => {
+    showMobileInfoOverlay.value = false;
+};
+
+const getInfoTitle = (fieldName) => {
+    const sectionTitles = {
+        role: "Rolle der Person",
+        "person-entry": "Person-Details",
+        "personal-data": "Persönliche Daten",
+        locations: "Ortsangaben",
+        sources: "Quellenangaben",
+    };
+
+    if (sectionTitles[fieldName]) {
+        return sectionTitles[fieldName];
+    } else {
+        return "Information";
     }
 };
+
+const getInfoContent = (fieldName) => {
+    const sectionContents = {
+        role: `<p>Hier wird die Rolle der Person im historischen Kontext definiert:</p>
+              <ul>
+                <li><strong>Geschädigter (Q2026714)</strong>: Person wurde im Nationalsozialismus verfolgt, inhaftiert oder ermordet</li>
+                <li><strong>Täter (Q111080573)</strong>: Person war an der Verfolgung, Inhaftierung oder Ermordung von NS-Opfern beteiligt</li>
+              </ul>
+              <p>Diese Information wird in Wikidata als Property P2868 (Rolle) mit dem entsprechenden Wert gespeichert.</p>`,
+        "person-entry": `<p>In diesem Bereich werden die grundlegenden Informationen zur Person erfasst.</p>
+                       <p><strong>Pflichtfelder:</strong></p>
+                       <ul>
+                         <li><strong>Vorname und Nachname</strong>: Vollständiger Name der Person</li>
+                         <li><strong>Kurze Beschreibung</strong>: Kurze Zusammenfassung über die Person (max. 250 Zeichen)</li>
+                       </ul>`,
+        "personal-data": `<p><strong>Persönliche Daten der Person:</strong></p>
+                       <ul>
+                         <li><strong>Geburtsname</strong>: Falls abweichend vom aktuellen Namen</li>
+                         <li><strong>Geschlecht</strong>: Wenn bekannt</li>
+                         <li><strong>Geburtsdatum/Sterbedatum</strong>: Im Format YYYY-MM-DD</li>
+                         <li><strong>Staatsangehörigkeit</strong>: Nationalität der Person</li>
+                         <li><strong>Beruf</strong>: Hauptberuf oder Tätigkeit der Person</li>
+                       </ul>
+                       <p>Diese Angaben helfen dabei, die Person eindeutig zu identifizieren und in den historischen Kontext einzuordnen.</p>`,
+        locations: `<p><strong>Wichtige Orte im Leben der Person:</strong></p>
+                       <ul>
+                         <li><strong>Geburtsort</strong>: Wo die Person geboren wurde</li>
+                         <li><strong>Sterbeort</strong>: Wo die Person verstorben ist</li>
+                         <li><strong>Wohnort</strong>: Hauptwohnsitz oder wichtiger Aufenthaltsort</li>
+                       </ul>
+                       <p>Die Ortsangaben werden in Wikidata mit geografischen Koordinaten verknüpft und können auf der Karte angezeigt werden.</p>`,
+        sources: `<p>Quellenangaben sind ein verpflichtendes Feld.</p>
+                <p>Füge mindestens eine Quelle hinzu, um die Informationen zu dieser Person zu belegen:</p>
+                <ul>
+                  <li>Bücher, Zeitschriften oder wissenschaftliche Artikel</li>
+                  <li>Archive und Sammlungen</li>
+                  <li>Offizielle Dokumente und Berichte</li>
+                  <li>Zeitzeugenberichte</li>
+                </ul>
+                <p>Gute Quellenangaben enthalten Autor, Titel, Jahr und möglichst eine URL oder DOI.</p>`,
+    };
+
+    return sectionContents[fieldName] || "Keine Informationen verfügbar.";
+};
+
+// We'll handle this in the main onMounted hook
+onBeforeUnmount(() => {
+    window.removeEventListener("resize", checkScreenSize);
+});
 
 const genderOptions = ref([
     { label: "Männlich", value: "male" },
@@ -682,18 +805,8 @@ const wikidataResultsValue = computed(() => {
     return [];
 });
 
-// Methods
-const setActiveField = (field) => {
-    // Use for handling field focus
-};
-
-const setActiveSection = (section) => {
-    activeSection.value = section;
-};
-
-const openSectionInfo = (section) => {
-    // Handle info button clicks for sections
-    console.log("Open info for section:", section);
+const setActiveSection = (sectionName) => {
+    activeSection.value = sectionName;
 };
 
 const onBaseInfoValidation = (valid) => {
@@ -894,7 +1007,7 @@ const initializeFromTitle = () => {
             place_of_residence: null,
             occupation: null,
             imageUrl: null,
-            role: props.personRole || "victim", // Default to "victim" (Geschädigter, Q2026714)
+            role: "victim", // Default to "victim" (Geschädigter, Q2026714)
         };
 
         // Set description from props if available
@@ -1475,8 +1588,16 @@ const validateAndSubmit = async () => {
 };
 
 // Lifecycle hooks
+// Main onMounted hook to handle all initialization
 onMounted(() => {
-    // Initialize component on mount
+    // Initialize from title data
+    initializeFromTitle();
+
+    // Setup for mobile view detection
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+
+    // Initialize component properties
     if (props.title) {
         title.value = props.title;
     }
@@ -1487,9 +1608,6 @@ onMounted(() => {
             personData.value.description = props.description;
         }
     }
-
-    // Initialize from any temp data
-    initializeFromTitle();
 
     // Reset validation state on component mount
     showPersonValidationErrors.value = false;
@@ -1589,6 +1707,7 @@ watch(
     padding: 1rem;
     background-color: #f8f9fa;
     border-radius: 8px;
+    width: 100%;
 }
 
 .section-header {
@@ -1688,6 +1807,8 @@ watch(
     margin-bottom: 1.2rem;
     padding-bottom: 0.5rem;
     border-bottom: 1px solid #dee2e6;
+    margin-top: 0;
+    margin-right: auto;
 }
 
 .form-row {
@@ -1717,6 +1838,89 @@ watch(
     font-style: italic;
     padding-left: 0.5rem;
     border-left: 3px solid #4caf50;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.info-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #1976d2;
+    padding: 0.25rem;
+    margin-left: 0.5rem;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.info-icon:hover {
+    background-color: rgba(25, 118, 210, 0.1);
+}
+
+/* Mobile Info Overlay */
+.mobile-info-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+
+.mobile-info-content {
+    background-color: white;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.mobile-info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.mobile-info-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.mobile-info-header button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+}
+
+.mobile-info-body {
+    padding: 1rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #333;
+}
+
+.mobile-info-body p {
+    margin-bottom: 1rem;
+}
+
+.mobile-info-body ul {
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 .validation-errors-container {
