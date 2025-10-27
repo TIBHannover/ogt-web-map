@@ -740,7 +740,7 @@
                             "
                             @update:description="formsDescription = $event"
                             @goToStep="goToStep"
-                            @submit="resetForm"
+                            @submit="submitPersonForm"
                             key="person-form"
                         />
                     </ErrorBoundary>
@@ -849,13 +849,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, watch } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch, inject } from "vue";
 import { LMap, LTileLayer, LMarker } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
 import * as L from "leaflet";
 import axios from "axios";
 import { debounce } from "lodash";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import EventsForm from "./entry/EventsForm.vue";
 import TitleSearchOverlay from "./entry/fields/TitleSearchOverlay.vue";
 import PersonSearchOverlay from "./entry/fields/PersonSearchOverlay.vue";
@@ -904,6 +904,7 @@ const props = defineProps({
 
 // Reactive references
 const router = useRouter();
+const ogtGlobals = inject("ogtGlobals");
 const freeClientWidth = ref(document.documentElement.clientWidth);
 const error = ref(null);
 const formsType = ref("");
@@ -912,6 +913,7 @@ const formsDescription = ref(null);
 const isSubmitting = ref(false);
 const wikidataResults = ref([]);
 const peopleSearchResults = ref([]);
+const personFormData = ref(null); // Store form data received from SimplePersonForm
 const selectedVictims = ref([]);
 const currentStep = ref(1);
 const showNewVictimForm = ref(false);
@@ -1843,6 +1845,434 @@ const removeCause = (causeId) => {
     );
 };
 
+// Clear submission state when router changes
+const resetSubmissionState = () => {
+    isSubmitting.value = false;
+    error.value = null;
+    console.log("Reset submission state due to router navigation");
+};
+
+// Handle submission from SimplePersonForm
+const submitPersonForm = async (formData) => {
+    console.log("Received form data from SimplePersonForm:", formData);
+
+    if (isSubmitting.value) {
+        console.log(
+            "Form submission already in progress, ignoring duplicate call",
+        );
+        return;
+    }
+
+    // Make sure any previous error is cleared
+    error.value = null;
+    isSubmitting.value = true;
+
+    // Set a timeout to reset isSubmitting in case of hanging request
+    const submissionTimeout = setTimeout(() => {
+        if (isSubmitting.value) {
+            console.log(
+                "Safety timeout: resetting submission state after 30 seconds",
+            );
+            isSubmitting.value = false;
+            error.value =
+                "Die Anfrage hat zu lange gedauert. Bitte versuchen Sie es erneut.";
+            console.warn("Submission timed out after 30 seconds");
+        }
+    }, 30000); // 30 second timeout
+
+    try {
+        // Validate that the data structure is correct
+        // Make sure person data is only in victims or perpetrators arrays
+        if (formData.type === "Q5") {
+            console.log(
+                "FORM DATA BEFORE CLEANING:",
+                JSON.stringify(formData, null, 2),
+            );
+
+            // Process arrays first
+            // Helper function to normalize field to array format
+            const normalizeField = (field) => {
+                if (!field) return null;
+                if (typeof field === "string") return [{ id: field }];
+                if (typeof field === "object" && !Array.isArray(field))
+                    return [field];
+                return field;
+            };
+
+            // Process both victims and perpetrators arrays to ensure fields are in correct format
+            if (formData.victims && Array.isArray(formData.victims)) {
+                formData.victims.forEach((person) => {
+                    if (person.gender)
+                        person.gender = normalizeField(person.gender);
+                    if (person.nationality)
+                        person.nationality = normalizeField(person.nationality);
+                    if (person.place_of_birth)
+                        person.place_of_birth = normalizeField(
+                            person.place_of_birth,
+                        );
+                    if (person.place_of_death)
+                        person.place_of_death = normalizeField(
+                            person.place_of_death,
+                        );
+                    if (person.place_of_detention)
+                        person.place_of_detention = normalizeField(
+                            person.place_of_detention,
+                        );
+                    if (person.place_of_residence)
+                        person.place_of_residence = normalizeField(
+                            person.place_of_residence,
+                        );
+                    if (person.occupation)
+                        person.occupation = normalizeField(person.occupation);
+                    if (person.employer)
+                        person.employer = normalizeField(person.employer);
+                });
+            }
+
+            if (formData.perpetrators && Array.isArray(formData.perpetrators)) {
+                formData.perpetrators.forEach((person) => {
+                    if (person.gender)
+                        person.gender = normalizeField(person.gender);
+                    if (person.nationality)
+                        person.nationality = normalizeField(person.nationality);
+                    if (person.place_of_birth)
+                        person.place_of_birth = normalizeField(
+                            person.place_of_birth,
+                        );
+                    if (person.place_of_death)
+                        person.place_of_death = normalizeField(
+                            person.place_of_death,
+                        );
+                    if (person.place_of_detention)
+                        person.place_of_detention = normalizeField(
+                            person.place_of_detention,
+                        );
+                    if (person.place_of_residence)
+                        person.place_of_residence = normalizeField(
+                            person.place_of_residence,
+                        );
+                    if (person.occupation)
+                        person.occupation = normalizeField(person.occupation);
+                    if (person.employer)
+                        person.employer = normalizeField(person.employer);
+                });
+            }
+
+            // Now clear the root level fields
+            formData.gender = null;
+            formData.nationality = null;
+            formData.place_of_birth = null;
+            formData.place_of_death = null;
+            formData.place_of_detention = null;
+            formData.place_of_residence = null;
+            formData.occupation = null;
+            formData.employer = null;
+            formData.image = null;
+            formData.imageUrl = null;
+            formData.imageFilename = null;
+
+            console.log(
+                "Ensured person data is only in arrays, not at root level",
+            );
+            console.log("Victims:", JSON.stringify(formData.victims, null, 2));
+            console.log(
+                "Perpetrators:",
+                JSON.stringify(formData.perpetrators, null, 2),
+            );
+
+            // Make sure victims and perpetrators arrays are properly initialized
+            // Ensure arrays are properly initialized
+            if (!Array.isArray(formData.victims)) {
+                formData.victims = formData.victims ? [formData.victims] : [];
+                console.log(
+                    "Fixed victims array:",
+                    JSON.stringify(formData.victims, null, 2),
+                );
+            }
+
+            if (!Array.isArray(formData.perpetrators)) {
+                formData.perpetrators = formData.perpetrators
+                    ? [formData.perpetrators]
+                    : [];
+                console.log(
+                    "Fixed perpetrators array:",
+                    JSON.stringify(formData.perpetrators, null, 2),
+                );
+            }
+
+            // Double check that all person objects have properly formatted fields
+            formData.victims.forEach((person) => {
+                console.log("Checking victim fields:", person);
+                [
+                    "gender",
+                    "nationality",
+                    "place_of_birth",
+                    "place_of_death",
+                    "place_of_detention",
+                    "place_of_residence",
+                    "occupation",
+                    "employer",
+                ].forEach((field) => {
+                    if (person[field] && !Array.isArray(person[field])) {
+                        console.log(`Converting ${field} to array format`);
+                        person[field] = [person[field]];
+                    }
+                });
+            });
+
+            formData.perpetrators.forEach((person) => {
+                console.log("Checking perpetrator fields:", person);
+                [
+                    "gender",
+                    "nationality",
+                    "place_of_birth",
+                    "place_of_death",
+                    "place_of_detention",
+                    "place_of_residence",
+                    "occupation",
+                    "employer",
+                ].forEach((field) => {
+                    if (person[field] && !Array.isArray(person[field])) {
+                        console.log(`Converting ${field} to array format`);
+                        person[field] = [person[field]];
+                    }
+                });
+            });
+
+            console.log(
+                "FORM DATA AFTER CLEANING:",
+                JSON.stringify(formData, null, 2),
+            );
+        }
+
+        // Ensure we have a CSRF token
+        let csrfToken = document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute("content");
+
+        if (!csrfToken) {
+            console.warn("CSRF token not found, using fallback method");
+            // Try to get from cookies as fallback
+            const match = document.cookie.match(
+                new RegExp("(^|;\\s*)XSRF-TOKEN=([^;]*)"),
+            );
+            csrfToken = match ? decodeURIComponent(match[2]) : "";
+        }
+
+        // Perform final validation before sending
+        console.log("Final form data check:");
+        if (formData.victims && formData.victims.length > 0) {
+            formData.victims.forEach((victim, index) => {
+                console.log(`Victim ${index} gender:`, victim.gender);
+                if (victim.gender && !Array.isArray(victim.gender)) {
+                    console.warn(
+                        `Fixing victim ${index} gender to array format`,
+                    );
+                    victim.gender = [victim.gender];
+                }
+            });
+        }
+
+        if (formData.perpetrators && formData.perpetrators.length > 0) {
+            formData.perpetrators.forEach((perp, index) => {
+                console.log(`Perpetrator ${index} gender:`, perp.gender);
+                if (perp.gender && !Array.isArray(perp.gender)) {
+                    console.warn(
+                        `Fixing perpetrator ${index} gender to array format`,
+                    );
+                    perp.gender = [perp.gender];
+                }
+            });
+        }
+
+        console.log("Submitting form data:", JSON.stringify(formData, null, 2));
+        console.log("CSRF Token:", csrfToken ? "Found" : "Missing");
+
+        try {
+            const response = await axios.post(
+                "/api/wikidata/entities",
+                formData,
+                {
+                    headers: {
+                        "X-CSRF-TOKEN": csrfToken,
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                    },
+                },
+            );
+
+            if (response.data.success) {
+                const requestId =
+                    formData.statusToken || response.data.requestId;
+                localStorage.setItem("entryStatusToken", requestId);
+
+                console.log("Submission successful with ID:", requestId);
+                console.log("Response data:", response.data);
+
+                // Redirect to thank-you page
+                router.push({
+                    name: "thank-you",
+                    params: { requestId },
+                    query: { token: requestId },
+                });
+            } else {
+                if (ogtGlobals?.showToast) {
+                    ogtGlobals.showToast(
+                        response.data.message ||
+                            "Fehler bei der Erstellung des Eintrags",
+                        "error",
+                    );
+                } else {
+                    console.error(
+                        response.data.message ||
+                            "Fehler bei der Erstellung des Eintrags",
+                    );
+                }
+            }
+        } catch (axiosError) {
+            throw axiosError; // Re-throw to be caught by outer catch block
+        }
+    } catch (error) {
+        console.error("Error submitting form:", error);
+        console.error("Full error details:", {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            stack: error.stack,
+        });
+
+        // Try to log the response data in a more detailed way
+        if (error.response?.data) {
+            try {
+                console.error(
+                    "Response data details:",
+                    JSON.stringify(error.response.data, null, 2),
+                );
+            } catch (e) {
+                console.error("Could not stringify response data:", e);
+            }
+        }
+        let errorMessage = "Ein unbekannter Fehler ist aufgetreten";
+
+        // Try to get a more specific error message
+        if (error.response?.data?.message) {
+            errorMessage = error.response.data.message;
+        } else if (error.response?.data?.error) {
+            errorMessage = error.response.data.error;
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+
+        // Check for common server errors
+        if (error.response?.status === 500) {
+            errorMessage =
+                "Server-Fehler: Bitte kontaktieren Sie den Administrator (500)";
+            console.error("Server 500 error details:", error.response?.data);
+
+            // Add a more specific error message if possible
+            if (
+                typeof error.response?.data === "string" &&
+                error.response.data.includes("duplicate")
+            ) {
+                errorMessage =
+                    "Server-Fehler: Möglicherweise gibt es doppelte Feldwerte in der Anfrage";
+            }
+
+            // Additional check for data format errors
+            if (
+                error.response?.data?.message &&
+                (error.response.data.message.includes("array") ||
+                    error.response.data.message.includes("gender"))
+            ) {
+                errorMessage = `Datenformat-Fehler: ${error.response.data.message}`;
+                console.error(
+                    "Data format error details:",
+                    error.response.data,
+                );
+            }
+
+            // Try to get more detailed error from Laravel debug info
+            if (error.response?.data?.message) {
+                console.error(
+                    "Laravel error message:",
+                    error.response.data.message,
+                );
+            }
+            if (error.response?.data?.exception) {
+                console.error("Exception:", error.response.data.exception);
+            }
+            if (error.response?.data?.file) {
+                console.error(
+                    "File:",
+                    error.response.data.file,
+                    "Line:",
+                    error.response.data.line,
+                );
+            }
+            if (error.response?.data?.trace) {
+                console.error(
+                    "First trace item:",
+                    error.response.data.trace[0],
+                );
+            }
+        } else if (error.response?.status === 422) {
+            errorMessage =
+                "Validierungsfehler: Bitte überprüfen Sie Ihre Eingaben (422)";
+
+            // Try to extract validation errors
+            if (error.response?.data?.errors) {
+                const errors = error.response.data.errors;
+                const errorFields = Object.keys(errors);
+                if (errorFields.length > 0) {
+                    errorMessage += ": " + errorFields.join(", ");
+                }
+            }
+        }
+
+        if (ogtGlobals?.showToast) {
+            ogtGlobals.showToast(`Fehler: ${errorMessage}`, "error");
+        } else {
+            console.error(`Fehler: ${errorMessage}`);
+        }
+
+        // If there's a specific issue with person form, try to reset it
+        if (
+            personFormRef.value &&
+            typeof personFormRef.value.resetSubmitting === "function"
+        ) {
+            personFormRef.value.resetSubmitting();
+        }
+    } finally {
+        isSubmitting.value = false;
+        if (submissionTimeout) {
+            clearTimeout(submissionTimeout);
+        }
+
+        // Also reset the child component's loading state if it exists
+        if (
+            personFormRef.value &&
+            typeof personFormRef.value.resetSubmitting === "function"
+        ) {
+            try {
+                personFormRef.value.resetSubmitting();
+                console.log(
+                    "Successfully reset child component's isSubmitting state",
+                );
+            } catch (e) {
+                console.error(
+                    "Could not reset child component's isSubmitting state",
+                    e,
+                );
+            }
+        }
+
+        // If there was an error, make sure the user can still interact with the form
+        error.value = error.value || null;
+    }
+};
+
+// Reset form and submit to API
 const resetForm = async () => {
     console.log("resetForm called with formType:", formsType.value);
     error.value = null;
@@ -1925,8 +2355,29 @@ const resetForm = async () => {
         }
 
         if (missingFields.length) {
-            error.value = `Fehlende Pflichtfelder: ${missingFields.join(", ")}`;
+            const errorMsg = `Fehlende Pflichtfelder: ${missingFields.join(", ")}`;
+            error.value = errorMsg;
+            if (ogtGlobals?.showToast) {
+                ogtGlobals.showToast(errorMsg, "error");
+            } else {
+                console.error(errorMsg);
+            }
             isSubmitting.value = false;
+
+            // Also reset the child component's loading state
+            if (
+                personFormRef.value &&
+                typeof personFormRef.value.resetSubmitting === "function"
+            ) {
+                try {
+                    personFormRef.value.resetSubmitting();
+                } catch (e) {
+                    console.error(
+                        "Could not reset child component's isSubmitting state",
+                        e,
+                    );
+                }
+            }
             return;
         }
 
@@ -2164,7 +2615,7 @@ const clearForm = () => {
         nationality: null,
         place_of_birth: null,
         place_of_death: null,
-        place_of_detention: [],
+
         place_of_residence: null,
         occupation: null,
         imageUrl: null,
@@ -2191,12 +2642,6 @@ const clearForm = () => {
         occupation: null,
         imageUrl: null,
         imageFilename: null,
-        isOrganization: false,
-        gender: null,
-        nationality: null,
-        place_of_birth: null,
-        place_of_death: null,
-        place_of_detention: [],
     };
     showNewPerpetratorForm.value = false;
 
@@ -2251,6 +2696,17 @@ onMounted(() => {
     checkScreenSize();
     window.addEventListener("resize", checkScreenSize);
 
+    // Set up a watcher to reset state when route changes
+    const route = useRoute();
+    watch(
+        () => route.path,
+        (newPath, oldPath) => {
+            if (oldPath === "/eintrag-erstellen" && newPath !== "/thank-you") {
+                resetSubmissionState();
+            }
+        },
+    );
+
     applyLeafletCSS();
 
     // Fix für Leaflet-Icons in Vue
@@ -2273,6 +2729,9 @@ onMounted(() => {
 onUnmounted(() => {
     window.removeEventListener("resize", setFreeClientWidth);
     window.removeEventListener("resize", checkScreenSize);
+
+    // Reset submission state when component is unmounted
+    resetSubmissionState();
 });
 </script>
 

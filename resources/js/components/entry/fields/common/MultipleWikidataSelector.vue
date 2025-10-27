@@ -186,7 +186,14 @@ const props = defineProps({
         type: String,
         default: "places",
         validator: (value) =>
-            ["people", "places", "cause", "books", "archives"].includes(value),
+            [
+                "people",
+                "places",
+                "cause",
+                "books",
+                "archives",
+                "nationalities",
+            ].includes(value),
     },
     maxSelections: {
         type: Number,

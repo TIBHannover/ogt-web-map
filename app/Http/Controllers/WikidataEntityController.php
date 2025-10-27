@@ -51,6 +51,16 @@ class WikidataEntityController extends Controller
             "victims.*.description" => "nullable|string",
             "victims.*.type" => "nullable|string",
             "victims.*.role" => "nullable|string",
+            "victims.*.gender" => "nullable|array|required_array_keys:0",
+            "victims.*.nationality" => "nullable|array",
+            "victims.*.place_of_birth" => "nullable|array",
+            "victims.*.place_of_death" => "nullable|array",
+            "victims.*.place_of_detention" => "nullable|array",
+            "victims.*.place_of_residence" => "nullable|array",
+            "victims.*.occupation" => "nullable|array",
+            "victims.*.employer" => "nullable|array",
+            "victims.*.imageUrl" => "nullable|string",
+            "victims.*.imageFilename" => "nullable|string",
             "perpetrators" => "nullable|array",
             "perpetrators.*.firstName" => "nullable|string",
             "perpetrators.*.lastName" => "nullable|string",
@@ -58,6 +68,16 @@ class WikidataEntityController extends Controller
             "perpetrators.*.description" => "nullable|string",
             "perpetrators.*.type" => "nullable|string",
             "perpetrators.*.role" => "nullable|string",
+            "perpetrators.*.gender" => "nullable|array|required_array_keys:0",
+            "perpetrators.*.nationality" => "nullable|array",
+            "perpetrators.*.place_of_birth" => "nullable|array",
+            "perpetrators.*.place_of_death" => "nullable|array",
+            "perpetrators.*.place_of_detention" => "nullable|array",
+            "perpetrators.*.place_of_residence" => "nullable|array",
+            "perpetrators.*.occupation" => "nullable|array",
+            "perpetrators.*.employer" => "nullable|array",
+            "perpetrators.*.imageUrl" => "nullable|string",
+            "perpetrators.*.imageFilename" => "nullable|string",
             "is_standalone_person" => "nullable|boolean",
             "isStandalonePerson" => "nullable|boolean",
             "eventTimeType" => "nullable|string|in:point,range",
@@ -81,11 +101,14 @@ class WikidataEntityController extends Controller
             "imageUrl" => "nullable|string",
             "imageFilename" => "nullable|string",
             "statusToken" => "nullable|string",
-            "gender" => "nullable|array",
+            "gender" => "nullable|array|required_array_keys:0",
             "nationality" => "nullable|array",
             "place_of_birth" => "nullable|array",
             "place_of_death" => "nullable|array",
             "place_of_detention" => "nullable|array",
+            "place_of_residence" => "nullable|array",
+            "employer" => "nullable|array",
+            "image" => "nullable|array",
         ]);
 
         try {
@@ -103,6 +126,13 @@ class WikidataEntityController extends Controller
             ) {
                 // Ensure each victim has proper structure
                 foreach ($validated["victims"] as &$victim) {
+                    // Ensure gender is always an array with objects
+                    if (
+                        isset($victim["gender"]) &&
+                        !is_array($victim["gender"])
+                    ) {
+                        $victim["gender"] = [["id" => $victim["gender"]]];
+                    }
                     if (
                         !isset($victim["title"]) &&
                         isset($victim["firstName"], $victim["lastName"])
@@ -119,6 +149,32 @@ class WikidataEntityController extends Controller
                     // Set role as victim if not specified
                     if (!isset($victim["role"])) {
                         $victim["role"] = "victim";
+                    }
+
+                    // Ensure all array fields are properly formatted
+                    $arrayFields = [
+                        "nationality",
+                        "place_of_birth",
+                        "place_of_death",
+                        "place_of_detention",
+                        "place_of_residence",
+                        "occupation",
+                        "employer",
+                    ];
+                    foreach ($arrayFields as $field) {
+                        if (
+                            isset($victim[$field]) &&
+                            !is_array($victim[$field])
+                        ) {
+                            $victim[$field] = [["id" => $victim[$field]]];
+                        } elseif (
+                            isset($victim[$field]) &&
+                            is_array($victim[$field]) &&
+                            isset($victim[$field]["id"])
+                        ) {
+                            // Convert single object to array of objects
+                            $victim[$field] = [$victim[$field]];
+                        }
                     }
                 }
             }
@@ -153,6 +209,44 @@ class WikidataEntityController extends Controller
                     if (!isset($perpetrator["role"])) {
                         $perpetrator["role"] = "perpetrator";
                     }
+
+                    // Ensure gender is always an array with objects
+                    if (
+                        isset($perpetrator["gender"]) &&
+                        !is_array($perpetrator["gender"])
+                    ) {
+                        $perpetrator["gender"] = [
+                            ["id" => $perpetrator["gender"]],
+                        ];
+                    }
+
+                    // Ensure all array fields are properly formatted
+                    $arrayFields = [
+                        "nationality",
+                        "place_of_birth",
+                        "place_of_death",
+                        "place_of_detention",
+                        "place_of_residence",
+                        "occupation",
+                        "employer",
+                    ];
+                    foreach ($arrayFields as $field) {
+                        if (
+                            isset($perpetrator[$field]) &&
+                            !is_array($perpetrator[$field])
+                        ) {
+                            $perpetrator[$field] = [
+                                ["id" => $perpetrator[$field]],
+                            ];
+                        } elseif (
+                            isset($perpetrator[$field]) &&
+                            is_array($perpetrator[$field]) &&
+                            isset($perpetrator[$field]["id"])
+                        ) {
+                            // Convert single object to array of objects
+                            $perpetrator[$field] = [$perpetrator[$field]];
+                        }
+                    }
                 }
             }
             $entryRequest->perpetrators = $validated["perpetrators"] ?? null;
@@ -161,7 +255,47 @@ class WikidataEntityController extends Controller
                 $validated["is_standalone_person"] ??
                 ($validated["isStandalonePerson"] ?? false);
             $entryRequest->is_standalone_person = $isStandalone;
+
+            // Ensure gender field is properly formatted
+            if (
+                isset($validated["gender"]) &&
+                !is_array($validated["gender"])
+            ) {
+                $validated["gender"] = [["id" => $validated["gender"]]];
+            } elseif (
+                isset($validated["gender"]) &&
+                is_array($validated["gender"]) &&
+                isset($validated["gender"]["id"])
+            ) {
+                $validated["gender"] = [$validated["gender"]];
+            }
             $entryRequest->gender = $validated["gender"] ?? null;
+
+            // Process other array fields
+            $arrayFields = [
+                "nationality",
+                "place_of_birth",
+                "place_of_death",
+                "place_of_detention",
+                "place_of_residence",
+                "occupation",
+                "employer",
+            ];
+            foreach ($arrayFields as $field) {
+                if (
+                    isset($validated[$field]) &&
+                    !is_array($validated[$field])
+                ) {
+                    $validated[$field] = [["id" => $validated[$field]]];
+                } elseif (
+                    isset($validated[$field]) &&
+                    is_array($validated[$field]) &&
+                    isset($validated[$field]["id"])
+                ) {
+                    $validated[$field] = [$validated[$field]];
+                }
+            }
+
             $entryRequest->nationality = $validated["nationality"] ?? null;
             $entryRequest->place_of_birth =
                 $validated["place_of_birth"] ?? null;
@@ -258,92 +392,67 @@ class WikidataEntityController extends Controller
                     );
                 }
 
-                // If person data is provided in the request but not properly formatted
-                if (
-                    isset($validated["person"]) &&
-                    is_array($validated["person"])
-                ) {
-                    $person = $validated["person"];
+                // For Q5 entities, always ensure person data is only in victims/perpetrators arrays, not at root level
+                // Explicitly set root person fields to null
+                $entryRequest->gender = null;
+                $entryRequest->nationality = null;
+                $entryRequest->place_of_birth = null;
+                $entryRequest->place_of_death = null;
+                $entryRequest->place_of_detention = null;
+                $entryRequest->place_of_residence = null;
+                $entryRequest->occupation = null;
+                $entryRequest->employer = null;
 
-                    // Add person fields directly to the entry request
-                    $entryRequest->gender = $person["gender"] ?? null;
-                    $entryRequest->nationality = $person["nationality"] ?? null;
-                    $entryRequest->place_of_birth =
-                        $person["place_of_birth"] ?? null;
-                    $entryRequest->place_of_death =
-                        $person["place_of_death"] ?? null;
-                    $entryRequest->place_of_detention =
-                        $person["place_of_detention"] ?? null;
-                    $entryRequest->occupation = $person["occupation"] ?? null;
+                // Log this decision
+                Log::debug(
+                    "Person entity (Q5): Setting all root person fields to null to ensure data is only in victims/perpetrators arrays",
+                );
 
-                    // Log the person data for debugging
-                    Log::debug("Person data processed:", [
-                        "firstName" => $person["firstName"] ?? null,
-                        "lastName" => $person["lastName"] ?? null,
-                        "fullName" => $validated["title"] ?? null,
-                        "role" => $person["role"] ?? "standalone",
-                        "is_standalone_person" =>
-                            $entryRequest->is_standalone_person,
-                        "gender" => $person["gender"] ?? null,
-                        "nationality" => $person["nationality"] ?? null,
-                    ]);
-                }
+                // For Q5 entities, make sure we have either victims or perpetrators array populated
+                // We don't need to copy data to root fields as those are now explicitly set to null
 
-                // If this person should be added to victims array
                 if (
                     !empty($validated["victims"]) &&
                     is_array($validated["victims"])
                 ) {
-                    // If we have gender and other data in the first person, use it for the main record too
-                    $firstVictim = $validated["victims"][0] ?? null;
-                    if ($firstVictim && is_array($firstVictim)) {
-                        $entryRequest->gender =
-                            $firstVictim["gender"] ?? $entryRequest->gender;
-                        $entryRequest->nationality =
-                            $firstVictim["nationality"] ??
-                            $entryRequest->nationality;
-                        $entryRequest->place_of_birth =
-                            $firstVictim["place_of_birth"] ??
-                            $entryRequest->place_of_birth;
-                        $entryRequest->place_of_death =
-                            $firstVictim["place_of_death"] ??
-                            $entryRequest->place_of_death;
-                        $entryRequest->place_of_detention =
-                            $firstVictim["place_of_detention"] ??
-                            $entryRequest->place_of_detention;
-                        $entryRequest->occupation =
-                            $firstVictim["occupation"] ??
-                            $entryRequest->occupation;
-                    }
+                    Log::debug("Person entity has victims array data:", [
+                        "count" => count($validated["victims"]),
+                        "first_victim" => $validated["victims"][0] ?? null,
+                    ]);
                 }
 
-                // If this person should be added to perpetrators array
                 if (
                     !empty($validated["perpetrators"]) &&
                     is_array($validated["perpetrators"])
                 ) {
-                    // If we have gender and other data in the first person, use it for the main record too
-                    $firstPerpetrator = $validated["perpetrators"][0] ?? null;
-                    if ($firstPerpetrator && is_array($firstPerpetrator)) {
-                        $entryRequest->gender =
-                            $firstPerpetrator["gender"] ??
-                            $entryRequest->gender;
-                        $entryRequest->nationality =
-                            $firstPerpetrator["nationality"] ??
-                            $entryRequest->nationality;
-                        $entryRequest->place_of_birth =
-                            $firstPerpetrator["place_of_birth"] ??
-                            $entryRequest->place_of_birth;
-                        $entryRequest->place_of_death =
-                            $firstPerpetrator["place_of_death"] ??
-                            $entryRequest->place_of_death;
-                        $entryRequest->place_of_detention =
-                            $firstPerpetrator["place_of_detention"] ??
-                            $entryRequest->place_of_detention;
-                        $entryRequest->occupation =
-                            $firstPerpetrator["occupation"] ??
-                            $entryRequest->occupation;
-                    }
+                    Log::debug("Person entity has perpetrators array data:", [
+                        "count" => count($validated["perpetrators"]),
+                        "first_perpetrator" =>
+                            $validated["perpetrators"][0] ?? null,
+                    ]);
+                }
+
+                // If this is a standalone person with no role specified, ensure it's in one of the arrays
+                if (
+                    $entryRequest->is_standalone_person &&
+                    empty($validated["victims"]) &&
+                    empty($validated["perpetrators"])
+                ) {
+                    Log::debug(
+                        "Standalone person with no role - defaulting to victims array",
+                    );
+
+                    // Create a default person object based on the entry title/description
+                    $personObj = [
+                        "firstName" => "",
+                        "lastName" => $validated["title"] ?? "",
+                        "description" => $validated["description"] ?? "",
+                        "role" => "victim",
+                        "type" => "Q5",
+                    ];
+
+                    // Store in victims array
+                    $entryRequest->victims = [$personObj];
                 }
             }
 

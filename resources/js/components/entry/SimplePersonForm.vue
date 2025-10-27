@@ -127,15 +127,11 @@
                                     ></v-text-field>
                                 </div>
                                 <div class="form-group col-md-6">
-                                    <v-select
+                                    <gender-selector
                                         v-model="personData.gender"
                                         label="Geschlecht"
-                                        :items="genderOptions"
-                                        item-title="label"
-                                        item-value="value"
-                                        variant="outlined"
                                         class="mb-3"
-                                    ></v-select>
+                                    ></gender-selector>
                                 </div>
                             </div>
 
@@ -164,22 +160,58 @@
                             <!-- Nationality & Occupation -->
                             <div class="form-row">
                                 <div class="form-group col-md-6">
-                                    <v-combobox
+                                    <!-- Nationalität / Citizenship (P27) -->
+                                    <wikidata-selector
                                         v-model="personData.nationality"
                                         label="Staatsangehörigkeit"
-                                        :items="nationalityOptions"
-                                        variant="outlined"
+                                        dialog-title="Staatsangehörigkeit auswählen"
+                                        search-label="Land suchen..."
+                                        :search-results="
+                                            wikidataSearchResults.nationality ||
+                                            []
+                                        "
+                                        :is-loading="
+                                            isWikidataSearchLoading.nationality
+                                        "
+                                        :search-performed="
+                                            wikidataSearchPerformed.nationality
+                                        "
+                                        endpoint="nationalities"
+                                        @search="
+                                            searchWikidataItems({
+                                                field: 'nationality',
+                                                query: $event,
+                                            })
+                                        "
                                         class="mb-3"
-                                    ></v-combobox>
+                                    ></wikidata-selector>
                                 </div>
                                 <div class="form-group col-md-6">
-                                    <v-combobox
+                                    <!-- Beruf / Occupation (P106) -->
+                                    <wikidata-selector
                                         v-model="personData.occupation"
                                         label="Beruf"
-                                        :items="occupationOptions"
-                                        variant="outlined"
+                                        dialog-title="Beruf auswählen"
+                                        search-label="Beruf suchen..."
+                                        :search-results="
+                                            wikidataSearchResults.occupation ||
+                                            []
+                                        "
+                                        :is-loading="
+                                            isWikidataSearchLoading.occupation
+                                        "
+                                        :search-performed="
+                                            wikidataSearchPerformed.occupation
+                                        "
+                                        endpoint="occupations"
+                                        @search="
+                                            searchWikidataItems({
+                                                field: 'occupation',
+                                                query: $event,
+                                            })
+                                        "
                                         class="mb-3"
-                                    ></v-combobox>
+                                    ></wikidata-selector>
                                 </div>
                             </div>
                         </div>
@@ -200,30 +232,163 @@
 
                             <div class="form-row">
                                 <div class="form-group col-md-6">
-                                    <v-text-field
+                                    <!-- Geburtsort / Place of birth (P19) -->
+                                    <wikidata-selector
                                         v-model="personData.place_of_birth"
                                         label="Geburtsort"
-                                        variant="outlined"
+                                        dialog-title="Geburtsort auswählen"
+                                        search-label="Ort suchen..."
+                                        :search-results="
+                                            wikidataSearchResults.place_of_birth ||
+                                            []
+                                        "
+                                        :is-loading="
+                                            isWikidataSearchLoading.place_of_birth
+                                        "
+                                        :search-performed="
+                                            wikidataSearchPerformed.place_of_birth
+                                        "
+                                        endpoint="places"
+                                        @search="
+                                            searchWikidataItems({
+                                                field: 'place_of_birth',
+                                                query: $event,
+                                            })
+                                        "
                                         class="mb-3"
-                                    ></v-text-field>
+                                    ></wikidata-selector>
                                 </div>
                                 <div class="form-group col-md-6">
-                                    <v-text-field
+                                    <!-- Sterbeort / Place of death (P20) -->
+                                    <wikidata-selector
                                         v-model="personData.place_of_death"
                                         label="Sterbeort"
-                                        variant="outlined"
+                                        dialog-title="Sterbeort auswählen"
+                                        search-label="Ort suchen..."
+                                        :search-results="
+                                            wikidataSearchResults.place_of_death ||
+                                            []
+                                        "
+                                        :is-loading="
+                                            isWikidataSearchLoading.place_of_death
+                                        "
+                                        :search-performed="
+                                            wikidataSearchPerformed.place_of_death
+                                        "
+                                        endpoint="places"
+                                        @search="
+                                            searchWikidataItems({
+                                                field: 'place_of_death',
+                                                query: $event,
+                                            })
+                                        "
                                         class="mb-3"
-                                    ></v-text-field>
+                                    ></wikidata-selector>
                                 </div>
                             </div>
 
                             <div class="form-group">
-                                <v-text-field
+                                <!-- Wohnort / Place of residence (P551) -->
+                                <wikidata-selector
                                     v-model="personData.place_of_residence"
                                     label="Wohnort"
-                                    variant="outlined"
+                                    dialog-title="Wohnort auswählen"
+                                    search-label="Ort suchen..."
+                                    :search-results="
+                                        wikidataSearchResults.place_of_residence ||
+                                        []
+                                    "
+                                    :is-loading="
+                                        isWikidataSearchLoading.place_of_residence
+                                    "
+                                    :search-performed="
+                                        wikidataSearchPerformed.place_of_residence
+                                    "
+                                    endpoint="places"
+                                    @search="
+                                        searchWikidataItems({
+                                            field: 'place_of_residence',
+                                            query: $event,
+                                        })
+                                    "
                                     class="mb-3"
-                                ></v-text-field>
+                                ></wikidata-selector>
+                            </div>
+
+                            <!-- Place of detention (for victims only) -->
+                            <div
+                                class="form-group"
+                                v-if="personData.role === 'victim'"
+                            >
+                                <multiple-wikidata-selector
+                                    v-model="personData.place_of_detention"
+                                    label="Haftorte"
+                                    dialog-title="Haftorte auswählen"
+                                    search-label="Haftorte suchen..."
+                                    :search-results="
+                                        wikidataSearchResults.place_of_detention ||
+                                        []
+                                    "
+                                    :is-loading="
+                                        isWikidataSearchLoading.place_of_detention
+                                    "
+                                    :search-performed="
+                                        wikidataSearchPerformed.place_of_detention
+                                    "
+                                    endpoint="places"
+                                    @search="
+                                        searchWikidataItems({
+                                            field: 'place_of_detention',
+                                            query: $event,
+                                        })
+                                    "
+                                ></multiple-wikidata-selector>
+                            </div>
+
+                            <!-- Employer (for perpetrators only) -->
+                            <div
+                                class="form-group"
+                                v-if="personData.role === 'perpetrator'"
+                            >
+                                <wikidata-selector
+                                    v-model="personData.employer"
+                                    label="Arbeitgeber"
+                                    dialog-title="Arbeitgeber auswählen"
+                                    search-label="Arbeitgeber suchen..."
+                                    :search-results="
+                                        wikidataSearchResults.employer || []
+                                    "
+                                    :is-loading="
+                                        isWikidataSearchLoading.employer
+                                    "
+                                    :search-performed="
+                                        wikidataSearchPerformed.employer
+                                    "
+                                    endpoint="people"
+                                    @search="
+                                        searchWikidataItems({
+                                            field: 'employer',
+                                            query: $event,
+                                        })
+                                    "
+                                ></wikidata-selector>
+                            </div>
+
+                            <!-- Image Selector -->
+                            <div class="form-group">
+                                <h4 class="mb-3">Bild</h4>
+                                <image-selector
+                                    :image-url="personData.imageUrl"
+                                    :image-filename="personData.imageFilename"
+                                    @update:image-url="
+                                        personData.imageUrl = $event
+                                    "
+                                    @update:image-filename="
+                                        personData.imageFilename = $event
+                                    "
+                                    @infoButtonClick="openSectionInfo('image')"
+                                    @fieldFocus="setActiveField('image')"
+                                ></image-selector>
                             </div>
                         </div>
                     </div>
@@ -258,12 +423,26 @@
                         />
 
                         <!-- Source validation error -->
-                        <ValidationError
+                        <div
                             v-if="sourceError"
-                            message="Bitte geben Sie mindestens eine Quelle an."
-                            showIcon
-                            customClass="validation-error"
-                        />
+                            @click="handleSourceErrorClick"
+                            style="
+                                cursor: pointer;
+                                color: #f44336;
+                                margin-top: 8px;
+                                display: flex;
+                                align-items: center;
+                            "
+                        >
+                            <v-icon color="error" size="small" class="mr-1"
+                                >mdi-alert-circle</v-icon
+                            >
+                            <span
+                                >Bitte geben Sie mindestens eine Quelle an.
+                                (Klicken, um zur Quellen-Sektion zu
+                                springen)</span
+                            >
+                        </div>
                     </div>
                 </div>
 
@@ -274,6 +453,13 @@
                     @fieldFocus="setActiveField"
                     @infoButtonClick="openSectionInfo('sources')"
                     @validation="onSourcesValidation"
+                    :show-validation-error="sourceError"
+                    :error="sourceError"
+                    :error-messages="
+                        sourceError
+                            ? 'Bitte geben Sie mindestens eine Quelle an.'
+                            : ''
+                    "
                     :required="true"
                 />
 
@@ -312,6 +498,10 @@ import { ref, computed, onMounted, onBeforeUnmount, inject, watch } from "vue";
 import { useRouter } from "vue-router";
 import SourcesField from "./fields/SourcesField.vue";
 import ValidationError from "../helpers/ValidationError.vue";
+import WikidataSelector from "./fields/common/WikidataSelector.vue";
+import MultipleWikidataSelector from "./fields/common/MultipleWikidataSelector.vue";
+import ImageSelector from "./fields/ImageSelector.vue";
+import GenderSelector from "./fields/GenderSelector.vue";
 import axios from "axios";
 
 const router = useRouter();
@@ -396,7 +586,7 @@ const props = defineProps({
 const emit = defineEmits([
     "goToStep",
     "handleMapClick",
-    "submit",
+    "submit", // Pass the form data as the parameter
     "update:title",
     "update:description",
     "update:selectedSources",
@@ -408,11 +598,16 @@ const description = ref(props.description || "");
 const isSubmitting = ref(false);
 const baseInfosRef = ref(null);
 const sourcesRef = ref(null);
+const sourcesFieldRef = ref(null);
 const showPersonValidationErrors = ref(false);
 const firstNameError = ref(false);
 const lastNameError = ref(false);
 const sourceError = ref(false);
 const descriptionError = ref(false);
+// Store active timeouts for cleanup
+const activeTimeouts = ref([]);
+// Store safety timer ID
+let safetyTimerId = null;
 // Instead of using an object with refs that can cause undefined errors,
 // we use individual refs for each validation field
 const baseInfosValid = ref(false);
@@ -441,9 +636,12 @@ const personData = ref({
     place_of_detention: [],
     place_of_residence: null,
     occupation: null,
+    employer: null,
+    image: null,
     imageUrl: null,
+    imageFilename: null,
     role: "victim", // Default to "victim" (Geschädigter, Q2026714)
-    // We don't need these arrays since they're handled by the parent component
+    wikidataId: null, // Wikidata ID if it comes from a search
 });
 
 // Options for dropdown selections
@@ -526,17 +724,28 @@ const getInfoContent = (fieldName) => {
                          <li><strong>Geburtsort</strong>: Wo die Person geboren wurde</li>
                          <li><strong>Sterbeort</strong>: Wo die Person verstorben ist</li>
                          <li><strong>Wohnort</strong>: Hauptwohnsitz oder wichtiger Aufenthaltsort</li>
+                         <li><strong>Haftorte</strong>: Wo die Person inhaftiert war (nur für Geschädigte)</li>
+                         <li><strong>Arbeitgeber</strong>: Organisation oder Institution (nur für Täter)</li>
                        </ul>
                        <p>Die Ortsangaben werden in Wikidata mit geografischen Koordinaten verknüpft und können auf der Karte angezeigt werden.</p>`,
         sources: `<p>Quellenangaben sind ein verpflichtendes Feld.</p>
-                <p>Füge mindestens eine Quelle hinzu, um die Informationen zu dieser Person zu belegen:</p>
-                <ul>
-                  <li>Bücher, Zeitschriften oder wissenschaftliche Artikel</li>
-                  <li>Archive und Sammlungen</li>
-                  <li>Offizielle Dokumente und Berichte</li>
-                  <li>Zeitzeugenberichte</li>
-                </ul>
-                <p>Gute Quellenangaben enthalten Autor, Titel, Jahr und möglichst eine URL oder DOI.</p>`,
+               <p>Füge mindestens eine Quelle hinzu, um die Informationen zu dieser Person zu belegen:</p>
+               <ul>
+                 <li>Bücher, Zeitschriften oder wissenschaftliche Artikel</li>
+                 <li>Archive und Sammlungen</li>
+                 <li>Offizielle Dokumente und Berichte</li>
+                 <li>Zeitzeugenberichte</li>
+               </ul>
+               <p>Gute Quellenangaben enthalten Autor, Titel, Jahr und möglichst eine URL oder DOI.</p>`,
+        image: `<p>Hier können Sie ein Bild aus Wikimedia Commons auswählen:</p>
+               <ul>
+                 <li>Bilder helfen bei der Identifizierung der Person</li>
+                 <li>Achten Sie auf freie Lizenzen</li>
+                 <li>Historische Bilder sind besonders wertvoll</li>
+                 <li>Stellen Sie sicher, dass das Bild zur Person passt</li>
+                 <li>Klicken Sie auf "Bild auswählen" und suchen Sie nach einem passenden Bild</li>
+               </ul>
+               <p>Hinweis: In Wikimedia Commons finden Sie nur Bilder mit freier Lizenz, die öffentlich verwendet werden dürfen.</p>`,
     };
 
     return sectionContents[fieldName] || "Keine Informationen verfügbar.";
@@ -547,38 +756,9 @@ onBeforeUnmount(() => {
     window.removeEventListener("resize", checkScreenSize);
 });
 
-const genderOptions = ref([
-    { label: "Männlich", value: "male" },
-    { label: "Weiblich", value: "female" },
-    { label: "Divers", value: "diverse" },
-]);
+// Using GenderSelector component instead of options here
 
-const nationalityOptions = ref([
-    "Deutsch",
-    "Österreichisch",
-    "Schweizerisch",
-    "Polnisch",
-    "Tschechisch",
-    "Französisch",
-    "Niederländisch",
-    "Belgisch",
-    "Dänisch",
-    "Luxemburgisch",
-]);
-
-const occupationOptions = ref([
-    "Lehrer/in",
-    "Arzt/Ärztin",
-    "Rechtsanwalt/Rechtsanwältin",
-    "Journalist/in",
-    "Politiker/in",
-    "Arbeiter/in",
-    "Angestellte/r",
-    "Student/in",
-    "Bauer/Bäuerin",
-    "Soldat/in",
-    "Beamte/r",
-]);
+// Using WikidataSelector components for nationality and occupation instead of static options
 
 // We don't need validationStatus ref since we handle validation directly
 
@@ -779,6 +959,7 @@ const wikidataSearchResults = ref({
     employer: [],
     occupation: [],
     place_of_residence: [],
+    image: [],
 });
 
 const isWikidataSearchLoading = ref({
@@ -789,6 +970,7 @@ const isWikidataSearchLoading = ref({
     employer: false,
     occupation: false,
     place_of_residence: false,
+    image: false,
 });
 
 const wikidataSearchPerformed = ref({
@@ -799,6 +981,7 @@ const wikidataSearchPerformed = ref({
     employer: false,
     occupation: false,
     place_of_residence: false,
+    image: false,
 });
 
 const wikidataResultsValue = computed(() => {
@@ -866,6 +1049,14 @@ const validateForm = async () => {
         sourceError.value = false;
     }
 
+    // Check if sources are missing (redundant but keeping for clarity)
+    const noSources = !props?.selectedSources?.length;
+    sourceError.value = noSources;
+
+    // Make sure validation errors are visible
+    if (noSources || !formIsValid) {
+        showPersonValidationErrors.value = true;
+    }
     // Check if the form is valid overall
     const firstName = personData.value.firstName?.trim() || "";
     const lastName = personData.value.lastName?.trim() || "";
@@ -891,8 +1082,10 @@ const validateForm = async () => {
     return formIsValid;
 };
 
+// Expose methods and properties to parent components
 defineExpose({
     validateForm,
+    resetSubmitting,
     isValid: {
         get baseInfos() {
             return baseInfosValid.value;
@@ -1006,7 +1199,10 @@ const initializeFromTitle = () => {
             place_of_detention: [],
             place_of_residence: null,
             occupation: null,
+            employer: null,
+            image: null,
             imageUrl: null,
+            imageFilename: null,
             role: "victim", // Default to "victim" (Geschädigter, Q2026714)
         };
 
@@ -1063,6 +1259,9 @@ const searchWikidataItems = async ({ field, query }) => {
             break;
         case "employer":
             apiEndpoint = "people";
+            break;
+        case "image":
+            apiEndpoint = "wikimedia/images";
             break;
         default:
             apiEndpoint = "items";
@@ -1129,12 +1328,54 @@ const searchWikidataItems = async ({ field, query }) => {
 };
 
 const goToPreviousStep = () => {
+    isSubmitting.value = false; // Ensure we reset the submitting state
     emit("goToStep", 1);
 };
 
 // Form validation and submission handler
 const validateAndSubmit = async () => {
+    // Prevent multiple submissions
+    if (isSubmitting.value) {
+        console.log(
+            "Form submission already in progress, ignoring duplicate call",
+        );
+        return;
+    }
+
     try {
+        // Reset validation state first
+        showPersonValidationErrors.value = false;
+        // Reset all individual error flags
+        firstNameError.value = false;
+        lastNameError.value = false;
+        descriptionError.value = false;
+        sourceError.value = false;
+
+        // Now set submission state and show validation UI
+        isSubmitting.value = true;
+        showPersonValidationErrors.value = true;
+
+        // Update validation errors
+        updateValidationErrors();
+
+        // Check sources right away - this is a critical error
+        const sourcesEmpty = !props?.selectedSources?.length;
+        sourceError.value = sourcesEmpty;
+
+        if (sourcesEmpty) {
+            // Special handling for missing sources
+            console.log("Source validation failed - missing sources");
+            showToast("Bitte geben Sie mindestens eine Quelle an.", "error");
+            // Focus the sources section
+            const timeoutId = setTimeout(() => {
+                handleSourceErrorClick();
+                isSubmitting.value = false;
+            }, 100);
+            activeTimeouts.value.push(timeoutId);
+            return;
+        }
+
+        // Gender field handling will be done in the submission part
         // Ensure personData is valid to prevent undefined errors
         if (!personData.value) {
             personData.value = {
@@ -1142,7 +1383,16 @@ const validateAndSubmit = async () => {
                 lastName: "",
                 description: description.value || "",
                 isOrganization: false,
-                // Add other default fields
+                gender: null,
+                nationality: null,
+                place_of_birth: null,
+                place_of_death: null,
+                place_of_detention: [],
+                place_of_residence: null,
+                occupation: null,
+                employer: null,
+                imageUrl: null,
+                imageFilename: null,
             };
         }
 
@@ -1171,6 +1421,20 @@ const validateAndSubmit = async () => {
 
         if (sourcesRef?.value?.validateForm) {
             await sourcesRef.value.validateForm();
+        }
+
+        // Check sources right away - this is a critical error
+        const sourceMissing = !props?.selectedSources?.length;
+        sourceError.value = sourceMissing;
+
+        if (sourceMissing) {
+            // Special handling for missing sources
+            console.log("Source validation failed - missing sources");
+            isSubmitting.value = false;
+            showToast("Bitte geben Sie mindestens eine Quelle an.", "error");
+            // Focus the sources section
+            handleSourceErrorClick();
+            return false;
         }
 
         // Collect missing fields for error message
@@ -1280,10 +1544,10 @@ const validateAndSubmit = async () => {
         }
 
         // Check if sources are missing
-        const sourceMissing = !props?.selectedSources?.length;
-        sourceError.value = sourceMissing;
+        const noSources = !props?.selectedSources?.length;
+        sourceError.value = noSources;
 
-        if (sourceMissing) {
+        if (noSources) {
             missingFields.push("Quelle");
         }
 
@@ -1445,13 +1709,43 @@ const validateAndSubmit = async () => {
             description:
                 personData.value.description || description.value || "",
             isOrganization: !!personData.value.isOrganization,
-            gender: personData.value.gender,
-            nationality: personData.value.nationality,
-            place_of_birth: personData.value.place_of_birth,
-            place_of_death: personData.value.place_of_death,
+            gender: personData.value.gender
+                ? [{ id: personData.value.gender }]
+                : null,
+            nationality: personData.value.nationality
+                ? Array.isArray(personData.value.nationality)
+                    ? personData.value.nationality
+                    : [personData.value.nationality]
+                : null,
+            place_of_birth: personData.value.place_of_birth
+                ? Array.isArray(personData.value.place_of_birth)
+                    ? personData.value.place_of_birth
+                    : [personData.value.place_of_birth]
+                : null,
+            place_of_death: personData.value.place_of_death
+                ? Array.isArray(personData.value.place_of_death)
+                    ? personData.value.place_of_death
+                    : [personData.value.place_of_death]
+                : null,
             place_of_detention: personData.value.place_of_detention || [],
-            place_of_residence: personData.value.place_of_residence,
-            occupation: personData.value.occupation,
+            place_of_residence: personData.value.place_of_residence
+                ? Array.isArray(personData.value.place_of_residence)
+                    ? personData.value.place_of_residence
+                    : [personData.value.place_of_residence]
+                : null,
+            occupation: personData.value.occupation
+                ? Array.isArray(personData.value.occupation)
+                    ? personData.value.occupation
+                    : [personData.value.occupation]
+                : null,
+            employer: personData.value.employer
+                ? Array.isArray(personData.value.employer)
+                    ? personData.value.employer
+                    : [personData.value.employer]
+                : null,
+            image: personData.value.image,
+            imageUrl: personData.value.imageUrl,
+            imageFilename: personData.value.imageFilename,
             role: role, // Use the determined role
             wikidataId: personData.value.wikidataId,
             type: "Q5", // Always mark as person type
@@ -1504,7 +1798,100 @@ const validateAndSubmit = async () => {
             personData.value.description = finalDescription;
         }
 
+        // Make sure validation errors are shown and up-to-date
+        updateValidationErrors();
+        showPersonValidationErrors.value = true;
+
+        // Check sources again before submitting
+        const finalSourcesCheck =
+            !props.selectedSources || props.selectedSources.length === 0;
+        if (finalSourcesCheck) {
+            console.log("Sources missing in final validation");
+            sourceError.value = true;
+            showPersonValidationErrors.value = true;
+            showToast("Bitte geben Sie mindestens eine Quelle an.", "error");
+            const timeoutId = setTimeout(() => {
+                handleSourceErrorClick();
+                isSubmitting.value = false;
+            }, 100);
+            activeTimeouts.value.push(timeoutId);
+            return;
+        }
+
+        // Make sure all WikiData fields are in correct format (array with objects)
+        const fieldsToCheck = [
+            "gender",
+            "nationality",
+            "place_of_birth",
+            "place_of_death",
+            "place_of_detention",
+            "place_of_residence",
+            "occupation",
+            "employer",
+        ];
+
+        fieldsToCheck.forEach((field) => {
+            if (
+                typeof personData.value[field] === "string" &&
+                personData.value[field]
+            ) {
+                console.log(
+                    `Converting ${field} string ${personData.value[field]} to array format`,
+                );
+                personData.value[field] = [{ id: personData.value[field] }];
+            } else if (
+                personData.value[field] &&
+                typeof personData.value[field] === "object" &&
+                !Array.isArray(personData.value[field])
+            ) {
+                // If it's an object but not an array, wrap it in an array
+                personData.value[field] = [personData.value[field]];
+            }
+        });
+
+        // Check if there are any validation errors
+        if (
+            firstNameError.value ||
+            lastNameError.value ||
+            descriptionError.value
+        ) {
+            console.log("Validation errors found, stopping submission");
+            showToast("Bitte korrigieren Sie die Fehler im Formular.", "error");
+            isSubmitting.value = false;
+            return;
+        }
+
         // Prepare form data for submission
+        // Final check for all WikiData fields to ensure they're in array format
+        const wikidataFields = [
+            "gender",
+            "nationality",
+            "place_of_birth",
+            "place_of_death",
+            "place_of_detention",
+            "place_of_residence",
+            "occupation",
+            "employer",
+        ];
+
+        // Process all fields to ensure correct format
+        wikidataFields.forEach((field) => {
+            if (personDataObj[field]) {
+                if (typeof personDataObj[field] === "string") {
+                    // String to array of objects
+                    personDataObj[field] = [{ id: personDataObj[field] }];
+                } else if (
+                    typeof personDataObj[field] === "object" &&
+                    !Array.isArray(personDataObj[field])
+                ) {
+                    // Single object to array of objects
+                    personDataObj[field] = [personDataObj[field]];
+                }
+                // Log the final field format
+                console.log(`Final ${field} format:`, personDataObj[field]);
+            }
+        });
+
         const formData = {
             title: formattedTitle,
             description: finalDescription,
@@ -1513,10 +1900,21 @@ const validateAndSubmit = async () => {
             // Only set standalone if role is "standalone"
             is_standalone_person: role === "standalone",
             // Add to victims or perpetrators array based on role
-            victims: role === "victim" ? [personDataObj] : null,
-            perpetrators: role === "perpetrator" ? [personDataObj] : null,
-            // Keep person data for backward compatibility
-            person: personDataObj,
+            victims: role === "victim" ? [personDataObj] : [],
+            perpetrators: role === "perpetrator" ? [personDataObj] : [],
+            // We don't want data in the root level anymore as specified in the requirements
+            // Ensure person fields at root level are null
+            gender: null,
+            nationality: null,
+            place_of_birth: null,
+            place_of_death: null,
+            place_of_detention: null,
+            place_of_residence: null,
+            occupation: null,
+            employer: null,
+            image: null,
+            imageUrl: null,
+            imageFilename: null,
         };
 
         console.log(
@@ -1540,56 +1938,135 @@ const validateAndSubmit = async () => {
         const secureToken = generateSecureToken();
         formData.statusToken = secureToken;
 
-        console.log("Submitting person data:", formData);
+        console.log(
+            "Form validated, emitting submission data to parent component:",
+            formData,
+        );
 
-        const csrfToken = document
-            .querySelector('meta[name="csrf-token"]')
-            ?.getAttribute("content");
-
-        const response = await axios.post("/api/wikidata/entities", formData, {
-            headers: {
-                "X-CSRF-TOKEN": csrfToken,
-            },
+        // Log the data structure to verify it's correct
+        console.log("Victims array:", formData.victims);
+        console.log("Perpetrators array:", formData.perpetrators);
+        console.log("Root level person fields (should be null):", {
+            gender: formData.gender,
+            nationality: formData.nationality,
+            place_of_birth: formData.place_of_birth,
+            place_of_death: formData.place_of_death,
+            place_of_detention: formData.place_of_detention,
+            place_of_residence: formData.place_of_residence,
+            occupation: formData.occupation,
+            employer: formData.employer,
         });
 
-        if (response.data.success) {
-            // Handle successful submission
-            const requestId = secureToken || response.data.requestId;
-            localStorage.setItem("entryStatusToken", requestId);
-
-            console.log("Submission successful with ID:", requestId);
-            console.log("Response data:", response.data);
-
-            // Signal completion to parent
-            emit("submit");
-
-            // Redirect to thank-you page
-            router.push({
-                name: "thank-you",
-                params: { requestId },
-                query: { token: requestId },
-            });
-        } else {
-            showToast(
-                response.data.message ||
-                    "Fehler bei der Erstellung des Eintrags",
-                "error",
-            );
-        }
+        // Instead of submitting directly, emit the data to the parent component
+        // The parent will handle the actual submission and manage the loading state
+        emit("submit", formData);
+        // We don't reset isSubmitting here - parent component will handle the actual submission
+        // and loading state should persist until the submission is complete
     } catch (error) {
-        console.error("Error submitting form:", error);
-        showToast(
-            `Fehler: ${error.response?.data?.message || error.message}`,
-            "error",
-        );
-    } finally {
+        console.error("Error validating form:", error);
+        showToast(`Fehler bei der Validierung: ${error.message}`, "error");
         isSubmitting.value = false;
+    }
+
+    // Add a safeguard timeout to reset the loading state after 10 seconds
+    // in case the parent component doesn't handle it
+    safetyTimerId = setTimeout(() => {
+        if (isSubmitting.value) {
+            console.log(
+                "Safeguard timeout: resetting isSubmitting after 10 seconds",
+            );
+            isSubmitting.value = false;
+            try {
+                showToast(
+                    "Die Anfrage wurde automatisch zurückgesetzt. Bitte versuchen Sie es erneut.",
+                    "warning",
+                );
+            } catch (e) {
+                console.error("Error showing toast:", e);
+            }
+        }
+    }, 10000);
+};
+
+// Method to reset the submitting state (exposed to parent component)
+const resetSubmitting = () => {
+    console.log("resetSubmitting called by parent component");
+    isSubmitting.value = false;
+    // Also ensure validation state is cleared when explicitly reset
+    if (!showPersonValidationErrors.value) {
+        // Only clear errors if we're not currently showing validation errors
+        firstNameError.value = false;
+        lastNameError.value = false;
+        descriptionError.value = false;
+        sourceError.value = false;
     }
 };
 
+// Handle click on source error validation message
+const handleSourceErrorClick = () => {
+    console.log("Source validation error clicked, focusing sources section");
+    // Focus sources section
+    setActiveField("sources");
+    // Scroll to sources field
+    if (sourcesFieldRef.value) {
+        const element = sourcesFieldRef.value.$el;
+        if (element) {
+            console.log("Scrolling to sources field element:", element);
+            element.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+            });
+
+            // Try to focus the sources field input if available
+            const focusTimeoutId = setTimeout(() => {
+                try {
+                    if (
+                        typeof sourcesFieldRef.value?.focusInput === "function"
+                    ) {
+                        sourcesFieldRef.value.focusInput();
+                    }
+                } catch (err) {
+                    console.error("Error focusing sources input:", err);
+                }
+            }, 500);
+            activeTimeouts.value.push(focusTimeoutId);
+        }
+    } else {
+        console.warn("Sources field reference not found");
+    }
+    // Reset submitting state and make sure errors are visible
+    isSubmitting.value = false;
+    showPersonValidationErrors.value = true;
+
+    // Force validation update
+    updateValidationErrors();
+    sourceError.value = true;
+};
+
 // Lifecycle hooks
+// Clean up state when component is unmounted
+onBeforeUnmount(() => {
+    isSubmitting.value = false;
+    window.removeEventListener("resize", checkScreenSize);
+
+    // Clear the safety timeout if it exists
+    if (safetyTimerId) {
+        clearTimeout(safetyTimerId);
+    }
+
+    // Clear any other active timeouts
+    activeTimeouts.value.forEach((id) => {
+        if (id) clearTimeout(id);
+    });
+    // Clear the array after cleaning up
+    activeTimeouts.value = [];
+});
+
 // Main onMounted hook to handle all initialization
 onMounted(() => {
+    // Reset submission state for safety
+    isSubmitting.value = false;
+
     // Initialize from title data
     initializeFromTitle();
 
