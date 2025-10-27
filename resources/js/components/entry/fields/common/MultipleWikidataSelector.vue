@@ -290,43 +290,39 @@ const fetchEntityLabels = async (entityIds) => {
 const selectedItems = computed(() => {
     const modelValue = Array.isArray(props.modelValue) ? props.modelValue : [];
 
-    // If model value contains objects, return them directly
-    if (modelValue.length > 0 && typeof modelValue[0] === "object") {
-        return modelValue;
-    }
-
-    // If model value contains IDs, convert to objects
-    return modelValue
-        .map((id) => {
-            // If ID is already an object with id property
-            if (typeof id === "object" && id?.id) {
-                return id;
+    // Convert any format of modelValue to an array of Q-numbers
+    const qNumbers = modelValue
+        .map((item) => {
+            // If it's already a string Q-number
+            if (typeof item === "string" && item.startsWith("Q")) {
+                return item;
             }
-
-            // If it's a string (Wikidata ID)
-            if (typeof id === "string" && id.startsWith("Q")) {
-                // Find in search results
-                const foundItem = props.searchResults.find(
-                    (item) => item.id === id,
-                );
-                if (foundItem) return foundItem;
-
-                // If we've fetched the label, use that
-                if (entityLabels.value[id]) {
-                    return {
-                        id: id,
-                        label: entityLabels.value[id].label,
-                        description: entityLabels.value[id].description,
-                    };
-                }
-
-                // If all else fails, just show the ID as a fallback
-                return { id: id, label: id };
+            // If it's an object with an id property
+            if (typeof item === "object" && item?.id) {
+                return item.id;
             }
-
             return null;
         })
-        .filter(Boolean); // Remove any null values
+        .filter(Boolean);
+
+    // Now convert Q-numbers to display objects with labels
+    return qNumbers.map((id) => {
+        // Find in search results
+        const foundItem = props.searchResults.find((item) => item.id === id);
+        if (foundItem) return foundItem;
+
+        // If we've fetched the label, use that
+        if (entityLabels.value[id]) {
+            return {
+                id: id,
+                label: entityLabels.value[id].label,
+                description: entityLabels.value[id].description,
+            };
+        }
+
+        // If all else fails, just show the ID as a fallback
+        return { id: id, label: id };
+    });
 });
 
 // Methods
@@ -350,7 +346,7 @@ const selectItemAndClose = (item) => {
             tempSelectedItems.value.length < props.maxSelections
         ) {
             tempSelectedItems.value.push(item);
-            // Update with just IDs to ensure compatibility with backend
+            // Update with just Q-numbers to ensure compatibility with backend
             updateModelValue();
         }
     }
@@ -401,9 +397,10 @@ const confirmSelection = () => {
 };
 
 const updateModelValue = () => {
-    // Extract just the IDs for the model value to ensure compatibility with backend
-    const ids = tempSelectedItems.value.map((item) => item.id);
-    emit("update:modelValue", ids);
+    // Extract just the Q-numbers for the model value to ensure compatibility with backend
+    const qNumbers = tempSelectedItems.value.map((item) => item.id);
+    // Always emit an array of Q-number strings, never objects
+    emit("update:modelValue", qNumbers);
 };
 
 // Watch for changes to modelValue and fetch the labels if needed

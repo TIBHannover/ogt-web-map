@@ -314,12 +314,7 @@ const fetchEntityLabel = async (entityId) => {
 const selectedItem = computed(() => {
     if (!props.modelValue) return null;
 
-    // If modelValue is an object with id property
-    if (typeof props.modelValue === "object" && props.modelValue?.id) {
-        return props.modelValue;
-    }
-
-    // If modelValue is a string (Wikidata ID)
+    // If modelValue is already a Q-number string
     if (
         typeof props.modelValue === "string" &&
         props.modelValue.startsWith("Q")
@@ -354,6 +349,12 @@ const selectedItem = computed(() => {
 
         // If all else fails, just show the ID as a fallback
         return { id: props.modelValue, label: props.modelValue };
+    }
+
+    // Handle legacy format - if modelValue is an object with id property
+    if (typeof props.modelValue === "object" && props.modelValue?.id) {
+        // Convert to string format for backward compatibility
+        return props.modelValue;
     }
 
     return null;
@@ -430,13 +431,9 @@ const selectItem = (item) => {
     // Guard against null or invalid items
     if (!item || !item.id) return;
 
-    // Store the complete entity object instead of just the ID
-    // This ensures we have the label available immediately
-    emit("update:modelValue", {
-        id: item.id,
-        label: item.label || item.id || "",
-        description: item.description || "",
-    });
+    // Store only the Q-number as a string
+    // This simplifies data structure and matches EventsForm format
+    emit("update:modelValue", item.id);
     dialogOpen.value = false;
 };
 

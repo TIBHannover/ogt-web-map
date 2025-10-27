@@ -295,7 +295,7 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                         -->
 
                         @php
-                            // Parse JSON strings to arrays
+                            // Parse JSON strings to arrays for this section
                             $parsedPerpetrators = [];
                             $parsedVictims = [];
 
@@ -322,9 +322,13 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                                     $parsedVictims = $request->victims;
                                 }
                             }
+
+                            // Additional debug information for troubleshooting
+                            $victimCount = is_array($parsedVictims) ? count($parsedVictims) : 0;
+                            $perpetratorCount = is_array($parsedPerpetrators) ? count($parsedPerpetrators) : 0;
                         @endphp
 
-                        @if($parsedPerpetrators || $parsedVictims)
+                        @if(($parsedPerpetrators || $parsedVictims) && $request->type != 'Q5')
                             <div class="mb-5">
                                 @if(!empty($parsedPerpetrators))
                                     <div class="mb-3">
@@ -474,6 +478,67 @@ Victims: {{ var_export($request->victims, true) }}</pre>
 
                     <!-- Person (Q5) -->
                     @if($request->type == 'Q5')
+                        <!-- Display the person data from victims array for Q5 entity types -->
+                        <div class="mb-4">
+                            <h5 class="mb-3">Personeninformationen:</h5>
+
+                            @php
+                                // Parse JSON strings to arrays (for this section)
+                                $parsedPerpetrators = [];
+                                $parsedVictims = [];
+
+                                if ($request->perpetrators) {
+                                    if (is_string($request->perpetrators)) {
+                                        try {
+                                            $parsedPerpetrators = json_decode($request->perpetrators, true) ?: [];
+                                        } catch (\Exception $e) {
+                                            // Log error or handle it
+                                        }
+                                    } elseif (is_array($request->perpetrators)) {
+                                        $parsedPerpetrators = $request->perpetrators;
+                                    }
+                                }
+
+                                if ($request->victims) {
+                                    if (is_string($request->victims)) {
+                                        try {
+                                            $parsedVictims = json_decode($request->victims, true) ?: [];
+                                        } catch (\Exception $e) {
+                                            // Log error or handle it
+                                        }
+                                    } elseif (is_array($request->victims)) {
+                                        $parsedVictims = $request->victims;
+                                    }
+                                }
+
+                                $victimCount = is_array($parsedVictims) ? count($parsedVictims) : 0;
+                                $perpetratorCount = is_array($parsedPerpetrators) ? count($parsedPerpetrators) : 0;
+                            @endphp
+
+                            @if(!empty($parsedVictims))
+                                <div class="list-group">
+                                    @foreach($parsedVictims as $victim)
+                                        @include('admin.partials.person-entry', ['person' => $victim, 'type' => 'victim'])
+                                    @endforeach
+                                </div>
+                            @elseif(!empty($parsedPerpetrators))
+                                <div class="list-group">
+                                    @foreach($parsedPerpetrators as $perpetrator)
+                                        @include('admin.partials.person-entry', ['person' => $perpetrator, 'type' => 'perpetrator'])
+                                    @endforeach
+                                </div>
+                            @else
+                                <div class="alert alert-warning">
+                                    Keine Personendaten verfügbar.
+                                    @if(is_array($parsedVictims))
+                                        Opfer-Array ist leer ({{ $victimCount }} Einträge).
+                                    @endif
+                                    @if(is_array($parsedPerpetrators))
+                                        Täter-Array ist leer ({{ $perpetratorCount }} Einträge).
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
 
                         @if($request->date_of_birth || $request->date_of_death)
                             <div class="mb-3">

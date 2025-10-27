@@ -629,14 +629,15 @@ const personData = ref({
     description: props.description || "",
     birthDate: null,
     deathDate: null,
-    gender: null,
-    nationality: null,
-    place_of_birth: null,
-    place_of_death: null,
-    place_of_detention: [],
-    place_of_residence: null,
-    occupation: null,
-    employer: null,
+    // All Wikidata fields below store simple Q-numbers as direct strings
+    gender: null, // Q6581097 (male) or Q6581072 (female) or other
+    nationality: null, // Q183 (Germany) or Q1206012 (Deutsches Reich)
+    place_of_birth: null, // Q-number for location
+    place_of_death: null, // Q-number for location
+    place_of_detention: [], // Array of Q-numbers for detention places (only field stored as array)
+    place_of_residence: null, // Q-number for location
+    occupation: null, // Q-number for occupation
+    employer: null, // Q-number for employer
     image: null,
     imageUrl: null,
     imageFilename: null,
@@ -1709,40 +1710,17 @@ const validateAndSubmit = async () => {
             description:
                 personData.value.description || description.value || "",
             isOrganization: !!personData.value.isOrganization,
-            gender: personData.value.gender
-                ? [{ id: personData.value.gender }]
-                : null,
-            nationality: personData.value.nationality
-                ? Array.isArray(personData.value.nationality)
-                    ? personData.value.nationality
-                    : [personData.value.nationality]
-                : null,
-            place_of_birth: personData.value.place_of_birth
-                ? Array.isArray(personData.value.place_of_birth)
-                    ? personData.value.place_of_birth
-                    : [personData.value.place_of_birth]
-                : null,
-            place_of_death: personData.value.place_of_death
-                ? Array.isArray(personData.value.place_of_death)
-                    ? personData.value.place_of_death
-                    : [personData.value.place_of_death]
-                : null,
+            // For gender, use array format to match backend validation expectations
+            gender: personData.value.gender ? [personData.value.gender] : null,
+            // For other Wikidata fields, store as direct strings (except place_of_detention)
+            nationality: personData.value.nationality || null,
+            place_of_birth: personData.value.place_of_birth || null,
+            place_of_death: personData.value.place_of_death || null,
             place_of_detention: personData.value.place_of_detention || [],
-            place_of_residence: personData.value.place_of_residence
-                ? Array.isArray(personData.value.place_of_residence)
-                    ? personData.value.place_of_residence
-                    : [personData.value.place_of_residence]
-                : null,
-            occupation: personData.value.occupation
-                ? Array.isArray(personData.value.occupation)
-                    ? personData.value.occupation
-                    : [personData.value.occupation]
-                : null,
-            employer: personData.value.employer
-                ? Array.isArray(personData.value.employer)
-                    ? personData.value.employer
-                    : [personData.value.employer]
-                : null,
+            place_of_residence: personData.value.place_of_residence || null,
+            occupation: personData.value.occupation || null,
+            employer: personData.value.employer || null,
+            birthName: personData.value.birthName || null,
             image: personData.value.image,
             imageUrl: personData.value.imageUrl,
             imageFilename: personData.value.imageFilename,
@@ -1874,19 +1852,123 @@ const validateAndSubmit = async () => {
             "employer",
         ];
 
-        // Process all fields to ensure correct format
+        // Process all fields to ensure correct format - store only Q-numbers
         wikidataFields.forEach((field) => {
             if (personDataObj[field]) {
-                if (typeof personDataObj[field] === "string") {
-                    // String to array of objects
-                    personDataObj[field] = [{ id: personDataObj[field] }];
-                } else if (
-                    typeof personDataObj[field] === "object" &&
-                    !Array.isArray(personDataObj[field])
-                ) {
-                    // Single object to array of objects
-                    personDataObj[field] = [personDataObj[field]];
+                // Special handling for place_of_detention which is always an array
+                if (field === "place_of_detention") {
+                    const detentionArray = [];
+
+                    if (Array.isArray(personDataObj[field])) {
+                        personDataObj[field].forEach((item) => {
+                            // Handle if it's already a string Q-number
+                            if (
+                                typeof item === "string" &&
+                                item.startsWith("Q")
+                            ) {
+                                detentionArray.push(item);
+                            }
+                            // Handle if it's an object with id property
+                            else if (
+                                item &&
+                                item.id &&
+                                typeof item.id === "string" &&
+                                item.id.startsWith("Q")
+                            ) {
+                                detentionArray.push(item.id);
+                            }
+                        });
+                    }
+
+                    personDataObj[field] = detentionArray;
+                } else {
+                    // For gender, always use array format to match backend expectations
+                    if (field === "gender") {
+                        let qNumber = null;
+
+                        // Handle different input formats to extract Q-number
+                        if (Array.isArray(personDataObj[field])) {
+                            if (personDataObj[field].length > 0) {
+                                const firstItem = personDataObj[field][0];
+                                if (
+                                    typeof firstItem === "string" &&
+                                    firstItem.startsWith("Q")
+                                ) {
+                                    qNumber = firstItem;
+                                } else if (
+                                    firstItem &&
+                                    firstItem.id &&
+                                    typeof firstItem.id === "string" &&
+                                    firstItem.id.startsWith("Q")
+                                ) {
+                                    qNumber = firstItem.id;
+                                }
+                            }
+                        }
+                        // Handle if it's a string Q-number
+                        else if (
+                            typeof personDataObj[field] === "string" &&
+                            personDataObj[field].startsWith("Q")
+                        ) {
+                            qNumber = personDataObj[field];
+                        }
+                        // Handle if it's an object with id property
+                        else if (
+                            personDataObj[field] &&
+                            personDataObj[field].id &&
+                            typeof personDataObj[field].id === "string" &&
+                            personDataObj[field].id.startsWith("Q")
+                        ) {
+                            qNumber = personDataObj[field].id;
+                        }
+
+                        // Store gender as an array with a single item (backend requires array)
+                        personDataObj[field] = qNumber ? [qNumber] : null;
+                    } else {
+                        // For all other fields, simplify to a single Q-number string
+                        let qNumber = null;
+
+                        // Handle different input formats to extract Q-number
+                        if (Array.isArray(personDataObj[field])) {
+                            if (personDataObj[field].length > 0) {
+                                const firstItem = personDataObj[field][0];
+                                if (
+                                    typeof firstItem === "string" &&
+                                    firstItem.startsWith("Q")
+                                ) {
+                                    qNumber = firstItem;
+                                } else if (
+                                    firstItem &&
+                                    firstItem.id &&
+                                    typeof firstItem.id === "string" &&
+                                    firstItem.id.startsWith("Q")
+                                ) {
+                                    qNumber = firstItem.id;
+                                }
+                            }
+                        }
+                        // Handle if it's a string Q-number
+                        else if (
+                            typeof personDataObj[field] === "string" &&
+                            personDataObj[field].startsWith("Q")
+                        ) {
+                            qNumber = personDataObj[field];
+                        }
+                        // Handle if it's an object with id property
+                        else if (
+                            personDataObj[field] &&
+                            personDataObj[field].id &&
+                            typeof personDataObj[field].id === "string" &&
+                            personDataObj[field].id.startsWith("Q")
+                        ) {
+                            qNumber = personDataObj[field].id;
+                        }
+
+                        // Store as direct string (not in an array)
+                        personDataObj[field] = qNumber;
+                    }
                 }
+
                 // Log the final field format
                 console.log(`Final ${field} format:`, personDataObj[field]);
             }
