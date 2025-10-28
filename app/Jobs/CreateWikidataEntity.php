@@ -250,6 +250,27 @@ class CreateWikidataEntity implements ShouldQueue
                 // Create an entity key to identify this entity in the chain
                 $entityKey = uniqid("entity_", true);
 
+                // Check if this entity already has a wikidata_id we should use instead of creating new
+                if (
+                    isset($entity["wikidata_id"]) &&
+                    preg_match('/^Q\d+$/', $entity["wikidata_id"])
+                ) {
+                    // Log that we found a wikidata_id and will use it instead of creating a new entity
+                    Log::info(
+                        "Found existing wikidata_id for {$relationshipType}",
+                        [
+                            "wikidata_id" => $entity["wikidata_id"],
+                            "name" =>
+                                $entity["name"] ??
+                                ($entity["title"] ?? "Unknown"),
+                            "relationship" => $relationshipType,
+                        ],
+                    );
+
+                    // Skip creation for this entity as it already exists in Wikidata
+                    continue;
+                }
+
                 // Store the entity data for future reference
                 $entity["_entity_chain_key"] = $entityKey;
                 $entity["_main_entity_type"] = $entityType;
@@ -476,6 +497,33 @@ class CreateWikidataEntity implements ShouldQueue
                     "entity_type" => $this->entityType,
                     "title" => $this->entityData["title"] ?? "Unknown",
                 ]);
+            }
+
+            // Check if this entity already has a wikidata_id (for victims/perpetrators)
+            if (
+                isset($this->entityData["wikidata_id"]) &&
+                !empty($this->entityData["wikidata_id"]) &&
+                preg_match('/^Q\d+$/', $this->entityData["wikidata_id"])
+            ) {
+                Log::info(
+                    "Using existing Wikidata entity instead of creating new one",
+                    [
+                        "wikidata_id" => $this->entityData["wikidata_id"],
+                        "title" => $this->entityData["title"] ?? "Unknown",
+                        "label" => $this->entityData["label"] ?? "Unknown",
+                        "relationship" => $this->relationshipType,
+                    ]
+                );
+
+                // Store the ID in globals for later use in related entities
+                if (isset($this->relationshipType) && $this->relationshipType === "victim") {
+                    $GLOBALS["last_victim_entity_id"] = $this->entityData["wikidata_id"];
+                } elseif (isset($this->relationshipType) && $this->relationshipType === "perpetrator") {
+                    $GLOBALS["last_perpetrator_entity_id"] = $this->entityData["wikidata_id"];
+                }
+
+                // No need to create a new entity, just process relationships if needed
+                return;
             }
 
             // Validate and log environment settings for debugging
@@ -2123,6 +2171,51 @@ class CreateWikidataEntity implements ShouldQueue
                                 "entity_id" => $entityId,
                             ],
                         );
+                    }
+
+                    /**
+                     * Process relationships for an existing entity (that already has a Wikidata ID)
+                     *
+                     * @param WikibaseService $wikidataService
+                     * @return void
+                     */
+                    private function processExistingEntityRelationships(WikibaseService $wikidataService)
+                    {
+                        try {
+                            // Only process if we have a parent entity ID and relationship type
+                            if (empty($this->parentEntityId) || $this->parentEntityId === "__MAIN_ENTITY_ID__" || empty($this->relationshipType)) {
+                                Log::info("Cannot process relationships for existing entity - missing parent info", [
+                                    "wikidata_id" => $this->entityData["wikidata_id"],
+                                    "parent_id" => $this->parentEntityId,
+                                    "relationship" => $this->relationshipType
+                                ]);
+                                return;
+                            }
+
+                            // Get the real parent ID if needed
+                            $realParentId = $this->parentEntityId;
+                            if ($this->parentEntityId === "__MAIN_ENTITY_ID__" && isset($GLOBALS["main_event_entity_id"])) {
+                                $realParentId = $GLOBALS["main_event_entity_id"];
+                            } elseif ($this->parentEntityId === "__MAIN_ENTITY_ID__" && isset($GLOBALS["last_created_entity_id"])) {
+                                $realParentId = $GLOBALS["last_created_entity_id"];
+                            }
+
+                            // Now we can add this existing entity as a relationship to the parent entity
+                            Log::info("Adding existing entity as relationship to parent", [
+                                "existing_entity_id" => $this->entityData["wikidata_id"],
+                                "parent_id" => $realParentId,
+                                "relationship" => $this->relationshipType
+                            ]);
+
+                            // TODO: Implement the actual relationship creation if needed
+                            // For now, we're just acknowledging that we'd use this existing entity
+                        } catch (\Exception $e) {
+                            Log::error("Error processing relationships for existing entity", [
+                                "wikidata_id" => $this->entityData["wikidata_id"] ?? "Unknown",
+                                "error" => $e->getMessage(),
+                                "trace" => $e->getTraceAsString()
+                            ]);
+                        }
                     }
                 }
             } else {

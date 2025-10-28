@@ -175,12 +175,20 @@ import WikidataSuggestions from "./WikidataSuggestions.vue";
 
 const props = defineProps({
     modelValue: {
-        type: [String, Object],
+        type: [String, Object, Array],
         default: null,
+    },
+    field: {
+        type: String,
+        default: "",
+    },
+    asArray: {
+        type: Boolean,
+        default: false,
     },
     label: {
         type: String,
-        required: true,
+        default: "",
     },
     disabled: {
         type: Boolean,
@@ -431,14 +439,22 @@ const selectItem = (item) => {
     // Guard against null or invalid items
     if (!item || !item.id) return;
 
-    // Store only the Q-number as a string
-    // This simplifies data structure and matches EventsForm format
-    emit("update:modelValue", item.id);
+    // If asArray prop is true, emit as array, otherwise as string
+    if (props.asArray) {
+        emit("update:modelValue", [item.id]);
+    } else {
+        // Store only the Q-number as a string
+        emit("update:modelValue", item.id);
+    }
     dialogOpen.value = false;
 };
 
 const clearSelection = () => {
-    emit("update:modelValue", null);
+    if (props.asArray) {
+        emit("update:modelValue", []);
+    } else {
+        emit("update:modelValue", null);
+    }
 };
 
 // Watch for changes to modelValue and fetch the label if needed

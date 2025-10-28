@@ -286,13 +286,13 @@ if (!function_exists('formatDateBasedOnPrecision')) {
                         @endif
 
                         <!-- Beteiligte Personen (Täter und Geschädigte) -->
-                        <!-- --
+                        <!-- Enable debug information -->
                         <div class="mb-3">
                             <strong>Debug Information:</strong>
                             <pre class="mt-2 bg-light p-3" style="max-height: 200px; overflow: auto;">Perpetrators: {{ var_export($request->perpetrators, true) }}
 Victims: {{ var_export($request->victims, true) }}</pre>
                         </div>
-                        -->
+
 
                         @php
                             // Parse JSON strings to arrays for this section
@@ -309,6 +309,13 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                                 } elseif (is_array($request->perpetrators)) {
                                     $parsedPerpetrators = $request->perpetrators;
                                 }
+                                // Debug the perpetrators data
+                                foreach ($parsedPerpetrators as $index => $perpetrator) {
+                                    error_log("Perpetrator $index data: " . json_encode($perpetrator));
+                                    if (isset($perpetrator['id'])) {
+                                        error_log("Found perpetrator ID: " . $perpetrator['id']);
+                                    }
+                                }
                             }
 
                             if ($request->victims) {
@@ -320,6 +327,13 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                                     }
                                 } elseif (is_array($request->victims)) {
                                     $parsedVictims = $request->victims;
+                                }
+                                // Debug the victims data
+                                foreach ($parsedVictims as $index => $victim) {
+                                    error_log("Victim $index data: " . json_encode($victim));
+                                    if (isset($victim['id'])) {
+                                        error_log("Found victim ID: " . $victim['id']);
+                                    }
                                 }
                             }
 
@@ -497,6 +511,10 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                                     } elseif (is_array($request->perpetrators)) {
                                         $parsedPerpetrators = $request->perpetrators;
                                     }
+                                    // Debug the perpetrators data in this section too
+                                    foreach ($parsedPerpetrators as $index => $perpetrator) {
+                                        error_log("Q5 Perpetrator $index data: " . json_encode($perpetrator));
+                                    }
                                 }
 
                                 if ($request->victims) {
@@ -508,6 +526,10 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                                         }
                                     } elseif (is_array($request->victims)) {
                                         $parsedVictims = $request->victims;
+                                    }
+                                    // Debug the victims data in this section too
+                                    foreach ($parsedVictims as $index => $victim) {
+                                        error_log("Q5 Victim $index data: " . json_encode($victim));
                                     }
                                 }
 

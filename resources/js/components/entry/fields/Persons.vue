@@ -1126,7 +1126,7 @@ const onEditPerson = (person, event) => {
     };
 
     // Force dialog to open first
-    dialogOpen.value = true;
+    dialogOpen.value = true;    
 
     // Use nextTick to ensure the dialog is mounted before updating form data
     nextTick(() => {

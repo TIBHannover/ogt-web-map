@@ -163,16 +163,71 @@ class DashboardController extends Controller
             // Data processing depends on content type
             $data = $request->all();
 
+            \Log::info("Request data received for update", [
+                "request_id" => $id,
+                "content_type" => $request->header("Content-Type"),
+                "has_victims" => isset($data["victims"]),
+                "has_perpetrators" => isset($data["perpetrators"]),
+            ]);
+
+            // Special handling for victims and perpetrators to preserve IDs
+            if (isset($data["victims"])) {
+                \Log::info("Received victims data", [
+                    "victims" => $data["victims"],
+                    "is_array" => is_array($data["victims"]),
+                    "is_string" => is_string($data["victims"]),
+                ]);
+
+                // If we got a string, try to decode it
+                if (is_string($data["victims"])) {
+                    try {
+                        if (str_starts_with(trim($data["victims"]), "[")) {
+                            $data["victims"] =
+                                json_decode($data["victims"], true) ?: [];
+                            \Log::info("Decoded victims from JSON string", [
+                                "count" => count($data["victims"]),
+                            ]);
+                        }
+                    } catch (\Exception $e) {
+                        \Log::warning("Failed to decode victims JSON", [
+                            "error" => $e->getMessage(),
+                        ]);
+                    }
+                }
+            }
+
+            if (isset($data["perpetrators"])) {
+                \Log::info("Received perpetrators data", [
+                    "perpetrators" => $data["perpetrators"],
+                    "is_array" => is_array($data["perpetrators"]),
+                    "is_string" => is_string($data["perpetrators"]),
+                ]);
+
+                // If we got a string, try to decode it
+                if (is_string($data["perpetrators"])) {
+                    try {
+                        if (str_starts_with(trim($data["perpetrators"]), "[")) {
+                            $data["perpetrators"] =
+                                json_decode($data["perpetrators"], true) ?: [];
+                            \Log::info(
+                                "Decoded perpetrators from JSON string",
+                                [
+                                    "count" => count($data["perpetrators"]),
+                                ],
+                            );
+                        }
+                    } catch (\Exception $e) {
+                        \Log::warning("Failed to decode perpetrators JSON", [
+                            "error" => $e->getMessage(),
+                        ]);
+                    }
+                }
+            }
+
             // If we're receiving JSON data
             if ($request->header("Content-Type") == "application/json") {
-                // Parse array fields from strings if needed
-                $jsonFields = [
-                    "victims",
-                    "perpetrators",
-                    "selected_causes",
-                    "sources",
-                    "coordinates",
-                ];
+                // Parse array fields from strings if needed (except victims and perpetrators)
+                $jsonFields = ["selected_causes", "sources", "coordinates"];
 
                 foreach ($jsonFields as $field) {
                     if (isset($data[$field]) && is_string($data[$field])) {
@@ -194,12 +249,7 @@ class DashboardController extends Controller
                 }
             } else {
                 // Handle form data - similar to before
-                $jsonFields = [
-                    "victims",
-                    "perpetrators",
-                    "selected_causes",
-                    "sources",
-                ];
+                $jsonFields = ["selected_causes", "sources"];
 
                 foreach ($jsonFields as $field) {
                     if (isset($data[$field]) && is_string($data[$field])) {
@@ -282,7 +332,112 @@ class DashboardController extends Controller
                 }
             }
 
-            // Re-encode JSON fields for storage
+            // Process victims and perpetrators separately and directly update the model
+            if (isset($data["victims"]) && is_array($data["victims"])) {
+                // Check all victim IDs and make sure they're preserved
+                foreach ($data["victims"] as $index => $victim) {
+                    // Create wikidata_id field from id if present
+                    if (
+                        isset($victim["id"]) &&
+                        !isset($victim["wikidata_id"]) &&
+                        preg_match('/^Q\d+$/', $victim["id"])
+                    ) {
+                        $data["victims"][$index]["wikidata_id"] = $victim["id"];
+                        \Log::info("Copying victim id to wikidata_id field", [
+                            "index" => $index,
+                            "id" => $victim["id"],
+                        ]);
+                    }
+
+                    \Log::info("Processing victim", [
+                        "index" => $index,
+                        "id" => $victim["id"] ?? "NO_ID",
+                        "wikidata_id" =>
+                            $victim["wikidata_id"] ??
+                            ($victim["id"] ?? "NO_ID"),
+                        "data" => $victim,
+                    ]);
+
+                    // Make sure the ID is prominently logged
+                    if (isset($victim["wikidata_id"])) {
+                        \Log::info(
+                            "Found victim with Wikidata ID (wikidata_id field): " .
+                                $victim["wikidata_id"],
+                        );
+                    } elseif (
+                        isset($victim["id"]) &&
+                        preg_match('/^Q\d+$/', $victim["id"])
+                    ) {
+                        \Log::info(
+                            "Found victim with Wikidata ID (id field): " .
+                                $victim["id"],
+                        );
+                    }
+                }
+
+                // Set victims directly on the model
+                $entryRequest->victims = $data["victims"];
+                unset($data["victims"]);
+            }
+
+            if (
+                isset($data["perpetrators"]) &&
+                is_array($data["perpetrators"])
+            ) {
+                // Check all perpetrator IDs and make sure they're preserved
+                foreach ($data["perpetrators"] as $index => $perpetrator) {
+                    // Create wikidata_id field from id if present
+                    if (
+                        isset($perpetrator["id"]) &&
+                        !isset($perpetrator["wikidata_id"]) &&
+                        preg_match('/^Q\d+$/', $perpetrator["id"])
+                    ) {
+                        $data["perpetrators"][$index]["wikidata_id"] =
+                            $perpetrator["id"];
+                        \Log::info(
+                            "Copying perpetrator id to wikidata_id field",
+                            [
+                                "index" => $index,
+                                "id" => $perpetrator["id"],
+                            ],
+                        );
+                    }
+
+                    \Log::info("Processing perpetrator", [
+                        "index" => $index,
+                        "id" => $perpetrator["id"] ?? "NO_ID",
+                        "wikidata_id" =>
+                            $perpetrator["wikidata_id"] ??
+                            ($perpetrator["id"] ?? "NO_ID"),
+                        "data" => $perpetrator,
+                    ]);
+
+                    // Make sure the ID is prominently logged
+                    if (isset($perpetrator["wikidata_id"])) {
+                        \Log::info(
+                            "Found perpetrator with Wikidata ID (wikidata_id field): " .
+                                $perpetrator["wikidata_id"],
+                        );
+                    } elseif (
+                        isset($perpetrator["id"]) &&
+                        preg_match('/^Q\d+$/', $perpetrator["id"])
+                    ) {
+                        \Log::info(
+                            "Found perpetrator with Wikidata ID (id field): " .
+                                $perpetrator["id"],
+                        );
+                    }
+                }
+
+                // Set perpetrators directly on the model
+                $entryRequest->perpetrators = $data["perpetrators"];
+                unset($data["perpetrators"]);
+            }
+
+            // Remove these fields from jsonFields to prevent double encoding
+            $jsonFields = array_diff($jsonFields, ["victims", "perpetrators"]);
+
+            // Re-encode other JSON fields for storage
             foreach ($jsonFields as $field) {
                 if (isset($data[$field]) && is_array($data[$field])) {
                     $data[$field] = json_encode($data[$field]);
@@ -298,7 +453,7 @@ class DashboardController extends Controller
                 \Log::info("Re-encoded coordinates for storage");
             }
 
-            // Use direct DB update instead of Eloquent to bypass any potential issues
+            // Use direct DB update for the data array fields
             $updateResult = \DB::table("wikidata_entry_requests")
                 ->where("id", $id)
                 ->update($data);
@@ -307,8 +462,80 @@ class DashboardController extends Controller
                 "result" => $updateResult,
             ]);
 
+            // Now save the model to update the victims and perpetrators fields
+            $entryRequest->save();
+
+            \Log::info("Updated entry with victims and perpetrators", [
+                "victim_count" => count($entryRequest->victims ?? []),
+                "perpetrator_count" => count($entryRequest->perpetrators ?? []),
+            ]);
+
+            // Log the actual data saved to confirm IDs were preserved
+            if (!empty($entryRequest->victims)) {
+                foreach ($entryRequest->victims as $index => $victim) {
+                    \Log::info("Saved victim data", [
+                        "index" => $index,
+                        "id" => $victim["id"] ?? "MISSING_ID",
+                        "wikidata_id" =>
+                            $victim["wikidata_id"] ?? "MISSING_WIKIDATA_ID",
+                        "name" =>
+                            $victim["title"] ?? ($victim["label"] ?? "Unknown"),
+                    ]);
+                }
+            }
+
+            if (!empty($entryRequest->perpetrators)) {
+                foreach (
+                    $entryRequest->perpetrators
+                    as $index => $perpetrator
+                ) {
+                    \Log::info("Saved perpetrator data", [
+                        "index" => $index,
+                        "id" => $perpetrator["id"] ?? "MISSING_ID",
+                        "wikidata_id" =>
+                            $perpetrator["wikidata_id"] ??
+                            "MISSING_WIKIDATA_ID",
+                        "name" =>
+                            $perpetrator["title"] ??
+                            ($perpetrator["label"] ?? "Unknown"),
+                    ]);
+                }
+            }
+
             // Refresh the model from the database to ensure we have the latest data
             $entryRequest = WikibaseEntryRequest::findOrFail($id);
+
+            // Verify saved data has the IDs
+            if (!empty($entryRequest->victims)) {
+                foreach ($entryRequest->victims as $index => $victim) {
+                    \Log::info("Victim after save", [
+                        "index" => $index,
+                        "id" => $victim["id"] ?? "MISSING_ID",
+                        "wikidata_id" =>
+                            $victim["wikidata_id"] ?? "MISSING_WIKIDATA_ID",
+                        "title" =>
+                            $victim["title"] ?? ($victim["label"] ?? "Unknown"),
+                    ]);
+                }
+            }
+
+            if (!empty($entryRequest->perpetrators)) {
+                foreach (
+                    $entryRequest->perpetrators
+                    as $index => $perpetrator
+                ) {
+                    \Log::info("Perpetrator after save", [
+                        "index" => $index,
+                        "id" => $perpetrator["id"] ?? "MISSING_ID",
+                        "wikidata_id" =>
+                            $perpetrator["wikidata_id"] ??
+                            "MISSING_WIKIDATA_ID",
+                        "title" =>
+                            $perpetrator["title"] ??
+                            ($perpetrator["label"] ?? "Unknown"),
+                    ]);
+                }
+            }
 
             // Log some fields to verify they were updated
             \Log::info("Field values after update", [

@@ -51,14 +51,17 @@ class WikidataEntityController extends Controller
             "victims.*.description" => "nullable|string",
             "victims.*.type" => "nullable|string",
             "victims.*.role" => "nullable|string",
-            "victims.*.gender" => "nullable|array",
-            "victims.*.nationality" => "nullable|array",
-            "victims.*.place_of_birth" => "nullable|array",
-            "victims.*.place_of_death" => "nullable|array",
+            "victims.*.gender" => "nullable|string",
+            "victims.*.nationality" => "nullable|string",
+            "victims.*.place_of_birth" => "nullable|string",
+            "victims.*.place_of_death" => "nullable|string",
             "victims.*.place_of_detention" => "nullable|array",
-            "victims.*.place_of_residence" => "nullable|array",
-            "victims.*.occupation" => "nullable|array",
+            "victims.*.place_of_residence" => "nullable|string",
+            "victims.*.occupation" => "nullable|string",
             "victims.*.employer" => "nullable|array",
+            "victims.*.birthDate" => "nullable|string|date",
+            "victims.*.deathDate" => "nullable|string|date",
+            "victims.*.birthName" => "nullable|string",
             "victims.*.imageUrl" => "nullable|string",
             "victims.*.imageFilename" => "nullable|string",
             "perpetrators" => "nullable|array",
@@ -68,14 +71,17 @@ class WikidataEntityController extends Controller
             "perpetrators.*.description" => "nullable|string",
             "perpetrators.*.type" => "nullable|string",
             "perpetrators.*.role" => "nullable|string",
-            "perpetrators.*.gender" => "nullable|array",
-            "perpetrators.*.nationality" => "nullable|array",
-            "perpetrators.*.place_of_birth" => "nullable|array",
-            "perpetrators.*.place_of_death" => "nullable|array",
+            "perpetrators.*.gender" => "nullable|string",
+            "perpetrators.*.nationality" => "nullable|string",
+            "perpetrators.*.place_of_birth" => "nullable|string",
+            "perpetrators.*.place_of_death" => "nullable|string",
             "perpetrators.*.place_of_detention" => "nullable|array",
-            "perpetrators.*.place_of_residence" => "nullable|array",
-            "perpetrators.*.occupation" => "nullable|array",
+            "perpetrators.*.place_of_residence" => "nullable|string",
+            "perpetrators.*.occupation" => "nullable|string",
             "perpetrators.*.employer" => "nullable|array",
+            "perpetrators.*.birthDate" => "nullable|string|date",
+            "perpetrators.*.deathDate" => "nullable|string|date",
+            "perpetrators.*.birthName" => "nullable|string",
             "perpetrators.*.imageUrl" => "nullable|string",
             "perpetrators.*.imageFilename" => "nullable|string",
             "is_standalone_person" => "nullable|boolean",
@@ -101,12 +107,12 @@ class WikidataEntityController extends Controller
             "imageUrl" => "nullable|string",
             "imageFilename" => "nullable|string",
             "statusToken" => "nullable|string",
-            "gender" => "nullable|array|required_array_keys:0",
-            "nationality" => "nullable|array",
-            "place_of_birth" => "nullable|array",
-            "place_of_death" => "nullable|array",
+            "gender" => "nullable|string",
+            "nationality" => "nullable|string",
+            "place_of_birth" => "nullable|string",
+            "place_of_death" => "nullable|string",
             "place_of_detention" => "nullable|array",
-            "place_of_residence" => "nullable|array",
+            "place_of_residence" => "nullable|string",
             "employer" => "nullable|array",
             "image" => "nullable|array",
         ]);
@@ -124,15 +130,40 @@ class WikidataEntityController extends Controller
                 !empty($validated["victims"]) &&
                 is_array($validated["victims"])
             ) {
+                // Check for any IDs first (IMPORTANT)
+                foreach ($validated["victims"] as $vic) {
+                    if (
+                        isset($vic["id"]) &&
+                        !empty($vic["id"]) &&
+                        substr($vic["id"], 0, 1) === "Q"
+                    ) {
+                        Log::info("Found victim with Q number:", [
+                            "id" => $vic["id"],
+                            "title" => $vic["title"] ?? "Unknown",
+                        ]);
+                    }
+                }
+
                 // Ensure each victim has proper structure
                 foreach ($validated["victims"] as &$victim) {
-                    // Ensure gender is always an array with objects
-                    if (
-                        isset($victim["gender"]) &&
-                        !is_array($victim["gender"])
-                    ) {
-                        $victim["gender"] = [["id" => $victim["gender"]]];
+                    // Preserve ID if it exists (important for existing Wikidata entities)
+                    if (isset($victim["id"])) {
+                        // Ensure ID is preserved and type is set
+                        if (!isset($victim["type"])) {
+                            $victim["type"] = "Q5"; // Set type for existing entities
+                        }
+
+                        // Log that we're preserving an existing Wikidata entity ID
+                        Log::info(
+                            "Preserving existing Wikidata ID for victim",
+                            [
+                                "id" => $victim["id"],
+                                "title" => $victim["title"] ?? "Unknown",
+                            ],
+                        );
                     }
+
+                    // Gender is now handled as a string, no array conversion needed
                     if (
                         !isset($victim["title"]) &&
                         isset($victim["firstName"], $victim["lastName"])
@@ -151,16 +182,20 @@ class WikidataEntityController extends Controller
                         $victim["role"] = "victim";
                     }
 
-                    // Ensure all array fields are properly formatted
-                    $arrayFields = [
+                    // Fields that should be arrays
+                    $arrayFields = ["place_of_detention", "employer"];
+
+                    // Fields that should be strings (not arrays)
+                    $stringFields = [
+                        "gender",
                         "nationality",
                         "place_of_birth",
                         "place_of_death",
-                        "place_of_detention",
                         "place_of_residence",
                         "occupation",
-                        "employer",
                     ];
+
+                    // Handle array fields
                     foreach ($arrayFields as $field) {
                         if (
                             isset($victim[$field]) &&
@@ -172,21 +207,134 @@ class WikidataEntityController extends Controller
                             is_array($victim[$field]) &&
                             isset($victim[$field]["id"])
                         ) {
-                            // Convert single object to array of objects
                             $victim[$field] = [$victim[$field]];
+                        }
+                    }
+
+                    // Handle string fields - ensure they're not arrays
+                    foreach ($stringFields as $field) {
+                        if (isset($victim[$field])) {
+                            if (is_array($victim[$field])) {
+                                // Extract the Q-number from array
+                                if (count($victim[$field]) > 0) {
+                                    $firstItem = $victim[$field][0];
+                                    if (
+                                        is_string($firstItem) &&
+                                        strpos($firstItem, "Q") === 0
+                                    ) {
+                                        // Direct Q-number in array
+                                        $victim[$field] = $firstItem;
+                                    } elseif (
+                                        is_array($firstItem) &&
+                                        isset($firstItem["id"])
+                                    ) {
+                                        // Object with id in array
+                                        $victim[$field] = $firstItem["id"];
+                                    }
+                                } else {
+                                    // Empty array
+                                    $victim[$field] = null;
+                                }
+                            }
                         }
                     }
                 }
             }
-            $entryRequest->victims = $validated["victims"] ?? null;
+            // Log original victims data to check ID presence
+            foreach ($validated["victims"] as $index => $victim) {
+                if (isset($victim["wikidata_id"])) {
+                    Log::info("Found victim with wikidata_id before saving", [
+                        "index" => $index,
+                        "wikidata_id" => $victim["wikidata_id"],
+                        "label" =>
+                            $victim["label"] ?? ($victim["title"] ?? "Unknown"),
+                    ]);
+                } elseif (isset($victim["id"])) {
+                    Log::info("Found victim with ID before saving", [
+                        "index" => $index,
+                        "id" => $victim["id"],
+                        "label" =>
+                            $victim["label"] ?? ($victim["title"] ?? "Unknown"),
+                    ]);
+                }
+            }
+
+            // Ensure ID field is preserved by creating a new array with explicit fields
+            $processedVictims = [];
+            foreach ($validated["victims"] as $victim) {
+                $victimData = [
+                    "wikidata_id" =>
+                        $victim["wikidata_id"] ?? ($victim["id"] ?? null), // Try wikidata_id first, then fall back to id
+                    "title" => $victim["title"] ?? null,
+                    "label" => $victim["label"] ?? null,
+                    "description" => $victim["description"] ?? null,
+                    "type" => $victim["type"] ?? null,
+                    "role" => $victim["role"] ?? "victim",
+                    "firstName" => $victim["firstName"] ?? null,
+                    "lastName" => $victim["lastName"] ?? null,
+                    "birthDate" => $victim["birthDate"] ?? null,
+                    "deathDate" => $victim["deathDate"] ?? null,
+                    "nationality" => $victim["nationality"] ?? null,
+                    "birth" => $victim["birth"] ?? null,
+                    "death" => $victim["death"] ?? null,
+                    "isOrganization" => $victim["isOrganization"] ?? false,
+                ];
+
+                $processedVictims[] = $victimData;
+            }
+
+            // Use the processed array with explicit ID field
+            $entryRequest->victims = $processedVictims;
+
+            // Log what's being saved
+            Log::info("Saving victims with explicit ID preservation", [
+                "processed_victims" => $processedVictims,
+            ]);
 
             // Handle perpetrators with proper formatting
             if (
                 !empty($validated["perpetrators"]) &&
                 is_array($validated["perpetrators"])
             ) {
+                // Log all perpetrator data for debugging
+                Log::info("Received perpetrators data:", [
+                    "perpetrators" => $validated["perpetrators"],
+                ]);
+
+                // Check for any IDs first (IMPORTANT)
+                foreach ($validated["perpetrators"] as $perp) {
+                    if (
+                        isset($perp["id"]) &&
+                        !empty($perp["id"]) &&
+                        substr($perp["id"], 0, 1) === "Q"
+                    ) {
+                        Log::info("Found perpetrator with Q number:", [
+                            "id" => $perp["id"],
+                            "title" => $perp["title"] ?? "Unknown",
+                        ]);
+                    }
+                }
+
                 // Ensure each perpetrator has proper structure
                 foreach ($validated["perpetrators"] as &$perpetrator) {
+                    // Preserve ID if it exists (important for existing Wikidata entities)
+                    if (isset($perpetrator["id"])) {
+                        // Ensure ID is preserved and type is set
+                        if (!isset($perpetrator["type"])) {
+                            $perpetrator["type"] = "Q5"; // Set type for existing entities
+                        }
+
+                        // Log that we're preserving an existing Wikidata entity ID
+                        Log::info(
+                            "Preserving existing Wikidata ID for perpetrator",
+                            [
+                                "id" => $perpetrator["id"],
+                                "title" => $perpetrator["title"] ?? "Unknown",
+                            ],
+                        );
+                    }
+
+                    // Gender is handled as a string, no conversion needed
                     if (
                         !isset($perpetrator["title"]) &&
                         isset(
@@ -220,16 +368,19 @@ class WikidataEntityController extends Controller
                         ];
                     }
 
-                    // Ensure all array fields are properly formatted
-                    $arrayFields = [
+                    // Fields that should be arrays
+                    $arrayFields = ["place_of_detention", "employer"];
+
+                    // Fields that should be strings (not arrays)
+                    $stringFields = [
+                        "gender",
                         "nationality",
                         "place_of_birth",
                         "place_of_death",
-                        "place_of_detention",
                         "place_of_residence",
                         "occupation",
-                        "employer",
                     ];
+                    // Handle array fields
                     foreach ($arrayFields as $field) {
                         if (
                             isset($perpetrator[$field]) &&
@@ -247,9 +398,90 @@ class WikidataEntityController extends Controller
                             $perpetrator[$field] = [$perpetrator[$field]];
                         }
                     }
+
+                    // Handle string fields - ensure they're not arrays
+                    foreach ($stringFields as $field) {
+                        if (isset($perpetrator[$field])) {
+                            if (is_array($perpetrator[$field])) {
+                                // Extract the Q-number from array
+                                if (count($perpetrator[$field]) > 0) {
+                                    $firstItem = $perpetrator[$field][0];
+                                    if (
+                                        is_string($firstItem) &&
+                                        strpos($firstItem, "Q") === 0
+                                    ) {
+                                        // Direct Q-number in array
+                                        $perpetrator[$field] = $firstItem;
+                                    } elseif (
+                                        is_array($firstItem) &&
+                                        isset($firstItem["id"])
+                                    ) {
+                                        // Object with id in array
+                                        $perpetrator[$field] = $firstItem["id"];
+                                    }
+                                } else {
+                                    // Empty array
+                                    $perpetrator[$field] = null;
+                                }
+                            }
+                        }
+                    }
                 }
             }
-            $entryRequest->perpetrators = $validated["perpetrators"] ?? null;
+            // Log original perpetrators data to check ID presence
+            foreach ($validated["perpetrators"] as $index => $perpetrator) {
+                if (isset($perpetrator["wikidata_id"])) {
+                    Log::info(
+                        "Found perpetrator with wikidata_id before saving",
+                        [
+                            "index" => $index,
+                            "wikidata_id" => $perpetrator["wikidata_id"],
+                            "label" =>
+                                $perpetrator["label"] ??
+                                ($perpetrator["title"] ?? "Unknown"),
+                        ],
+                    );
+                } elseif (isset($perpetrator["id"])) {
+                    Log::info("Found perpetrator with ID before saving", [
+                        "index" => $index,
+                        "id" => $perpetrator["id"],
+                        "label" =>
+                            $perpetrator["label"] ??
+                            ($perpetrator["title"] ?? "Unknown"),
+                    ]);
+                }
+            }
+
+            // Ensure ID field is preserved by creating a new array with explicit fields
+            $processedPerpetrators = [];
+            foreach ($validated["perpetrators"] as $perpetrator) {
+                $perpetratorData = [
+                    "wikidata_id" =>
+                        $perpetrator["wikidata_id"] ??
+                        ($perpetrator["id"] ?? null), // Try wikidata_id first, then fall back to id
+                    "title" => $perpetrator["title"] ?? null,
+                    "label" => $perpetrator["label"] ?? null,
+                    "description" => $perpetrator["description"] ?? null,
+                    "type" => $perpetrator["type"] ?? null,
+                    "role" => $perpetrator["role"] ?? "perpetrator",
+                    "firstName" => $perpetrator["firstName"] ?? null,
+                    "lastName" => $perpetrator["lastName"] ?? null,
+                    "birthDate" => $perpetrator["birthDate"] ?? null,
+                    "deathDate" => $perpetrator["deathDate"] ?? null,
+                    "nationality" => $perpetrator["nationality"] ?? null,
+                    "isOrganization" => $perpetrator["isOrganization"] ?? false,
+                ];
+
+                $processedPerpetrators[] = $perpetratorData;
+            }
+
+            // Use the processed array with explicit ID field
+            $entryRequest->perpetrators = $processedPerpetrators;
+
+            // Log what's being saved
+            Log::info("Saving perpetrators with explicit ID preservation", [
+                "processed_perpetrators" => $processedPerpetrators,
+            ]);
             // Allow both is_standalone_person and isStandalonePerson for backward compatibility
             $isStandalone =
                 $validated["is_standalone_person"] ??
@@ -257,18 +489,7 @@ class WikidataEntityController extends Controller
             $entryRequest->is_standalone_person = $isStandalone;
 
             // Ensure gender field is properly formatted
-            if (
-                isset($validated["gender"]) &&
-                !is_array($validated["gender"])
-            ) {
-                $validated["gender"] = [["id" => $validated["gender"]]];
-            } elseif (
-                isset($validated["gender"]) &&
-                is_array($validated["gender"]) &&
-                isset($validated["gender"]["id"])
-            ) {
-                $validated["gender"] = [$validated["gender"]];
-            }
+            // Gender is now handled as a string, no array conversion needed
             $entryRequest->gender = $validated["gender"] ?? null;
 
             // Process other array fields
@@ -476,7 +697,72 @@ class WikidataEntityController extends Controller
             }
 
             $entryRequest->submitted_by = "anonymous";
+
+            // Before saving, verify IDs are preserved in our data structure
+            if (!empty($entryRequest->victims)) {
+                foreach ($entryRequest->victims as $index => $victim) {
+                    if (isset($victim["wikidata_id"])) {
+                        Log::info("Final check: Victim Wikidata ID preserved", [
+                            "index" => $index,
+                            "wikidata_id" => $victim["wikidata_id"],
+                            "label" =>
+                                $victim["label"] ??
+                                ($victim["title"] ?? "Unknown"),
+                        ]);
+                    }
+                }
+            }
+
+            if (!empty($entryRequest->perpetrators)) {
+                foreach (
+                    $entryRequest->perpetrators
+                    as $index => $perpetrator
+                ) {
+                    if (isset($perpetrator["wikidata_id"])) {
+                        Log::info(
+                            "Final check: Perpetrator Wikidata ID preserved",
+                            [
+                                "index" => $index,
+                                "wikidata_id" => $perpetrator["wikidata_id"],
+                                "label" =>
+                                    $perpetrator["label"] ??
+                                    ($perpetrator["title"] ?? "Unknown"),
+                            ],
+                        );
+                    }
+                }
+            }
+
             $entryRequest->save();
+
+            // After saving, reload the model to verify data was correctly saved
+            $savedEntry = \App\Models\WikibaseEntryRequest::findOrFail(
+                $entryRequest->id,
+            );
+            Log::info("Data after save - victims and perpetrators check", [
+                "victim_count" => !empty($savedEntry->victims)
+                    ? count($savedEntry->victims)
+                    : 0,
+                "perpetrator_count" => !empty($savedEntry->perpetrators)
+                    ? count($savedEntry->perpetrators)
+                    : 0,
+                "victim_sample" => !empty($savedEntry->victims)
+                    ? json_encode($savedEntry->victims[0] ?? [])
+                    : "[]",
+                "victim_wikidata_id" =>
+                    !empty($savedEntry->victims) &&
+                    isset($savedEntry->victims[0]["wikidata_id"])
+                        ? $savedEntry->victims[0]["wikidata_id"]
+                        : "NULL",
+                "perpetrator_sample" => !empty($savedEntry->perpetrators)
+                    ? json_encode($savedEntry->perpetrators[0] ?? [])
+                    : "[]",
+                "perpetrator_wikidata_id" =>
+                    !empty($savedEntry->perpetrators) &&
+                    isset($savedEntry->perpetrators[0]["wikidata_id"])
+                        ? $savedEntry->perpetrators[0]["wikidata_id"]
+                        : "NULL",
+            ]);
 
             // Send notification to admin about new entry request
             try {
@@ -1431,6 +1717,54 @@ class WikidataEntityController extends Controller
                         "type" => "time",
                     ],
                 ];
+            }
+        }
+    }
+
+    /**
+     * Process Wikidata IDs for victims and perpetrators to ensure they're used correctly
+     *
+     * @param WikibaseEntryRequest $entryRequest The entry request to process
+     * @return void
+     */
+    private function processWikidataIds(
+        WikibaseEntryRequest $entryRequest,
+    ): void {
+        Log::info("Processing Wikidata IDs for entry request", [
+            "request_id" => $entryRequest->id,
+        ]);
+
+        // Process victims
+        if (!empty($entryRequest->victims)) {
+            foreach ($entryRequest->victims as $index => $victim) {
+                if (
+                    isset($victim["wikidata_id"]) &&
+                    preg_match('/^Q\d+$/', $victim["wikidata_id"])
+                ) {
+                    Log::info("Found victim with Wikidata ID", [
+                        "index" => $index,
+                        "wikidata_id" => $victim["wikidata_id"],
+                        "title" => $victim["title"] ?? "Unknown",
+                    ]);
+                    // When creating entities, this ID will be used instead of creating a new entity
+                }
+            }
+        }
+
+        // Process perpetrators
+        if (!empty($entryRequest->perpetrators)) {
+            foreach ($entryRequest->perpetrators as $index => $perpetrator) {
+                if (
+                    isset($perpetrator["wikidata_id"]) &&
+                    preg_match('/^Q\d+$/', $perpetrator["wikidata_id"])
+                ) {
+                    Log::info("Found perpetrator with Wikidata ID", [
+                        "index" => $index,
+                        "wikidata_id" => $perpetrator["wikidata_id"],
+                        "title" => $perpetrator["title"] ?? "Unknown",
+                    ]);
+                    // When creating entities, this ID will be used instead of creating a new entity
+                }
             }
         }
     }

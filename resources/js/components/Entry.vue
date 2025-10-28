@@ -919,21 +919,22 @@ const currentStep = ref(1);
 const showNewVictimForm = ref(false);
 const showPersonSearchOverlay = ref(false);
 const tempPersonData = ref(null);
+// Create Vue reference for the form's initial state - Person model
 const newVictim = ref({
     firstName: "",
     lastName: "",
     birthDate: null,
     deathDate: null,
     description: "",
-    birthName: "",
     isOrganization: false,
     gender: null,
-    nationality: null,
+    nationality: null, // Single string value like gender
     place_of_birth: null,
     place_of_death: null,
     place_of_detention: [],
     place_of_residence: null,
     occupation: null,
+    employer: null,
     imageUrl: null,
     imageFilename: null,
 });
@@ -951,15 +952,15 @@ const newPerpetrator = ref({
     birthDate: null,
     deathDate: null,
     description: "",
-    birthName: "",
     isOrganization: false,
     gender: null,
-    nationality: null,
+    nationality: null, // Single string value like gender
     place_of_birth: null,
     place_of_death: null,
     place_of_detention: [],
     place_of_residence: null,
     occupation: null,
+    employer: null,
     imageUrl: null,
     imageFilename: null,
 });
@@ -1584,6 +1585,9 @@ const addNewVictim = () => {
     // Create formatted name for title
     const formattedTitle = `${firstName} ${lastName}`.trim();
 
+    // Use nationality as a direct string value (like gender)
+    console.log("Adding victim with nationality:", newVictim.value.nationality);
+
     selectedVictims.value.push({
         tempId: tempId,
         firstName: firstName,
@@ -1624,16 +1628,39 @@ const canAddNewVictim = computed(() => {
 
 const selectVictim = (person) => {
     if (!selectedVictims.value.some((v) => v.id === person.id)) {
-        selectedVictims.value.push({
-            id: person.id,
+        // Log the person object we're adding
+        console.log("Adding victim with full data:", person);
+
+        // Create a complete victim object that preserves the Wikidata Q number
+        const victimObj = {
+            id: person.id, // CRITICAL - Preserve Wikidata Q number
+            wikidata_id: person.id, // DUPLICATE to wikidata_id to ensure it's preserved
             label: person.label,
+            title: person.label, // Ensure title is set
             description: person.description,
             birth: person.birth,
             death: person.death,
-        });
+            nationality: person.nationality || null,
+            type: "Q5", // Ensure type is set for existing entities
+            role: "victim", // Ensure role is set for existing entities
+            // Include additional fields that might be needed
+            firstName: person.firstName || "",
+            lastName: person.lastName || "",
+            birthDate: person.birthDate || null,
+            deathDate: person.deathDate || null,
+            isOrganization: person.isOrganization || false,
+        };
+
+        // Log the object to be added to the array
+        console.log("Victim object to be added:", victimObj);
+
+        selectedVictims.value.push(victimObj);
+        console.log("Added victim with ID:", person.id);
+
+        // Verify the object was properly added with id
+        console.log("Updated victims array:", selectedVictims.value);
     }
     peopleSearchResults.value = []; // Clear search results
-    lastSearchQuery.value = "";
 };
 
 const removeVictim = (victimId) => {
@@ -1751,17 +1778,39 @@ const canAddNewPerpetrator = computed(() => {
 });
 
 const selectPerpetrator = (person) => {
-    if (!selectedPerpetrators.value.some((v) => v.id === person.id)) {
-        selectedPerpetrators.value.push({
-            id: person.id,
+    if (!selectedPerpetrators.value.some((p) => p.id === person.id)) {
+        console.log("Adding perpetrator with full data:", person);
+
+        // Create a complete perpetrator object that preserves the Wikidata Q number
+        const perpetratorObj = {
+            id: person.id, // CRITICAL - Preserve Wikidata Q number
+            wikidata_id: person.id, // DUPLICATE to wikidata_id to ensure it's preserved
             label: person.label,
+            title: person.label, // Ensure title is set
             description: person.description,
             birth: person.birth,
             death: person.death,
-        });
+            nationality: person.nationality || null,
+            type: "Q5", // Ensure type is set for existing entities
+            role: "perpetrator", // Ensure role is set for existing entities
+            // Include additional fields that might be needed
+            firstName: person.firstName || "",
+            lastName: person.lastName || "",
+            birthDate: person.birthDate || null,
+            deathDate: person.deathDate || null,
+            isOrganization: person.isOrganization || false,
+        };
+
+        // Log the object to be added to the array
+        console.log("Perpetrator object to be added:", perpetratorObj);
+
+        selectedPerpetrators.value.push(perpetratorObj);
+        console.log("Added perpetrator with ID:", person.id);
+
+        // Verify the object was properly added with id
+        console.log("Updated perpetrators array:", selectedPerpetrators.value);
     }
-    perpetratorsSearchResults.value = [];
-    lastPerpetratorSearchQuery.value = "";
+    perpetratorsSearchResults.value = []; // Clear search results
 };
 
 const removePerpetrator = (perpetratorId) => {
@@ -1785,6 +1834,11 @@ const updateVictim = (person) => {
 
         // Replace the person at the found index
         selectedVictims.value.splice(index, 1, updatedPerson);
+
+        console.log(
+            "Updated victim with nationality:",
+            updatedPerson.nationality,
+        );
     }
 };
 
@@ -1803,6 +1857,11 @@ const updatePerpetrator = (person) => {
 
         // Replace the person at the found index
         selectedPerpetrators.value.splice(index, 1, updatedPerson);
+
+        console.log(
+            "Updated perpetrator with nationality:",
+            updatedPerson.nationality,
+        );
     }
 };
 
@@ -1904,8 +1963,7 @@ const submitPersonForm = async (formData) => {
                 formData.victims.forEach((person) => {
                     if (person.gender)
                         person.gender = normalizeField(person.gender);
-                    if (person.nationality)
-                        person.nationality = normalizeField(person.nationality);
+                    // Don't normalize nationality - keep as string
                     if (person.place_of_birth)
                         person.place_of_birth = normalizeField(
                             person.place_of_birth,
@@ -1933,8 +1991,7 @@ const submitPersonForm = async (formData) => {
                 formData.perpetrators.forEach((person) => {
                     if (person.gender)
                         person.gender = normalizeField(person.gender);
-                    if (person.nationality)
-                        person.nationality = normalizeField(person.nationality);
+                    // Don't normalize nationality - keep as string
                     if (person.place_of_birth)
                         person.place_of_birth = normalizeField(
                             person.place_of_birth,
@@ -2003,40 +2060,118 @@ const submitPersonForm = async (formData) => {
             // Double check that all person objects have properly formatted fields
             formData.victims.forEach((person) => {
                 console.log("Checking victim fields:", person);
-                [
-                    "gender",
-                    "nationality",
-                    "place_of_birth",
-                    "place_of_death",
-                    "place_of_detention",
-                    "place_of_residence",
-                    "occupation",
-                    "employer",
-                ].forEach((field) => {
-                    if (person[field] && !Array.isArray(person[field])) {
+                ["place_of_detention", "employer"].forEach((field) => {
+                    // Ensure multi-value fields are always arrays
+                    if (!person[field]) {
+                        // Initialize as empty array if null/undefined
+                        person[field] = [];
+                    } else if (!Array.isArray(person[field])) {
+                        // Convert string to array with one item
                         console.log(`Converting ${field} to array format`);
                         person[field] = [person[field]];
                     }
                 });
+
+                // Keep nationality as a string (like gender)
+                console.log("Nationality:", person.nationality);
+
+                // Handle single-value fields (ensure they're strings, not arrays)
+                [
+                    "place_of_birth",
+                    "place_of_death",
+                    "place_of_residence",
+                    "occupation",
+                ].forEach((field) => {
+                    if (Array.isArray(person[field])) {
+                        // Extract the first value if it's an array
+                        console.log(`Converting ${field} array to string`);
+                        if (person[field].length > 0) {
+                            if (typeof person[field][0] === "string") {
+                                person[field] = person[field][0];
+                            } else if (
+                                person[field][0] &&
+                                person[field][0].id
+                            ) {
+                                person[field] = person[field][0].id;
+                            } else {
+                                person[field] = null;
+                            }
+                        } else {
+                            person[field] = null;
+                        }
+                    }
+                });
+                // Ensure gender is always a string
+                if (person.gender && Array.isArray(person.gender)) {
+                    console.log("Converting gender array to string");
+                    if (person.gender.length > 0) {
+                        if (typeof person.gender[0] === "string") {
+                            person.gender = person.gender[0];
+                        } else if (person.gender[0] && person.gender[0].id) {
+                            person.gender = person.gender[0].id;
+                        }
+                    } else {
+                        person.gender = null;
+                    }
+                }
             });
 
             formData.perpetrators.forEach((person) => {
                 console.log("Checking perpetrator fields:", person);
-                [
-                    "gender",
-                    "nationality",
-                    "place_of_birth",
-                    "place_of_death",
-                    "place_of_detention",
-                    "place_of_residence",
-                    "occupation",
-                    "employer",
-                ].forEach((field) => {
-                    if (person[field] && !Array.isArray(person[field])) {
+                ["place_of_detention", "employer"].forEach((field) => {
+                    // Ensure multi-value fields are always arrays
+                    if (!person[field]) {
+                        // Initialize as empty array if null/undefined
+                        person[field] = [];
+                    } else if (!Array.isArray(person[field])) {
+                        // Convert string to array with one item
                         console.log(`Converting ${field} to array format`);
                         person[field] = [person[field]];
                     }
                 });
+
+                // Keep nationality as a string (like gender)
+                console.log("Nationality:", person.nationality);
+
+                // Handle single-value fields (ensure they're strings, not arrays)
+                [
+                    "place_of_birth",
+                    "place_of_death",
+                    "place_of_residence",
+                    "occupation",
+                ].forEach((field) => {
+                    if (Array.isArray(person[field])) {
+                        // Extract the first value if it's an array
+                        console.log(`Converting ${field} array to string`);
+                        if (person[field].length > 0) {
+                            if (typeof person[field][0] === "string") {
+                                person[field] = person[field][0];
+                            } else if (
+                                person[field][0] &&
+                                person[field][0].id
+                            ) {
+                                person[field] = person[field][0].id;
+                            } else {
+                                person[field] = null;
+                            }
+                        } else {
+                            person[field] = null;
+                        }
+                    }
+                });
+                // Ensure gender is always a string
+                if (person.gender && Array.isArray(person.gender)) {
+                    console.log("Converting gender array to string");
+                    if (person.gender.length > 0) {
+                        if (typeof person.gender[0] === "string") {
+                            person.gender = person.gender[0];
+                        } else if (person.gender[0] && person.gender[0].id) {
+                            person.gender = person.gender[0].id;
+                        }
+                    } else {
+                        person.gender = null;
+                    }
+                }
             });
 
             console.log(
@@ -2064,11 +2199,12 @@ const submitPersonForm = async (formData) => {
         if (formData.victims && formData.victims.length > 0) {
             formData.victims.forEach((victim, index) => {
                 console.log(`Victim ${index} gender:`, victim.gender);
-                if (victim.gender && !Array.isArray(victim.gender)) {
-                    console.warn(
-                        `Fixing victim ${index} gender to array format`,
-                    );
-                    victim.gender = [victim.gender];
+                // Ensure gender is a string
+                if (victim.gender && Array.isArray(victim.gender)) {
+                    victim.gender =
+                        typeof victim.gender[0] === "string"
+                            ? victim.gender[0]
+                            : victim.gender[0]?.id || null;
                 }
             });
         }
@@ -2076,11 +2212,12 @@ const submitPersonForm = async (formData) => {
         if (formData.perpetrators && formData.perpetrators.length > 0) {
             formData.perpetrators.forEach((perp, index) => {
                 console.log(`Perpetrator ${index} gender:`, perp.gender);
-                if (perp.gender && !Array.isArray(perp.gender)) {
-                    console.warn(
-                        `Fixing perpetrator ${index} gender to array format`,
-                    );
-                    perp.gender = [perp.gender];
+                // Ensure gender is a string
+                if (perp.gender && Array.isArray(perp.gender)) {
+                    perp.gender =
+                        typeof perp.gender[0] === "string"
+                            ? perp.gender[0]
+                            : perp.gender[0]?.id || null;
                 }
             });
         }
@@ -2302,6 +2439,26 @@ const resetForm = async () => {
         console.log("Current title:", formsTitle.value);
         console.log("Current description:", formsDescription.value);
 
+        // Debug logging for perpetrators and victims
+        if (
+            selectedPerpetrators.value &&
+            selectedPerpetrators.value.length > 0
+        ) {
+            console.log("Selected perpetrators:", selectedPerpetrators.value);
+            // Check for id field in each perpetrator
+            selectedPerpetrators.value.forEach((perp, i) => {
+                console.log(`Perpetrator ${i} ID:`, perp.id);
+            });
+        }
+
+        if (selectedVictims.value && selectedVictims.value.length > 0) {
+            console.log("Selected victims:", selectedVictims.value);
+            // Check for id field in each victim
+            selectedVictims.value.forEach((victim, i) => {
+                console.log(`Victim ${i} ID:`, victim.id);
+            });
+        }
+
         const missingFields = [];
 
         if (!(formsTitle.value || "").trim()) {
@@ -2399,6 +2556,31 @@ const resetForm = async () => {
             ).join("");
         };
 
+        // Force preserve IDs in all perpetrators and victims
+        if (
+            selectedPerpetrators.value &&
+            selectedPerpetrators.value.length > 0
+        ) {
+            selectedPerpetrators.value.forEach((perp) => {
+                // If an ID is present, ensure it's properly set
+                if (perp.id && perp.id.startsWith("Q")) {
+                    console.log("Preserving perpetrator Wikidata ID:", perp.id);
+                    // Make sure the ID field stays intact through JSON serialization
+                    perp.id = perp.id;
+                }
+            });
+        }
+
+        // Do the same for victims
+        if (selectedVictims.value && selectedVictims.value.length > 0) {
+            selectedVictims.value.forEach((victim) => {
+                if (victim.id && victim.id.startsWith("Q")) {
+                    console.log("Preserving victim Wikidata ID:", victim.id);
+                    victim.id = victim.id;
+                }
+            });
+        }
+
         const secureToken = generateSecureToken();
 
         // Function to prepare form data for submission - helps avoid circular references
@@ -2410,13 +2592,10 @@ const resetForm = async () => {
                 title: formsTitle.value?.trim() || "",
                 description: formsDescription.value?.trim() || "",
                 type: formsType.value,
-                sources: selectedSources.value,
+                sources: selectedSources.value || [],
                 statusToken: secureToken,
             };
 
-            console.log("Base form data prepared:", baseData);
-
-            // Add specific fields based on entry type
             if (formsType.value === "Q5") {
                 // Determine role from props
                 const role = props.role || "standalone";
@@ -2470,8 +2649,34 @@ const resetForm = async () => {
 
                 // Add to the appropriate array based on role
                 if (role === "victim") {
+                    // Ensure ID is preserved
+                    if (personObject.id && personObject.id.startsWith("Q")) {
+                        console.log(
+                            "Preserving victim ID in form submission:",
+                            personObject.id,
+                        );
+                        // Ensure the ID is set directly on the object, not as a nested property
+                        personObject = {
+                            ...personObject,
+                            id: personObject.id,
+                            wikidata_id: personObject.id, // Also set the wikidata_id field
+                        };
+                    }
                     personData.victims = [personObject];
                 } else if (role === "perpetrator") {
+                    // Ensure ID is preserved
+                    if (personObject.id && personObject.id.startsWith("Q")) {
+                        console.log(
+                            "Preserving perpetrator ID in form submission:",
+                            personObject.id,
+                        );
+                        // Ensure the ID is set directly on the object, not as a nested property
+                        personObject = {
+                            ...personObject,
+                            id: personObject.id,
+                            wikidata_id: personObject.id, // Also set the wikidata_id field
+                        };
+                    }
                     personData.perpetrators = [personObject];
                 }
 
@@ -2479,10 +2684,10 @@ const resetForm = async () => {
                 return personData;
             } else {
                 // Event form or others
-                return {
+                const formData = {
                     ...baseData,
                     coordinates: coordinates,
-                    coordinates_qualifier: locationQualifier.value, // Use .value to avoid circular references
+                    coordinates_qualifier: locationQualifier.value,
                     victims: selectedVictims.value,
                     perpetrators: selectedPerpetrators.value,
                     eventTimeType: eventTimeType.value,
@@ -2505,6 +2710,44 @@ const resetForm = async () => {
                     imageFilename: imageFilename.value,
                     isStandalonePerson: false,
                 };
+
+                // Double-check perpetrators have their ids preserved
+                if (formData.perpetrators && formData.perpetrators.length > 0) {
+                    formData.perpetrators.forEach((perp, i) => {
+                        if (perp.id && perp.id.startsWith("Q")) {
+                            console.log(
+                                `Event form - Perpetrator ${i} has ID: ${perp.id}`,
+                            );
+                            // Ensure wikidata_id is set from id if not already present
+                            if (!perp.wikidata_id) {
+                                perp.wikidata_id = perp.id;
+                                console.log(
+                                    `Preserving perpetrator Wikidata ID: ${perp.id}`,
+                                );
+                            }
+                        }
+                    });
+                }
+
+                // Also check victims to ensure wikidata_id is set
+                if (formData.victims && formData.victims.length > 0) {
+                    formData.victims.forEach((victim, i) => {
+                        if (victim.id && victim.id.startsWith("Q")) {
+                            console.log(
+                                `Event form - Victim ${i} has ID: ${victim.id}`,
+                            );
+                            // Ensure wikidata_id is set from id if not already present
+                            if (!victim.wikidata_id) {
+                                victim.wikidata_id = victim.id;
+                                console.log(
+                                    `Preserving victim Wikidata ID: ${victim.id}`,
+                                );
+                            }
+                        }
+                    });
+                }
+
+                return formData;
             }
         };
 
@@ -2524,6 +2767,43 @@ const resetForm = async () => {
 
         // Get prepared form data
         const formData = prepareFormData();
+        console.log("Final formData to be submitted:", formData);
+
+        // Make sure each perpetrator has the id field intact
+        if (formData.perpetrators && formData.perpetrators.length > 0) {
+            formData.perpetrators.forEach((perp, i) => {
+                if (perp.id && perp.id.startsWith("Q")) {
+                    console.log(
+                        `Final check - Perpetrator ${i} has ID: ${perp.id}`,
+                    );
+                    // Final verification of wikidata_id
+                    if (!perp.wikidata_id) {
+                        perp.wikidata_id = perp.id;
+                        console.log(
+                            `Final fix - Adding wikidata_id to perpetrator: ${perp.id}`,
+                        );
+                    }
+                }
+            });
+        }
+
+        // Also check victims in final verification
+        if (formData.victims && formData.victims.length > 0) {
+            formData.victims.forEach((victim, i) => {
+                if (victim.id && victim.id.startsWith("Q")) {
+                    console.log(
+                        `Final check - Victim ${i} has ID: ${victim.id}`,
+                    );
+                    // Final verification of wikidata_id
+                    if (!victim.wikidata_id) {
+                        victim.wikidata_id = victim.id;
+                        console.log(
+                            `Final fix - Adding wikidata_id to victim: ${victim.id}`,
+                        );
+                    }
+                }
+            });
+        }
 
         // Complete log of submission data
         console.log("Full submission data:", formData);
@@ -2531,6 +2811,12 @@ const resetForm = async () => {
         console.log("Is person form:", formsType.value === "Q5");
 
         try {
+            // Log the full request payload to verify perpetrator data
+            console.log(
+                "Full request payload:",
+                JSON.stringify(formData, null, 2),
+            );
+
             const response = await axios.post(
                 "/api/wikidata/entities",
                 formData,

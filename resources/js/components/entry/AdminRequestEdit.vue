@@ -939,22 +939,71 @@ export default {
                 requestData.coordinates,
             );
 
-            // Ensure all array fields are properly stringified
-            ["victims", "perpetrators", "selected_causes", "sources"].forEach(
-                (field) => {
-                    if (formData[field]) {
-                        if (typeof formData[field] === "string") {
-                            requestData[field] = formData[field];
-                        } else {
-                            requestData[field] = JSON.stringify(
-                                formData[field],
-                            );
-                        }
+            // Handle victims and perpetrators separately to preserve IDs
+            if (formData.victims) {
+                // Log victim IDs to verify they're preserved
+                console.log(
+                    "Victim IDs being sent:",
+                    formData.victims.map((v) => v.id || "NO_ID"),
+                );
+                requestData.victims = formData.victims;
+            } else {
+                requestData.victims = [];
+            }
+
+            if (formData.perpetrators) {
+                // Log perpetrator IDs to verify they're preserved
+                console.log(
+                    "Perpetrator IDs being sent:",
+                    formData.perpetrators.map((p) => p.id || "NO_ID"),
+                );
+                requestData.perpetrators = formData.perpetrators;
+            } else {
+                requestData.perpetrators = [];
+            }
+
+            // Only stringify other array fields
+            // Handle victims and perpetrators separately to preserve wikidata_id
+            if (formData.victims) {
+                // Log victim IDs to verify they're preserved
+                console.log(
+                    "Victim IDs being sent:",
+                    formData.victims.map((v) => ({
+                        id: v.id,
+                        wikidata_id: v.wikidata_id || "NONE",
+                    })),
+                );
+                requestData.victims = formData.victims;
+            } else {
+                requestData.victims = [];
+            }
+
+            if (formData.perpetrators) {
+                // Log perpetrator IDs to verify they're preserved
+                console.log(
+                    "Perpetrator IDs being sent:",
+                    formData.perpetrators.map((p) => ({
+                        id: p.id,
+                        wikidata_id: p.wikidata_id || "NONE",
+                    })),
+                );
+                requestData.perpetrators = formData.perpetrators;
+            } else {
+                requestData.perpetrators = [];
+            }
+
+            // Ensure other array fields are properly stringified
+            ["selected_causes", "sources"].forEach((field) => {
+                if (formData[field]) {
+                    if (typeof formData[field] === "string") {
+                        requestData[field] = formData[field];
                     } else {
-                        requestData[field] = "[]";
+                        requestData[field] = JSON.stringify(formData[field]);
                     }
-                },
-            );
+                } else {
+                    requestData[field] = "[]";
+                }
+            });
 
             // Final check on coordinates
             console.log(
@@ -965,7 +1014,6 @@ export default {
 
             // Try storing coordinates directly in a custom header for debugging
             const headers = {
-                "Content-Type": "application/json",
                 "X-Requested-With": "XMLHttpRequest",
                 Accept: "application/json",
                 "X-Debug-Coordinates": JSON.stringify(
