@@ -52,75 +52,6 @@
                             <form class="forms">
                                 <fieldset>
                                     <div class="type-selection-grid">
-                                        <!-- Person -->
-                                        <div
-                                            class="type-box"
-                                            :class="{
-                                                selected: formsType === 'Q5',
-                                            }"
-                                            @click="
-                                                formsType = 'Q5';
-                                                updateTypeInfo();
-                                            "
-                                        >
-                                            <div
-                                                class="info-icon-container d-lg-none"
-                                                @click.stop="
-                                                    showTypeInfoPopup('Q5')
-                                                "
-                                                title="Mehr Informationen"
-                                            >
-                                                <v-icon
-                                                    color="primary"
-                                                    size="small"
-                                                    >mdi-information-outline</v-icon
-                                                >
-                                            </div>
-                                            <input
-                                                v-model="formsType"
-                                                name="type"
-                                                type="radio"
-                                                value="Q5"
-                                                id="type-Q5"
-                                                class="type-radio"
-                                            />
-                                            <div class="type-icon">
-                                                <img
-                                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/persons.svg`"
-                                                    alt="Person Icon"
-                                                />
-                                            </div>
-                                            <div class="type-data">
-                                                <div class="type-label">
-                                                    Person
-                                                </div>
-                                                <div class="type-description">
-                                                    Historische Personen und
-                                                    Organisationen
-                                                </div>
-                                                <div
-                                                    class="type-action-container"
-                                                >
-                                                    <transition name="fade">
-                                                        <button
-                                                            v-if="
-                                                                formsType ===
-                                                                'Q5'
-                                                            "
-                                                            class="type-action-button"
-                                                            type="button"
-                                                            @click="
-                                                                openPersonSearchOverlay()
-                                                            "
-                                                        >
-                                                            Jetzt eine Person
-                                                            anlegen
-                                                        </button>
-                                                    </transition>
-                                                </div>
-                                            </div>
-                                        </div>
-
                                         <!-- Ereignis -->
                                         <div
                                             class="type-box"
@@ -186,6 +117,75 @@
                                                             "
                                                         >
                                                             Jetzt ein Ereignis
+                                                            anlegen
+                                                        </button>
+                                                    </transition>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Person -->
+                                        <div
+                                            class="type-box"
+                                            :class="{
+                                                selected: formsType === 'Q5',
+                                            }"
+                                            @click="
+                                                formsType = 'Q5';
+                                                updateTypeInfo();
+                                            "
+                                        >
+                                            <div
+                                                class="info-icon-container d-lg-none"
+                                                @click.stop="
+                                                    showTypeInfoPopup('Q5')
+                                                "
+                                                title="Mehr Informationen"
+                                            >
+                                                <v-icon
+                                                    color="primary"
+                                                    size="small"
+                                                    >mdi-information-outline</v-icon
+                                                >
+                                            </div>
+                                            <input
+                                                v-model="formsType"
+                                                name="type"
+                                                type="radio"
+                                                value="Q5"
+                                                id="type-Q5"
+                                                class="type-radio"
+                                            />
+                                            <div class="type-icon">
+                                                <img
+                                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/persons.svg`"
+                                                    alt="Person Icon"
+                                                />
+                                            </div>
+                                            <div class="type-data">
+                                                <div class="type-label">
+                                                    Person
+                                                </div>
+                                                <div class="type-description">
+                                                    Historische Personen und
+                                                    Organisationen
+                                                </div>
+                                                <div
+                                                    class="type-action-container"
+                                                >
+                                                    <transition name="fade">
+                                                        <button
+                                                            v-if="
+                                                                formsType ===
+                                                                'Q5'
+                                                            "
+                                                            class="type-action-button"
+                                                            type="button"
+                                                            @click="
+                                                                openPersonSearchOverlay()
+                                                            "
+                                                        >
+                                                            Jetzt eine Person
                                                             anlegen
                                                         </button>
                                                     </transition>
@@ -1128,10 +1128,8 @@ const updateTypeInfoContent = () => {
             glossaryItem.descriptions.forEach((desc) => {
                 if (typeof desc === "string") {
                     content += `<p>${desc}</p>`;
-                    console.log("Added string desc:", desc);
                 } else if (Array.isArray(desc)) {
                     content += "<ul class='info-list'>";
-                    console.log("Added array desc, items:", desc.length);
                     desc.forEach((item) => {
                         if (typeof item === "string") {
                             content += `<li>${item}</li>`;
@@ -1188,7 +1186,6 @@ const getTypeInfoTitle = () => {
     }
 
     const title = typeTitles[typeToUse] || "Eintragstyp";
-    console.log("Type title for", typeToUse, ":", title);
     return title;
 };
 
@@ -1202,16 +1199,6 @@ const openPersonSearchOverlay = () => {
 };
 
 const openTitleOverlay = () => {
-    console.log(
-        "Opening title overlay for type:",
-        formsType.value,
-        "title:",
-        getTypeInfoTitle(),
-    );
-    console.log("Glossary data available for Person:", glossaryItems["Person"]);
-    console.log("Current typeInfoContent:", typeInfoContent.value);
-    // Always use TitleSearchOverlay here as this is coming from the BaseInfos component
-    // The direct Person type selection uses openPersonSearchOverlay instead
     showTitleOverlay.value = true;
 };
 
@@ -1229,8 +1216,6 @@ const updateTitle = (newTitle) => {
 
 // Handle selecting an existing person from the search overlay
 const selectExistingPerson = (person) => {
-    console.log("Selected existing person:", person);
-
     // Update title with the selected person's name
     formsTitle.value = person.label || "";
 
@@ -1253,9 +1238,6 @@ const selectExistingPerson = (person) => {
 
 // Handle creating a new person when none is found
 const createNewPerson = (name, personData = null) => {
-    console.log("Creating new person with name:", name);
-    console.log("Person data:", personData);
-
     // Guard against empty name to prevent recursion
     if (name && name.trim()) {
         // Set the form title to the provided name
@@ -1282,7 +1264,6 @@ const createNewPerson = (name, personData = null) => {
     // Store person data in a ref that can be accessed by the SimplePersonForm
     if (personData) {
         tempPersonData.value = JSON.stringify(personData);
-        console.log(`tempPersonData set to: ${tempPersonData.value}`);
     }
 
     // Move to step 2 to complete the person details
@@ -1291,14 +1272,12 @@ const createNewPerson = (name, personData = null) => {
     // Reset tempPersonData to avoid reinitializing again if the component rerenders
     setTimeout(() => {
         if (tempPersonData.value) {
-            console.log("Clearing tempPersonData after initialization");
             tempPersonData.value = null;
         }
     }, 500);
 };
 
 const createWithTitle = (title) => {
-    console.log("Creating with title:", title, "for type:", formsType.value);
     try {
         // First set the title
         formsTitle.value = title;
@@ -1324,19 +1303,7 @@ const createWithTitle = (title) => {
                 // Move to step 2
                 currentStep.value = 2;
 
-                console.log(
-                    "Successfully changed to step 2 with form type:",
-                    formsType.value,
-                );
                 // Check which form component should be rendered
-                console.log(
-                    "PersonForm should render:",
-                    currentStep.value === 2 && formsType.value === "Q5",
-                );
-                console.log(
-                    "EventsForm should render:",
-                    currentStep.value === 2 && formsType.value === "Q6983405",
-                );
             } catch (innerError) {
                 console.error("Error during step change:", innerError);
                 error.value =
@@ -3172,7 +3139,9 @@ onUnmounted(() => {
     }
 }
 
-.step-container {
+.v-select .v-field .v-field__input > input {
+    border: 0 !important;
+    box-shadow: none;
 }
 
 .info-box {

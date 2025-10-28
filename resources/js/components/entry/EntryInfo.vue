@@ -33,7 +33,7 @@
                             Wie funktioniert der Prozess?
                         </h2>
                         <p>
-                            Getsapo.Terror.Orte dokumentiert historische
+                            Gestapo.Terror.Orte dokumentiert historische
                             Ereignisse, Orte und Institutionen im Zusammenhang
                             mit der Geschichte der Gestapo in Niedersachsen.
                             <br />

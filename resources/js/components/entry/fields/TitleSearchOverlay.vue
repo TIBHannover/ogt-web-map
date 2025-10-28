@@ -209,9 +209,6 @@ import { ref, onMounted, onUnmounted, watch } from "vue";
 import axios from "axios";
 import { computed } from "vue";
 
-// Add debugging
-console.log("TitleSearchOverlay component loading");
-
 const props = defineProps({
     initialTitle: {
         type: String,
@@ -233,7 +230,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:title", "close", "create"]);
-console.log("TitleSearchOverlay props:", props);
 
 const localTitle = ref(props.initialTitle || "");
 const searchResults = ref([]);
@@ -378,40 +374,24 @@ const getTypeInfoTitle = () => {
         Q40357: "Gefängnis",
     };
 
-    console.log(
-        "TitleSearchOverlay getTypeInfoTitle for entry type:",
-        props.entryType,
-    );
     const result = typeTitles[props.entryType] || "Eintragstyp";
-    console.log("Type info title result:", result);
     return result;
 };
 
 // Get the create button text based on entry type and context
 // Get the button text based on context
 const getCreateButtonText = () => {
-    console.log("getCreateButtonText called, context:", props.context);
     if (props.context === "update") {
         return "Titel anpassen";
     }
     const buttonText = `${getTypeInfoTitle()} erstellen`;
-    console.log("Button text:", buttonText);
     return buttonText;
 };
 
 // Create the entry and proceed to the next step
 // Create or update entry
 const createEntry = () => {
-    console.log("createEntry called with title:", localTitle.value);
-    console.log(
-        "Context:",
-        props.context,
-        "noExistingEntry:",
-        noExistingEntry.value,
-    );
-
     if (!localTitle.value || localTitle.value.length < 3) {
-        console.log("Title is invalid, not proceeding");
         return;
     }
 
@@ -426,14 +406,10 @@ const createEntry = () => {
 
     // Make sure the title gets emitted properly after overlay is closed
     setTimeout(() => {
-        console.log("Emitting update:title event with:", localTitle.value);
         emit("update:title", localTitle.value);
 
         // Also emit the create event which is what BaseInfos.vue listens for
-        console.log("Emitting create event with:", localTitle.value);
         emit("create", localTitle.value);
-
-        console.log("Entry creation events emitted");
     }, 0);
 };
 

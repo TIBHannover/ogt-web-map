@@ -16,11 +16,6 @@
             <!-- Overlay Body -->
             <div class="overlay-body-wrapper">
                 <div class="overlay-body">
-                    <!-- Search Banner -->
-                    <div class="entry-banner">
-                        <h2>Existierende Personen suchen</h2>
-                    </div>
-
                     <!-- Search Input -->
                     <div class="search-input-container">
                         <v-text-field
@@ -211,9 +206,7 @@ const checkScreenSize = () => {
 };
 
 // Watch for checkbox changes
-watch(noExistingEntry, (newValue) => {
-    console.log("Checkbox changed:", newValue);
-});
+watch(noExistingEntry, (newValue) => {});
 
 onMounted(() => {
     checkScreenSize();
@@ -253,8 +246,6 @@ const performSearch = async () => {
     searchResults.value = [];
 
     try {
-        console.log("Searching for people with query:", searchQuery.value);
-
         // Try the search endpoint
         const response = await axios.get("/api/wikidata/search/people", {
             params: { query: searchQuery.value },

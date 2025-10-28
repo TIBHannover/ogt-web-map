@@ -647,9 +647,9 @@ const personData = ref({
 
 // Options for dropdown selections
 const roleOptions = ref([
-    { label: "Geschädigter (Q2026714)", value: "victim", wikidata: "Q2026714" },
+    { label: "Geschädigte*r", value: "victim", wikidata: "Q2026714" },
     {
-        label: "Täter (Q111080573)",
+        label: "Täter*In",
         value: "perpetrator",
         wikidata: "Q111080573",
     },
@@ -782,15 +782,8 @@ watch(
         const oldFirstName = oldValues ? oldValues[0] : null;
         const oldLastName = oldValues ? oldValues[1] : null;
 
-        console.log(
-            `Name changed to: ${newFirstName || ""} ${newLastName || ""}`,
-        );
-
         // Skip update if both values are empty and this isn't the result of a real change
         if (newFirstName || newLastName || oldFirstName || oldLastName) {
-            console.log(
-                `Name changed - updating title to: "${newTitle}" from firstName: "${newFirstName}", lastName: "${newLastName}"`,
-            );
             title.value = newTitle;
         } else {
             console.log("Skipping empty name update to prevent recursion");
@@ -865,43 +858,16 @@ const updateValidationErrors = () => {
     const firstNameValid = firstName.length > 0;
     firstNameError.value = !firstNameValid;
 
-    console.log("First name validation:", {
-        firstName: firstName,
-        valid: firstNameValid,
-        error: firstNameError.value,
-    });
-
     // Last name validation
     const lastName = personData.value.lastName?.trim() || "";
     const lastNameValid = lastName.length > 0;
     lastNameError.value = !lastNameValid;
-
-    console.log("Last name validation:", {
-        lastName: lastName,
-        valid: lastNameValid,
-        error: lastNameError.value,
-    });
-
-    // Log the actual value to help with debugging
-    console.log("Last name validation:", {
-        value: lastName,
-        valid: lastNameValid,
-        error: lastNameError.value,
-    });
 
     // Description validation - check both personData.description and component description
     const descriptionInPersonData =
         (personData.value.description?.trim() || "").length > 0;
     const descriptionInProps = (description.value?.trim() || "").length > 0;
     const descriptionValid = descriptionInPersonData || descriptionInProps;
-
-    console.log("updateValidationErrors - Description check:", {
-        descriptionInPersonData,
-        descriptionInProps,
-        descriptionValid,
-        personDataDesc: personData.value.description || "",
-        descriptionProp: description.value || "",
-    });
 
     // Sync description between the two fields to ensure consistency
     if (descriptionInPersonData && !descriptionInProps) {
@@ -910,13 +876,6 @@ const updateValidationErrors = () => {
         personData.value.description = description.value?.trim() || "";
     }
 
-    console.log("Description validation:", {
-        description: personData.value.description || "",
-        descriptionProp: description.value || "",
-        valid: descriptionValid,
-        error: !descriptionValid,
-    });
-
     descriptionError.value = !descriptionValid;
 };
 
@@ -924,7 +883,6 @@ const updateValidationErrors = () => {
 watch(
     () => personData.value?.firstName,
     (newValue) => {
-        console.log(`First name changed to: "${newValue}"`);
         if (showPersonValidationErrors.value) {
             updateValidationErrors();
         }
@@ -944,7 +902,6 @@ watch(
 watch(
     () => personData.value?.lastName,
     (newValue) => {
-        console.log(`Last name changed to: "${newValue}"`);
         if (showPersonValidationErrors.value) {
             updateValidationErrors();
         }
@@ -1123,8 +1080,6 @@ const initializeFromTitle = () => {
     if (props.tempPersonData) {
         try {
             const tempData = JSON.parse(props.tempPersonData);
-            console.log("Initializing from temp data:", tempData);
-
             // Create complete person data from temp data
             const updates = {
                 firstName: tempData.firstName || "",
@@ -1170,11 +1125,6 @@ const initializeFromTitle = () => {
             // Sync component description
             description.value = updates.description;
 
-            console.log("Set personData from tempData:", updates);
-
-            // Title will be automatically updated by the watcher
-            console.log("Name fields updated, title should update via watcher");
-
             return; // Skip the title parsing if we used temp data
         } catch (e) {
             console.error("Failed to parse temporary person data:", e);
@@ -1212,14 +1162,6 @@ const initializeFromTitle = () => {
             personData.value.description = props.description;
             description.value = props.description;
         }
-
-        // Log the initialization
-        console.log("Initialized from title:", {
-            title: props.title,
-            firstName: personData.value.firstName,
-            lastName: personData.value.lastName,
-            description: personData.value.description,
-        });
     }
 };
 
@@ -1523,19 +1465,6 @@ const validateAndSubmit = async () => {
             // Default to false if there's an error
             hasDescription = false;
         }
-
-        console.log("Description validation:", {
-            descriptionProp: description.value,
-            personDataDescription: personData?.value?.description,
-            hasDescription: hasDescription,
-        });
-
-        // Debug description validation
-        console.log("Description validation debug:", {
-            hasDescription,
-            descriptionValue: description.value,
-            personDataDesc: personData?.value?.description,
-        });
 
         // Update description error state
         descriptionError.value = !hasDescription;
@@ -2344,6 +2273,7 @@ watch(
     display: flex;
     justify-content: space-between;
     margin-top: 2rem;
+    width: 100%;
 }
 
 /* Styles for person form fields */
