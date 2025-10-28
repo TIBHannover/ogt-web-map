@@ -195,7 +195,10 @@ const glossaryItems = {
         ],
     },
     "Erweitertes Polizeigefängnis": {
-        aliases: ["Erweiterte Polizeigefängnisse", "Erweiterten Polizeigefängnissen"],
+        aliases: [
+            "Erweiterte Polizeigefängnisse",
+            "Erweiterten Polizeigefängnissen",
+        ],
         id: "extPolicePrisons",
         descriptions: [
             `Seit 1941 lassen sich Gründungen eines neuen Lagertyps unter der Leitung der Gestapo sowohl in den
