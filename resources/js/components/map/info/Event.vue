@@ -393,6 +393,7 @@ import Sources from "./Sources";
 
 const MAIN_EVENT_IDS_TO_SUB_EVENTS_GROUP = {
     Q133303308: "persecutionOfSocialistFront", // https://www.wikidata.org/wiki/Q133303308
+    Q134587748: "operationLauterbacher", // https://www.wikidata.org/wiki/Q134587748
 };
 
 const props = defineProps({
