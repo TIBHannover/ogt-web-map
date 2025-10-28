@@ -286,12 +286,6 @@ if (!function_exists('formatDateBasedOnPrecision')) {
                         @endif
 
                         <!-- Beteiligte Personen (Täter und Geschädigte) -->
-                        <!-- Enable debug information -->
-                        <div class="mb-3">
-                            <strong>Debug Information:</strong>
-                            <pre class="mt-2 bg-light p-3" style="max-height: 200px; overflow: auto;">Perpetrators: {{ var_export($request->perpetrators, true) }}
-Victims: {{ var_export($request->victims, true) }}</pre>
-                        </div>
 
 
                         @php
@@ -336,10 +330,6 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                                     }
                                 }
                             }
-
-                            // Additional debug information for troubleshooting
-                            $victimCount = is_array($parsedVictims) ? count($parsedVictims) : 0;
-                            $perpetratorCount = is_array($parsedPerpetrators) ? count($parsedPerpetrators) : 0;
                         @endphp
 
                         @if(($parsedPerpetrators || $parsedVictims) && $request->type != 'Q5')

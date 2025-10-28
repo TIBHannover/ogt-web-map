@@ -10,6 +10,8 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -336,17 +338,23 @@ class DashboardController extends Controller
             if (isset($data["victims"]) && is_array($data["victims"])) {
                 // Check all victim IDs and make sure they're preserved
                 foreach ($data["victims"] as $index => $victim) {
-                    // Create wikidata_id field from id if present
+                    // Always create/update wikidata_id field from id if present
                     if (
                         isset($victim["id"]) &&
-                        !isset($victim["wikidata_id"]) &&
                         preg_match('/^Q\d+$/', $victim["id"])
                     ) {
                         $data["victims"][$index]["wikidata_id"] = $victim["id"];
-                        \Log::info("Copying victim id to wikidata_id field", [
-                            "index" => $index,
-                            "id" => $victim["id"],
-                        ]);
+                        // Ensure id field is also explicitly preserved
+                        $data["victims"][$index]["id"] = $victim["id"];
+                        \Log::info(
+                            "Explicitly preserving victim id and wikidata_id fields",
+                            [
+                                "index" => $index,
+                                "id" => $victim["id"],
+                                "wikidata_id" =>
+                                    $data["victims"][$index]["wikidata_id"],
+                            ],
+                        );
                     }
 
                     \Log::info("Processing victim", [
@@ -386,19 +394,25 @@ class DashboardController extends Controller
             ) {
                 // Check all perpetrator IDs and make sure they're preserved
                 foreach ($data["perpetrators"] as $index => $perpetrator) {
-                    // Create wikidata_id field from id if present
+                    // Always create/update wikidata_id field from id if present
                     if (
                         isset($perpetrator["id"]) &&
-                        !isset($perpetrator["wikidata_id"]) &&
                         preg_match('/^Q\d+$/', $perpetrator["id"])
                     ) {
                         $data["perpetrators"][$index]["wikidata_id"] =
                             $perpetrator["id"];
+                        // Ensure id field is also explicitly preserved
+                        $data["perpetrators"][$index]["id"] =
+                            $perpetrator["id"];
                         \Log::info(
-                            "Copying perpetrator id to wikidata_id field",
+                            "Explicitly preserving perpetrator id and wikidata_id fields",
                             [
                                 "index" => $index,
                                 "id" => $perpetrator["id"],
+                                "wikidata_id" =>
+                                    $data["perpetrators"][$index][
+                                        "wikidata_id"
+                                    ],
                             ],
                         );
                     }
@@ -462,6 +476,69 @@ class DashboardController extends Controller
                 "result" => $updateResult,
             ]);
 
+            // Final check and fix for victims and perpetrators before saving
+            if (!empty($entryRequest->victims)) {
+                foreach ($entryRequest->victims as $index => $victim) {
+                    if (
+                        isset($victim["id"]) &&
+                        substr($victim["id"], 0, 1) === "Q"
+                    ) {
+                        // Make sure wikidata_id is set from id
+                        $entryRequest->victims[$index]["wikidata_id"] =
+                            $victim["id"];
+                        \Log::info("Pre-save check: Set victim wikidata_id", [
+                            "index" => $index,
+                            "id" => $victim["id"],
+                        ]);
+                    } elseif (
+                        isset($victim["wikidata_id"]) &&
+                        substr($victim["wikidata_id"], 0, 1) === "Q"
+                    ) {
+                        // Make sure id is set from wikidata_id
+                        $entryRequest->victims[$index]["id"] =
+                            $victim["wikidata_id"];
+                        \Log::info("Pre-save check: Set victim id", [
+                            "index" => $index,
+                            "wikidata_id" => $victim["wikidata_id"],
+                        ]);
+                    }
+                }
+            }
+
+            if (!empty($entryRequest->perpetrators)) {
+                foreach (
+                    $entryRequest->perpetrators
+                    as $index => $perpetrator
+                ) {
+                    if (
+                        isset($perpetrator["id"]) &&
+                        substr($perpetrator["id"], 0, 1) === "Q"
+                    ) {
+                        // Make sure wikidata_id is set from id
+                        $entryRequest->perpetrators[$index]["wikidata_id"] =
+                            $perpetrator["id"];
+                        \Log::info(
+                            "Pre-save check: Set perpetrator wikidata_id",
+                            [
+                                "index" => $index,
+                                "id" => $perpetrator["id"],
+                            ],
+                        );
+                    } elseif (
+                        isset($perpetrator["wikidata_id"]) &&
+                        substr($perpetrator["wikidata_id"], 0, 1) === "Q"
+                    ) {
+                        // Make sure id is set from wikidata_id
+                        $entryRequest->perpetrators[$index]["id"] =
+                            $perpetrator["wikidata_id"];
+                        \Log::info("Pre-save check: Set perpetrator id", [
+                            "index" => $index,
+                            "wikidata_id" => $perpetrator["wikidata_id"],
+                        ]);
+                    }
+                }
+            }
+
             // Now save the model to update the victims and perpetrators fields
             $entryRequest->save();
 
@@ -508,14 +585,43 @@ class DashboardController extends Controller
             // Verify saved data has the IDs
             if (!empty($entryRequest->victims)) {
                 foreach ($entryRequest->victims as $index => $victim) {
+                    // Double-check if ID is missing after save
+                    $idMissing = !isset($victim["id"]) || empty($victim["id"]);
+                    $wikidataIdMissing =
+                        !isset($victim["wikidata_id"]) ||
+                        empty($victim["wikidata_id"]);
+
                     \Log::info("Victim after save", [
                         "index" => $index,
                         "id" => $victim["id"] ?? "MISSING_ID",
                         "wikidata_id" =>
                             $victim["wikidata_id"] ?? "MISSING_WIKIDATA_ID",
+                        "id_missing" => $idMissing ? "YES" : "NO",
+                        "wikidata_id_missing" => $wikidataIdMissing
+                            ? "YES"
+                            : "NO",
                         "title" =>
                             $victim["title"] ?? ($victim["label"] ?? "Unknown"),
                     ]);
+
+                    // If we have one ID but the other is missing, fix it
+                    if (!$idMissing && $wikidataIdMissing) {
+                        // We have id but wikidata_id is missing - fix it
+                        $entryRequest->victims[$index]["wikidata_id"] =
+                            $victim["id"];
+                        \Log::info("Fixed missing wikidata_id for victim", [
+                            "index" => $index,
+                            "id_used" => $victim["id"],
+                        ]);
+                    } elseif ($idMissing && !$wikidataIdMissing) {
+                        // We have wikidata_id but id is missing - fix it
+                        $entryRequest->victims[$index]["id"] =
+                            $victim["wikidata_id"];
+                        \Log::info("Fixed missing id for victim", [
+                            "index" => $index,
+                            "wikidata_id_used" => $victim["wikidata_id"],
+                        ]);
+                    }
                 }
             }
 
@@ -524,16 +630,49 @@ class DashboardController extends Controller
                     $entryRequest->perpetrators
                     as $index => $perpetrator
                 ) {
+                    // Double-check if ID is missing after save
+                    $idMissing =
+                        !isset($perpetrator["id"]) || empty($perpetrator["id"]);
+                    $wikidataIdMissing =
+                        !isset($perpetrator["wikidata_id"]) ||
+                        empty($perpetrator["wikidata_id"]);
+
                     \Log::info("Perpetrator after save", [
                         "index" => $index,
                         "id" => $perpetrator["id"] ?? "MISSING_ID",
                         "wikidata_id" =>
                             $perpetrator["wikidata_id"] ??
                             "MISSING_WIKIDATA_ID",
+                        "id_missing" => $idMissing ? "YES" : "NO",
+                        "wikidata_id_missing" => $wikidataIdMissing
+                            ? "YES"
+                            : "NO",
                         "title" =>
                             $perpetrator["title"] ??
                             ($perpetrator["label"] ?? "Unknown"),
                     ]);
+
+                    // If we have one ID but the other is missing, fix it
+                    if (!$idMissing && $wikidataIdMissing) {
+                        // We have id but wikidata_id is missing - fix it
+                        $entryRequest->perpetrators[$index]["wikidata_id"] =
+                            $perpetrator["id"];
+                        \Log::info(
+                            "Fixed missing wikidata_id for perpetrator",
+                            [
+                                "index" => $index,
+                                "id_used" => $perpetrator["id"],
+                            ],
+                        );
+                    } elseif ($idMissing && !$wikidataIdMissing) {
+                        // We have wikidata_id but id is missing - fix it
+                        $entryRequest->perpetrators[$index]["id"] =
+                            $perpetrator["wikidata_id"];
+                        \Log::info("Fixed missing id for perpetrator", [
+                            "index" => $index,
+                            "wikidata_id_used" => $perpetrator["wikidata_id"],
+                        ]);
+                    }
                 }
             }
 

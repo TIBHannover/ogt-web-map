@@ -1634,7 +1634,6 @@ const selectVictim = (person) => {
         // Create a complete victim object that preserves the Wikidata Q number
         const victimObj = {
             id: person.id, // CRITICAL - Preserve Wikidata Q number
-            wikidata_id: person.id, // DUPLICATE to wikidata_id to ensure it's preserved
             label: person.label,
             title: person.label, // Ensure title is set
             description: person.description,
@@ -1784,7 +1783,6 @@ const selectPerpetrator = (person) => {
         // Create a complete perpetrator object that preserves the Wikidata Q number
         const perpetratorObj = {
             id: person.id, // CRITICAL - Preserve Wikidata Q number
-            wikidata_id: person.id, // DUPLICATE to wikidata_id to ensure it's preserved
             label: person.label,
             title: person.label, // Ensure title is set
             description: person.description,
@@ -2776,13 +2774,6 @@ const resetForm = async () => {
                     console.log(
                         `Final check - Perpetrator ${i} has ID: ${perp.id}`,
                     );
-                    // Final verification of wikidata_id
-                    if (!perp.wikidata_id) {
-                        perp.wikidata_id = perp.id;
-                        console.log(
-                            `Final fix - Adding wikidata_id to perpetrator: ${perp.id}`,
-                        );
-                    }
                 }
             });
         }
@@ -2794,13 +2785,6 @@ const resetForm = async () => {
                     console.log(
                         `Final check - Victim ${i} has ID: ${victim.id}`,
                     );
-                    // Final verification of wikidata_id
-                    if (!victim.wikidata_id) {
-                        victim.wikidata_id = victim.id;
-                        console.log(
-                            `Final fix - Adding wikidata_id to victim: ${victim.id}`,
-                        );
-                    }
                 }
             });
         }

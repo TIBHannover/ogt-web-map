@@ -941,10 +941,35 @@ export default {
 
             // Handle victims and perpetrators separately to preserve IDs
             if (formData.victims) {
+                // Ensure all victims have both id and wikidata_id preserved
+                formData.victims.forEach((victim) => {
+                    if (victim.id && victim.id.startsWith("Q")) {
+                        // If id exists but wikidata_id doesn't, copy id to wikidata_id
+                        if (!victim.wikidata_id) {
+                            victim.wikidata_id = victim.id;
+                            console.log(
+                                `Added wikidata_id to victim from id: ${victim.id}`,
+                            );
+                        }
+                    } else if (
+                        victim.wikidata_id &&
+                        victim.wikidata_id.startsWith("Q")
+                    ) {
+                        // If wikidata_id exists but id doesn't, copy wikidata_id to id
+                        victim.id = victim.wikidata_id;
+                        console.log(
+                            `Added id to victim from wikidata_id: ${victim.wikidata_id}`,
+                        );
+                    }
+                });
+
                 // Log victim IDs to verify they're preserved
                 console.log(
                     "Victim IDs being sent:",
-                    formData.victims.map((v) => v.id || "NO_ID"),
+                    formData.victims.map((v) => ({
+                        id: v.id || "NO_ID",
+                        wikidata_id: v.wikidata_id || "NO_WIKIDATA_ID",
+                    })),
                 );
                 requestData.victims = formData.victims;
             } else {
@@ -979,12 +1004,34 @@ export default {
             }
 
             if (formData.perpetrators) {
+                // Ensure all perpetrators have both id and wikidata_id preserved
+                formData.perpetrators.forEach((perpetrator) => {
+                    if (perpetrator.id && perpetrator.id.startsWith("Q")) {
+                        // If id exists but wikidata_id doesn't, copy id to wikidata_id
+                        if (!perpetrator.wikidata_id) {
+                            perpetrator.wikidata_id = perpetrator.id;
+                            console.log(
+                                `Added wikidata_id to perpetrator from id: ${perpetrator.id}`,
+                            );
+                        }
+                    } else if (
+                        perpetrator.wikidata_id &&
+                        perpetrator.wikidata_id.startsWith("Q")
+                    ) {
+                        // If wikidata_id exists but id doesn't, copy wikidata_id to id
+                        perpetrator.id = perpetrator.wikidata_id;
+                        console.log(
+                            `Added id to perpetrator from wikidata_id: ${perpetrator.wikidata_id}`,
+                        );
+                    }
+                });
+
                 // Log perpetrator IDs to verify they're preserved
                 console.log(
                     "Perpetrator IDs being sent:",
                     formData.perpetrators.map((p) => ({
-                        id: p.id,
-                        wikidata_id: p.wikidata_id || "NONE",
+                        id: p.id || "NO_ID",
+                        wikidata_id: p.wikidata_id || "NO_WIKIDATA_ID",
                     })),
                 );
                 requestData.perpetrators = formData.perpetrators;
