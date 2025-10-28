@@ -2195,7 +2195,7 @@ class CreateWikidataEntity implements ShouldQueue
     }
 
     /**
-     * Add sources to a person entity using the BaseEntity.addSource method
+     * Adds sources to a person entity using the BaseEntity.addSource method
      *
      * @param WikibaseService $wikidataService The wikidata service
      * @param string $entityId The entity ID to add sources to
@@ -2526,10 +2526,20 @@ class CreateWikidataEntity implements ShouldQueue
      */
     protected function linkEntityToParent(
         WikibaseService $wikidataService,
-        string $entityId,
+        ?string $entityId = null,
+        ?string $parentId = null,
     ) {
         // CRITICAL FIX: For any person entity (victim or perpetrator), ALWAYS use the main event ID
         // as the parent - this ensures the correct data structure in Wikidata
+        // Skip if no entity ID provided
+        if (empty($entityId)) {
+            Log::warning("No entity ID provided to linkEntityToParent", [
+                "parent_id" => $this->parentEntityId ?? "none",
+                "relationship" => $this->relationshipType ?? "none",
+            ]);
+            return;
+        }
+
         if (
             $this->entityType === "Q5" && // Person entity type
             isset($GLOBALS["main_event_entity_id"])
@@ -3115,12 +3125,13 @@ class CreateWikidataEntity implements ShouldQueue
      * @param WikibaseService $wikidataService
      * @param string $mainEntityId The main entity ID
      * @param array $createdEntities List of created related entities
+     * @param array $createdEntities Array of created entity IDs
      * @return void
      */
     protected function linkMainEntityToChildren(
         WikibaseService $wikidataService,
         string $mainEntityId,
-        array $createdEntities,
+        array $createdEntities = [],
     ): void {
         try {
             Log::info("Linking main entity to created children", [
@@ -3214,7 +3225,7 @@ class CreateWikidataEntity implements ShouldQueue
     protected function updateEntityWithFormattedData(
         WikibaseFormatterModels $formatterModels,
         string $entityId,
-        array $entityData,
+        array $entityData = [],
         string $type = "Q5",
     ): void {
         try {
@@ -3296,7 +3307,10 @@ class CreateWikidataEntity implements ShouldQueue
             ]);
 
             // Execute the linking process based on relationship type
-            $this->linkEntityToParent($wikidataService);
+            $this->linkEntityToParent(
+                $wikidataService,
+                $this->entityData["id"] ?? $this->entityData["wikidata_id"],
+            );
         } catch (\Exception $e) {
             Log::error("Error processing relationships for existing entity", [
                 "wikidata_id" => $this->entityData["wikidata_id"] ?? null,

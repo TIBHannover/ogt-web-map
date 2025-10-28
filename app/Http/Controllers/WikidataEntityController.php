@@ -113,8 +113,30 @@ class WikidataEntityController extends Controller
             // This is critical - we want to preserve the exact structure from the frontend
             $entryRequest->victims = $validated["victims"] ?? null;
             $entryRequest->perpetrators = $validated["perpetrators"] ?? null;
-            $entryRequest->is_standalone_person =
-                $validated["isStandalonePerson"] ?? false;
+
+            // Explicitly set is_standalone_person based on entry type and presence of victims array
+            $isStandalonePerson = $validated["isStandalonePerson"] ?? false;
+
+            // For person entries (Q5), if there's a victims array with one entry and that entry matches the title,
+            // this is likely a standalone person, so set is_standalone_person to true
+            if (
+                $validated["type"] === "Q5" &&
+                !empty($validated["victims"]) &&
+                count($validated["victims"]) === 1 &&
+                isset($validated["victims"][0]["title"]) &&
+                $validated["victims"][0]["title"] === $validated["title"]
+            ) {
+                $isStandalonePerson = true;
+                Log::info(
+                    "Setting is_standalone_person to true for person entry with matching victim data",
+                    [
+                        "title" => $validated["title"],
+                        "type" => $validated["type"],
+                    ],
+                );
+            }
+
+            $entryRequest->is_standalone_person = $isStandalonePerson;
             $entryRequest->gender = $validated["gender"] ?? null;
             $entryRequest->nationality = $validated["nationality"] ?? null;
             $entryRequest->place_of_birth =
@@ -139,6 +161,44 @@ class WikidataEntityController extends Controller
                         $validated["eventEndDate"] ?? null;
                     $entryRequest->time_period_end_qualifier =
                         $validated["eventEndDateQualifier"] ?? null;
+                }
+            }
+
+            // For standalone person entries, ensure birth and death dates are properly stored
+            if (
+                $validated["type"] === "Q5" &&
+                ($validated["is_standalone_person"] ?? false)
+            ) {
+                // Map birthDate to time_point if time_point isn't set
+                if (
+                    empty($entryRequest->time_point) &&
+                    !empty($validated["birthDate"])
+                ) {
+                    Log::info(
+                        "Using birthDate as time_point for standalone person",
+                        [
+                            "birthDate" => $validated["birthDate"],
+                        ],
+                    );
+                    $entryRequest->time_point = $validated["birthDate"];
+                    $entryRequest->time_point_qualifier = "birth date";
+                }
+
+                // Map birth and death dates to time period if time_period isn't set
+                if (
+                    empty($entryRequest->time_period_start) &&
+                    !empty($validated["birthDate"])
+                ) {
+                    $entryRequest->time_period_start = $validated["birthDate"];
+                    $entryRequest->time_period_start_qualifier = "birth date";
+                }
+
+                if (
+                    empty($entryRequest->time_period_end) &&
+                    !empty($validated["deathDate"])
+                ) {
+                    $entryRequest->time_period_end = $validated["deathDate"];
+                    $entryRequest->time_period_end_qualifier = "death date";
                 }
             }
 
@@ -479,15 +539,105 @@ class WikidataEntityController extends Controller
                 "request_id" => $entryRequest->id,
                 "title" => $entryRequest->title,
                 "type" => $entryRequest->type,
+                "is_standalone_person" => $entryRequest->is_standalone_person,
             ]);
 
-            \App\Jobs\CreateWikidataEntity::dispatch(
-                $entryRequest->toArray(),
-                $entryRequest->type,
-                null, // parent entity ID
-                null, // relationship type
-                $entryRequest->id, // request ID for direct status updates
-            );
+            // Check if this is a standalone person entry
+            if (
+                $entryRequest->type === "Q5" &&
+                $entryRequest->is_standalone_person
+            ) {
+                // If this is a standalone person, use the victim data directly in the main entity
+                Log::info("Processing standalone person entry", [
+                    "request_id" => $entryRequest->id,
+                    "has_victims_data" => !empty($entryRequest->victims),
+                ]);
+
+                // For standalone persons, if we have victims data, use it to enhance the main entity
+                if (
+                    !empty($entryRequest->victims) &&
+                    is_array($entryRequest->victims) &&
+                    count($entryRequest->victims) > 0
+                ) {
+                    $entryData = $entryRequest->toArray();
+                    $victimData = $entryRequest->victims[0];
+
+                    // Copy properties from the victim data to the main entity
+                    if (isset($victimData["gender"])) {
+                        $entryData["gender"] = $victimData["gender"];
+                    }
+                    if (isset($victimData["nationality"])) {
+                        $entryData["nationality"] = $victimData["nationality"];
+                    }
+                    if (isset($victimData["birthDate"])) {
+                        $entryData["birthDate"] = $victimData["birthDate"];
+                    }
+                    if (isset($victimData["deathDate"])) {
+                        $entryData["deathDate"] = $victimData["deathDate"];
+                    }
+                    if (isset($victimData["place_of_birth"])) {
+                        $entryData["place_of_birth"] =
+                            $victimData["place_of_birth"];
+                    }
+                    if (isset($victimData["place_of_death"])) {
+                        $entryData["place_of_death"] =
+                            $victimData["place_of_death"];
+                    }
+                    if (isset($victimData["place_of_detention"])) {
+                        $entryData["place_of_detention"] =
+                            $victimData["place_of_detention"];
+                    }
+                    if (isset($victimData["place_of_residence"])) {
+                        $entryData["place_of_residence"] =
+                            $victimData["place_of_residence"];
+                    }
+                    if (isset($victimData["occupation"])) {
+                        $entryData["occupation"] = $victimData["occupation"];
+                    }
+                    if (isset($victimData["employer"])) {
+                        $entryData["employer"] = $victimData["employer"];
+                    }
+                    if (isset($victimData["birthName"])) {
+                        $entryData["birthName"] = $victimData["birthName"];
+                    }
+
+                    // Use OrchestrateWikidataEntityCreation for standalone person to ensure all data is processed correctly
+                    Log::info(
+                        "Dispatching OrchestrateWikidataEntityCreation for standalone person",
+                        [
+                            "request_id" => $entryRequest->id,
+                            "properties_from_victim" => array_keys($victimData),
+                        ],
+                    );
+
+                    $job = new \App\Jobs\OrchestrateWikidataEntityCreation(
+                        $entryData,
+                        $entryRequest->type,
+                        $callbackUrl,
+                        $entryRequest->id,
+                    );
+
+                    dispatch($job);
+                } else {
+                    // Fallback to standard job if no victim data is available
+                    \App\Jobs\CreateWikidataEntity::dispatch(
+                        $entryRequest->toArray(),
+                        $entryRequest->type,
+                        null, // parent entity ID
+                        null, // relationship type
+                        $entryRequest->id, // request ID for direct status updates
+                    );
+                }
+            } else {
+                // Standard job for non-standalone person entries
+                \App\Jobs\CreateWikidataEntity::dispatch(
+                    $entryRequest->toArray(),
+                    $entryRequest->type,
+                    null, // parent entity ID
+                    null, // relationship type
+                    $entryRequest->id, // request ID for direct status updates
+                );
+            }
 
             // Log the job dispatch with request ID for debugging
             Log::info("Dispatched CreateWikidataEntity job for request", [
