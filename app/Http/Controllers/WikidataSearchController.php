@@ -38,6 +38,8 @@ class WikidataSearchController extends Controller
             ->withHeaders([
                 "User-Agent" =>
                     "GTO-Wiki-App/1.0 (https://www.gestapo-terror-orte.de/; info@gestapo-terror-orte.de)",
+                "Accept" => "application/sparql-results+json",
+                "Content-Type" => "application/x-www-form-urlencoded",
             ]);
     }
 
@@ -645,12 +647,35 @@ class WikidataSearchController extends Controller
             $languagesParam = implode("|", $languages);
 
             // Get entity details from Wikidata API
-            $response = $this->getHttpClient()->get($apiUrl, [
-                "action" => "wbgetentities",
-                "ids" => $entityId,
+            Log::debug("Getting entity details", [
+                "api_url" => $apiUrl,
+                "entity_id" => $entityId,
                 "languages" => $languagesParam,
-                "format" => "json",
             ]);
+
+            try {
+                $response = $this->getHttpClient()->get($apiUrl, [
+                    "query" => [
+                        "action" => "wbgetentities",
+                        "ids" => $entityId,
+                        "languages" => $languagesParam,
+                        "format" => "json",
+                        "origin" => "*",
+                    ],
+                ]);
+
+                Log::debug("Entity details response", [
+                    "status" => $response->status(),
+                    "successful" => $response->successful(),
+                    "body_preview" => substr($response->body(), 0, 200),
+                ]);
+            } catch (\Exception $e) {
+                Log::error("Exception getting entity details", [
+                    "message" => $e->getMessage(),
+                    "trace" => $e->getTraceAsString(),
+                ]);
+                return null; // Return null instead of throwing an exception to gracefully handle the error
+            }
 
             if (!$response->successful()) {
                 Log::warning("Failed to get entity details", [
@@ -686,185 +711,44 @@ class WikidataSearchController extends Controller
         $limit = $request->input("limit", 10);
 
         try {
-            // Get the WikibaseService instance
-            $wikibaseService = app(WikibaseService::class);
-
-            // Check if it's a direct Q-ID query
-            if (preg_match('/^Q\d+$/', $title)) {
-                Log::info("Direct Q-ID search", ["qid" => $title]);
-
-                // Handle direct entity lookup using the service
-                // For now, we'll still use Http facade as WikibaseService doesn't have a getEntity method yet
-                // Get entity details using our helper method
-                $entity = $this->getEntityDetails($title);
-
-                if ($entity) {
-                    $resultObj = ["id" => $title];
-
-                    $label = $this->getPrioritizedLabel($entity, $resultObj);
-                    $description = $this->getPrioritizedDescription(
-                        $entity,
-                        $resultObj,
-                    );
-
-                    return response()->json([
-                        "success" => true,
-                        "results" => [
-                            [
-                                "id" => $title,
-                                "label" => $label,
-                                "description" => $description,
-                            ],
-                        ],
-                    ]);
-                }
-            }
-
-            // Search for entities matching the title using WikibaseService
-            Log::info("Searching for entities by title", [
-                "title" => $title,
-                "limit" => $limit,
-            ]);
-
-            // Try using WikibaseService first
-            $useDirectApi = false;
-            $searchResults = null;
-
-            try {
-                // Log the WikibaseService instance to help with debugging
-                Log::info("WikibaseService instance details", [
-                    "class" => get_class($wikibaseService),
-                    "baseUrl_exists" => property_exists(
-                        $wikibaseService,
-                        "baseUrl",
-                    ),
-                    "methods" => get_class_methods($wikibaseService),
-                ]);
-
-                $searchResults = $wikibaseService->searchEntities(
-                    $title,
-                    "de", // German language code
-                    "item", // Entity type
-                );
-            } catch (\Exception $serviceException) {
-                // Log the service exception but continue with direct API fallback
-                Log::warning(
-                    "WikibaseService search failed, falling back to direct API",
-                    [
-                        "error" => $serviceException->getMessage(),
-                        "title" => $title,
+            // Make direct API call to Wikidata
+            $client = new \GuzzleHttp\Client();
+            $response = $client->request(
+                "GET",
+                "https://www.wikidata.org/w/api.php",
+                [
+                    "query" => [
+                        "action" => "wbsearchentities",
+                        "search" => $title,
+                        "language" => "de",
+                        "format" => "json",
+                        "type" => "item",
+                        "limit" => $limit,
                     ],
-                );
-                $useDirectApi = true;
-            }
+                    "headers" => [
+                        "User-Agent" =>
+                            "GTO-Wiki-App/1.0 (https://www.gestapo-terror-orte.de/; info@gestapo-terror-orte.de)",
+                    ],
+                ],
+            );
 
-            // If WikibaseService failed or returned null, fall back to direct API call
-            if ($useDirectApi || !$searchResults) {
-                Log::info("Using direct API fallback for search", [
-                    "title" => $title,
-                ]);
-
-                // Use the API URL from config instead of hardcoding it
-                $apiUrl = config(
-                    "wikidata.api_url",
-                    "https://www.wikidata.org/w/api.php",
-                );
-
-                Log::info("Using direct API call", [
-                    "api_url" => $apiUrl,
-                    "search" => $title,
-                    "limit" => $limit,
-                ]);
-
-                $response = $this->getHttpClient()->get($apiUrl, [
-                    "action" => "wbsearchentities",
-                    "search" => $title,
-                    "language" => "de",
-                    "format" => "json",
-                    "type" => "item",
-                    "limit" => $limit,
-                ]);
-
-                if (!$response->successful()) {
-                    return response()->json(
-                        [
-                            "success" => false,
-                            "error" => "Wikidata API request failed",
-                        ],
-                        500,
-                    );
-                }
-
-                $searchResults = $response->json();
-            }
-
-            $results = $searchResults["search"] ?? [];
-
-            if (empty($results)) {
-                return response()->json([
-                    "success" => true,
-                    "results" => [],
-                ]);
-            }
-
-            // Limit results to requested number
-            $results = array_slice($results, 0, $limit);
-
-            $processedResults = [];
-            foreach ($results as $result) {
-                // Get detailed entity information using our helper method
-                $entity = $this->getEntityDetails($result["id"]);
-
-                if ($entity) {
-                    $label = $this->getPrioritizedLabel($entity, $result);
-                    $description = $this->getPrioritizedDescription(
-                        $entity,
-                        $result,
-                    );
-
-                    $processedResults[] = [
-                        "id" => $result["id"],
-                        "label" => $label,
-                        "description" => $description,
-                    ];
-                } else {
-                    // Fallback auf originales Ergebnis
-                    $processedResults[] = $result;
-                }
-            }
+            $data = json_decode($response->getBody(), true);
+            $results = $data["search"] ?? [];
 
             return response()->json([
                 "success" => true,
-                "results" => $processedResults,
+                "results" => $results,
             ]);
         } catch (\Exception $e) {
-            // Include detailed error information and format it for debugging
-            $errorDetails = [
-                "message" => $e->getMessage(),
-                "exception" => get_class($e),
-                "file" => $e->getFile(),
-                "line" => $e->getLine(),
-                "trace" => $e->getTrace(),
+            Log::error("Error searching Wikidata by title", [
                 "title" => $title,
-                "limit" => $limit,
-            ];
-
-            Log::error("Wikidata title search error", $errorDetails);
-
-            // Check if this is a user-agent related error and provide a more helpful message
-            $errorMessage = $e->getMessage();
-            if (
-                strpos($errorMessage, "user-agent") !== false ||
-                strpos($errorMessage, "403 Forbidden") !== false
-            ) {
-                $errorMessage =
-                    "Wikidata API requires a valid User-Agent. This has been fixed in the latest update.";
-            }
+                "error" => $e->getMessage(),
+            ]);
 
             return response()->json(
                 [
-                    "error" => "Failed to search Wikidata: " . $errorMessage,
-                    "details" => $errorDetails,
+                    "success" => false,
+                    "error" => "Failed to search Wikidata",
                 ],
                 500,
             );
@@ -1738,6 +1622,12 @@ class WikidataSearchController extends Controller
                     case "cause":
                     case "causes":
                         return $this->searchCauses($request);
+
+                    case "commemorates":
+                        return $this->searchCommemorates($request);
+
+                    case "organizations":
+                        return $this->searchOrganizations($request);
                 }
             }
 
@@ -1779,6 +1669,136 @@ class WikidataSearchController extends Controller
             Log::error("General Wikidata search error: " . $e->getMessage());
             return response()->json(
                 ["error" => "Failed to search Wikidata: " . $e->getMessage()],
+                500,
+            );
+        }
+    }
+
+    /**
+     * Search for entities that can be commemorated by a memorial site
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function searchCommemorates(Request $request): JsonResponse
+    {
+        $query = $request->input("query");
+
+        if (!$query || strlen(trim($query)) < 2) {
+            return response()->json([]);
+        }
+
+        try {
+            // Make direct API call to Wikidata
+            $client = new \GuzzleHttp\Client();
+            $response = $client->request(
+                "GET",
+                "https://www.wikidata.org/w/api.php",
+                [
+                    "query" => [
+                        "action" => "wbsearchentities",
+                        "search" => $query,
+                        "language" => "de",
+                        "format" => "json",
+                        "type" => "item",
+                        "limit" => 20,
+                    ],
+                    "headers" => [
+                        "User-Agent" =>
+                            "GTO-Wiki-App/1.0 (https://www.gestapo-terror-orte.de/; info@gestapo-terror-orte.de)",
+                    ],
+                ],
+            );
+
+            $data = json_decode($response->getBody(), true);
+            $results = [];
+
+            // Process the results
+            foreach ($data["search"] ?? [] as $item) {
+                $results[] = [
+                    "id" => $item["id"],
+                    "label" => $item["label"] ?? $item["id"],
+                    "description" => $item["description"] ?? "",
+                ];
+            }
+
+            return response()->json($results);
+        } catch (\Exception $e) {
+            Log::error("Error searching for commemorative entities", [
+                "query" => $query,
+                "error" => $e->getMessage(),
+            ]);
+
+            return response()->json(
+                [
+                    "success" => false,
+                    "error" => "Failed to search Wikidata",
+                ],
+                500,
+            );
+        }
+    }
+
+    /**
+     * Search for organizations in Wikidata that can be operators of memorial sites
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function searchOrganizations(Request $request): JsonResponse
+    {
+        $query = $request->input("query");
+
+        if (!$query || strlen(trim($query)) < 2) {
+            return response()->json([]);
+        }
+
+        try {
+            // Make direct API call to Wikidata
+            $client = new \GuzzleHttp\Client();
+            $response = $client->request(
+                "GET",
+                "https://www.wikidata.org/w/api.php",
+                [
+                    "query" => [
+                        "action" => "wbsearchentities",
+                        "search" => $query,
+                        "language" => "de",
+                        "format" => "json",
+                        "type" => "item",
+                        "limit" => 20,
+                    ],
+                    "headers" => [
+                        "User-Agent" =>
+                            "GTO-Wiki-App/1.0 (https://www.gestapo-terror-orte.de/; info@gestapo-terror-orte.de)",
+                    ],
+                ],
+            );
+
+            $data = json_decode($response->getBody(), true);
+            $results = [];
+
+            // Process the results
+            foreach ($data["search"] ?? [] as $item) {
+                $results[] = [
+                    "id" => $item["id"],
+                    "label" => $item["label"] ?? $item["id"],
+                    "description" => $item["description"] ?? "",
+                ];
+            }
+
+            return response()->json($results);
+        } catch (\Exception $e) {
+            Log::error("Error searching for organizations", [
+                "query" => $query,
+                "error" => $e->getMessage(),
+            ]);
+
+            return response()->json(
+                [
+                    "success" => false,
+                    "error" => "Failed to search Wikidata",
+                ],
                 500,
             );
         }

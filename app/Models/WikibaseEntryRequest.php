@@ -52,6 +52,12 @@ class WikibaseEntryRequest extends Model
         "sources",
         "occupation",
         "is_standalone_person",
+        "commemorates",
+        "operator",
+        "opening_date",
+        "opening_date_qualifier",
+        "address",
+        "website",
     ];
 
     protected $casts = [
@@ -64,6 +70,8 @@ class WikibaseEntryRequest extends Model
         "notification_sent_at" => "datetime",
         "place_of_detention" => "array",
         "is_standalone_person" => "boolean",
+        "commemorates" => "string",
+        "operator" => "string",
     ];
 
     protected $table = "wikidata_entry_requests";

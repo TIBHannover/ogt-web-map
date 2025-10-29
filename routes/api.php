@@ -145,6 +145,18 @@ Route::get("/wikidata/search/occupations", [
     "searchOccupations",
 ]);
 
+// Route for commemorates search
+Route::get("/wikidata/search/commemorates", [
+    WikidataSearchController::class,
+    "searchCommemorates",
+]);
+
+// Route for organizations search
+Route::get("/wikidata/search/organizations", [
+    WikidataSearchController::class,
+    "searchOrganizations",
+]);
+
 // General Wikidata search route
 Route::get("/wikidata/search", [WikidataSearchController::class, "search"]);
 

@@ -1270,7 +1270,7 @@ class WikidataEntityController extends Controller
                 [
                     "value" => [
                         "entity-type" => "item",
-                        "id" => $entryRequest->type, // Q6983405 für Ereignis, etc.
+                        "id" => $entryRequest->type, // Q6983405 für Ereignis, Q5003624 für Erinnerungsort, etc.
                     ],
                     "type" => "wikibase-entityid",
                 ],

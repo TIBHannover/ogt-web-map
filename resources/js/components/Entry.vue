@@ -194,7 +194,7 @@
                                         </div>
 
                                         <!-- Erinnerungsort -->
-                                        <!--
+
                                         <div
                                             class="type-box"
                                             :class="{
@@ -267,7 +267,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        -->
+
                                         <!-- Staatspolizeistelle -->
                                         <!--
                                         <div
@@ -745,7 +745,33 @@
                         />
                     </ErrorBoundary>
 
-                    <!-- Fügen Sie hier weitere Formulare für andere Typen hinzu -->
+                    <!-- Schritt 2: Erinnerungsort-Formular -->
+                    <ErrorBoundary>
+                        <MemorialForm
+                            ref="memorialFormRef"
+                            v-if="currentStep === 2 && formsType === 'Q5003624'"
+                            key="memorial-form"
+                            v-model:formsTitle="formsTitle"
+                            v-model:formsDescription="formsDescription"
+                            v-model:wikidataResults="wikidataResults"
+                            v-model:mapZoom="mapZoom"
+                            v-model:mapCenter="mapCenter"
+                            v-model:selectedLocation="selectedLocation"
+                            v-model:locationSearch="locationSearch"
+                            v-model:locationQualifier="locationQualifier"
+                            v-model:error="error"
+                            v-model:imageUrl="imageUrl"
+                            v-model:imageFilename="imageFilename"
+                            v-model:selectedSources="selectedSources"
+                            @searchWikidataEntities="searchWikidataEntities"
+                            @selectExistingEntity="selectExistingEntity"
+                            @searchLocation="searchLocation"
+                            @handleMapClick="handleMapClick"
+                            @goToStep="goToStep"
+                            @submit="resetForm"
+                        />
+                    </ErrorBoundary>
+
                     <!-- Für andere Typen können ähnliche Formulare mit spezifischen Anforderungen erstellt werden -->
                     <div
                         v-if="
@@ -857,6 +883,7 @@ import axios from "axios";
 import { debounce } from "lodash";
 import { useRouter, useRoute } from "vue-router";
 import EventsForm from "./entry/EventsForm.vue";
+import MemorialForm from "./entry/MemorialForm.vue";
 import TitleSearchOverlay from "./entry/fields/TitleSearchOverlay.vue";
 import PersonSearchOverlay from "./entry/fields/PersonSearchOverlay.vue";
 import glossaryItems from "../data/glossaryData";
@@ -945,6 +972,7 @@ const perpetratorsSearchResults = ref([]);
 const selectedPerpetrators = ref([]);
 const showNewPerpetratorForm = ref(false);
 const eventsFormRef = ref(null);
+const memorialFormRef = ref(null);
 const personFormRef = ref(null);
 const newPerpetrator = ref({
     firstName: "",

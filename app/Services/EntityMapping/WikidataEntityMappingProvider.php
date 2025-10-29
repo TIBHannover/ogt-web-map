@@ -18,6 +18,7 @@ class WikidataEntityMappingProvider implements EntityMappingProviderInterface
         "App\Models\Wikibase\Organization" => "Q43229", // organization
         "App\Models\Wikibase\Book" => "Q7725634", // literary work
         "App\Models\Wikibase\Structure" => "Q811979", // architectural structure
+        "App\Models\Wikibase\Memorial" => "Q5003624", // memorial
     ];
 
     /**
@@ -85,6 +86,14 @@ class WikidataEntityMappingProvider implements EntityMappingProviderInterface
         "STATED_IN_URL" => "P973",
         "LANGUAGE" => "P407",
         "RETRIEVAL_DATE" => "P813",
+
+        // Memorial properties
+        "COMMEMORATES" => "P547",
+        "OPERATOR" => "P137",
+        "OPENING_DATE" => "P1619",
+        "ADDRESS" => "P6375",
+        "WEBSITE" => "P856",
+        "QUALIFIER_OF" => "P805",
     ];
 
     /**

@@ -438,6 +438,18 @@ const props = defineProps({
         type: Boolean,
         default: true,
     },
+    singleDateMode: {
+        type: Boolean,
+        default: false,
+    },
+    label: {
+        type: String,
+        default: "",
+    },
+    propertyId: {
+        type: String,
+        default: "",
+    },
 });
 
 const emit = defineEmits([

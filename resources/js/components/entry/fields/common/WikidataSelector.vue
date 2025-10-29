@@ -226,6 +226,8 @@ const props = defineProps({
                 "archives",
                 "occupations",
                 "nationalities",
+                "commemorates",
+                "organizations",
             ].includes(value),
     },
     suggestions: {

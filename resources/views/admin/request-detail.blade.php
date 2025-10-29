@@ -130,6 +130,8 @@ if (!function_exists('formatDateBasedOnPrecision')) {
                                 Organisation
                             @elseif($request->type == 'Q811979')
                                 Architektonisches Struktur
+                            @elseif($request->type == 'Q5003624')
+                                Erinnerungsort
                             @else
                                 {{ $request->type }}
                             @endif
@@ -478,6 +480,11 @@ if (!function_exists('formatDateBasedOnPrecision')) {
                                 </div>
                             </div>
                         @endif
+                    @endif
+
+                    <!-- Erinnerungsort (Q5003624) -->
+                    @if($request->type == 'Q5003624')
+                        @include('admin.partials.memorial-entry', ['request' => $request])
                     @endif
 
                     <!-- Person (Q5) -->
