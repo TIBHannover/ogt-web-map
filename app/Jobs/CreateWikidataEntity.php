@@ -469,6 +469,52 @@ class CreateWikidataEntity implements ShouldQueue
                 define("LARAVEL_QUEUE_WORKER", true);
             }
 
+            // Check if we have a request ID and verify its current status before proceeding
+            $requestId = $this->requestId;
+            if (!empty($requestId)) {
+                // Try to load the entry request model
+                try {
+                    $entryRequest = \App\Models\WikibaseEntryRequest::find(
+                        $requestId,
+                    );
+                    if ($entryRequest) {
+                        // Log the current status
+                        Log::info(
+                            "Checking entry request status before processing",
+                            [
+                                "request_id" => $requestId,
+                                "status" => $entryRequest->status,
+                            ],
+                        );
+
+                        // Only proceed if the status is 'approved'
+                        if ($entryRequest->status !== "approved") {
+                            Log::warning(
+                                "Skipping entity creation - entry is not in approved status",
+                                [
+                                    "request_id" => $requestId,
+                                    "current_status" => $entryRequest->status,
+                                    "entity_type" => $this->entityType,
+                                    "title" =>
+                                        $this->entityData["title"] ?? "Unknown",
+                                ],
+                            );
+                            return; // Exit early
+                        }
+                    } else {
+                        Log::warning(
+                            "Could not find entry request with ID {$requestId}",
+                        );
+                    }
+                } catch (\Exception $e) {
+                    Log::error("Error checking entry request status", [
+                        "request_id" => $requestId,
+                        "error" => $e->getMessage(),
+                    ]);
+                    // Continue execution even if status check fails
+                }
+            }
+
             // Ensure role and relationship_type are consistent
             if (
                 isset($this->entityData["role"]) &&
@@ -1883,6 +1929,23 @@ class CreateWikidataEntity implements ShouldQueue
 
                 // Use a simple direct query update approach - most reliable, doesn't need schema checks
                 try {
+                    // First, check if the request is still in 'approved' status
+                    $checkStatus = \DB::table("wikidata_entry_requests")
+                        ->where("id", $requestId)
+                        ->value("status");
+
+                    if ($checkStatus !== "approved") {
+                        Log::warning(
+                            "Cannot update entry that is no longer approved",
+                            [
+                                "request_id" => $requestId,
+                                "current_status" => $checkStatus,
+                                "entity_id" => $entityId,
+                            ],
+                        );
+                        return; // Exit early
+                    }
+
                     // Simple update with only the most critical fields
                     // Using "wikidata_published" status after fixing SQLite CHECK constraints
                     // The previous workaround of using "approved" is no longer needed
@@ -1918,8 +1981,10 @@ class CreateWikidataEntity implements ShouldQueue
                     ]);
 
                     // Try using Eloquent's query builder for more reliable updates
+                    // Only update if the status is still 'approved'
                     $affected = \DB::table("wikidata_entry_requests")
                         ->where("id", $requestId)
+                        ->where("status", "approved")
                         ->update($updateData);
 
                     // Log the result
@@ -1961,8 +2026,9 @@ class CreateWikidataEntity implements ShouldQueue
                             try {
                                 \DB::table("wikidata_entry_requests")
                                     ->where("id", $requestId)
+                                    ->where("status", "approved") // Only update if still approved
                                     ->update([
-                                        "status" => "published",
+                                        "status" => "wikidata_published", // Use consistent status
                                         "wikidata_id" => $entityId,
                                         "created_entities" => !empty(
                                             $createdEntities

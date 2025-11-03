@@ -66,6 +66,13 @@ class WikidataEntityController extends Controller
             "place_of_birth" => "nullable|array",
             "place_of_death" => "nullable|array",
             "place_of_detention" => "nullable|array",
+            // Memorial-specific fields
+            "commemorates" => "nullable|string",
+            "operator" => "nullable|string",
+            "opening_date" => "nullable|string",
+            "opening_date_qualifier" => "nullable|string",
+            "address" => "nullable|string",
+            "website" => "nullable|string",
         ]);
 
         try {
@@ -76,6 +83,15 @@ class WikidataEntityController extends Controller
             $entryRequest->coordinates = $validated["coordinates"] ?? null;
             $entryRequest->coordinates_qualifier =
                 $validated["coordinates_qualifier"] ?? null;
+
+            // Set memorial-specific fields if they exist
+            $entryRequest->commemorates = $validated["commemorates"] ?? null;
+            $entryRequest->operator = $validated["operator"] ?? null;
+            $entryRequest->opening_date = $validated["opening_date"] ?? null;
+            $entryRequest->opening_date_qualifier =
+                $validated["opening_date_qualifier"] ?? null;
+            $entryRequest->address = $validated["address"] ?? null;
+            $entryRequest->website = $validated["website"] ?? null;
 
             // Log the incoming data to debug ID preservation
             if (!empty($validated["victims"])) {

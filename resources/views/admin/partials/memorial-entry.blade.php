@@ -1,3 +1,5 @@
+@include('admin.partials.wikidata-helpers')
+
 <!-- Partial für Erinnerungsorte in der Admin-Ansicht -->
 <div class="card mb-4">
     <div class="card-header">
@@ -9,17 +11,7 @@
             <div class="mb-3">
                 <h6>Erinnert an:</h6>
                 <div class="mb-2">
-                    @php
-                        $commemorates = $request->commemorates;
-                        $commemoratesDisplay = '';
-                        if (is_string($commemorates) && substr($commemorates, 0, 1) === 'Q') {
-                            $commemoratesData = \App\Http\Controllers\WikidataPropertyController::getEntityData($commemorates);
-                            $commemoratesDisplay = formatWikidataProperty($commemorates, $commemoratesData['label'] ?? $commemorates);
-                        } else {
-                            $commemoratesDisplay = $commemorates;
-                        }
-                        echo $commemoratesDisplay;
-                    @endphp
+                    {!! safeFormatWikidata($request->commemorates) !!}
                 </div>
             </div>
         @endif
@@ -29,17 +21,7 @@
             <div class="mb-3">
                 <h6>Betreiber:</h6>
                 <div class="mb-2">
-                    @php
-                        $operator = $request->operator;
-                        $operatorDisplay = '';
-                        if (is_string($operator) && substr($operator, 0, 1) === 'Q') {
-                            $operatorData = \App\Http\Controllers\WikidataPropertyController::getEntityData($operator);
-                            $operatorDisplay = formatWikidataProperty($operator, $operatorData['label'] ?? $operator);
-                        } else {
-                            $operatorDisplay = $operator;
-                        }
-                        echo $operatorDisplay;
-                    @endphp
+                    {!! safeFormatWikidata($request->operator) !!}
                 </div>
             </div>
         @endif
@@ -49,10 +31,7 @@
             <div class="mb-3">
                 <h6>Eröffnungsdatum:</h6>
                 <div class="mb-2">
-                    {{ formatDateBasedOnPrecision($request->opening_date) }}
-                    @if(isset($request->opening_date_qualifier) && !empty($request->opening_date_qualifier))
-                        @include('admin.partials.qualifier', ['qualifier' => $request->opening_date_qualifier])
-                    @endif
+                    {!! formatDateWithQualifier($request->opening_date, $request->opening_date_qualifier) !!}
                 </div>
             </div>
         @endif

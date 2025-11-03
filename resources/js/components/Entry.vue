@@ -2263,7 +2263,7 @@ const submitPersonForm = async (formData) => {
             throw axiosError; // Re-throw to be caught by outer catch block
         }
     } catch (error) {
-        console.error("Error submitting form:", error);
+        console.error("Outer try/catch error in resetForm:", error);
         console.error("Full error details:", {
             message: error.message,
             response: error.response?.data,
@@ -2676,8 +2676,8 @@ const resetForm = async () => {
                 console.log(`Person form data being submitted:`, personData);
                 return personData;
             } else {
-                // Event form or others
-                const formData = {
+                // For events, memorials, and other entity types
+                let formData = {
                     ...baseData,
                     coordinates: coordinates,
                     coordinates_qualifier: locationQualifier.value,
@@ -2738,6 +2738,71 @@ const resetForm = async () => {
                             }
                         }
                     });
+                }
+
+                // Add memorial-specific fields if it's a memorial place
+                if (formsType.value === "Q5003624" && memorialFormRef.value) {
+                    console.log("Adding memorial-specific fields to form data");
+
+                    try {
+                        // Check if getData method exists
+                        if (
+                            typeof memorialFormRef.value.getData === "function"
+                        ) {
+                            const memorialData =
+                                memorialFormRef.value.getData();
+
+                            // Add the memorial-specific fields to the form data
+                            formData = {
+                                ...formData,
+                                commemorates: memorialData.commemorates,
+                                operator: memorialData.operator,
+                                opening_date: memorialData.opening_date,
+                                opening_date_qualifier:
+                                    memorialData.opening_date_qualifier,
+                                address: memorialData.address,
+                                website: memorialData.website,
+                            };
+
+                            console.log("Memorial form data:", memorialData);
+                        } else {
+                            // Get data directly from refs if getData is not available
+                            console.log(
+                                "getData method not found, accessing field values directly",
+                            );
+
+                            // Access the ref values directly
+                            if (memorialFormRef.value.commemoratesValue) {
+                                formData.commemorates =
+                                    memorialFormRef.value.commemoratesValue;
+                            }
+                            if (memorialFormRef.value.operatorValue) {
+                                formData.operator =
+                                    memorialFormRef.value.operatorValue;
+                            }
+                            if (memorialFormRef.value.openingDateValue) {
+                                formData.opening_date =
+                                    memorialFormRef.value.openingDateValue;
+                            }
+                            if (
+                                memorialFormRef.value.openingDateQualifierValue
+                            ) {
+                                formData.opening_date_qualifier =
+                                    memorialFormRef.value.openingDateQualifierValue;
+                            }
+                            if (memorialFormRef.value.addressValue) {
+                                formData.address =
+                                    memorialFormRef.value.addressValue;
+                            }
+                            if (memorialFormRef.value.websiteValue) {
+                                formData.website =
+                                    memorialFormRef.value.websiteValue;
+                            }
+                        }
+                    } catch (error) {
+                        console.error("Error getting memorial data:", error);
+                        // Continue with basic form data
+                    }
                 }
 
                 return formData;

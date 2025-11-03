@@ -60,69 +60,42 @@ class Memorial extends BaseEntity
      */
     public static function fromArray(array $data): self
     {
+        $title = $data["title"] ?? "";
+        $description = $data["description"] ?? "";
         $mappingProvider = app(EntityMappingProviderInterface::class);
-        $memorial = new self($mappingProvider);
+        $memorial = new self($title, $description, $mappingProvider);
 
-        // Set basic properties
-        $memorial->setTitle($data["title"] ?? "");
-        $memorial->setDescription($data["description"] ?? "");
+        // Basic properties already set in the constructor
 
         // Set coordinates if available
         if (!empty($data["coordinates"])) {
-            if (is_string($data["coordinates"])) {
-                // Parse from string format (e.g. "52.5200, 13.4050")
-                $parts = explode(",", $data["coordinates"]);
-                if (count($parts) === 2) {
-                    $latitude = trim($parts[0]);
-                    $longitude = trim($parts[1]);
-                    $memorial->setCoordinates(
-                        $latitude,
-                        $longitude,
-                        $data["coordinates_qualifier"] ?? null,
-                    );
-                }
-            } elseif (is_array($data["coordinates"])) {
-                // Array format
-                if (
-                    isset($data["coordinates"]["latitude"]) &&
-                    isset($data["coordinates"]["longitude"])
-                ) {
-                    $memorial->setCoordinates(
-                        $data["coordinates"]["latitude"],
-                        $data["coordinates"]["longitude"],
-                        $data["coordinates_qualifier"] ?? null,
-                    );
-                } elseif (count($data["coordinates"]) >= 2) {
-                    $memorial->setCoordinates(
-                        $data["coordinates"][0],
-                        $data["coordinates"][1],
-                        $data["coordinates_qualifier"] ?? null,
-                    );
-                }
-            }
+            $memorial->addCoordinates(
+                $data["coordinates"],
+                $data["coordinates_qualifier"] ?? null,
+            );
         }
 
         // Set specific memorial properties
-        if (!empty($data["commemorates"])) {
+        if (isset($data["commemorates"])) {
             $memorial->setCommemorates($data["commemorates"]);
         }
 
-        if (!empty($data["operator"])) {
+        if (isset($data["operator"])) {
             $memorial->setOperator($data["operator"]);
         }
 
-        if (!empty($data["opening_date"])) {
+        if (isset($data["opening_date"])) {
             $memorial->setOpeningDate(
                 $data["opening_date"],
                 $data["opening_date_qualifier"] ?? null,
             );
         }
 
-        if (!empty($data["address"])) {
+        if (isset($data["address"])) {
             $memorial->setAddress($data["address"]);
         }
 
-        if (!empty($data["website"])) {
+        if (isset($data["website"])) {
             $memorial->setWebsite($data["website"]);
         }
 
@@ -140,7 +113,7 @@ class Memorial extends BaseEntity
      * @param string $entityId The Wikidata entity ID that this memorial commemorates
      * @return void
      */
-    public function setCommemorates(string $entityId): void
+    public function setCommemorates(?string $entityId): void
     {
         $this->commemorates = $entityId;
 
@@ -179,7 +152,7 @@ class Memorial extends BaseEntity
      * @param string $entityId The Wikidata entity ID of the operator
      * @return void
      */
-    public function setOperator(string $entityId): void
+    public function setOperator(?string $entityId): void
     {
         $this->operator = $entityId;
 
@@ -218,7 +191,7 @@ class Memorial extends BaseEntity
      * @return void
      */
     public function setOpeningDate(
-        string $date,
+        ?string $date,
         ?string $qualifier = null,
     ): void {
         $this->openingDate = $date;
@@ -301,7 +274,7 @@ class Memorial extends BaseEntity
      * @param string $address The street address
      * @return void
      */
-    public function setAddress(string $address): void
+    public function setAddress(?string $address): void
     {
         $this->address = $address;
 
@@ -336,7 +309,7 @@ class Memorial extends BaseEntity
      * @param string $website The URL of the official website
      * @return void
      */
-    public function setWebsite(string $website): void
+    public function setWebsite(?string $website): void
     {
         $this->website = $website;
 
@@ -366,4 +339,6 @@ class Memorial extends BaseEntity
             ],
         ];
     }
+
+    // Helper methods removed as they are no longer needed with the enhanced BaseEntity::addCoordinates
 }

@@ -107,46 +107,11 @@ class Event extends BaseEntity
 
         // Set coordinates
         if (!empty($data["coordinates"])) {
-            // Get the coordinates qualifier if it exists
-            $coordsQualifier = $data["coordinates_qualifier"] ?? null;
-
-            // Log the qualifier for debugging
-            Log::info("Processing coordinates with qualifier", [
-                "coordinates" => is_string($data["coordinates"])
-                    ? $data["coordinates"]
-                    : "complex-value",
-                "has_qualifier" => !empty($coordsQualifier),
-                "qualifier" => $coordsQualifier,
-            ]);
-
-            // Handle different coordinate formats
-            if (is_string($data["coordinates"])) {
-                // Try to parse coordinate string in format "lat, lng"
-                if (
-                    preg_match(
-                        '/^\s*([0-9.\-]+)\s*,\s*([0-9.\-]+)\s*$/',
-                        $data["coordinates"],
-                        $matches,
-                    )
-                ) {
-                    $event->addCoordinates(
-                        [
-                            "lat" => (float) $matches[1],
-                            "lng" => (float) $matches[2],
-                        ],
-                        $coordsQualifier,
-                    );
-                } else {
-                    // Try to decode JSON string
-                    $decoded = json_decode($data["coordinates"], true);
-                    if ($decoded) {
-                        $event->addCoordinates($decoded, $coordsQualifier);
-                    }
-                }
-            } else {
-                // Already an array
-                $event->addCoordinates($data["coordinates"], $coordsQualifier);
-            }
+            // Use the enhanced base addCoordinates method
+            $event->addCoordinates(
+                $data["coordinates"],
+                $data["coordinates_qualifier"] ?? null,
+            );
         }
 
         // Set image
@@ -485,96 +450,8 @@ class Event extends BaseEntity
         ];
     }
 
-    /**
-     * Add coordinates to the event
-     *
-     * @param array|string $coordinates Coordinates in format [lat, lng] or "lat, lng"
-     * @param string|null $qualifier Optional qualifier for the coordinates
-     */
-    public function addCoordinates(
-        $coordinates,
-        ?string $qualifier = null,
-    ): void {
-        if (empty($coordinates)) {
-            return;
-        }
-
-        // Handle different coordinate formats
-        $lat = null;
-        $lng = null;
-
-        if (is_string($coordinates)) {
-            // Format: "52.3744779, 9.7385532"
-            $parts = explode(",", $coordinates);
-            if (count($parts) === 2) {
-                $lat = (float) trim($parts[0]);
-                $lng = (float) trim($parts[1]);
-            }
-        } elseif (is_array($coordinates)) {
-            if (isset($coordinates[0]) && isset($coordinates[1])) {
-                // Format: [lat, lng]
-                $lat = (float) $coordinates[0];
-                $lng = (float) $coordinates[1];
-            } elseif (
-                isset($coordinates["lat"]) &&
-                isset($coordinates["lng"])
-            ) {
-                // Format: {lat: x, lng: y}
-                $lat = (float) $coordinates["lat"];
-                $lng = (float) $coordinates["lng"];
-            }
-        }
-
-        if ($lat === null || $lng === null) {
-            Log::warning("Invalid coordinates format", [
-                "coordinates" => $coordinates,
-            ]);
-            return;
-        }
-
-        $coordinatesProperty = $this->mappingProvider->getPropertyId(
-            "COORDINATES",
-        );
-        if (empty($coordinatesProperty)) {
-            Log::warning(
-                "Coordinates property ID is empty, using P625 as fallback",
-            );
-            $coordinatesProperty = "P625"; // Fallback to standard Wikidata coordinates property
-        }
-
-        $statement = [
-            "mainsnak" => [
-                "snaktype" => "value",
-                "property" => $coordinatesProperty,
-                "datavalue" => [
-                    "value" => [
-                        "latitude" => $lat,
-                        "longitude" => $lng,
-                        "altitude" => null,
-                        "precision" => 0.000001,
-                        "globe" => "http://www.wikidata.org/entity/Q2",
-                    ],
-                    "type" => "globecoordinate",
-                ],
-            ],
-            "type" => "statement",
-            "rank" => "normal",
-        ];
-
-        // Add qualifier if provided
-        if (!empty($qualifier)) {
-            $qualifierProperty = $this->mappingProvider->getPropertyId(
-                "SOURCING_CIRCUMSTANCES",
-            );
-            $this->addQualifierToStatement(
-                $statement,
-                $qualifierProperty,
-                $qualifier,
-            );
-        }
-
-        $this->data["claims"][$coordinatesProperty] = [$statement];
-    }
+    // The addCoordinates method has been moved to the BaseEntity class
+    // and is now inherited by all entity types
 
     /**
      * Set the cause

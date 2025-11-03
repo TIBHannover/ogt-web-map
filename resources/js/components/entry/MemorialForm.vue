@@ -132,9 +132,14 @@
                         "
                         @fieldFocus="setActiveField"
                         @infoButtonClick="openSectionInfo"
-                        :singleDateMode="true"
-                        :label="'Eröffnungsdatum'"
+                        :hideToggle="true"
+                        :sectionLabel="'Eröffnungsdatum:'"
+                        :pointLabel="'Eröffnungsdatum'"
+                        :pointDateLabel="'Datum der Eröffnung'"
                         :propertyId="'P1619'"
+                        :validationMessageRequired="'Bitte gib das Eröffnungsdatum an.'"
+                        :validationMessageInvalid="'Das Eröffnungsdatum hat ein ungültiges Format.'"
+                        @validation="onTimeValidation"
                     />
                 </div>
 
@@ -366,6 +371,7 @@ const operatorSearchResultsValue = ref([]);
 const isOperatorSearchLoading = ref(false);
 const operatorSearchPerformed = ref(false);
 
+// Optional fields
 const openingDateValue = ref("");
 const openingDateQualifierValue = ref("");
 
@@ -647,9 +653,9 @@ const isLocationValid = ref(true);
 
 // Validation handlers - used when form fields report their validation state
 // These are called by the respective components during validation
-// eslint-disable-next-line no-unused-vars
 const onTimeValidation = (status) => {
-    isTimeValid.value = status;
+    // Opening date is optional, so always mark as valid
+    isTimeValid.value = true;
 };
 
 const onBaseInfoValidation = (status) => {
@@ -885,6 +891,14 @@ watch(
     },
 );
 
+// Watch for changes in selectedSourcesValue and emit to parent
+watch(
+    () => selectedSourcesValue.value,
+    (newVal) => {
+        emit("update:selectedSources", newVal);
+    },
+);
+
 // Emit changes back to parent
 watch(
     () => title.value,
@@ -904,6 +918,11 @@ watch(
 onMounted(() => {
     checkScreenSize();
     window.addEventListener("resize", checkScreenSize);
+});
+
+// Expose methods to parent component
+defineExpose({
+    getData,
 });
 </script>
 

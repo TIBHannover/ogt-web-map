@@ -1,8 +1,46 @@
 @extends('layouts.app')
 
 @php
-use App\Http\Controllers\WikidataPropertyController;
-use function App\Helpers\formatWikidataProperty;
+use App\Http\Controllers\WikidataPropertyController as WDPropertyController;
+
+// Utility function to format a Wikidata entity as a link
+function formatEntityLink($id, $label) {
+    return '<a href="https://www.wikidata.org/wiki/' . htmlspecialchars($id) . '" target="_blank" rel="noopener noreferrer">'
+        . htmlspecialchars($label ?: $id)
+        . ' <small>(' . htmlspecialchars($id) . ')</small></a>';
+}
+
+// Utility function to safely format a Wikidata entity
+function safeFormatWikidata($id) {
+    if (empty($id)) {
+        return '';
+    }
+
+    try {
+        // If it's a Wikidata ID (starts with Q or P)
+        if (is_string($id) && preg_match('/^[QP]\d+$/', $id)) {
+            $label = $id; // Default to ID if no label found
+
+            // Try to get label from Wikidata
+            try {
+                $entityData = WDPropertyController::getEntityData($id);
+                if ($entityData && isset($entityData['label'])) {
+                    $label = $entityData['label'];
+                }
+            } catch (\Exception $e) {
+                // Just use the ID if there's an error
+            }
+
+            return formatEntityLink($id, $label);
+        } else {
+            // If not a Wikidata ID, just return as is
+            return htmlspecialchars($id);
+        }
+    } catch (\Exception $e) {
+        // Fallback for any errors
+        return htmlspecialchars($id);
+    }
+}
 
 // Define the formatDateBasedOnPrecision function if it doesn't exist yet
 if (!function_exists('formatDateBasedOnPrecision')) {
@@ -376,10 +414,7 @@ if (!function_exists('formatDateBasedOnPrecision')) {
                                             <div class="list-group-item">
                                                 @if(is_array($cause))
                                                     <div class="fw-bold">
-                                                        <a href="https://www.wikidata.org/wiki/{{ $cause['id'] }}" target="_blank" class="text-decoration-none">
-                                                            {{ WikidataPropertyController::getQLabel($cause['id']) }}
-                                                            <i class="bi bi-box-arrow-up-right ms-1 small"></i>
-                                                        </a>
+                                                        {!! formatEntityLink($cause['id'], WDPropertyController::getQLabel($cause['id'])) !!}
                                                     </div>
                                                     @if(isset($cause['description']))
                                                         <div class="text-muted small mt-1">{{ $cause['description'] }}</div>
