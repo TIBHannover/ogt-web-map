@@ -738,7 +738,7 @@
 
                     <!-- Schritt 2: Personen-Formular -->
                     <ErrorBoundary>
-                        <SimplePersonForm
+                        <PersonForm
                             ref="personFormRef"
                             v-if="currentStep === 2 && formsType === 'Q5'"
                             :entry-type="formsType"
@@ -918,10 +918,10 @@ import TitleSearchOverlay from "./entry/fields/TitleSearchOverlay.vue";
 import PersonSearchOverlay from "./entry/fields/PersonSearchOverlay.vue";
 import glossaryItems from "../data/glossaryData";
 import { defineAsyncComponent, h } from "vue";
-import SimplePersonForm from "./entry/SimplePersonForm.vue";
+import PersonForm from "./entry/PersonForm.vue";
 
-// Use SimplePersonForm directly instead of async loading
-const resolvePersonForm = SimplePersonForm;
+// Use PersonForm directly instead of async loading
+const resolvePersonForm = PersonForm;
 
 // Simple error boundary component
 const ErrorBoundary = {
@@ -970,7 +970,7 @@ const formsDescription = ref(null);
 const isSubmitting = ref(false);
 const wikidataResults = ref([]);
 const peopleSearchResults = ref([]);
-const personFormData = ref(null); // Store form data received from SimplePersonForm
+const personFormData = ref(null); // Store form data received from PersonForm
 const selectedVictims = ref([]);
 const currentStep = ref(1);
 const showNewVictimForm = ref(false);
@@ -1319,7 +1319,7 @@ const createNewPerson = (name, personData = null) => {
         console.log(`Setting person role from props: ${props.role}`);
     }
 
-    // Store person data in a ref that can be accessed by the SimplePersonForm
+    // Store person data in a ref that can be accessed by the PersonForm
     if (personData) {
         tempPersonData.value = JSON.stringify(personData);
     }
@@ -1949,9 +1949,9 @@ const resetSubmissionState = () => {
     console.log("Reset submission state due to router navigation");
 };
 
-// Handle submission from SimplePersonForm
+// Handle submission from PersonForm
 const submitPersonForm = async (formData) => {
-    console.log("Received form data from SimplePersonForm:", formData);
+    console.log("Received form data from PersonForm:", formData);
 
     if (isSubmitting.value) {
         console.log(

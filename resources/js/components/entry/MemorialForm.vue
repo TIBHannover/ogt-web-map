@@ -115,39 +115,27 @@
                 </div>
 
                 <!-- Eröffnungsdatum (Opening Date) -->
-                <div class="container-section opening-date-section">
-                    <div class="section-header">
-                        <label class="section-label">Eröffnungsdatum:</label>
-                        <button
-                            type="button"
-                            class="info-icon"
-                            @click="openSectionInfo('openingDate')"
-                        >
-                            <v-icon>mdi-information-variant</v-icon>
-                        </button>
-                    </div>
-                    <TimeSelector
-                        ref="timeSelectorRef"
-                        :event-time-type="'point'"
-                        :event-date="openingDateValue"
-                        :event-date-qualifier="openingDateQualifierValue"
-                        @update:eventDate="openingDateValue = $event"
-                        @update:eventDateQualifier="
-                            openingDateQualifierValue = $event
-                        "
-                        @fieldFocus="setActiveField"
-                        @infoButtonClick="openSectionInfo"
-                        :hideToggle="true"
-                        :sectionLabel="'Eröffnungsdatum:'"
-                        :pointLabel="'Eröffnungsdatum'"
-                        :pointDateLabel="'Datum der Eröffnung'"
-                        :propertyId="'P1619'"
-                        :validationMessageRequired="'Bitte gib das Eröffnungsdatum an.'"
-                        :validationMessageInvalid="'Das Eröffnungsdatum hat ein ungültiges Format.'"
-                        :initialShowErrors="false"
-                        @validation="onTimeValidation"
-                    />
-                </div>
+                <TimeSelector
+                    ref="timeSelectorRef"
+                    :event-time-type="'point'"
+                    :event-date="openingDateValue"
+                    :event-date-qualifier="openingDateQualifierValue"
+                    @update:eventDate="openingDateValue = $event"
+                    @update:eventDateQualifier="
+                        openingDateQualifierValue = $event
+                    "
+                    @fieldFocus="setActiveField"
+                    @infoButtonClick="openSectionInfo"
+                    :hideToggle="true"
+                    :sectionLabel="'Eröffnungsdatum:'"
+                    :pointLabel="'Eröffnungsdatum'"
+                    :pointDateLabel="'Datum der Eröffnung'"
+                    :propertyId="'P1619'"
+                    :validationMessageRequired="'Bitte gib das Eröffnungsdatum an.'"
+                    :validationMessageInvalid="'Das Eröffnungsdatum hat ein ungültiges Format.'"
+                    :initialShowErrors="false"
+                    @validation="onTimeValidation"
+                />
 
                 <!-- Adresse (Address) -->
                 <div class="container-section address-section">
@@ -1006,14 +994,6 @@ defineExpose({
 <style scoped>
 @import "./styles/form-styles.css";
 
-.container-section {
-    margin-bottom: 2rem;
-    padding: 1.5rem;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
 .section-header {
     display: flex;
     justify-content: space-between;
@@ -1025,24 +1005,6 @@ defineExpose({
     font-weight: 600;
     font-size: 1.1rem;
     color: #333;
-}
-
-.info-icon {
-    background: none;
-    border: none;
-    color: #1976d2;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    transition: background-color 0.2s;
-}
-
-.info-icon:hover {
-    background-color: rgba(25, 118, 210, 0.1);
 }
 
 .button-container {

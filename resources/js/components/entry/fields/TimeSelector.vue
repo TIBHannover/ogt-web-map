@@ -34,7 +34,7 @@
             v-if="localEventTimeType === 'point'"
             class="form-group date-field-container"
         >
-            <label for="">{{ pointDateLabel }}</label>
+            <label for="" v-if="!props.hideToggle">{{ pointDateLabel }}</label>
             <!-- Text field that opens the dialog -->
             <v-text-field
                 v-model="eventDateDisplay"
