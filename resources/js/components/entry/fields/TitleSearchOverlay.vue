@@ -295,6 +295,12 @@ const performSearch = async (event) => {
         return;
     }
 
+    // Force any pending debounced title updates to execute immediately
+    // This ensures the title is updated before the search completes
+    if (emitTitleUpdate && emitTitleUpdate.flush) {
+        emitTitleUpdate.flush();
+    }
+
     // Focus back on the input after search
     setTimeout(() => {
         const input = document.querySelector(
@@ -305,23 +311,28 @@ const performSearch = async (event) => {
         }
     }, 50);
 
-    searchResults.value = [];
+    // Don't clear results yet, just set loading state
     isLoading.value = true;
     noExistingEntry.value = false; // Reset checkbox when performing a new search
 
     try {
+        console.log("Starting search for:", localTitle.value);
         const response = await axios.get("/api/wikidata/entities", {
             params: {
                 title: localTitle.value,
                 limit: 5,
             },
         });
+        console.log("Search completed for:", localTitle.value);
 
+        // Set search results after response received
         if (response.data.success && response.data.results) {
             searchResults.value = response.data.results;
         } else {
             searchResults.value = [];
         }
+
+        // Always make sure search performed is set to true AFTER results are updated
         searchPerformed.value = true;
     } catch (err) {
         console.error("Fehler bei der Wikidata-Suche:", err);
@@ -333,6 +344,14 @@ const performSearch = async (event) => {
         searchPerformed.value = true;
     } finally {
         isLoading.value = false;
+
+        // Ensure the results are displayed after a small delay
+        setTimeout(() => {
+            if (!searchPerformed.value) {
+                console.log("Ensuring search results are displayed");
+                searchPerformed.value = true;
+            }
+        }, 50);
     }
 };
 
@@ -359,10 +378,11 @@ const onInput = (value) => {
     // Debounce the update event
     emitTitleUpdate(value);
 
-    // Clear any previous search results when typing
-    if (searchResults.value.length > 0 && value !== props.initialTitle) {
+    // Don't immediately clear search results when typing
+    // Just reset the searchPerformed flag to indicate user is typing
+    if (value !== props.initialTitle) {
         searchPerformed.value = false;
-        searchResults.value = [];
+        // Keep existing results until new ones arrive
     }
 };
 
@@ -374,7 +394,9 @@ const openWikidata = (id) => {
 // Save and close function for update mode
 const saveAndClose = () => {
     // Cancel any pending debounced updates
-    emitTitleUpdate.cancel();
+    if (emitTitleUpdate && emitTitleUpdate.cancel) {
+        emitTitleUpdate.cancel();
+    }
 
     // Only if value has changed
     if (localTitle.value !== lastEmittedTitle.value) {
@@ -394,7 +416,9 @@ const saveAndClose = () => {
 // Clean up state when dialog is closed
 const handleClose = (emitClose = true) => {
     // Cancel any pending debounced updates
-    emitTitleUpdate.cancel();
+    if (emitTitleUpdate && emitTitleUpdate.cancel) {
+        emitTitleUpdate.cancel();
+    }
 
     // For 'update' mode, we only emit on explicit save
     // For 'create' mode, we emit on close to ensure we have the latest value
@@ -409,6 +433,7 @@ const handleClose = (emitClose = true) => {
     searchResults.value = [];
     searchPerformed.value = false;
     noExistingEntry.value = false;
+
     if (emitClose) {
         emit("close");
     }

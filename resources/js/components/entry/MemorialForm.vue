@@ -225,11 +225,25 @@
                         class="button bg-primary"
                         type="button"
                         @click="onSubmit"
+                        :disabled="isSubmitting"
                     >
-                        Absenden
+                        {{ isSubmitting ? "Wird abgesendet..." : "Absenden" }}
                     </button>
                 </div>
             </form>
+        </div>
+
+        <!-- Info-Box (Desktop) -->
+        <div
+            class="info-box desktop-info"
+            v-if="activeField && !isMobileView && !isAdminView"
+        >
+            <div class="info-box-header">
+                <h3>{{ getInfoTitle(activeField) }}</h3>
+            </div>
+            <div class="info-box-content">
+                <div v-html="getInfoContent(activeField)"></div>
+            </div>
         </div>
 
         <!-- Bild Dialog -->
@@ -425,6 +439,27 @@ const selectedSourcesValue = computed({
     },
 });
 
+// Info-Box-Inhalt basierend auf dem aktiven Feld oder Sektion
+const getInfoContent = (fieldName) => {
+    // Zuordnung von Feldern zu Sektionen
+    const fieldToSection = {
+        title: "title",
+        description: "title",
+        "event-date": "time",
+        "event-start-date": "time",
+        "event-end-date": "time",
+        "victim-count": "counts",
+        "survivor-count": "counts",
+        "death-count": "counts",
+        "arrest-count": "counts",
+    };
+
+    // Wenn das Feld einer Sektion zugeordnet ist, diese verwenden
+    const sectionName = fieldToSection[fieldName] || fieldName;
+
+    return getSectionInfoContent(sectionName);
+};
+
 // Specific fields for MemorialForm
 const commemoratesValue = ref(null);
 const commemoratesSearchResultsValue = ref([]);
@@ -444,6 +479,9 @@ const websiteValue = ref("");
 
 // Log for debugging
 console.log("MemorialForm initialized with computed properties");
+
+// Form submission state
+const isSubmitting = ref(false);
 
 // Dialog states
 const imageDialogVisible = ref(false);
@@ -695,8 +733,42 @@ const onSelectExistingEntity = (entity) => {
 };
 
 const onSubmit = () => {
-    if (validateForm()) {
-        emit("submit", getData());
+    console.log("MemorialForm: onSubmit triggered");
+    // Prevent multiple submissions
+    if (isSubmitting.value) {
+        console.log("MemorialForm: Already submitting, ignoring click");
+        return;
+    }
+
+    isSubmitting.value = true;
+    const isValid = validateForm();
+    console.log("MemorialForm: validateForm result:", isValid);
+
+    if (isValid) {
+        const data = getData();
+        console.log("MemorialForm: Emitting submit with data:", data);
+        emit("submit", data);
+
+        // Set a timeout to reset the submitting state in case the parent never responds
+        setTimeout(() => {
+            isSubmitting.value = false;
+        }, 10000); // 10 second timeout
+    } else {
+        console.log(
+            "MemorialForm: Form submission prevented due to validation failure",
+        );
+        isSubmitting.value = false;
+
+        // Scroll to first error
+        setTimeout(() => {
+            const errorElement = document.querySelector(".validation-error");
+            if (errorElement) {
+                errorElement.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                });
+            }
+        }, 100);
     }
 };
 
@@ -740,24 +812,47 @@ const isCommmemoratesValid = computed(() => {
 const showValidationErrors = ref(false);
 
 const validateForm = () => {
+    console.log("MemorialForm: validateForm started");
+    // Clear any previous error messages
+    errorValue.value = "";
+    emit("update:error", "");
+
     showValidationErrors.value = true;
+
+    console.log("MemorialForm: Checking component refs:", {
+        baseInfosRef: !!baseInfosRef.value,
+        sourcesFieldRef: !!sourcesFieldRef.value,
+        locationSelectorRef: !!locationSelectorRef.value,
+    });
 
     // Call validate methods on child components
     const baseInfoValid = baseInfosRef.value
         ? baseInfosRef.value.validate()
         : true;
+    console.log("MemorialForm: baseInfoValid:", baseInfoValid);
+
     const sourcesValid = sourcesFieldRef.value
         ? sourcesFieldRef.value.validate()
         : true;
+    console.log("MemorialForm: sourcesValid:", sourcesValid);
+
     const locationValid = locationSelectorRef.value
         ? locationSelectorRef.value.validate()
         : true;
+    console.log("MemorialForm: locationValid:", locationValid);
 
     // Direct validation for specific fields
     const commemoratesValid = !!commemoratesValue.value;
+    console.log(
+        "MemorialForm: commemoratesValid:",
+        commemoratesValid,
+        "value:",
+        commemoratesValue.value,
+    );
 
     const isValid =
         baseInfoValid && sourcesValid && locationValid && commemoratesValid;
+    console.log("MemorialForm: Overall validation result:", isValid);
 
     if (!isValid) {
         const errors = [];
@@ -766,8 +861,15 @@ const validateForm = () => {
         if (!locationValid) errors.push("Standort");
         if (!sourcesValid) errors.push("Quellenangaben");
 
-        errorValue.value = `Bitte fülle alle Pflichtfelder aus: ${errors.join(", ")}`;
-        emit("update:error", errorValue.value);
+        const errorMsg = `Bitte fülle alle Pflichtfelder aus: ${errors.join(", ")}`;
+        errorValue.value = errorMsg;
+        console.log("MemorialForm: Validation errors:", errors);
+        emit("update:error", errorMsg);
+
+        // Show an alert for mobile users who might not see error messages
+        if (window.innerWidth < 768) {
+            alert(errorMsg);
+        }
     } else {
         errorValue.value = "";
         emit("update:error", "");
@@ -778,6 +880,8 @@ const validateForm = () => {
 
 // Collect all data for submission
 const getData = () => {
+    console.log("MemorialForm: getData called");
+
     // Prepare the data object to return
     const formData = {
         title: title.value,
@@ -814,6 +918,15 @@ const getData = () => {
         if (Array.isArray(formData[key]) && formData[key].length === 0) {
             formData[key] = null;
         }
+    });
+
+    console.log("MemorialForm: Form data prepared:", formData);
+    console.log("MemorialForm: Required fields check:", {
+        title: !!formData.title,
+        description: !!formData.description,
+        coordinates: !!formData.coordinates,
+        commemorates: !!formData.commemorates,
+        sources: !!(formData.sources && formData.sources.length),
     });
 
     return formData;

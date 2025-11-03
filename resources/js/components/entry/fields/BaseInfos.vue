@@ -19,6 +19,8 @@
                     (value) => {
                         console.log('Direct title input:', value);
                         $emit('update:title', value);
+                        // Validate after direct input
+                        setTimeout(() => validate(), 10);
                     }
                 "
                 name="title"
@@ -55,6 +57,8 @@
             @close="closeTitleOverlay"
             @create="createFromOverlay"
         />
+        <!-- Add a hidden validator to ensure we capture changes -->
+        <input type="hidden" :value="title" @change="validate" />
 
         <!-- Anzeige der Suchergebnisse -->
         <div v-if="wikidataResults.length > 0" class="search-results">
@@ -157,6 +161,11 @@ const openTitleOverlay = () => {
 
 const closeTitleOverlay = () => {
     showTitleOverlay.value = false;
+    // Ensure validation is triggered after overlay closes
+    setTimeout(() => {
+        validate();
+        emit("validation", isTitleValid.value && isDescriptionValid.value);
+    }, 50);
 };
 
 // Handle title update from overlay
@@ -166,6 +175,11 @@ const updateTitleFromOverlay = (newTitle) => {
     emit("update:title", newTitle);
     // We don't close the overlay here - it will be closed by the Save button
     // or by the create action in the TitleSearchOverlay
+
+    // Delay needed to ensure updates are processed before any validation
+    setTimeout(() => {
+        validate();
+    }, 50);
 };
 
 // Handle create from overlay
@@ -174,6 +188,12 @@ const createFromOverlay = (title) => {
     emit("update:title", title);
     // Close the overlay after creation
     closeTitleOverlay();
+
+    // Force validation after creation to update parent component
+    setTimeout(() => {
+        validate();
+        emit("validation", isTitleValid.value && isDescriptionValid.value);
+    }, 50);
 };
 
 // Description length check
@@ -220,6 +240,7 @@ const isDescriptionValid = computed(() => {
 
 // Validation function
 const validateBaseInfos = () => {
+    console.log("BaseInfos: validateBaseInfos called with title:", props.title);
     return isTitleValid.value && isDescriptionValid.value;
 };
 
