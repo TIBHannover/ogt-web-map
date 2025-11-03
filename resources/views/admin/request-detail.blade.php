@@ -2,46 +2,11 @@
 
 @php
 use App\Http\Controllers\WikidataPropertyController as WDPropertyController;
+@endphp
 
-// Utility function to format a Wikidata entity as a link
-function formatEntityLink($id, $label) {
-    return '<a href="https://www.wikidata.org/wiki/' . htmlspecialchars($id) . '" target="_blank" rel="noopener noreferrer">'
-        . htmlspecialchars($label ?: $id)
-        . ' <small>(' . htmlspecialchars($id) . ')</small></a>';
-}
+@include('admin.partials.wikidata-helpers')
 
-// Utility function to safely format a Wikidata entity
-function safeFormatWikidata($id) {
-    if (empty($id)) {
-        return '';
-    }
-
-    try {
-        // If it's a Wikidata ID (starts with Q or P)
-        if (is_string($id) && preg_match('/^[QP]\d+$/', $id)) {
-            $label = $id; // Default to ID if no label found
-
-            // Try to get label from Wikidata
-            try {
-                $entityData = WDPropertyController::getEntityData($id);
-                if ($entityData && isset($entityData['label'])) {
-                    $label = $entityData['label'];
-                }
-            } catch (\Exception $e) {
-                // Just use the ID if there's an error
-            }
-
-            return formatEntityLink($id, $label);
-        } else {
-            // If not a Wikidata ID, just return as is
-            return htmlspecialchars($id);
-        }
-    } catch (\Exception $e) {
-        // Fallback for any errors
-        return htmlspecialchars($id);
-    }
-}
-
+@php
 // Define the formatDateBasedOnPrecision function if it doesn't exist yet
 if (!function_exists('formatDateBasedOnPrecision')) {
     function formatDateBasedOnPrecision($dateString) {
