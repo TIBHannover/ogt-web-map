@@ -64,6 +64,7 @@
                     :selected-location="selectedLocationValue"
                     :location-search="locationSearchValue"
                     :location-qualifier="locationQualifierValue"
+                    :marker-icon-url="`/images/leaflet/markerIcons/coloredFilledWhite/memorials.svg`"
                     @update:map-zoom="
                         ($event) => emit('update:mapZoom', $event)
                     "
@@ -529,22 +530,9 @@ const getSectionInfoContent = (section) => {
     }
 };
 
-// Custom icon for the map marker
-const createCustomIcon = () => {
-    return L.icon({
-        iconUrl: `/images/leaflet/markerIcons/coloredFilledWhite/memorials.svg`,
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowUrl: "/images/leaflet/marker-shadow.png",
-        shadowSize: [41, 41],
-    });
-};
-
-// Create the marker icon - used for the map marker
-// eslint-disable-next-line no-unused-vars
-const markerIcon = createCustomIcon();
-// This will be used when the marker is added to the map
+// Note: We don't need to create a custom icon here anymore
+// The LocationSelector now accepts markerIconUrl prop directly
+// We're passing the memorials icon URL directly in the component props
 
 // Form validation rules
 const websiteRules = [

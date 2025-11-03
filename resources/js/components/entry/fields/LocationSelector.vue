@@ -128,6 +128,10 @@ const props = defineProps({
         type: String,
         default: "",
     },
+    markerIconUrl: {
+        type: String,
+        default: "/images/leaflet/markerIcons/coloredFilledWhite/events.svg",
+    },
 });
 
 const emit = defineEmits([
@@ -192,7 +196,7 @@ defineExpose({
 // Benutzerdefiniertes Marker-Icon erstellen
 const createCustomIcon = () => {
     return L.icon({
-        iconUrl: `/images/leaflet/markerIcons/coloredFilledWhite/events.svg`,
+        iconUrl: props.markerIconUrl,
         iconSize: [25, 41],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
@@ -201,7 +205,7 @@ const createCustomIcon = () => {
     });
 };
 
-// Icon für den Marker (verwende Q6983405 für Ereignisse)
+// Icon für den Marker (verwende übergebene URL oder Standard)
 const markerIcon = createCustomIcon();
 
 // Wird aufgerufen, wenn die Leaflet-Karte bereit ist
