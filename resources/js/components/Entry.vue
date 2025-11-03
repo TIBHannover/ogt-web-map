@@ -268,7 +268,78 @@
                                             </div>
                                         </div>
 
-                                        <!-- Staatspolizeistelle -->
+                                        <div
+                                            class="col-lg-4 col-md-6 col-sm-6 col-12 mb-3"
+                                        >
+                                            <div
+                                                class="type-box"
+                                                :class="{
+                                                    selected:
+                                                        formsType ===
+                                                        'Q106996250',
+                                                }"
+                                                @click="
+                                                    formsType = 'Q106996250';
+                                                    updateTypeInfo();
+                                                "
+                                            >
+                                                <div class="type-icon">
+                                                    <img
+                                                        src="/images/leaflet/markerIcons/coloredFilledWhite/fieldOffices.svg"
+                                                        alt="Ort des Gestapoterrors"
+                                                        width="48"
+                                                        height="48"
+                                                    />
+                                                </div>
+                                                <div class="type-label">
+                                                    <strong
+                                                        >Ort des
+                                                        Gestapoterrors</strong
+                                                    >
+                                                </div>
+                                                <div class="type-description">
+                                                    Orte, die mit dem Wirken der
+                                                    Gestapo verbunden waren
+                                                </div>
+                                                <div
+                                                    class="type-radio-container"
+                                                >
+                                                    <input
+                                                        v-model="formsType"
+                                                        name="type"
+                                                        type="radio"
+                                                        value="Q106996250"
+                                                        id="type-Q106996250"
+                                                        class="type-radio"
+                                                    />
+                                                    <label
+                                                        for="type-Q106996250"
+                                                        class="sr-only"
+                                                        >Ort des
+                                                        Gestapoterrors</label
+                                                    >
+                                                </div>
+                                                <div
+                                                    class="type-action-container"
+                                                >
+                                                    <button
+                                                        v-if="
+                                                            formsType ===
+                                                            'Q106996250'
+                                                        "
+                                                        type="button"
+                                                        class="type-action-button"
+                                                        @click="
+                                                            openTitleOverlay
+                                                        "
+                                                    >
+                                                        Jetzt einen Gestapo Ort
+                                                        anlegen
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <!--
                                         <div
                                             class="type-box"
@@ -802,11 +873,40 @@
                         />
                     </ErrorBoundary>
 
+                    <ErrorBoundary>
+                        <GestapoPlacesForm
+                            ref="gestapoPlacesFormRef"
+                            v-if="
+                                currentStep === 2 && formsType === 'Q106996250'
+                            "
+                            key="gestapo-places-form"
+                            v-model:formsTitle="formsTitle"
+                            v-model:formsDescription="formsDescription"
+                            v-model:wikidataResults="wikidataResults"
+                            v-model:mapZoom="mapZoom"
+                            v-model:mapCenter="mapCenter"
+                            v-model:selectedLocation="selectedLocation"
+                            v-model:locationSearch="locationSearch"
+                            v-model:locationQualifier="locationQualifier"
+                            v-model:imageUrl="imageUrl"
+                            v-model:imageFilename="imageFilename"
+                            v-model:selectedSources="selectedSources"
+                            @searchLocation="searchLocation"
+                            @handleMapClick="handleMapClick"
+                            @goToStep="goToStep"
+                            @infoButtonClick="showTypeInfoPopup"
+                            @select-existing-entity="selectExistingEntity"
+                            @submit="resetForm"
+                        />
+                    </ErrorBoundary>
+
                     <!-- Für andere Typen können ähnliche Formulare mit spezifischen Anforderungen erstellt werden -->
                     <div
                         v-if="
                             currentStep === 2 &&
-                            !['Q6983405', 'Q5', 'Q5003624'].includes(formsType)
+                            !['Q6983405', 'Q5003624', 'Q106996250'].includes(
+                                formsType,
+                            )
                         "
                         class="step-container"
                     >
@@ -914,6 +1014,7 @@ import { debounce } from "lodash";
 import { useRouter, useRoute } from "vue-router";
 import EventsForm from "./entry/EventsForm.vue";
 import MemorialForm from "./entry/MemorialForm.vue";
+import GestapoPlacesForm from "./entry/GestapoPlacesForm.vue";
 import TitleSearchOverlay from "./entry/fields/TitleSearchOverlay.vue";
 import PersonSearchOverlay from "./entry/fields/PersonSearchOverlay.vue";
 import glossaryItems from "../data/glossaryData";
@@ -1004,6 +1105,7 @@ const showNewPerpetratorForm = ref(false);
 const eventsFormRef = ref(null);
 const memorialFormRef = ref(null);
 const personFormRef = ref(null);
+const gestapoPlacesFormRef = ref(null);
 const newPerpetrator = ref({
     firstName: "",
     lastName: "",
@@ -1071,6 +1173,8 @@ const markerIcon = computed(() => {
     if (formsType.value === "Q6983405") return createCustomIcon("events");
     if (formsType.value === "Q5") return createCustomIcon("persons");
     if (formsType.value === "Q5003624") return createCustomIcon("memorials");
+    if (formsType.value === "Q106996250")
+        return createCustomIcon("fieldOffices");
     if (formsType.value === "Q108047567")
         return createCustomIcon("statePoliceOffices");
     if (formsType.value === "Q108047541")
@@ -1078,7 +1182,8 @@ const markerIcon = computed(() => {
     if (formsType.value === "Q277565")
         return createCustomIcon("laborEducationCamps");
     if (formsType.value === "Q40357") return createCustomIcon("prisons");
-    return createCustomIcon("events"); // Standard-Icon
+
+    return createCustomIcon("default");
 });
 
 const setFreeClientWidth = () => {
@@ -1104,6 +1209,11 @@ const checkScreenSize = () => {
 
 const typeInfoContent = ref("");
 const showMobileInfoOverlay = ref(false);
+
+// Watch for formsType changes and update the information content
+watch(formsType, () => {
+    updateTypeInfo();
+});
 
 const showTypeInfoPopup = (typeValue) => {
     // Store the type we're showing info for
@@ -1167,6 +1277,7 @@ const updateTypeInfoContent = () => {
         Q5: "Person",
         Q6983405: "Ereignis",
         Q5003624: "Erinnerungsort",
+        Q106996250: "Ort des Gestapoterrors",
         Q108047567: "Staatspolizeistelle",
         Q108047541: "Außendienststelle", // Im Glossar als "Außendienststelle"
         Q277565: "Arbeitserziehungslager",
@@ -2440,6 +2551,13 @@ const submitPersonForm = async (formData) => {
                     e,
                 );
             }
+
+            if (
+                gestapoPlacesFormRef.value &&
+                typeof gestapoPlacesFormRef.value.validateForm === "function"
+            ) {
+                gestapoPlacesFormRef.value.validateForm();
+            }
         }
 
         // If there was an error, make sure the user can still interact with the form
@@ -2458,6 +2576,7 @@ const resetForm = async () => {
         // Validate Events form
         if (
             eventsFormRef.value &&
+            formsType.value === "Q6983405" &&
             typeof eventsFormRef.value.validateForm === "function"
         ) {
             eventsFormRef.value.validateForm();
@@ -2469,6 +2588,14 @@ const resetForm = async () => {
             typeof personFormRef.value.validateForm === "function"
         ) {
             personFormRef.value.validateForm();
+        }
+    } else if (formsType.value === "Q106996250") {
+        // Validate GestapoPlaces form
+        if (
+            gestapoPlacesFormRef.value &&
+            typeof gestapoPlacesFormRef.value.validateForm === "function"
+        ) {
+            gestapoPlacesFormRef.value.validateForm();
         }
     }
 
@@ -2511,8 +2638,11 @@ const resetForm = async () => {
 
         // Form-specific validations below
 
-        if (formsType.value === "Q6983405") {
-            // Event-specific validations
+        if (
+            formsType.value === "Q6983405" ||
+            formsType.value === "Q106996250"
+        ) {
+            // Event-specific and GestapoPlace validations
             if (!selectedLocation.value) {
                 missingFields.push("Standort");
             }
@@ -2543,7 +2673,8 @@ const resetForm = async () => {
         if (
             (formsType.value === "Q6983405" ||
                 formsType.value === "Q5" ||
-                formsType.value === "Q5003624") &&
+                formsType.value === "Q5003624" ||
+                formsType.value === "Q106996250") &&
             (!selectedSources.value || selectedSources.value.length === 0)
         ) {
             missingFields.push("Quellen");
@@ -2846,6 +2977,138 @@ const resetForm = async () => {
                         }
                     } catch (error) {
                         console.error("Error getting memorial data:", error);
+                        // Continue with basic form data
+                    }
+                }
+
+                // Add GestapoPlaces-specific fields if it's a Gestapo place
+                if (
+                    formsType.value === "Q106996250" &&
+                    gestapoPlacesFormRef.value
+                ) {
+                    console.log(
+                        "Adding GestapoPlaces-specific fields to form data",
+                    );
+
+                    try {
+                        // Check if getData method exists
+                        if (
+                            typeof gestapoPlacesFormRef.value.getData ===
+                            "function"
+                        ) {
+                            const gestapoPlaceData =
+                                gestapoPlacesFormRef.value.getData();
+
+                            // Add the GestapoPlaces-specific fields to the form data
+                            formData = {
+                                ...formData,
+                                entity_subtype: gestapoPlaceData.entity_subtype,
+                                founding_date: gestapoPlaceData.founding_date,
+                                founding_date_qualifier:
+                                    gestapoPlaceData.founding_date_qualifier,
+                                dissolution_date:
+                                    gestapoPlaceData.dissolution_date,
+                                dissolution_date_qualifier:
+                                    gestapoPlaceData.dissolution_date_qualifier,
+                                address: gestapoPlaceData.address,
+                                key_event: gestapoPlaceData.key_event,
+                                prisoner_count: gestapoPlaceData.prisoner_count,
+                                prisoner_count_qualifier:
+                                    gestapoPlaceData.prisoner_count_qualifier,
+                                parent_organization:
+                                    gestapoPlaceData.parent_organization,
+                                child_organization:
+                                    gestapoPlaceData.child_organization,
+                                predecessor_organization:
+                                    gestapoPlaceData.predecessor_organization,
+                                successor_organization:
+                                    gestapoPlaceData.successor_organization,
+                            };
+
+                            console.log(
+                                "GestapoPlaces form data:",
+                                gestapoPlaceData,
+                            );
+                        } else {
+                            // Get data directly from refs if getData is not available
+                            console.log(
+                                "getData method not found, accessing field values directly",
+                            );
+
+                            // Access the ref values directly
+                            if (
+                                gestapoPlacesFormRef.value.gestapoPlaceTypeValue
+                            ) {
+                                formData.entity_subtype =
+                                    gestapoPlacesFormRef.value.gestapoPlaceTypeValue;
+                            }
+                            if (gestapoPlacesFormRef.value.foundingDateValue) {
+                                formData.founding_date =
+                                    gestapoPlacesFormRef.value.foundingDateValue;
+                            }
+                            if (
+                                gestapoPlacesFormRef.value
+                                    .foundingDateQualifierValue
+                            ) {
+                                formData.founding_date_qualifier =
+                                    gestapoPlacesFormRef.value.foundingDateQualifierValue;
+                            }
+                            if (
+                                gestapoPlacesFormRef.value.dissolutionDateValue
+                            ) {
+                                formData.dissolution_date =
+                                    gestapoPlacesFormRef.value.dissolutionDateValue;
+                            }
+                            if (
+                                gestapoPlacesFormRef.value
+                                    .dissolutionDateQualifierValue
+                            ) {
+                                formData.dissolution_date_qualifier =
+                                    gestapoPlacesFormRef.value.dissolutionDateQualifierValue;
+                            }
+                            if (gestapoPlacesFormRef.value.addressValue) {
+                                formData.address =
+                                    gestapoPlacesFormRef.value.addressValue;
+                            }
+                            if (gestapoPlacesFormRef.value.keyEventValue) {
+                                formData.key_event =
+                                    gestapoPlacesFormRef.value.keyEventValue;
+                            }
+                            if (gestapoPlacesFormRef.value.prisonerCountValue) {
+                                formData.prisoner_count =
+                                    gestapoPlacesFormRef.value.prisonerCountValue;
+                            }
+                            if (
+                                gestapoPlacesFormRef.value
+                                    .prisonerCountQualifierValue
+                            ) {
+                                formData.prisoner_count_qualifier =
+                                    gestapoPlacesFormRef.value.prisonerCountQualifierValue;
+                            }
+                            if (gestapoPlacesFormRef.value.parentOrgValue) {
+                                formData.parent_organization =
+                                    gestapoPlacesFormRef.value.parentOrgValue;
+                            }
+                            if (gestapoPlacesFormRef.value.childOrgValue) {
+                                formData.child_organization =
+                                    gestapoPlacesFormRef.value.childOrgValue;
+                            }
+                            if (
+                                gestapoPlacesFormRef.value.predecessorOrgValue
+                            ) {
+                                formData.predecessor_organization =
+                                    gestapoPlacesFormRef.value.predecessorOrgValue;
+                            }
+                            if (gestapoPlacesFormRef.value.successorOrgValue) {
+                                formData.successor_organization =
+                                    gestapoPlacesFormRef.value.successorOrgValue;
+                            }
+                        }
+                    } catch (error) {
+                        console.error(
+                            "Error getting GestapoPlaces data:",
+                            error,
+                        );
                         // Continue with basic form data
                     }
                 }
