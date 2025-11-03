@@ -323,8 +323,11 @@ const handleSearchLocation = () => {
     clearSearchError();
 
     // Update parent and trigger search
-    emit("update:locationSearch", localLocationSearch.value);
-    emit("searchLocation");
+    const searchValue = localLocationSearch.value;
+    emit("update:locationSearch", searchValue);
+
+    // Send the actual string value, not a ref object
+    emit("searchLocation", searchValue);
 };
 
 // Watch for selectedLocation changes to clear error

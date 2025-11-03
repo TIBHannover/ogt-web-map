@@ -76,8 +76,8 @@
                     "
                     @update:location-search="locationSearchValue = $event"
                     @update:location-qualifier="locationQualifierValue = $event"
-                    @search-location="onSearchLocation"
-                    @handle-map-click="onHandleMapClick"
+                    @searchLocation="onSearchLocation"
+                    @handleMapClick="onHandleMapClick"
                     @fieldFocus="setActiveField"
                     @infoButtonClick="openSectionInfo"
                     @validation="onLocationValidation"
@@ -606,7 +606,14 @@ const onSearchOperator = async (query) => {
 };
 
 const onSearchLocation = () => {
-    emit("searchLocation");
+    // Get the search value safely, handling both ref and string cases
+    const searchValue =
+        typeof locationSearchValue === "object" && locationSearchValue !== null
+            ? locationSearchValue.value
+            : locationSearchValue;
+
+    // Pass the value explicitly to the parent component
+    emit("searchLocation", searchValue);
 };
 
 const onHandleMapClick = (event) => {

@@ -714,7 +714,22 @@
                             @searchCause="searchCause"
                             @selectCause="selectCause"
                             @removeCause="removeCause"
-                            @searchLocation="searchLocation"
+                            @searchLocation="
+                                (value) => {
+                                    if (value) {
+                                        if (
+                                            typeof locationSearch ===
+                                                'object' &&
+                                            locationSearch !== null
+                                        ) {
+                                            locationSearch.value = value;
+                                        } else {
+                                            locationSearch = value;
+                                        }
+                                        searchLocation();
+                                    }
+                                }
+                            "
                             @handleMapClick="handleMapClick"
                             @goToStep="goToStep"
                             @submit="resetForm"
@@ -765,7 +780,22 @@
                             v-model:selectedSources="selectedSources"
                             @searchWikidataEntities="searchWikidataEntities"
                             @selectExistingEntity="selectExistingEntity"
-                            @searchLocation="searchLocation"
+                            @searchLocation="
+                                (value) => {
+                                    if (value) {
+                                        if (
+                                            typeof locationSearch ===
+                                                'object' &&
+                                            locationSearch !== null
+                                        ) {
+                                            locationSearch.value = value;
+                                        } else {
+                                            locationSearch = value;
+                                        }
+                                        searchLocation();
+                                    }
+                                }
+                            "
                             @handleMapClick="handleMapClick"
                             @goToStep="goToStep"
                             @submit="resetForm"
@@ -1384,14 +1414,29 @@ const handleMapClick = (event) => {
 };
 
 const searchLocation = async () => {
-    if (!locationSearch.value) return;
+    // Handle both ref and string cases
+    const searchValue =
+        typeof locationSearch === "object" && locationSearch !== null
+            ? locationSearch.value
+            : locationSearch;
+
+    if (!searchValue) {
+        return;
+    }
+
+    // Ensure searchValue is a string before proceeding
+    const searchValueString = String(searchValue);
+
+    if (searchValueString.trim() === "") {
+        return;
+    }
 
     try {
         const response = await axios.get(
             `https://nominatim.openstreetmap.org/search`,
             {
                 params: {
-                    q: locationSearch.value,
+                    q: searchValueString,
                     format: "json",
                     limit: 1,
                 },

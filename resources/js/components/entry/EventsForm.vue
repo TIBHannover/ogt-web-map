@@ -163,8 +163,8 @@
                         @update:location-qualifier="
                             locationQualifierValue = $event
                         "
-                        @search-location="onSearchLocation"
-                        @handle-map-click="onHandleMapClick"
+                        @searchLocation="onSearchLocation"
+                        @handleMapClick="onHandleMapClick"
                         @fieldFocus="setActiveField"
                         @infoButtonClick="openSectionInfo"
                         @validation="onLocationValidation"
@@ -1091,7 +1091,15 @@ const onSearchCause = (query) => emit("searchCause", query);
 const onSelectCause = (cause) => emit("selectCause", cause);
 const onRemoveCause = (causeId) => emit("removeCause", causeId);
 
-const onSearchLocation = () => emit("searchLocation");
+const onSearchLocation = () => {
+    // Get the search value safely, handling both ref and string cases
+    const searchValue =
+        typeof locationSearchValue === "object" && locationSearchValue !== null
+            ? locationSearchValue.value
+            : locationSearchValue;
+
+    emit("searchLocation", searchValue);
+};
 const onHandleMapClick = (e) => {
     // Lokaler Map-Click-Handler, der die Emit-Funktion aufruft
     emit("handleMapClick", e);
