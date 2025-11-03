@@ -51,6 +51,9 @@ class EntityFactory
             case "Q5003624": // Memorial place
                 return Memorial::fromArray($data);
 
+            case "Q106996250": // Ort des Gestapoterrors
+                return GestapoPlace::fromArray($data);
+
             default:
                 throw new \InvalidArgumentException(
                     "Unsupported entity type: {$type}",

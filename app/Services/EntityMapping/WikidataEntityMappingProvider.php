@@ -19,6 +19,7 @@ class WikidataEntityMappingProvider implements EntityMappingProviderInterface
         "App\Models\Wikibase\Book" => "Q7725634", // literary work
         "App\Models\Wikibase\Structure" => "Q811979", // architectural structure
         "App\Models\Wikibase\Memorial" => "Q5003624", // memorial
+        "App\Models\Wikibase\GestapoPlace" => "Q106996250", // Ort des Gestapoterrors
     ];
 
     /**
@@ -94,6 +95,18 @@ class WikidataEntityMappingProvider implements EntityMappingProviderInterface
         "ADDRESS" => "P6375",
         "WEBSITE" => "P856",
         "QUALIFIER_OF" => "P805",
+
+        // GestapoPlace properties
+        "FOUNDING_DATE" => "P571",
+        "DISSOLUTION_DATE" => "P576",
+        "PRISONER_COUNT" => "P5630",
+        "PARENT_ORGANIZATION" => "P749",
+        "CHILD_ORGANIZATION" => "P355",
+        "PREDECESSOR" => "P1365",
+        "SUCCESSOR" => "P1366",
+        "SOURCING_CIRCUMSTANCES" => "P1480",
+        "DIRECTOR" => "P1037",
+        "EMPLOYEES_COUNT" => "P1128",
     ];
 
     /**

@@ -81,4 +81,27 @@ if (!function_exists('formatDateWithQualifier')) {
         return $formattedDate;
     }
 }
+
+if (!function_exists('formatNumberWithQualifier')) {
+    /**
+     * Format a number with an optional qualifier
+     *
+     * @param string|null $number The number to format
+     * @param string|null $qualifier Optional qualifier for the number
+     * @return string Formatted number with qualifier
+     */
+    function formatNumberWithQualifier($number, $qualifier = null) {
+        if (empty($number)) {
+            return '';
+        }
+
+        $formattedNumber = number_format((float)$number, 0, ',', '.');
+
+        if (!empty($qualifier)) {
+            $formattedNumber .= ' <span class="text-muted">(' . htmlspecialchars($qualifier) . ')</span>';
+        }
+
+        return $formattedNumber;
+    }
+}
 @endphp

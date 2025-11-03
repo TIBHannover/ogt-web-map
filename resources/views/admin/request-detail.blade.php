@@ -487,6 +487,10 @@ if (!function_exists('formatDateBasedOnPrecision')) {
                         @include('admin.partials.memorial-entry', ['request' => $request])
                     @endif
 
+                    @if($request->type == 'Q106996250')
+                        @include('admin.partials.gestapo-place-entry', ['request' => $request])
+                    @endif
+
                     <!-- Person (Q5) -->
                     @if($request->type == 'Q5')
                         <!-- Display the person data from victims array for Q5 entity types -->
