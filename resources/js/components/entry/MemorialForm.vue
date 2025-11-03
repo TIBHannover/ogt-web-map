@@ -144,6 +144,7 @@
                         :propertyId="'P1619'"
                         :validationMessageRequired="'Bitte gib das Eröffnungsdatum an.'"
                         :validationMessageInvalid="'Das Eröffnungsdatum hat ein ungültiges Format.'"
+                        :initialShowErrors="false"
                         @validation="onTimeValidation"
                     />
                 </div>
@@ -787,8 +788,10 @@ const isLocationValid = ref(true);
 // Validation handlers - used when form fields report their validation state
 // These are called by the respective components during validation
 const onTimeValidation = (status) => {
-    // Opening date is optional, so always mark as valid
-    isTimeValid.value = true;
+    // For memorial form, opening date is optional
+    // We'll store the actual validation status but not enforce it
+    isTimeValid.value = true; // Always true since opening date is optional
+    console.log("MemorialForm: Opening date validation (optional):", status);
 };
 
 const onBaseInfoValidation = (status) => {
@@ -817,6 +820,7 @@ const validateForm = () => {
     errorValue.value = "";
     emit("update:error", "");
 
+    // Only show validation errors when form is being submitted
     showValidationErrors.value = true;
 
     console.log("MemorialForm: Checking component refs:", {
@@ -850,6 +854,9 @@ const validateForm = () => {
         commemoratesValue.value,
     );
 
+    // Note: Opening date (isTimeValid) is optional for memorials
+    // so we don't include it in the validation check
+
     const isValid =
         baseInfoValid && sourcesValid && locationValid && commemoratesValid;
     console.log("MemorialForm: Overall validation result:", isValid);
@@ -860,6 +867,7 @@ const validateForm = () => {
         if (!commemoratesValid) errors.push("Erinnert an");
         if (!locationValid) errors.push("Standort");
         if (!sourcesValid) errors.push("Quellenangaben");
+        // Time validation is not included as it's optional for memorials
 
         const errorMsg = `Bitte fülle alle Pflichtfelder aus: ${errors.join(", ")}`;
         errorValue.value = errorMsg;

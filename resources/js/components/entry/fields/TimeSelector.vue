@@ -237,15 +237,27 @@
 
         <ValidationError
             v-if="localEventTimeType === 'point'"
-            :show="showValidationErrors && !isPointValid"
-            message="Bitte gebe ein Datum für das Ereignis ein."
+            :show="
+                showValidationErrors &&
+                !isPointValid &&
+                (hasInteracted || props.initialShowErrors)
+            "
+            :message="validationMessageRequired"
             showIcon
         />
 
         <ValidationError
             v-if="localEventTimeType === 'range'"
-            :show="showValidationErrors && !isRangeValid"
-            message="Bitte gebe sowohl Beginn- als auch Enddatum für den Zeitraum ein."
+            :message="
+                localEventTimeType === 'range'
+                    ? 'Bitte gebe sowohl Beginn- als auch Enddatum für den Zeitraum ein.'
+                    : validationMessageRequired
+            "
+            :show="
+                showValidationErrors &&
+                !isRangeValid &&
+                (hasInteracted || props.initialShowErrors)
+            "
             showIcon
         />
     </div>
@@ -406,7 +418,12 @@
 
     <!-- Validation Error Messages -->
     <ValidationError
-        :show="showValidationErrors && !isValid && hasInteracted"
+        :show="
+            showValidationErrors &&
+            !isValid &&
+            hasInteracted &&
+            props.initialShowErrors === false
+        "
         :message="validationMessageRequired"
         showIcon
     />
@@ -502,6 +519,10 @@ const props = defineProps({
     validationMessageInvalid: {
         type: String,
         default: "Das Datumsformat ist ungültig.",
+    },
+    initialShowErrors: {
+        type: Boolean,
+        default: false,
     },
 });
 
@@ -1071,6 +1092,7 @@ const validateFields = () => {
 // Use the validation composable
 const { validate, showErrors } = useValidation(validateFields, {
     emit,
+    initialShowErrors: false,
     watchCallback: () => [
         props.hideToggle ? "point" : localEventTimeType.value,
         eventDate.value,
@@ -1217,7 +1239,8 @@ watch(
 
 // Methods to handle field interaction
 const onFieldBlur = () => {
-    // Show validation errors if fields are left empty
+    // Mark as interacted and show validation errors if fields are left empty
+    hasInteracted.value = true;
     if (!isValid.value) {
         showValidationErrors.value = true;
     }
