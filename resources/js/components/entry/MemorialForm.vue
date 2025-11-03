@@ -15,8 +15,8 @@
                     :description="description"
                     :entry-type="props.entryType"
                     :wikidata-results="wikidataResultsValue"
-                    @update:title="title = $event"
-                    @update:description="description = $event"
+                    @update:title="(val) => (title = val)"
+                    @update:description="(val) => (description = val)"
                     @fieldFocus="setActiveField"
                     @focusin="setActiveSection('title')"
                     @infoButtonClick="openSectionInfo"
@@ -74,8 +74,12 @@
                     @update:selected-location="
                         ($event) => emit('update:selectedLocation', $event)
                     "
-                    @update:location-search="locationSearchValue = $event"
-                    @update:location-qualifier="locationQualifierValue = $event"
+                    @update:location-search="
+                        (val) => (locationSearchValue = val)
+                    "
+                    @update:location-qualifier="
+                        (val) => (locationQualifierValue = val)
+                    "
                     @searchLocation="onSearchLocation"
                     @handleMapClick="onHandleMapClick"
                     @fieldFocus="setActiveField"
@@ -341,25 +345,85 @@ const emit = defineEmits([
     "submit",
 ]);
 
-// Local reactive refs for two-way binding
-const title = ref(props.formsTitle);
-const description = ref(props.formsDescription);
-const wikidataResultsValue = ref(props.wikidataResults);
+// Use computed properties for two-way binding
+const title = computed({
+    get: () => props.formsTitle,
+    set: (value) => {
+        emit("update:formsTitle", value);
+    },
+});
+const description = computed({
+    get: () => props.formsDescription,
+    set: (value) => {
+        emit("update:formsDescription", value);
+    },
+});
+const wikidataResultsValue = computed({
+    get: () => props.wikidataResults,
+    set: (value) => {
+        emit("update:wikidataResults", value);
+    },
+});
 
 // Coordinates, location
-const mapZoomValue = ref(props.mapZoom);
-const mapCenterValue = ref(props.mapCenter);
-const selectedLocationValue = ref(props.selectedLocation);
-const locationSearchValue = ref(props.locationSearch);
-const locationQualifierValue = ref(props.locationQualifier);
-const errorValue = ref(props.error);
+const mapZoomValue = computed({
+    get: () => props.mapZoom,
+    set: (value) => {
+        emit("update:mapZoom", value);
+    },
+});
+const mapCenterValue = computed({
+    get: () => props.mapCenter,
+    set: (value) => {
+        emit("update:mapCenter", value);
+    },
+});
+const selectedLocationValue = computed({
+    get: () => props.selectedLocation,
+    set: (value) => {
+        emit("update:selectedLocation", value);
+    },
+});
+const locationSearchValue = computed({
+    get: () => props.locationSearch,
+    set: (value) => {
+        emit("update:locationSearch", value);
+    },
+});
+const locationQualifierValue = computed({
+    get: () => props.locationQualifier,
+    set: (value) => {
+        emit("update:locationQualifier", value);
+    },
+});
+const errorValue = computed({
+    get: () => props.error,
+    set: (value) => {
+        emit("update:error", value);
+    },
+});
 
 // Image
-const imageUrlValue = ref(props.imageUrl);
-const imageFilenameValue = ref(props.imageFilename);
+const imageUrlValue = computed({
+    get: () => props.imageUrl,
+    set: (value) => {
+        emit("update:imageUrl", value);
+    },
+});
+const imageFilenameValue = computed({
+    get: () => props.imageFilename,
+    set: (value) => {
+        emit("update:imageFilename", value);
+    },
+});
 
-// Sources
-const selectedSourcesValue = ref(props.selectedSources);
+// Source
+const selectedSourcesValue = computed({
+    get: () => props.selectedSources,
+    set: (value) => {
+        emit("update:selectedSources", value);
+    },
+});
 
 // Specific fields for MemorialForm
 const commemoratesValue = ref(null);
@@ -372,12 +436,14 @@ const operatorSearchResultsValue = ref([]);
 const isOperatorSearchLoading = ref(false);
 const operatorSearchPerformed = ref(false);
 
-// Optional fields
 const openingDateValue = ref("");
-const openingDateQualifierValue = ref("");
+const openingDateQualifierValue = ref(null);
 
 const addressValue = ref("");
 const websiteValue = ref("");
+
+// Log for debugging
+console.log("MemorialForm initialized with computed properties");
 
 // Dialog states
 const imageDialogVisible = ref(false);
@@ -801,113 +867,8 @@ const selectSource = (source) => {
     closeSourcesDialog();
 };
 
-// Watch for prop changes
-watch(
-    () => props.formsTitle,
-    (newVal) => {
-        title.value = newVal;
-    },
-);
-
-watch(
-    () => props.formsDescription,
-    (newVal) => {
-        description.value = newVal;
-    },
-);
-
-watch(
-    () => props.wikidataResults,
-    (newVal) => {
-        wikidataResultsValue.value = newVal;
-    },
-);
-
-watch(
-    () => props.mapZoom,
-    (newVal) => {
-        mapZoomValue.value = newVal;
-    },
-);
-
-watch(
-    () => props.mapCenter,
-    (newVal) => {
-        mapCenterValue.value = newVal;
-    },
-);
-
-watch(
-    () => props.selectedLocation,
-    (newVal) => {
-        selectedLocationValue.value = newVal;
-    },
-);
-
-watch(
-    () => props.locationSearch,
-    (newVal) => {
-        locationSearchValue.value = newVal;
-    },
-);
-
-watch(
-    () => props.locationQualifier,
-    (newVal) => {
-        locationQualifierValue.value = newVal;
-    },
-);
-
-watch(
-    () => props.error,
-    (newVal) => {
-        errorValue.value = newVal;
-    },
-);
-
-watch(
-    () => props.imageUrl,
-    (newVal) => {
-        imageUrlValue.value = newVal;
-    },
-);
-
-watch(
-    () => props.imageFilename,
-    (newVal) => {
-        imageFilenameValue.value = newVal;
-    },
-);
-
-watch(
-    () => props.selectedSources,
-    (newVal) => {
-        selectedSourcesValue.value = newVal;
-    },
-);
-
-// Watch for changes in selectedSourcesValue and emit to parent
-watch(
-    () => selectedSourcesValue.value,
-    (newVal) => {
-        emit("update:selectedSources", newVal);
-    },
-);
-
-// Emit changes back to parent
-watch(
-    () => title.value,
-    (newVal) => {
-        emit("update:formsTitle", newVal);
-    },
-);
-
-watch(
-    () => description.value,
-    (newVal) => {
-        emit("update:formsDescription", newVal);
-    },
-);
+// No need to watch props since we're using computed properties
+// that will automatically stay in sync with the props
 
 // Component setup
 onMounted(() => {

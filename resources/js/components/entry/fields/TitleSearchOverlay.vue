@@ -205,9 +205,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from "vue";
+import { ref, onMounted, onUnmounted, watch, computed } from "vue";
 import axios from "axios";
-import { computed } from "vue";
+import { debounce } from "lodash";
 
 const props = defineProps({
     initialTitle: {
@@ -237,6 +237,7 @@ const isLoading = ref(false);
 const searchPerformed = ref(false);
 const noExistingEntry = ref(false);
 const isMobileView = ref(false);
+const lastEmittedTitle = ref(props.initialTitle || "");
 
 // Watch for changes to initialTitle
 watch(
@@ -336,9 +337,27 @@ const performSearch = async (event) => {
 };
 
 // Update title when input changes
+
+// Use a debounced function to emit title updates
+const emitTitleUpdate = debounce((value) => {
+    console.log("Emitting debounced title update:", value);
+    // Only emit if the value has changed
+    if (lastEmittedTitle.value !== value) {
+        lastEmittedTitle.value = value;
+        // Only emit title updates in create mode (not update mode)
+        // This prevents the overlay from closing in update mode
+        if (props.context !== "update") {
+            emit("update:title", value);
+        }
+    }
+}, 500); // 500ms debounce
+
 const onInput = (value) => {
-    // Always emit update event regardless of context
-    emit("update:title", value);
+    // Store locally without emitting
+    localTitle.value = value;
+
+    // Debounce the update event
+    emitTitleUpdate(value);
 
     // Clear any previous search results when typing
     if (searchResults.value.length > 0 && value !== props.initialTitle) {
@@ -352,8 +371,41 @@ const openWikidata = (id) => {
     window.open(`https://www.wikidata.org/wiki/${id}`, "_blank");
 };
 
+// Save and close function for update mode
+const saveAndClose = () => {
+    // Cancel any pending debounced updates
+    emitTitleUpdate.cancel();
+
+    // Only if value has changed
+    if (localTitle.value !== lastEmittedTitle.value) {
+        console.log("Saving final title value:", localTitle.value);
+        lastEmittedTitle.value = localTitle.value;
+        emit("update:title", localTitle.value);
+    }
+
+    // Close the dialog with a small delay to allow update to propagate
+    setTimeout(() => {
+        handleClose();
+    }, 100);
+};
+
+// Clean up state when dialog is closed
+
 // Clean up state when dialog is closed
 const handleClose = (emitClose = true) => {
+    // Cancel any pending debounced updates
+    emitTitleUpdate.cancel();
+
+    // For 'update' mode, we only emit on explicit save
+    // For 'create' mode, we emit on close to ensure we have the latest value
+    if (
+        props.context !== "update" &&
+        localTitle.value !== lastEmittedTitle.value
+    ) {
+        lastEmittedTitle.value = localTitle.value;
+        emit("update:title", localTitle.value);
+    }
+
     searchResults.value = [];
     searchPerformed.value = false;
     noExistingEntry.value = false;
@@ -762,8 +814,17 @@ watch(
 }
 
 .create-button:disabled {
-    background-color: #bbdefb;
+    background-color: #bdbdbd;
     cursor: not-allowed;
+}
+
+.save-button {
+    background-color: #4caf50;
+    color: white;
+}
+
+.save-button:hover {
+    background-color: #388e3c;
 }
 
 .close-overlay {

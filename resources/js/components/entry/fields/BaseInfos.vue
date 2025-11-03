@@ -15,7 +15,12 @@
         <div class="title-input-container">
             <v-text-field
                 :model-value="title"
-                @update:model-value="$emit('update:title', $event)"
+                @update:model-value="
+                    (value) => {
+                        console.log('Direct title input:', value);
+                        $emit('update:title', value);
+                    }
+                "
                 name="title"
                 maxlength="250"
                 placeholder="z.B. Novemberpogrom 1938 in Osnabrück"
@@ -159,13 +164,15 @@ const updateTitleFromOverlay = (newTitle) => {
     console.log("BaseInfos: Title updated from overlay:", newTitle);
     // Do not mutate props directly
     emit("update:title", newTitle);
-    closeTitleOverlay();
+    // We don't close the overlay here - it will be closed by the Save button
+    // or by the create action in the TitleSearchOverlay
 };
 
 // Handle create from overlay
 const createFromOverlay = (title) => {
     console.log("BaseInfos: Title created from overlay:", title);
     emit("update:title", title);
+    // Close the overlay after creation
     closeTitleOverlay();
 };
 
