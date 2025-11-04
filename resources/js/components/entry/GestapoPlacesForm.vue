@@ -8,7 +8,7 @@
                 Schritt 2: Ort des Gestapoterrors eingeben
             </h2>
             <form class="forms" @submit.prevent>
-                <!-- Typ des Gestapoterror-Orts (P31) - erste Dropdown -->
+                <!-- Typ des Gestapoterror-Orts (P31) - Radio Buttons als Boxen -->
                 <div class="container-section gestapo-place-type-section">
                     <div class="section-header">
                         <label class="section-label required"
@@ -22,16 +22,72 @@
                             <v-icon>mdi-information-variant</v-icon>
                         </button>
                     </div>
-                    <VSelect
-                        v-model="gestapoPlaceTypeValue"
-                        :items="gestapoPlaceTypes"
-                        item-title="label"
-                        item-value="value"
-                        label="Typ des Ortes"
-                        required
-                        @update:modelValue="onGestapoPlaceTypeChange"
-                        @focus="setActiveField('gestapoPlaceType')"
-                    />
+                    <div class="gestapo-place-type-radio-group">
+                        <div
+                            v-for="placeType in gestapoPlaceTypes"
+                            :key="placeType.value"
+                            class="place-type-radio-box"
+                            :class="{
+                                selected:
+                                    gestapoPlaceTypeValue === placeType.value,
+                            }"
+                            @click="
+                                gestapoPlaceTypeValue = placeType.value;
+                                onGestapoPlaceTypeChange();
+                            "
+                            @focus="setActiveField('gestapoPlaceType')"
+                            tabindex="0"
+                        >
+                            <div class="radio-box-content">
+                                <img
+                                    class="place-type-icon"
+                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/${placeType.iconId}.svg`"
+                                    :alt="placeType.label"
+                                />
+                                <span class="place-type-label">{{
+                                    placeType.label
+                                }}</span>
+                                <div
+                                    class="radio-indicator"
+                                    v-if="
+                                        gestapoPlaceTypeValue ===
+                                        placeType.value
+                                    "
+                                >
+                                    <v-icon>mdi-check</v-icon>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        v-if="gestapoPlaceTypeValue && typeGlossaryInfo"
+                        class="place-type-info-text"
+                    >
+                        <div
+                            v-if="!showFullGlossaryText"
+                            class="shortened-text"
+                            v-html="shortenedTypeGlossaryInfo"
+                        ></div>
+                        <div v-else v-html="typeGlossaryInfo"></div>
+                        <div
+                            class="read-more-link"
+                            v-if="
+                                typeGlossaryInfo &&
+                                typeGlossaryInfo.length > 300
+                            "
+                        >
+                            <a
+                                href="#"
+                                @click.prevent="toggleGlossaryTextExpansion"
+                            >
+                                {{
+                                    showFullGlossaryText
+                                        ? "Weniger anzeigen"
+                                        : "Mehr lesen"
+                                }}
+                            </a>
+                        </div>
+                    </div>
                     <ValidationError
                         :show="showValidationErrors && !isGestapoPlaceTypeValid"
                         message="Bitte wählen Sie den Typ des Gestapoterror-Ortes."
@@ -497,7 +553,7 @@ import SourcesSelector from "./fields/SourcesSelector.vue";
 import ValidationError from "../helpers/ValidationError.vue";
 import Lightbox from "../helpers/Lightbox.vue";
 import axios from "axios";
-import { VSelect, VIcon, VDialog } from "vuetify/components";
+import { VIcon, VDialog } from "vuetify/components";
 import { useFetchInfo } from "./composables/useFetchInfo";
 
 // Props
@@ -580,16 +636,180 @@ const emit = defineEmits([
 const title = ref(props.formsTitle);
 const description = ref(props.formsDescription);
 
-// Dropdown for the GestapoPlace Type
+// Style for the component
+const componentStyles = `
+    .gestapo-place-type-radio-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .place-type-radio-box {
+        flex: 0 0 calc(33.333% - 15px);
+        height: 120px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    @media (max-width: 768px) {
+        .place-type-radio-box {
+            flex: 0 0 calc(50% - 15px);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .place-type-radio-box {
+            flex: 0 0 100%;
+        }
+    }
+
+    .place-type-radio-box:hover {
+        border-color: #1976d2;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .place-type-radio-box.selected {
+        border-color: #1976d2;
+        background-color: rgba(25, 118, 210, 0.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .radio-box-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        width: 100%;
+    }
+
+    .place-type-icon {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 10px;
+    }
+
+    .place-type-label {
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .radio-indicator {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        color: #1976d2;
+    }
+
+    .place-type-info-text {
+        padding: 15px;
+        margin-bottom: 20px;
+        background-color: #f5f5f5;
+        border-radius: 4px;
+        border-left: 4px solid #1976d2;
+    }
+
+    .read-more-link {
+        text-align: right;
+        margin-top: 10px;
+        font-weight: 500;
+    }
+
+    .read-more-link a {
+        color: #1976d2;
+        text-decoration: none;
+    }
+
+    .read-more-link a:hover {
+        text-decoration: underline;
+    }
+
+    .shortened-text {
+        position: relative;
+    }
+`;
+// Append the style to the document
+if (typeof document !== "undefined") {
+    const styleElement = document.createElement("style");
+    styleElement.textContent = componentStyles;
+    document.head.appendChild(styleElement);
+}
+
+// Radio buttons for the GestapoPlace Type
 const gestapoPlaceTypeValue = ref(null);
 const gestapoPlaceTypes = [
-    { label: "Arbeitserziehungslager", value: "Q277565" },
-    { label: "Gefängnis", value: "Q40357" },
-    { label: "Erweitertes Polizeigefängnis", value: "Q108047650" },
-    { label: "Außendienststelle", value: "Q108047541" },
-    { label: "Staatspolizeistelle", value: "Q108047567" },
-    { label: "Staatspolizeileitstelle", value: "Q108047581" },
+    {
+        label: "Arbeitserziehungslager",
+        value: "Q277565",
+        iconId: "laborEducationCamps",
+    },
+    { label: "Gefängnis", value: "Q40357", iconId: "prisons" },
+    {
+        label: "Erweitertes Polizeigefängnis",
+        value: "Q108047650",
+        iconId: "extPolicePrisons",
+    },
+    { label: "Außendienststelle", value: "Q108047541", iconId: "fieldOffices" },
+    {
+        label: "Staatspolizeistelle",
+        value: "Q108047567",
+        iconId: "statePoliceOffices",
+    },
+    {
+        label: "Staatspolizeileitstelle",
+        value: "Q108047581",
+        iconId: "statePoliceHeadquarters",
+    },
 ];
+
+// Get glossary info for the selected place type
+import glossaryItems from "../../data/glossaryData";
+const showFullGlossaryText = ref(false);
+
+const typeGlossaryInfo = computed(() => {
+    if (!gestapoPlaceTypeValue.value) return null;
+
+    const selectedType = gestapoPlaceTypes.find(
+        (type) => type.value === gestapoPlaceTypeValue.value,
+    );
+    if (!selectedType) return null;
+
+    const glossaryItem = glossaryItems[selectedType.label];
+    if (!glossaryItem || !glossaryItem.descriptions) return null;
+
+    return glossaryItem.descriptions.join("<br><br>");
+});
+
+const shortenedTypeGlossaryInfo = computed(() => {
+    if (!typeGlossaryInfo.value) return null;
+
+    const maxChars = 300;
+    if (typeGlossaryInfo.value.length <= maxChars) {
+        return typeGlossaryInfo.value;
+    }
+
+    // Find the last complete sentence within the character limit
+    const truncated = typeGlossaryInfo.value.substring(0, maxChars);
+    const lastPeriod = truncated.lastIndexOf(".");
+
+    if (lastPeriod > 0) {
+        return truncated.substring(0, lastPeriod + 1);
+    }
+
+    return truncated + "...";
+});
+
+const toggleGlossaryTextExpansion = () => {
+    showFullGlossaryText.value = !showFullGlossaryText.value;
+};
 
 // Wikidata search results
 const wikidataResultsValue = computed({
@@ -706,8 +926,8 @@ const showValidationErrors = ref(false);
 // Active field tracking for help info
 const activeField = ref(null);
 const activeSection = ref(null);
-// These functions are needed but used indirectly via emit("infoButtonClick")
-const { getInfoContent, getSectionInfoContent } = useFetchInfo();
+// Import the composable for usage in the component
+useFetchInfo();
 const showMobileInfoOverlay = ref(false);
 
 // Set the active field for help info
