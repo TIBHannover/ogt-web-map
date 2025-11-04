@@ -231,9 +231,10 @@
                         :search-results="keyEventSearchResultsValue"
                         :is-loading="isKeyEventSearchLoading"
                         :search-performed="keyEventSearchPerformed"
-                        endpoint="events"
+                        endpoint="commemorates"
                         property-id="P793"
                         @search="onSearchKeyEvent"
+                        field="keyEvent"
                         @fieldFocus="setActiveField('keyEvent')"
                     />
                 </div>
@@ -261,6 +262,7 @@
                         endpoint="people"
                         property-id="P1037"
                         @search="onSearchDirector"
+                        field="director"
                         @fieldFocus="setActiveField('director')"
                     />
                 </div>
@@ -281,13 +283,14 @@
                         v-model="employeesValue"
                         label="Beschäftigte"
                         dialog-title="Beschäftigte auswählen"
-                        search-label="Nach Anzahl suchen..."
+                        search-label="Nach Personen suchen..."
                         :search-results="employeesSearchResultsValue"
                         :is-loading="isEmployeesSearchLoading"
                         :search-performed="employeesSearchPerformed"
-                        endpoint="quantity"
+                        endpoint="people"
                         property-id="P1128"
                         @search="onSearchEmployees"
+                        field="employees"
                         @fieldFocus="setActiveField('employees')"
                     />
                 </div>
@@ -349,6 +352,7 @@
                         endpoint="organizations"
                         property-id="P749"
                         @search="onSearchParentOrg"
+                        field="parentOrg"
                         @fieldFocus="setActiveField('parentOrg')"
                     />
                 </div>
@@ -378,6 +382,7 @@
                         endpoint="organizations"
                         property-id="P355"
                         @search="onSearchChildOrg"
+                        field="childOrg"
                         @fieldFocus="setActiveField('childOrg')"
                     />
                 </div>
@@ -407,6 +412,7 @@
                         endpoint="organizations"
                         property-id="P1365"
                         @search="onSearchPredecessorOrg"
+                        field="predecessorOrg"
                         @fieldFocus="setActiveField('predecessorOrg')"
                     />
                 </div>
@@ -436,6 +442,7 @@
                         endpoint="organizations"
                         property-id="P1366"
                         @search="onSearchSuccessorOrg"
+                        field="successorOrg"
                         @fieldFocus="setActiveField('successorOrg')"
                     />
                 </div>
@@ -1127,7 +1134,7 @@ const onSearchKeyEvent = async (query) => {
 
     try {
         const response = await axios.get(
-            `/api/wikidata/events?query=${encodeURIComponent(query)}`,
+            `/api/wikidata/search/commemorates?query=${encodeURIComponent(query)}`,
         );
         keyEventSearchResultsValue.value = response.data;
     } catch (error) {
@@ -1146,7 +1153,7 @@ const onSearchDirector = async (query) => {
 
     try {
         const response = await axios.get(
-            `/api/wikidata/people?query=${encodeURIComponent(query)}`,
+            `/api/wikidata/search/people?query=${encodeURIComponent(query)}`,
         );
         directorSearchResultsValue.value = response.data;
     } catch (error) {
@@ -1164,17 +1171,22 @@ const onSearchEmployees = async (query) => {
     employeesSearchPerformed.value = true;
 
     try {
-        // For quantity fields, we might not need an actual search endpoint
-        // This could be handled directly in the component
-        employeesSearchResultsValue.value = [
-            {
-                id: query,
-                label: query + " Beschäftigte",
-                description: "Anzahl der Beschäftigten",
-            },
-        ];
+        // For quantity fields, we use the people search endpoint like victim/perpetrator fields
+        const response = await axios.get(
+            `/api/wikidata/search/people?query=${encodeURIComponent(query)}`,
+        );
+        employeesSearchResultsValue.value =
+            response.data.length > 0
+                ? response.data
+                : [
+                      {
+                          id: query,
+                          label: query,
+                          description: "Anzahl der Beschäftigten",
+                      },
+                  ];
     } catch (error) {
-        console.error("Error handling employees quantity:", error);
+        console.error("Error searching employees:", error);
         employeesSearchResultsValue.value = [];
     } finally {
         isEmployeesSearchLoading.value = false;
@@ -1189,7 +1201,7 @@ const onSearchParentOrg = async (query) => {
 
     try {
         const response = await axios.get(
-            `/api/wikidata/organizations?query=${encodeURIComponent(query)}`,
+            `/api/wikidata/search/organizations?query=${encodeURIComponent(query)}`,
         );
         parentOrgSearchResultsValue.value = response.data;
     } catch (error) {
@@ -1208,7 +1220,7 @@ const onSearchChildOrg = async (query) => {
 
     try {
         const response = await axios.get(
-            `/api/wikidata/organizations?query=${encodeURIComponent(query)}`,
+            `/api/wikidata/search/organizations?query=${encodeURIComponent(query)}`,
         );
         childOrgSearchResultsValue.value = response.data;
     } catch (error) {
@@ -1227,7 +1239,7 @@ const onSearchPredecessorOrg = async (query) => {
 
     try {
         const response = await axios.get(
-            `/api/wikidata/organizations?query=${encodeURIComponent(query)}`,
+            `/api/wikidata/search/organizations?query=${encodeURIComponent(query)}`,
         );
         predecessorOrgSearchResultsValue.value = response.data;
     } catch (error) {
@@ -1246,7 +1258,7 @@ const onSearchSuccessorOrg = async (query) => {
 
     try {
         const response = await axios.get(
-            `/api/wikidata/organizations?query=${encodeURIComponent(query)}`,
+            `/api/wikidata/search/organizations?query=${encodeURIComponent(query)}`,
         );
         successorOrgSearchResultsValue.value = response.data;
     } catch (error) {
