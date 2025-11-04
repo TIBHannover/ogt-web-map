@@ -31,7 +31,7 @@
                 v-model="localLocationSearch"
                 class="map-search-input location-search-field"
                 placeholder="Adresse oder Ort suchen..."
-                @keydown.enter.prevent="handleSearchLocation"
+                @keydown.enter="handleSearchLocation($event)"
                 @focus="$emit('fieldFocus', 'location')"
                 :append-inner-icon="isSearching ? undefined : 'mdi-magnify'"
                 :loading="isSearching"
@@ -81,7 +81,8 @@
                 <l-marker
                     v-if="selectedLocation"
                     :lat-lng="selectedLocation"
-                    :icon="markerIcon"
+                    :icon="currentMarkerIcon"
+                    :key="markerIconKey"
                     :z-index-offset="1000"
                 ></l-marker>
             </l-map>
@@ -108,7 +109,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from "vue";
+import { ref, onMounted, onUnmounted, watch, computed } from "vue";
 import * as L from "leaflet";
 import { LMap, LTileLayer, LMarker } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -121,6 +122,8 @@ const searchErrorMessage = ref("");
 const noResultsError = ref(false);
 let markerIcon = null;
 const localLocationSearch = ref("");
+const isSearching = ref(false);
+const markerIconKey = ref(Date.now()); // Add a key to force marker rerendering
 
 // Original alert function reference for the monkey patch
 let originalAlert;
@@ -167,41 +170,6 @@ const emit = defineEmits([
     "searchError",
 ]);
 
-// Loading state for search
-const isSearching = ref(false);
-
-// Add style for the loading overlay
-if (typeof document !== "undefined") {
-    const styleElement = document.createElement("style");
-    styleElement.textContent = `
-        .location-loading-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.85);
-            z-index: 100;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .loading-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-
-        .loading-text {
-            font-weight: 500;
-            color: #1976d2;
-        }
-    `;
-    document.head.appendChild(styleElement);
-}
-
 // Initialize local search value from prop
 onMounted(() => {
     localLocationSearch.value = props.locationSearch || "";
@@ -238,7 +206,7 @@ const clearSearchError = () => {
     emit("searchError", "");
 };
 
-// Export validation methods and search error handling
+// Expose validation methods and search error handling
 defineExpose({
     isValid,
     validate,
@@ -266,11 +234,32 @@ const createCustomIcon = () => {
 
 // Icon für den Marker (verwende übergebene URL oder Standard)
 markerIcon = createCustomIcon();
+console.log("Initial marker icon created with URL:", props.markerIconUrl);
+
+// Computed property to get the current marker icon
+const currentMarkerIcon = computed(() => {
+    return createCustomIcon(); // Always create a new icon
+});
 
 // Function to refresh the marker icon when the URL changes
 const refreshMarkerIcon = () => {
+    console.log("Refreshing marker icon with URL:", props.markerIconUrl);
+    // Create a new icon instance with the current URL
     markerIcon = createCustomIcon();
+    // Update the key to force Vue to re-render the marker
+    markerIconKey.value = Date.now();
+    return markerIcon;
 };
+
+// Watch for changes to markerIconUrl prop
+watch(
+    () => props.markerIconUrl,
+    (newUrl, oldUrl) => {
+        console.log("Marker icon URL changed from", oldUrl, "to:", newUrl);
+        refreshMarkerIcon();
+    },
+    { immediate: true }, // Run immediately when component mounts
+);
 
 // Wird aufgerufen, wenn die Leaflet-Karte bereit ist
 const onMapReady = (map) => {
@@ -376,7 +365,11 @@ watch(
 );
 
 // Handler for search button click or enter key
-const handleSearchLocation = () => {
+const handleSearchLocation = (event) => {
+    // Prevent default form submission if this is a keydown event
+    if (event && event.preventDefault) {
+        event.preventDefault();
+    }
     // Check for empty search input
     if (!localLocationSearch.value || localLocationSearch.value.trim() === "") {
         setSearchError("Bitte gib eine Adresse oder einen Ort ein.");
@@ -417,36 +410,6 @@ watch(
             // Reset loading state when a location is selected
             isSearching.value = false;
         }
-    },
-    { immediate: true }, // Check initial value too
-);
-
-// Additional watchers to detect when search is complete
-watch(
-    () => props.mapZoom,
-    () => {
-        // Map zoom changed, search is likely complete
-        setTimeout(() => {
-            isSearching.value = false;
-        }, 500); // Short delay to ensure map has finished rendering
-    },
-);
-
-watch(
-    () => props.mapCenter,
-    () => {
-        // Map center changed, search is likely complete
-        setTimeout(() => {
-            isSearching.value = false;
-        }, 500); // Short delay to ensure map has finished rendering
-    },
-);
-
-// Watch for marker icon URL changes
-watch(
-    () => props.markerIconUrl,
-    () => {
-        refreshMarkerIcon();
     },
 );
 

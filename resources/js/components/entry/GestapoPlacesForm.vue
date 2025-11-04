@@ -181,13 +181,14 @@
                     @update:location-qualifier="
                         (val) => (locationQualifierValue = val)
                     "
-                    :marker-icon-url="
-                        getMarkerIconForPlaceType(gestapoPlaceTypeValue)
-                    "
+                    :marker-icon-url="currentMarkerIconUrl"
+                    :key="'location-selector-' + gestapoPlaceTypeValue"
                     @searchLocation="onSearchLocation"
                     @handleMapClick="onHandleMapClick"
                     @fieldFocus="setActiveField"
                     @infoButtonClick="openSectionInfo"
+                    @validation="onLocationValidation"
+                    @searchError="handleSearchError"
                 />
 
                 <!-- Adresse (P6375) -->
@@ -520,8 +521,13 @@
                         type="button"
                         class="button float-right"
                         @click="onSubmit"
+                        :disabled="isSubmitting"
                     >
-                        Eintrag einreichen
+                        {{
+                            isSubmitting
+                                ? "Wird abgesendet..."
+                                : "Eintrag einreichen"
+                        }}
                     </button>
                 </div>
             </form>
@@ -844,6 +850,13 @@ const getMarkerIconForPlaceType = (typeValue) => {
     return `/images/leaflet/markerIcons/coloredFilledWhite/${selectedType.iconId}.svg`;
 };
 
+// Reactive marker icon URL that updates when place type changes
+const currentMarkerIconUrl = computed(() => {
+    const url = getMarkerIconForPlaceType(gestapoPlaceTypeValue.value);
+    console.log("Computing currentMarkerIconUrl:", url);
+    return url;
+});
+
 const typeGlossaryInfo = computed(() => {
     if (!gestapoPlaceTypeValue.value) return null;
 
@@ -992,6 +1005,7 @@ const imageDialogVisible = ref(false);
 const lightboxOpen = ref(false);
 const sourcesDialogVisible = ref(false);
 const showValidationErrors = ref(false);
+const isSubmitting = ref(false);
 
 // Active field tracking for help info
 const activeField = ref(null);
@@ -1022,20 +1036,59 @@ const openSectionInfo = (section) => {
 // Gestapo Place Type Handler
 const onGestapoPlaceTypeChange = () => {
     console.log("Gestapo Place Type changed to:", gestapoPlaceTypeValue.value);
+
     // Force the marker icon to update based on the new place type
-    // This works because we've bound the marker icon URL to a computed value
-    // that depends on gestapoPlaceTypeValue
+    // This is critical to ensure the marker always reflects the correct type
 
     // If we have a location selector reference, force a refresh
     if (locationSelectorRef.value) {
         // Create a small delay to ensure Vue has updated the props
         setTimeout(() => {
             if (locationSelectorRef.value.refreshMarkerIcon) {
+                console.log(
+                    "Forcing marker icon refresh with new type:",
+                    gestapoPlaceTypeValue.value,
+                );
+
+                // Force the computed property to reevaluate
+                const iconUrl = getMarkerIconForPlaceType(
+                    gestapoPlaceTypeValue.value,
+                );
+                console.log("New icon URL:", iconUrl);
+
+                // Call refresh directly on the component
                 locationSelectorRef.value.refreshMarkerIcon();
             }
         }, 100);
     }
 };
+
+// Watch for gestapoPlaceTypeValue changes to update marker
+watch(
+    () => gestapoPlaceTypeValue.value,
+    (newValue, oldValue) => {
+        console.log("Place type changed from", oldValue, "to", newValue);
+        // Force refresh on next tick to ensure the DOM has updated
+        setTimeout(() => {
+            if (
+                locationSelectorRef.value &&
+                locationSelectorRef.value.refreshMarkerIcon
+            ) {
+                // Get the new icon URL based on the selected type
+                const iconUrl = getMarkerIconForPlaceType(newValue);
+                console.log("Updating marker icon to:", iconUrl);
+
+                // Update the currentMarkerIconUrl computed value directly
+                // This ensures Vue's reactivity system picks up the change
+                emit("update:marker-icon-url", iconUrl);
+
+                // Then call refresh on the component
+                locationSelectorRef.value.refreshMarkerIcon();
+            }
+        }, 50);
+    },
+    { immediate: true }, // Run immediately when component mounts
+);
 
 // Form validation
 const isGestapoPlaceTypeValid = computed(() => !!gestapoPlaceTypeValue.value);
@@ -1062,6 +1115,11 @@ const onLocationValidation = (isValid) => {
     isLocationValid.value = isValid;
 };
 
+const handleSearchError = (error) => {
+    console.log("Location search error:", error);
+    // Optional: You can show a toast message or other UI notification here
+};
+
 const onSourcesValidation = (isValid) => {
     isSourcesValid.value = isValid;
 };
@@ -1069,7 +1127,7 @@ const onSourcesValidation = (isValid) => {
 // Validate the entire form
 const validateForm = () => {
     console.log("Validating form with sources:", selectedSourcesValue.value);
-    showValidationErrors.value = true;
+    // Don't set showValidationErrors here since we set it in onSubmit
 
     // Call validate on form components that have validation
     if (
@@ -1168,9 +1226,7 @@ const getData = () => {
 };
 
 // Check if form is valid
-const isFormValid = () => {
-    return validateForm();
-};
+// Form validity is checked directly in onSubmit through validateForm
 
 // Component refs for validation
 const baseInfosRef = ref(null);
@@ -1215,8 +1271,50 @@ const onGoToStep = (step) => {
 };
 
 const onSubmit = () => {
-    if (isFormValid()) {
-        emit("submit", getData());
+    console.log("GestapoPlacesForm: onSubmit triggered");
+
+    // Prevent multiple submissions
+    if (isSubmitting.value) {
+        console.log("GestapoPlacesForm: Already submitting, ignoring click");
+        return;
+    }
+
+    // Enable validation display
+    showValidationErrors.value = true;
+    isSubmitting.value = true;
+
+    // Validate form
+    const isValid = validateForm();
+    console.log("GestapoPlacesForm: validateForm result:", isValid);
+
+    if (isValid) {
+        // Get data and submit
+        const data = getData();
+        console.log("GestapoPlacesForm: Emitting submit with data:", data);
+        emit("submit", data);
+
+        // Set a timeout to reset the submitting state in case the parent never responds
+        setTimeout(() => {
+            isSubmitting.value = false;
+        }, 10000); // 10 second timeout
+    } else {
+        console.log(
+            "GestapoPlacesForm: Form submission prevented due to validation failure",
+        );
+        isSubmitting.value = false;
+
+        // Scroll to first error
+        setTimeout(() => {
+            const errorElement = document.querySelector(".validation-error");
+            if (errorElement) {
+                errorElement.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                });
+            } else {
+                console.log("No validation error elements found to scroll to");
+            }
+        }, 100);
     }
 };
 
