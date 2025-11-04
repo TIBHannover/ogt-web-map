@@ -202,7 +202,7 @@
                         Zurück
                     </button>
                     <button class="button" type="button" @click="onSubmit">
-                        Eintrag anlegen
+                        Eintrag einreichen
                     </button>
                 </div>
                 <div v-if="!props.isAdminView" class="required-fields-note">

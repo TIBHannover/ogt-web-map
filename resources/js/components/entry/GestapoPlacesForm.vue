@@ -505,20 +505,20 @@
                     @validation="onSourcesValidation"
                 />
 
-                <div class="mt-4">
+                <div class="mt-4 w-100">
                     <button
                         type="button"
-                        class="btn btn-secondary me-2"
+                        class="button bg-secondary"
                         @click="onGoToStep(1)"
                     >
                         Zurück
                     </button>
                     <button
                         type="button"
-                        class="btn btn-primary"
+                        class="button float-right"
                         @click="onSubmit"
                     >
-                        Speichern
+                        Eintrag einreichen
                     </button>
                 </div>
             </form>

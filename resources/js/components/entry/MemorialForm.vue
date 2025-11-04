@@ -216,7 +216,11 @@
                         @click="onSubmit"
                         :disabled="isSubmitting"
                     >
-                        {{ isSubmitting ? "Wird abgesendet..." : "Absenden" }}
+                        {{
+                            isSubmitting
+                                ? "Wird abgesendet..."
+                                : "Eintrag einreichen"
+                        }}
                     </button>
                 </div>
             </form>

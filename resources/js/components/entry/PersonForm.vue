@@ -473,7 +473,7 @@
                         :disabled="isSubmitting"
                         :loading="isSubmitting"
                     >
-                        Abschicken
+                        Eintrag einreichen
                     </v-btn>
                 </div>
             </form>
