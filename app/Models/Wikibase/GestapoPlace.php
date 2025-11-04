@@ -516,6 +516,13 @@ class GestapoPlace extends BaseEntity
             return;
         }
 
+        // Convert to integer to ensure valid format
+        $numericCount = (int) $count;
+
+        // Format properly for Wikidata - ensure positive integers have a plus sign
+        $formattedAmount =
+            $numericCount >= 0 ? "+$numericCount" : "$numericCount";
+
         $prisonerCountProperty = $this->mappingProvider->getPropertyId(
             "PRISONER_COUNT",
         );
@@ -526,7 +533,7 @@ class GestapoPlace extends BaseEntity
                 "property" => $prisonerCountProperty,
                 "datavalue" => [
                     "value" => [
-                        "amount" => "+" . $count,
+                        "amount" => $formattedAmount,
                         "unit" => "1",
                     ],
                     "type" => "quantity",

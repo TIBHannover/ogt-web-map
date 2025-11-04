@@ -131,8 +131,8 @@ if (!function_exists('formatDateBasedOnPrecision')) {
                                 Ereignis
                             @elseif($request->type == 'Q43229')
                                 Organisation
-                            @elseif($request->type == 'Q811979')
-                                Architektonisches Struktur
+                            @elseif($request->type == 'Q106996250')
+                                Ort des Gestapoterrors
                             @elseif($request->type == 'Q5003624')
                                 Erinnerungsort
                             @else

@@ -162,21 +162,51 @@ abstract class BaseEntity
             // Format: "52.3744779, 9.7385532"
             $parts = explode(",", $coordinates);
             if (count($parts) === 2) {
-                $lat = (float) trim($parts[0]);
-                $lng = (float) trim($parts[1]);
+                $latStr = trim($parts[0]);
+                $lngStr = trim($parts[1]);
+
+                // Clean up the values and ensure they're valid
+                $latStr = preg_replace("/[^\d\.\-]/", "", $latStr);
+                $lngStr = preg_replace("/[^\d\.\-]/", "", $lngStr);
+
+                // Convert to float only if valid
+                if (is_numeric($latStr) && is_numeric($lngStr)) {
+                    $lat = (float) $latStr;
+                    $lng = (float) $lngStr;
+
+                    // Log the conversion for debugging
+                    \Illuminate\Support\Facades\Log::info(
+                        "Coordinates converted",
+                        [
+                            "original" => $coordinates,
+                            "lat" => $lat,
+                            "lng" => $lng,
+                        ],
+                    );
+                }
             }
         } elseif (is_array($coordinates)) {
             if (isset($coordinates[0]) && isset($coordinates[1])) {
                 // Format: [lat, lng]
-                $lat = (float) $coordinates[0];
-                $lng = (float) $coordinates[1];
+                if (
+                    is_numeric($coordinates[0]) &&
+                    is_numeric($coordinates[1])
+                ) {
+                    $lat = (float) $coordinates[0];
+                    $lng = (float) $coordinates[1];
+                }
             } elseif (
                 isset($coordinates["lat"]) &&
                 isset($coordinates["lng"])
             ) {
                 // Format: {lat: x, lng: y}
-                $lat = (float) $coordinates["lat"];
-                $lng = (float) $coordinates["lng"];
+                if (
+                    is_numeric($coordinates["lat"]) &&
+                    is_numeric($coordinates["lng"])
+                ) {
+                    $lat = (float) $coordinates["lat"];
+                    $lng = (float) $coordinates["lng"];
+                }
             }
         }
 
@@ -200,6 +230,22 @@ abstract class BaseEntity
             $coordinatesProperty = "P625"; // Fallback to standard Wikidata coordinates property
         }
 
+        // Final validation to ensure coordinates are valid numbers
+        if (!is_finite($lat) || !is_finite($lng)) {
+            \Illuminate\Support\Facades\Log::error(
+                "Coordinates failed final validation - not finite numbers",
+                [
+                    "lat" => $lat,
+                    "lng" => $lng,
+                ],
+            );
+            return;
+        }
+
+        // Ensure coordinates are within valid ranges
+        $lat = max(-90, min(90, $lat)); // Latitude: -90 to 90
+        $lng = max(-180, min(180, $lng)); // Longitude: -180 to 180
+
         $statement = [
             "mainsnak" => [
                 "snaktype" => "value",
@@ -218,6 +264,15 @@ abstract class BaseEntity
             "type" => "statement",
             "rank" => "normal",
         ];
+
+        // Log the final coordinates being used
+        \Illuminate\Support\Facades\Log::info(
+            "Final coordinates for Wikidata",
+            [
+                "latitude" => $lat,
+                "longitude" => $lng,
+            ],
+        );
 
         // Add qualifier if provided
         if (!empty($qualifier)) {
