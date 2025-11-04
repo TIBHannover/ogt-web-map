@@ -1,5 +1,5 @@
 <template>
-    <div class="container-section location-section">
+    <div class="container-section location-section position-relative">
         <div class="section-header">
             <label class="section-label">Standort auswählen *</label>
             <button
@@ -9,6 +9,20 @@
             >
                 <v-icon>mdi-information-variant</v-icon>
             </button>
+
+            <!-- Loading overlay -->
+            <div v-if="isSearching" class="location-loading-overlay">
+                <div class="loading-content">
+                    <v-progress-circular
+                        indeterminate
+                        size="64"
+                        color="primary"
+                    ></v-progress-circular>
+                    <span class="loading-text mt-3"
+                        >Standort wird gesucht...</span
+                    >
+                </div>
+            </div>
         </div>
         <div class="map-search">
             <v-text-field
@@ -17,7 +31,8 @@
                 placeholder="Adresse oder Ort suchen..."
                 @keydown.enter.prevent="handleSearchLocation"
                 @focus="$emit('fieldFocus', 'location')"
-                append-inner-icon="mdi-magnify"
+                :append-inner-icon="isSearching ? undefined : 'mdi-magnify'"
+                :loading="isSearching"
                 @click:append-inner="handleSearchLocation"
                 density="comfortable"
                 variant="outlined"
@@ -145,8 +160,44 @@ const emit = defineEmits([
     "fieldFocus",
     "infoButtonClick",
     "validation",
+    "searchComplete",
     "searchError",
 ]);
+
+// Loading state for search
+const isSearching = ref(false);
+
+// Add style for the loading overlay
+if (typeof document !== "undefined") {
+    const styleElement = document.createElement("style");
+    styleElement.textContent = `
+        .location-loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.85);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loading-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .loading-text {
+            font-weight: 500;
+            color: #1976d2;
+        }
+    `;
+    document.head.appendChild(styleElement);
+}
 
 // Initialize local search value from prop
 onMounted(() => {
@@ -191,6 +242,10 @@ defineExpose({
     showValidationErrors: showErrors,
     setSearchError,
     clearSearchError,
+    isSearching,
+    completeSearch: () => {
+        isSearching.value = false;
+    },
 });
 
 // Benutzerdefiniertes Marker-Icon erstellen
@@ -322,21 +377,59 @@ const handleSearchLocation = () => {
     // Clear any previous error
     clearSearchError();
 
+    // Set loading state and scroll to map to show loading overlay
+    isSearching.value = true;
+
+    // Scroll the map into view so user can see the loading overlay
+    const mapElement = document.querySelector(".map-container");
+    if (mapElement) {
+        setTimeout(() => {
+            mapElement.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 100);
+    }
+
     // Update parent and trigger search
-    const searchValue = localLocationSearch.value;
+    const searchValue = localLocationSearch.value.trim();
     emit("update:locationSearch", searchValue);
 
     // Send the actual string value, not a ref object
     emit("searchLocation", searchValue);
+
+    // Don't automatically reset loading state - it will be reset when location changes
+    // or when the parent component completes the search
 };
 
-// Watch for selectedLocation changes to clear error
+// Watch for selectedLocation changes to clear error and reset loading state
 watch(
     () => props.selectedLocation,
-    (newValue) => {
-        if (newValue) {
+    (newVal) => {
+        if (newVal) {
             clearSearchError();
+            // Reset loading state when a location is selected
+            isSearching.value = false;
         }
+    },
+    { immediate: true }, // Check initial value too
+);
+
+// Additional watchers to detect when search is complete
+watch(
+    () => props.mapZoom,
+    () => {
+        // Map zoom changed, search is likely complete
+        setTimeout(() => {
+            isSearching.value = false;
+        }, 500); // Short delay to ensure map has finished rendering
+    },
+);
+
+watch(
+    () => props.mapCenter,
+    () => {
+        // Map center changed, search is likely complete
+        setTimeout(() => {
+            isSearching.value = false;
+        }, 500); // Short delay to ensure map has finished rendering
     },
 );
 

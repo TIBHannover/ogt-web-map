@@ -469,13 +469,13 @@
                         </button>
                     </div>
                     <div v-if="imageUrlValue" class="selected-image mt-2">
-                        <div
-                            class="preview-image"
-                            @click="openLightbox"
-                            :style="{
-                                backgroundImage: `url(${imageUrlValue})`,
-                            }"
-                        >
+                        <div class="image-container">
+                            <img
+                                class="preview-image"
+                                :src="imageUrlValue"
+                                @click="openLightbox"
+                                alt="Bild Vorschau"
+                            />
                             <div class="click-hint">
                                 <v-icon>mdi-magnify-plus-outline</v-icon>
                             </div>
@@ -498,7 +498,8 @@
                 <!-- Quellen -->
                 <SourcesField
                     ref="sourcesFieldRef"
-                    v-model="selectedSourcesValue"
+                    :selectedSources="selectedSourcesValue"
+                    @update:selectedSources="selectedSourcesValue = $event"
                     @add="openSourcesSelector"
                     @remove="removeSource"
                     @fieldFocus="setActiveField('sources')"
@@ -526,12 +527,14 @@
 
         <!-- Dialogs -->
         <v-dialog v-model="imageDialogVisible" max-width="800">
-            <ImageSelector @select="selectImage" @close="closeImageDialog" />
+            <WikimediaImageSelector
+                @select="selectImage"
+                @close="closeImageDialog"
+            />
         </v-dialog>
 
         <v-dialog v-model="sourcesDialogVisible" max-width="800">
             <SourcesSelector
-                :already-selected="selectedSourcesValue"
                 @select="selectSource"
                 @close="closeSourcesDialog"
             />
@@ -555,7 +558,7 @@ import TimeSelector from "./fields/TimeSelector.vue";
 import WikidataSelector from "./fields/common/WikidataSelector.vue";
 import IntegerQualifier from "./fields/common/IntegerQualifier.vue";
 import SourcesField from "./fields/SourcesField.vue";
-import ImageSelector from "./fields/ImageSelector.vue";
+import WikimediaImageSelector from "./fields/WikimediaImageSelector.vue";
 import SourcesSelector from "./fields/SourcesSelector.vue";
 import ValidationError from "../helpers/ValidationError.vue";
 import Lightbox from "../helpers/Lightbox.vue";
@@ -637,6 +640,8 @@ const emit = defineEmits([
     "update:selectedSources",
     "goToStep",
     "submit",
+    "searchLocation",
+    "handleMapClick",
 ]);
 
 // Title and description
@@ -645,6 +650,48 @@ const description = ref(props.formsDescription);
 
 // Style for the component
 const componentStyles = `
+    .image-container {
+        position: relative;
+        width: 100%;
+        height: 150px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .image-container:hover .preview-image {
+        transform: scale(1.05);
+    }
+
+    .image-container:hover .click-hint {
+        opacity: 1;
+    }
+
+    .preview-image {
+        max-width: 100%;
+        max-height: 150px;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+    }
+
+    .click-hint {
+        position: absolute;
+        bottom: 8px;
+        right: 8px;
+        background-color: rgba(0, 0, 0, 0.6);
+        color: white;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.7;
+        transition: opacity 0.3s ease;
+    }
+
     .gestapo-place-type-radio-group {
         display: flex;
         flex-wrap: wrap;
@@ -920,8 +967,8 @@ const imageFilenameValue = computed({
 
 // Sources
 const selectedSourcesValue = computed({
-    get: () => props.selectedSources,
-    set: (val) => emit("update:selectedSources", val),
+    get: () => props.selectedSources || [],
+    set: (value) => emit("update:selectedSources", value),
 });
 
 // UI States
@@ -992,6 +1039,7 @@ const onSourcesValidation = (isValid) => {
 
 // Validate the entire form
 const validateForm = () => {
+    console.log("Validating form with sources:", selectedSourcesValue.value);
     showValidationErrors.value = true;
 
     // Call validate on form components that have validation
@@ -1108,11 +1156,29 @@ const onSelectExistingEntity = (entity) => {
 };
 
 const onSearchLocation = (query) => {
-    emit("searchLocation", query);
+    console.log("Search location:", query);
+    // Use the value directly if it's a string, otherwise extract the value from the ref object
+    const searchValue =
+        typeof query === "object" && query !== null ? query.value : query;
+
+    try {
+        emit("searchLocation", searchValue);
+    } catch (error) {
+        console.error("Error in location search:", error);
+        // Display a user-friendly message if the Nominatim service is unavailable
+        alert(
+            "Die Standortsuche ist momentan nicht verfügbar. Bitte versuchen Sie es später erneut oder verwenden Sie die Kartenauswahl.",
+        );
+    }
 };
 
 const onHandleMapClick = (event) => {
     emit("handleMapClick", event);
+
+    // Reset loading state in the LocationSelector if it's still loading
+    if (locationSelectorRef.value && locationSelectorRef.value.isSearching) {
+        locationSelectorRef.value.isSearching = false;
+    }
 };
 
 const onGoToStep = (step) => {
@@ -1279,8 +1345,11 @@ const closeImageDialog = () => {
 };
 
 const selectImage = (image) => {
+    console.log("Selected image:", image);
     imageUrlValue.value = image.url;
     imageFilenameValue.value = image.filename;
+    emit("update:imageUrl", image.url);
+    emit("update:imageFilename", image.filename);
     closeImageDialog();
 };
 
@@ -1298,25 +1367,34 @@ const closeSourcesDialog = () => {
     sourcesDialogVisible.value = false;
 };
 
-const selectSource = (source) => {
-    const isAlreadySelected = selectedSourcesValue.value.some(
-        (s) => s.id === source.id,
-    );
-    if (!isAlreadySelected) {
-        selectedSourcesValue.value = [...selectedSourcesValue.value, source];
-    }
+const selectSource = (data) => {
+    // Get the source from the data object as sent by the SourcesSelector
+    const source = data.source;
+
+    // Create a new array with the current sources plus the new one
+    const newSources = [...selectedSourcesValue.value, source];
+
+    // Update the value through our computed setter
+    selectedSourcesValue.value = newSources;
+
+    // Close the dialog after selection
     closeSourcesDialog();
 };
 
-const removeSource = (sourceId) => {
-    selectedSourcesValue.value = selectedSourcesValue.value.filter(
-        (s) => s.id !== sourceId,
-    );
+const removeSource = (index) => {
+    // Create a copy of the array
+    const newSources = [...selectedSourcesValue.value];
+    // Remove the source at the specified index
+    newSources.splice(index, 1);
+    // Update through the computed setter
+    selectedSourcesValue.value = newSources;
 };
 
 // Lightbox handler
 const openLightbox = () => {
-    lightboxOpen.value = true;
+    if (imageUrlValue.value) {
+        lightboxOpen.value = true;
+    }
 };
 
 // When component mounts

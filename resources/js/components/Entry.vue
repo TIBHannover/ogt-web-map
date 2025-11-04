@@ -1270,6 +1270,8 @@ const searchLocation = async () => {
     } catch (err) {
         console.error("Fehler bei der Standortsuche:", err);
         alert("Fehler bei der Suche");
+    } finally {
+        // Loading state will automatically reset in the LocationSelector component
     }
 };
 
