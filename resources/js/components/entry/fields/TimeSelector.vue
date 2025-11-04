@@ -1,7 +1,13 @@
 <template>
     <div class="container-section">
         <div class="section-header">
-            <label class="section-label">{{ sectionLabel }}</label>
+            <label
+                :class="
+                    props.required ? 'section-label required' : 'section-label'
+                "
+                :data-required="props.required ? '*' : ''"
+                >{{ sectionLabel }}</label
+            >
             <button
                 type="button"
                 class="info-icon"
@@ -236,7 +242,7 @@
         </div>
 
         <ValidationError
-            v-if="localEventTimeType === 'point'"
+            v-if="localEventTimeType === 'point' && props.required"
             :show="
                 showValidationErrors &&
                 !isPointValid &&
@@ -1049,6 +1055,11 @@ const isRangeValid = computed(
 
 // Is the component valid overall
 const isValid = computed(() => {
+    // If not required, the field is always valid
+    if (!props.required) {
+        return true;
+    }
+
     // When hideToggle is true, we only validate the point date
     if (props.hideToggle) {
         return isPointValid.value;
@@ -1068,6 +1079,12 @@ const hasInteracted = ref(false);
 const validateFields = () => {
     showValidationErrors.value = true;
     hasInteracted.value = true;
+
+    // If not required, always return true
+    if (!props.required) {
+        return true;
+    }
+
     // When hideToggle is true, always validate point date only
     if (props.hideToggle || localEventTimeType.value === "point") {
         return isPointValid.value;
@@ -1272,7 +1289,7 @@ defineExpose({
     margin-bottom: 0;
 }
 
-.section-label::after {
+.section-label.required::after {
     content: "*";
     color: red;
     margin-left: 3px;
@@ -1359,9 +1376,9 @@ defineExpose({
 
 /* Visual indicator for required fields */
 .form-group label::after {
-    content: "*";
+    content: attr(data-required);
     color: red;
-    margin-left: 3px;
+    margin-left: 2px;
 }
 
 /* Spezielle Stylings für den Zeitraum */

@@ -131,6 +131,7 @@
                     :validationMessageRequired="'Bitte geben Sie das Gründungsdatum an.'"
                     :validationMessageInvalid="'Das Gründungsdatum hat ein ungültiges Format.'"
                     :initialShowErrors="false"
+                    :required="false"
                     @validation="onFoundingTimeValidation"
                 />
 
@@ -154,6 +155,7 @@
                     :validationMessageRequired="'Bitte geben Sie das Auflösungsdatum an.'"
                     :validationMessageInvalid="'Das Auflösungsdatum hat ein ungültiges Format.'"
                     :initialShowErrors="false"
+                    :required="false"
                     @validation="onDissolutionTimeValidation"
                 />
 
@@ -1093,7 +1095,7 @@ watch(
 // Form validation
 const isGestapoPlaceTypeValid = computed(() => !!gestapoPlaceTypeValue.value);
 const isBaseInfoValid = ref(false);
-const isFoundingTimeValid = ref(false);
+const isFoundingTimeValid = ref(true); // Optional field
 const isDissolutionTimeValid = ref(true); // Optional field
 const isLocationValid = ref(false);
 const isSourcesValid = ref(false);
@@ -1137,17 +1139,21 @@ const validateForm = () => {
         baseInfosRef.value.validate();
     }
 
+    // Founding time validation is optional
     if (
         foundingTimeSelectorRef.value &&
         typeof foundingTimeSelectorRef.value.validate === "function"
     ) {
+        // Just call validate but don't require it
         foundingTimeSelectorRef.value.validate();
     }
 
+    // Dissolution time validation is optional
     if (
         dissolutionTimeSelectorRef.value &&
         typeof dissolutionTimeSelectorRef.value.validate === "function"
     ) {
+        // Just call validate but don't require it
         dissolutionTimeSelectorRef.value.validate();
     }
 
@@ -1165,11 +1171,21 @@ const validateForm = () => {
         sourcesFieldRef.value.validate();
     }
 
+    // Log which validation checks are failing
+    const validations = {
+        gestapoPlaceType: isGestapoPlaceTypeValid.value,
+        baseInfo: isBaseInfoValid.value,
+        location: isLocationValid.value,
+        sources: isSourcesValid.value,
+    };
+
+    console.log("Validation results:", validations);
+
+    // Check only required fields in the final validation result
     return (
         isGestapoPlaceTypeValid.value &&
         isBaseInfoValid.value &&
-        isFoundingTimeValid.value &&
-        isDissolutionTimeValid.value &&
+        // Note: foundingTimeValid and dissolutionTimeValid are now always true
         isLocationValid.value &&
         isSourcesValid.value
     );
@@ -1298,9 +1314,26 @@ const onSubmit = () => {
             isSubmitting.value = false;
         }, 10000); // 10 second timeout
     } else {
-        console.log(
-            "GestapoPlacesForm: Form submission prevented due to validation failure",
-        );
+        // Collect missing required fields for custom error message
+        const missingFields = [];
+
+        if (!isGestapoPlaceTypeValid.value) {
+            missingFields.push("Ort des Gestapoterrors");
+        }
+        if (!isBaseInfoValid.value) {
+            missingFields.push("Titel und Beschreibung");
+        }
+        if (!isLocationValid.value) {
+            missingFields.push("Standort");
+        }
+        if (!isSourcesValid.value) {
+            missingFields.push("Quellenangaben");
+        }
+
+        // Log custom error message
+        const errorMessage = `Fehlende Pflichtfelder: ${missingFields.join(", ")}`;
+        console.log("GestapoPlacesForm: " + errorMessage);
+
         isSubmitting.value = false;
 
         // Scroll to first error

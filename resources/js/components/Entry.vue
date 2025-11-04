@@ -2276,9 +2276,9 @@ const resetForm = async () => {
         // Validate Events form
         if (
             eventsFormRef.value &&
-            formsType.value === "Q6983405" &&
             typeof eventsFormRef.value.validateForm === "function"
         ) {
+            console.log("Validating Events form");
             eventsFormRef.value.validateForm();
         }
     } else if (formsType.value === "Q5") {
@@ -2295,6 +2295,7 @@ const resetForm = async () => {
             gestapoPlacesFormRef.value &&
             typeof gestapoPlacesFormRef.value.validateForm === "function"
         ) {
+            console.log("Validating GestapoPlaces form");
             gestapoPlacesFormRef.value.validateForm();
         }
     }
@@ -2338,11 +2339,8 @@ const resetForm = async () => {
 
         // Form-specific validations below
 
-        if (
-            formsType.value === "Q6983405" ||
-            formsType.value === "Q106996250"
-        ) {
-            // Event-specific and GestapoPlace validations
+        if (formsType.value === "Q6983405") {
+            // Event-specific validations
             if (!selectedLocation.value) {
                 missingFields.push("Standort");
             }
@@ -2363,6 +2361,12 @@ const resetForm = async () => {
             ) {
                 missingFields.push("Täter*In");
             }
+        } else if (formsType.value === "Q106996250") {
+            // GestapoPlace-specific validations - only requires location
+            if (!selectedLocation.value) {
+                missingFields.push("Standort");
+            }
+            // No time fields or perpetrators required for GestapoPlacesForm
         } else if (formsType.value === "Q5") {
             // Person-specific validations
             // These are mostly handled in the PersonForm component
@@ -2377,16 +2381,19 @@ const resetForm = async () => {
                 formsType.value === "Q106996250") &&
             (!selectedSources.value || selectedSources.value.length === 0)
         ) {
-            missingFields.push("Quellen");
+            missingFields.push("Quellenangaben");
         }
 
         if (missingFields.length) {
             const errorMsg = `Fehlende Pflichtfelder: ${missingFields.join(", ")}`;
             error.value = errorMsg;
+            console.log(
+                `Validation error for form type ${formsType.value}: ${errorMsg}`,
+            );
             if (ogtGlobals?.showToast) {
                 ogtGlobals.showToast(errorMsg, "error");
             } else {
-                console.error(errorMsg);
+                alert(errorMsg);
             }
             isSubmitting.value = false;
 
