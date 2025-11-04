@@ -433,26 +433,14 @@
                 </div>
 
                 <!-- Quellen -->
-                <div class="container-section sources-section">
-                    <div class="section-header">
-                        <label class="section-label">Quellen: *</label>
-                        <button
-                            type="button"
-                            class="info-icon"
-                            @click="openSectionInfo('sources')"
-                        >
-                            <v-icon>mdi-information-variant</v-icon>
-                        </button>
-                    </div>
-                    <SourcesField
-                        ref="sourcesFieldRef"
-                        v-model="selectedSourcesValue"
-                        @add="openSourcesSelector"
-                        @remove="removeSource"
-                        @fieldFocus="setActiveField('sources')"
-                        @validation="onSourcesValidation"
-                    />
-                </div>
+                <SourcesField
+                    ref="sourcesFieldRef"
+                    v-model="selectedSourcesValue"
+                    @add="openSourcesSelector"
+                    @remove="removeSource"
+                    @fieldFocus="setActiveField('sources')"
+                    @validation="onSourcesValidation"
+                />
 
                 <div class="mt-4">
                     <button

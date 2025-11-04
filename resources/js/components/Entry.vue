@@ -269,28 +269,25 @@
                                         </div>
 
                                         <div
-                                            class="col-lg-4 col-md-6 col-sm-6 col-12 mb-3"
+                                            class="type-box"
+                                            :class="{
+                                                selected:
+                                                    formsType === 'Q106996250',
+                                            }"
+                                            @click="
+                                                formsType = 'Q106996250';
+                                                updateTypeInfo();
+                                            "
                                         >
-                                            <div
-                                                class="type-box"
-                                                :class="{
-                                                    selected:
-                                                        formsType ===
-                                                        'Q106996250',
-                                                }"
-                                                @click="
-                                                    formsType = 'Q106996250';
-                                                    updateTypeInfo();
-                                                "
-                                            >
-                                                <div class="type-icon">
-                                                    <img
-                                                        src="/images/leaflet/markerIcons/coloredFilledWhite/fieldOffices.svg"
-                                                        alt="Ort des Gestapoterrors"
-                                                        width="48"
-                                                        height="48"
-                                                    />
-                                                </div>
+                                            <div class="type-icon">
+                                                <img
+                                                    src="/images/leaflet/markerIcons/coloredFilledWhite/fieldOffices.svg"
+                                                    alt="Ort des Gestapoterrors"
+                                                    width="48"
+                                                    height="48"
+                                                />
+                                            </div>
+                                            <div class="type-data">
                                                 <div class="type-label">
                                                     <strong
                                                         >Ort des
@@ -312,12 +309,6 @@
                                                         id="type-Q106996250"
                                                         class="type-radio"
                                                     />
-                                                    <label
-                                                        for="type-Q106996250"
-                                                        class="sr-only"
-                                                        >Ort des
-                                                        Gestapoterrors</label
-                                                    >
                                                 </div>
                                                 <div
                                                     class="type-action-container"
@@ -339,299 +330,6 @@
                                                 </div>
                                             </div>
                                         </div>
-
-                                        <!--
-                                        <div
-                                            class="type-box"
-                                            :class="{
-                                                selected:
-                                                    formsType === 'Q108047567',
-                                            }"
-                                            @click="
-                                                formsType = 'Q108047567';
-                                                updateTypeInfo();
-                                            "
-                                        >
-                                            <div
-                                                class="info-icon-container d-lg-none"
-                                                @click.stop="
-                                                    showTypeInfoPopup(
-                                                        'Q108047567',
-                                                    )
-                                                "
-                                                title="Mehr Informationen"
-                                            >
-                                                <v-icon
-                                                    color="primary"
-                                                    size="small"
-                                                    >mdi-information-outline</v-icon
-                                                >
-                                            </div>
-                                            <input
-                                                v-model="formsType"
-                                                name="type"
-                                                type="radio"
-                                                value="Q108047567"
-                                                id="type-Q108047567"
-                                                class="type-radio"
-                                            />
-                                            <div class="type-icon">
-                                                <img
-                                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/statePoliceOffices.svg`"
-                                                    alt="Staatspolizeistelle Icon"
-                                                />
-                                            </div>
-                                            <div class="type-data">
-                                                <div class="type-label">
-                                                    Staatspolizeistelle
-                                                </div>
-                                                <div class="type-description">
-                                                    Regionale Dienstellen der
-                                                    Geheimen Staatspolizei
-                                                </div>
-                                                <div
-                                                    class="type-action-container"
-                                                >
-                                                    <transition name="fade">
-                                                        <button
-                                                            v-if="
-                                                                formsType ===
-                                                                'Q108047567'
-                                                            "
-                                                            class="type-action-button"
-                                                            type="button"
-                                                            @click="
-                                                                openTitleOverlay
-                                                            "
-                                                        >
-                                                            Jetzt eine
-                                                            Staatspolizeistelle
-                                                            anlegen
-                                                        </button>
-                                                    </transition>
-                                                </div>
-                                            </div>
-                                        </div>
--->
-                                        <!-- Staatspolizeiaußenstelle -->
-                                        <!--
-                                        <div
-                                            class="type-box"
-                                            :class="{
-                                                selected:
-                                                    formsType === 'Q108047541',
-                                            }"
-                                            @click="
-                                                formsType = 'Q108047541';
-                                                updateTypeInfo();
-                                            "
-                                        >
-                                            <div
-                                                class="info-icon-container d-lg-none d-lg-none"
-                                                @click.stop="
-                                                    showTypeInfoPopup(
-                                                        'Q108047541',
-                                                    )
-                                                "
-                                                title="Mehr Informationen"
-                                            >
-                                                <v-icon
-                                                    color="primary"
-                                                    size="small"
-                                                    >mdi-information-outline</v-icon
-                                                >
-                                            </div>
-                                            <input
-                                                v-model="formsType"
-                                                name="type"
-                                                type="radio"
-                                                value="Q108047541"
-                                                id="type-Q108047541"
-                                                class="type-radio"
-                                            />
-                                            <div class="type-icon">
-                                                <img
-                                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/fieldOffices.svg`"
-                                                    alt="Staatspolizeiaußenstelle Icon"
-                                                />
-                                            </div>
-                                            <div class="type-data">
-                                                <div class="type-label">
-                                                    Staatspolizeiaußenstelle
-                                                </div>
-                                                <div class="type-description">
-                                                    Lokale Zweigstellen einer
-                                                    Staatspolizeistelle
-                                                </div>
-                                                <div
-                                                    class="type-action-container"
-                                                >
-                                                    <transition name="fade">
-                                                        <button
-                                                            v-if="
-                                                                formsType ===
-                                                                'Q108047541'
-                                                            "
-                                                            class="type-action-button"
-                                                            type="button"
-                                                            @click="
-                                                                openTitleOverlay
-                                                            "
-                                                        >
-                                                            Jetzt eine
-                                                            Staatspolizeiaußenstelle
-                                                            anlegen
-                                                        </button>
-                                                    </transition>
-                                                </div>
-                                            </div>
-                                        </div>
--->
-                                        <!-- Arbeitserziehungslager -->
-                                        <!--
-                                        <div
-                                            class="type-box"
-                                            :class="{
-                                                selected:
-                                                    formsType === 'Q277565',
-                                            }"
-                                            @click="
-                                                formsType = 'Q277565';
-                                                updateTypeInfo();
-                                            "
-                                        >
-                                            <div
-                                                class="info-icon-container d-lg-none"
-                                                @click.stop="
-                                                    showTypeInfoPopup('Q277565')
-                                                "
-                                                title="Mehr Informationen"
-                                            >
-                                                <v-icon
-                                                    color="primary"
-                                                    size="small"
-                                                    >mdi-information-outline</v-icon
-                                                >
-                                            </div>
-                                            <input
-                                                v-model="formsType"
-                                                name="type"
-                                                type="radio"
-                                                value="Q277565"
-                                                id="type-Q277565"
-                                                class="type-radio"
-                                            />
-                                            <div class="type-icon">
-                                                <img
-                                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/laborEducationCamps.svg`"
-                                                    alt="Arbeitserziehungslager Icon"
-                                                />
-                                            </div>
-                                            <div class="type-data">
-                                                <div class="type-label">
-                                                    Arbeitserziehungslager
-                                                </div>
-                                                <div class="type-description">
-                                                    Haftsystem der Gestapo
-                                                    während des
-                                                    Nationalsozialismus
-                                                </div>
-                                                <div
-                                                    class="type-action-container"
-                                                >
-                                                    <transition name="fade">
-                                                        <button
-                                                            v-if="
-                                                                formsType ===
-                                                                'Q277565'
-                                                            "
-                                                            class="type-action-button"
-                                                            type="button"
-                                                            @click="
-                                                                openTitleOverlay
-                                                            "
-                                                        >
-                                                            Jetzt ein
-                                                            Arbeitserziehungslager
-                                                            anlegen
-                                                        </button>
-                                                    </transition>
-                                                </div>
-                                            </div>
-                                        </div>
--->
-                                        <!-- Gefängnis -->
-                                        <!--
-                                        <div
-                                            class="type-box"
-                                            :class="{
-                                                selected:
-                                                    formsType === 'Q40357',
-                                            }"
-                                            @click="
-                                                formsType = 'Q40357';
-                                                updateTypeInfo();
-                                            "
-                                        >
-                                            <div
-                                                class="info-icon-container d-lg-none"
-                                                @click.stop="
-                                                    showTypeInfoPopup('Q40357')
-                                                "
-                                                title="Mehr Informationen"
-                                            >
-                                                <v-icon
-                                                    color="primary"
-                                                    size="small"
-                                                    >mdi-information-outline</v-icon
-                                                >
-                                            </div>
-                                            <input
-                                                v-model="formsType"
-                                                name="type"
-                                                type="radio"
-                                                value="Q40357"
-                                                id="type-Q40357"
-                                                class="type-radio"
-                                            />
-                                            <div class="type-icon">
-                                                <img
-                                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/prisons.svg`"
-                                                    alt="Gefängnis Icon"
-                                                />
-                                            </div>
-                                            <div class="type-data">
-                                                <div class="type-label">
-                                                    Gefängnis
-                                                </div>
-                                                <div class="type-description">
-                                                    Haftanstalten, die während
-                                                    der NS-Zeit für politische
-                                                    Gegner genutzt wurden
-                                                </div>
-                                                <div
-                                                    class="type-action-container"
-                                                >
-                                                    <transition name="fade">
-                                                        <button
-                                                            v-if="
-                                                                formsType ===
-                                                                'Q40357'
-                                                            "
-                                                            class="type-action-button"
-                                                            type="button"
-                                                            @click="
-                                                                openTitleOverlay
-                                                            "
-                                                        >
-                                                            Jetzt ein Gefängnis
-                                                            anlegen
-                                                        </button>
-                                                    </transition>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        -->
                                     </div>
                                 </fieldset>
                             </form>
