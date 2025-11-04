@@ -73,6 +73,21 @@ class WikidataEntityController extends Controller
             "opening_date_qualifier" => "nullable|string",
             "address" => "nullable|string",
             "website" => "nullable|string",
+            // Gestapo Place-specific fields
+            "entity_subtype" => "nullable|string",
+            "founding_date" => "nullable|string",
+            "founding_date_qualifier" => "nullable|string",
+            "dissolution_date" => "nullable|string",
+            "dissolution_date_qualifier" => "nullable|string",
+            "key_event" => "nullable|string",
+            "director" => "nullable|string",
+            "employees" => "nullable|string",
+            "prisoner_count" => "nullable|string",
+            "prisoner_count_qualifier" => "nullable|string",
+            "parent_organization" => "nullable|string",
+            "child_organization" => "nullable|string",
+            "predecessor_organization" => "nullable|string",
+            "successor_organization" => "nullable|string",
         ]);
 
         try {
@@ -92,6 +107,32 @@ class WikidataEntityController extends Controller
                 $validated["opening_date_qualifier"] ?? null;
             $entryRequest->address = $validated["address"] ?? null;
             $entryRequest->website = $validated["website"] ?? null;
+
+            // Set Gestapo Place-specific fields if they exist
+            $entryRequest->entity_subtype =
+                $validated["entity_subtype"] ?? null;
+            $entryRequest->founding_date = $validated["founding_date"] ?? null;
+            $entryRequest->founding_date_qualifier =
+                $validated["founding_date_qualifier"] ?? null;
+            $entryRequest->dissolution_date =
+                $validated["dissolution_date"] ?? null;
+            $entryRequest->dissolution_date_qualifier =
+                $validated["dissolution_date_qualifier"] ?? null;
+            $entryRequest->key_event = $validated["key_event"] ?? null;
+            $entryRequest->director = $validated["director"] ?? null;
+            $entryRequest->employees = $validated["employees"] ?? null;
+            $entryRequest->prisoner_count =
+                $validated["prisoner_count"] ?? null;
+            $entryRequest->prisoner_count_qualifier =
+                $validated["prisoner_count_qualifier"] ?? null;
+            $entryRequest->parent_organization =
+                $validated["parent_organization"] ?? null;
+            $entryRequest->child_organization =
+                $validated["child_organization"] ?? null;
+            $entryRequest->predecessor_organization =
+                $validated["predecessor_organization"] ?? null;
+            $entryRequest->successor_organization =
+                $validated["successor_organization"] ?? null;
 
             // Log the incoming data to debug ID preservation
             if (!empty($validated["victims"])) {
@@ -294,7 +335,6 @@ class WikidataEntityController extends Controller
             }
 
             $entryRequest->submitted_by = "anonymous";
-            $entryRequest->save();
 
             // Verify IDs were preserved after saving
             if (!empty($validated["victims"])) {
@@ -339,6 +379,34 @@ class WikidataEntityController extends Controller
                 );
                 // Continue anyway, don't block the process if email fails
             }
+
+            // Log the final entry request before returning
+            if ($entryRequest->type === "Q106996250") {
+                Log::info("FINAL GESTAPO PLACE ENTRY BEFORE SAVE:", [
+                    "entity_subtype" => $entryRequest->entity_subtype,
+                    "founding_date" => $entryRequest->founding_date,
+                    "founding_date_qualifier" =>
+                        $entryRequest->founding_date_qualifier,
+                    "dissolution_date" => $entryRequest->dissolution_date,
+                    "dissolution_date_qualifier" =>
+                        $entryRequest->dissolution_date_qualifier,
+                    "key_event" => $entryRequest->key_event,
+                    "director" => $entryRequest->director,
+                    "employees" => $entryRequest->employees,
+                    "prisoner_count" => $entryRequest->prisoner_count,
+                    "prisoner_count_qualifier" =>
+                        $entryRequest->prisoner_count_qualifier,
+                    "parent_organization" => $entryRequest->parent_organization,
+                    "child_organization" => $entryRequest->child_organization,
+                    "predecessor_organization" =>
+                        $entryRequest->predecessor_organization,
+                    "successor_organization" =>
+                        $entryRequest->successor_organization,
+                ]);
+            }
+
+            // Save the entry
+            $entryRequest->save();
 
             // Erfolgreiche Antwort
             return response()->json(

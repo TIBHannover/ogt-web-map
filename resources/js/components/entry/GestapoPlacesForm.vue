@@ -1193,11 +1193,20 @@ const validateForm = () => {
 
 // Get form data for submission
 const getData = () => {
-    return {
+    console.log("GestapoPlacesForm.getData() called - field values:");
+    console.log("entity_subtype:", gestapoPlaceTypeValue.value);
+    console.log("founding_date:", foundingDateValue.value);
+    console.log("director:", directorValue.value);
+    console.log("employees:", employeesValue.value);
+    console.log("parent_organization:", parentOrgValue.value);
+    console.log("child_organization:", childOrgValue.value);
+
+    // Create data object with EXACT field names expected by backend
+    const result = {
         // Basic Data
         title: title.value,
         description: description.value,
-        entity_type: "Q106996250", // Base type - Ort des Gestapoterrors
+        type: "Q106996250", // Base type - Ort des Gestapoterrors
         entity_subtype: gestapoPlaceTypeValue.value, // Specific type of Gestapo place
 
         // Time fields
@@ -1207,8 +1216,8 @@ const getData = () => {
         dissolution_date_qualifier: dissolutionDateQualifierValue.value,
 
         // Location
-        location: selectedLocationValue.value,
-        location_qualifier: locationQualifierValue.value,
+        coordinates: selectedLocationValue.value,
+        coordinates_qualifier: locationQualifierValue.value,
 
         // Address
         address: addressValue.value,
@@ -1233,12 +1242,15 @@ const getData = () => {
         successor_organization: successorOrgValue.value,
 
         // Image
-        image_url: imageUrlValue.value,
-        image_filename: imageFilenameValue.value,
+        imageUrl: imageUrlValue.value,
+        imageFilename: imageFilenameValue.value,
 
         // Sources
         sources: selectedSourcesValue.value,
     };
+
+    console.log("GestapoPlacesForm getData() returning:", result);
+    return result;
 };
 
 // Check if form is valid
@@ -1248,6 +1260,25 @@ const getData = () => {
 const baseInfosRef = ref(null);
 const foundingTimeSelectorRef = ref(null);
 const dissolutionTimeSelectorRef = ref(null);
+
+// Expose getData method to parent component
+defineExpose({
+    getData,
+    gestapoPlaceTypeValue,
+    foundingDateValue,
+    foundingDateQualifierValue,
+    dissolutionDateValue,
+    dissolutionDateQualifierValue,
+    keyEventValue,
+    directorValue,
+    employeesValue,
+    prisonerCountValue,
+    prisonerCountQualifierValue,
+    parentOrgValue,
+    childOrgValue,
+    predecessorOrgValue,
+    successorOrgValue,
+});
 const locationSelectorRef = ref(null);
 const sourcesFieldRef = ref(null);
 
@@ -1306,6 +1337,23 @@ const onSubmit = () => {
     if (isValid) {
         // Get data and submit
         const data = getData();
+
+        // Log each field for debugging
+        console.log("GestapoPlacesForm: Critical fields check:");
+        console.log(" - type:", data.type);
+        console.log(" - entity_subtype:", data.entity_subtype);
+        console.log(" - founding_date:", data.founding_date);
+        console.log(" - director:", data.director);
+        console.log(" - employees:", data.employees);
+        console.log(" - parent_organization:", data.parent_organization);
+        console.log(" - child_organization:", data.child_organization);
+
+        // Double-check important fields and set defaults if needed
+        if (!data.entity_subtype && gestapoPlaceTypeValue.value) {
+            data.entity_subtype = gestapoPlaceTypeValue.value;
+            console.log("Fixed missing entity_subtype field");
+        }
+
         console.log("GestapoPlacesForm: Emitting submit with data:", data);
         emit("submit", data);
 

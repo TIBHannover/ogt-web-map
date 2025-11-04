@@ -2074,6 +2074,21 @@ const submitPersonForm = async (formData) => {
         console.log("Submitting form data:", JSON.stringify(formData, null, 2));
         console.log("CSRF Token:", csrfToken ? "Found" : "Missing");
 
+        // Final debugging for the complete payload
+        console.log("FINAL GestapoPlace SUBMISSION CHECKS:");
+
+        if (formsType.value === "Q106996250") {
+            console.log("GestapoPlace specific fields in final payload:", {
+                entity_subtype: formData.entity_subtype,
+                founding_date: formData.founding_date,
+                founding_date_qualifier: formData.founding_date_qualifier,
+                director: formData.director,
+                employees: formData.employees,
+                parent_organization: formData.parent_organization,
+                child_organization: formData.child_organization,
+            });
+        }
+
         try {
             const response = await axios.post(
                 "/api/wikidata/entities",
@@ -2081,8 +2096,6 @@ const submitPersonForm = async (formData) => {
                 {
                     headers: {
                         "X-CSRF-TOKEN": csrfToken,
-                        "Content-Type": "application/json",
-                        Accept: "application/json",
                     },
                 },
             );
@@ -2719,6 +2732,8 @@ const resetForm = async () => {
                                     gestapoPlaceData.dissolution_date_qualifier,
                                 address: gestapoPlaceData.address,
                                 key_event: gestapoPlaceData.key_event,
+                                director: gestapoPlaceData.director,
+                                employees: gestapoPlaceData.employees,
                                 prisoner_count: gestapoPlaceData.prisoner_count,
                                 prisoner_count_qualifier:
                                     gestapoPlaceData.prisoner_count_qualifier,
@@ -2736,6 +2751,12 @@ const resetForm = async () => {
                                 "GestapoPlaces form data:",
                                 gestapoPlaceData,
                             );
+
+                            console.log("GestapoPlaces critical fields:", {
+                                director: formData.director,
+                                employees: formData.employees,
+                                entity_subtype: formData.entity_subtype,
+                            });
                         } else {
                             // Get data directly from refs if getData is not available
                             console.log(
@@ -2780,6 +2801,14 @@ const resetForm = async () => {
                             if (gestapoPlacesFormRef.value.keyEventValue) {
                                 formData.key_event =
                                     gestapoPlacesFormRef.value.keyEventValue;
+                            }
+                            if (gestapoPlacesFormRef.value.directorValue) {
+                                formData.director =
+                                    gestapoPlacesFormRef.value.directorValue;
+                            }
+                            if (gestapoPlacesFormRef.value.employeesValue) {
+                                formData.employees =
+                                    gestapoPlacesFormRef.value.employeesValue;
                             }
                             if (gestapoPlacesFormRef.value.prisonerCountValue) {
                                 formData.prisoner_count =
@@ -2841,6 +2870,51 @@ const resetForm = async () => {
         // Get prepared form data
         const formData = prepareFormData();
         console.log("Final formData to be submitted:", formData);
+
+        // Final check for GestapoPlace fields - make sure they're included
+        if (formsType.value === "Q106996250" && gestapoPlacesFormRef.value) {
+            console.log("Running final GestapoPlace fields check...");
+            try {
+                // Get data directly from the form
+                if (typeof gestapoPlacesFormRef.value.getData === "function") {
+                    const directGestapoData =
+                        gestapoPlacesFormRef.value.getData();
+                    console.log("Direct GestapoPlace data:", directGestapoData);
+
+                    // Make sure these critical fields are set
+                    formData.director = directGestapoData.director;
+                    formData.employees = directGestapoData.employees;
+                    formData.entity_subtype = directGestapoData.entity_subtype;
+                    formData.founding_date = directGestapoData.founding_date;
+                    formData.founding_date_qualifier =
+                        directGestapoData.founding_date_qualifier;
+                    formData.dissolution_date =
+                        directGestapoData.dissolution_date;
+                    formData.dissolution_date_qualifier =
+                        directGestapoData.dissolution_date_qualifier;
+                    formData.key_event = directGestapoData.key_event;
+                    formData.parent_organization =
+                        directGestapoData.parent_organization;
+                    formData.child_organization =
+                        directGestapoData.child_organization;
+                    formData.predecessor_organization =
+                        directGestapoData.predecessor_organization;
+                    formData.successor_organization =
+                        directGestapoData.successor_organization;
+
+                    console.log("GestapoPlace fields set in final check:", {
+                        director: formData.director,
+                        employees: formData.employees,
+                        entity_subtype: formData.entity_subtype,
+                    });
+                }
+            } catch (error) {
+                console.error(
+                    "Error in final GestapoPlace fields check:",
+                    error,
+                );
+            }
+        }
 
         // Make sure each perpetrator has the id field intact
         if (formData.perpetrators && formData.perpetrators.length > 0) {
@@ -3079,7 +3153,6 @@ onUnmounted(() => {
     resetSubmissionState();
 });
 </script>
-
 <style>
 @import "./entry/styles/form-styles.css";
 

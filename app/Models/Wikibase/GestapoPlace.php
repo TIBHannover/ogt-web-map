@@ -474,7 +474,9 @@ class GestapoPlace extends BaseEntity
             return;
         }
 
-        $keyEventProperty = $this->mappingProvider->getPropertyId("SIGNIFICANT_EVENT");
+        $keyEventProperty = $this->mappingProvider->getPropertyId(
+            "SIGNIFICANT_EVENT",
+        );
 
         $this->data["claims"][$keyEventProperty] = [
             [
@@ -514,7 +516,9 @@ class GestapoPlace extends BaseEntity
             return;
         }
 
-        $prisonerCountProperty = $this->mappingProvider->getPropertyId("PRISONER_COUNT");
+        $prisonerCountProperty = $this->mappingProvider->getPropertyId(
+            "PRISONER_COUNT",
+        );
 
         $countStatement = [
             "mainsnak" => [
@@ -572,7 +576,9 @@ class GestapoPlace extends BaseEntity
             return;
         }
 
-        $parentOrgProperty = $this->mappingProvider->getPropertyId("PARENT_ORGANIZATION");
+        $parentOrgProperty = $this->mappingProvider->getPropertyId(
+            "PARENT_ORGANIZATION",
+        );
 
         $this->data["claims"][$parentOrgProperty] = [
             [
@@ -609,7 +615,9 @@ class GestapoPlace extends BaseEntity
             return;
         }
 
-        $childOrgProperty = $this->mappingProvider->getPropertyId("CHILD_ORGANIZATION");
+        $childOrgProperty = $this->mappingProvider->getPropertyId(
+            "CHILD_ORGANIZATION",
+        );
 
         $this->data["claims"][$childOrgProperty] = [
             [
@@ -646,7 +654,9 @@ class GestapoPlace extends BaseEntity
             return;
         }
 
-        $predecessorOrgProperty = $this->mappingProvider->getPropertyId("PREDECESSOR");
+        $predecessorOrgProperty = $this->mappingProvider->getPropertyId(
+            "PREDECESSOR",
+        );
 
         $this->data["claims"][$predecessorOrgProperty] = [
             [
@@ -683,7 +693,9 @@ class GestapoPlace extends BaseEntity
             return;
         }
 
-        $successorOrgProperty = $this->mappingProvider->getPropertyId("SUCCESSOR");
+        $successorOrgProperty = $this->mappingProvider->getPropertyId(
+            "SUCCESSOR",
+        );
 
         $this->data["claims"][$successorOrgProperty] = [
             [
