@@ -1,5 +1,7 @@
 <template>
-    <div class="container-section location-section position-relative">
+    <div
+        class="container-section location-section position-relative overflow-hidden"
+    >
         <div class="section-header">
             <label class="section-label">Standort auswählen *</label>
             <button
@@ -117,6 +119,7 @@ import { useValidation } from "../../../composables/useValidation";
 // State for search error messages
 const searchErrorMessage = ref("");
 const noResultsError = ref(false);
+let markerIcon = null;
 const localLocationSearch = ref("");
 
 // Original alert function reference for the monkey patch
@@ -243,6 +246,7 @@ defineExpose({
     setSearchError,
     clearSearchError,
     isSearching,
+    refreshMarkerIcon,
     completeSearch: () => {
         isSearching.value = false;
     },
@@ -261,7 +265,12 @@ const createCustomIcon = () => {
 };
 
 // Icon für den Marker (verwende übergebene URL oder Standard)
-const markerIcon = createCustomIcon();
+markerIcon = createCustomIcon();
+
+// Function to refresh the marker icon when the URL changes
+const refreshMarkerIcon = () => {
+    markerIcon = createCustomIcon();
+};
 
 // Wird aufgerufen, wenn die Leaflet-Karte bereit ist
 const onMapReady = (map) => {
@@ -430,6 +439,14 @@ watch(
         setTimeout(() => {
             isSearching.value = false;
         }, 500); // Short delay to ensure map has finished rendering
+    },
+);
+
+// Watch for marker icon URL changes
+watch(
+    () => props.markerIconUrl,
+    () => {
+        refreshMarkerIcon();
     },
 );
 

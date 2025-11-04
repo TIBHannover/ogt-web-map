@@ -415,18 +415,6 @@
             </v-card-actions>
         </v-card>
     </v-dialog>
-
-    <!-- Validation Error Messages -->
-    <ValidationError
-        :show="
-            showValidationErrors &&
-            !isValid &&
-            hasInteracted &&
-            props.initialShowErrors === false
-        "
-        :message="validationMessageRequired"
-        showIcon
-    />
 </template>
 
 <script setup>

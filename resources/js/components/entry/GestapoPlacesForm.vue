@@ -165,7 +165,6 @@
                     :selected-location="selectedLocationValue"
                     :location-search="locationSearchValue"
                     :location-qualifier="locationQualifierValue"
-                    :marker-icon-url="`/images/leaflet/markerIcons/coloredFilledWhite/fieldOffices.svg`"
                     :required="true"
                     @update:map-zoom="
                         ($event) => emit('update:mapZoom', $event)
@@ -182,11 +181,13 @@
                     @update:location-qualifier="
                         (val) => (locationQualifierValue = val)
                     "
+                    :marker-icon-url="
+                        getMarkerIconForPlaceType(gestapoPlaceTypeValue)
+                    "
                     @searchLocation="onSearchLocation"
                     @handleMapClick="onHandleMapClick"
                     @fieldFocus="setActiveField"
                     @infoButtonClick="openSectionInfo"
-                    @validation="onLocationValidation"
                 />
 
                 <!-- Adresse (P6375) -->
@@ -317,6 +318,7 @@
                             @fieldFocus="setActiveField('prisonerCount')"
                         />
                         <IntegerQualifier
+                            id="prisoner-count-qualifier"
                             v-model="prisonerCountQualifierValue"
                             label="Nachweisumstände"
                             property-id="P1480"
@@ -828,6 +830,20 @@ const gestapoPlaceTypes = [
 import glossaryItems from "../../data/glossaryData";
 const showFullGlossaryText = ref(false);
 
+// Function to get the appropriate marker icon based on selected place type
+const getMarkerIconForPlaceType = (typeValue) => {
+    if (!typeValue)
+        return "/images/leaflet/markerIcons/coloredFilledWhite/events.svg";
+
+    const selectedType = gestapoPlaceTypes.find(
+        (type) => type.value === typeValue,
+    );
+    if (!selectedType)
+        return "/images/leaflet/markerIcons/coloredFilledWhite/events.svg";
+
+    return `/images/leaflet/markerIcons/coloredFilledWhite/${selectedType.iconId}.svg`;
+};
+
 const typeGlossaryInfo = computed(() => {
     if (!gestapoPlaceTypeValue.value) return null;
 
@@ -1006,6 +1022,19 @@ const openSectionInfo = (section) => {
 // Gestapo Place Type Handler
 const onGestapoPlaceTypeChange = () => {
     console.log("Gestapo Place Type changed to:", gestapoPlaceTypeValue.value);
+    // Force the marker icon to update based on the new place type
+    // This works because we've bound the marker icon URL to a computed value
+    // that depends on gestapoPlaceTypeValue
+
+    // If we have a location selector reference, force a refresh
+    if (locationSelectorRef.value) {
+        // Create a small delay to ensure Vue has updated the props
+        setTimeout(() => {
+            if (locationSelectorRef.value.refreshMarkerIcon) {
+                locationSelectorRef.value.refreshMarkerIcon();
+            }
+        }, 100);
+    }
 };
 
 // Form validation
