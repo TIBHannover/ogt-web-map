@@ -600,7 +600,7 @@ class WikidataSearchController extends Controller
     }
 
     /**
-     * Prioritize label extraction: German > English > Search Result > ID
+     * Get a prioritized label from an entity's data
      *
      * @param array $entity Full entity data from Wikidata
      * @param array $result Initial search result from Wikidata
@@ -609,18 +609,22 @@ class WikidataSearchController extends Controller
     private function getPrioritizedLabel(array $entity, array $result): string
     {
         // Default to ID if nothing else is found
-        $label = $result["id"];
+        $label = isset($result["id"]) ? $result["id"] : "";
 
-        // First try German label from full entity lookup
-        if (!empty($entity["labels"]["de"]["value"])) {
-            $label = $entity["labels"]["de"]["value"];
+        // Check if we have direct labels in the entity
+        if (isset($entity["labels"])) {
+            // First try German label from full entity lookup
+            if (!empty($entity["labels"]["de"]["value"])) {
+                $label = $entity["labels"]["de"]["value"];
+            }
+            // Fallback to English label from entity lookup
+            elseif (!empty($entity["labels"]["en"]["value"])) {
+                $label = $entity["labels"]["en"]["value"];
+            }
         }
-        // Fallback to English label from entity lookup
-        elseif (!empty($entity["labels"]["en"]["value"])) {
-            $label = $entity["labels"]["en"]["value"];
-        }
+
         // Fallback to label from search result
-        elseif (!empty($result["label"])) {
+        if (empty($label) && !empty($result["label"])) {
             $label = $result["label"];
         }
 
@@ -795,21 +799,33 @@ class WikidataSearchController extends Controller
         }
 
         try {
+            $data = null;
+
+            // First attempt with HTTP client
             try {
-                $response = $this->getHttpClient()->request(
-                    "GET",
+                $response = $this->getHttpClient()->get(
                     "https://www.wikidata.org/w/api.php",
                     [
-                        "query" => [
-                            "action" => "wbgetentities",
-                            "ids" => $id,
-                            "languages" => "de|en",
-                            "format" => "json",
-                        ],
+                        "action" => "wbgetentities",
+                        "ids" => $id,
+                        "languages" => "de|en",
+                        "format" => "json",
                     ],
                 );
 
-                $data = json_decode((string) $response->getBody(), true);
+                if ($response->successful()) {
+                    $data = $response->json();
+                } else {
+                    Log::warning("Wikidata API returned non-success status", [
+                        "id" => $id,
+                        "status" => $response->status(),
+                        "body" => $response->body(),
+                    ]);
+                    throw new \Exception(
+                        "Wikidata API returned status code: " .
+                            $response->status(),
+                    );
+                }
             } catch (\Exception $innerException) {
                 Log::error("HTTP request failed in getEntityById", [
                     "id" => $id,
@@ -830,30 +846,81 @@ class WikidataSearchController extends Controller
                 curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 
                 $response = curl_exec($ch);
+                $curlError = curl_error($ch);
+                $curlInfo = curl_getinfo($ch);
                 curl_close($ch);
 
                 if ($response === false) {
-                    throw new \Exception("cURL request failed");
+                    Log::error("cURL request failed", [
+                        "id" => $id,
+                        "error" => $curlError,
+                        "info" => $curlInfo,
+                    ]);
+                    throw new \Exception("cURL request failed: " . $curlError);
                 }
 
                 $data = json_decode($response, true);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    Log::error("JSON decoding failed", [
+                        "id" => $id,
+                        "error" => json_last_error_msg(),
+                        "response" => substr($response, 0, 1000), // Log first 1000 chars
+                    ]);
+                    throw new \Exception(
+                        "Failed to decode JSON: " . json_last_error_msg(),
+                    );
+                }
             }
 
-            if (!isset($data["entities"][$id])) {
+            if (
+                !$data ||
+                !isset($data["entities"]) ||
+                !isset($data["entities"][$id])
+            ) {
+                Log::warning("Entity not found in response", [
+                    "id" => $id,
+                    "data_keys" => $data ? array_keys($data) : "null",
+                    "has_entities" =>
+                        $data && isset($data["entities"]) ? "yes" : "no",
+                ]);
                 return response()->json(["error" => "Entity not found"], 404);
             }
 
             $entity = $data["entities"][$id];
-            $label = $this->getPrioritizedLabel($entity["labels"] ?? []);
-            $description = $this->getPrioritizedDescription(
-                $entity["descriptions"] ?? [],
-            );
+
+            // Extract label with priority: German > English > entity ID
+            $label = $id;
+            if (
+                isset($entity["labels"]["de"]) &&
+                !empty($entity["labels"]["de"]["value"])
+            ) {
+                $label = $entity["labels"]["de"]["value"];
+            } elseif (
+                isset($entity["labels"]["en"]) &&
+                !empty($entity["labels"]["en"]["value"])
+            ) {
+                $label = $entity["labels"]["en"]["value"];
+            }
+
+            // Extract description with priority: German > English > empty string
+            $description = "";
+            if (
+                isset($entity["descriptions"]["de"]) &&
+                !empty($entity["descriptions"]["de"]["value"])
+            ) {
+                $description = $entity["descriptions"]["de"]["value"];
+            } elseif (
+                isset($entity["descriptions"]["en"]) &&
+                !empty($entity["descriptions"]["en"]["value"])
+            ) {
+                $description = $entity["descriptions"]["en"]["value"];
+            }
 
             return response()->json(
                 [
                     "id" => $id,
-                    "label" => $label ?: $id,
-                    "description" => $description ?: "",
+                    "label" => $label,
+                    "description" => $description,
                 ],
                 200,
             );

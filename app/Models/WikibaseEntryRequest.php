@@ -94,11 +94,6 @@ class WikibaseEntryRequest extends Model
         "is_standalone_person" => "boolean",
         "commemorates" => "string",
         "operator" => "string",
-        "key_event" => "string",
-        "parent_organization" => "string",
-        "child_organization" => "string",
-        "predecessor_organization" => "string",
-        "successor_organization" => "string",
     ];
 
     protected $table = "wikidata_entry_requests";

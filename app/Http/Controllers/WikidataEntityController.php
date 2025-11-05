@@ -79,15 +79,15 @@ class WikidataEntityController extends Controller
             "founding_date_qualifier" => "nullable|string",
             "dissolution_date" => "nullable|string",
             "dissolution_date_qualifier" => "nullable|string",
-            "key_event" => "nullable|string",
-            "director" => "nullable|string",
-            "employees" => "nullable|string",
+            "key_event" => "nullable|array",
+            "director" => "nullable|array",
+            "employees" => "nullable|array",
             "prisoner_count" => "nullable|string",
             "prisoner_count_qualifier" => "nullable|string",
-            "parent_organization" => "nullable|string",
-            "child_organization" => "nullable|string",
-            "predecessor_organization" => "nullable|string",
-            "successor_organization" => "nullable|string",
+            "parent_organization" => "nullable|array",
+            "child_organization" => "nullable|array",
+            "predecessor_organization" => "nullable|array",
+            "successor_organization" => "nullable|array",
         ]);
 
         try {

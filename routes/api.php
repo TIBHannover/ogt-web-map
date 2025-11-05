@@ -57,14 +57,6 @@ Route::get("/wikidata/entity/{id}", [
 ])
     ->withoutMiddleware(["throttle:api"])
     ->middleware(["throttle:600,1"]);
-
-// Route for getting a single entity by ID
-Route::get("/wikidata/entity/{id}", [
-    WikidataSearchController::class,
-    "getEntityById",
-])
-    ->withoutMiddleware(["throttle:api"])
-    ->middleware(["throttle:600,1"]);
 Route::post("/wikidata/entities", [WikidataEntityController::class, "create"]);
 Route::get("/wikidata/requests", [
     WikidataEntityController::class,
