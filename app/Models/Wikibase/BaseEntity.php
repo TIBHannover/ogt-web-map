@@ -118,8 +118,32 @@ abstract class BaseEntity
             "INSTANCE_OF",
         );
 
-        $this->data["claims"][$instanceOfProperty] = [
-            [
+        // Skip if property ID is empty
+        if (empty($instanceOfProperty)) {
+            return;
+        }
+
+        // Initialize the claims array if it doesn't exist yet
+        if (!isset($this->data["claims"][$instanceOfProperty])) {
+            $this->data["claims"][$instanceOfProperty] = [];
+        }
+
+        // Check if the base type is already in the claims
+        $baseTypeExists = false;
+        foreach ($this->data["claims"][$instanceOfProperty] as $claim) {
+            if (
+                isset($claim["mainsnak"]["datavalue"]["value"]["id"]) &&
+                $claim["mainsnak"]["datavalue"]["value"]["id"] ===
+                    $this->entityType
+            ) {
+                $baseTypeExists = true;
+                break;
+            }
+        }
+
+        // Only add the base entity type claim if it doesn't already exist
+        if (!$baseTypeExists) {
+            $this->data["claims"][$instanceOfProperty][] = [
                 "mainsnak" => [
                     "snaktype" => "value",
                     "property" => $instanceOfProperty,
@@ -136,8 +160,8 @@ abstract class BaseEntity
                 ],
                 "type" => "statement",
                 "rank" => "normal",
-            ],
-        ];
+            ];
+        }
     }
 
     /**

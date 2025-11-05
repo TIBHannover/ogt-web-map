@@ -227,6 +227,11 @@ class GestapoPlace extends BaseEntity
             "INSTANCE_OF",
         );
 
+        // Skip if property ID is empty
+        if (empty($instanceOfProperty)) {
+            return;
+        }
+
         // Ensure the base type (Q106996250) is set
         $this->addInstanceOfClaim();
 
@@ -235,23 +240,38 @@ class GestapoPlace extends BaseEntity
             $this->data["claims"][$instanceOfProperty] = [];
         }
 
-        // Add the subtype as an additional P31 claim
-        $this->data["claims"][$instanceOfProperty][] = [
-            "mainsnak" => [
-                "snaktype" => "value",
-                "property" => $instanceOfProperty,
-                "datavalue" => [
-                    "value" => [
-                        "entity-type" => "item",
-                        "id" => $entitySubtype,
-                        "numeric-id" => intval(substr($entitySubtype, 1)),
+        // Check if the subtype already exists in the claims
+        $subtypeExists = false;
+        foreach ($this->data["claims"][$instanceOfProperty] as $claim) {
+            if (
+                isset($claim["mainsnak"]["datavalue"]["value"]["id"]) &&
+                $claim["mainsnak"]["datavalue"]["value"]["id"] ===
+                    $entitySubtype
+            ) {
+                $subtypeExists = true;
+                break;
+            }
+        }
+
+        // Only add the subtype claim if it doesn't already exist
+        if (!$subtypeExists) {
+            $this->data["claims"][$instanceOfProperty][] = [
+                "mainsnak" => [
+                    "snaktype" => "value",
+                    "property" => $instanceOfProperty,
+                    "datavalue" => [
+                        "value" => [
+                            "entity-type" => "item",
+                            "id" => $entitySubtype,
+                            "numeric-id" => intval(substr($entitySubtype, 1)),
+                        ],
+                        "type" => "wikibase-entityid",
                     ],
-                    "type" => "wikibase-entityid",
                 ],
-            ],
-            "type" => "statement",
-            "rank" => "normal",
-        ];
+                "type" => "statement",
+                "rank" => "normal",
+            ];
+        }
     }
 
     /**
@@ -275,6 +295,11 @@ class GestapoPlace extends BaseEntity
         $foundingDateProperty = $this->mappingProvider->getPropertyId(
             "FOUNDING_DATE",
         );
+
+        // Skip if property ID is empty
+        if (empty($foundingDateProperty)) {
+            return;
+        }
 
         $precision = 11; // Default to day precision
         $formattedDate = $date;
@@ -320,6 +345,12 @@ class GestapoPlace extends BaseEntity
                 "QUALIFIER_OF",
             );
 
+            if (empty($qualifierProperty)) {
+                // If we can't find a valid qualifier property, just use the date without qualifier
+                $this->data["claims"][$foundingDateProperty] = [$dateStatement];
+                return;
+            }
+
             if ($qualifierProperty) {
                 $dateStatement["qualifiers"] = [
                     $qualifierProperty => [
@@ -360,6 +391,11 @@ class GestapoPlace extends BaseEntity
         $dissolutionDateProperty = $this->mappingProvider->getPropertyId(
             "DISSOLUTION_DATE",
         );
+
+        // Skip if property ID is empty
+        if (empty($dissolutionDateProperty)) {
+            return;
+        }
 
         $precision = 11; // Default to day precision
         $formattedDate = $date;
@@ -405,6 +441,14 @@ class GestapoPlace extends BaseEntity
                 "QUALIFIER_OF",
             );
 
+            if (empty($qualifierProperty)) {
+                // If we can't find a valid qualifier property, just use the date without qualifier
+                $this->data["claims"][$dissolutionDateProperty] = [
+                    $dateStatement,
+                ];
+                return;
+            }
+
             if ($qualifierProperty) {
                 $dateStatement["qualifiers"] = [
                     $qualifierProperty => [
@@ -439,6 +483,11 @@ class GestapoPlace extends BaseEntity
         }
 
         $addressProperty = $this->mappingProvider->getPropertyId("ADDRESS");
+
+        // Skip if property ID is empty
+        if (empty($addressProperty)) {
+            return;
+        }
 
         $this->data["claims"][$addressProperty] = [
             [
@@ -480,6 +529,11 @@ class GestapoPlace extends BaseEntity
         $keyEventProperty = $this->mappingProvider->getPropertyId(
             "SIGNIFICANT_EVENT",
         );
+
+        // Skip if property ID is empty
+        if (empty($keyEventProperty)) {
+            return;
+        }
 
         // Initialize the claims array if not already set
         if (!isset($this->data["claims"][$keyEventProperty])) {
@@ -544,6 +598,11 @@ class GestapoPlace extends BaseEntity
             "PRISONER_COUNT",
         );
 
+        // Skip if property ID is empty
+        if (empty($prisonerCountProperty)) {
+            return;
+        }
+
         $countStatement = [
             "mainsnak" => [
                 "snaktype" => "value",
@@ -565,6 +624,14 @@ class GestapoPlace extends BaseEntity
             $qualifierProperty = $this->mappingProvider->getPropertyId(
                 "SOURCING_CIRCUMSTANCES",
             );
+
+            if (empty($qualifierProperty)) {
+                // If we can't find a valid qualifier property, just use the count without qualifier
+                $this->data["claims"][$prisonerCountProperty] = [
+                    $countStatement,
+                ];
+                return;
+            }
 
             if ($qualifierProperty) {
                 $countStatement["qualifiers"] = [
@@ -606,6 +673,11 @@ class GestapoPlace extends BaseEntity
         $parentOrgProperty = $this->mappingProvider->getPropertyId(
             "PARENT_ORGANIZATION",
         );
+
+        // Skip if property ID is empty
+        if (empty($parentOrgProperty)) {
+            return;
+        }
 
         // Initialize the claims array if not already set
         if (!isset($this->data["claims"][$parentOrgProperty])) {
@@ -663,6 +735,11 @@ class GestapoPlace extends BaseEntity
             "CHILD_ORGANIZATION",
         );
 
+        // Skip if property ID is empty
+        if (empty($childOrgProperty)) {
+            return;
+        }
+
         // Initialize the claims array if not already set
         if (!isset($this->data["claims"][$childOrgProperty])) {
             $this->data["claims"][$childOrgProperty] = [];
@@ -718,6 +795,11 @@ class GestapoPlace extends BaseEntity
         $predecessorOrgProperty = $this->mappingProvider->getPropertyId(
             "PREDECESSOR",
         );
+
+        // Skip if property ID is empty
+        if (empty($predecessorOrgProperty)) {
+            return;
+        }
 
         // Initialize the claims array if not already set
         if (!isset($this->data["claims"][$predecessorOrgProperty])) {
@@ -775,6 +857,11 @@ class GestapoPlace extends BaseEntity
             "SUCCESSOR",
         );
 
+        // Skip if property ID is empty
+        if (empty($successorOrgProperty)) {
+            return;
+        }
+
         // Initialize the claims array if not already set
         if (!isset($this->data["claims"][$successorOrgProperty])) {
             $this->data["claims"][$successorOrgProperty] = [];
@@ -829,6 +916,11 @@ class GestapoPlace extends BaseEntity
 
         $directorProperty = $this->mappingProvider->getPropertyId("DIRECTOR");
 
+        // Skip if property ID is empty
+        if (empty($directorProperty)) {
+            return;
+        }
+
         // Initialize the claims array if not already set
         if (!isset($this->data["claims"][$directorProperty])) {
             $this->data["claims"][$directorProperty] = [];
@@ -882,6 +974,11 @@ class GestapoPlace extends BaseEntity
         $entityIdArray = is_array($entityIds) ? $entityIds : [$entityIds];
 
         $employeesProperty = $this->mappingProvider->getPropertyId("EMPLOYEES");
+
+        // Skip if property ID is empty
+        if (empty($employeesProperty)) {
+            return;
+        }
 
         // Initialize the claims array if not already set
         if (!isset($this->data["claims"][$employeesProperty])) {

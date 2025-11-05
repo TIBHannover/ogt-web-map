@@ -107,6 +107,7 @@ class WikidataEntityMappingProvider implements EntityMappingProviderInterface
         "SOURCING_CIRCUMSTANCES" => "P1480",
         "DIRECTOR" => "P1037",
         "EMPLOYEES_COUNT" => "P1128",
+        "EMPLOYEES" => "P1830",
     ];
 
     /**
