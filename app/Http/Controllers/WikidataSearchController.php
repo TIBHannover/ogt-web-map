@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Routing\Controller;
 use App\Services\Wikibase\WikibaseService;
 
@@ -698,6 +699,183 @@ class WikidataSearchController extends Controller
                 "error" => $e->getMessage(),
             ]);
             return null;
+        }
+    }
+
+    /**
+     * Get Wikidata entities by their IDs
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getEntitiesByIds(Request $request): JsonResponse
+    {
+        $request->validate([
+            "ids" => "required|string",
+        ]);
+
+        $ids = $request->input("ids");
+
+        // Remove any invalid characters and split by pipe or comma
+        $cleanIds = preg_replace("/[^Q0-9|,]/", "", $ids);
+        $idArray = preg_split("/[|,]/", $cleanIds, -1, PREG_SPLIT_NO_EMPTY);
+
+        if (empty($idArray)) {
+            return response()->json(["entities" => []], 200);
+        }
+
+        try {
+            $idString = implode("|", $idArray);
+
+            $response = $this->getHttpClient()->get(
+                "https://www.wikidata.org/w/api.php",
+                [
+                    "action" => "wbgetentities",
+                    "ids" => $idString,
+                    "languages" => "de|en",
+                    "format" => "json",
+                ],
+            );
+
+            if (!$response->successful()) {
+                return response()->json(
+                    ["error" => "Wikidata API request failed"],
+                    500,
+                );
+            }
+
+            $data = $response->json();
+
+            $entities = [];
+            if (isset($data["entities"]) && is_array($data["entities"])) {
+                foreach ($data["entities"] as $entityId => $entity) {
+                    $label = $this->getPrioritizedLabel(
+                        $entity["labels"] ?? [],
+                    );
+                    $description = $this->getPrioritizedDescription(
+                        $entity["descriptions"] ?? [],
+                    );
+
+                    $entities[$entityId] = [
+                        "id" => $entityId,
+                        "label" => $label ?: $entityId,
+                        "description" => $description ?: "",
+                    ];
+                }
+            }
+
+            return response()->json(["entities" => $entities], 200);
+        } catch (\Exception $e) {
+            Log::error("Error fetching entities by IDs", [
+                "ids" => $ids,
+                "error" => $e->getMessage(),
+            ]);
+
+            return response()->json(
+                ["error" => "Failed to fetch entities"],
+                500,
+            );
+        }
+    }
+
+    /**
+     * Get a single Wikidata entity by ID
+     *
+     * @param string $id
+     * @return JsonResponse
+     */
+    public function getEntityById(string $id): JsonResponse
+    {
+        // Validate that $id is a valid Wikidata ID
+        if (!preg_match('/^Q\d+$/', $id)) {
+            return response()->json(
+                ["error" => "Invalid Wikidata entity ID format"],
+                422,
+            );
+        }
+
+        try {
+            try {
+                $response = $this->getHttpClient()->request(
+                    "GET",
+                    "https://www.wikidata.org/w/api.php",
+                    [
+                        "query" => [
+                            "action" => "wbgetentities",
+                            "ids" => $id,
+                            "languages" => "de|en",
+                            "format" => "json",
+                        ],
+                    ],
+                );
+
+                $data = json_decode((string) $response->getBody(), true);
+            } catch (\Exception $innerException) {
+                Log::error("HTTP request failed in getEntityById", [
+                    "id" => $id,
+                    "error" => $innerException->getMessage(),
+                    "trace" => $innerException->getTraceAsString(),
+                ]);
+
+                // Fallback to direct cURL request
+                $url = "https://www.wikidata.org/w/api.php?action=wbgetentities&ids={$id}&languages=de|en&format=json";
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt(
+                    $ch,
+                    CURLOPT_USERAGENT,
+                    "GTO-Wiki-App/1.0 (https://www.gestapo-terror-orte.de/; info@gestapo-terror-orte.de)",
+                );
+                curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+
+                $response = curl_exec($ch);
+                curl_close($ch);
+
+                if ($response === false) {
+                    throw new \Exception("cURL request failed");
+                }
+
+                $data = json_decode($response, true);
+            }
+
+            if (!isset($data["entities"][$id])) {
+                return response()->json(["error" => "Entity not found"], 404);
+            }
+
+            $entity = $data["entities"][$id];
+            $label = $this->getPrioritizedLabel($entity["labels"] ?? []);
+            $description = $this->getPrioritizedDescription(
+                $entity["descriptions"] ?? [],
+            );
+
+            return response()->json(
+                [
+                    "id" => $id,
+                    "label" => $label ?: $id,
+                    "description" => $description ?: "",
+                ],
+                200,
+            );
+        } catch (\Exception $e) {
+            Log::error("Error fetching entity by ID", [
+                "id" => $id,
+                "error" => $e->getMessage(),
+                "trace" => $e->getTraceAsString(),
+                "file" => $e->getFile(),
+                "line" => $e->getLine(),
+            ]);
+
+            // Return a more specific error message with ID for debugging
+            return response()->json(
+                [
+                    "error" => "Failed to fetch entity",
+                    "id" => $id,
+                    "message" => $e->getMessage(),
+                    "class" => get_class($e),
+                ],
+                500,
+            );
         }
     }
 

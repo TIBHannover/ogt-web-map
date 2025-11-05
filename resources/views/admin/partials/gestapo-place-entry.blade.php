@@ -62,7 +62,13 @@
             <div class="mb-3">
                 <h6>Schlüsselereignis:</h6>
                 <div class="mb-2">
-                    {!! safeFormatWikidata($request->key_event) !!}
+                    @if(is_array($request->key_event))
+                        @foreach($request->key_event as $index => $event)
+                            {!! safeFormatWikidata($event) !!}@if($index < count($request->key_event) - 1), @endif
+                        @endforeach
+                    @else
+                        {!! safeFormatWikidata($request->key_event) !!}
+                    @endif
                 </div>
             </div>
         @endif
@@ -72,7 +78,13 @@
             <div class="mb-3">
                 <h6>Leiter:</h6>
                 <div class="mb-2">
-                    {!! safeFormatWikidata($request->director) !!}
+                    @if(is_array($request->director))
+                        @foreach($request->director as $index => $director)
+                            {!! safeFormatWikidata($director) !!}@if($index < count($request->director) - 1), @endif
+                        @endforeach
+                    @else
+                        {!! safeFormatWikidata($request->director) !!}
+                    @endif
                 </div>
             </div>
         @endif
@@ -82,7 +94,13 @@
             <div class="mb-3">
                 <h6>Beschäftigte:</h6>
                 <div class="mb-2">
-                    {{ $request->employees }}
+                    @if(is_array($request->employees))
+                        @foreach($request->employees as $index => $employee)
+                            {!! safeFormatWikidata($employee) !!}@if($index < count($request->employees) - 1), @endif
+                        @endforeach
+                    @else
+                        {!! safeFormatWikidata($request->employees) !!}
+                    @endif
                 </div>
             </div>
         @endif
@@ -102,7 +120,13 @@
             <div class="mb-3">
                 <h6>Übergeordnete Organisation:</h6>
                 <div class="mb-2">
-                    {!! safeFormatWikidata($request->parent_organization) !!}
+                    @if(is_array($request->parent_organization))
+                        @foreach($request->parent_organization as $index => $org)
+                            {!! safeFormatWikidata($org) !!}@if($index < count($request->parent_organization) - 1), @endif
+                        @endforeach
+                    @else
+                        {!! safeFormatWikidata($request->parent_organization) !!}
+                    @endif
                 </div>
             </div>
         @endif
@@ -112,7 +136,13 @@
             <div class="mb-3">
                 <h6>Nachgeordnete Organisation:</h6>
                 <div class="mb-2">
-                    {!! safeFormatWikidata($request->child_organization) !!}
+                    @if(is_array($request->child_organization))
+                        @foreach($request->child_organization as $index => $org)
+                            {!! safeFormatWikidata($org) !!}@if($index < count($request->child_organization) - 1), @endif
+                        @endforeach
+                    @else
+                        {!! safeFormatWikidata($request->child_organization) !!}
+                    @endif
                 </div>
             </div>
         @endif
@@ -122,7 +152,13 @@
             <div class="mb-3">
                 <h6>Vorgängerorganisation:</h6>
                 <div class="mb-2">
-                    {!! safeFormatWikidata($request->predecessor_organization) !!}
+                    @if(is_array($request->predecessor_organization))
+                        @foreach($request->predecessor_organization as $index => $org)
+                            {!! safeFormatWikidata($org) !!}@if($index < count($request->predecessor_organization) - 1), @endif
+                        @endforeach
+                    @else
+                        {!! safeFormatWikidata($request->predecessor_organization) !!}
+                    @endif
                 </div>
             </div>
         @endif
@@ -132,7 +168,13 @@
             <div class="mb-3">
                 <h6>Nachfolgeorganisation:</h6>
                 <div class="mb-2">
-                    {!! safeFormatWikidata($request->successor_organization) !!}
+                    @if(is_array($request->successor_organization))
+                        @foreach($request->successor_organization as $index => $org)
+                            {!! safeFormatWikidata($org) !!}@if($index < count($request->successor_organization) - 1), @endif
+                        @endforeach
+                    @else
+                        {!! safeFormatWikidata($request->successor_organization) !!}
+                    @endif
                 </div>
             </div>
         @endif

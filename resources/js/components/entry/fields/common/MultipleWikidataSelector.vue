@@ -141,6 +141,8 @@ const silentAxios = axios.create();
 silentAxios.interceptors.response.use(
     (response) => response,
     (error) => {
+        // Silently handle errors without polluting the console
+
         // Convert to a silent error that won't pollute the console
         return Promise.reject({
             ...error,
@@ -193,6 +195,9 @@ const props = defineProps({
                 "books",
                 "archives",
                 "nationalities",
+                "organizations",
+                "commemorates",
+                "events",
             ].includes(value),
     },
     maxSelections: {
@@ -243,44 +248,24 @@ const fetchEntityLabels = async (entityIds) => {
             };
         });
 
-        // Batch requests to API
-        const chunks = [];
-        for (let i = 0; i < missingIds.length; i += 50) {
-            chunks.push(missingIds.slice(i, i + 50));
-        }
-
-        for (const chunk of chunks) {
-            const ids = chunk.join("|");
-
+        // Process IDs individually to avoid batch errors
+        for (const id of missingIds) {
             try {
-                // Try the local API first, silently handle errors
-                try {
-                    const response = await silentAxios.get(
-                        `/api/wikidata/entities?ids=${ids}`,
-                    );
-                    if (response.data && response.data.entities) {
-                        for (const [id, entity] of Object.entries(
-                            response.data.entities,
-                        )) {
-                            entityLabels.value[id] = {
-                                id: id,
-                                label: entity.label || id,
-                                description: entity.description || "",
-                            };
-                        }
-                    }
-                } catch (error) {
-                    // Mark these IDs as failed to prevent repeated requests
-                    if (error.response && error.response.status === 422) {
-                        // Split the IDs string back into an array
-                        ids.split("|").forEach((id) => {
-                            window.failedEntityIds.add(id.trim());
-                        });
-                    }
+                const response = await axios.get(`/api/wikidata/entity/${id}`);
+                if (response.data && response.data.id) {
+                    entityLabels.value[id] = {
+                        id: id,
+                        label: response.data.label || id,
+                        description: response.data.description || "",
+                    };
                 }
-            } catch (error) {}
+            } catch (error) {
+                // Already have fallback values from above
+                // Silently handle errors - already using fallback values
+            }
         }
     } catch (error) {
+        // Silently handle overall fetch errors
     } finally {
         loadingEntities.value = false;
     }

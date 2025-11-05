@@ -465,21 +465,38 @@ class GestapoPlace extends BaseEntity
      * @param string $entityId The Wikidata entity ID of the key event
      * @return void
      */
-    public function setKeyEvent(?string $entityId): void
+    public function setKeyEvent($entityIds): void
     {
-        $this->keyEvent = $entityId;
+        $this->keyEvent = $entityIds;
 
-        // Skip if empty or not a valid Q-ID
-        if (empty($entityId) || substr($entityId, 0, 1) !== "Q") {
+        // Handle empty input or non-arrays
+        if (empty($entityIds)) {
             return;
         }
+
+        // Convert single string to array if needed
+        $entityIdArray = is_array($entityIds) ? $entityIds : [$entityIds];
 
         $keyEventProperty = $this->mappingProvider->getPropertyId(
             "SIGNIFICANT_EVENT",
         );
 
-        $this->data["claims"][$keyEventProperty] = [
-            [
+        // Initialize the claims array if not already set
+        if (!isset($this->data["claims"][$keyEventProperty])) {
+            $this->data["claims"][$keyEventProperty] = [];
+        } else {
+            // Clear existing claims for this property
+            $this->data["claims"][$keyEventProperty] = [];
+        }
+
+        // Add each entity ID as a separate claim
+        foreach ($entityIdArray as $entityId) {
+            // Skip if not a valid Q-ID
+            if (empty($entityId) || substr($entityId, 0, 1) !== "Q") {
+                continue;
+            }
+
+            $this->data["claims"][$keyEventProperty][] = [
                 "mainsnak" => [
                     "snaktype" => "value",
                     "property" => $keyEventProperty,
@@ -494,8 +511,8 @@ class GestapoPlace extends BaseEntity
                 ],
                 "type" => "statement",
                 "rank" => "normal",
-            ],
-        ];
+            ];
+        }
     }
 
     /**
@@ -574,21 +591,38 @@ class GestapoPlace extends BaseEntity
      * @param string $entityId The Wikidata entity ID of the parent organization
      * @return void
      */
-    public function setParentOrganization(?string $entityId): void
+    public function setParentOrganization($entityIds): void
     {
-        $this->parentOrganization = $entityId;
+        $this->parentOrganization = $entityIds;
 
-        // Skip if empty or not a valid Q-ID
-        if (empty($entityId) || substr($entityId, 0, 1) !== "Q") {
+        // Handle empty input
+        if (empty($entityIds)) {
             return;
         }
+
+        // Convert single string to array if needed
+        $entityIdArray = is_array($entityIds) ? $entityIds : [$entityIds];
 
         $parentOrgProperty = $this->mappingProvider->getPropertyId(
             "PARENT_ORGANIZATION",
         );
 
-        $this->data["claims"][$parentOrgProperty] = [
-            [
+        // Initialize the claims array if not already set
+        if (!isset($this->data["claims"][$parentOrgProperty])) {
+            $this->data["claims"][$parentOrgProperty] = [];
+        } else {
+            // Clear existing claims for this property
+            $this->data["claims"][$parentOrgProperty] = [];
+        }
+
+        // Add each entity ID as a separate claim
+        foreach ($entityIdArray as $entityId) {
+            // Skip if not a valid Q-ID
+            if (empty($entityId) || substr($entityId, 0, 1) !== "Q") {
+                continue;
+            }
+
+            $this->data["claims"][$parentOrgProperty][] = [
                 "mainsnak" => [
                     "snaktype" => "value",
                     "property" => $parentOrgProperty,
@@ -603,31 +637,48 @@ class GestapoPlace extends BaseEntity
                 ],
                 "type" => "statement",
                 "rank" => "normal",
-            ],
-        ];
+            ];
+        }
     }
 
     /**
      * Set the child organization property (P355)
      *
-     * @param string $entityId The Wikidata entity ID of the child organization
+     * @param array|string $entityIds The Wikidata entity IDs of child organizations
      * @return void
      */
-    public function setChildOrganization(?string $entityId): void
+    public function setChildOrganization($entityIds): void
     {
-        $this->childOrganization = $entityId;
+        $this->childOrganization = $entityIds;
 
-        // Skip if empty or not a valid Q-ID
-        if (empty($entityId) || substr($entityId, 0, 1) !== "Q") {
+        // Handle empty input
+        if (empty($entityIds)) {
             return;
         }
+
+        // Convert single string to array if needed
+        $entityIdArray = is_array($entityIds) ? $entityIds : [$entityIds];
 
         $childOrgProperty = $this->mappingProvider->getPropertyId(
             "CHILD_ORGANIZATION",
         );
 
-        $this->data["claims"][$childOrgProperty] = [
-            [
+        // Initialize the claims array if not already set
+        if (!isset($this->data["claims"][$childOrgProperty])) {
+            $this->data["claims"][$childOrgProperty] = [];
+        } else {
+            // Clear existing claims for this property
+            $this->data["claims"][$childOrgProperty] = [];
+        }
+
+        // Add each entity ID as a separate claim
+        foreach ($entityIdArray as $entityId) {
+            // Skip if not a valid Q-ID
+            if (empty($entityId) || substr($entityId, 0, 1) !== "Q") {
+                continue;
+            }
+
+            $this->data["claims"][$childOrgProperty][] = [
                 "mainsnak" => [
                     "snaktype" => "value",
                     "property" => $childOrgProperty,
@@ -642,31 +693,48 @@ class GestapoPlace extends BaseEntity
                 ],
                 "type" => "statement",
                 "rank" => "normal",
-            ],
-        ];
+            ];
+        }
     }
 
     /**
      * Set the predecessor organization property (P1365)
      *
-     * @param string $entityId The Wikidata entity ID of the predecessor organization
+     * @param array|string $entityIds The Wikidata entity IDs of predecessor organizations
      * @return void
      */
-    public function setPredecessorOrganization(?string $entityId): void
+    public function setPredecessorOrganization($entityIds): void
     {
-        $this->predecessorOrganization = $entityId;
+        $this->predecessorOrganization = $entityIds;
 
-        // Skip if empty or not a valid Q-ID
-        if (empty($entityId) || substr($entityId, 0, 1) !== "Q") {
+        // Handle empty input
+        if (empty($entityIds)) {
             return;
         }
+
+        // Convert single string to array if needed
+        $entityIdArray = is_array($entityIds) ? $entityIds : [$entityIds];
 
         $predecessorOrgProperty = $this->mappingProvider->getPropertyId(
             "PREDECESSOR",
         );
 
-        $this->data["claims"][$predecessorOrgProperty] = [
-            [
+        // Initialize the claims array if not already set
+        if (!isset($this->data["claims"][$predecessorOrgProperty])) {
+            $this->data["claims"][$predecessorOrgProperty] = [];
+        } else {
+            // Clear existing claims for this property
+            $this->data["claims"][$predecessorOrgProperty] = [];
+        }
+
+        // Add each entity ID as a separate claim
+        foreach ($entityIdArray as $entityId) {
+            // Skip if not a valid Q-ID
+            if (empty($entityId) || substr($entityId, 0, 1) !== "Q") {
+                continue;
+            }
+
+            $this->data["claims"][$predecessorOrgProperty][] = [
                 "mainsnak" => [
                     "snaktype" => "value",
                     "property" => $predecessorOrgProperty,
@@ -681,8 +749,8 @@ class GestapoPlace extends BaseEntity
                 ],
                 "type" => "statement",
                 "rank" => "normal",
-            ],
-        ];
+            ];
+        }
     }
 
     /**
@@ -691,21 +759,38 @@ class GestapoPlace extends BaseEntity
      * @param string $entityId The Wikidata entity ID of the successor organization
      * @return void
      */
-    public function setSuccessorOrganization(?string $entityId): void
+    public function setSuccessorOrganization($entityIds): void
     {
-        $this->successorOrganization = $entityId;
+        $this->successorOrganization = $entityIds;
 
-        // Skip if empty or not a valid Q-ID
-        if (empty($entityId) || substr($entityId, 0, 1) !== "Q") {
+        // Handle empty input
+        if (empty($entityIds)) {
             return;
         }
+
+        // Convert single string to array if needed
+        $entityIdArray = is_array($entityIds) ? $entityIds : [$entityIds];
 
         $successorOrgProperty = $this->mappingProvider->getPropertyId(
             "SUCCESSOR",
         );
 
-        $this->data["claims"][$successorOrgProperty] = [
-            [
+        // Initialize the claims array if not already set
+        if (!isset($this->data["claims"][$successorOrgProperty])) {
+            $this->data["claims"][$successorOrgProperty] = [];
+        } else {
+            // Clear existing claims for this property
+            $this->data["claims"][$successorOrgProperty] = [];
+        }
+
+        // Add each entity ID as a separate claim
+        foreach ($entityIdArray as $entityId) {
+            // Skip if not a valid Q-ID
+            if (empty($entityId) || substr($entityId, 0, 1) !== "Q") {
+                continue;
+            }
+
+            $this->data["claims"][$successorOrgProperty][] = [
                 "mainsnak" => [
                     "snaktype" => "value",
                     "property" => $successorOrgProperty,
@@ -720,8 +805,8 @@ class GestapoPlace extends BaseEntity
                 ],
                 "type" => "statement",
                 "rank" => "normal",
-            ],
-        ];
+            ];
+        }
     }
 
     /**
@@ -730,19 +815,36 @@ class GestapoPlace extends BaseEntity
      * @param string $entityId The Wikidata entity ID of the director
      * @return void
      */
-    public function setDirector(?string $entityId): void
+    public function setDirector($entityIds): void
     {
-        $this->director = $entityId;
+        $this->director = $entityIds;
 
-        // Skip if empty or not a valid Q-ID
-        if (empty($entityId) || substr($entityId, 0, 1) !== "Q") {
+        // Handle empty input
+        if (empty($entityIds)) {
             return;
         }
 
+        // Convert single string to array if needed
+        $entityIdArray = is_array($entityIds) ? $entityIds : [$entityIds];
+
         $directorProperty = $this->mappingProvider->getPropertyId("DIRECTOR");
 
-        $this->data["claims"][$directorProperty] = [
-            [
+        // Initialize the claims array if not already set
+        if (!isset($this->data["claims"][$directorProperty])) {
+            $this->data["claims"][$directorProperty] = [];
+        } else {
+            // Clear existing claims for this property
+            $this->data["claims"][$directorProperty] = [];
+        }
+
+        // Add each entity ID as a separate claim
+        foreach ($entityIdArray as $entityId) {
+            // Skip if not a valid Q-ID
+            if (empty($entityId) || substr($entityId, 0, 1) !== "Q") {
+                continue;
+            }
+
+            $this->data["claims"][$directorProperty][] = [
                 "mainsnak" => [
                     "snaktype" => "value",
                     "property" => $directorProperty,
@@ -757,45 +859,62 @@ class GestapoPlace extends BaseEntity
                 ],
                 "type" => "statement",
                 "rank" => "normal",
-            ],
-        ];
+            ];
+        }
     }
 
     /**
-     * Set the employees count property (P1128)
+     * Set the employees property
      *
-     * @param string $count The number of employees
+     * @param array|string $entityIds The Wikidata entity IDs of employees
      * @return void
      */
-    public function setEmployees(?string $count): void
+    public function setEmployees($entityIds): void
     {
-        $this->employees = $count;
+        $this->employees = $entityIds;
 
-        if (empty($count) || !is_numeric($count)) {
+        // Handle empty input
+        if (empty($entityIds)) {
             return;
         }
 
-        $employeesProperty = $this->mappingProvider->getPropertyId(
-            "EMPLOYEES_COUNT",
-        );
+        // Convert single string to array if needed
+        $entityIdArray = is_array($entityIds) ? $entityIds : [$entityIds];
 
-        $this->data["claims"][$employeesProperty] = [
-            [
+        $employeesProperty = $this->mappingProvider->getPropertyId("EMPLOYEES");
+
+        // Initialize the claims array if not already set
+        if (!isset($this->data["claims"][$employeesProperty])) {
+            $this->data["claims"][$employeesProperty] = [];
+        } else {
+            // Clear existing claims for this property
+            $this->data["claims"][$employeesProperty] = [];
+        }
+
+        // Add each entity ID as a separate claim
+        foreach ($entityIdArray as $entityId) {
+            // Skip if not a valid Q-ID
+            if (empty($entityId) || substr($entityId, 0, 1) !== "Q") {
+                continue;
+            }
+
+            $this->data["claims"][$employeesProperty][] = [
                 "mainsnak" => [
                     "snaktype" => "value",
                     "property" => $employeesProperty,
                     "datavalue" => [
                         "value" => [
-                            "amount" => "+" . $count,
-                            "unit" => "1",
+                            "entity-type" => "item",
+                            "id" => $entityId,
+                            "numeric-id" => intval(substr($entityId, 1)),
                         ],
-                        "type" => "quantity",
+                        "type" => "wikibase-entityid",
                     ],
                 ],
                 "type" => "statement",
                 "rank" => "normal",
-            ],
-        ];
+            ];
+        }
     }
 
     /**

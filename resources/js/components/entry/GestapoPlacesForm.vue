@@ -227,16 +227,15 @@
                             <v-icon>mdi-information-variant</v-icon>
                         </button>
                     </div>
-                    <WikidataSelector
+                    <MultipleWikidataSelector
                         v-model="keyEventValue"
                         label="Schlüsselereignis"
-                        dialog-title="Schlüsselereignis auswählen"
-                        search-label="Nach Ereignissen suchen..."
+                        dialog-title="Schlüsselereignisse auswählen"
+                        search-label="Ereignis suchen..."
                         :search-results="keyEventSearchResultsValue"
                         :is-loading="isKeyEventSearchLoading"
                         :search-performed="keyEventSearchPerformed"
                         endpoint="commemorates"
-                        property-id="P793"
                         @search="onSearchKeyEvent"
                         field="keyEvent"
                         @fieldFocus="setActiveField('keyEvent')"
@@ -255,16 +254,15 @@
                             <v-icon>mdi-information-variant</v-icon>
                         </button>
                     </div>
-                    <WikidataSelector
+                    <MultipleWikidataSelector
                         v-model="directorValue"
                         label="Leiter"
                         dialog-title="Leiter auswählen"
-                        search-label="Nach Personen suchen..."
+                        search-label="Person suchen..."
                         :search-results="directorSearchResultsValue"
                         :is-loading="isDirectorSearchLoading"
                         :search-performed="directorSearchPerformed"
                         endpoint="people"
-                        property-id="P1037"
                         @search="onSearchDirector"
                         field="director"
                         @fieldFocus="setActiveField('director')"
@@ -283,16 +281,15 @@
                             <v-icon>mdi-information-variant</v-icon>
                         </button>
                     </div>
-                    <WikidataSelector
+                    <MultipleWikidataSelector
                         v-model="employeesValue"
                         label="Beschäftigte"
                         dialog-title="Beschäftigte auswählen"
-                        search-label="Nach Personen suchen..."
+                        search-label="Person suchen..."
                         :search-results="employeesSearchResultsValue"
                         :is-loading="isEmployeesSearchLoading"
                         :search-performed="employeesSearchPerformed"
                         endpoint="people"
-                        property-id="P1128"
                         @search="onSearchEmployees"
                         field="employees"
                         @fieldFocus="setActiveField('employees')"
@@ -346,16 +343,15 @@
                             <v-icon>mdi-information-variant</v-icon>
                         </button>
                     </div>
-                    <WikidataSelector
+                    <MultipleWikidataSelector
                         v-model="parentOrgValue"
                         label="Übergeordnete Organisation"
-                        dialog-title="Übergeordnete Organisation auswählen"
-                        search-label="Nach Organisationen suchen..."
+                        dialog-title="Übergeordnete Organisationen auswählen"
+                        search-label="Organisation suchen..."
                         :search-results="parentOrgSearchResultsValue"
                         :is-loading="isParentOrgSearchLoading"
                         :search-performed="parentOrgSearchPerformed"
                         endpoint="organizations"
-                        property-id="P749"
                         @search="onSearchParentOrg"
                         field="parentOrg"
                         @fieldFocus="setActiveField('parentOrg')"
@@ -376,16 +372,15 @@
                             <v-icon>mdi-information-variant</v-icon>
                         </button>
                     </div>
-                    <WikidataSelector
+                    <MultipleWikidataSelector
                         v-model="childOrgValue"
                         label="Nachgeordnete Organisation"
-                        dialog-title="Nachgeordnete Organisation auswählen"
-                        search-label="Nach Organisationen suchen..."
+                        dialog-title="Nachgeordnete Organisationen auswählen"
+                        search-label="Organisation suchen..."
                         :search-results="childOrgSearchResultsValue"
                         :is-loading="isChildOrgSearchLoading"
                         :search-performed="childOrgSearchPerformed"
                         endpoint="organizations"
-                        property-id="P355"
                         @search="onSearchChildOrg"
                         field="childOrg"
                         @fieldFocus="setActiveField('childOrg')"
@@ -406,16 +401,15 @@
                             <v-icon>mdi-information-variant</v-icon>
                         </button>
                     </div>
-                    <WikidataSelector
+                    <MultipleWikidataSelector
                         v-model="predecessorOrgValue"
                         label="Vorgängerorganisation"
-                        dialog-title="Vorgängerorganisation auswählen"
-                        search-label="Nach Organisationen suchen..."
+                        dialog-title="Vorgängerorganisationen auswählen"
+                        search-label="Organisation suchen..."
                         :search-results="predecessorOrgSearchResultsValue"
                         :is-loading="isPredecessorOrgSearchLoading"
                         :search-performed="predecessorOrgSearchPerformed"
                         endpoint="organizations"
-                        property-id="P1365"
                         @search="onSearchPredecessorOrg"
                         field="predecessorOrg"
                         @fieldFocus="setActiveField('predecessorOrg')"
@@ -436,16 +430,15 @@
                             <v-icon>mdi-information-variant</v-icon>
                         </button>
                     </div>
-                    <WikidataSelector
+                    <MultipleWikidataSelector
                         v-model="successorOrgValue"
                         label="Nachfolgeorganisation"
-                        dialog-title="Nachfolgeorganisation auswählen"
-                        search-label="Nach Organisationen suchen..."
+                        dialog-title="Nachfolgeorganisationen auswählen"
+                        search-label="Organisation suchen..."
                         :search-results="successorOrgSearchResultsValue"
                         :is-loading="isSuccessorOrgSearchLoading"
                         :search-performed="successorOrgSearchPerformed"
                         endpoint="organizations"
-                        property-id="P1366"
                         @search="onSearchSuccessorOrg"
                         field="successorOrg"
                         @fieldFocus="setActiveField('successorOrg')"
@@ -566,6 +559,7 @@ import LocationSelector from "./fields/LocationSelector.vue";
 import TextField from "./fields/common/TextField.vue";
 import TimeSelector from "./fields/TimeSelector.vue";
 import WikidataSelector from "./fields/common/WikidataSelector.vue";
+import MultipleWikidataSelector from "./fields/common/MultipleWikidataSelector.vue";
 import IntegerQualifier from "./fields/common/IntegerQualifier.vue";
 import SourcesField from "./fields/SourcesField.vue";
 import WikimediaImageSelector from "./fields/WikimediaImageSelector.vue";
@@ -940,19 +934,19 @@ const locationQualifierValue = computed({
 const addressValue = ref("");
 
 // Key Event
-const keyEventValue = ref(null);
+const keyEventValue = ref([]);
 const keyEventSearchResultsValue = ref([]);
 const isKeyEventSearchLoading = ref(false);
 const keyEventSearchPerformed = ref(false);
 
 // Director (Leiter)
-const directorValue = ref(null);
+const directorValue = ref([]);
 const directorSearchResultsValue = ref([]);
 const isDirectorSearchLoading = ref(false);
 const directorSearchPerformed = ref(false);
 
 // Employees (Beschäftigte)
-const employeesValue = ref(null);
+const employeesValue = ref([]);
 const employeesSearchResultsValue = ref([]);
 const isEmployeesSearchLoading = ref(false);
 const employeesSearchPerformed = ref(false);
@@ -962,25 +956,25 @@ const prisonerCountValue = ref("");
 const prisonerCountQualifierValue = ref(null);
 
 // Parent Organization
-const parentOrgValue = ref(null);
+const parentOrgValue = ref([]);
 const parentOrgSearchResultsValue = ref([]);
 const isParentOrgSearchLoading = ref(false);
 const parentOrgSearchPerformed = ref(false);
 
 // Child Organization
-const childOrgValue = ref(null);
+const childOrgValue = ref([]);
 const childOrgSearchResultsValue = ref([]);
 const isChildOrgSearchLoading = ref(false);
 const childOrgSearchPerformed = ref(false);
 
 // Predecessor Organization
-const predecessorOrgValue = ref(null);
+const predecessorOrgValue = ref([]);
 const predecessorOrgSearchResultsValue = ref([]);
 const isPredecessorOrgSearchLoading = ref(false);
 const predecessorOrgSearchPerformed = ref(false);
 
 // Successor Organization
-const successorOrgValue = ref(null);
+const successorOrgValue = ref([]);
 const successorOrgSearchResultsValue = ref([]);
 const isSuccessorOrgSearchLoading = ref(false);
 const successorOrgSearchPerformed = ref(false);
@@ -1431,7 +1425,7 @@ const onSearchDirector = async (query) => {
         );
         directorSearchResultsValue.value = response.data;
     } catch (error) {
-        console.error("Error searching directors:", error);
+        console.error("Error searching director:", error);
         directorSearchResultsValue.value = [];
     } finally {
         isDirectorSearchLoading.value = false;
@@ -1479,7 +1473,7 @@ const onSearchParentOrg = async (query) => {
         );
         parentOrgSearchResultsValue.value = response.data;
     } catch (error) {
-        console.error("Error searching parent organizations:", error);
+        console.error("Error searching parent organization:", error);
         parentOrgSearchResultsValue.value = [];
     } finally {
         isParentOrgSearchLoading.value = false;
@@ -1498,7 +1492,7 @@ const onSearchChildOrg = async (query) => {
         );
         childOrgSearchResultsValue.value = response.data;
     } catch (error) {
-        console.error("Error searching child organizations:", error);
+        console.error("Error searching child organization:", error);
         childOrgSearchResultsValue.value = [];
     } finally {
         isChildOrgSearchLoading.value = false;
@@ -1517,7 +1511,7 @@ const onSearchPredecessorOrg = async (query) => {
         );
         predecessorOrgSearchResultsValue.value = response.data;
     } catch (error) {
-        console.error("Error searching predecessor organizations:", error);
+        console.error("Error searching predecessor organization:", error);
         predecessorOrgSearchResultsValue.value = [];
     } finally {
         isPredecessorOrgSearchLoading.value = false;
@@ -1536,7 +1530,7 @@ const onSearchSuccessorOrg = async (query) => {
         );
         successorOrgSearchResultsValue.value = response.data;
     } catch (error) {
-        console.error("Error searching successor organizations:", error);
+        console.error("Error searching successor organization:", error);
         successorOrgSearchResultsValue.value = [];
     } finally {
         isSuccessorOrgSearchLoading.value = false;
