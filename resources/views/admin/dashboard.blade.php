@@ -101,10 +101,16 @@
                                                 <span class="badge bg-warning">Fehler</span>
                                             @elseif($request->status == 'wikidata_published')
                                                 <span class="badge bg-info">In Wikidata veröffentlicht</span>
+                                            @elseif($request->status == 'published')
+                                                <span class="badge bg-info">In Wikidata veröffentlicht</span>
                                             @endif
                                         </td>
                                         <td>{{ is_string($request->created_at) ? date('d.m.Y H:i', strtotime($request->created_at)) : $request->created_at->format('d.m.Y H:i') }}</td>
-                                        <td>{{ $request->wikidata_id ?? '-' }}</td>
+                                        <td>
+                                            <a href="https://www.wikidata.org/wiki/{{ $request->wikidata_id }}" target="_blank">
+                                                {{ $request->wikidata_id }}
+                                            </a>
+                                        </td>
                                         <td>
                                             <a href="{{ route('admin.requests.show', $request->id) }}" class="btn btn-sm btn-primary">
                                                 <i class="bi bi-eye"></i> Details
