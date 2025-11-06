@@ -453,52 +453,14 @@
                 </div>
 
                 <!-- Bild (P18) -->
-                <div class="container-section image-section">
-                    <div class="section-header">
-                        <label class="section-label">Bild:</label>
-                        <button
-                            type="button"
-                            class="info-icon"
-                            @click="openSectionInfo('image')"
-                        >
-                            <v-icon>mdi-information-variant</v-icon>
-                        </button>
-                    </div>
-                    <div class="image-selection">
-                        <button
-                            type="button"
-                            class="btn btn-primary btn-block"
-                            @click="openImageSelector"
-                        >
-                            <v-icon start>mdi-camera</v-icon> Bild hinzufügen
-                        </button>
-                    </div>
-                    <div v-if="imageUrlValue" class="selected-image mt-2">
-                        <div class="image-container">
-                            <img
-                                class="preview-image"
-                                :src="imageUrlValue"
-                                @click="openLightbox"
-                                alt="Bild Vorschau"
-                            />
-                            <div class="click-hint">
-                                <v-icon>mdi-magnify-plus-outline</v-icon>
-                            </div>
-                        </div>
-                        <div class="image-details">
-                            <div class="image-filename">
-                                {{ imageFilenameValue }}
-                            </div>
-                            <button
-                                type="button"
-                                class="btn btn-sm btn-danger remove-image"
-                                @click="removeImage"
-                            >
-                                <v-icon>mdi-close</v-icon>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <ImageSelector
+                    :imageUrl="imageUrlValue"
+                    :imageFilename="imageFilenameValue"
+                    @update:imageUrl="imageUrlValue = $event"
+                    @update:imageFilename="imageFilenameValue = $event"
+                    @fieldFocus="setActiveField"
+                    @infoButtonClick="openSectionInfo"
+                />
 
                 <!-- Quellen -->
                 <SourcesField
@@ -571,12 +533,6 @@
         </div>
 
         <!-- Dialogs -->
-        <v-dialog v-model="imageDialogVisible" max-width="800">
-            <WikimediaImageSelector
-                @select="selectImage"
-                @close="closeImageDialog"
-            />
-        </v-dialog>
 
         <v-dialog v-model="sourcesDialogVisible" max-width="800">
             <SourcesSelector
@@ -584,13 +540,6 @@
                 @close="closeSourcesDialog"
             />
         </v-dialog>
-
-        <Lightbox
-            :is-open="lightboxOpen"
-            :image-url="imageUrlValue"
-            :image-alt="imageFilenameValue || 'Bild Vorschau'"
-            @close="lightboxOpen = false"
-        />
     </div>
 </template>
 
@@ -606,8 +555,8 @@ import IntegerQualifier from "./fields/common/IntegerQualifier.vue";
 import SourcesField from "./fields/SourcesField.vue";
 import WikimediaImageSelector from "./fields/WikimediaImageSelector.vue";
 import SourcesSelector from "./fields/SourcesSelector.vue";
+import ImageSelector from "./fields/ImageSelector.vue";
 import ValidationError from "../helpers/ValidationError.vue";
-import Lightbox from "../helpers/Lightbox.vue";
 import axios from "axios";
 import { VIcon, VDialog } from "vuetify/components";
 import { useFetchInfo } from "./composables/useFetchInfo";
@@ -1026,8 +975,6 @@ const selectedSourcesValue = computed({
 });
 
 // UI States
-const imageDialogVisible = ref(false);
-const lightboxOpen = ref(false);
 const sourcesDialogVisible = ref(false);
 const showValidationErrors = ref(false);
 const isSubmitting = ref(false);
@@ -1566,28 +1513,7 @@ const onSearchSuccessorOrg = async (query) => {
     }
 };
 
-// Image dialog handlers
-const openImageSelector = () => {
-    imageDialogVisible.value = true;
-};
-
-const closeImageDialog = () => {
-    imageDialogVisible.value = false;
-};
-
-const selectImage = (image) => {
-    console.log("Selected image:", image);
-    imageUrlValue.value = image.url;
-    imageFilenameValue.value = image.filename;
-    emit("update:imageUrl", image.url);
-    emit("update:imageFilename", image.filename);
-    closeImageDialog();
-};
-
-const removeImage = () => {
-    imageUrlValue.value = "";
-    imageFilenameValue.value = "";
-};
+// All image functionality now handled by ImageSelector component
 
 // Sources dialog handlers
 const openSourcesSelector = () => {
@@ -1622,11 +1548,7 @@ const removeSource = (index) => {
 };
 
 // Lightbox handler
-const openLightbox = () => {
-    if (imageUrlValue.value) {
-        lightboxOpen.value = true;
-    }
-};
+// Helper functions
 
 // When component mounts
 onMounted(() => {
