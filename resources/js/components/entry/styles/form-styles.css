@@ -37,13 +37,13 @@
 }
 
 /* Layout für Formular mit Info-Box */
-.event-form-wrapper {
+.form-wrapper {
     display: flex;
     flex-direction: row;
     gap: 2rem;
     width: 100%;
 }
-.event-form-wrapper.admin-view {
+.form-wrapper.admin-view {
     display: block;
 }
 
@@ -54,7 +54,7 @@
     margin-bottom: 20px;
     width: 65%; /* Reduzierte Breite, um Platz für die Info-Box zu lassen */
 }
-.event-form-wrapper.admin-view .step-container {
+.form-wrapper.admin-view .step-container {
     width: 100%;
 }
 
@@ -190,7 +190,7 @@
 }
 
 @media (max-width: 1200px) {
-    .event-form-wrapper {
+    .form-wrapper {
         flex-direction: column;
     }
 

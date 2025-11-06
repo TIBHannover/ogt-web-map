@@ -1,5 +1,5 @@
 <template>
-    <div class="person-form-wrapper">
+    <div class="person-form-wrapper form-wrapper">
         <div class="step-container">
             <h2 class="step-title">Schritt 2: Person-Details eingeben</h2>
             <form class="forms" @submit.prevent>

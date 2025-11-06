@@ -439,10 +439,6 @@ onMounted(() => {
     margin: 0;
 }
 
-.add-button {
-    white-space: nowrap;
-}
-
 .selected-chips-container {
     margin-top: 8px;
     display: flex;
@@ -501,5 +497,22 @@ onMounted(() => {
 
 .selected-item-row:last-child {
     border-bottom: none;
+}
+
+.add-button {
+    height: auto;
+    white-space: nowrap;
+    min-height: 48px;
+    padding: 8px 16px;
+    line-height: 1.2;
+    text-align: left;
+    word-break: break-word;
+}
+
+.button-text {
+    display: inline-block;
+    white-space: normal;
+    word-wrap: break-word;
+    hyphens: auto;
 }
 </style>

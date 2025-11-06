@@ -1,6 +1,6 @@
 <template>
     <div
-        class="event-form-wrapper"
+        class="event-form-wrapper form-wrapper"
         :class="{ 'admin-view': props.isAdminView }"
     >
         <div class="step-container">

@@ -533,6 +533,22 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.selector-button {
+    white-space: normal;
+    height: auto;
+    min-height: 48px;
+    padding: 8px 16px;
+    line-height: 1.2;
+    text-align: left;
+    word-break: break-word;
+}
+
+.button-text {
+    display: inline-block;
+    white-space: normal;
+    word-wrap: break-word;
+    hyphens: auto;
+}
 .search-container {
     display: flex;
     align-items: center;

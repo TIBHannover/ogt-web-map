@@ -1,6 +1,6 @@
 <template>
     <div
-        class="memorial-form-wrapper"
+        class="memorial-form-wrapper form-wrapper"
         :class="{ 'admin-view': props.isAdminView }"
     >
         <div class="step-container">

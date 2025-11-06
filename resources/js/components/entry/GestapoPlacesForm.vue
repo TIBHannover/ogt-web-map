@@ -1,6 +1,6 @@
 <template>
     <div
-        class="gestapo-places-form-wrapper"
+        class="gestapo-places-form-wrapper form-wrapper"
         :class="{ 'admin-view': props.isAdminView }"
     >
         <div class="step-container">
@@ -526,6 +526,41 @@
                     </button>
                 </div>
             </form>
+            <!-- Info-Box (Desktop) -->
+        </div>
+
+        <div
+            class="info-box desktop-info"
+            v-if="activeField && !isMobileView && !isAdminView"
+        >
+            <div class="info-box-header">
+                <h3>{{ getInfoTitle(activeField) }}</h3>
+            </div>
+            <div class="info-box-content">
+                <div v-html="getInfoContent(activeField)"></div>
+            </div>
+        </div>
+
+        <!-- Mobile Info-Overlay -->
+        <div
+            class="mobile-info-overlay"
+            v-if="showMobileInfoOverlay && (isMobileView || props.isAdminView)"
+            @click="closeMobileInfoOverlay"
+        >
+            <div class="overlay-content" @click.stop>
+                <div class="overlay-header">
+                    <h3>{{ getInfoTitle(lastActiveField) }}</h3>
+                    <button
+                        class="close-overlay"
+                        @click="closeMobileInfoOverlay"
+                    >
+                        &times;
+                    </button>
+                </div>
+                <div class="overlay-body">
+                    <div v-html="getInfoContent(lastActiveField)"></div>
+                </div>
+            </div>
         </div>
 
         <!-- Dialogs -->
@@ -651,155 +686,7 @@ const emit = defineEmits([
 // Title and description
 const title = ref(props.formsTitle);
 const description = ref(props.formsDescription);
-
-// Style for the component
-const componentStyles = `
-    .image-container {
-        position: relative;
-        width: 100%;
-        height: 150px;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-    }
-
-    .image-container:hover .preview-image {
-        transform: scale(1.05);
-    }
-
-    .image-container:hover .click-hint {
-        opacity: 1;
-    }
-
-    .preview-image {
-        max-width: 100%;
-        max-height: 150px;
-        object-fit: contain;
-        transition: transform 0.3s ease;
-    }
-
-    .click-hint {
-        position: absolute;
-        bottom: 8px;
-        right: 8px;
-        background-color: rgba(0, 0, 0, 0.6);
-        color: white;
-        border-radius: 50%;
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0.7;
-        transition: opacity 0.3s ease;
-    }
-
-    .gestapo-place-type-radio-group {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 15px;
-        margin-bottom: 20px;
-    }
-
-    .place-type-radio-box {
-        flex: 0 0 calc(33.333% - 15px);
-        height: 120px;
-        border: 2px solid #e0e0e0;
-        border-radius: 8px;
-        padding: 15px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-    }
-
-    @media (max-width: 768px) {
-        .place-type-radio-box {
-            flex: 0 0 calc(50% - 15px);
-        }
-    }
-
-    @media (max-width: 480px) {
-        .place-type-radio-box {
-            flex: 0 0 100%;
-        }
-    }
-
-    .place-type-radio-box:hover {
-        border-color: #1976d2;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .place-type-radio-box.selected {
-        border-color: #1976d2;
-        background-color: rgba(25, 118, 210, 0.05);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .radio-box-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        width: 100%;
-    }
-
-    .place-type-icon {
-        width: 40px;
-        height: 40px;
-        margin-bottom: 10px;
-    }
-
-    .place-type-label {
-        font-size: 14px;
-        font-weight: 500;
-    }
-
-    .radio-indicator {
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        color: #1976d2;
-    }
-
-    .place-type-info-text {
-        padding: 15px;
-        margin-bottom: 20px;
-        background-color: #f5f5f5;
-        border-radius: 4px;
-        border-left: 4px solid #1976d2;
-    }
-
-    .read-more-link {
-        text-align: right;
-        margin-top: 10px;
-        font-weight: 500;
-    }
-
-    .read-more-link a {
-        color: #1976d2;
-        text-decoration: none;
-    }
-
-    .read-more-link a:hover {
-        text-decoration: underline;
-    }
-
-    .shortened-text {
-        position: relative;
-    }
-`;
-// Append the style to the document
-if (typeof document !== "undefined") {
-    const styleElement = document.createElement("style");
-    styleElement.textContent = componentStyles;
-    document.head.appendChild(styleElement);
-}
+const isMobileView = ref(false);
 
 // Radio buttons for the GestapoPlace Type
 const gestapoPlaceTypeValue = ref(null);
@@ -831,6 +718,141 @@ const gestapoPlaceTypes = [
 // Get glossary info for the selected place type
 import glossaryItems from "../../data/glossaryData";
 const showFullGlossaryText = ref(false);
+
+const checkScreenSize = () => {
+    isMobileView.value = window.innerWidth < 1200;
+};
+
+const getInfoTitle = (fieldName) => {
+    const sectionTitles = {
+        title: "Basis-Informationen",
+        time: "Zeitliche Informationen",
+        "victim-count": "Geschädigte-Zahlen",
+        cause: "Ursache der Verfolgung",
+        location: "Standort",
+        image: "Bild",
+        victims: "Geschädigte Personen",
+        perpetrators: "Täter*Innen",
+        sources: "Quellenangaben",
+    };
+
+    if (sectionTitles[fieldName]) {
+        return sectionTitles[fieldName];
+    } else {
+        return "Information";
+    }
+};
+
+// Info-Box-Inhalt basierend auf dem aktiven Feld oder Sektion
+const getInfoContent = (fieldName) => {
+    // Zuordnung von Feldern zu Sektionen
+    const fieldToSection = {
+        title: "title",
+        description: "title",
+        "event-date": "time",
+        "event-start-date": "time",
+        "event-end-date": "time",
+        "victim-count": "counts",
+        "survivor-count": "counts",
+        "death-count": "counts",
+        "arrest-count": "counts",
+    };
+
+    // Wenn das Feld einer Sektion zugeordnet ist, diese verwenden
+    const sectionName = fieldToSection[fieldName] || fieldName;
+
+    return getSectionInfoContent(sectionName);
+};
+
+// Konsolidierte Hilfetexte pro Sektion
+const getSectionInfoContent = (sectionName) => {
+    const sectionContents = {
+        title: `<p>In diesem Bereich werden die grundlegenden Informationen zum Ereignis erfasst.</p>
+               <p><strong>Titel:</strong> Gebe einen präzisen und aussagekräftigen Titel ein, der Art des Ereignisses, Zeit/Ort und ggf. beteiligte Gruppen enthält.</p>
+               <p><strong>Beschreibung:</strong> Beschreibe das Ereignis kurz und informativ mit den wichtigsten Fakten, beteiligten Personen und historischem Kontext.</p>
+               <p>Beispiele für gute Titel: "Novemberpogrom 1938 in Osnabrück", "Deportation der jüdischen Bevölkerung aus Hamburg (1941)"</p>`,
+
+        time: `<p>Hier werdem die zeitlichen Informationen zum Ereignis erfasst.</p>
+               <p><strong>Diese Angabe ist verpflichtend.</strong></p>
+               <p>Du kannst zwischen einem einzelnen Zeitpunkt oder einem Zeitraum wählen:</p>
+               <ul>
+                 <li><strong>Zeitpunkt:</strong> Für Ereignisse, die an einem bestimmten Datum stattfanden</li>
+                 <li><strong>Zeitraum:</strong> Für länger andauernde Ereignisse mit Start- und Enddatum</li>
+               </ul>
+               <p>Falls das genaue Datum nicht bekannt ist, kannst du auch nur einen Monat eines Jahres oder ein Jahr auswählen.<br />
+               Bei ungenauen Datumsangaben kannst du in der Select-Box unter dem Datum einen Qualifikator wie "ungefähr" setzen.</p>`,
+
+        counts: `<p>In diesem Bereich kannst du die Geschädigtenzahl des Ereignisses dokumentieren.</p>
+                <p>Folgende Informationen können hier ergänzt werden (sofern bekannt):</p>
+                <ul>
+                  <li><strong>Gesamtzahl der Geschädigten:</strong> Alle betroffenen Personen</li>
+                  <li><strong>Anzahl der Überlebenden:</strong> Personen, die das Ereignis überlebt haben</li>
+                  <li><strong>Anzahl der Todesopfer:</strong> Personen, die durch das Ereignis ums Leben kamen</li>
+                  <li><strong>Anzahl der Festnahmen:</strong> Personen, die im Zuge des Ereignisses festgenommen wurden</li>
+                </ul>
+                <p>Verwende nur gesicherte Zahlen aus verlässlichen Quellen. Bei Unsicherheit ist ein Bereich (z.B. "etwa 100-150 Opfer") in der Beschreibung besser als eine exakte Zahl.</p>`,
+
+        cause: `<p>Hier dokumentierst du die Ursache(n) der Verfolgung.</p>
+               <p>Wähle die Hauptursache(n) aus oder füge neue hinzu. Typische Kategorien sind:</p>
+               <ul>
+                 <li>Religiöse Verfolgung</li>
+                 <li>Rassistische Verfolgung</li>
+                 <li>Politische Verfolgung</li>
+                 <li>Soziale Verfolgung</li>
+               </ul>
+               <p>Eine präzise Dokumentation der Verfolgungsursachen ist wichtig für das Verständnis historischer Zusammenhänge.</p>`,
+
+        location: `<p>Hier wird der genaue Ort des Ereignisses auf der Karte gewählt.</p>
+                    <p><strong>Dieses Feld ist ein Pflichtfeld!</strong></p>
+                  <p>Sie können:</p>
+                  <ul>
+                    <li>Direkt auf die Karte klicken, um einen Standort zu markieren</li>
+                    <li>Nach einem Ort suchen, um ihn schneller zu finden</li>
+                    <li>Die Karte zoomen und verschieben, um den genauen Standort zu lokalisieren</li>
+                  </ul>
+                  <p>Präzise Ortsangaben sind wichtig für die historische Dokumentation und ermöglichen eine genaue geografische Einordnung.</p>
+                  <p>Wenn nur bespw. die Stadt bekannt ist, kann einfach das Stadtzentrum gewählt werden und dann in der Selectbox unter der Karte der Qualifikator "Ungefähr" um dies deutlich zu machen.</p>
+                  `,
+
+        image: `<p>Hier kannst du ein passendes Bild zum Ereignis hinzufügen.</p>
+               <p>Geeignete Bilder sind:</p>
+               <ul>
+                 <li>Historische Fotos vom Ereignis</li>
+                 <li>Bilder des Ortes</li>
+                 <li>Dokumente zum Ereignis</li>
+                 <li>Denkmäler oder Gedenktafeln</li>
+               </ul>
+               <p>Verwende nur Bilder, die rechtlich genutzt werden dürfen, und achten Sie auf korrekte Quellenangaben.</p>`,
+
+        sources: `<p>Hier kannst du Quellenangaben zum Ereignis hinzufügen.</p>
+                <p><strong>Diese Angabe ist verpflichtend:</strong> Jedes Ereignis muss mindestens eine Quelle enthalten.</p>
+                <p>Du kannst verschiedene Arten von Quellen angeben:</p>
+                <ul class="mb-3">
+                  <li><strong>Bücher:</strong> Wissenschaftliche Werke, Monographien, Sammelbände etc.</li>
+                  <li><strong>URLs:</strong> Vertrauenswürdige Webseiten, Online-Archive, Datenbanken</li>
+                  <li><strong>Archive:</strong> Archivmaterial mit Inventarnummer</li>
+                </ul>
+                <p>Bei Buchquellen kannst du nach bereits in Wikidata erfassten Werken suchen oder neue Werke manuell hinzufügen. Geben möglichst genaue Seitenangaben an.</p>
+                <p>Bei URLs ist das Zugriffsdatum wichtig, um die zeitliche Verfügbarkeit der Information zu dokumentieren.</p>
+                <p>Bei Archivquellen gebe das entsprechende Archiv und die Signatur oder Inventarnummer an. (Die meisten Archivalien haben eine Signatur. Seltener werden Inventarnummern genutzt, meist z. B. bei Gegenständen und manchmal auch bei Fotos).</p>`,
+
+        victims: `<p>Hier werden die Geschädigten des Ereignisses hinzugefügt.</p>
+                <p>Du kannst nach bereits bekannten Personen suchen oder neue Personen manuell hinzufügen.</p>
+                <p>Bei neuen Personen achte bitte auf korrekte Namensschreibweisen, Lebensdaten und eine kurze Beschreibung.</p>
+                <p>Dies hilft bei der Verknüpfung mit anderen Ereignissen und der Nachverfolgung von Biographien.</p>`,
+
+        perpetrators: `<p>Hier werden die für das Ereignis verantwortlichen Personen oder Gruppen dokumentiert.</p>
+                     <p><strong>Diese Angabe ist verpflichtend:</strong> Jedes Ereignis muss mindestens einen Täter oder eine verantwortliche Organisation haben.</p>
+                     <p>Beachte dabei die juristische und historische Genauigkeit, unterscheide zwischen direkten Tätern und Befehlsgebern und dokumentiere auch institutionelle Verantwortlichkeiten.</p>
+                     <p>Zudem sind Befehlsgeber, organisatorisch Verantwortliche und direkt ausführende Täter gleichermaßen Täter.</p>
+                     <p>Wenn du natürliche Personen anlegst, ist besonders auf eine historisch präzise und sorgfältige Arbeitsweise zu achten.</p>`,
+    };
+
+    return (
+        sectionContents[sectionName] ||
+        "<p>Wähle einen Bereich aus, um Hilfe zu erhalten.</p>"
+    );
+};
 
 // Function to get the appropriate marker icon based on selected place type
 const getMarkerIconForPlaceType = (typeValue) => {
@@ -1601,6 +1623,8 @@ const openLightbox = () => {
 
 // When component mounts
 onMounted(() => {
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
     // Sync title and description with parent
     emit("update:formsTitle", title.value);
     emit("update:formsDescription", description.value);
@@ -1615,7 +1639,150 @@ onMounted(() => {
     });
 });
 </script>
+<!-- Global form styles -->
+<style>
+@import "./styles/form-styles.css";
+</style>
 
 <style scoped>
 /* Component styles */
+.image-container {
+    position: relative;
+    width: 100%;
+    height: 150px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.image-container:hover .preview-image {
+    transform: scale(1.05);
+}
+
+.image-container:hover .click-hint {
+    opacity: 1;
+}
+
+.preview-image {
+    max-width: 100%;
+    max-height: 150px;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.click-hint {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.gestapo-place-type-radio-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.place-type-radio-box {
+    flex: 0 0 calc(33.333% - 15px);
+    height: 120px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+@media (max-width: 768px) {
+    .place-type-radio-box {
+        flex: 0 0 calc(50% - 15px);
+    }
+}
+
+@media (max-width: 480px) {
+    .place-type-radio-box {
+        flex: 0 0 100%;
+    }
+}
+
+.place-type-radio-box:hover {
+    border-color: #1976d2;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.place-type-radio-box.selected {
+    border-color: #1976d2;
+    background-color: rgba(25, 118, 210, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.radio-box-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+}
+
+.place-type-icon {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 10px;
+}
+
+.place-type-label {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.radio-indicator {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    color: #1976d2;
+}
+
+.place-type-info-text {
+    padding: 15px;
+    margin-bottom: 20px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    border-left: 4px solid #1976d2;
+}
+
+.read-more-link {
+    text-align: right;
+    margin-top: 10px;
+    font-weight: 500;
+}
+
+.read-more-link a {
+    color: #1976d2;
+    text-decoration: none;
+}
+
+.read-more-link a:hover {
+    text-decoration: underline;
+}
+
+.shortened-text {
+    position: relative;
+}
 </style>
