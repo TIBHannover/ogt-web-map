@@ -481,7 +481,12 @@
         <!-- Info-Box (Desktop) -->
         <div
             class="info-box desktop-info"
-            v-if="activeField && !isMobileView && !isAdminView"
+            v-if="
+                activeField &&
+                !isMobileView &&
+                !isAdminView &&
+                !showMobileInfoOverlay
+            "
         >
             <div class="info-box-header">
                 <h3>{{ getInfoTitle(activeField) }}</h3>
@@ -494,7 +499,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, inject, watch } from "vue";
+import {
+    ref,
+    computed,
+    onMounted,
+    onBeforeUnmount,
+    onUnmounted,
+    inject,
+    watch,
+} from "vue";
 import { useRouter } from "vue-router";
 import SourcesField from "./fields/SourcesField.vue";
 import ValidationError from "../helpers/ValidationError.vue";
@@ -668,13 +681,33 @@ const setActiveField = (fieldName) => {
 };
 
 const checkScreenSize = () => {
+    const wasMobile = isMobileView.value;
     isMobileView.value = window.innerWidth < 1200;
+
+    // If we're switching from mobile to desktop, hide the mobile overlay
+    if (wasMobile && !isMobileView.value) {
+        showMobileInfoOverlay.value = false;
+    }
 };
+
+// Set up event listener for screen size changes on component mount
+onMounted(() => {
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+});
+
+// Clean up event listener on component unmount
+onUnmounted(() => {
+    window.removeEventListener("resize", checkScreenSize);
+});
 
 const openSectionInfo = (sectionName) => {
     lastActiveField.value = sectionName;
     activeField.value = sectionName;
-    showMobileInfoOverlay.value = true;
+    // Only show mobile overlay in mobile view, otherwise update desktop infobox
+    if (isMobileView.value || props.isAdminView) {
+        showMobileInfoOverlay.value = true;
+    }
 };
 
 const closeMobileInfoOverlay = () => {

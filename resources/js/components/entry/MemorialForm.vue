@@ -229,13 +229,42 @@
         <!-- Info-Box (Desktop) -->
         <div
             class="info-box desktop-info"
-            v-if="activeField && !isMobileView && !isAdminView"
+            v-if="
+                activeField &&
+                !isMobileView &&
+                !isAdminView &&
+                !showMobileInfoOverlay
+            "
         >
             <div class="info-box-header">
                 <h3>{{ getInfoTitle(activeField) }}</h3>
             </div>
             <div class="info-box-content">
                 <div v-html="getInfoContent(activeField)"></div>
+            </div>
+        </div>
+
+        <!-- Mobile Info Overlay -->
+        <div
+            class="mobile-info-overlay"
+            v-if="showMobileInfoOverlay"
+            @click.self="closeMobileInfoOverlay"
+        >
+            <div class="mobile-info-content" @click.stop>
+                <div class="mobile-info-header">
+                    <h3>{{ getInfoTitle(activeField || lastActiveField) }}</h3>
+                    <button
+                        class="close-button"
+                        @click="closeMobileInfoOverlay"
+                    >
+                        <span class="close-icon">&times;</span>
+                    </button>
+                </div>
+                <div class="mobile-info-body">
+                    <div
+                        v-html="getInfoContent(activeField || lastActiveField)"
+                    ></div>
+                </div>
             </div>
         </div>
 
@@ -256,7 +285,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import BaseInfos from "./fields/BaseInfos.vue";
 import ValidationError from "../helpers/ValidationError.vue";
 import LocationSelector from "./fields/LocationSelector.vue";
@@ -487,6 +516,17 @@ const showMobileInfoOverlay = ref(false);
 const isMobileView = ref(false);
 const lastActiveField = ref(null);
 
+// Set up event listener for screen size changes on component mount
+onMounted(() => {
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+});
+
+// Clean up event listener on component unmount
+onUnmounted(() => {
+    window.removeEventListener("resize", checkScreenSize);
+});
+
 // Set active field for info display
 const setActiveField = (field) => {
     activeField.value = field;
@@ -495,12 +535,23 @@ const setActiveField = (field) => {
 
 // Check screen size
 const checkScreenSize = () => {
-    isMobileView.value = window.innerWidth < 768;
+    const wasMobile = isMobileView.value;
+    isMobileView.value = window.innerWidth < 1200;
+
+    // If we're switching from mobile to desktop, hide the mobile overlay
+    if (wasMobile && !isMobileView.value) {
+        showMobileInfoOverlay.value = false;
+    }
 };
 
 const openSectionInfo = (section) => {
     activeSection.value = section;
-    showMobileInfoOverlay.value = isMobileView.value;
+    activeField.value = section;
+    lastActiveField.value = section;
+    // Only show mobile overlay in mobile view, otherwise update desktop infobox
+    if (isMobileView.value || props.isAdminView) {
+        showMobileInfoOverlay.value = true;
+    }
     emit("infoButtonClick", section);
 };
 
@@ -995,9 +1046,110 @@ defineExpose({
 });
 </script>
 
-<style scoped>
+<style>
 @import "./styles/form-styles.css";
 
+/* Info Icon styles */
+.info-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: background-color 0.3s;
+}
+
+.info-icon:hover {
+    background-color: #1565c0;
+}
+
+/* Mobile Info Overlay styles */
+.mobile-info-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.mobile-info-content {
+    background-color: white;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.mobile-info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.mobile-info-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.close-button:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.close-icon {
+    line-height: 1;
+}
+
+.mobile-info-body {
+    padding: 20px;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #333;
+}
+
+.mobile-info-body p {
+    margin-bottom: 1rem;
+}
+
+.mobile-info-body ul {
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+</style>
+
+<style scoped>
 .section-header {
     display: flex;
     justify-content: space-between;
