@@ -186,6 +186,7 @@
                 :is-loading="isWikidataSearchLoading.place_of_detention"
                 :search-performed="wikidataSearchPerformed.place_of_detention"
                 endpoint="places"
+                icon="mdi-map-marker-plus"
                 @search="searchWikidataItems('place_of_detention', $event)"
             ></multiple-wikidata-selector>
         </div>

@@ -2,16 +2,15 @@
     <div class="multiple-wikidata-selector">
         <!-- Header with label and add button -->
         <div class="selector-header">
-            <h3 class="selector-title">{{ label }}</h3>
             <v-btn
                 color="primary"
                 size="small"
-                class="add-button"
+                class="add-button button bg-secondary"
                 @click="openDialog"
-                prepend-icon="mdi-plus"
+                :prepend-icon="icon"
                 variant="outlined"
             >
-                Hinzufügen
+                {{ label }} hinzufügen
             </v-btn>
         </div>
 
@@ -199,6 +198,10 @@ const props = defineProps({
                 "commemorates",
                 "events",
             ].includes(value),
+    },
+    icon: {
+        type: String,
+        default: "mdi-plus",
     },
     maxSelections: {
         type: Number,
@@ -505,8 +508,26 @@ onMounted(() => {
     min-height: 48px;
     padding: 8px 16px;
     line-height: 1.2;
+    font-size: 14px;
     text-align: left;
     word-break: break-word;
+    padding: 12px 24px;
+    height: auto !important;
+    background-color: #757575;
+    color: white !important;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.button.bg-secondary {
+    background-color: #757575;
+}
+
+.button.bg-secondary:hover {
+    background-color: #616161;
 }
 
 .button-text {
