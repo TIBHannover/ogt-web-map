@@ -500,7 +500,12 @@
 
         <div
             class="info-box desktop-info"
-            v-if="activeField && !isMobileView && !isAdminView"
+            v-if="
+                activeField &&
+                !isMobileView &&
+                !isAdminView &&
+                !showMobileInfoOverlay
+            "
         >
             <div class="info-box-header">
                 <h3>{{ getInfoTitle(activeField) }}</h3>
@@ -513,27 +518,28 @@
         <!-- Mobile Info-Overlay -->
         <div
             class="mobile-info-overlay"
-            v-if="showMobileInfoOverlay && (isMobileView || props.isAdminView)"
-            @click="closeMobileInfoOverlay"
+            v-if="showMobileInfoOverlay"
+            @click.self="closeMobileInfoOverlay"
         >
-            <div class="overlay-content" @click.stop>
-                <div class="overlay-header">
-                    <h3>{{ getInfoTitle(lastActiveField) }}</h3>
+            <div class="mobile-info-content" @click.stop>
+                <div class="mobile-info-header">
+                    <h3>{{ getInfoTitle(activeField || lastActiveField) }}</h3>
                     <button
-                        class="close-overlay"
+                        class="close-button"
                         @click="closeMobileInfoOverlay"
                     >
-                        &times;
+                        <span class="close-icon">&times;</span>
                     </button>
                 </div>
-                <div class="overlay-body">
-                    <div v-html="getInfoContent(lastActiveField)"></div>
+                <div class="mobile-info-body">
+                    <div
+                        v-html="getInfoContent(activeField || lastActiveField)"
+                    ></div>
                 </div>
             </div>
         </div>
 
         <!-- Dialogs -->
-
         <v-dialog v-model="sourcesDialogVisible" max-width="800">
             <SourcesSelector
                 @select="selectSource"
@@ -544,7 +550,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import BaseInfos from "./fields/BaseInfos.vue";
 import LocationSelector from "./fields/LocationSelector.vue";
 import TextField from "./fields/common/TextField.vue";
@@ -676,19 +682,42 @@ import glossaryItems from "../../data/glossaryData";
 const showFullGlossaryText = ref(false);
 
 const checkScreenSize = () => {
+    const wasMobile = isMobileView.value;
     isMobileView.value = window.innerWidth < 1200;
+
+    // If we're switching from mobile to desktop, hide the mobile overlay
+    if (wasMobile && !isMobileView.value) {
+        showMobileInfoOverlay.value = false;
+    }
 };
+
+// Set up event listener for screen size changes on component mount
+onMounted(() => {
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+});
+
+// Clean up event listener on component unmount
+onUnmounted(() => {
+    window.removeEventListener("resize", checkScreenSize);
+});
 
 const getInfoTitle = (fieldName) => {
     const sectionTitles = {
         title: "Basis-Informationen",
         time: "Zeitliche Informationen",
-        "victim-count": "Geschädigte-Zahlen",
-        cause: "Ursache der Verfolgung",
+        gestapoPlaceType: "Art der Gestapo-Stelle",
         location: "Standort",
+        address: "Adresse",
+        keyEvent: "Schlüsselereignisse",
+        director: "Leitung",
+        employees: "Mitarbeiter",
+        prisonerCount: "Anzahl der Gefangenen",
+        parentOrganization: "Übergeordnete Organisation",
+        childOrganization: "Untergeordnete Organisation",
+        predecessorOrg: "Vorgängerorganisation",
+        successorOrg: "Nachfolgeorganisation",
         image: "Bild",
-        victims: "Geschädigte Personen",
-        perpetrators: "Täter*Innen",
         sources: "Quellenangaben",
     };
 
@@ -705,13 +734,20 @@ const getInfoContent = (fieldName) => {
     const fieldToSection = {
         title: "title",
         description: "title",
-        "event-date": "time",
-        "event-start-date": "time",
-        "event-end-date": "time",
-        "victim-count": "counts",
-        "survivor-count": "counts",
-        "death-count": "counts",
-        "arrest-count": "counts",
+        "founding-date": "time",
+        "founding-date-qualifier": "time",
+        "dissolution-date": "time",
+        "dissolution-date-qualifier": "time",
+        "prisoner-count": "prisonerCount",
+        "prisoner-count-qualifier": "prisonerCount",
+        address: "address",
+        keyEvent: "keyEvent",
+        director: "director",
+        employees: "employees",
+        parentOrganization: "parentOrganization",
+        childOrganization: "childOrganization",
+        predecessorOrg: "predecessorOrg",
+        successorOrg: "successorOrg",
     };
 
     // Wenn das Feld einer Sektion zugeordnet ist, diese verwenden
@@ -723,90 +759,147 @@ const getInfoContent = (fieldName) => {
 // Konsolidierte Hilfetexte pro Sektion
 const getSectionInfoContent = (sectionName) => {
     const sectionContents = {
-        title: `<p>In diesem Bereich werden die grundlegenden Informationen zum Ereignis erfasst.</p>
-               <p><strong>Titel:</strong> Gebe einen präzisen und aussagekräftigen Titel ein, der Art des Ereignisses, Zeit/Ort und ggf. beteiligte Gruppen enthält.</p>
-               <p><strong>Beschreibung:</strong> Beschreibe das Ereignis kurz und informativ mit den wichtigsten Fakten, beteiligten Personen und historischem Kontext.</p>
-               <p>Beispiele für gute Titel: "Novemberpogrom 1938 in Osnabrück", "Deportation der jüdischen Bevölkerung aus Hamburg (1941)"</p>`,
+        title: `<p>In diesem Bereich werden die grundlegenden Informationen zur Gestapo-Stelle erfasst.</p>
+               <p><strong>Titel:</strong> Gebe einen präzisen und aussagekräftigen Titel ein, der die Art der Gestapo-Stelle und ihren Ort enthält.</p>
+               <p><strong>Beschreibung:</strong> Beschreibe die Gestapo-Stelle kurz und informativ mit den wichtigsten Fakten, ihrer Funktion und historischem Kontext.</p>
+               <p>Beispiele für gute Titel: "Gestapo-Hauptquartier Berlin", "Gestapo-Außenstelle Münster"</p>`,
 
-        time: `<p>Hier werdem die zeitlichen Informationen zum Ereignis erfasst.</p>
-               <p><strong>Diese Angabe ist verpflichtend.</strong></p>
-               <p>Du kannst zwischen einem einzelnen Zeitpunkt oder einem Zeitraum wählen:</p>
-               <ul>
-                 <li><strong>Zeitpunkt:</strong> Für Ereignisse, die an einem bestimmten Datum stattfanden</li>
-                 <li><strong>Zeitraum:</strong> Für länger andauernde Ereignisse mit Start- und Enddatum</li>
-               </ul>
+        time: `<p>Hier werden zeitliche Informationen zur Gestapo-Stelle erfasst.</p>
+               <p><strong>Diese Angabe ist hilfreich, aber nicht zwingend erforderlich.</strong></p>
+               <p>Erfasse hier das Gründungs- und ggf. Auflösungsdatum der Einrichtung.</p>
                <p>Falls das genaue Datum nicht bekannt ist, kannst du auch nur einen Monat eines Jahres oder ein Jahr auswählen.<br />
                Bei ungenauen Datumsangaben kannst du in der Select-Box unter dem Datum einen Qualifikator wie "ungefähr" setzen.</p>`,
 
-        counts: `<p>In diesem Bereich kannst du die Geschädigtenzahl des Ereignisses dokumentieren.</p>
-                <p>Folgende Informationen können hier ergänzt werden (sofern bekannt):</p>
+        prisonerCount: `<p>In diesem Bereich kannst du die Anzahl der Gefangenen dokumentieren, die in dieser Gestapo-Stelle inhaftiert waren.</p>
+                <p>Erfasse die geschätzte oder bekannte Gesamtzahl der Personen, die hier festgehalten wurden.</p>
+                <p>Verwende nur gesicherte Zahlen aus verlässlichen Quellen. Bei Unsicherheit ist ein Bereich (z.B. "etwa 100-150 Gefangene") in der Beschreibung besser als eine exakte Zahl.</p>
+                <p>Bei ungenauen Zahlenangaben kannst du in der Select-Box einen Qualifikator wie "ungefähr" setzen.</p>`,
+
+        gestapoPlaceType: `<p>Hier wählst du die Art der Gestapo-Stelle aus.</p>
+               <p>Die Gestapo (Geheime Staatspolizei) hatte verschiedene Arten von Dienststellen:</p>
                 <ul>
-                  <li><strong>Gesamtzahl der Geschädigten:</strong> Alle betroffenen Personen</li>
-                  <li><strong>Anzahl der Überlebenden:</strong> Personen, die das Ereignis überlebt haben</li>
-                  <li><strong>Anzahl der Todesopfer:</strong> Personen, die durch das Ereignis ums Leben kamen</li>
-                  <li><strong>Anzahl der Festnahmen:</strong> Personen, die im Zuge des Ereignisses festgenommen wurden</li>
+                 <li><strong>Hauptamt/Zentrale:</strong> Zentrale Führungseinrichtung in Berlin</li>
+                 <li><strong>Leitstelle:</strong> Regionale Hauptstelle für ein größeres Gebiet</li>
+                 <li><strong>Stelle/Dienststelle:</strong> Standarddienststelle in größeren Städten</li>
+                 <li><strong>Außendienststelle/Außenstelle:</strong> Kleinere Zweigstellen</li>
+                 <li><strong>Grenzpolizeikommissariat:</strong> Spezielle Dienststellen an Grenzen</li>
                 </ul>
-                <p>Verwende nur gesicherte Zahlen aus verlässlichen Quellen. Bei Unsicherheit ist ein Bereich (z.B. "etwa 100-150 Opfer") in der Beschreibung besser als eine exakte Zahl.</p>`,
+               <p>Die Auswahl des korrekten Typs hilft bei der historischen Einordnung und Verständnis der Organisationsstruktur.</p>`,
 
-        cause: `<p>Hier dokumentierst du die Ursache(n) der Verfolgung.</p>
-               <p>Wähle die Hauptursache(n) aus oder füge neue hinzu. Typische Kategorien sind:</p>
-               <ul>
-                 <li>Religiöse Verfolgung</li>
-                 <li>Rassistische Verfolgung</li>
-                 <li>Politische Verfolgung</li>
-                 <li>Soziale Verfolgung</li>
-               </ul>
-               <p>Eine präzise Dokumentation der Verfolgungsursachen ist wichtig für das Verständnis historischer Zusammenhänge.</p>`,
-
-        location: `<p>Hier wird der genaue Ort des Ereignisses auf der Karte gewählt.</p>
-                    <p><strong>Dieses Feld ist ein Pflichtfeld!</strong></p>
-                  <p>Sie können:</p>
-                  <ul>
-                    <li>Direkt auf die Karte klicken, um einen Standort zu markieren</li>
-                    <li>Nach einem Ort suchen, um ihn schneller zu finden</li>
-                    <li>Die Karte zoomen und verschieben, um den genauen Standort zu lokalisieren</li>
-                  </ul>
-                  <p>Präzise Ortsangaben sind wichtig für die historische Dokumentation und ermöglichen eine genaue geografische Einordnung.</p>
-                  <p>Wenn nur bespw. die Stadt bekannt ist, kann einfach das Stadtzentrum gewählt werden und dann in der Selectbox unter der Karte der Qualifikator "Ungefähr" um dies deutlich zu machen.</p>
+        location: `<p>Hier wird der genaue Standort der Gestapo-Stelle auf der Karte gewählt.</p>
+                     <p><strong>Dieses Feld ist ein Pflichtfeld!</strong></p>
+                   <p>Sie können:</p>
+                   <ul>
+                    <li>Direkt auf die Karte klicken, um den Standort zu markieren</li>
+                    <li>Nach einer Adresse oder einem Ort suchen, um ihn schneller zu finden</li>
+                    <li>Die Karte zoomen und verschieben, um den exakten Standort zu lokalisieren</li>
+                   </ul>
+                  <p>Präzise Standortangaben sind wichtig für die historische Dokumentation und ermöglichen eine genaue geografische Einordnung.</p>
+                  <p>Wenn nur die Stadt bekannt ist, kann das Stadtzentrum gewählt werden und dann in der Selectbox unter der Karte der Qualifikator "Ungefähr" gesetzt werden.</p>
                   `,
 
-        image: `<p>Hier kannst du ein passendes Bild zum Ereignis hinzufügen.</p>
+        address: `<p>Hier kannst du die historische Adresse der Gestapo-Stelle angeben.</p>
+                <p>Gib die Adresse so genau wie möglich an, wie sie zur Zeit des Bestehens der Einrichtung lautete.</p>
+                <p>Falls bekannt, vermerke auch Änderungen der Adresse im Laufe der Zeit oder wenn Straßen umbenannt wurden.</p>
+                <p>Beispiel: "Prinz-Albrecht-Straße 8 (heute: Niederkirchnerstraße 8)"</p>`,
+
+        keyEvent: `<p>Hier kannst du wichtige Ereignisse im Zusammenhang mit dieser Gestapo-Stelle dokumentieren.</p>
+                <p>Relevante Ereignisse könnten sein:</p>
+                <ul>
+                 <li>Eröffnung oder Schließung der Dienststelle</li>
+                 <li>Bedeutende Razzien oder Verhaftungsaktionen</li>
+                 <li>Besondere Verfolgungsmaßnahmen</li>
+                 <li>Widerstandsaktionen gegen die Gestapo</li>
+                 <li>Kriegsende und Übernahme durch Alliierte</li>
+                </ul>
+                <p>Diese Ereignisse helfen, die Geschichte und Bedeutung der Einrichtung zu verstehen.</p>`,
+
+        director: `<p>Hier kannst du Informationen zur Leitung der Gestapo-Stelle angeben.</p>
+                <p>Dokumentiere, wer die Dienststelle in welchem Zeitraum geleitet hat.</p>
+                <p>Wenn bekannt, gib auch Informationen zu:</p>
+                <ul>
+                 <li>Vollständiger Name und Dienstgrad</li>
+                 <li>Amtszeit als Leiter</li>
+                 <li>Vorherige und nachfolgende Positionen</li>
+                 <li>Verantwortung für spezifische Aktionen</li>
+                 <li>Nachkriegsschicksal (Verurteilung, Flucht, etc.)</li>
+                </ul>
+                <p>Dies hilft, Verantwortlichkeiten zu dokumentieren und Zusammenhänge herzustellen.</p>`,
+
+        employees: `<p>Hier kannst du Informationen zu den Mitarbeitern der Gestapo-Stelle erfassen.</p>
+                <p>Dokumentiere bekannte Gestapo-Mitarbeiter, ihre Funktionen und Verantwortlichkeiten.</p>
+                <p>Wichtige Informationen sind:</p>
+                <ul>
+                 <li>Namen und Dienstgrade</li>
+                 <li>Positionen und Abteilungen</li>
+                 <li>Zeiträume der Tätigkeit</li>
+                 <li>Beteiligung an spezifischen Verfolgungsmaßnahmen</li>
+                 <li>Nachkriegsschicksal und juristische Aufarbeitung</li>
+                </ul>
+                <p>Diese Informationen sind wichtig für die historische Forschung und Dokumentation von Verantwortlichkeiten.</p>`,
+
+        parentOrganization: `<p>Hier kannst du die übergeordnete Organisation der Gestapo-Stelle angeben.</p>
+                <p>Gestapo-Stellen waren in eine hierarchische Struktur eingebunden. Typische übergeordnete Organisationen waren:</p>
+                <ul>
+                 <li>Reichssicherheitshauptamt (RSHA)</li>
+                 <li>Regionale Gestapo-Leitstellen</li>
+                 <li>Höhere SS- und Polizeiführer (HSSPF)</li>
+                </ul>
+                <p>Diese Angabe hilft, die administrative Einbindung und Befehlsstruktur zu dokumentieren.</p>`,
+
+        childOrganization: `<p>Hier kannst du untergeordnete Organisationen der Gestapo-Stelle angeben.</p>
+                <p>Größere Gestapo-Dienststellen hatten oft kleinere, ihnen unterstellte Einheiten wie:</p>
+                <ul>
+                 <li>Lokale Außenstellen</li>
+                 <li>Spezielle Abteilungen oder Referate</li>
+                 <li>Temporäre Sonderkommandos</li>
+                </ul>
+                <p>Diese Angabe hilft, die organisatorische Struktur und den Wirkungsbereich der Dienststelle zu dokumentieren.</p>`,
+
+        predecessorOrg: `<p>Hier kannst du Vorgängerorganisationen der Gestapo-Stelle angeben.</p>
+                <p>Vor Einrichtung der Gestapo existierten oft andere Polizei- oder Sicherheitsdienststellen am gleichen Ort oder mit ähnlicher Funktion, wie z.B.:</p>
+                <ul>
+                 <li>Politische Polizei der Länder</li>
+                 <li>Frühere SS- oder SD-Einrichtungen</li>
+                 <li>Lokale Polizeidienststellen</li>
+                </ul>
+                <p>Diese Information hilft, die historische Entwicklung der Verfolgungsinstanzen zu dokumentieren.</p>`,
+
+        successorOrg: `<p>Hier kannst du Nachfolgeorganisationen der Gestapo-Stelle angeben.</p>
+                <p>Nach 1945 wurden die Gebäude oder Funktionen oft von anderen Institutionen übernommen:</p>
+                <ul>
+                 <li>Alliierte Militärbehörden</li>
+                 <li>Polizeidienststellen der Nachkriegszeit</li>
+                 <li>Andere staatliche Einrichtungen</li>
+                 <li>Gedenkstätten oder Dokumentationszentren</li>
+                </ul>
+                <p>Diese Information hilft, die Nachgeschichte des Ortes und die historische Aufarbeitung zu dokumentieren.</p>`,
+
+        image: `<p>Hier kannst du ein passendes Bild zur Gestapo-Stelle hinzufügen.</p>
                <p>Geeignete Bilder sind:</p>
                <ul>
-                 <li>Historische Fotos vom Ereignis</li>
-                 <li>Bilder des Ortes</li>
-                 <li>Dokumente zum Ereignis</li>
-                 <li>Denkmäler oder Gedenktafeln</li>
+                 <li>Historische Fotos des Gebäudes</li>
+                 <li>Aktuelle Aufnahmen des historischen Standortes</li>
+                 <li>Dokumente im Zusammenhang mit der Dienststelle</li>
+                 <li>Gedenktafeln am historischen Ort</li>
                </ul>
-               <p>Verwende nur Bilder, die rechtlich genutzt werden dürfen, und achten Sie auf korrekte Quellenangaben.</p>`,
+               <p>Verwende nur Bilder, die rechtlich genutzt werden dürfen, und achte auf korrekte Quellenangaben.</p>`,
 
-        sources: `<p>Hier kannst du Quellenangaben zum Ereignis hinzufügen.</p>
-                <p><strong>Diese Angabe ist verpflichtend:</strong> Jedes Ereignis muss mindestens eine Quelle enthalten.</p>
+        sources: `<p>Hier kannst du Quellenangaben zur Gestapo-Stelle hinzufügen.</p>
+                <p><strong>Diese Angabe ist verpflichtend:</strong> Jeder Eintrag muss mindestens eine Quelle enthalten.</p>
                 <p>Du kannst verschiedene Arten von Quellen angeben:</p>
                 <ul class="mb-3">
                   <li><strong>Bücher:</strong> Wissenschaftliche Werke, Monographien, Sammelbände etc.</li>
                   <li><strong>URLs:</strong> Vertrauenswürdige Webseiten, Online-Archive, Datenbanken</li>
                   <li><strong>Archive:</strong> Archivmaterial mit Inventarnummer</li>
                 </ul>
-                <p>Bei Buchquellen kannst du nach bereits in Wikidata erfassten Werken suchen oder neue Werke manuell hinzufügen. Geben möglichst genaue Seitenangaben an.</p>
+                <p>Bei Buchquellen kannst du nach bereits in Wikidata erfassten Werken suchen oder neue Werke manuell hinzufügen. Gib möglichst genaue Seitenangaben an.</p>
                 <p>Bei URLs ist das Zugriffsdatum wichtig, um die zeitliche Verfügbarkeit der Information zu dokumentieren.</p>
-                <p>Bei Archivquellen gebe das entsprechende Archiv und die Signatur oder Inventarnummer an. (Die meisten Archivalien haben eine Signatur. Seltener werden Inventarnummern genutzt, meist z. B. bei Gegenständen und manchmal auch bei Fotos).</p>`,
-
-        victims: `<p>Hier werden die Geschädigten des Ereignisses hinzugefügt.</p>
-                <p>Du kannst nach bereits bekannten Personen suchen oder neue Personen manuell hinzufügen.</p>
-                <p>Bei neuen Personen achte bitte auf korrekte Namensschreibweisen, Lebensdaten und eine kurze Beschreibung.</p>
-                <p>Dies hilft bei der Verknüpfung mit anderen Ereignissen und der Nachverfolgung von Biographien.</p>`,
-
-        perpetrators: `<p>Hier werden die für das Ereignis verantwortlichen Personen oder Gruppen dokumentiert.</p>
-                     <p><strong>Diese Angabe ist verpflichtend:</strong> Jedes Ereignis muss mindestens einen Täter oder eine verantwortliche Organisation haben.</p>
-                     <p>Beachte dabei die juristische und historische Genauigkeit, unterscheide zwischen direkten Tätern und Befehlsgebern und dokumentiere auch institutionelle Verantwortlichkeiten.</p>
-                     <p>Zudem sind Befehlsgeber, organisatorisch Verantwortliche und direkt ausführende Täter gleichermaßen Täter.</p>
-                     <p>Wenn du natürliche Personen anlegst, ist besonders auf eine historisch präzise und sorgfältige Arbeitsweise zu achten.</p>`,
+                <p>Bei Archivquellen gib das entsprechende Archiv und die Signatur oder Inventarnummer an. (Die meisten Archivalien haben eine Signatur. Seltener werden Inventarnummern genutzt, meist z. B. bei Gegenständen und manchmal auch bei Fotos).</p>`,
     };
 
     return (
-        sectionContents[sectionName] ||
-        "<p>Wähle einen Bereich aus, um Hilfe zu erhalten.</p>"
+        sectionContents[sectionName] || "<p>Keine Informationen verfügbar.</p>"
     );
 };
 
@@ -985,6 +1078,7 @@ const activeSection = ref(null);
 // Import the composable for usage in the component
 useFetchInfo();
 const showMobileInfoOverlay = ref(false);
+const lastActiveField = ref(null);
 
 // Set the active field for help info
 const setActiveField = (field) => {
@@ -997,10 +1091,20 @@ const setActiveSection = (section) => {
 };
 
 // Open section info
-const openSectionInfo = (section) => {
-    activeSection.value = section;
-    showMobileInfoOverlay.value = true;
-    emit("infoButtonClick", section);
+const openSectionInfo = (sectionName) => {
+    activeField.value = sectionName;
+    activeSection.value = sectionName;
+    lastActiveField.value = sectionName;
+    // Only show mobile overlay in mobile view, otherwise update desktop infobox
+    if (isMobileView.value || props.isAdminView) {
+        showMobileInfoOverlay.value = true;
+    }
+};
+
+// Close mobile info overlay
+const closeMobileInfoOverlay = () => {
+    showMobileInfoOverlay.value = false;
+    // No need to reset activeField as it should still highlight in desktop view
 };
 
 // Mobile info overlay state is managed but closing function not used directly
@@ -1571,6 +1675,105 @@ onMounted(() => {
 <!-- Global form styles -->
 <style>
 @import "./styles/form-styles.css";
+
+/* Info Icon styles */
+.info-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: background-color 0.3s;
+}
+
+.info-icon:hover {
+    background-color: #1565c0;
+}
+
+/* Mobile Info Overlay styles */
+.mobile-info-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.mobile-info-content {
+    background-color: white;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.mobile-info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.mobile-info-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.close-button:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.close-icon {
+    line-height: 1;
+}
+
+.mobile-info-body {
+    padding: 20px;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #333;
+}
+
+.mobile-info-body p {
+    margin-bottom: 1rem;
+}
+
+.mobile-info-body ul {
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+}
 </style>
 
 <style scoped>
