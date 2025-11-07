@@ -48,6 +48,7 @@
                     @fieldFocus="setActiveField"
                     @infoButtonClick="openSectionInfo"
                     @validation="onTimeValidation"
+                    :infoIconId="'time'"
                     :required="true"
                 />
 

@@ -602,32 +602,6 @@
                             @submit="resetForm"
                         />
                     </ErrorBoundary>
-
-                    <!-- Für andere Typen können ähnliche Formulare mit spezifischen Anforderungen erstellt werden -->
-                    <div
-                        v-if="
-                            currentStep === 2 &&
-                            !['Q6983405', 'Q5003624', 'Q106996250'].includes(
-                                formsType,
-                            )
-                        "
-                        class="step-container"
-                    >
-                        <h2 class="step-title">Schritt 2: Details eingeben</h2>
-                        <p>
-                            Formular für diesen Eintragstyp wird bald verfügbar
-                            sein.
-                        </p>
-                        <div class="button-container">
-                            <button
-                                class="button bg-secondary"
-                                type="button"
-                                @click="goToStep(1)"
-                            >
-                                Zurück
-                            </button>
-                        </div>
-                    </div>
                 </div>
                 <br /><br /><br /><br />
             </v-col>

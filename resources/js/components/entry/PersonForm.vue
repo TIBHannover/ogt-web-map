@@ -4,18 +4,6 @@
             <h2 class="step-title">Schritt 2: Person-Details eingeben</h2>
             <form class="forms" @submit.prevent>
                 <div class="entry-section">
-                    <div class="section-header">
-                        <label class="section-label">Person-Details:</label>
-                        <button
-                            type="button"
-                            class="info-icon"
-                            @click="openSectionInfo('person-entry')"
-                            title="Informationen zu Person-Details"
-                        >
-                            <v-icon>mdi-information-variant</v-icon>
-                        </button>
-                    </div>
-
                     <!-- Mobile Info Overlay -->
                     <div
                         v-if="showMobileInfoOverlay"
@@ -40,9 +28,19 @@
                     <div class="person-form-fields">
                         <!-- Required Information Section -->
                         <div class="form-section">
-                            <h3 class="section-subtitle">
-                                Erforderliche Informationen
-                            </h3>
+                            <div class="section-header">
+                                <h3 class="section-subtitle">
+                                    Erforderliche Informationen
+                                </h3>
+                                <button
+                                    type="button"
+                                    class="info-icon"
+                                    @click="openSectionInfo('person-entry')"
+                                    title="Informationen zu Person-Details"
+                                >
+                                    <v-icon>mdi-information-variant</v-icon>
+                                </button>
+                            </div>
 
                             <!-- Role selection -->
                             <div class="form-group">
@@ -98,6 +96,36 @@
                                     class="mb-4"
                                 ></v-textarea>
                             </div>
+                        </div>
+
+                        <!-- Validation errors -->
+                        <div
+                            v-if="showPersonValidationErrors"
+                            class="validation-errors-container"
+                        >
+                            <!-- First name validation error -->
+                            <ValidationError
+                                v-if="firstNameError"
+                                message="Vorname ist ein Pflichtfeld."
+                                showIcon
+                                customClass="validation-error"
+                            />
+
+                            <!-- Last name validation error -->
+                            <ValidationError
+                                v-if="lastNameError"
+                                message="Nachname ist ein Pflichtfeld."
+                                showIcon
+                                customClass="validation-error"
+                            />
+
+                            <!-- Description validation error -->
+                            <ValidationError
+                                v-if="descriptionError"
+                                message="Kurzbeschreibung ist ein Pflichtfeld."
+                                showIcon
+                                customClass="validation-error"
+                            />
                         </div>
 
                         <!-- Personal Details Section -->
@@ -373,78 +401,19 @@
                                     "
                                 ></wikidata-selector>
                             </div>
-
-                            <!-- Image Selector -->
-                            <div class="form-group">
-                                <h4 class="mb-3">Bild</h4>
-                                <image-selector
-                                    :image-url="personData.imageUrl"
-                                    :image-filename="personData.imageFilename"
-                                    @update:image-url="
-                                        personData.imageUrl = $event
-                                    "
-                                    @update:image-filename="
-                                        personData.imageFilename = $event
-                                    "
-                                    @infoButtonClick="openSectionInfo('image')"
-                                    @fieldFocus="setActiveField('image')"
-                                ></image-selector>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Validation errors -->
-                    <div
-                        v-if="showPersonValidationErrors"
-                        class="validation-errors-container"
-                    >
-                        <!-- First name validation error -->
-                        <ValidationError
-                            v-if="firstNameError"
-                            message="Vorname ist ein Pflichtfeld."
-                            showIcon
-                            customClass="validation-error"
-                        />
-
-                        <!-- Last name validation error -->
-                        <ValidationError
-                            v-if="lastNameError"
-                            message="Nachname ist ein Pflichtfeld."
-                            showIcon
-                            customClass="validation-error"
-                        />
-
-                        <!-- Description validation error -->
-                        <ValidationError
-                            v-if="descriptionError"
-                            message="Kurzbeschreibung ist ein Pflichtfeld."
-                            showIcon
-                            customClass="validation-error"
-                        />
-
-                        <!-- Source validation error -->
-                        <div
-                            v-if="sourceError"
-                            @click="handleSourceErrorClick"
-                            style="
-                                cursor: pointer;
-                                color: #f44336;
-                                margin-top: 8px;
-                                display: flex;
-                                align-items: center;
-                            "
-                        >
-                            <v-icon color="error" size="small" class="mr-1"
-                                >mdi-alert-circle</v-icon
-                            >
-                            <span
-                                >Bitte geben Sie mindestens eine Quelle an.
-                                (Klicken, um zur Quellen-Sektion zu
-                                springen)</span
-                            >
                         </div>
                     </div>
                 </div>
+
+                <!-- Image Selector -->
+                <ImageSelector
+                    :image-url="personData.imageUrl"
+                    :image-filename="personData.imageFilename"
+                    @update:image-url="personData.imageUrl = $event"
+                    @update:image-filename="personData.imageFilename = $event"
+                    @infoButtonClick="openSectionInfo('image')"
+                    @fieldFocus="setActiveField('image')"
+                ></ImageSelector>
 
                 <SourcesField
                     ref="sourcesFieldRef"
@@ -481,12 +450,7 @@
         <!-- Info-Box (Desktop) -->
         <div
             class="info-box desktop-info"
-            v-if="
-                activeField &&
-                !isMobileView &&
-                !isAdminView &&
-                !showMobileInfoOverlay
-            "
+            v-if="activeField && !isMobileView && !isAdminView"
         >
             <div class="info-box-header">
                 <h3>{{ getInfoTitle(activeField) }}</h3>
@@ -690,17 +654,6 @@ const checkScreenSize = () => {
     }
 };
 
-// Set up event listener for screen size changes on component mount
-onMounted(() => {
-    checkScreenSize();
-    window.addEventListener("resize", checkScreenSize);
-});
-
-// Clean up event listener on component unmount
-onUnmounted(() => {
-    window.removeEventListener("resize", checkScreenSize);
-});
-
 const openSectionInfo = (sectionName) => {
     lastActiveField.value = sectionName;
     activeField.value = sectionName;
@@ -741,6 +694,10 @@ const getInfoContent = (fieldName) => {
         "person-entry": `<p>In diesem Bereich werden die grundlegenden Informationen zur Person erfasst.</p>
                        <p><strong>Pflichtfelder:</strong></p>
                        <ul>
+                         <li><strong>Rolle</strong>: Hier wird die Rolle der Person im historischen Kontext definiert:<br />
+                         <strong>Geschädigte*r</strong>: Person wurde im Nationalsozialismus verfolgt, inhaftiert oder ermordet
+                         <strong>Täter*In</strong>: Person war an der Verfolgung, Inhaftierung oder Ermordung von NS-Opfern beteiligt
+                         </li>
                          <li><strong>Vorname und Nachname</strong>: Vollständiger Name der Person</li>
                          <li><strong>Kurze Beschreibung</strong>: Kurze Zusammenfassung über die Person (max. 250 Zeichen)</li>
                        </ul>`,
@@ -2243,13 +2200,6 @@ watch(
     font-size: 1.1rem;
 }
 
-.info-icon {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--v-primary-base);
-}
-
 .search-input-container {
     display: flex;
     margin-bottom: 1rem;
@@ -2369,18 +2319,18 @@ watch(
 }
 
 .info-icon {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #1976d2;
-    padding: 0.25rem;
-    margin-left: 0.5rem;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
-    transition: background-color 0.2s;
-}
-
-.info-icon:hover {
-    background-color: rgba(25, 118, 210, 0.1);
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
 /* Mobile Info Overlay */

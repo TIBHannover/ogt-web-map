@@ -134,6 +134,7 @@
                     :validationMessageRequired="'Bitte gib das Eröffnungsdatum an.'"
                     :validationMessageInvalid="'Das Eröffnungsdatum hat ein ungültiges Format.'"
                     :initialShowErrors="false"
+                    :infoIconId="'time'"
                     @validation="onTimeValidation"
                 />
 
@@ -578,7 +579,7 @@ const getInfoTitle = (section) => {
         openingDate: "Eröffnungsdatum",
         address: "Adresse",
         website: "Offizielle Website",
-        images: "Bilder",
+        image: "Bilder",
         sources: "Quellenangaben",
     };
     return infoTitles[section] || "Information";
@@ -652,7 +653,7 @@ const getSectionInfoContent = (section) => {
                 <p>Beispiel: https://www.gedenkstaette-beispiel.de</p>
                 <p>Diese URL wird geprüft und muss ein gültiges Format haben.</p>
             `;
-        case "images":
+        case "image":
             return `
                 <p>Du kannst ein Bild von Wikimedia Commons auswählen, das den Erinnerungsort zeigt.</p>
                 <p>Klicke auf "Bild suchen", um nach passenden Bildern zu suchen. Bilder sollten:</p>
