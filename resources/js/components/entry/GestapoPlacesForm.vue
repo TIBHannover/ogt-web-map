@@ -124,6 +124,7 @@
                     @fieldFocus="setActiveField"
                     @infoButtonClick="openSectionInfo"
                     :hideToggle="true"
+                    :infoIconId="'foundingDate'"
                     :sectionLabel="'Datum der Gründung/Erbauung:'"
                     :pointLabel="'Datum der Gründung/Erbauung'"
                     :pointDateLabel="'Datum der Gründung/Erbauung'"
@@ -148,6 +149,7 @@
                     @fieldFocus="setActiveField"
                     @infoButtonClick="openSectionInfo"
                     :hideToggle="true"
+                    :infoIconId="'dissolutionDate'"
                     :sectionLabel="'Auflösungsdatum:'"
                     :pointLabel="'Auflösungsdatum'"
                     :pointDateLabel="'Auflösungsdatum'"
@@ -706,6 +708,8 @@ const getInfoTitle = (fieldName) => {
     const sectionTitles = {
         title: "Basis-Informationen",
         time: "Zeitliche Informationen",
+        foundingDate: "Datum der Gründung/Erbauung",
+        dissolutionDate: "Auflösungsdatum",
         gestapoPlaceType: "Art der Gestapo-Stelle",
         location: "Standort",
         address: "Adresse",
@@ -734,10 +738,10 @@ const getInfoContent = (fieldName) => {
     const fieldToSection = {
         title: "title",
         description: "title",
-        "founding-date": "time",
-        "founding-date-qualifier": "time",
-        "dissolution-date": "time",
-        "dissolution-date-qualifier": "time",
+        "founding-date": "foundingDate",
+        "founding-date-qualifier": "foundingDate",
+        "dissolution-date": "dissolutionDate",
+        "dissolution-date-qualifier": "dissolutionDate",
         "prisoner-count": "prisonerCount",
         "prisoner-count-qualifier": "prisonerCount",
         address: "address",
@@ -770,6 +774,10 @@ const getSectionInfoContent = (sectionName) => {
                <p>Falls das genaue Datum nicht bekannt ist, kannst du auch nur einen Monat eines Jahres oder ein Jahr auswählen.<br />
                Bei ungenauen Datumsangaben kannst du in der Select-Box unter dem Datum einen Qualifikator wie "ungefähr" setzen.</p>`,
 
+        foundingDate: `<p>Hier wird die zeitliche Informationen zur Erstellung, Entstehung, Erbauung der Gestapo-Stelle erfasst.</p>`,
+
+        dissolutionDate: `<p>Hier wird das Auflösungsdatum erfasst.</p>`,
+
         prisonerCount: `<p>In diesem Bereich kannst du die Anzahl der Gefangenen dokumentieren, die in dieser Gestapo-Stelle inhaftiert waren.</p>
                 <p>Erfasse die geschätzte oder bekannte Gesamtzahl der Personen, die hier festgehalten wurden.</p>
                 <p>Verwende nur gesicherte Zahlen aus verlässlichen Quellen. Bei Unsicherheit ist ein Bereich (z.B. "etwa 100-150 Gefangene") in der Beschreibung besser als eine exakte Zahl.</p>
@@ -778,13 +786,13 @@ const getSectionInfoContent = (sectionName) => {
         gestapoPlaceType: `<p>Hier wählst du die Art der Gestapo-Stelle aus.</p>
                <p>Die Gestapo (Geheime Staatspolizei) hatte verschiedene Arten von Dienststellen:</p>
                 <ul>
-                 <li><strong>Hauptamt/Zentrale:</strong> Zentrale Führungseinrichtung in Berlin</li>
-                 <li><strong>Leitstelle:</strong> Regionale Hauptstelle für ein größeres Gebiet</li>
-                 <li><strong>Stelle/Dienststelle:</strong> Standarddienststelle in größeren Städten</li>
-                 <li><strong>Außendienststelle/Außenstelle:</strong> Kleinere Zweigstellen</li>
-                 <li><strong>Grenzpolizeikommissariat:</strong> Spezielle Dienststellen an Grenzen</li>
+                <li><b>Staatspolizeistelle</b>: Regionale Dienstellen der Geheimen Staatspolizei</li>
+                <li><b>Staatspolizeiaußenstelle</b>: Lokale Zweigstellen einer Staatspolizeistelle</li>
+                <li><b>Arbeitserziehungslager</b>: Haftsystem der Gestapo während des Nationalsozialismus</li>
+                <li><b>Gefängnis</b>: Haftanstalten, die während der NS-Zeit für politische Gefangene genutzt wurden</li>
+                 <li><b>Erweitertes Polizeigefängnis</b>: Haftanstalten, die während der NS-Zeit für politische Gefangene genutzt wurden</li>
                 </ul>
-               <p>Die Auswahl des korrekten Typs hilft bei der historischen Einordnung und Verständnis der Organisationsstruktur.</p>`,
+               <p>Unter der Auswahl gibt es für jeden Art der Gestapo-Stelle noch einen langen Beschreibungstext zur bessern Erläuterung. Klicke einfach auf den entsprechenden Typ.</p>`,
 
         location: `<p>Hier wird der genaue Standort der Gestapo-Stelle auf der Karte gewählt.</p>
                      <p><strong>Dieses Feld ist ein Pflichtfeld!</strong></p>
@@ -806,45 +814,23 @@ const getSectionInfoContent = (sectionName) => {
         keyEvent: `<p>Hier kannst du wichtige Ereignisse im Zusammenhang mit dieser Gestapo-Stelle dokumentieren.</p>
                 <p>Relevante Ereignisse könnten sein:</p>
                 <ul>
-                 <li>Eröffnung oder Schließung der Dienststelle</li>
-                 <li>Bedeutende Razzien oder Verhaftungsaktionen</li>
-                 <li>Besondere Verfolgungsmaßnahmen</li>
+                 <li>Besondere Verfolgungsmaßnahmen oder Verhaftungen</li>
                  <li>Widerstandsaktionen gegen die Gestapo</li>
-                 <li>Kriegsende und Übernahme durch Alliierte</li>
                 </ul>
                 <p>Diese Ereignisse helfen, die Geschichte und Bedeutung der Einrichtung zu verstehen.</p>`,
 
         director: `<p>Hier kannst du Informationen zur Leitung der Gestapo-Stelle angeben.</p>
                 <p>Dokumentiere, wer die Dienststelle in welchem Zeitraum geleitet hat.</p>
-                <p>Wenn bekannt, gib auch Informationen zu:</p>
-                <ul>
-                 <li>Vollständiger Name und Dienstgrad</li>
-                 <li>Amtszeit als Leiter</li>
-                 <li>Vorherige und nachfolgende Positionen</li>
-                 <li>Verantwortung für spezifische Aktionen</li>
-                 <li>Nachkriegsschicksal (Verurteilung, Flucht, etc.)</li>
-                </ul>
                 <p>Dies hilft, Verantwortlichkeiten zu dokumentieren und Zusammenhänge herzustellen.</p>`,
 
         employees: `<p>Hier kannst du Informationen zu den Mitarbeitern der Gestapo-Stelle erfassen.</p>
                 <p>Dokumentiere bekannte Gestapo-Mitarbeiter, ihre Funktionen und Verantwortlichkeiten.</p>
-                <p>Wichtige Informationen sind:</p>
-                <ul>
-                 <li>Namen und Dienstgrade</li>
-                 <li>Positionen und Abteilungen</li>
-                 <li>Zeiträume der Tätigkeit</li>
-                 <li>Beteiligung an spezifischen Verfolgungsmaßnahmen</li>
-                 <li>Nachkriegsschicksal und juristische Aufarbeitung</li>
-                </ul>
+
                 <p>Diese Informationen sind wichtig für die historische Forschung und Dokumentation von Verantwortlichkeiten.</p>`,
 
         parentOrganization: `<p>Hier kannst du die übergeordnete Organisation der Gestapo-Stelle angeben.</p>
-                <p>Gestapo-Stellen waren in eine hierarchische Struktur eingebunden. Typische übergeordnete Organisationen waren:</p>
-                <ul>
-                 <li>Reichssicherheitshauptamt (RSHA)</li>
-                 <li>Regionale Gestapo-Leitstellen</li>
-                 <li>Höhere SS- und Polizeiführer (HSSPF)</li>
-                </ul>
+                <p>Gestapo-Stellen waren in eine hierarchische Struktur eingebunden.</p>
+
                 <p>Diese Angabe hilft, die administrative Einbindung und Befehlsstruktur zu dokumentieren.</p>`,
 
         childOrganization: `<p>Hier kannst du untergeordnete Organisationen der Gestapo-Stelle angeben.</p>

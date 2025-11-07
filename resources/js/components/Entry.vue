@@ -367,31 +367,36 @@
                                             1933-1945
                                         </li>
                                         <li>
+                                            <strong>Person</strong> - Lege eine
+                                            hisorische Person an mit Bezug zum
+                                            Nationalsozialismus auf der
+                                            Geschädigten oder Täter*In Seite.
+                                        </li>
+                                        <li>
                                             <strong>Erinnerungsort</strong> -
                                             Physische Orte, die an die Opfer des
                                             Nationalsozialismus erinnern
                                         </li>
                                         <li>
-                                            <strong>Staatspolizeistelle</strong>
-                                            - Regionale Dienstellen der Geheimen
-                                            Staatspolizei
-                                        </li>
-                                        <li>
                                             <strong
-                                                >Staatspolizeiaußenstelle</strong
+                                                >Ort des Gestapoterrors</strong
                                             >
-                                            - Lokale Zweigstellen einer
-                                            Staatspolizeistelle
-                                        </li>
-                                        <li>
-                                            <strong
-                                                >Arbeitserziehungslager</strong
-                                            >
-                                            - Haftsystem der Gestapo während des
-                                            Nationalsozialismus
-                                        </li>
-                                        <li>
-                                            <strong>Gefängnis</strong> -
+                                            - Orte, die mit dem Wirken der
+                                            Gestapo verbunden waren. Darunter
+                                            zählen:<br />
+                                            <b>Staatspolizeistelle</b>:
+                                            Regionale Dienstellen der Geheimen
+                                            Staatspolizei<br />
+                                            <b>Staatspolizeiaußenstelle</b>:
+                                            Lokale Zweigstellen einer
+                                            Staatspolizeistelle<br />
+                                            <b>Arbeitserziehungslager</b>:
+                                            Haftsystem der Gestapo während des
+                                            Nationalsozialismus<br />
+                                            <b>Gefängnis</b>: Haftanstalten, die
+                                            während der NS-Zeit für politische
+                                            Gefangene genutzt wurden<br />
+                                            <b>Erweitertes Polizeigefängnis</b>:
                                             Haftanstalten, die während der
                                             NS-Zeit für politische Gefangene
                                             genutzt wurden

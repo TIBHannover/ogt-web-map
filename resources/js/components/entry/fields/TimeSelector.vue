@@ -11,7 +11,7 @@
             <button
                 type="button"
                 class="info-icon"
-                @click="$emit('infoButtonClick', 'time')"
+                @click="$emit('infoButtonClick', infoIconId)"
             >
                 <v-icon>mdi-information-variant</v-icon>
             </button>
@@ -56,7 +56,7 @@
                 "
                 aria-label="Datum des Ereignisses auswählen"
                 @focus="
-                    $emit('fieldFocus', 'time');
+                    $emit('fieldFocus', infoIconId);
                     hasInteracted = true;
                 "
                 @blur="onFieldBlur"
@@ -122,7 +122,7 @@
                     "
                     aria-label="Beginn des Ereignisses auswählen"
                     @focus="
-                        $emit('fieldFocus', 'time');
+                        $emit('fieldFocus', infoIconId);
                         hasInteracted = true;
                     "
                     @blur="onFieldBlur"
@@ -189,7 +189,7 @@
                     "
                     aria-label="Ende des Ereignisses auswählen"
                     @focus="
-                        $emit('fieldFocus', 'time');
+                        $emit('fieldFocus', infoIconId);
                         hasInteracted = true;
                     "
                     @blur="onFieldBlur"
@@ -493,6 +493,10 @@ const props = defineProps({
     sectionLabel: {
         type: String,
         default: "Zeitpunkt / Zeitraum:",
+    },
+    infoIconId: {
+        type: String,
+        default: "time",
     },
     pointLabel: {
         type: String,
@@ -820,7 +824,6 @@ const openDateDialog = (field) => {
     }
 
     dateDialog.value = true;
-    emit("fieldFocus", "time");
 
     // Scroll to the selected year if it exists
     if (selectedYear.value) {
