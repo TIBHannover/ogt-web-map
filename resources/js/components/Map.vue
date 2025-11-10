@@ -153,6 +153,7 @@ export default {
                 linkedMainGroupItem: {
                     group: "events",
                     id: "Q134587748",
+                    marker: null,
                 },
                 places: {},
                 placesByCoordinates: [],
@@ -166,6 +167,7 @@ export default {
                 linkedMainGroupItem: {
                     group: "events",
                     id: "Q133303308",
+                    marker: null,
                 },
                 places: {},
                 placesByCoordinates: [],
@@ -1137,6 +1139,7 @@ export default {
                     createPlacesLayerGroups(group, placeMarkers);
                 }
 
+                setMainMarkerOfSubGroups();
                 handleLayerGroupsUpdate(groupedPlacesShownOnMap.value);
             } catch (error) {
                 console.error("Error in visualizePlaces:", error);
@@ -1297,6 +1300,16 @@ export default {
 
             return placeMarkers;
         };
+
+        const setMainMarkerOfSubGroups = () => {
+            Object.values(groupedPlaces.value).forEach(group => {
+                if (!group.linkedMainGroupItem) return;
+
+                const mainLocationMarkers = locationMarkers.value[group.linkedMainGroupItem.id];
+                group.linkedMainGroupItem.marker = Object.values(mainLocationMarkers)[0];
+            });
+        }
+
         /**
          * Set selected place info.
          *
