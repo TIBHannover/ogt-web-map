@@ -27,6 +27,7 @@
                             clearable
                             :loading="isLoading"
                             class="person-overlay-search-field"
+                            autofocus
                         ></v-text-field>
                         <v-btn
                             color="primary"
@@ -217,6 +218,16 @@ onMounted(() => {
         searchQuery.value = props.initialName;
         performSearch();
     }
+
+    // Focus the search input field when component is mounted
+    setTimeout(() => {
+        const input = document.querySelector(
+            ".person-overlay-search-field .v-field__input",
+        );
+        if (input) {
+            input.focus();
+        }
+    }, 300);
 });
 
 // Clean up event listener
