@@ -352,7 +352,7 @@
                                     v-model="personData.place_of_detention"
                                     label="Haftorte"
                                     dialog-title="Haftorte auswählen"
-                                    search-label="Haftorte suchen..."
+                                    search-label="Städte, KZ oder Gefängnisse suchen..."
                                     :search-results="
                                         wikidataSearchResults.place_of_detention ||
                                         []
@@ -403,6 +403,41 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Quellen Section -->
+                <!-- Schlüsselereignis (P793) -->
+                <div class="container-section key-event-section">
+                    <div class="section-header">
+                        <label class="section-label">Schlüsselereignis:</label>
+                        <button
+                            type="button"
+                            class="info-icon"
+                            @click="openSectionInfo('keyEvent')"
+                        >
+                            <v-icon>mdi-information-variant</v-icon>
+                        </button>
+                    </div>
+                    <multiple-wikidata-selector
+                        v-model="personData.key_event_person"
+                        label="Schlüsselereignis"
+                        dialog-title="Schlüsselereignisse auswählen"
+                        search-label="Ereignis suchen..."
+                        :search-results="
+                            wikidataSearchResults.key_event_person || []
+                        "
+                        :is-loading="isWikidataSearchLoading.key_event_person"
+                        :search-performed="
+                            wikidataSearchPerformed.key_event_person
+                        "
+                        endpoint="commemorates"
+                        @search="
+                            searchWikidataItems({
+                                field: 'key_event_person',
+                                query: $event,
+                            })
+                        "
+                    ></multiple-wikidata-selector>
                 </div>
 
                 <!-- Image Selector -->
@@ -618,6 +653,7 @@ const personData = ref({
     image: null,
     imageUrl: null,
     imageFilename: null,
+    key_event_person: [], // Array of Q-numbers for significant events
     role: "victim", // Default to "victim" (Geschädigter, Q2026714)
     wikidataId: null, // Wikidata ID if it comes from a search
 });
@@ -674,6 +710,7 @@ const getInfoTitle = (fieldName) => {
         "personal-data": "Persönliche Daten",
         locations: "Ortsangaben",
         sources: "Quellenangaben",
+        keyEvent: "Schlüsselereignisse",
     };
 
     if (sectionTitles[fieldName]) {
@@ -695,8 +732,8 @@ const getInfoContent = (fieldName) => {
                        <p><strong>Pflichtfelder:</strong></p>
                        <ul>
                          <li><strong>Rolle</strong>: Hier wird die Rolle der Person im historischen Kontext definiert:<br />
-                         <strong>Geschädigte*r</strong>: Person wurde im Nationalsozialismus verfolgt, inhaftiert oder ermordet. <br />
-                         <strong>Täter*In</strong>: Person war an der Verfolgung, Inhaftierung oder Ermordung von NS-Opfern beteiligt
+                         <strong>Geschädigte*r</strong>: Person wurde im Nationalsozialismus von der Gestapo verfolgt, inhaftiert und oder ermordet. <br />
+                         <strong>Täter*In</strong>: Person war an den Verbrechen der Gestapo beteiligt.
                          </li>
                          <li><strong>Vorname und Nachname</strong>: Vollständiger Name der Person</li>
                          <li><strong>Kurze Beschreibung</strong>: Kurze Zusammenfassung über die Person (max. 250 Zeichen)</li>
@@ -706,7 +743,7 @@ const getInfoContent = (fieldName) => {
                          <li><strong>Geburtsname</strong>: Falls abweichend vom aktuellen Namen</li>
                          <li><strong>Geschlecht</strong>: Wenn bekannt</li>
                          <li><strong>Geburtsdatum/Sterbedatum</strong>: Im Format YYYY-MM-DD</li>
-                         <li><strong>Staatsangehörigkeit</strong>: Nationalität der Person</li>
+                         <li><strong>Staatsangehörigkeit</strong>: Nationalität der Person (Beispiel: "Deutsches Reich", nicht BRD)</li>
                          <li><strong>Beruf</strong>: Hauptberuf oder Tätigkeit der Person</li>
                        </ul>
                        <p>Diese Angaben helfen dabei, die Person eindeutig zu identifizieren und in den historischen Kontext einzuordnen.</p>`,
@@ -737,6 +774,13 @@ const getInfoContent = (fieldName) => {
                  <li>Klicken Sie auf "Bild auswählen" und suchen Sie nach einem passenden Bild</li>
                </ul>
                <p>Hinweis: In Wikimedia Commons finden Sie nur Bilder mit freier Lizenz, die öffentlich verwendet werden dürfen.</p>`,
+
+        keyEvent: `<p>Hier kannst du wichtige Ereignisse im Zusammenhang mit dieser Gestapo-Stelle dokumentieren.</p>
+                       <p>Relevante Ereignisse könnten sein:</p>
+                       <ul>
+                       <li>Verfolgungsmaßnahmen, Verhaftungen oder Ermordungen usw.</li>
+                       </ul>
+                       <p>Diese Ereignisse helfen, die Geschichte und Bedeutung der Einrichtung zu verstehen.</p>`,
     };
 
     return sectionContents[fieldName] || "Keine Informationen verfügbar.";
@@ -908,6 +952,7 @@ const wikidataSearchResults = ref({
     occupation: [],
     place_of_residence: [],
     image: [],
+    key_event_person: [],
 });
 
 const isWikidataSearchLoading = ref({
@@ -919,6 +964,7 @@ const isWikidataSearchLoading = ref({
     occupation: false,
     place_of_residence: false,
     image: false,
+    key_event_person: false,
 });
 
 const wikidataSearchPerformed = ref({
@@ -930,6 +976,7 @@ const wikidataSearchPerformed = ref({
     occupation: false,
     place_of_residence: false,
     image: false,
+    key_event_person: false,
 });
 
 const wikidataResultsValue = computed(() => {
@@ -1169,6 +1216,21 @@ watch(
     },
 );
 
+// Get user-friendly display name for fields
+const getFieldDisplayName = (field) => {
+    const displayNames = {
+        nationality: "Staatsangehörigkeit",
+        place_of_birth: "Geburtsort",
+        place_of_death: "Sterbeort",
+        place_of_detention: "Haftort",
+        place_of_residence: "Wohnort",
+        occupation: "Beruf",
+        employer: "Arbeitgeber",
+        key_event_person: "Schlüsselereignis",
+    };
+    return displayNames[field] || field;
+};
+
 const searchWikidataItems = async ({ field, query }) => {
     if (!query || !query.trim()) return;
 
@@ -1183,21 +1245,26 @@ const searchWikidataItems = async ({ field, query }) => {
             break;
         case "place_of_birth":
         case "place_of_death":
-        case "place_of_detention":
         case "place_of_residence":
             apiEndpoint = "places";
+            break;
+        case "place_of_detention":
+            apiEndpoint = "places"; // Use places endpoint for detention places (cities, camps, prisons)
             break;
         case "occupation":
             apiEndpoint = "occupations";
             break;
         case "employer":
-            apiEndpoint = "people";
+            apiEndpoint = "organizations";
             break;
         case "image":
-            apiEndpoint = "wikimedia/images";
+            apiEndpoint = "images";
+            break;
+        case "key_event_person":
+            apiEndpoint = "commemorates";
             break;
         default:
-            apiEndpoint = "items";
+            apiEndpoint = "people";
     }
 
     try {
@@ -1218,7 +1285,7 @@ const searchWikidataItems = async ({ field, query }) => {
         } else if (response.data && response.data.error) {
             // Error message in response
             showToast(
-                `Fehler bei der Suche nach ${field}: ${response.data.error}`,
+                `Fehler bei der Suche nach ${getFieldDisplayName(field)}: ${response.data.error}`,
                 "error",
             );
             wikidataSearchResults.value[field] = [];
@@ -1242,7 +1309,12 @@ const searchWikidataItems = async ({ field, query }) => {
 
         let errorMessage = "Unbekannter Fehler";
 
-        if (error.response?.data?.error) {
+        // Special handling for 404 errors (endpoint not found)
+        if (error.response?.status === 404) {
+            // Give more user-friendly message for common fields
+            errorMessage =
+                "Die Suche ist derzeit nicht verfügbar. Bitte versuchen Sie eine andere Suche.";
+        } else if (error.response?.data?.error) {
             errorMessage = error.response.data.error;
         } else if (error.response?.data?.message) {
             errorMessage = error.response.data.message;
@@ -1251,7 +1323,7 @@ const searchWikidataItems = async ({ field, query }) => {
         }
 
         showToast(
-            `Fehler bei der Suche nach ${field}: ${errorMessage}`,
+            `Fehler bei der Suche nach ${getFieldDisplayName(field)}: ${errorMessage}`,
             "error",
         );
         wikidataSearchResults.value[field] = [];
@@ -1326,6 +1398,7 @@ const validateAndSubmit = async () => {
                 employer: null,
                 imageUrl: null,
                 imageFilename: null,
+                key_event_person: [],
             };
         }
 
@@ -1639,6 +1712,7 @@ const validateAndSubmit = async () => {
             place_of_residence: personData.value.place_of_residence || null,
             occupation: personData.value.occupation || null,
             employer: personData.value.employer || null,
+            key_event_person: personData.value.key_event_person || [],
             birthName: personData.value.birthName || null,
             image: personData.value.image,
             imageUrl: personData.value.imageUrl,
@@ -1725,6 +1799,7 @@ const validateAndSubmit = async () => {
             "place_of_residence",
             "occupation",
             "employer",
+            "key_event_person",
         ];
 
         fieldsToCheck.forEach((field) => {
@@ -1769,14 +1844,21 @@ const validateAndSubmit = async () => {
             "place_of_residence",
             "occupation",
             "employer",
+            "key_event_person",
         ];
+
+        // Fields that should be handled as arrays
+        const arrayFields = ["place_of_detention", "key_event_person"];
 
         // Process all fields to ensure correct format - store only Q-numbers
         wikidataFields.forEach((field) => {
             if (personDataObj[field]) {
-                // Special handling for place_of_detention which is always an array
-                if (field === "place_of_detention") {
-                    const detentionArray = [];
+                // Special handling for place_of_detention and key_event_person which are always arrays
+                if (
+                    field === "place_of_detention" ||
+                    field === "key_event_person"
+                ) {
+                    const qNumberArray = [];
 
                     if (Array.isArray(personDataObj[field])) {
                         personDataObj[field].forEach((item) => {
@@ -1785,7 +1867,7 @@ const validateAndSubmit = async () => {
                                 typeof item === "string" &&
                                 item.startsWith("Q")
                             ) {
-                                detentionArray.push(item);
+                                qNumberArray.push(item);
                             }
                             // Handle if it's an object with id property
                             else if (
@@ -1794,12 +1876,12 @@ const validateAndSubmit = async () => {
                                 typeof item.id === "string" &&
                                 item.id.startsWith("Q")
                             ) {
-                                detentionArray.push(item.id);
+                                qNumberArray.push(item.id);
                             }
                         });
                     }
 
-                    personDataObj[field] = detentionArray;
+                    personDataObj[field] = qNumberArray;
                 } else {
                     // For gender, always use array format to match backend expectations
                     if (field === "gender") {
@@ -1913,6 +1995,7 @@ const validateAndSubmit = async () => {
             place_of_residence: null,
             occupation: null,
             employer: null,
+            key_event_person: null,
             image: null,
             imageUrl: null,
             imageFilename: null,
@@ -1956,6 +2039,7 @@ const validateAndSubmit = async () => {
             place_of_residence: formData.place_of_residence,
             occupation: formData.occupation,
             employer: formData.employer,
+            key_event_person: formData.key_event_person,
         });
 
         // Instead of submitting directly, emit the data to the parent component

@@ -73,6 +73,7 @@ class WikibaseEntryRequest extends Model
         "successor_organization",
         "director",
         "employees",
+        "key_event_person",
     ];
 
     protected $casts = [
@@ -94,6 +95,7 @@ class WikibaseEntryRequest extends Model
         "is_standalone_person" => "boolean",
         "commemorates" => "string",
         "operator" => "string",
+        "key_event_person" => "array",
     ];
 
     protected $table = "wikidata_entry_requests";

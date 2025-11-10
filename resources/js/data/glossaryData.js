@@ -167,9 +167,7 @@ const glossaryItems = {
         descriptions: [
             `Die konkreten Tätigkeiten der Gestapo werden als Ereignisse dargestellt. Es handelt sich hierbei um von der
             Gestapo begangene Verbrechen wie bspw. der Inhaftierung einzelner Personen oder Personengruppen, aber auch
-            um die Ermordung von Menschen. Der inhaltliche Fokus des Projekts “OGT - Orte des Gestapoterrors” liegt auf
-            den Dienstsitzen und Haftstätten der Gestapo, weshalb nur einige wenige Ereignisse beispielhaft aufgenommen
-            wurden.`,
+            um die Ermordung von Menschen.`,
         ],
         sources: [],
     },

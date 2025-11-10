@@ -22,20 +22,9 @@
             <v-col>
                 <div class="forms-container">
                     <h2 class="step-title">
-                        Du möchtest uns helfen? So funktioniert's!
+                        Du möchtest uns helfen? Hier kannst du neue Einträge für
+                        Gestapo.Terror.Orte alegen.
                     </h2>
-                    <div class="info-section">
-                        <p>
-                            Bitte wähle den Eintragstyp aus, welchen du anlegen
-                            möchtest. Die verschiedenen Typen werden auf der
-                            Karte mit unterschiedlichen Markierungen angezeigt.
-                        </p>
-                        <p>
-                            Jeder Eintragstyp ermöglicht es dir, spezifische
-                            historische Informationen zu dokumentieren. Wähle
-                            den Typ, der am besten zu deinem Eintrag passt.
-                        </p>
-                    </div>
                 </div>
             </v-col>
         </v-row>
@@ -52,6 +41,143 @@
                             <form class="forms">
                                 <fieldset>
                                     <div class="type-selection-grid">
+                                        <!-- Ort -->
+                                        <div
+                                            class="type-box"
+                                            :class="{
+                                                selected:
+                                                    formsType === 'Q106996250',
+                                            }"
+                                            @click="
+                                                formsType = 'Q106996250';
+                                                updateTypeInfo();
+                                            "
+                                        >
+                                            <div class="type-icon">
+                                                <img
+                                                    src="/images/leaflet/markerIcons/coloredFilledWhite/fieldOffices.svg"
+                                                    alt="Ort des Gestapoterrors"
+                                                    width="48"
+                                                    height="48"
+                                                />
+                                            </div>
+                                            <div class="type-data">
+                                                <div class="type-label">
+                                                    <strong
+                                                        >Dienst- und Haftstätten
+                                                        der Gestapo</strong
+                                                    >
+                                                </div>
+                                                <div class="type-description">
+                                                    Orte, die mit dem Wirken der
+                                                    Gestapo verbunden waren
+                                                </div>
+                                                <div
+                                                    class="type-radio-container"
+                                                >
+                                                    <input
+                                                        v-model="formsType"
+                                                        name="type"
+                                                        type="radio"
+                                                        value="Q106996250"
+                                                        id="type-Q106996250"
+                                                        class="type-radio"
+                                                    />
+                                                </div>
+                                                <div
+                                                    class="type-action-container"
+                                                >
+                                                    <button
+                                                        v-if="
+                                                            formsType ===
+                                                            'Q106996250'
+                                                        "
+                                                        type="button"
+                                                        class="type-action-button"
+                                                        @click="
+                                                            openTitleOverlay
+                                                        "
+                                                    >
+                                                        Jetzt einen Gestapo Ort
+                                                        anlegen
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Erinnerungsort -->
+                                        <div
+                                            class="type-box"
+                                            :class="{
+                                                selected:
+                                                    formsType === 'Q5003624',
+                                            }"
+                                            @click="
+                                                formsType = 'Q5003624';
+                                                updateTypeInfo();
+                                            "
+                                        >
+                                            <div
+                                                class="info-icon-container d-lg-none"
+                                                @click.stop="
+                                                    showTypeInfoPopup(
+                                                        'Q5003624',
+                                                    )
+                                                "
+                                                title="Mehr Informationen"
+                                            >
+                                                <v-icon
+                                                    color="primary"
+                                                    size="small"
+                                                    >mdi-information-outline</v-icon
+                                                >
+                                            </div>
+                                            <input
+                                                v-model="formsType"
+                                                name="type"
+                                                type="radio"
+                                                value="Q5003624"
+                                                id="type-Q5003624"
+                                                class="type-radio"
+                                            />
+                                            <div class="type-icon">
+                                                <img
+                                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/memorials.svg`"
+                                                    alt="Erinnerungsort Icon"
+                                                />
+                                            </div>
+                                            <div class="type-data">
+                                                <div class="type-label">
+                                                    Erinnerungsort
+                                                </div>
+                                                <div class="type-description">
+                                                    Physisch erlebbare Orte, die
+                                                    an die Verbrechen der
+                                                    Gestapo erinnern
+                                                </div>
+                                                <div
+                                                    class="type-action-container"
+                                                >
+                                                    <transition name="fade">
+                                                        <button
+                                                            v-if="
+                                                                formsType ===
+                                                                'Q5003624'
+                                                            "
+                                                            class="type-action-button"
+                                                            type="button"
+                                                            @click="
+                                                                openTitleOverlay
+                                                            "
+                                                        >
+                                                            Jetzt einen
+                                                            Erinnerungsort
+                                                            anlegen
+                                                        </button>
+                                                    </transition>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <!-- Ereignis -->
                                         <div
                                             class="type-box"
@@ -98,8 +224,13 @@
                                                     Ereignis
                                                 </div>
                                                 <div class="type-description">
-                                                    Historische Geschehnisse im
-                                                    Zeitraum 1933-1945
+                                                    Von der Gestapo begangene
+                                                    Verbrechen wie bspw. der
+                                                    Inhaftierung einzelner
+                                                    Personen oder
+                                                    Personengruppen, aber auch
+                                                    um die Ermordung von
+                                                    Menschen
                                                 </div>
                                                 <div
                                                     class="type-action-container"
@@ -167,8 +298,10 @@
                                                     Person
                                                 </div>
                                                 <div class="type-description">
-                                                    Historische Personen und
-                                                    Organisationen
+                                                    Historische Personen mit
+                                                    Bezug zur Gestapo in der
+                                                    Roller als Täter*In oder
+                                                    Geschädigte
                                                 </div>
                                                 <div
                                                     class="type-action-container"
@@ -189,144 +322,6 @@
                                                             anlegen
                                                         </button>
                                                     </transition>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Erinnerungsort -->
-
-                                        <div
-                                            class="type-box"
-                                            :class="{
-                                                selected:
-                                                    formsType === 'Q5003624',
-                                            }"
-                                            @click="
-                                                formsType = 'Q5003624';
-                                                updateTypeInfo();
-                                            "
-                                        >
-                                            <div
-                                                class="info-icon-container d-lg-none"
-                                                @click.stop="
-                                                    showTypeInfoPopup(
-                                                        'Q5003624',
-                                                    )
-                                                "
-                                                title="Mehr Informationen"
-                                            >
-                                                <v-icon
-                                                    color="primary"
-                                                    size="small"
-                                                    >mdi-information-outline</v-icon
-                                                >
-                                            </div>
-                                            <input
-                                                v-model="formsType"
-                                                name="type"
-                                                type="radio"
-                                                value="Q5003624"
-                                                id="type-Q5003624"
-                                                class="type-radio"
-                                            />
-                                            <div class="type-icon">
-                                                <img
-                                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/memorials.svg`"
-                                                    alt="Erinnerungsort Icon"
-                                                />
-                                            </div>
-                                            <div class="type-data">
-                                                <div class="type-label">
-                                                    Erinnerungsort
-                                                </div>
-                                                <div class="type-description">
-                                                    Physische Orte, die an die
-                                                    Opfer des
-                                                    Nationalsozialismus erinnern
-                                                </div>
-                                                <div
-                                                    class="type-action-container"
-                                                >
-                                                    <transition name="fade">
-                                                        <button
-                                                            v-if="
-                                                                formsType ===
-                                                                'Q5003624'
-                                                            "
-                                                            class="type-action-button"
-                                                            type="button"
-                                                            @click="
-                                                                openTitleOverlay
-                                                            "
-                                                        >
-                                                            Jetzt einen
-                                                            Erinnerungsort
-                                                            anlegen
-                                                        </button>
-                                                    </transition>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div
-                                            class="type-box"
-                                            :class="{
-                                                selected:
-                                                    formsType === 'Q106996250',
-                                            }"
-                                            @click="
-                                                formsType = 'Q106996250';
-                                                updateTypeInfo();
-                                            "
-                                        >
-                                            <div class="type-icon">
-                                                <img
-                                                    src="/images/leaflet/markerIcons/coloredFilledWhite/fieldOffices.svg"
-                                                    alt="Ort des Gestapoterrors"
-                                                    width="48"
-                                                    height="48"
-                                                />
-                                            </div>
-                                            <div class="type-data">
-                                                <div class="type-label">
-                                                    <strong
-                                                        >Ort des
-                                                        Gestapoterrors</strong
-                                                    >
-                                                </div>
-                                                <div class="type-description">
-                                                    Orte, die mit dem Wirken der
-                                                    Gestapo verbunden waren
-                                                </div>
-                                                <div
-                                                    class="type-radio-container"
-                                                >
-                                                    <input
-                                                        v-model="formsType"
-                                                        name="type"
-                                                        type="radio"
-                                                        value="Q106996250"
-                                                        id="type-Q106996250"
-                                                        class="type-radio"
-                                                    />
-                                                </div>
-                                                <div
-                                                    class="type-action-container"
-                                                >
-                                                    <button
-                                                        v-if="
-                                                            formsType ===
-                                                            'Q106996250'
-                                                        "
-                                                        type="button"
-                                                        class="type-action-button"
-                                                        @click="
-                                                            openTitleOverlay
-                                                        "
-                                                    >
-                                                        Jetzt einen Gestapo Ort
-                                                        anlegen
-                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -352,60 +347,55 @@
                                     v-html="typeInfoContent"
                                 ></div>
                                 <div v-else>
-                                    <p>
-                                        Bitte wähle einen Eintragstyp aus, um
-                                        Informationen darüber zu erhalten.
-                                    </p>
-                                    <p>
-                                        Zu den verfügbaren Eintragstypen
-                                        gehören:
-                                    </p>
                                     <ul>
                                         <li>
-                                            <strong>Ereignis</strong> -
-                                            Historische Geschehnisse im Zeitraum
-                                            1933-1945
-                                        </li>
-                                        <li>
-                                            <strong>Person</strong> - Lege eine
-                                            hisorische Person an mit Bezug zum
-                                            Nationalsozialismus auf der
-                                            Geschädigten oder Täter*In Seite.
-                                        </li>
-                                        <li>
-                                            <strong>Erinnerungsort</strong> -
-                                            Physische Orte, die an die Opfer des
-                                            Nationalsozialismus erinnern
-                                        </li>
-                                        <li>
                                             <strong
-                                                >Ort des Gestapoterrors</strong
+                                                >Dienst- und Haftstätten der
+                                                Gestapo</strong
                                             >
                                             - Orte, die mit dem Wirken der
                                             Gestapo verbunden waren. Darunter
                                             zählen:<br />
-                                            <b>Staatspolizeistelle</b>:
+                                            <b>Staatspolizeileitstelle</b>:
                                             Regionale Dienstellen der Geheimen
                                             Staatspolizei<br />
-                                            <b>Staatspolizeiaußenstelle</b>:
-                                            Lokale Zweigstellen einer
+                                            <b>Staatspolizeistelle</b>:
+                                            Regionale Dienstellen der Geheimen
+                                            Staatspolizei, unterstehen der
+                                            Staatspolizeileitstelle<br />
+                                            <b>Außendienststelle</b>: Lokale
+                                            Zweigstellen einer
                                             Staatspolizeistelle<br />
-                                            <b>Arbeitserziehungslager</b>:
-                                            Haftsystem der Gestapo während des
-                                            Nationalsozialismus<br />
                                             <b>Gefängnis</b>: Haftanstalten, die
                                             während der NS-Zeit für politische
                                             Gefangene genutzt wurden<br />
                                             <b>Erweitertes Polizeigefängnis</b>:
                                             Haftanstalten, die während der
                                             NS-Zeit für politische Gefangene
-                                            genutzt wurden
+                                            genutzt wurden<br />
+                                            <b>Arbeitserziehungslager</b>:
+                                            Haftsystem der Gestapo während des
+                                            Nationalsozialismus<br />
+                                        </li>
+                                        <li>
+                                            <strong>Erinnerungsort</strong> -
+                                            Physisch erlebbare Orte, die an die
+                                            Verbrechen der Gestapo erinnern
+                                        </li>
+                                        <li>
+                                            <strong>Ereignis</strong> - Von der
+                                            Gestapo begangene Verbrechen wie
+                                            bspw. der Inhaftierung einzelner
+                                            Personen oder Personengruppen, aber
+                                            auch um die Ermordung von Menschen
+                                        </li>
+                                        <li>
+                                            <strong>Person</strong> -
+                                            Historische Personen mit Bezug zur
+                                            Gestapo in der Roller als Täter*In
+                                            oder Geschädigte
                                         </li>
                                     </ul>
-                                    <p>
-                                        Wählen einen Typ, um detailliertere
-                                        Informationen zu erhalten.
-                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -769,9 +759,8 @@ const newVictim = ref({
     place_of_detention: [],
     place_of_residence: null,
     occupation: null,
-    employer: null,
-    imageUrl: null,
-    imageFilename: null,
+    birthName: "",
+    key_event_person: [],
 });
 const lastSearchQuery = ref("");
 
@@ -797,9 +786,8 @@ const newPerpetrator = ref({
     place_of_detention: [],
     place_of_residence: null,
     occupation: null,
-    employer: null,
-    imageUrl: null,
-    imageFilename: null,
+    birthName: "",
+    key_event_person: [],
 });
 const lastPerpetratorSearchQuery = ref("");
 
@@ -1392,19 +1380,18 @@ const resetNewVictimForm = () => {
         birthDate: null,
         deathDate: null,
         description: "",
-        birthName: "",
         isOrganization: false,
         gender: null,
         nationality: null,
+        birthName: "",
         place_of_birth: null,
         place_of_death: null,
         place_of_detention: [],
         place_of_residence: null,
         occupation: null,
-        imageUrl: null,
-        imageFilename: null,
+        key_event_person: [],
     };
-    lastSearchQuery.value = "";
+    showNewVictimForm.value = false;
 };
 
 const addNewVictim = () => {
@@ -1438,6 +1425,7 @@ const addNewVictim = () => {
         place_of_detention: newVictim.value.place_of_detention || [],
         place_of_residence: newVictim.value.place_of_residence || null,
         occupation: newVictim.value.occupation || null,
+        key_event_person: newVictim.value.key_event_person || [],
         type: "Q5", // Add type field to identify this as a person
         role: "victim", // Explicitly set the role
     });
@@ -1551,10 +1539,9 @@ const resetNewPerpetratorForm = () => {
         place_of_detention: [],
         place_of_residence: null,
         occupation: null,
-        imageUrl: null,
-        imageFilename: null,
+        key_event_person: [],
     };
-    lastPerpetratorSearchQuery.value = "";
+    showNewPerpetratorForm.value = false;
 };
 
 const addNewPerpetrator = () => {
@@ -1585,6 +1572,7 @@ const addNewPerpetrator = () => {
         place_of_detention: newPerpetrator.value.place_of_detention || [],
         place_of_residence: newPerpetrator.value.place_of_residence || null,
         occupation: newPerpetrator.value.occupation || null,
+        key_event_person: newPerpetrator.value.key_event_person || [],
         type: "Q5", // Add type field to identify this as a person
         role: "perpetrator", // Explicitly set the role
     });
@@ -1852,6 +1840,7 @@ const submitPersonForm = async (formData) => {
             formData.place_of_residence = null;
             formData.occupation = null;
             formData.employer = null;
+            formData.key_event_person = null;
             formData.image = null;
             formData.imageUrl = null;
             formData.imageFilename = null;
@@ -1888,17 +1877,19 @@ const submitPersonForm = async (formData) => {
             // Double check that all person objects have properly formatted fields
             formData.victims.forEach((person) => {
                 console.log("Checking victim fields:", person);
-                ["place_of_detention", "employer"].forEach((field) => {
-                    // Ensure multi-value fields are always arrays
-                    if (!person[field]) {
-                        // Initialize as empty array if null/undefined
-                        person[field] = [];
-                    } else if (!Array.isArray(person[field])) {
-                        // Convert string to array with one item
-                        console.log(`Converting ${field} to array format`);
-                        person[field] = [person[field]];
-                    }
-                });
+                ["place_of_detention", "employer", "key_event_person"].forEach(
+                    (field) => {
+                        // Ensure multi-value fields are always arrays
+                        if (!person[field]) {
+                            // Initialize as empty array if null/undefined
+                            person[field] = [];
+                        } else if (!Array.isArray(person[field])) {
+                            // Convert string to array with one item
+                            console.log(`Converting ${field} to array format`);
+                            person[field] = [person[field]];
+                        }
+                    },
+                );
 
                 // Keep nationality as a string (like gender)
                 console.log("Nationality:", person.nationality);
@@ -1946,20 +1937,23 @@ const submitPersonForm = async (formData) => {
 
             formData.perpetrators.forEach((person) => {
                 console.log("Checking perpetrator fields:", person);
-                ["place_of_detention", "employer"].forEach((field) => {
-                    // Ensure multi-value fields are always arrays
-                    if (!person[field]) {
-                        // Initialize as empty array if null/undefined
-                        person[field] = [];
-                    } else if (!Array.isArray(person[field])) {
-                        // Convert string to array with one item
-                        console.log(`Converting ${field} to array format`);
-                        person[field] = [person[field]];
-                    }
-                });
+                ["place_of_detention", "employer", "key_event_person"].forEach(
+                    (field) => {
+                        // Ensure multi-value fields are always arrays
+                        if (!person[field]) {
+                            // Initialize as empty array if null/undefined
+                            person[field] = [];
+                        } else if (!Array.isArray(person[field])) {
+                            // Convert string to array with one item
+                            console.log(`Converting ${field} to array format`);
+                            person[field] = [person[field]];
+                        }
+                    },
+                );
 
                 // Keep nationality as a string (like gender)
                 console.log("Nationality:", person.nationality);
+                console.log("Key Event Person:", person.key_event_person);
 
                 // Handle single-value fields (ensure they're strings, not arrays)
                 [
@@ -2027,6 +2021,10 @@ const submitPersonForm = async (formData) => {
         if (formData.victims && formData.victims.length > 0) {
             formData.victims.forEach((victim, index) => {
                 console.log(`Victim ${index} gender:`, victim.gender);
+                console.log(
+                    `Victim ${index} key_event_person:`,
+                    victim.key_event_person,
+                );
                 // Ensure gender is a string
                 if (victim.gender && Array.isArray(victim.gender)) {
                     victim.gender =
@@ -3035,9 +3033,12 @@ const clearForm = () => {
         nationality: null,
         place_of_birth: null,
         place_of_death: null,
-        place_of_detention: [],
+        place_of_detention: null,
         place_of_residence: null,
         occupation: null,
+        employer: null,
+        key_event_person: null,
+        image: null,
         imageUrl: null,
         imageFilename: null,
     };

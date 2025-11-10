@@ -765,8 +765,8 @@ const getSectionInfoContent = (sectionName) => {
     const sectionContents = {
         title: `<p>In diesem Bereich werden die grundlegenden Informationen zur Gestapo-Stelle erfasst.</p>
                <p><strong>Titel:</strong> Gebe einen präzisen und aussagekräftigen Titel ein, der die Art der Gestapo-Stelle und ihren Ort enthält.</p>
-               <p><strong>Beschreibung:</strong> Beschreibe die Gestapo-Stelle kurz und informativ mit den wichtigsten Fakten, ihrer Funktion und historischem Kontext.</p>
-               <p>Beispiele für gute Titel: "Gestapo-Hauptquartier Berlin", "Gestapo-Außenstelle Münster"</p>`,
+               <p><strong>Kurzbeschreibung:</strong> Beschreibe die Gestapo-Stelle kurz und informativ mit den wichtigsten Fakten, ihrer Funktion und historischem Kontext.</p>
+               <p>Beispiele für gute Titel: "Polizeileitstelle Hannover", "Gestapo-Außenstelle Münster"</p>`,
 
         time: `<p>Hier werden zeitliche Informationen zur Gestapo-Stelle erfasst.</p>
                <p><strong>Diese Angabe ist hilfreich, aber nicht zwingend erforderlich.</strong></p>
@@ -774,9 +774,9 @@ const getSectionInfoContent = (sectionName) => {
                <p>Falls das genaue Datum nicht bekannt ist, kannst du auch nur einen Monat eines Jahres oder ein Jahr auswählen.<br />
                Bei ungenauen Datumsangaben kannst du in der Select-Box unter dem Datum einen Qualifikator wie "ungefähr" setzen.</p>`,
 
-        foundingDate: `<p>Hier wird die zeitliche Informationen zur Erstellung, Entstehung, Erbauung der Gestapo-Stelle erfasst.</p>`,
+        foundingDate: `<p>Hier wird die zeitliche Informationen zur Gründung der Gestapo-Stelle erfasst.</p>`,
 
-        dissolutionDate: `<p>Hier wird das Auflösungsdatum erfasst.</p>`,
+        dissolutionDate: `<p>Hier wird das Auflösungsdatum der Gestapo-Stelle erfasst.</p>`,
 
         prisonerCount: `<p>In diesem Bereich kannst du die Anzahl der Gefangenen dokumentieren, die in dieser Gestapo-Stelle inhaftiert waren.</p>
                 <p>Erfasse die geschätzte oder bekannte Gesamtzahl der Personen, die hier festgehalten wurden.</p>
@@ -796,7 +796,7 @@ const getSectionInfoContent = (sectionName) => {
 
         location: `<p>Hier wird der genaue Standort der Gestapo-Stelle auf der Karte gewählt.</p>
                      <p><strong>Dieses Feld ist ein Pflichtfeld!</strong></p>
-                   <p>Sie können:</p>
+                   <p>Du kannst:</p>
                    <ul>
                     <li>Direkt auf die Karte klicken, um den Standort zu markieren</li>
                     <li>Nach einer Adresse oder einem Ort suchen, um ihn schneller zu finden</li>
@@ -814,8 +814,7 @@ const getSectionInfoContent = (sectionName) => {
         keyEvent: `<p>Hier kannst du wichtige Ereignisse im Zusammenhang mit dieser Gestapo-Stelle dokumentieren.</p>
                 <p>Relevante Ereignisse könnten sein:</p>
                 <ul>
-                 <li>Besondere Verfolgungsmaßnahmen oder Verhaftungen</li>
-                 <li>Widerstandsaktionen gegen die Gestapo</li>
+                 <li>Verfolgungsmaßnahmen, Verhaftungen oder Ermordungen usw.</li>
                 </ul>
                 <p>Diese Ereignisse helfen, die Geschichte und Bedeutung der Einrichtung zu verstehen.</p>`,
 

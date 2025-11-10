@@ -16,20 +16,6 @@
                 <div class="entry-info-container">
                     <div class="intro-section">
                         <h2 class="section-title">
-                            Du möchtest einen neuen Eintrag anlegen?
-                        </h2>
-                        <p>
-                            Trage deinen Beitrag dazu bei die Karte zu
-                            erweitern.
-                        </p>
-                        <p>
-                            Auf dieser Seite erfährst du wie du bei der Karte
-                            beisteuern kannst und wie du direkt loslegst!
-                        </p>
-                    </div>
-
-                    <div class="intro-section">
-                        <h2 class="section-title">
                             Wie funktioniert der Prozess?
                         </h2>
                         <p>
@@ -86,9 +72,10 @@
                                 >
                                 <strong>Quellenangaben:</strong>
                                 <p>
-                                    Vollständige bibliografische Informationen
-                                    zu Ihren Quellen (Autor, Titel, Jahr, Seite
-                                    etc.).
+                                    Informationen zu deinen Quellen (In Falle
+                                    von Büchern: Autor, Titel, Jahr, Seite etc.)
+                                    (In Falle von Archivmaterial: Inventarnummer
+                                    etc).
                                 </p>
                             </li>
                             <li>
@@ -155,39 +142,73 @@
                                     </p>
                                     <ul class="entry-types-list">
                                         <li>
-                                            <strong>Ereignis:</strong>
-                                            Historische Vorkommnisse wie
-                                            Verhaftungen, Widerstandsaktionen
-                                            oder Deportationen
-                                        </li>
-                                        <li>
-                                            <strong>Erinnerungsort:</strong>
-                                            Gedenkstätten, Mahnmale oder andere
-                                            Orte des Gedenkens
-                                        </li>
-                                        <li>
                                             <strong
-                                                >Staatspolizeistelle:</strong
+                                                >Dienst- und Haftstätten der
+                                                Gestapo</strong
                                             >
-                                            Hauptsitze der Gestapo
+                                            - Orte, die mit dem Wirken der
+                                            Gestapo verbunden waren. Darunter
+                                            zählen:<br />
+                                            <ul>
+                                                <li>
+                                                    <b
+                                                        >Staatspolizeileitstelle</b
+                                                    >: Regionale Dienstellen der
+                                                    Geheimen Staatspolizei
+                                                </li>
+
+                                                <li>
+                                                    <b>Staatspolizeistelle</b>:
+                                                    Regionale Dienstellen der
+                                                    Geheimen Staatspolizei,
+                                                    unterstehen der
+                                                    Staatspolizeileitstelle
+                                                </li>
+                                                <li>
+                                                    <b>Außendienststelle</b>:
+                                                    Lokale Zweigstellen einer
+                                                    Staatspolizeistelle
+                                                </li>
+                                                <li>
+                                                    <b>Gefängnis</b>:
+                                                    Haftanstalten, die während
+                                                    der NS-Zeit für politische
+                                                    Gefangene genutzt wurden
+                                                </li>
+                                                <li>
+                                                    <b
+                                                        >Erweitertes
+                                                        Polizeigefängnis</b
+                                                    >: Haftanstalten, die
+                                                    während der NS-Zeit für
+                                                    politische Gefangene genutzt
+                                                    wurden
+                                                </li>
+                                                <li>
+                                                    <b>Arbeitserziehungslager</b
+                                                    >: Haftsystem der Gestapo
+                                                    während des
+                                                    Nationalsozialismus
+                                                </li>
+                                            </ul>
                                         </li>
                                         <li>
-                                            <strong
-                                                >Staatspolizeiaußenstelle:</strong
-                                            >
-                                            Regionale Außenposten
+                                            <strong>Erinnerungsort</strong> -
+                                            Physisch erlebbare Orte, die an die
+                                            Verbrechen der Gestapo erinnern
                                         </li>
                                         <li>
-                                            <strong
-                                                >Arbeitserziehungslager:</strong
-                                            >
-                                            Orte der Zwangsarbeit und
-                                            "Umerziehung"
+                                            <strong>Ereignis</strong> - Von der
+                                            Gestapo begangene Verbrechen wie
+                                            bspw. der Inhaftierung einzelner
+                                            Personen oder Personengruppen, aber
+                                            auch um die Ermordung von Menschen
                                         </li>
                                         <li>
-                                            <strong>Gefängnis:</strong>
-                                            Haftanstalten im Zusammenhang mit
-                                            Gestapo-Aktivitäten
+                                            <strong>Person</strong> -
+                                            Historische Personen mit Bezug zur
+                                            Gestapo in der Roller als Täter*In
+                                            oder Geschädigte
                                         </li>
                                     </ul>
                                 </div>
@@ -201,22 +222,11 @@
                                         Informationen aus. Je detaillierter und
                                         präziser, desto besser.
                                     </p>
-                                </div>
-                            </div>
-                            <div class="timeline-step">
-                                <div class="step-number">4</div>
-                                <div class="step-content">
                                     <h3>Quellenangaben hinzufügen</h3>
                                     <p>
                                         Füge alle Quellen hinzu, aus denen du
-                                        Informationen bezogen hast. Vollständige
-                                        bibliografische Angaben sind notwendig.
+                                        Informationen bezogen hast.
                                     </p>
-                                </div>
-                            </div>
-                            <div class="timeline-step">
-                                <div class="step-number">5</div>
-                                <div class="step-content">
                                     <h3>Eintrag einreichen</h3>
                                     <p>
                                         Sende deinen Antrag zur Prüfung ein. Du
@@ -226,12 +236,12 @@
                                 </div>
                             </div>
                             <div class="timeline-step">
-                                <div class="step-number">6</div>
+                                <div class="step-number">4</div>
                                 <div class="step-content">
                                     <h3>Prüfung abwarten</h3>
                                     <p>
                                         Dein Eintrag wird von unserem Team
-                                        geprüft. Dies kann einige Tage in
+                                        geprüft. Dies kann einige Zeit in
                                         Anspruch nehmen. Du kannst den Status
                                         jederzeit über den Link in der
                                         Bestätigungsnachricht abrufen.
@@ -239,7 +249,7 @@
                                 </div>
                             </div>
                             <div class="timeline-step">
-                                <div class="step-number">7</div>
+                                <div class="step-number">5</div>
                                 <div class="step-content">
                                     <h3>Eintrag auf der Karte anschauen</h3>
                                     <p>
@@ -256,10 +266,6 @@
                         <h2 class="section-title">
                             Bereit, einen Eintrag zu erstellen?
                         </h2>
-                        <p>
-                            Wenn Sie alle notwendigen Informationen gesammelt
-                            haben, können Sie mit der Erstellung beginnen.
-                        </p>
                         <div class="button-container">
                             <router-link
                                 to="/neuer-eintrag"
@@ -338,6 +344,14 @@
 
 .entry-types-list li {
     margin-bottom: 8px;
+}
+
+.entry-types-list li ul {
+    margin-left: 15px;
+}
+
+.entry-types-list li ul li {
+    margin-bottom: 0;
 }
 
 .process-timeline {
