@@ -103,12 +103,7 @@
                                 <button
                                     v-if="result.id.startsWith('Q')"
                                     class="open-wikidata-button"
-                                    @click.stop="
-                                        window.open(
-                                            `https://www.wikidata.org/wiki/${result.id}`,
-                                            '_blank',
-                                        )
-                                    "
+                                    @click.stop="openWikidata(result.id)"
                                 >
                                     <v-icon size="small"
                                         >mdi-open-in-new</v-icon
@@ -318,6 +313,11 @@ const selectExistingPerson = (person) => {
     console.log("Selected person:", person);
     emit("select-person", person);
     handleClose();
+};
+
+// Open Wikidata page in new window
+const openWikidata = (id) => {
+    window.open(`https://www.wikidata.org/wiki/${id}`, "_blank");
 };
 
 // Create a new person
