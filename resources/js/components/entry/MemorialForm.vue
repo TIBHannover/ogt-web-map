@@ -134,7 +134,8 @@
                     :validationMessageRequired="'Bitte gib das Eröffnungsdatum an.'"
                     :validationMessageInvalid="'Das Eröffnungsdatum hat ein ungültiges Format.'"
                     :initialShowErrors="false"
-                    :infoIconId="'time'"
+                    :required="false"
+                    :infoIconId="'openingDate'"
                     @validation="onTimeValidation"
                 />
 

@@ -7,6 +7,7 @@
             item-title="label"
             item-value="id"
             :disabled="disabled"
+            class="gender-select"
             variant="outlined"
             clearable
             return-object
@@ -69,13 +70,13 @@ const selectedValue = computed({
             );
         }
 
-    // If it's already an object, return it
-    return props.modelValue;
-  },
-  set: (value) => {
-    // When setting, just emit the ID string or null
-    emit('update:modelValue', value ? value.id : null);
-  }
+        // If it's already an object, return it
+        return props.modelValue;
+    },
+    set: (value) => {
+        // When setting, just emit the ID string or null
+        emit("update:modelValue", value ? value.id : null);
+    },
 });
 </script>
 

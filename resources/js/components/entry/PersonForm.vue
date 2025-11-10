@@ -695,7 +695,7 @@ const getInfoContent = (fieldName) => {
                        <p><strong>Pflichtfelder:</strong></p>
                        <ul>
                          <li><strong>Rolle</strong>: Hier wird die Rolle der Person im historischen Kontext definiert:<br />
-                         <strong>Geschädigte*r</strong>: Person wurde im Nationalsozialismus verfolgt, inhaftiert oder ermordet
+                         <strong>Geschädigte*r</strong>: Person wurde im Nationalsozialismus verfolgt, inhaftiert oder ermordet. <br />
                          <strong>Täter*In</strong>: Person war an der Verfolgung, Inhaftierung oder Ermordung von NS-Opfern beteiligt
                          </li>
                          <li><strong>Vorname und Nachname</strong>: Vollständiger Name der Person</li>
@@ -2181,10 +2181,6 @@ watch(
 }
 
 .entry-section {
-    margin-bottom: 2rem;
-    padding: 1rem;
-    background-color: #f8f9fa;
-    border-radius: 8px;
     width: 100%;
 }
 
@@ -2265,11 +2261,11 @@ watch(
 }
 
 .form-section {
-    margin-bottom: 2rem;
-    padding: 1.5rem;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    margin-bottom: 1.5rem;
+    background-color: #f5f5f5;
+    padding: 1rem;
+    border-radius: 4px;
 }
 
 .section-subtitle {
