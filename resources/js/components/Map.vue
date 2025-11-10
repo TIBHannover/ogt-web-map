@@ -153,6 +153,7 @@ export default {
                 linkedMainGroupItem: {
                     group: "events",
                     id: "Q134587748",
+                    lines: [],
                     marker: null,
                 },
                 places: {},
@@ -167,6 +168,7 @@ export default {
                 linkedMainGroupItem: {
                     group: "events",
                     id: "Q133303308",
+                    lines: [],
                     marker: null,
                 },
                 places: {},
@@ -1107,6 +1109,45 @@ export default {
                 }
             });
             setCurrentValues(minDate, maxDate, groupNames);
+            drawLinesBetweenSubAndMainGroups();
+        };
+
+        const drawLinesBetweenSubAndMainGroups = () => {
+            const rawMap = toRaw(map.value);
+
+            Object.entries(groupedPlaces.value).forEach(([groupName, group]) => {
+                const linkedMainGroupItem = group.linkedMainGroupItem;
+                // skip if group is not subgroup
+                if (!linkedMainGroupItem) return;
+
+                // remove existing lines (if any)
+                linkedMainGroupItem.lines.forEach(line => rawMap.removeLayer(line));
+                linkedMainGroupItem.lines = [];
+
+                // skip if subgroup is not enabled on map
+                if (!groupedPlacesShownOnMap.value.includes(groupName)) return;
+
+                // ensure main marker is added to map
+                if (!rawMap.hasLayer(linkedMainGroupItem.marker)) {
+                    linkedMainGroupItem.marker.addTo(rawMap);
+                }
+
+                // draw lines from subgroup markers to main marker
+                group.placesByCoordinates.forEach(({ marker }) => {
+                    if (!rawMap.hasLayer(marker)) return;
+
+                    const line = L.polyline(
+                        [marker.getLatLng(), linkedMainGroupItem.marker.getLatLng()],
+                        {
+                            color: group.color,
+                            dashArray: "4,4",
+                            weight: 2,
+                        }
+                    ).addTo(rawMap);
+
+                    linkedMainGroupItem.lines.push(line);
+                });
+            });
         };
 
         const dateFilter = (data, minDate, maxDate) => {
