@@ -150,7 +150,10 @@ export default {
                 iconName: "events.svg",
                 layerGroup: null,
                 layerName: "Aktion Lauterbacher",
-                linkedMainGroupItem: { "events": "Q134587748" },
+                linkedMainGroupItem: {
+                    group: "events",
+                    id: "Q134587748",
+                },
                 places: {},
                 placesByCoordinates: [],
             },
@@ -160,7 +163,10 @@ export default {
                 iconName: "events.svg",
                 layerGroup: null,
                 layerName: "Verfolgung der Sozialistischen Front",
-                linkedMainGroupItem: { "events": "Q133303308" },
+                linkedMainGroupItem: {
+                    group: "events",
+                    id: "Q133303308",
+                },
                 places: {},
                 placesByCoordinates: [],
             },
@@ -1236,7 +1242,7 @@ export default {
                                 getDateProp("startTime") ??
                                 new Date("1945-05-08").toDateString()
                             );
-                        } else if (placeGroupName === "events" || Object.hasOwn(groupedPlaces.value[placeGroupName].linkedMainGroupItem ?? {}, "events")) {
+                        } else if (placeGroupName === "events" || groupedPlaces.value[placeGroupName].linkedMainGroupItem?.group === "events") {
                             return (
                                 getDateProp("pointInTime") ??
                                 getDateProp("startTime") ??
@@ -1258,7 +1264,7 @@ export default {
                                 getDateProp("endTime") ??
                                 new Date().toDateString()
                             );
-                        } else if (placeGroupName === "events" || Object.hasOwn(groupedPlaces.value[placeGroupName].linkedMainGroupItem ?? {}, "events")) {
+                        } else if (placeGroupName === "events" || groupedPlaces.value[placeGroupName].linkedMainGroupItem?.group === "events") {
                             return (
                                 getDateProp("pointInTime") ??
                                 getDateProp("endTime") ??
