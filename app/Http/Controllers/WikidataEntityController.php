@@ -39,6 +39,7 @@ class WikidataEntityController extends Controller
             "coordinates_qualifier" => "nullable|string",
             "victims" => "nullable|array",
             "perpetrators" => "nullable|array",
+            "isStandalonePerson" => "nullable|boolean",
             "eventTimeType" => "nullable|string|in:point,range",
             "eventDate" => "nullable|string",
             "eventDateQualifier" => "nullable|string",
@@ -65,6 +66,28 @@ class WikidataEntityController extends Controller
             "place_of_birth" => "nullable|array",
             "place_of_death" => "nullable|array",
             "place_of_detention" => "nullable|array",
+            // Memorial-specific fields
+            "commemorates" => "nullable|string",
+            "operator" => "nullable|string",
+            "opening_date" => "nullable|string",
+            "opening_date_qualifier" => "nullable|string",
+            "address" => "nullable|string",
+            "website" => "nullable|string",
+            // Gestapo Place-specific fields
+            "entity_subtype" => "nullable|string",
+            "founding_date" => "nullable|string",
+            "founding_date_qualifier" => "nullable|string",
+            "dissolution_date" => "nullable|string",
+            "dissolution_date_qualifier" => "nullable|string",
+            "key_event" => "nullable|array",
+            "director" => "nullable|array",
+            "employees" => "nullable|array",
+            "prisoner_count" => "nullable|string",
+            "prisoner_count_qualifier" => "nullable|string",
+            "parent_organization" => "nullable|array",
+            "child_organization" => "nullable|array",
+            "predecessor_organization" => "nullable|array",
+            "successor_organization" => "nullable|array",
         ]);
 
         try {
@@ -75,8 +98,102 @@ class WikidataEntityController extends Controller
             $entryRequest->coordinates = $validated["coordinates"] ?? null;
             $entryRequest->coordinates_qualifier =
                 $validated["coordinates_qualifier"] ?? null;
+
+            // Set memorial-specific fields if they exist
+            $entryRequest->commemorates = $validated["commemorates"] ?? null;
+            $entryRequest->operator = $validated["operator"] ?? null;
+            $entryRequest->opening_date = $validated["opening_date"] ?? null;
+            $entryRequest->opening_date_qualifier =
+                $validated["opening_date_qualifier"] ?? null;
+            $entryRequest->address = $validated["address"] ?? null;
+            $entryRequest->website = $validated["website"] ?? null;
+
+            // Set Gestapo Place-specific fields if they exist
+            $entryRequest->entity_subtype =
+                $validated["entity_subtype"] ?? null;
+            $entryRequest->founding_date = $validated["founding_date"] ?? null;
+            $entryRequest->founding_date_qualifier =
+                $validated["founding_date_qualifier"] ?? null;
+            $entryRequest->dissolution_date =
+                $validated["dissolution_date"] ?? null;
+            $entryRequest->dissolution_date_qualifier =
+                $validated["dissolution_date_qualifier"] ?? null;
+            $entryRequest->key_event = $validated["key_event"] ?? null;
+            $entryRequest->director = $validated["director"] ?? null;
+            $entryRequest->employees = $validated["employees"] ?? null;
+            $entryRequest->prisoner_count =
+                $validated["prisoner_count"] ?? null;
+            $entryRequest->prisoner_count_qualifier =
+                $validated["prisoner_count_qualifier"] ?? null;
+            $entryRequest->parent_organization =
+                $validated["parent_organization"] ?? null;
+            $entryRequest->child_organization =
+                $validated["child_organization"] ?? null;
+            $entryRequest->predecessor_organization =
+                $validated["predecessor_organization"] ?? null;
+            $entryRequest->successor_organization =
+                $validated["successor_organization"] ?? null;
+
+            // Log the incoming data to debug ID preservation
+            if (!empty($validated["victims"])) {
+                foreach ($validated["victims"] as $idx => $victim) {
+                    if (isset($victim["id"]) || isset($victim["wikidata_id"])) {
+                        Log::info("Incoming victim with ID:", [
+                            "index" => $idx,
+                            "id" => $victim["id"] ?? "NOT_SET",
+                            "title" =>
+                                $victim["title"] ??
+                                ($victim["label"] ?? "Unknown"),
+                        ]);
+                    }
+                }
+            }
+
+            if (!empty($validated["perpetrators"])) {
+                foreach ($validated["perpetrators"] as $idx => $perpetrator) {
+                    if (
+                        isset($perpetrator["id"]) ||
+                        isset($perpetrator["wikidata_id"])
+                    ) {
+                        Log::info("Incoming perpetrator with ID:", [
+                            "index" => $idx,
+                            "id" => $perpetrator["id"] ?? "NOT_SET",
+                            "title" =>
+                                $perpetrator["title"] ??
+                                ($perpetrator["label"] ?? "Unknown"),
+                        ]);
+                    }
+                }
+            }
+
+            // Direct assignment of victim and perpetrator arrays WITHOUT any manipulation
+            // This is critical - we want to preserve the exact structure from the frontend
             $entryRequest->victims = $validated["victims"] ?? null;
             $entryRequest->perpetrators = $validated["perpetrators"] ?? null;
+
+            // Explicitly set is_standalone_person based on entry type and presence of victims array
+            $isStandalonePerson = $validated["isStandalonePerson"] ?? false;
+
+            // For person entries (Q5), if there's a victims array with one entry and that entry matches the title,
+            // this is likely a standalone person, so set is_standalone_person to true
+            if (
+                $validated["type"] === "Q5" &&
+                !empty($validated["victims"]) &&
+                count($validated["victims"]) === 1 &&
+                isset($validated["victims"][0]["title"]) &&
+                $validated["victims"][0]["title"] === $validated["title"]
+            ) {
+                $isStandalonePerson = true;
+                Log::info(
+                    "Setting is_standalone_person to true for person entry with matching victim data",
+                    [
+                        "title" => $validated["title"],
+                        "type" => $validated["type"],
+                    ],
+                );
+            }
+
+            $entryRequest->is_standalone_person = $isStandalonePerson;
             $entryRequest->gender = $validated["gender"] ?? null;
             $entryRequest->nationality = $validated["nationality"] ?? null;
             $entryRequest->place_of_birth =
@@ -101,6 +218,44 @@ class WikidataEntityController extends Controller
                         $validated["eventEndDate"] ?? null;
                     $entryRequest->time_period_end_qualifier =
                         $validated["eventEndDateQualifier"] ?? null;
+                }
+            }
+
+            // For standalone person entries, ensure birth and death dates are properly stored
+            if (
+                $validated["type"] === "Q5" &&
+                ($validated["is_standalone_person"] ?? false)
+            ) {
+                // Map birthDate to time_point if time_point isn't set
+                if (
+                    empty($entryRequest->time_point) &&
+                    !empty($validated["birthDate"])
+                ) {
+                    Log::info(
+                        "Using birthDate as time_point for standalone person",
+                        [
+                            "birthDate" => $validated["birthDate"],
+                        ],
+                    );
+                    $entryRequest->time_point = $validated["birthDate"];
+                    $entryRequest->time_point_qualifier = "birth date";
+                }
+
+                // Map birth and death dates to time period if time_period isn't set
+                if (
+                    empty($entryRequest->time_period_start) &&
+                    !empty($validated["birthDate"])
+                ) {
+                    $entryRequest->time_period_start = $validated["birthDate"];
+                    $entryRequest->time_period_start_qualifier = "birth date";
+                }
+
+                if (
+                    empty($entryRequest->time_period_end) &&
+                    !empty($validated["deathDate"])
+                ) {
+                    $entryRequest->time_period_end = $validated["deathDate"];
+                    $entryRequest->time_period_end_qualifier = "death date";
                 }
             }
 
@@ -180,7 +335,39 @@ class WikidataEntityController extends Controller
             }
 
             $entryRequest->submitted_by = "anonymous";
-            $entryRequest->save();
+
+            // Verify IDs were preserved after saving
+            if (!empty($validated["victims"])) {
+                foreach ($validated["victims"] as $idx => $original) {
+                    if (
+                        isset($original["id"]) ||
+                        isset($original["wikidata_id"])
+                    ) {
+                        $saved = $entryRequest->victims[$idx] ?? null;
+                        Log::info("Victim ID preservation check:", [
+                            "index" => $idx,
+                            "original_id" => $original["id"] ?? "NOT_SET",
+                            "saved_id" => $saved["id"] ?? "NOT_SET",
+                        ]);
+                    }
+                }
+            }
+
+            if (!empty($validated["perpetrators"])) {
+                foreach ($validated["perpetrators"] as $idx => $original) {
+                    if (
+                        isset($original["id"]) ||
+                        isset($original["wikidata_id"])
+                    ) {
+                        $saved = $entryRequest->perpetrators[$idx] ?? null;
+                        Log::info("Perpetrator ID preservation check:", [
+                            "index" => $idx,
+                            "original_id" => $original["id"] ?? "NOT_SET",
+                            "saved_id" => $saved["id"] ?? "NOT_SET",
+                        ]);
+                    }
+                }
+            }
 
             // Send notification to admin about new entry request
             try {
@@ -192,6 +379,34 @@ class WikidataEntityController extends Controller
                 );
                 // Continue anyway, don't block the process if email fails
             }
+
+            // Log the final entry request before returning
+            if ($entryRequest->type === "Q106996250") {
+                Log::info("FINAL GESTAPO PLACE ENTRY BEFORE SAVE:", [
+                    "entity_subtype" => $entryRequest->entity_subtype,
+                    "founding_date" => $entryRequest->founding_date,
+                    "founding_date_qualifier" =>
+                        $entryRequest->founding_date_qualifier,
+                    "dissolution_date" => $entryRequest->dissolution_date,
+                    "dissolution_date_qualifier" =>
+                        $entryRequest->dissolution_date_qualifier,
+                    "key_event" => $entryRequest->key_event,
+                    "director" => $entryRequest->director,
+                    "employees" => $entryRequest->employees,
+                    "prisoner_count" => $entryRequest->prisoner_count,
+                    "prisoner_count_qualifier" =>
+                        $entryRequest->prisoner_count_qualifier,
+                    "parent_organization" => $entryRequest->parent_organization,
+                    "child_organization" => $entryRequest->child_organization,
+                    "predecessor_organization" =>
+                        $entryRequest->predecessor_organization,
+                    "successor_organization" =>
+                        $entryRequest->successor_organization,
+                ]);
+            }
+
+            // Save the entry
+            $entryRequest->save();
 
             // Erfolgreiche Antwort
             return response()->json(
@@ -408,15 +623,105 @@ class WikidataEntityController extends Controller
                 "request_id" => $entryRequest->id,
                 "title" => $entryRequest->title,
                 "type" => $entryRequest->type,
+                "is_standalone_person" => $entryRequest->is_standalone_person,
             ]);
 
-            \App\Jobs\CreateWikidataEntity::dispatch(
-                $entryRequest->toArray(),
-                $entryRequest->type,
-                null, // parent entity ID
-                null, // relationship type
-                $entryRequest->id, // request ID for direct status updates
-            );
+            // Check if this is a standalone person entry
+            if (
+                $entryRequest->type === "Q5" &&
+                $entryRequest->is_standalone_person
+            ) {
+                // If this is a standalone person, use the victim data directly in the main entity
+                Log::info("Processing standalone person entry", [
+                    "request_id" => $entryRequest->id,
+                    "has_victims_data" => !empty($entryRequest->victims),
+                ]);
+
+                // For standalone persons, if we have victims data, use it to enhance the main entity
+                if (
+                    !empty($entryRequest->victims) &&
+                    is_array($entryRequest->victims) &&
+                    count($entryRequest->victims) > 0
+                ) {
+                    $entryData = $entryRequest->toArray();
+                    $victimData = $entryRequest->victims[0];
+
+                    // Copy properties from the victim data to the main entity
+                    if (isset($victimData["gender"])) {
+                        $entryData["gender"] = $victimData["gender"];
+                    }
+                    if (isset($victimData["nationality"])) {
+                        $entryData["nationality"] = $victimData["nationality"];
+                    }
+                    if (isset($victimData["birthDate"])) {
+                        $entryData["birthDate"] = $victimData["birthDate"];
+                    }
+                    if (isset($victimData["deathDate"])) {
+                        $entryData["deathDate"] = $victimData["deathDate"];
+                    }
+                    if (isset($victimData["place_of_birth"])) {
+                        $entryData["place_of_birth"] =
+                            $victimData["place_of_birth"];
+                    }
+                    if (isset($victimData["place_of_death"])) {
+                        $entryData["place_of_death"] =
+                            $victimData["place_of_death"];
+                    }
+                    if (isset($victimData["place_of_detention"])) {
+                        $entryData["place_of_detention"] =
+                            $victimData["place_of_detention"];
+                    }
+                    if (isset($victimData["place_of_residence"])) {
+                        $entryData["place_of_residence"] =
+                            $victimData["place_of_residence"];
+                    }
+                    if (isset($victimData["occupation"])) {
+                        $entryData["occupation"] = $victimData["occupation"];
+                    }
+                    if (isset($victimData["employer"])) {
+                        $entryData["employer"] = $victimData["employer"];
+                    }
+                    if (isset($victimData["birthName"])) {
+                        $entryData["birthName"] = $victimData["birthName"];
+                    }
+
+                    // Use OrchestrateWikidataEntityCreation for standalone person to ensure all data is processed correctly
+                    Log::info(
+                        "Dispatching OrchestrateWikidataEntityCreation for standalone person",
+                        [
+                            "request_id" => $entryRequest->id,
+                            "properties_from_victim" => array_keys($victimData),
+                        ],
+                    );
+
+                    $job = new \App\Jobs\OrchestrateWikidataEntityCreation(
+                        $entryData,
+                        $entryRequest->type,
+                        $callbackUrl,
+                        $entryRequest->id,
+                    );
+
+                    dispatch($job);
+                } else {
+                    // Fallback to standard job if no victim data is available
+                    \App\Jobs\CreateWikidataEntity::dispatch(
+                        $entryRequest->toArray(),
+                        $entryRequest->type,
+                        null, // parent entity ID
+                        null, // relationship type
+                        $entryRequest->id, // request ID for direct status updates
+                    );
+                }
+            } else {
+                // Standard job for non-standalone person entries
+                \App\Jobs\CreateWikidataEntity::dispatch(
+                    $entryRequest->toArray(),
+                    $entryRequest->type,
+                    null, // parent entity ID
+                    null, // relationship type
+                    $entryRequest->id, // request ID for direct status updates
+                );
+            }
 
             // Log the job dispatch with request ID for debugging
             Log::info("Dispatched CreateWikidataEntity job for request", [
@@ -1049,7 +1354,7 @@ class WikidataEntityController extends Controller
                 [
                     "value" => [
                         "entity-type" => "item",
-                        "id" => $entryRequest->type, // Q6983405 für Ereignis, etc.
+                        "id" => $entryRequest->type, // Q6983405 für Ereignis, Q5003624 für Erinnerungsort, etc.
                     ],
                     "type" => "wikibase-entityid",
                 ],

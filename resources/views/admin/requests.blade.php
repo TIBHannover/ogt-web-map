@@ -1,3 +1,7 @@
+@php
+    use App\Helpers\EntityTypeHelper;
+@endphp
+
 @extends('layouts.app')
 
 @section('content')
@@ -47,6 +51,7 @@
                     <thead>
                         <tr>
                             <th>ID</th>
+                            <th>Typ</th>
                             <th>Titel</th>
                             <th>Beschreibung</th>
                             <th>Status</th>
@@ -59,6 +64,7 @@
                         @foreach($requests as $request)
                             <tr>
                                 <td>{{ $request->id }}</td>
+                                <td><span class="badge bg-secondary ms-2">{{ EntityTypeHelper::getEntityTypeLabel($request->type) }}</span></td>
                                 <td>
                                     <a href="{{ route('admin.requests.show', $request->id) }}" class="text-decoration-none text-primary">
                                         {{ $request->title }}

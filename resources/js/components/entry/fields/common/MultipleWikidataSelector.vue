@@ -2,16 +2,15 @@
     <div class="multiple-wikidata-selector">
         <!-- Header with label and add button -->
         <div class="selector-header">
-            <h3 class="selector-title">{{ label }}</h3>
             <v-btn
                 color="primary"
                 size="small"
-                class="add-button"
+                class="add-button button bg-secondary"
                 @click="openDialog"
-                prepend-icon="mdi-plus"
+                :prepend-icon="icon"
                 variant="outlined"
             >
-                Hinzufügen
+                {{ label }} hinzufügen
             </v-btn>
         </div>
 
@@ -141,6 +140,8 @@ const silentAxios = axios.create();
 silentAxios.interceptors.response.use(
     (response) => response,
     (error) => {
+        // Silently handle errors without polluting the console
+
         // Convert to a silent error that won't pollute the console
         return Promise.reject({
             ...error,
@@ -186,7 +187,21 @@ const props = defineProps({
         type: String,
         default: "places",
         validator: (value) =>
-            ["people", "places", "cause", "books", "archives"].includes(value),
+            [
+                "people",
+                "places",
+                "cause",
+                "books",
+                "archives",
+                "nationalities",
+                "organizations",
+                "commemorates",
+                "events",
+            ].includes(value),
+    },
+    icon: {
+        type: String,
+        default: "mdi-plus",
     },
     maxSelections: {
         type: Number,
@@ -236,44 +251,24 @@ const fetchEntityLabels = async (entityIds) => {
             };
         });
 
-        // Batch requests to API
-        const chunks = [];
-        for (let i = 0; i < missingIds.length; i += 50) {
-            chunks.push(missingIds.slice(i, i + 50));
-        }
-
-        for (const chunk of chunks) {
-            const ids = chunk.join("|");
-
+        // Process IDs individually to avoid batch errors
+        for (const id of missingIds) {
             try {
-                // Try the local API first, silently handle errors
-                try {
-                    const response = await silentAxios.get(
-                        `/api/wikidata/entities?ids=${ids}`,
-                    );
-                    if (response.data && response.data.entities) {
-                        for (const [id, entity] of Object.entries(
-                            response.data.entities,
-                        )) {
-                            entityLabels.value[id] = {
-                                id: id,
-                                label: entity.label || id,
-                                description: entity.description || "",
-                            };
-                        }
-                    }
-                } catch (error) {
-                    // Mark these IDs as failed to prevent repeated requests
-                    if (error.response && error.response.status === 422) {
-                        // Split the IDs string back into an array
-                        ids.split("|").forEach((id) => {
-                            window.failedEntityIds.add(id.trim());
-                        });
-                    }
+                const response = await axios.get(`/api/wikidata/entity/${id}`);
+                if (response.data && response.data.id) {
+                    entityLabels.value[id] = {
+                        id: id,
+                        label: response.data.label || id,
+                        description: response.data.description || "",
+                    };
                 }
-            } catch (error) {}
+            } catch (error) {
+                // Already have fallback values from above
+                // Silently handle errors - already using fallback values
+            }
         }
     } catch (error) {
+        // Silently handle overall fetch errors
     } finally {
         loadingEntities.value = false;
     }
@@ -283,43 +278,39 @@ const fetchEntityLabels = async (entityIds) => {
 const selectedItems = computed(() => {
     const modelValue = Array.isArray(props.modelValue) ? props.modelValue : [];
 
-    // If model value contains objects, return them directly
-    if (modelValue.length > 0 && typeof modelValue[0] === "object") {
-        return modelValue;
-    }
-
-    // If model value contains IDs, convert to objects
-    return modelValue
-        .map((id) => {
-            // If ID is already an object with id property
-            if (typeof id === "object" && id?.id) {
-                return id;
+    // Convert any format of modelValue to an array of Q-numbers
+    const qNumbers = modelValue
+        .map((item) => {
+            // If it's already a string Q-number
+            if (typeof item === "string" && item.startsWith("Q")) {
+                return item;
             }
-
-            // If it's a string (Wikidata ID)
-            if (typeof id === "string" && id.startsWith("Q")) {
-                // Find in search results
-                const foundItem = props.searchResults.find(
-                    (item) => item.id === id,
-                );
-                if (foundItem) return foundItem;
-
-                // If we've fetched the label, use that
-                if (entityLabels.value[id]) {
-                    return {
-                        id: id,
-                        label: entityLabels.value[id].label,
-                        description: entityLabels.value[id].description,
-                    };
-                }
-
-                // If all else fails, just show the ID as a fallback
-                return { id: id, label: id };
+            // If it's an object with an id property
+            if (typeof item === "object" && item?.id) {
+                return item.id;
             }
-
             return null;
         })
-        .filter(Boolean); // Remove any null values
+        .filter(Boolean);
+
+    // Now convert Q-numbers to display objects with labels
+    return qNumbers.map((id) => {
+        // Find in search results
+        const foundItem = props.searchResults.find((item) => item.id === id);
+        if (foundItem) return foundItem;
+
+        // If we've fetched the label, use that
+        if (entityLabels.value[id]) {
+            return {
+                id: id,
+                label: entityLabels.value[id].label,
+                description: entityLabels.value[id].description,
+            };
+        }
+
+        // If all else fails, just show the ID as a fallback
+        return { id: id, label: id };
+    });
 });
 
 // Methods
@@ -343,7 +334,7 @@ const selectItemAndClose = (item) => {
             tempSelectedItems.value.length < props.maxSelections
         ) {
             tempSelectedItems.value.push(item);
-            // Update with just IDs to ensure compatibility with backend
+            // Update with just Q-numbers to ensure compatibility with backend
             updateModelValue();
         }
     }
@@ -394,9 +385,10 @@ const confirmSelection = () => {
 };
 
 const updateModelValue = () => {
-    // Extract just the IDs for the model value to ensure compatibility with backend
-    const ids = tempSelectedItems.value.map((item) => item.id);
-    emit("update:modelValue", ids);
+    // Extract just the Q-numbers for the model value to ensure compatibility with backend
+    const qNumbers = tempSelectedItems.value.map((item) => item.id);
+    // Always emit an array of Q-number strings, never objects
+    emit("update:modelValue", qNumbers);
 };
 
 // Watch for changes to modelValue and fetch the labels if needed
@@ -448,10 +440,6 @@ onMounted(() => {
     font-size: 1rem;
     font-weight: 500;
     margin: 0;
-}
-
-.add-button {
-    white-space: nowrap;
 }
 
 .selected-chips-container {
@@ -512,5 +500,40 @@ onMounted(() => {
 
 .selected-item-row:last-child {
     border-bottom: none;
+}
+
+.add-button {
+    height: auto;
+    white-space: nowrap;
+    min-height: 48px;
+    padding: 8px 16px;
+    line-height: 1.2;
+    font-size: 14px;
+    text-align: left;
+    word-break: break-word;
+    padding: 12px 24px;
+    height: auto !important;
+    background-color: #757575;
+    color: white !important;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.button.bg-secondary {
+    background-color: #757575;
+}
+
+.button.bg-secondary:hover {
+    background-color: #616161;
+}
+
+.button-text {
+    display: inline-block;
+    white-space: normal;
+    word-wrap: break-word;
+    hyphens: auto;
 }
 </style>

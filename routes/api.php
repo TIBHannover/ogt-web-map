@@ -42,10 +42,21 @@ Route::get("/wikidata/nationalities", [
     "searchNationalities",
 ]);
 
+// Route for searching entities by title
 Route::get("/wikidata/entities", [
     WikidataSearchController::class,
     "searchByTitle",
-]);
+])
+    ->withoutMiddleware(["throttle:api"])
+    ->middleware(["throttle:600,1"]);
+
+// Route for getting a single entity by ID
+Route::get("/wikidata/entity/{id}", [
+    WikidataSearchController::class,
+    "getEntityById",
+])
+    ->withoutMiddleware(["throttle:api"])
+    ->middleware(["throttle:600,1"]);
 Route::post("/wikidata/entities", [WikidataEntityController::class, "create"]);
 Route::get("/wikidata/requests", [
     WikidataEntityController::class,
@@ -143,6 +154,18 @@ Route::get("/wikidata/search/nationalities", [
 Route::get("/wikidata/search/occupations", [
     WikidataSearchController::class,
     "searchOccupations",
+]);
+
+// Route for commemorates search
+Route::get("/wikidata/search/commemorates", [
+    WikidataSearchController::class,
+    "searchCommemorates",
+]);
+
+// Route for organizations search
+Route::get("/wikidata/search/organizations", [
+    WikidataSearchController::class,
+    "searchOrganizations",
 ]);
 
 // General Wikidata search route

@@ -13,11 +13,11 @@
         <div class="image-selection">
             <v-btn
                 type="button"
-                class="button bg-secondary"
+                class="btn btn-primary btn-block"
                 @click="openImageSelector"
                 @focus="$emit('fieldFocus', 'image')"
             >
-                <v-icon class="me-1">mdi-plus</v-icon>
+                <v-icon start class="me-1">mdi-camera</v-icon>
                 {{
                     imageUrl &&
                     typeof imageUrl === "string" &&

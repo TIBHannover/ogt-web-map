@@ -250,6 +250,27 @@ class CreateWikidataEntity implements ShouldQueue
                 // Create an entity key to identify this entity in the chain
                 $entityKey = uniqid("entity_", true);
 
+                // Check if this entity already has a wikidata_id we should use instead of creating new
+                if (
+                    isset($entity["wikidata_id"]) &&
+                    preg_match('/^Q\d+$/', $entity["wikidata_id"])
+                ) {
+                    // Log that we found a wikidata_id and will use it instead of creating a new entity
+                    Log::info(
+                        "Found existing wikidata_id for {$relationshipType}",
+                        [
+                            "wikidata_id" => $entity["wikidata_id"],
+                            "name" =>
+                                $entity["name"] ??
+                                ($entity["title"] ?? "Unknown"),
+                            "relationship" => $relationshipType,
+                        ],
+                    );
+
+                    // Skip creation for this entity as it already exists in Wikidata
+                    continue;
+                }
+
                 // Store the entity data for future reference
                 $entity["_entity_chain_key"] = $entityKey;
                 $entity["_main_entity_type"] = $entityType;
@@ -448,6 +469,52 @@ class CreateWikidataEntity implements ShouldQueue
                 define("LARAVEL_QUEUE_WORKER", true);
             }
 
+            // Check if we have a request ID and verify its current status before proceeding
+            $requestId = $this->requestId;
+            if (!empty($requestId)) {
+                // Try to load the entry request model
+                try {
+                    $entryRequest = \App\Models\WikibaseEntryRequest::find(
+                        $requestId,
+                    );
+                    if ($entryRequest) {
+                        // Log the current status
+                        Log::info(
+                            "Checking entry request status before processing",
+                            [
+                                "request_id" => $requestId,
+                                "status" => $entryRequest->status,
+                            ],
+                        );
+
+                        // Only proceed if the status is 'approved'
+                        if ($entryRequest->status !== "approved") {
+                            Log::warning(
+                                "Skipping entity creation - entry is not in approved status",
+                                [
+                                    "request_id" => $requestId,
+                                    "current_status" => $entryRequest->status,
+                                    "entity_type" => $this->entityType,
+                                    "title" =>
+                                        $this->entityData["title"] ?? "Unknown",
+                                ],
+                            );
+                            return; // Exit early
+                        }
+                    } else {
+                        Log::warning(
+                            "Could not find entry request with ID {$requestId}",
+                        );
+                    }
+                } catch (\Exception $e) {
+                    Log::error("Error checking entry request status", [
+                        "request_id" => $requestId,
+                        "error" => $e->getMessage(),
+                    ]);
+                    // Continue execution even if status check fails
+                }
+            }
+
             // Ensure role and relationship_type are consistent
             if (
                 isset($this->entityData["role"]) &&
@@ -476,6 +543,41 @@ class CreateWikidataEntity implements ShouldQueue
                     "entity_type" => $this->entityType,
                     "title" => $this->entityData["title"] ?? "Unknown",
                 ]);
+            }
+
+            // Check if this entity already has a wikidata_id (for victims/perpetrators)
+            if (
+                isset($this->entityData["wikidata_id"]) &&
+                !empty($this->entityData["wikidata_id"]) &&
+                preg_match('/^Q\d+$/', $this->entityData["wikidata_id"])
+            ) {
+                Log::info(
+                    "Using existing Wikidata entity instead of creating new one",
+                    [
+                        "wikidata_id" => $this->entityData["wikidata_id"],
+                        "title" => $this->entityData["title"] ?? "Unknown",
+                        "label" => $this->entityData["label"] ?? "Unknown",
+                        "relationship" => $this->relationshipType,
+                    ],
+                );
+
+                // Store the ID in globals for later use in related entities
+                if (
+                    isset($this->relationshipType) &&
+                    $this->relationshipType === "victim"
+                ) {
+                    $GLOBALS["last_victim_entity_id"] =
+                        $this->entityData["wikidata_id"];
+                } elseif (
+                    isset($this->relationshipType) &&
+                    $this->relationshipType === "perpetrator"
+                ) {
+                    $GLOBALS["last_perpetrator_entity_id"] =
+                        $this->entityData["wikidata_id"];
+                }
+
+                // No need to create a new entity, just process relationships if needed
+                return;
             }
 
             // Validate and log environment settings for debugging
@@ -1827,6 +1929,23 @@ class CreateWikidataEntity implements ShouldQueue
 
                 // Use a simple direct query update approach - most reliable, doesn't need schema checks
                 try {
+                    // First, check if the request is still in 'approved' status
+                    $checkStatus = \DB::table("wikidata_entry_requests")
+                        ->where("id", $requestId)
+                        ->value("status");
+
+                    if ($checkStatus !== "approved") {
+                        Log::warning(
+                            "Cannot update entry that is no longer approved",
+                            [
+                                "request_id" => $requestId,
+                                "current_status" => $checkStatus,
+                                "entity_id" => $entityId,
+                            ],
+                        );
+                        return; // Exit early
+                    }
+
                     // Simple update with only the most critical fields
                     // Using "wikidata_published" status after fixing SQLite CHECK constraints
                     // The previous workaround of using "approved" is no longer needed
@@ -1862,8 +1981,10 @@ class CreateWikidataEntity implements ShouldQueue
                     ]);
 
                     // Try using Eloquent's query builder for more reliable updates
+                    // Only update if the status is still 'approved'
                     $affected = \DB::table("wikidata_entry_requests")
                         ->where("id", $requestId)
+                        ->where("status", "approved")
                         ->update($updateData);
 
                     // Log the result
@@ -1905,8 +2026,9 @@ class CreateWikidataEntity implements ShouldQueue
                             try {
                                 \DB::table("wikidata_entry_requests")
                                     ->where("id", $requestId)
+                                    ->where("status", "approved") // Only update if still approved
                                     ->update([
-                                        "status" => "published",
+                                        "status" => "wikidata_published", // Use consistent status
                                         "wikidata_id" => $entityId,
                                         "created_entities" => !empty(
                                             $createdEntities
@@ -2139,7 +2261,7 @@ class CreateWikidataEntity implements ShouldQueue
     }
 
     /**
-     * Add sources to a person entity using the BaseEntity.addSource method
+     * Adds sources to a person entity using the BaseEntity.addSource method
      *
      * @param WikibaseService $wikidataService The wikidata service
      * @param string $entityId The entity ID to add sources to
@@ -2470,10 +2592,20 @@ class CreateWikidataEntity implements ShouldQueue
      */
     protected function linkEntityToParent(
         WikibaseService $wikidataService,
-        string $entityId,
+        ?string $entityId = null,
+        ?string $parentId = null,
     ) {
         // CRITICAL FIX: For any person entity (victim or perpetrator), ALWAYS use the main event ID
         // as the parent - this ensures the correct data structure in Wikidata
+        // Skip if no entity ID provided
+        if (empty($entityId)) {
+            Log::warning("No entity ID provided to linkEntityToParent", [
+                "parent_id" => $this->parentEntityId ?? "none",
+                "relationship" => $this->relationshipType ?? "none",
+            ]);
+            return;
+        }
+
         if (
             $this->entityType === "Q5" && // Person entity type
             isset($GLOBALS["main_event_entity_id"])
@@ -3059,12 +3191,13 @@ class CreateWikidataEntity implements ShouldQueue
      * @param WikibaseService $wikidataService
      * @param string $mainEntityId The main entity ID
      * @param array $createdEntities List of created related entities
+     * @param array $createdEntities Array of created entity IDs
      * @return void
      */
     protected function linkMainEntityToChildren(
         WikibaseService $wikidataService,
         string $mainEntityId,
-        array $createdEntities,
+        array $createdEntities = [],
     ): void {
         try {
             Log::info("Linking main entity to created children", [
@@ -3158,7 +3291,7 @@ class CreateWikidataEntity implements ShouldQueue
     protected function updateEntityWithFormattedData(
         WikibaseFormatterModels $formatterModels,
         string $entityId,
-        array $entityData,
+        array $entityData = [],
         string $type = "Q5",
     ): void {
         try {
@@ -3185,6 +3318,70 @@ class CreateWikidataEntity implements ShouldQueue
             Log::error("Error formatting entity data for update", [
                 "error" => $e->getMessage(),
                 "entity_id" => $entityId,
+            ]);
+        }
+    }
+
+    /**
+     * Process relationships for an existing entity (that already has a Wikidata ID)
+     *
+     * @param WikibaseService $wikidataService
+     * @return void
+     */
+    private function processExistingEntityRelationships(
+        WikibaseService $wikidataService,
+    ) {
+        try {
+            // Only process if we have a parent entity ID and relationship type
+            if (
+                empty($this->parentEntityId) ||
+                $this->parentEntityId === "__MAIN_ENTITY_ID__" ||
+                empty($this->relationshipType)
+            ) {
+                Log::info(
+                    "Cannot process relationships for existing entity - missing parent info",
+                    [
+                        "wikidata_id" =>
+                            $this->entityData["wikidata_id"] ?? null,
+                        "parent_id" => $this->parentEntityId ?? null,
+                        "relationship" => $this->relationshipType ?? null,
+                    ],
+                );
+                return;
+            }
+
+            // Get the real parent ID if needed
+            $realParentId = $this->parentEntityId;
+            if (
+                $this->parentEntityId === "__MAIN_ENTITY_ID__" &&
+                isset($GLOBALS["main_event_entity_id"])
+            ) {
+                $realParentId = $GLOBALS["main_event_entity_id"];
+            } elseif (
+                $this->parentEntityId === "__MAIN_ENTITY_ID__" &&
+                isset($GLOBALS["last_created_entity_id"])
+            ) {
+                $realParentId = $GLOBALS["last_created_entity_id"];
+            }
+
+            // Now we can add this existing entity as a relationship to the parent entity
+            Log::info("Adding existing entity as relationship to parent", [
+                "existing_entity_id" =>
+                    $this->entityData["wikidata_id"] ?? null,
+                "parent_id" => $realParentId,
+                "relationship" => $this->relationshipType,
+            ]);
+
+            // Execute the linking process based on relationship type
+            $this->linkEntityToParent(
+                $wikidataService,
+                $this->entityData["id"] ?? $this->entityData["wikidata_id"],
+            );
+        } catch (\Exception $e) {
+            Log::error("Error processing relationships for existing entity", [
+                "wikidata_id" => $this->entityData["wikidata_id"] ?? null,
+                "error" => $e->getMessage(),
+                "trace" => $e->getTraceAsString(),
             ]);
         }
     }

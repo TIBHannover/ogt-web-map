@@ -51,6 +51,28 @@ class WikibaseEntryRequest extends Model
         "selected_causes",
         "sources",
         "occupation",
+        "is_standalone_person",
+        "commemorates",
+        "operator",
+        "opening_date",
+        "opening_date_qualifier",
+        "address",
+        "website",
+        // GestapoPlaces specific fields
+        "entity_subtype",
+        "founding_date",
+        "founding_date_qualifier",
+        "dissolution_date",
+        "dissolution_date_qualifier",
+        "key_event",
+        "prisoner_count",
+        "prisoner_count_qualifier",
+        "parent_organization",
+        "child_organization",
+        "predecessor_organization",
+        "successor_organization",
+        "director",
+        "employees",
     ];
 
     protected $casts = [
@@ -59,9 +81,19 @@ class WikibaseEntryRequest extends Model
         "sources" => "array",
         "created_entities" => "array",
         "status_history" => "array",
+        "key_event" => "array",
+        "director" => "array",
+        "employees" => "array",
+        "parent_organization" => "array",
+        "child_organization" => "array",
+        "predecessor_organization" => "array",
+        "successor_organization" => "array",
         "notify_on_publish" => "boolean",
         "notification_sent_at" => "datetime",
         "place_of_detention" => "array",
+        "is_standalone_person" => "boolean",
+        "commemorates" => "string",
+        "operator" => "string",
     ];
 
     protected $table = "wikidata_entry_requests";

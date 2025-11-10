@@ -1,5 +1,7 @@
 <template>
-    <div class="container-section location-section">
+    <div
+        class="container-section location-section position-relative overflow-hidden"
+    >
         <div class="section-header">
             <label class="section-label">Standort auswählen *</label>
             <button
@@ -9,15 +11,30 @@
             >
                 <v-icon>mdi-information-variant</v-icon>
             </button>
+
+            <!-- Loading overlay -->
+            <div v-if="isSearching" class="location-loading-overlay">
+                <div class="loading-content">
+                    <v-progress-circular
+                        indeterminate
+                        size="64"
+                        color="primary"
+                    ></v-progress-circular>
+                    <span class="loading-text mt-3"
+                        >Standort wird gesucht...</span
+                    >
+                </div>
+            </div>
         </div>
         <div class="map-search">
             <v-text-field
                 v-model="localLocationSearch"
                 class="map-search-input location-search-field"
                 placeholder="Adresse oder Ort suchen..."
-                @keydown.enter.prevent="handleSearchLocation"
+                @keydown.enter="handleSearchLocation($event)"
                 @focus="$emit('fieldFocus', 'location')"
-                append-inner-icon="mdi-magnify"
+                :append-inner-icon="isSearching ? undefined : 'mdi-magnify'"
+                :loading="isSearching"
                 @click:append-inner="handleSearchLocation"
                 density="comfortable"
                 variant="outlined"
@@ -64,7 +81,8 @@
                 <l-marker
                     v-if="selectedLocation"
                     :lat-lng="selectedLocation"
-                    :icon="markerIcon"
+                    :icon="currentMarkerIcon"
+                    :key="markerIconKey"
                     :z-index-offset="1000"
                 ></l-marker>
             </l-map>
@@ -91,7 +109,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from "vue";
+import { ref, onMounted, onUnmounted, watch, computed } from "vue";
 import * as L from "leaflet";
 import { LMap, LTileLayer, LMarker } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -102,7 +120,10 @@ import { useValidation } from "../../../composables/useValidation";
 // State for search error messages
 const searchErrorMessage = ref("");
 const noResultsError = ref(false);
+let markerIcon = null;
 const localLocationSearch = ref("");
+const isSearching = ref(false);
+const markerIconKey = ref(Date.now()); // Add a key to force marker rerendering
 
 // Original alert function reference for the monkey patch
 let originalAlert;
@@ -128,6 +149,10 @@ const props = defineProps({
         type: String,
         default: "",
     },
+    markerIconUrl: {
+        type: String,
+        default: "/images/leaflet/markerIcons/coloredFilledWhite/events.svg",
+    },
 });
 
 const emit = defineEmits([
@@ -141,6 +166,7 @@ const emit = defineEmits([
     "fieldFocus",
     "infoButtonClick",
     "validation",
+    "searchComplete",
     "searchError",
 ]);
 
@@ -180,19 +206,24 @@ const clearSearchError = () => {
     emit("searchError", "");
 };
 
-// Export validation methods and search error handling
+// Expose validation methods and search error handling
 defineExpose({
     isValid,
     validate,
     showValidationErrors: showErrors,
     setSearchError,
     clearSearchError,
+    isSearching,
+    refreshMarkerIcon,
+    completeSearch: () => {
+        isSearching.value = false;
+    },
 });
 
 // Benutzerdefiniertes Marker-Icon erstellen
 const createCustomIcon = () => {
     return L.icon({
-        iconUrl: `/images/leaflet/markerIcons/coloredFilledWhite/events.svg`,
+        iconUrl: props.markerIconUrl,
         iconSize: [25, 41],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
@@ -201,8 +232,34 @@ const createCustomIcon = () => {
     });
 };
 
-// Icon für den Marker (verwende Q6983405 für Ereignisse)
-const markerIcon = createCustomIcon();
+// Icon für den Marker (verwende übergebene URL oder Standard)
+markerIcon = createCustomIcon();
+console.log("Initial marker icon created with URL:", props.markerIconUrl);
+
+// Computed property to get the current marker icon
+const currentMarkerIcon = computed(() => {
+    return createCustomIcon(); // Always create a new icon
+});
+
+// Function to refresh the marker icon when the URL changes
+const refreshMarkerIcon = () => {
+    console.log("Refreshing marker icon with URL:", props.markerIconUrl);
+    // Create a new icon instance with the current URL
+    markerIcon = createCustomIcon();
+    // Update the key to force Vue to re-render the marker
+    markerIconKey.value = Date.now();
+    return markerIcon;
+};
+
+// Watch for changes to markerIconUrl prop
+watch(
+    () => props.markerIconUrl,
+    (newUrl, oldUrl) => {
+        console.log("Marker icon URL changed from", oldUrl, "to:", newUrl);
+        refreshMarkerIcon();
+    },
+    { immediate: true }, // Run immediately when component mounts
+);
 
 // Wird aufgerufen, wenn die Leaflet-Karte bereit ist
 const onMapReady = (map) => {
@@ -308,7 +365,11 @@ watch(
 );
 
 // Handler for search button click or enter key
-const handleSearchLocation = () => {
+const handleSearchLocation = (event) => {
+    // Prevent default form submission if this is a keydown event
+    if (event && event.preventDefault) {
+        event.preventDefault();
+    }
     // Check for empty search input
     if (!localLocationSearch.value || localLocationSearch.value.trim() === "") {
         setSearchError("Bitte gib eine Adresse oder einen Ort ein.");
@@ -318,17 +379,36 @@ const handleSearchLocation = () => {
     // Clear any previous error
     clearSearchError();
 
+    // Set loading state and scroll to map to show loading overlay
+    isSearching.value = true;
+
+    // Scroll the map into view so user can see the loading overlay
+    const mapElement = document.querySelector(".map-container");
+    if (mapElement) {
+        setTimeout(() => {
+            mapElement.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 100);
+    }
+
     // Update parent and trigger search
-    emit("update:locationSearch", localLocationSearch.value);
-    emit("searchLocation");
+    const searchValue = localLocationSearch.value.trim();
+    emit("update:locationSearch", searchValue);
+
+    // Send the actual string value, not a ref object
+    emit("searchLocation", searchValue);
+
+    // Don't automatically reset loading state - it will be reset when location changes
+    // or when the parent component completes the search
 };
 
-// Watch for selectedLocation changes to clear error
+// Watch for selectedLocation changes to clear error and reset loading state
 watch(
     () => props.selectedLocation,
-    (newValue) => {
-        if (newValue) {
+    (newVal) => {
+        if (newVal) {
             clearSearchError();
+            // Reset loading state when a location is selected
+            isSearching.value = false;
         }
     },
 );

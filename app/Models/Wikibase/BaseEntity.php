@@ -118,8 +118,32 @@ abstract class BaseEntity
             "INSTANCE_OF",
         );
 
-        $this->data["claims"][$instanceOfProperty] = [
-            [
+        // Skip if property ID is empty
+        if (empty($instanceOfProperty)) {
+            return;
+        }
+
+        // Initialize the claims array if it doesn't exist yet
+        if (!isset($this->data["claims"][$instanceOfProperty])) {
+            $this->data["claims"][$instanceOfProperty] = [];
+        }
+
+        // Check if the base type is already in the claims
+        $baseTypeExists = false;
+        foreach ($this->data["claims"][$instanceOfProperty] as $claim) {
+            if (
+                isset($claim["mainsnak"]["datavalue"]["value"]["id"]) &&
+                $claim["mainsnak"]["datavalue"]["value"]["id"] ===
+                    $this->entityType
+            ) {
+                $baseTypeExists = true;
+                break;
+            }
+        }
+
+        // Only add the base entity type claim if it doesn't already exist
+        if (!$baseTypeExists) {
+            $this->data["claims"][$instanceOfProperty][] = [
                 "mainsnak" => [
                     "snaktype" => "value",
                     "property" => $instanceOfProperty,
@@ -136,47 +160,159 @@ abstract class BaseEntity
                 ],
                 "type" => "statement",
                 "rank" => "normal",
-            ],
-        ];
+            ];
+        }
     }
 
     /**
-     * Add coordinates claim
+     * Add coordinates to the entity
+     *
+     * @param array|string $coordinates Coordinates in format [lat, lng] or "lat, lng"
+     * @param string|null $qualifier Optional qualifier for the coordinates
      */
-    public function addCoordinates($coordinates): void
-    {
+    public function addCoordinates(
+        $coordinates,
+        ?string $qualifier = null,
+    ): void {
         if (empty($coordinates)) {
             return;
         }
 
-        $parsedCoordinates = $this->parseCoordinates($coordinates);
-        if ($parsedCoordinates === null) {
+        // Handle different coordinate formats
+        $lat = null;
+        $lng = null;
+
+        if (is_string($coordinates)) {
+            // Format: "52.3744779, 9.7385532"
+            $parts = explode(",", $coordinates);
+            if (count($parts) === 2) {
+                $latStr = trim($parts[0]);
+                $lngStr = trim($parts[1]);
+
+                // Clean up the values and ensure they're valid
+                $latStr = preg_replace("/[^\d\.\-]/", "", $latStr);
+                $lngStr = preg_replace("/[^\d\.\-]/", "", $lngStr);
+
+                // Convert to float only if valid
+                if (is_numeric($latStr) && is_numeric($lngStr)) {
+                    $lat = (float) $latStr;
+                    $lng = (float) $lngStr;
+
+                    // Log the conversion for debugging
+                    \Illuminate\Support\Facades\Log::info(
+                        "Coordinates converted",
+                        [
+                            "original" => $coordinates,
+                            "lat" => $lat,
+                            "lng" => $lng,
+                        ],
+                    );
+                }
+            }
+        } elseif (is_array($coordinates)) {
+            if (isset($coordinates[0]) && isset($coordinates[1])) {
+                // Format: [lat, lng]
+                if (
+                    is_numeric($coordinates[0]) &&
+                    is_numeric($coordinates[1])
+                ) {
+                    $lat = (float) $coordinates[0];
+                    $lng = (float) $coordinates[1];
+                }
+            } elseif (
+                isset($coordinates["lat"]) &&
+                isset($coordinates["lng"])
+            ) {
+                // Format: {lat: x, lng: y}
+                if (
+                    is_numeric($coordinates["lat"]) &&
+                    is_numeric($coordinates["lng"])
+                ) {
+                    $lat = (float) $coordinates["lat"];
+                    $lng = (float) $coordinates["lng"];
+                }
+            }
+        }
+
+        if ($lat === null || $lng === null) {
+            \Illuminate\Support\Facades\Log::warning(
+                "Invalid coordinates format",
+                [
+                    "coordinates" => $coordinates,
+                ],
+            );
             return;
         }
 
-        $coordinateProperty = $this->mappingProvider->getPropertyId(
-            "COORDINATE_LOCATION",
+        $coordinatesProperty = $this->mappingProvider->getPropertyId(
+            "COORDINATES",
+        );
+        if (empty($coordinatesProperty)) {
+            \Illuminate\Support\Facades\Log::warning(
+                "Coordinates property ID is empty, using P625 as fallback",
+            );
+            $coordinatesProperty = "P625"; // Fallback to standard Wikidata coordinates property
+        }
+
+        // Final validation to ensure coordinates are valid numbers
+        if (!is_finite($lat) || !is_finite($lng)) {
+            \Illuminate\Support\Facades\Log::error(
+                "Coordinates failed final validation - not finite numbers",
+                [
+                    "lat" => $lat,
+                    "lng" => $lng,
+                ],
+            );
+            return;
+        }
+
+        // Ensure coordinates are within valid ranges
+        $lat = max(-90, min(90, $lat)); // Latitude: -90 to 90
+        $lng = max(-180, min(180, $lng)); // Longitude: -180 to 180
+
+        $statement = [
+            "mainsnak" => [
+                "snaktype" => "value",
+                "property" => $coordinatesProperty,
+                "datavalue" => [
+                    "value" => [
+                        "latitude" => $lat,
+                        "longitude" => $lng,
+                        "altitude" => null,
+                        "precision" => 0.000001,
+                        "globe" => "http://www.wikidata.org/entity/Q2",
+                    ],
+                    "type" => "globecoordinate",
+                ],
+            ],
+            "type" => "statement",
+            "rank" => "normal",
+        ];
+
+        // Log the final coordinates being used
+        \Illuminate\Support\Facades\Log::info(
+            "Final coordinates for Wikidata",
+            [
+                "latitude" => $lat,
+                "longitude" => $lng,
+            ],
         );
 
-        $this->data["claims"][$coordinateProperty] = [
-            [
-                "mainsnak" => [
-                    "snaktype" => "value",
-                    "property" => $coordinateProperty,
-                    "datavalue" => [
-                        "value" => [
-                            "latitude" => $parsedCoordinates["lat"],
-                            "longitude" => $parsedCoordinates["lng"],
-                            "precision" => 0.0001,
-                            "globe" => "http://www.wikidata.org/entity/Q2",
-                        ],
-                        "type" => "globecoordinate",
-                    ],
-                ],
-                "type" => "statement",
-                "rank" => "normal",
-            ],
-        ];
+        // Add qualifier if provided
+        if (!empty($qualifier)) {
+            $qualifierProperty = $this->mappingProvider->getPropertyId(
+                "QUALIFIER_OF",
+            );
+            if (!empty($qualifierProperty)) {
+                $this->addQualifierToStatement(
+                    $statement,
+                    $qualifierProperty,
+                    $qualifier,
+                );
+            }
+        }
+
+        $this->data["claims"][$coordinatesProperty] = [$statement];
     }
 
     /**
@@ -379,76 +515,8 @@ abstract class BaseEntity
         }
     }
 
-    /**
-     * Konvertiert verschiedene Koordinatenformate in ein einheitliches Format.
-     *
-     * @param mixed $coordinates Koordinaten in verschiedenen Formaten
-     * @return array|null Array mit 'lat' und 'lng' oder null bei ungültigem Format
-     */
-    protected function parseCoordinates($coordinates)
-    {
-        if (empty($coordinates)) {
-            return null;
-        }
-
-        // If already an array in the correct format
-        if (
-            is_array($coordinates) &&
-            isset($coordinates["lat"]) &&
-            isset($coordinates["lng"])
-        ) {
-            return [
-                "lat" => (float) $coordinates["lat"],
-                "lng" => (float) $coordinates["lng"],
-            ];
-        }
-
-        if (is_string($coordinates)) {
-            if (strpos($coordinates, "{") === 0) {
-                $parsed = json_decode($coordinates, true);
-                if (
-                    json_last_error() === JSON_ERROR_NONE &&
-                    isset($parsed["lat"]) &&
-                    isset($parsed["lng"])
-                ) {
-                    return [
-                        "lat" => (float) $parsed["lat"],
-                        "lng" => (float) $parsed["lng"],
-                    ];
-                }
-            }
-
-            // Try to parse as array
-            if (strpos($coordinates, "[") === 0) {
-                $parsed = json_decode($coordinates, true);
-                if (
-                    json_last_error() === JSON_ERROR_NONE &&
-                    isset($parsed[0]) &&
-                    isset($parsed[1])
-                ) {
-                    return [
-                        "lat" => (float) $parsed[0],
-                        "lng" => (float) $parsed[1],
-                    ];
-                }
-            }
-
-            // Try to parse as comma-separated values
-            $parts = explode(",", $coordinates);
-            if (count($parts) >= 2) {
-                return [
-                    "lat" => (float) trim($parts[0]),
-                    "lng" => (float) trim($parts[1]),
-                ];
-            }
-        }
-
-        // Fallback: Log error message and return null
-        Log::warning("Invalid coordinate format", [
-            "coordinates" => $coordinates,
-        ]);
-        return null;
-    }
+    // The parseCoordinates method has been removed as it's now handled
+    // directly in the addCoordinates method
 
     /**
      * Add a qualifier to a statement.
@@ -552,6 +620,42 @@ abstract class BaseEntity
     {
         return $this->data["labels"][$language]["value"] ??
             ($this->title ?? null);
+    }
+
+    /**
+     * Set the entity's title/label
+     *
+     * @param string $title The entity title
+     * @return void
+     */
+    public function setTitle(string $title): void
+    {
+        $this->title = $title;
+
+        // Update label in the data structure
+        $this->data["labels"]["de"] = [
+            "language" => "de",
+            "value" => $title,
+        ];
+    }
+
+    /**
+     * Set the entity's description
+     *
+     * @param string $description The entity description
+     * @return void
+     */
+    public function setDescription(string $description): void
+    {
+        $this->description = $description;
+
+        // Update description in the data structure
+        if (!empty($description)) {
+            $this->data["descriptions"]["de"] = [
+                "language" => "de",
+                "value" => $description,
+            ];
+        }
     }
 
     /**

@@ -87,7 +87,7 @@
                                 <div class="result-id">{{ result.id }}</div>
                                 <button
                                     class="open-wikidata-button"
-                                    @click="openWikidata(result.id)"
+                                    @click.stop="openWikidata(result.id)"
                                 >
                                     <v-icon size="small"
                                         >mdi-open-in-new</v-icon
@@ -205,8 +205,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from "vue";
+import { ref, onMounted, onUnmounted, watch, computed } from "vue";
 import axios from "axios";
+import { debounce } from "lodash";
 
 const props = defineProps({
     initialTitle: {
@@ -236,6 +237,7 @@ const isLoading = ref(false);
 const searchPerformed = ref(false);
 const noExistingEntry = ref(false);
 const isMobileView = ref(false);
+const lastEmittedTitle = ref(props.initialTitle || "");
 
 // Watch for changes to initialTitle
 watch(
@@ -293,6 +295,12 @@ const performSearch = async (event) => {
         return;
     }
 
+    // Force any pending debounced title updates to execute immediately
+    // This ensures the title is updated before the search completes
+    if (emitTitleUpdate && emitTitleUpdate.flush) {
+        emitTitleUpdate.flush();
+    }
+
     // Focus back on the input after search
     setTimeout(() => {
         const input = document.querySelector(
@@ -303,23 +311,28 @@ const performSearch = async (event) => {
         }
     }, 50);
 
-    searchResults.value = [];
+    // Don't clear results yet, just set loading state
     isLoading.value = true;
     noExistingEntry.value = false; // Reset checkbox when performing a new search
 
     try {
+        console.log("Starting search for:", localTitle.value);
         const response = await axios.get("/api/wikidata/entities", {
             params: {
                 title: localTitle.value,
                 limit: 5,
             },
         });
+        console.log("Search completed for:", localTitle.value);
 
+        // Set search results after response received
         if (response.data.success && response.data.results) {
             searchResults.value = response.data.results;
         } else {
             searchResults.value = [];
         }
+
+        // Always make sure search performed is set to true AFTER results are updated
         searchPerformed.value = true;
     } catch (err) {
         console.error("Fehler bei der Wikidata-Suche:", err);
@@ -331,18 +344,45 @@ const performSearch = async (event) => {
         searchPerformed.value = true;
     } finally {
         isLoading.value = false;
+
+        // Ensure the results are displayed after a small delay
+        setTimeout(() => {
+            if (!searchPerformed.value) {
+                console.log("Ensuring search results are displayed");
+                searchPerformed.value = true;
+            }
+        }, 50);
     }
 };
 
 // Update title when input changes
-const onInput = (value) => {
-    // Always emit update event regardless of context
-    emit("update:title", value);
 
-    // Clear any previous search results when typing
-    if (searchResults.value.length > 0 && value !== props.initialTitle) {
+// Use a debounced function to emit title updates
+const emitTitleUpdate = debounce((value) => {
+    console.log("Emitting debounced title update:", value);
+    // Only emit if the value has changed
+    if (lastEmittedTitle.value !== value) {
+        lastEmittedTitle.value = value;
+        // Only emit title updates in create mode (not update mode)
+        // This prevents the overlay from closing in update mode
+        if (props.context !== "update") {
+            emit("update:title", value);
+        }
+    }
+}, 500); // 500ms debounce
+
+const onInput = (value) => {
+    // Store locally without emitting
+    localTitle.value = value;
+
+    // Debounce the update event
+    emitTitleUpdate(value);
+
+    // Don't immediately clear search results when typing
+    // Just reset the searchPerformed flag to indicate user is typing
+    if (value !== props.initialTitle) {
         searchPerformed.value = false;
-        searchResults.value = [];
+        // Keep existing results until new ones arrive
     }
 };
 
@@ -351,17 +391,58 @@ const openWikidata = (id) => {
     window.open(`https://www.wikidata.org/wiki/${id}`, "_blank");
 };
 
+// Save and close function for update mode
+const saveAndClose = () => {
+    // Cancel any pending debounced updates
+    if (emitTitleUpdate && emitTitleUpdate.cancel) {
+        emitTitleUpdate.cancel();
+    }
+
+    // Only if value has changed
+    if (localTitle.value !== lastEmittedTitle.value) {
+        console.log("Saving final title value:", localTitle.value);
+        lastEmittedTitle.value = localTitle.value;
+        emit("update:title", localTitle.value);
+    }
+
+    // Close the dialog with a small delay to allow update to propagate
+    setTimeout(() => {
+        handleClose();
+    }, 100);
+};
+
 // Clean up state when dialog is closed
-const handleClose = () => {
+
+// Clean up state when dialog is closed
+const handleClose = (emitClose = true) => {
+    // Cancel any pending debounced updates
+    if (emitTitleUpdate && emitTitleUpdate.cancel) {
+        emitTitleUpdate.cancel();
+    }
+
+    // For 'update' mode, we only emit on explicit save
+    // For 'create' mode, we emit on close to ensure we have the latest value
+    if (
+        props.context !== "update" &&
+        localTitle.value !== lastEmittedTitle.value
+    ) {
+        lastEmittedTitle.value = localTitle.value;
+        emit("update:title", localTitle.value);
+    }
+
     searchResults.value = [];
     searchPerformed.value = false;
     noExistingEntry.value = false;
-    emit("close");
+
+    if (emitClose) {
+        emit("close");
+    }
 };
 
 // Get the type info title based on entry type
 const getTypeInfoTitle = () => {
     const typeTitles = {
+        Q5: "Person",
         Q6983405: "Ereignis",
         Q5003624: "Erinnerungsort",
         Q108047567: "Staatspolizeistelle",
@@ -370,18 +451,22 @@ const getTypeInfoTitle = () => {
         Q40357: "Gefängnis",
     };
 
-    return typeTitles[props.entryType] || "Eintragstyp";
+    const result = typeTitles[props.entryType] || "Eintragstyp";
+    return result;
 };
 
 // Get the create button text based on entry type and context
+// Get the button text based on context
 const getCreateButtonText = () => {
     if (props.context === "update") {
         return "Titel anpassen";
     }
-    return `${getTypeInfoTitle()} erstellen`;
+    const buttonText = `${getTypeInfoTitle()} erstellen`;
+    return buttonText;
 };
 
 // Create the entry and proceed to the next step
+// Create or update entry
 const createEntry = () => {
     if (!localTitle.value || localTitle.value.length < 3) {
         return;
@@ -389,14 +474,20 @@ const createEntry = () => {
 
     // In update context, don't require the noExistingEntry checkbox
     if (props.context !== "update" && !noExistingEntry.value) {
+        console.log("Not in update context and checkbox not checked");
         return;
     }
 
-    // Make sure the title gets emitted properly
-    emit("update:title", localTitle.value);
+    // First close the overlay to prevent any interference with state
+    handleClose(false);
 
-    // Also emit the create event which is what BaseInfos.vue listens for
-    emit("create", localTitle.value);
+    // Make sure the title gets emitted properly after overlay is closed
+    setTimeout(() => {
+        emit("update:title", localTitle.value);
+
+        // Also emit the create event which is what BaseInfos.vue listens for
+        emit("create", localTitle.value);
+    }, 0);
 };
 
 // Update local title when prop changes
@@ -632,7 +723,7 @@ watch(
 }
 
 .search-result-item:hover {
-    background-color: #f9f9f9;
+    background-color: #f8f8f8;
 }
 
 .result-title {
@@ -651,6 +742,7 @@ watch(
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: 6px;
 }
 
 .result-id {
@@ -747,8 +839,17 @@ watch(
 }
 
 .create-button:disabled {
-    background-color: #bbdefb;
+    background-color: #bdbdbd;
     cursor: not-allowed;
+}
+
+.save-button {
+    background-color: #4caf50;
+    color: white;
+}
+
+.save-button:hover {
+    background-color: #388e3c;
 }
 
 .close-overlay {

@@ -10,6 +10,7 @@
         'wikidata_submitted' => ['color' => 'info', 'label' => 'An Wikidata u00fcbermittelt'],
         'wikidata_published' => ['color' => 'success', 'label' => 'In Wikidata veröffentlicht'],
         'wikidata_failed' => ['color' => 'danger', 'label' => 'Fehler bei Wikidata-Erstellung'],
+        'published' => ['color' => 'success', 'label' => 'Veröffentlicht'],
         'error' => ['color' => 'warning', 'label' => 'Fehler']
     ];
 @endphp
