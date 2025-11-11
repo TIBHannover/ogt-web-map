@@ -140,6 +140,81 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        <!-- Ereignis -->
+                                        <div
+                                            class="type-box"
+                                            :class="{
+                                                selected:
+                                                    formsType === 'Q6983405',
+                                            }"
+                                            @click="
+                                                formsType = 'Q6983405';
+                                                updateTypeInfo();
+                                            "
+                                        >
+                                            <div
+                                                class="info-icon-container d-lg-none"
+                                                @click.stop="
+                                                    showTypeInfoPopup(
+                                                        'Q6983405',
+                                                    )
+                                                "
+                                                title="Mehr Informationen"
+                                            >
+                                                <v-icon
+                                                    color="primary"
+                                                    size="small"
+                                                    >mdi-information-outline</v-icon
+                                                >
+                                            </div>
+                                            <input
+                                                v-model="formsType"
+                                                name="type"
+                                                type="radio"
+                                                value="Q6983405"
+                                                id="type-Q6983405"
+                                                class="type-radio"
+                                            />
+                                            <div class="type-icon">
+                                                <img
+                                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/events.svg`"
+                                                    alt="Ereignis Icon"
+                                                />
+                                            </div>
+                                            <div class="type-data">
+                                                <div class="type-label">
+                                                    Ereignis
+                                                </div>
+                                                <div class="type-description">
+                                                    Von der Gestapo begangene
+                                                    Verbrechen wie bspw. die
+                                                    Überwachung, Verfolgung,
+                                                    Inhaftierung und/oder
+                                                    Ermordung einzelner Personen
+                                                    oder Personengruppen.
+                                                </div>
+                                                <div
+                                                    class="type-action-container"
+                                                >
+                                                    <transition name="fade">
+                                                        <button
+                                                            v-if="
+                                                                formsType ===
+                                                                'Q6983405'
+                                                            "
+                                                            class="type-action-button"
+                                                            type="button"
+                                                            @click="
+                                                                openTitleOverlay
+                                                            "
+                                                        >
+                                                            Jetzt ein Ereignis
+                                                            anlegen
+                                                        </button>
+                                                    </transition>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <!-- Erinnerungsort -->
                                         <div
                                             class="type-box"
@@ -214,83 +289,6 @@
                                             </div>
                                         </div>
 
-                                        <!-- Ereignis -->
-                                        <div
-                                            class="type-box"
-                                            :class="{
-                                                selected:
-                                                    formsType === 'Q6983405',
-                                            }"
-                                            @click="
-                                                formsType = 'Q6983405';
-                                                updateTypeInfo();
-                                            "
-                                        >
-                                            <div
-                                                class="info-icon-container d-lg-none"
-                                                @click.stop="
-                                                    showTypeInfoPopup(
-                                                        'Q6983405',
-                                                    )
-                                                "
-                                                title="Mehr Informationen"
-                                            >
-                                                <v-icon
-                                                    color="primary"
-                                                    size="small"
-                                                    >mdi-information-outline</v-icon
-                                                >
-                                            </div>
-                                            <input
-                                                v-model="formsType"
-                                                name="type"
-                                                type="radio"
-                                                value="Q6983405"
-                                                id="type-Q6983405"
-                                                class="type-radio"
-                                            />
-                                            <div class="type-icon">
-                                                <img
-                                                    :src="`/images/leaflet/markerIcons/coloredFilledWhite/events.svg`"
-                                                    alt="Ereignis Icon"
-                                                />
-                                            </div>
-                                            <div class="type-data">
-                                                <div class="type-label">
-                                                    Ereignis
-                                                </div>
-                                                <div class="type-description">
-                                                    Von der Gestapo begangene
-                                                    Verbrechen wie bspw. der
-                                                    Inhaftierung einzelner
-                                                    Personen oder
-                                                    Personengruppen, aber auch
-                                                    um die Ermordung von
-                                                    Menschen
-                                                </div>
-                                                <div
-                                                    class="type-action-container"
-                                                >
-                                                    <transition name="fade">
-                                                        <button
-                                                            v-if="
-                                                                formsType ===
-                                                                'Q6983405'
-                                                            "
-                                                            class="type-action-button"
-                                                            type="button"
-                                                            @click="
-                                                                openTitleOverlay
-                                                            "
-                                                        >
-                                                            Jetzt ein Ereignis
-                                                            anlegen
-                                                        </button>
-                                                    </transition>
-                                                </div>
-                                            </div>
-                                        </div>
-
                                         <!-- Person -->
                                         <div
                                             class="type-box"
@@ -334,9 +332,10 @@
                                                     Person
                                                 </div>
                                                 <div class="type-description">
-                                                    Historische Personen mit
-                                                    Bezug zur Gestapo in der
-                                                    Roller als Täter*In oder
+                                                    Personen, die im
+                                                    Zusammenhang mit der Gestapo
+                                                    standen, etwa als
+                                                    Täter*innen oder als
                                                     Geschädigte
                                                 </div>
                                                 <div

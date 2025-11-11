@@ -19,9 +19,9 @@
                             Wie funktioniert der Prozess?
                         </h2>
                         <p>
-                            Gestapo.Terror.Orte dokumentiert historische
-                            Ereignisse, Orte und Institutionen im Zusammenhang
-                            mit der Geschichte der Gestapo in Niedersachsen.
+                            Gestapo.Terror.Orte dokumentiert Orte, Personen und
+                            Ereignisse zur Geschichte der Gestapo in
+                            Niedersachsen.
                             <br />
                             Um die Integrität und Qualität unserer Daten zu
                             gewährleisten, werden alle Einträge vor der
@@ -146,9 +146,8 @@
                                                 >Dienst- und Haftstätten der
                                                 Gestapo</strong
                                             >
-                                            - Orte, die mit dem Wirken der
-                                            Gestapo verbunden waren. Darunter
-                                            zählen:<br />
+                                            - Zu den Dienst- und Haftstätten der
+                                            Gestapo zählen:<br />
                                             <ul>
                                                 <li>
                                                     <b
@@ -210,10 +209,10 @@
                                             auch um die Ermordung von Menschen
                                         </li>
                                         <li>
-                                            <strong>Person</strong> -
-                                            Historische Personen mit Bezug zur
-                                            Gestapo in der Roller als Täter*In
-                                            oder Geschädigte
+                                            <strong>Person</strong> - Personen,
+                                            die im Zusammenhang mit der Gestapo
+                                            standen, etwa als Täter*innen oder
+                                            als Geschädigte
                                         </li>
                                     </ul>
                                 </div>
