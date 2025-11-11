@@ -37,6 +37,12 @@
                         <div class="step-container">
                             <h2 class="step-title">
                                 Schritt 1: Wähle den Eintragstyp
+                                <v-icon
+                                    class="info-icon ml-2 float-right"
+                                    @click="showDefaultTypeInfo"
+                                >
+                                    mdi-information-outline
+                                </v-icon>
                             </h2>
                             <form class="forms">
                                 <fieldset>
@@ -111,6 +117,21 @@
                                                 <div
                                                     class="type-radio-container"
                                                 >
+                                                    <div
+                                                        class="info-icon-container d-lg-none"
+                                                        @click.stop="
+                                                            showTypeInfoPopup(
+                                                                'Q106996250',
+                                                            )
+                                                        "
+                                                        title="Mehr Informationen"
+                                                    >
+                                                        <v-icon
+                                                            color="primary"
+                                                            size="small"
+                                                            >mdi-information-outline</v-icon
+                                                        >
+                                                    </div>
                                                     <input
                                                         v-model="formsType"
                                                         name="type"
@@ -370,18 +391,15 @@
                             <div class="info-box-header">
                                 <h3>
                                     {{
-                                        typeInfoContent
-                                            ? getTypeInfoTitle()
-                                            : "Eintragstypen"
+                                        displayedInfoType === "default"
+                                            ? "Eintragstypen"
+                                            : getTypeInfoTitle()
                                     }}
                                 </h3>
                             </div>
                             <div class="info-box-content">
-                                <div
-                                    v-if="typeInfoContent"
-                                    v-html="typeInfoContent"
-                                ></div>
-                                <div v-else>
+                                <div v-html="typeInfoContent"></div>
+                                <div v-if="!typeInfoContent">
                                     <ul>
                                         <li>
                                             <strong
@@ -675,7 +693,13 @@
     >
         <div class="overlay-content" @click.stop>
             <div class="overlay-header">
-                <h3 class="text-black">{{ getTypeInfoTitle() }}</h3>
+                <h3 class="text-black">
+                    {{
+                        displayedInfoType === "default"
+                            ? "Eintragstypen"
+                            : getTypeInfoTitle()
+                    }}
+                </h3>
                 <button class="close-overlay" @click="closeMobileInfoOverlay">
                     <v-icon>mdi-close</v-icon>
                 </button>
@@ -778,6 +802,66 @@ const formsType = ref("");
 const formsTitle = ref(null);
 const formsDescription = ref(null);
 const isSubmitting = ref(false);
+
+// Default info text about entry types that will be shown when clicking the info icon
+const defaultInfoText = `
+    <ul>
+        <li>
+            <strong
+                >Dienst- und Haftstätten der
+                Gestapo</strong
+            >
+            - Orte, die mit dem Wirken der
+            Gestapo verbunden waren. Darunter
+            zählen:<br />
+            <b>Staatspolizeileitstelle</b>:
+            Regionale Dienstellen der Geheimen
+            Staatspolizei<br />
+            <b>Staatspolizeistelle</b>:
+            Regionale Dienstellen der Geheimen
+            Staatspolizei, unterstehen einer
+            Staatspolizeileitstelle<br />
+            <b>Außendienststelle</b>: Lokale
+            Zweigstellen einer
+            Staatspolizeistelle<br />
+            <b>Gefängnis</b>: Haftanstalten, die
+            während der NS-Zeit für politische
+            Gefangene genutzt wurden das müsset
+            zu: Haftstätte, die von der Gestapo
+            (mit-) genutzt wurde.
+            <br />
+            <b>Erweitertes Polizeigefängnis</b>:
+            Von der Gestapo betriebenes Lager
+            zur kurzfristigen Inhaftierung.
+            <br />
+            <b>Arbeitserziehungslager</b>: Von
+            der Gestapo eingerichtetes Lager, um
+            Zwangsarbeiter*innen und andere als
+            „arbeitsscheu“ geltende Personen zu
+            bestrafen.
+            <br />
+        </li>
+        <li>
+            <strong>Erinnerungsort</strong> -
+            Physisch erlebbare Orte, die an die
+            Verbrechen der Gestapo erinnern
+        </li>
+        <li>
+            <strong>Ereignis</strong> - Von der
+            Gestapo begangene Verbrechen wie
+            bspw. die Überwachung, Verfolgung,
+            Inhaftierung und/oder Ermordung
+            einzelner Personen oder
+            Personengruppen.
+        </li>
+        <li>
+            <strong>Person</strong> -
+            Historische Personen mit Bezug zur
+            Gestapo in der Roller als Täter*In
+            oder Geschädigte
+        </li>
+    </ul>
+`;
 const wikidataResults = ref([]);
 const peopleSearchResults = ref([]);
 const personFormData = ref(null); // Store form data received from PersonForm
@@ -922,10 +1006,82 @@ watch(formsType, () => {
     updateTypeInfo();
 });
 
+const showDefaultTypeInfo = () => {
+    // Store that we're showing default info
+    displayedInfoType.value = "default";
+
+    // Set the info content
+    typeInfoContent.value = defaultInfoText;
+
+    // Show in mobile overlay if in mobile view, otherwise update desktop infobox
+    if (isMobileView.value) {
+        showMobileInfoOverlay.value = true;
+    }
+};
+
 const showTypeInfoPopup = (typeValue) => {
     // Store the type we're showing info for
     displayedInfoType.value = typeValue;
 
+    // Check for custom text for Person or GestapoPlaces
+    if (typeValue === "Q5") {
+        // Person
+        let customContent = `
+            <p>Personen im Kontext der Gestapo können Täter*innen, Opfer oder Zeitzeugen sein.</p>
+            <p>Bei der Erfassung einer Person ist es wichtig, biografische Informationen und die Rolle der Person im Kontext der Gestapo-Geschichte zu dokumentieren.</p>
+            <p>Bitte achten Sie darauf, sowohl Lebensdaten als auch die Verbindung zu Gestapo-Ereignissen oder -Orten mit entsprechenden Quellen zu belegen.</p>
+            <p>Persönliche Geschichten tragen wesentlich dazu bei, die historischen Ereignisse greifbar zu machen und in ihrem menschlichen Kontext zu verstehen.</p>
+        `;
+        typeInfoContent.value = customContent.trim();
+
+        // Show in mobile overlay if in mobile view
+        if (isMobileView.value) {
+            showMobileInfoOverlay.value = true;
+        }
+        return;
+    } else if (
+        typeValue === "Q106996250" || // Ort des Gestapoterrors
+        typeValue === "Q108047567" || // Staatspolizeistelle
+        typeValue === "Q108047541" || // Außendienststelle
+        typeValue === "Q277565" // Arbeitserziehungslager
+    ) {
+        // Custom text for Gestapo places
+        let customContent = `
+                    <b>Staatspolizeileitstelle</b>:
+                    Regionale Dienstellen der Geheimen
+                    Staatspolizei<br />
+                    <b>Staatspolizeistelle</b>:
+                    Regionale Dienstellen der Geheimen
+                    Staatspolizei, unterstehen einer
+                    Staatspolizeileitstelle<br />
+                    <b>Außendienststelle</b>: Lokale
+                    Zweigstellen einer
+                    Staatspolizeistelle<br />
+                    <b>Gefängnis</b>: Haftanstalten, die
+                    während der NS-Zeit für politische
+                    Gefangene genutzt wurden das müsset
+                    zu: Haftstätte, die von der Gestapo
+                    (mit-) genutzt wurde.
+                    <br />
+                    <b>Erweitertes Polizeigefängnis</b>:
+                    Von der Gestapo betriebenes Lager
+                    zur kurzfristigen Inhaftierung.
+                    <br />
+                    <b>Arbeitserziehungslager</b>: Von
+                    der Gestapo eingerichtetes Lager, um
+                    Zwangsarbeiter*innen und andere als
+                    „arbeitsscheu“ geltende Personen zu
+                    bestrafen.
+                    <br />
+        `;
+        typeInfoContent.value = customContent.trim();
+
+        // Show in mobile overlay if in mobile view
+        if (isMobileView.value) {
+            showMobileInfoOverlay.value = true;
+        }
+        return;
+    }
     console.log("showTypeInfoPopup called for type:", typeValue);
 
     // Get content for the clicked type without changing selection
@@ -933,10 +1089,10 @@ const showTypeInfoPopup = (typeValue) => {
         Q5: "Person",
         Q6983405: "Ereignis",
         Q5003624: "Erinnerungsort",
+        Q106996250: "Dienst- und Haftstätten der Gestapo",
         Q108047567: "Staatspolizeistelle",
         Q108047541: "Außendienststelle", // Im Glossar als "Außendienststelle"
         Q277565: "Arbeitserziehungslager",
-        Q40357: "Gefängnis",
     };
 
     // Get the corresponding glossary item key for the clicked type
@@ -988,10 +1144,66 @@ const updateTypeInfoContent = () => {
         Q108047567: "Staatspolizeistelle",
         Q108047541: "Außendienststelle", // Im Glossar als "Außendienststelle"
         Q277565: "Arbeitserziehungslager",
-        Q40357: "Gefängnis",
     };
 
-    // Get the corresponding glossary item key
+    // Check if we should use custom text for specific entity types
+    if (formsType.value === "Q5") {
+        // Person
+        // Custom text for Person type
+        let customContent = `
+            <p>Personen, die im Zusammenhang mit der Gestapo standen, etwa als Täter*innen oder als Geschädigte
+</p>
+        `;
+        typeInfoContent.value = customContent.trim();
+        return;
+    } else if (
+        formsType.value === "Q106996250" || // Ort des Gestapoterrors
+        formsType.value === "Q108047567" || // Staatspolizeistelle
+        formsType.value === "Q108047541" || // Außendienststelle
+        formsType.value === "Q277565" // Arbeitserziehungslager
+    ) {
+        // Custom text for Gestapo places
+        let customContent = `
+            <ul>
+                <li>
+                    <strong
+                        >Dienst- und Haftstätten der
+                        Gestapo:</strong
+                    ><br /><br />
+                    <b>Staatspolizeileitstelle</b>:
+                    Regionale Dienstellen der Geheimen
+                    Staatspolizei<br />
+                    <b>Staatspolizeistelle</b>:
+                    Regionale Dienstellen der Geheimen
+                    Staatspolizei, unterstehen einer
+                    Staatspolizeileitstelle<br />
+                    <b>Außendienststelle</b>: Lokale
+                    Zweigstellen einer
+                    Staatspolizeistelle<br />
+                    <b>Gefängnis</b>: Haftanstalten, die
+                    während der NS-Zeit für politische
+                    Gefangene genutzt wurden das müsset
+                    zu: Haftstätte, die von der Gestapo
+                    (mit-) genutzt wurde.
+                    <br />
+                    <b>Erweitertes Polizeigefängnis</b>:
+                    Von der Gestapo betriebenes Lager
+                    zur kurzfristigen Inhaftierung.
+                    <br />
+                    <b>Arbeitserziehungslager</b>: Von
+                    der Gestapo eingerichtetes Lager, um
+                    Zwangsarbeiter*innen und andere als
+                    „arbeitsscheu“ geltende Personen zu
+                    bestrafen.
+                    <br />
+                </li>
+            </ul>
+        `;
+        typeInfoContent.value = customContent.trim();
+        return;
+    }
+
+    // Get the corresponding glossary item key for other types
     const glossaryKey = typeToGlossaryMapping[formsType.value];
 
     // Get the glossary item if it exists
@@ -1014,11 +1226,19 @@ const updateTypeInfoContent = () => {
                     content += "</ul>";
                 }
             });
+        } else if (typeof glossaryItem.descriptions === "string") {
+            content = glossaryItem.descriptions;
         }
 
         typeInfoContent.value = content;
+
+        // Show in mobile overlay if in mobile view
+        if (isMobileView.value) {
+            showMobileInfoOverlay.value = true;
+        }
     } else {
         typeInfoContent.value = "";
+        console.log("No glossary item found for:", formsType.value);
     }
 };
 
@@ -1039,29 +1259,35 @@ const closeMobileInfoOverlay = () => {
 // Reference to store which type's info is currently being displayed
 const displayedInfoType = ref("");
 
-const getTypeInfoTitle = () => {
+const getTypeInfoTitle = (typeParam) => {
     const typeTitles = {
         Q5: "Person",
         Q6983405: "Ereignis",
         Q5003624: "Erinnerungsort",
+        Q106996250: "Dienst- und Haftstätten der Gestapo",
         Q108047567: "Staatspolizeistelle",
         Q108047541: "Staatspolizeiaußenstelle",
         Q277565: "Arbeitserziehungslager",
-        Q40357: "Gefängnis",
     };
 
-    // Use displayedInfoType for popups, otherwise use the selected formsType
-    const typeToUse = showMobileInfoOverlay.value
-        ? displayedInfoType.value
-        : formsType.value;
+    // If displayedInfoType is "default", return "Eintragstypen"
+    if (displayedInfoType.value === "default") {
+        return "Eintragstypen";
+    }
+
+    const typeToUse =
+        typeParam ||
+        (showMobileInfoOverlay.value
+            ? displayedInfoType.value
+            : formsType.value);
 
     // Handle null/undefined cases
     if (!typeToUse) {
         console.log("Warning: typeToUse is undefined or null");
-        return "Eintragstyp";
+        return "Eintragstypen";
     }
 
-    const title = typeTitles[typeToUse] || "Eintragstyp";
+    const title = typeTitles[typeToUse] || "Eintragstypen";
     return title;
 };
 
@@ -3361,6 +3587,15 @@ onUnmounted(() => {
 
 .info-box {
     margin-top: 0;
+}
+
+.overlay-body {
+    padding-left: 2rem;
+}
+
+.info-icon {
+    cursor: pointer;
+    vertical-align: middle;
 }
 
 @media (max-width: 768px) {
