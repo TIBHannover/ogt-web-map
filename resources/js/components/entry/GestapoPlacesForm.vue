@@ -5,14 +5,14 @@
     >
         <div class="step-container">
             <h2 class="step-title">
-                Schritt 2: Ort des Gestapoterrors eingeben
+                Schritt 2: Dienst- oder Haftstätten der Gestapo eingeben
             </h2>
             <form class="forms" @submit.prevent>
                 <!-- Typ des Gestapoterror-Orts (P31) - Radio Buttons als Boxen -->
                 <div class="container-section gestapo-place-type-section">
                     <div class="section-header">
                         <label class="section-label required"
-                            >Ort des Gestapoterrors: *</label
+                            >Dienst- und Haftstätten der Gestapo: *</label
                         >
                         <button
                             type="button"
@@ -305,7 +305,9 @@
                 <!-- Häftlingszahl (P5630) mit Qualifier -->
                 <div class="container-section prisoner-count-section">
                     <div class="section-header">
-                        <label class="section-label">Häftlingszahl:</label>
+                        <label class="section-label"
+                            >Anzahl der Inhaftierte:</label
+                        >
                         <button
                             type="button"
                             class="info-icon"
@@ -317,7 +319,7 @@
                     <div class="count-with-qualifier">
                         <TextField
                             v-model="prisonerCountValue"
-                            label="Häftlingszahl"
+                            label="Anzahl der Inhaftierte"
                             type="number"
                             property-id="P5630"
                             @update:modelValue="prisonerCountValue = $event"
@@ -723,7 +725,7 @@ const getInfoTitle = (fieldName) => {
         keyEvent: "Schlüsselereignisse",
         director: "Leitung",
         employees: "Mitarbeiter",
-        prisonerCount: "Anzahl der Gefangenen",
+        prisonerCount: "Anzahl der Inhaftierte",
         parentOrganization: "Übergeordnete Organisation",
         childOrganization: "Untergeordnete Organisation",
         predecessorOrg: "Vorgängerorganisation",
