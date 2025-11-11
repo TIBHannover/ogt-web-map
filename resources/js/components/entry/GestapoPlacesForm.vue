@@ -245,10 +245,14 @@
                     />
                 </div>
 
-                <!-- Leiter (P1037) -->
+                <!-- Leitung (P1037) -->
                 <div class="container-section director-section">
                     <div class="section-header">
-                        <label class="section-label">Leiter:</label>
+                        <label class="section-header">Personal:</label>
+                    </div>
+
+                    <div class="section-header">
+                        <label class="section-label">Leitung:</label>
                         <button
                             type="button"
                             class="info-icon"
@@ -259,8 +263,8 @@
                     </div>
                     <MultipleWikidataSelector
                         v-model="directorValue"
-                        label="Leiter"
-                        dialog-title="Leiter auswählen"
+                        label="Leitung"
+                        dialog-title="Leitung auswählen"
                         search-label="Nach Personen suchen..."
                         :search-results="directorSearchResultsValue"
                         :is-loading="isDirectorSearchLoading"
@@ -271,12 +275,9 @@
                         field="director"
                         @fieldFocus="setActiveField('director')"
                     />
-                </div>
 
-                <!-- Beschäftigte (P1128) -->
-                <div class="container-section employees-section">
                     <div class="section-header">
-                        <label class="section-label">Beschäftigte:</label>
+                        <label class="section-label">Mitarbeitende:</label>
                         <button
                             type="button"
                             class="info-icon"
@@ -287,8 +288,8 @@
                     </div>
                     <MultipleWikidataSelector
                         v-model="employeesValue"
-                        label="Beschäftigte"
-                        dialog-title="Beschäftigte auswählen"
+                        label="Mitarbeitende"
+                        dialog-title="Mitarbeitende auswählen"
                         search-label="Nach Personen suchen..."
                         :search-results="employeesSearchResultsValue"
                         :is-loading="isEmployeesSearchLoading"
@@ -495,6 +496,12 @@
                                 : "Eintrag einreichen"
                         }}
                     </button>
+                </div>
+                <div
+                    class="d-block text-subtitle-2 mt-3"
+                    v-if="!props.isAdminView"
+                >
+                    Mit einem "*" gekennzeichneten Felder sind Pflichtfelder.
                 </div>
             </form>
             <!-- Info-Box (Desktop) -->
@@ -786,11 +793,27 @@ const getSectionInfoContent = (sectionName) => {
         gestapoPlaceType: `<p>Hier wählst du die Art der Gestapo-Stelle aus.</p>
                <p>Die Gestapo (Geheime Staatspolizei) hatte verschiedene Arten von Dienststellen:</p>
                 <ul>
-                <li><b>Staatspolizeistelle</b>: Regionale Dienstellen der Geheimen Staatspolizei</li>
-                <li><b>Staatspolizeiaußenstelle</b>: Lokale Zweigstellen einer Staatspolizeistelle</li>
-                <li><b>Arbeitserziehungslager</b>: Haftsystem der Gestapo während des Nationalsozialismus</li>
-                <li><b>Gefängnis</b>: Haftanstalten, die während der NS-Zeit für politische Gefangene genutzt wurden</li>
-                 <li><b>Erweitertes Polizeigefängnis</b>: Haftanstalten, die während der NS-Zeit für politische Gefangene genutzt wurden</li>
+                <li><b>Staatspolizeileitstelle</b>:
+                    Regionale Dienstellen der Geheimen
+                    Staatspolizei
+                </li>
+                <li><b>Staatspolizeistelle</b>:
+                    Regionale Dienstellen der Geheimen
+                    Staatspolizei, unterstehen der
+                    Staatspolizeileitstelle</li>
+                <li><b>Außendienststelle</b>: Lokale
+                    Zweigstellen einer
+                    Staatspolizeistelle</li>
+                <li><b>Gefängnis</b>: Haftanstalten, die
+                    während der NS-Zeit für politische
+                    Gefangene genutzt wurden</li>
+                <li><b>Erweitertes Polizeigefängnis</b>:
+                    Haftanstalten, die während der
+                    NS-Zeit für politische Gefangene
+                    genutzt wurden</li>
+                <li><b>Arbeitserziehungslager</b>:
+                    Haftsystem der Gestapo während des
+                    Nationalsozialismus</li>
                 </ul>
                <p>Unter der Auswahl gibt es für jeden Art der Gestapo-Stelle noch einen langen Beschreibungstext zur bessern Erläuterung. Klicke einfach auf den entsprechenden Typ.</p>`,
 
@@ -985,13 +1008,13 @@ const keyEventSearchResultsValue = ref([]);
 const isKeyEventSearchLoading = ref(false);
 const keyEventSearchPerformed = ref(false);
 
-// Director (Leiter)
+// Director (Leitung)
 const directorValue = ref([]);
 const directorSearchResultsValue = ref([]);
 const isDirectorSearchLoading = ref(false);
 const directorSearchPerformed = ref(false);
 
-// Employees (Beschäftigte)
+// Employees (Mitarbeitende)
 const employeesValue = ref([]);
 const employeesSearchResultsValue = ref([]);
 const isEmployeesSearchLoading = ref(false);
@@ -1277,7 +1300,7 @@ const getData = () => {
         // Director (Leiter)
         director: directorValue.value,
 
-        // Employees (Beschäftigte)
+        // Employees (Mitarbeitende)
         employees: employeesValue.value,
 
         // Prisoner Count
@@ -1505,7 +1528,7 @@ const onSearchEmployees = async (query) => {
                       {
                           id: query,
                           label: query,
-                          description: "Anzahl der Beschäftigten",
+                          description: "Anzahl der Mitarbeitenden",
                       },
                   ];
     } catch (error) {

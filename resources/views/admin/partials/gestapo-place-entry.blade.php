@@ -73,10 +73,10 @@
             </div>
         @endif
 
-        <!-- Leiter -->
+        <!-- Leitung -->
         @if(isset($request->director) && !empty($request->director))
             <div class="mb-3">
-                <h6>Leiter:</h6>
+                <h6>Leitung:</h6>
                 <div class="mb-2">
                     @if(is_array($request->director))
                         @foreach($request->director as $index => $director)
@@ -89,10 +89,10 @@
             </div>
         @endif
 
-        <!-- Beschäftigte -->
+        <!-- Mitarbeitende -->
         @if(isset($request->employees) && !empty($request->employees))
             <div class="mb-3">
-                <h6>Beschäftigte:</h6>
+                <h6>Mitarbeitende:</h6>
                 <div class="mb-2">
                     @if(is_array($request->employees))
                         @foreach($request->employees as $index => $employee)

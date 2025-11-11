@@ -480,6 +480,12 @@
                         Eintrag einreichen
                     </v-btn>
                 </div>
+                <div
+                    class="d-block text-subtitle-2 mt-3"
+                    v-if="!props.isAdminView"
+                >
+                    Mit einem "*" gekennzeichneten Felder sind Pflichtfelder.
+                </div>
             </form>
         </div>
         <!-- Info-Box (Desktop) -->

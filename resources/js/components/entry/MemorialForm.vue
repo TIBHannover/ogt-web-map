@@ -225,6 +225,12 @@
                         }}
                     </button>
                 </div>
+                <div
+                    class="d-block text-subtitle-2 mt-3"
+                    v-if="!props.isAdminView"
+                >
+                    Mit einem "*" gekennzeichneten Felder sind Pflichtfelder.
+                </div>
             </form>
         </div>
 
@@ -599,12 +605,12 @@ const getSectionInfoContent = (section) => {
                 <p>Die <strong>Kurzbeschreibung</strong> sollte die wichtigsten Informationen zum Erinnerungsort
                 in wenigen Sätzen zusammenfassen.</p>
                 <p>Beispiel:<br>
-                <strong>Titel:</strong> KZ-Gedenkstätte Neuengamme<br>
-                <strong>Beschreibung:</strong> Gedenkstätte auf dem Gelände des ehemaligen Konzentrationslagers Neuengamme in Hamburg.</p>
+                <strong>Titel:</strong> KZ-Gedenkstätte Bergen-Belsen<br>
+                <strong>Beschreibung:</strong> Gedenkstätte auf dem Gelände des ehemaligen Konzentrationslagers Bergen-Belsen in Niedersachsen.</p>
             `;
         case "commemorates":
             return `
-                <p>Geben Sie an, woran dieser Erinnerungsort erinnert. Dies kann ein Ereignis, eine Person, eine Gruppe oder ein anderer historischer Aspekt sein.</p>
+                <p>Geben Sie an, woran dieser Erinnerungsort erinnert. Dies kann ein Ereignis, eine Person, eine Gruppe, ein Ort oder ein anderer historischer Aspekt sein.</p>
                 <p>Beispiele:</p>
                 <ul>
                     <li>Holocaust</li>
