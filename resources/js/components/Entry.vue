@@ -397,21 +397,27 @@
                                             Staatspolizei<br />
                                             <b>Staatspolizeistelle</b>:
                                             Regionale Dienstellen der Geheimen
-                                            Staatspolizei, unterstehen der
+                                            Staatspolizei, unterstehen einer
                                             Staatspolizeileitstelle<br />
                                             <b>Außendienststelle</b>: Lokale
                                             Zweigstellen einer
                                             Staatspolizeistelle<br />
                                             <b>Gefängnis</b>: Haftanstalten, die
                                             während der NS-Zeit für politische
-                                            Gefangene genutzt wurden<br />
+                                            Gefangene genutzt wurden das müsset
+                                            zu: Haftstätte, die von der Gestapo
+                                            (mit-) genutzt wurde.
+                                            <br />
                                             <b>Erweitertes Polizeigefängnis</b>:
-                                            Haftanstalten, die während der
-                                            NS-Zeit für politische Gefangene
-                                            genutzt wurden<br />
-                                            <b>Arbeitserziehungslager</b>:
-                                            Haftsystem der Gestapo während des
-                                            Nationalsozialismus<br />
+                                            Von der Gestapo betriebenes Lager
+                                            zur kurzfristigen Inhaftierung.
+                                            <br />
+                                            <b>Arbeitserziehungslager</b>: Von
+                                            der Gestapo eingerichtetes Lager, um
+                                            Zwangsarbeiter*innen und andere als
+                                            „arbeitsscheu“ geltende Personen zu
+                                            bestrafen.
+                                            <br />
                                         </li>
                                         <li>
                                             <strong>Erinnerungsort</strong> -
@@ -421,9 +427,10 @@
                                         <li>
                                             <strong>Ereignis</strong> - Von der
                                             Gestapo begangene Verbrechen wie
-                                            bspw. der Inhaftierung einzelner
-                                            Personen oder Personengruppen, aber
-                                            auch um die Ermordung von Menschen
+                                            bspw. die Überwachung, Verfolgung,
+                                            Inhaftierung und/oder Ermordung
+                                            einzelner Personen oder
+                                            Personengruppen.
                                         </li>
                                         <li>
                                             <strong>Person</strong> -

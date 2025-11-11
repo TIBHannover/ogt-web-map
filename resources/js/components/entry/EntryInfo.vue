@@ -161,7 +161,7 @@
                                                     <b>Staatspolizeistelle</b>:
                                                     Regionale Dienstellen der
                                                     Geheimen Staatspolizei,
-                                                    unterstehen der
+                                                    unterstehen einer
                                                     Staatspolizeileitstelle
                                                 </li>
                                                 <li>
@@ -173,22 +173,27 @@
                                                     <b>Gefängnis</b>:
                                                     Haftanstalten, die während
                                                     der NS-Zeit für politische
-                                                    Gefangene genutzt wurden
+                                                    Gefangene genutzt wurden das
+                                                    müsset zu: Haftstätte, die
+                                                    von der Gestapo (mit-)
+                                                    genutzt wurde.
                                                 </li>
                                                 <li>
                                                     <b
                                                         >Erweitertes
                                                         Polizeigefängnis</b
-                                                    >: Haftanstalten, die
-                                                    während der NS-Zeit für
-                                                    politische Gefangene genutzt
-                                                    wurden
+                                                    >: Von der Gestapo
+                                                    betriebenes Lager zur
+                                                    kurzfristigen Inhaftierung.
                                                 </li>
                                                 <li>
                                                     <b>Arbeitserziehungslager</b
-                                                    >: Haftsystem der Gestapo
-                                                    während des
-                                                    Nationalsozialismus
+                                                    >: Von der Gestapo
+                                                    eingerichtetes Lager, um
+                                                    Zwangsarbeiter*innen und
+                                                    andere als „arbeitsscheu“
+                                                    geltende Personen zu
+                                                    bestrafen.
                                                 </li>
                                             </ul>
                                         </li>

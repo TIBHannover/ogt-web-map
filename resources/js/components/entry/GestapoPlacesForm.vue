@@ -804,21 +804,22 @@ const getSectionInfoContent = (sectionName) => {
                 </li>
                 <li><b>Staatspolizeistelle</b>:
                     Regionale Dienstellen der Geheimen
-                    Staatspolizei, unterstehen der
+                    Staatspolizei, unterstehen einer
                     Staatspolizeileitstelle</li>
                 <li><b>Außendienststelle</b>: Lokale
                     Zweigstellen einer
                     Staatspolizeistelle</li>
-                <li><b>Gefängnis</b>: Haftanstalten, die
-                    während der NS-Zeit für politische
-                    Gefangene genutzt wurden</li>
+                <li><b>Gefängnis</b>: Haftanstalten, die während
+                der NS-Zeit für politische
+                Gefangene genutzt wurden das
+                müsset zu: Haftstätte, die
+                von der Gestapo (mit-)
+                genutzt wurde.</li>
                 <li><b>Erweitertes Polizeigefängnis</b>:
-                    Haftanstalten, die während der
-                    NS-Zeit für politische Gefangene
-                    genutzt wurden</li>
+                Von der Gestapo betriebenes Lager zur kurzfristigen Inhaftierung</li>
                 <li><b>Arbeitserziehungslager</b>:
-                    Haftsystem der Gestapo während des
-                    Nationalsozialismus</li>
+                Von der Gestapo eingerichtetes Lager, um Zwangsarbeiter*innen und andere als „arbeitsscheu“ geltende Personen zu bestrafen.
+</li>
                 </ul>
                <p>Unter der Auswahl gibt es für jeden Art der Gestapo-Stelle noch einen langen Beschreibungstext zur bessern Erläuterung. Klicke einfach auf den entsprechenden Typ.</p>`,
 
