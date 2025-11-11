@@ -73,6 +73,7 @@ class WikidataEntityController extends Controller
             "opening_date_qualifier" => "nullable|string",
             "address" => "nullable|string",
             "website" => "nullable|string",
+            "has_use" => "nullable|array",
             // Gestapo Place-specific fields
             "entity_subtype" => "nullable|string",
             "founding_date" => "nullable|string",
@@ -107,6 +108,7 @@ class WikidataEntityController extends Controller
                 $validated["opening_date_qualifier"] ?? null;
             $entryRequest->address = $validated["address"] ?? null;
             $entryRequest->website = $validated["website"] ?? null;
+            $entryRequest->has_use = $validated["has_use"] ?? null;
 
             // Set Gestapo Place-specific fields if they exist
             $entryRequest->entity_subtype =

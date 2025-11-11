@@ -179,4 +179,9 @@
             </div>
         @endif
     </div>
+
+    <!-- Quellenangaben -->
+    @if(isset($request->sources) && is_array($request->sources) && count($request->sources) > 0)
+        @include('admin.partials.sources-detail')
+    @endif
 </div>

@@ -95,6 +95,7 @@ class WikidataEntityMappingProvider implements EntityMappingProviderInterface
         "ADDRESS" => "P6375",
         "WEBSITE" => "P856",
         "QUALIFIER_OF" => "P805",
+        "HAS_USE" => "P366",
 
         // GestapoPlace properties
         "FOUNDING_DATE" => "P571",

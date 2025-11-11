@@ -168,6 +168,18 @@ Route::get("/wikidata/search/organizations", [
     "searchOrganizations",
 ]);
 
+// Route for services search
+Route::get("/wikidata/services", [
+    WikidataSearchController::class,
+    "searchServices",
+]);
+
+// Route for services search (alternate endpoint)
+Route::get("/wikidata/search/services", [
+    WikidataSearchController::class,
+    "searchServices",
+]);
+
 // General Wikidata search route
 Route::get("/wikidata/search", [WikidataSearchController::class, "search"]);
 

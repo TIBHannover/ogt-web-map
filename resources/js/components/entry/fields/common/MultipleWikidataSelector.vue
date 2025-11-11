@@ -205,6 +205,7 @@ const props = defineProps({
                 "organizations",
                 "commemorates",
                 "events",
+                "services",
             ].includes(value),
     },
     icon: {

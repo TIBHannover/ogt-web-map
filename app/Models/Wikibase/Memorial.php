@@ -53,6 +53,13 @@ class Memorial extends BaseEntity
     protected $website;
 
     /**
+     * The memorial's has use property (P366)
+     *
+     * @var array|null
+     */
+    protected $hasUse;
+
+    /**
      * Create a new Memorial instance from an array of data
      *
      * @param array $data The source data
@@ -97,6 +104,10 @@ class Memorial extends BaseEntity
 
         if (isset($data["website"])) {
             $memorial->setWebsite($data["website"]);
+        }
+
+        if (isset($data["has_use"])) {
+            $memorial->setHasUse($data["has_use"]);
         }
 
         // Set image if available
@@ -338,6 +349,56 @@ class Memorial extends BaseEntity
                 "rank" => "normal",
             ],
         ];
+    }
+
+    /**
+     * Set the has use property (P366)
+     *
+     * @param array|string|null $entityIds The Wikidata entity IDs of the uses
+     * @return void
+     */
+    public function setHasUse($entityIds): void
+    {
+        $this->hasUse = $entityIds;
+
+        // If no values provided, return early
+        if (empty($entityIds)) {
+            return;
+        }
+
+        // Convert to array if a single string is provided
+        if (!is_array($entityIds)) {
+            $entityIds = [$entityIds];
+        }
+
+        $hasUseProperty = $this->mappingProvider->getPropertyId("HAS_USE");
+        $this->data["claims"][$hasUseProperty] = [];
+
+        // Process each entity ID
+        foreach ($entityIds as $entityId) {
+            // Skip if empty or not a valid Q-ID
+            if (empty($entityId) || substr($entityId, 0, 1) !== "Q") {
+                continue;
+            }
+
+            // Add the has use claim
+            $this->data["claims"][$hasUseProperty][] = [
+                "mainsnak" => [
+                    "snaktype" => "value",
+                    "property" => $hasUseProperty,
+                    "datavalue" => [
+                        "value" => [
+                            "entity-type" => "item",
+                            "id" => $entityId,
+                            "numeric-id" => intval(substr($entityId, 1)),
+                        ],
+                        "type" => "wikibase-entityid",
+                    ],
+                ],
+                "type" => "statement",
+                "rank" => "normal",
+            ];
+        }
     }
 
     // Helper methods removed as they are no longer needed with the enhanced BaseEntity::addCoordinates

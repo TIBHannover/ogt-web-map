@@ -58,6 +58,7 @@ class WikibaseEntryRequest extends Model
         "opening_date_qualifier",
         "address",
         "website",
+        "has_use",
         // GestapoPlaces specific fields
         "entity_subtype",
         "founding_date",
@@ -95,6 +96,7 @@ class WikibaseEntryRequest extends Model
         "is_standalone_person" => "boolean",
         "commemorates" => "string",
         "operator" => "string",
+        "has_use" => "array",
         "key_event_person" => "array",
     ];
 

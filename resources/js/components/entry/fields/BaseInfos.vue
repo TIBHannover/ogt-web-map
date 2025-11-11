@@ -240,7 +240,6 @@ const isDescriptionValid = computed(() => {
 
 // Validation function
 const validateBaseInfos = () => {
-    console.log("BaseInfos: validateBaseInfos called with title:", props.title);
     return isTitleValid.value && isDescriptionValid.value;
 };
 

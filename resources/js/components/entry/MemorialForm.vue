@@ -114,6 +114,34 @@
                     />
                 </div>
 
+                <!-- Leistungen und Angebote (Has Use) -->
+                <div class="container-section has-use-section">
+                    <div class="section-header">
+                        <label class="section-label"
+                            >Leistungen und Angebote:</label
+                        >
+                        <button
+                            type="button"
+                            class="info-icon"
+                            @click="openSectionInfo('hasUse')"
+                        >
+                            <v-icon>mdi-information-variant</v-icon>
+                        </button>
+                    </div>
+                    <MultipleWikidataSelector
+                        v-model="hasUseValue"
+                        label="Leistungen und Angebote"
+                        dialog-title="Leistungen und Angebote auswählen"
+                        search-label="Nach Angeboten suchen..."
+                        :search-results="hasUseSearchResultsValue"
+                        :is-loading="isHasUseSearchLoading"
+                        :search-performed="hasUseSearchPerformed"
+                        endpoint="services"
+                        @search="onSearchHasUse"
+                        @fieldFocus="setActiveField('hasUse')"
+                    />
+                </div>
+
                 <!-- Eröffnungsdatum (Opening Date) -->
                 <TimeSelector
                     ref="timeSelectorRef"
@@ -298,6 +326,7 @@ import BaseInfos from "./fields/BaseInfos.vue";
 import ValidationError from "../helpers/ValidationError.vue";
 import LocationSelector from "./fields/LocationSelector.vue";
 import WikidataSelector from "./fields/common/WikidataSelector.vue";
+import MultipleWikidataSelector from "./fields/common/MultipleWikidataSelector.vue";
 import TextField from "./fields/common/TextField.vue";
 import TimeSelector from "./fields/TimeSelector.vue";
 import ImageSelector from "./fields/ImageSelector.vue";
@@ -387,6 +416,7 @@ const emit = defineEmits([
     "handleMapClick",
     "goToStep",
     "submit",
+    "infoButtonClick",
 ]);
 
 // Use computed properties for two-way binding
@@ -501,6 +531,11 @@ const operatorSearchResultsValue = ref([]);
 const isOperatorSearchLoading = ref(false);
 const operatorSearchPerformed = ref(false);
 
+const hasUseValue = ref([]);
+const hasUseSearchResultsValue = ref([]);
+const isHasUseSearchLoading = ref(false);
+const hasUseSearchPerformed = ref(false);
+
 const openingDateValue = ref("");
 const openingDateQualifierValue = ref(null);
 
@@ -583,6 +618,7 @@ const getInfoTitle = (section) => {
         commemorates: "Erinnert an",
         location: "Standort",
         operator: "Betreiber",
+        hasUse: "Leistungen und Angebote",
         openingDate: "Eröffnungsdatum",
         address: "Adresse",
         website: "Offizielle Website",
@@ -640,6 +676,20 @@ const getSectionInfoContent = (section) => {
                     <li>Stadt oder Gemeinde</li>
                 </ul>
                 <p>Diese Information ist optional, hilft aber bei der Vernetzung der Daten.</p>
+            `;
+        case "hasUse":
+            return `
+                <p>Geben Sie die Leistungen und Angebote des Erinnerungsortes an.</p>
+                <p>Sie können mehrere Angebote auswählen.</p>
+                <p>Beispiele:</p>
+                <ul>
+                    <li>Führungen</li>
+                    <li>Ausstellungen</li>
+                    <li>Bildungsangebote</li>
+                    <li>Workshops</li>
+                    <li>Archiv</li>
+                </ul>
+                <p>Diese Information ist optional, hilft aber bei der Kategorisierung der Angebote des Erinnerungsortes.</p>
             `;
         case "openingDate":
             return `
@@ -723,6 +773,7 @@ const onSearchCommemorates = async (query) => {
             params: {
                 query: query,
                 type: "commemorates",
+                language: "de",
             },
         });
 
@@ -748,6 +799,7 @@ const onSearchOperator = async (query) => {
             params: {
                 query: query,
                 type: "organizations",
+                language: "de",
             },
         });
 
@@ -758,6 +810,36 @@ const onSearchOperator = async (query) => {
         console.error("Error searching for operators:", error);
     } finally {
         isOperatorSearchLoading.value = false;
+    }
+};
+
+const onSearchHasUse = async (query) => {
+    if (!query || query.trim() === "") return;
+
+    isHasUseSearchLoading.value = true;
+    hasUseSearchPerformed.value = true;
+    hasUseSearchResultsValue.value = [];
+
+    try {
+        const response = await axios.get("/api/wikidata/search", {
+            params: {
+                query: query,
+                type: "services",
+                endpoint: "services",
+                language: "de",
+            },
+        });
+        hasUseSearchResultsValue.value = response.data;
+    } catch (error) {
+        console.error("Error searching for services:", error);
+        hasUseSearchResultsValue.value = [
+            {
+                error: true,
+                message: "Fehler bei der Suche nach Angeboten.",
+            },
+        ];
+    } finally {
+        isHasUseSearchLoading.value = false;
     }
 };
 
@@ -874,39 +956,21 @@ const validateForm = () => {
     // Only show validation errors when form is being submitted
     showValidationErrors.value = true;
 
-    console.log("MemorialForm: Checking component refs:", {
-        baseInfosRef: !!baseInfosRef.value,
-        sourcesFieldRef: !!sourcesFieldRef.value,
-        locationSelectorRef: !!locationSelectorRef.value,
-    });
-
     // Call validate methods on child components
     const baseInfoValid = baseInfosRef.value
         ? baseInfosRef.value.validate()
         : true;
-    console.log("MemorialForm: baseInfoValid:", baseInfoValid);
 
     const sourcesValid = sourcesFieldRef.value
         ? sourcesFieldRef.value.validate()
         : true;
-    console.log("MemorialForm: sourcesValid:", sourcesValid);
 
     const locationValid = locationSelectorRef.value
         ? locationSelectorRef.value.validate()
         : true;
-    console.log("MemorialForm: locationValid:", locationValid);
 
     // Direct validation for specific fields
     const commemoratesValid = !!commemoratesValue.value;
-    console.log(
-        "MemorialForm: commemoratesValid:",
-        commemoratesValid,
-        "value:",
-        commemoratesValue.value,
-    );
-
-    // Note: Opening date (isTimeValid) is optional for memorials
-    // so we don't include it in the validation check
 
     const isValid =
         baseInfoValid && sourcesValid && locationValid && commemoratesValid;
@@ -957,6 +1021,7 @@ const getData = () => {
         // Memorial-specific fields
         commemorates: commemoratesValue.value, // P547
         operator: operatorValue.value, // P137
+        has_use: hasUseValue.value, // P366
         opening_date: openingDateValue.value, // P1619
         opening_date_qualifier: openingDateQualifierValue.value,
         address: addressValue.value, // P6375

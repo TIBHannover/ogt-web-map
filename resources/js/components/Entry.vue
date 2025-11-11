@@ -2666,6 +2666,7 @@ const resetForm = async () => {
                                 ...formData,
                                 commemorates: memorialData.commemorates,
                                 operator: memorialData.operator,
+                                has_use: memorialData.has_use,
                                 opening_date: memorialData.opening_date,
                                 opening_date_qualifier:
                                     memorialData.opening_date_qualifier,
@@ -2688,6 +2689,10 @@ const resetForm = async () => {
                             if (memorialFormRef.value.operatorValue) {
                                 formData.operator =
                                     memorialFormRef.value.operatorValue;
+                            }
+                            if (memorialFormRef.value.hasUseValue) {
+                                formData.has_use =
+                                    memorialFormRef.value.hasUseValue;
                             }
                             if (memorialFormRef.value.openingDateValue) {
                                 formData.opening_date =

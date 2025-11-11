@@ -1839,10 +1839,11 @@ class WikidataSearchController extends Controller
         $request->validate([
             "query" => "required|string|min:2",
             "type" => "nullable|string",
+            "endpoint" => "nullable|string",
         ]);
 
         $query = $request->input("query");
-        $type = $request->input("type");
+        $type = $request->input("type") ?? $request->input("endpoint");
 
         try {
             // If a specific type is provided, route to the appropriate search method
@@ -1873,14 +1874,22 @@ class WikidataSearchController extends Controller
 
                     case "organizations":
                         return $this->searchOrganizations($request);
+
+                    case "service":
+                    case "services":
+                        return $this->searchServices($request);
+
+                    // Add any other specific search types here...
                 }
             }
 
-            // Default generic search
+            // Default generic search with German language prioritization
             $response = Http::get("https://www.wikidata.org/w/api.php", [
                 "action" => "wbsearchentities",
                 "search" => $query,
                 "language" => "de",
+                "uselang" => "de",
+                "strictlanguage" => true, // Prioritize exact language matches
                 "format" => "json",
                 "type" => "item",
                 "limit" => 15,
@@ -1897,11 +1906,13 @@ class WikidataSearchController extends Controller
             $processedResults = [];
 
             foreach ($results as $result) {
+                // For German results, make sure to prioritize German labels and descriptions
                 $processedResults[] = [
                     "id" => $result["id"],
                     "label" => $result["label"] ?? $result["id"],
                     "description" => $result["description"] ?? "",
                     "url" => "https://www.wikidata.org/wiki/" . $result["id"],
+                    "language" => $result["match"]["language"] ?? "de",
                 ];
             }
 
@@ -1934,7 +1945,86 @@ class WikidataSearchController extends Controller
         }
 
         try {
-            // Make direct API call to Wikidata
+            // Sanitize the query for SPARQL
+            $sanitizedQuery = str_replace('"', "", $query);
+
+            // Build a SPARQL query to find commemorative items with German labels
+            $sparqlQuery = <<<SPARQL
+            SELECT DISTINCT ?item ?itemLabel ?itemDescription WHERE {
+              {
+                # Events
+                ?item wdt:P31/wdt:P279* wd:Q1190554. # instance of event
+              } UNION {
+                # Historical events
+                ?item wdt:P31/wdt:P279* wd:Q11514315. # instance of historical event
+              } UNION {
+                # Groups of people
+                ?item wdt:P31/wdt:P279* wd:Q16334295. # instance of group of humans
+              } UNION {
+                # Persons
+                ?item wdt:P31 wd:Q5. # instance of human
+              }
+
+              # Filter by label containing the search term (case insensitive)
+              ?item rdfs:label ?label.
+              FILTER(LANG(?label) = "de" && CONTAINS(LCASE(?label), LCASE("{$sanitizedQuery}")))
+
+              # Get labels and descriptions in German
+              SERVICE wikibase:label {
+                bd:serviceParam wikibase:language "de,en".
+              }
+            }
+            LIMIT 20
+            SPARQL;
+
+            try {
+                // Get the SPARQL client
+                $client = $this->getSparqlClient();
+
+                // Execute the query
+                $response = $client->query($sparqlQuery);
+
+                if ($response->successful()) {
+                    $data = $response->json();
+                    $results = [];
+
+                    // Process the SPARQL results
+                    if (
+                        isset($data["results"]["bindings"]) &&
+                        !empty($data["results"]["bindings"])
+                    ) {
+                        foreach ($data["results"]["bindings"] as $item) {
+                            // Extract the entity ID from the URI
+                            $id = str_replace(
+                                "http://www.wikidata.org/entity/",
+                                "",
+                                $item["item"]["value"],
+                            );
+
+                            $results[] = [
+                                "id" => $id,
+                                "label" => $item["itemLabel"]["value"] ?? $id,
+                                "description" =>
+                                    $item["itemDescription"]["value"] ?? "",
+                            ];
+                        }
+                    }
+
+                    if (!empty($results)) {
+                        return response()->json($results);
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::warning(
+                    "SPARQL query failed, falling back to API search",
+                    [
+                        "error" => $e->getMessage(),
+                    ],
+                );
+                // If SPARQL fails, we'll fall back to the API search below
+            }
+
+            // Fall back to direct API call if SPARQL returned no results or failed
             $client = new \GuzzleHttp\Client();
             $response = $client->request(
                 "GET",
@@ -1947,6 +2037,8 @@ class WikidataSearchController extends Controller
                         "format" => "json",
                         "type" => "item",
                         "limit" => 20,
+                        "uselang" => "de",
+                        "strictlanguage" => true,
                     ],
                     "headers" => [
                         "User-Agent" =>
@@ -1969,7 +2061,7 @@ class WikidataSearchController extends Controller
 
             return response()->json($results);
         } catch (\Exception $e) {
-            Log::error("Error searching for commemorative entities", [
+            Log::error("Error searching for commemorates", [
                 "query" => $query,
                 "error" => $e->getMessage(),
             ]);
@@ -1990,6 +2082,66 @@ class WikidataSearchController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
+    /**
+     * Fallback search for organizations using the Wikidata API
+     *
+     * @param string $query The search query
+     * @return JsonResponse
+     */
+    private function fallbackOrganizationSearch(string $query): JsonResponse
+    {
+        try {
+            $httpClient = $this->getHttpClient();
+            $response = $httpClient->get("https://www.wikidata.org/w/api.php", [
+                "action" => "wbsearchentities",
+                "search" => $query,
+                "language" => "de",
+                "uselang" => "de",
+                "strictlanguage" => true,
+                "format" => "json",
+                "type" => "item",
+                "limit" => 20,
+            ]);
+
+            if (!$response->successful()) {
+                return response()->json(
+                    [
+                        "success" => false,
+                        "error" => "Failed to search Wikidata",
+                    ],
+                    500,
+                );
+            }
+
+            $data = $response->json();
+            $results = [];
+
+            // Process the results
+            foreach ($data["search"] ?? [] as $item) {
+                $results[] = [
+                    "id" => $item["id"],
+                    "label" => $item["label"] ?? $item["id"],
+                    "description" => $item["description"] ?? "",
+                ];
+            }
+
+            return response()->json($results);
+        } catch (\Exception $e) {
+            Log::error("Fallback error searching for organizations", [
+                "query" => $query,
+                "error" => $e->getMessage(),
+            ]);
+
+            return response()->json(
+                [
+                    "success" => false,
+                    "error" => "Failed to search Wikidata",
+                ],
+                500,
+            );
+        }
+    }
+
     public function searchOrganizations(Request $request): JsonResponse
     {
         $query = $request->input("query");
@@ -1999,7 +2151,183 @@ class WikidataSearchController extends Controller
         }
 
         try {
-            // Make direct API call to Wikidata
+            // Sanitize the query for SPARQL
+            $sanitizedQuery = str_replace('"', "", $query);
+
+            // Build a SPARQL query to find organizations with German labels
+            $sparqlQuery = <<<SPARQL
+            SELECT DISTINCT ?item ?itemLabel ?itemDescription WHERE {
+              {
+                # Organizations
+                ?item wdt:P31/wdt:P279* wd:Q43229. # instance of organization
+              } UNION {
+                # Institutions
+                ?item wdt:P31/wdt:P279* wd:Q178706. # instance of institution
+              } UNION {
+                # Government agencies
+                ?item wdt:P31/wdt:P279* wd:Q327333. # instance of government agency
+              } UNION {
+                # Non-profit organizations
+                ?item wdt:P31/wdt:P279* wd:Q163740. # instance of non-profit organization
+              }
+
+              # Filter by label containing the search term (case insensitive)
+              ?item rdfs:label ?label.
+              FILTER(LANG(?label) = "de" && CONTAINS(LCASE(?label), LCASE("{$sanitizedQuery}")))
+
+              # Get labels and descriptions in German
+              SERVICE wikibase:label {
+                bd:serviceParam wikibase:language "de,en".
+              }
+            }
+            LIMIT 20
+            SPARQL;
+
+            // Get the SPARQL client
+            $client = $this->getSparqlClient();
+
+            // Execute the query
+            $response = $client->query($sparqlQuery);
+
+            if (!$response->successful()) {
+                Log::error("SPARQL query failed", [
+                    "query" => $sparqlQuery,
+                    "status" => $response->status(),
+                    "body" => $response->body(),
+                ]);
+
+                // Fall back to API search
+                return $this->fallbackOrganizationSearch($query);
+            }
+
+            $data = $response->json();
+            $results = [];
+
+            // Process the SPARQL results
+            if (
+                isset($data["results"]["bindings"]) &&
+                !empty($data["results"]["bindings"])
+            ) {
+                foreach ($data["results"]["bindings"] as $item) {
+                    // Extract the entity ID from the URI
+                    $id = str_replace(
+                        "http://www.wikidata.org/entity/",
+                        "",
+                        $item["item"]["value"],
+                    );
+
+                    $results[] = [
+                        "id" => $id,
+                        "label" => $item["itemLabel"]["value"] ?? $id,
+                        "description" =>
+                            $item["itemDescription"]["value"] ?? "",
+                    ];
+                }
+            }
+
+            // If SPARQL results are empty, fall back to API search
+            if (empty($results)) {
+                return $this->fallbackOrganizationSearch($query);
+            }
+
+            return response()->json($results);
+        } catch (\Exception $e) {
+            Log::error("Error searching for organizations", [
+                "query" => $query,
+                "error" => $e->getMessage(),
+            ]);
+
+            // Fall back to regular search in case of exception
+            return $this->fallbackOrganizationSearch($query);
+        }
+    }
+
+    /**
+     * Search for services and offerings (Leistungen und Angebote)
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function searchServices(Request $request): JsonResponse
+    {
+        $query = $request->input("query");
+
+        if (!$query || strlen(trim($query)) < 2) {
+            return response()->json([]);
+        }
+
+        try {
+            // First try a more specific search using SPARQL
+            try {
+                $sanitizedQuery = str_replace('"', "", $query);
+                $sparqlClient = $this->getSparqlClient();
+
+                // Build a SPARQL query for services commonly used at memorials
+                $sparqlQuery = <<<SPARQL
+                SELECT DISTINCT ?item ?itemLabel ?itemDescription WHERE {
+                  {
+                    # Museum services and exhibitions
+                    ?item wdt:P31/wdt:P279* wd:Q1371995.  # exhibition
+                  } UNION {
+                    # Educational activities
+                    ?item wdt:P31/wdt:P279* wd:Q9053012.  # educational activity
+                  } UNION {
+                    # Tours
+                    ?item wdt:P31/wdt:P279* wd:Q2266957.  # guided tour
+                  } UNION {
+                    # Events
+                    ?item wdt:P31/wdt:P279* wd:Q1656682.  # event
+                  }
+
+                  # Filter by German label containing the search term
+                  ?item rdfs:label ?label.
+                  FILTER(LANG(?label) = "de" && CONTAINS(LCASE(?label), LCASE("$sanitizedQuery")))
+
+                  SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". }
+                }
+                LIMIT 20
+                SPARQL;
+
+                $sparqlResponse = $sparqlClient->query($sparqlQuery);
+
+                if ($sparqlResponse->successful()) {
+                    $data = $sparqlResponse->json();
+                    $results = [];
+
+                    if (
+                        isset($data["results"]["bindings"]) &&
+                        !empty($data["results"]["bindings"])
+                    ) {
+                        foreach ($data["results"]["bindings"] as $item) {
+                            $id = str_replace(
+                                "http://www.wikidata.org/entity/",
+                                "",
+                                $item["item"]["value"],
+                            );
+
+                            $results[] = [
+                                "id" => $id,
+                                "label" => $item["itemLabel"]["value"] ?? $id,
+                                "description" =>
+                                    $item["itemDescription"]["value"] ?? "",
+                            ];
+                        }
+
+                        if (!empty($results)) {
+                            return response()->json($results);
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::warning(
+                    "SPARQL query failed for services, falling back to API search",
+                    [
+                        "error" => $e->getMessage(),
+                    ],
+                );
+            }
+
+            // Fall back to regular API search if SPARQL fails or returns no results
             $client = new \GuzzleHttp\Client();
             $response = $client->request(
                 "GET",
@@ -2009,6 +2337,7 @@ class WikidataSearchController extends Controller
                         "action" => "wbsearchentities",
                         "search" => $query,
                         "language" => "de",
+                        "uselang" => "de",
                         "format" => "json",
                         "type" => "item",
                         "limit" => 20,
@@ -2034,7 +2363,7 @@ class WikidataSearchController extends Controller
 
             return response()->json($results);
         } catch (\Exception $e) {
-            Log::error("Error searching for organizations", [
+            Log::error("Error searching for services", [
                 "query" => $query,
                 "error" => $e->getMessage(),
             ]);
