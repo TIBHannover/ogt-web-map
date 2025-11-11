@@ -303,7 +303,10 @@
                 </div>
 
                 <!-- Häftlingszahl (P5630) mit Qualifier -->
-                <div class="container-section prisoner-count-section">
+                <div
+                    class="container-section prisoner-count-section"
+                    v-if="isPrisonSelected"
+                >
                     <div class="section-header">
                         <label class="section-label"
                             >Anzahl der Inhaftierte:</label
@@ -1080,6 +1083,9 @@ useFetchInfo();
 const showMobileInfoOverlay = ref(false);
 const lastActiveField = ref(null);
 
+const isPrisonSelected = ref(false);
+const prisonList = ["Q40357", "Q108047650", "Q277565"];
+
 // Set the active field for help info
 const setActiveField = (field) => {
     activeField.value = field;
@@ -1113,11 +1119,15 @@ const closeMobileInfoOverlay = () => {
 const onGestapoPlaceTypeChange = () => {
     console.log("Gestapo Place Type changed to:", gestapoPlaceTypeValue.value);
 
-    // Force the marker icon to update based on the new place type
-    // This is critical to ensure the marker always reflects the correct type
-
     // If we have a location selector reference, force a refresh
+
     if (locationSelectorRef.value) {
+        if (prisonList.includes(gestapoPlaceTypeValue.value)) {
+            isPrisonSelected.value = true;
+        } else {
+            isPrisonSelected.value = false;
+        }
+
         // Create a small delay to ensure Vue has updated the props
         setTimeout(() => {
             if (locationSelectorRef.value.refreshMarkerIcon) {
