@@ -73,8 +73,8 @@
                                 <strong>Quellenangaben:</strong>
                                 <p>
                                     Informationen zu deinen Quellen (In Falle
-                                    von Büchern: Autor, Titel, Jahr, Seite etc.)
-                                    (In Falle von Archivmaterial: Inventarnummer
+                                    von Büchern: Autor, Titel, Jahr, Seite etc.
+                                    Im Falle von Archivmaterial: Inventarnummer
                                     etc).
                                 </p>
                             </li>
