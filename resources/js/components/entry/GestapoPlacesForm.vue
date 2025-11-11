@@ -410,7 +410,7 @@
                     </div>
                     <MultipleWikidataSelector
                         v-model="predecessorOrgValue"
-                        label="Vorgängerorganisation"
+                        label="Vorgängerorganisation (zeitlich)"
                         dialog-title="Vorgängerorganisation auswählen"
                         search-label="Nach Organisationen suchen..."
                         :search-results="predecessorOrgSearchResultsValue"
@@ -440,7 +440,7 @@
                     </div>
                     <MultipleWikidataSelector
                         v-model="successorOrgValue"
-                        label="Nachfolgeorganisation"
+                        label="Nachfolgeorganisation (zeitlich)"
                         dialog-title="Nachfolgeorganisation auswählen"
                         search-label="Nach Organisationen suchen..."
                         :search-results="successorOrgSearchResultsValue"
@@ -656,26 +656,26 @@ const isMobileView = ref(false);
 const gestapoPlaceTypeValue = ref(null);
 const gestapoPlaceTypes = [
     {
-        label: "Arbeitserziehungslager",
-        value: "Q277565",
-        iconId: "laborEducationCamps",
+        label: "Staatspolizeileitstelle",
+        value: "Q108047581",
+        iconId: "statePoliceHeadquarters",
     },
+    {
+        label: "Staatspolizeistelle",
+        value: "Q108047567",
+        iconId: "statePoliceOffices",
+    },
+    { label: "Außendienststelle", value: "Q108047541", iconId: "fieldOffices" },
     { label: "Gefängnis", value: "Q40357", iconId: "prisons" },
     {
         label: "Erweitertes Polizeigefängnis",
         value: "Q108047650",
         iconId: "extPolicePrisons",
     },
-    { label: "Außendienststelle", value: "Q108047541", iconId: "fieldOffices" },
     {
-        label: "Staatspolizeistelle",
-        value: "Q108047567",
-        iconId: "statePoliceOffices",
-    },
-    {
-        label: "Staatspolizeileitstelle",
-        value: "Q108047581",
-        iconId: "statePoliceHeadquarters",
+        label: "Arbeitserziehungslager",
+        value: "Q277565",
+        iconId: "laborEducationCamps",
     },
 ];
 
@@ -842,22 +842,12 @@ const getSectionInfoContent = (sectionName) => {
                 <p>Diese Angabe hilft, die organisatorische Struktur und den Wirkungsbereich der Dienststelle zu dokumentieren.</p>`,
 
         predecessorOrg: `<p>Hier kannst du Vorgängerorganisationen der Gestapo-Stelle angeben.</p>
-                <p>Vor Einrichtung der Gestapo existierten oft andere Polizei- oder Sicherheitsdienststellen am gleichen Ort oder mit ähnlicher Funktion, wie z.B.:</p>
-                <ul>
-                 <li>Politische Polizei der Länder</li>
-                 <li>Frühere SS- oder SD-Einrichtungen</li>
-                 <li>Lokale Polizeidienststellen</li>
-                </ul>
+                <p>Als Vorgängerorganisationen gelten Gestapo-Dienststellen, aus denen eine andere Dienststelle organisatorisch hervorging. Zum Beispiel, wenn eine Staatspolizeistelle zur Leitstelle erweitert wurde.</p>
                 <p>Diese Information hilft, die historische Entwicklung der Verfolgungsinstanzen zu dokumentieren.</p>`,
 
         successorOrg: `<p>Hier kannst du Nachfolgeorganisationen der Gestapo-Stelle angeben.</p>
-                <p>Nach 1945 wurden die Gebäude oder Funktionen oft von anderen Institutionen übernommen:</p>
-                <ul>
-                 <li>Alliierte Militärbehörden</li>
-                 <li>Polizeidienststellen der Nachkriegszeit</li>
-                 <li>Andere staatliche Einrichtungen</li>
-                 <li>Gedenkstätten oder Dokumentationszentren</li>
-                </ul>
+                <p>Als Nachfolgeorganisationen gelten Gestapo-Dienststellen, die in direkter organisatorischer Nachfolge einer anderen Gestapostelle standen. Zum Beispiel, wenn eine Staatspolizeistelle zur Staatspolizeileitstelle aufstieg:</p>
+
                 <p>Diese Information hilft, die Nachgeschichte des Ortes und die historische Aufarbeitung zu dokumentieren.</p>`,
 
         image: `<p>Hier kannst du ein passendes Bild zur Gestapo-Stelle hinzufügen.</p>

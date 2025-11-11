@@ -247,7 +247,7 @@ const glossaryItems = {
             Diese Zellen befanden sich in Polizeigefängnissen, aber auch in Justizgefängnissen und Zuchthäusern, die zu
             diesem Zweck von der Justiz zur Verfügung gestellt wurden.`,
             `Unter Gefängnisse werden alle Haftstätten verzeichnet, die von der Gestapo (mit-) genutzt wurden. Es kann
-            sich hierbei um Polizeigefängnisse handeln, aber bspw. auch um einzelne Zellen in Justizgefängnissen
+            sich hierbei um Polizeigefängnisse, aber bspw. auch um einzelne Zellen in Justizgefängnissen
             handeln. Erweiterte Polizeigefängnisse und Arbeitserziehungslager werden als Haftstätten, die der Gestapo
             unterstanden und zur Inhaftierung eine große Anzahl an Gefangenen dienten, gesondert aufgeführt.`,
             `Die Haftbedingungen in den von der Gestapo genutzten Zellen waren brutal. Folterungen mit zum Teil

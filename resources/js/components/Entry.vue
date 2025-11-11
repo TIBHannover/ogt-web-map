@@ -53,13 +53,49 @@
                                                 updateTypeInfo();
                                             "
                                         >
-                                            <div class="type-icon">
-                                                <img
-                                                    src="/images/leaflet/markerIcons/coloredFilledWhite/fieldOffices.svg"
-                                                    alt="Ort des Gestapoterrors"
-                                                    width="48"
-                                                    height="48"
-                                                />
+                                            <div
+                                                class="type-icon type-icon-place"
+                                            >
+                                                <div class="mb-3">
+                                                    <img
+                                                        src="/images/leaflet/markerIcons/coloredFilledWhite/statePoliceHeadquarters.svg"
+                                                        alt="Ort des Gestapoterrors"
+                                                        width="48"
+                                                        height="48"
+                                                    />
+                                                    <img
+                                                        src="/images/leaflet/markerIcons/coloredFilledWhite/statePoliceOffices.svg"
+                                                        alt="Ort des Gestapoterrors"
+                                                        width="48"
+                                                        height="48"
+                                                    />
+                                                    <img
+                                                        src="/images/leaflet/markerIcons/coloredFilledWhite/fieldOffices.svg"
+                                                        alt="Ort des Gestapoterrors"
+                                                        width="48"
+                                                        height="48"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <img
+                                                        src="/images/leaflet/markerIcons/coloredFilledWhite/prisons.svg"
+                                                        alt="Ort des Gestapoterrors"
+                                                        width="48"
+                                                        height="48"
+                                                    />
+                                                    <img
+                                                        src="/images/leaflet/markerIcons/coloredFilledWhite/extPolicePrisons.svg"
+                                                        alt="Ort des Gestapoterrors"
+                                                        width="48"
+                                                        height="48"
+                                                    />
+                                                    <img
+                                                        src="/images/leaflet/markerIcons/coloredFilledWhite/laborEducationCamps.svg"
+                                                        alt="Ort des Gestapoterrors"
+                                                        width="48"
+                                                        height="48"
+                                                    />
+                                                </div>
                                             </div>
                                             <div class="type-data">
                                                 <div class="type-label">
@@ -3272,10 +3308,17 @@ onUnmounted(() => {
     justify-content: center;
     height: 60px;
 }
+.type-icon-place {
+    flex-direction: column !important;
+    margin-top: 0 !important;
+}
+.type-icon-place div {
+    margin-top: 0 !important;
+}
 
 .type-icon img {
-    height: 100%;
-    width: auto;
+    height: 48px;
+    width: 48px;
 }
 
 .forms fieldset div.type-label {
