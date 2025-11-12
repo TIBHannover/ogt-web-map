@@ -72,7 +72,7 @@
                                 >
                                 <strong>Quellenangaben:</strong>
                                 <p>
-                                    Informationen zu deinen Quellen (In Falle
+                                    Informationen zu deinen Quellen (Im Falle
                                     von Büchern: Autor, Titel, Jahr, Seite etc.
                                     Im Falle von Archivmaterial: Inventarnummer
                                     etc).
@@ -115,6 +115,19 @@
                                 </p>
                             </li>
                         </ul>
+
+                        <div class="important-note">
+                            <v-icon color="warning" class="mr-2"
+                                >mdi-alert</v-icon
+                            >
+                            <span
+                                ><strong>Wichtig:</strong> Diese Angaben müssen
+                                nicht vollständig sein. Einzelne bekannte
+                                Informationen sind wertvoll und können im
+                                Nachgang noch geändert oder ergänzt
+                                werden.</span
+                            >
+                        </div>
                     </div>
 
                     <div class="process-section">
@@ -170,9 +183,9 @@
                                                 </li>
                                                 <li>
                                                     <b>Gefängnis</b>:
-                                                    Haftanstalten, die während
-                                                    der NS-Zeit für politische
-                                                    Gefangene genutzt wurden.
+                                                    Haftstätte, die von der
+                                                    Gestapo (mit-) genutzt
+                                                    wurde.
                                                 </li>
                                                 <li>
                                                     <b
@@ -203,7 +216,7 @@
                                             Gestapo begangene Verbrechen wie
                                             bspw. der Inhaftierung einzelner
                                             Personen oder Personengruppen, aber
-                                            auch um die Ermordung von Menschen
+                                            auch die Ermordung von Menschen
                                         </li>
                                         <li>
                                             <strong>Person</strong> - Personen,

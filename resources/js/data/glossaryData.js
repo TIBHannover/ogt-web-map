@@ -167,7 +167,7 @@ const glossaryItems = {
         descriptions: [
             `Die konkreten Tätigkeiten der Gestapo werden als Ereignisse dargestellt. Es handelt sich hierbei um von der
             Gestapo begangene Verbrechen wie bspw. der Inhaftierung einzelner Personen oder Personengruppen, aber auch
-            um die Ermordung von Menschen.`,
+            die Ermordung von Menschen.`,
         ],
         sources: [],
     },
@@ -257,6 +257,16 @@ const glossaryItems = {
             `Elisabeth Thalhofer: Entgrenzung der Gewalt. Gestapo-Lager in der Endphase des Dritten Reiches. Paderborn [u.a.] 2010.`,
             `https://www.bundesarchiv.de/zwangsarbeit/haftstaetten/index.php?tab=22`,
         ],
+    },
+    Geschädigte: {
+        aliases: [],
+        id: "geschaedigte",
+        descriptions: [
+            `Als Geschädigte werden alle Personen bezeichnet, die durch das Handeln der Geheimen Staatspolizei (Gestapo) in ihren Rechten, ihrer Freiheit oder ihrer körperlichen und seelischen Unversehrtheit verletzt wurden.`,
+            `Dazu zählen Menschen, die gefoltert und ermordet wurden. Aber auch Maßnahmen wie Überwachung oder Einschüchterung werden als Formen der Schädigung verstanden.`,
+            `Der Begriff Geschädigte wird bewusst gewählt, um die betroffenen Menschen nicht auf eine passive Opferrolle zu reduzieren. Er betont, dass sie Akteur*innen mit eigenen Lebensgeschichten und Handlungsspielräumen, trotz Gewalt und Unterdrückung, waren.`,
+        ],
+        sources: [],
     },
     Gestapa: {
         aliases: [],
@@ -567,6 +577,16 @@ const glossaryItems = {
             öffentliche Sicherheit: Festschrift zum 100. Gebäudejubiläum des Polizeipräsidiums Hannover 1903 - 2003,
             herausgegeben von Hans-Dieter Schmid, Hans-Joachim Heuer, Hans-Dieter Klosa, und Burkhard Lange, 89–119, 2003.`,
         ],
+    },
+    "Täter*In": {
+        aliases: [],
+        id: "taeter",
+        descriptions: [
+            `Als Täter*in werden alle Personen unabhängig von ihrer Position oder Funktion bezeichnet, die in der Geheimen Staatspolizei (Gestapo) tätig waren. Dazu zählen sowohl leitende Gestapobeamte als auch Mitarbeitende auf nachgeordneten Ebenen.`,
+            `Die Einordnung als Täter*in erfolgt aufgrund ihrer Zugehörigkeit zu einer Organisation, die maßgeblich an Verfolgung, Folter und Mord beteiligt war. Sie gilt auch dann, wenn Personen in den Entnazifizierungsverfahren nach 1945 nicht strafrechtlich belangt oder als „entlastet“ eingestuft wurden.`,
+            `Die Bezeichnung verweist auf die Mitverantwortung innerhalb der Gestapo, nicht auf eine strafrechtliche Schuld. Sie macht sichtbar, dass der Terror der Gestapo nur durch das Zusammenspiel vieler Menschen möglich war.`,
+        ],
+        sources: [],
     },
     Tätersprache: {
         aliases: [],

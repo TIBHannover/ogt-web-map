@@ -23,7 +23,7 @@
                 <div class="forms-container">
                     <h2 class="step-title">
                         Du möchtest uns helfen? Hier kannst du neue Einträge für
-                        Gestapo.Terror.Orte alegen.
+                        Gestapo.Terror.Orte anlegen.
                     </h2>
                 </div>
             </v-col>
@@ -110,10 +110,9 @@
                                                         der Gestapo</strong
                                                     >
                                                 </div>
-                                                <div class="type-description">
-                                                    Orte, die mit dem Wirken der
-                                                    Gestapo verbunden waren
-                                                </div>
+                                                <div
+                                                    class="type-description"
+                                                ></div>
                                                 <div
                                                     class="type-radio-container"
                                                 >
@@ -405,10 +404,8 @@
                                             <strong
                                                 >Dienst- und Haftstätten der
                                                 Gestapo</strong
-                                            >
-                                            - Orte, die mit dem Wirken der
-                                            Gestapo verbunden waren. Darunter
-                                            zählen:<br />
+                                            ><br /><br />
+                                            dazu zählen:<br />
                                             <b>Staatspolizeileitstelle</b>:
                                             Regionale Dienstellen der Geheimen
                                             Staatspolizei<br />
@@ -419,9 +416,9 @@
                                             <b>Außendienststelle</b>: Lokale
                                             Zweigstellen einer
                                             Staatspolizeistelle<br />
-                                            <b>Gefängnis</b>: Haftanstalten, die
-                                            während der NS-Zeit für politische
-                                            Gefangene genutzt wurden
+                                            <b>Gefängnis</b>: Haftstätte, die
+                                            von der Gestapo (mit-) genutzt
+                                            wurde.
                                             <br />
                                             <b>Erweitertes Polizeigefängnis</b>:
                                             Von der Gestapo betriebenes Lager
@@ -821,7 +818,7 @@ const defaultInfoText = `
             <b>Außendienststelle</b>: Lokale
             Zweigstellen einer
             Staatspolizeistelle<br />
-            <b>Gefängnis</b>: Haftanstalten, die während der NS-Zeit für politische Gefangene genutzt wurden
+            <b>Gefängnis</b>: Haftstätte, die von der Gestapo (mit-) genutzt wurde.
             <br />
             <b>Erweitertes Polizeigefängnis</b>:
             Von der Gestapo betriebenes Lager
@@ -840,7 +837,7 @@ const defaultInfoText = `
             Verbrechen der Gestapo erinnern
         </li>
         <li>
-            <strong>Ereignis</strong> - Von der Gestapo begangene Verbrechen wie bspw. der Inhaftierung einzelner Personen oder Personengruppen, aber auch um die Ermordung von Menschen.
+            <strong>Ereignis</strong> - Von der Gestapo begangene Verbrechen wie bspw. der Inhaftierung einzelner Personen oder Personengruppen, aber auch die Ermordung von Menschen.
         </li>
         <li>
             <strong>Person</strong> -
@@ -1135,8 +1132,15 @@ const updateTypeInfoContent = () => {
         // Person
         // Custom text for Person type
         let customContent = `
-            <p>Personen, die im Zusammenhang mit der Gestapo standen, etwa als Täter*innen oder als Geschädigte
-</p>
+            <p>Personen, die im Zusammenhang mit der Gestapo standen, etwa als Täter*innen oder als Geschädigte:</p>
+            <p><strong>Geschädigte:</strong><br />
+            Als Geschädigte werden alle Personen bezeichnet, die durch das Handeln der Geheimen Staatspolizei (Gestapo) in ihren Rechten, ihrer Freiheit oder ihrer körperlichen und seelischen Unversehrtheit verletzt wurden.</p>
+            <p>Dazu zählen Menschen, die gefoltert und ermordet wurden. Aber auch Maßnahmen wie Überwachung oder Einschüchterung werden als Formen der Schädigung verstanden.</p>
+            <p>Der Begriff Geschädigte wird bewusst gewählt, um die betroffenen Menschen nicht auf eine passive Opferrolle zu reduzieren. Er betont, dass sie Akteur*innen mit eigenen Lebensgeschichten und Handlungsspielräumen, trotz Gewalt und Unterdrückung, waren.</p>
+            <p><strong>Täter*in:</strong><br />
+            Als Täter*in werden alle Personen unabhängig von ihrer Position oder Funktion bezeichnet, die in der Geheimen Staatspolizei (Gestapo) tätig waren. Dazu zählen sowohl leitende Gestapobeamte als auch Mitarbeitende auf nachgeordneten Ebenen.</p>
+            <p>Die Einordnung als Täter*in erfolgt aufgrund ihrer Zugehörigkeit zu einer Organisation, die maßgeblich an Verfolgung, Folter und Mord beteiligt war. Sie gilt auch dann, wenn Personen in den Entnazifizierungsverfahren nach 1945 nicht strafrechtlich belangt oder als „entlastet“ eingestuft wurden.</p>
+            <p>Die Bezeichnung verweist auf die Mitverantwortung innerhalb der Gestapo, nicht auf eine strafrechtliche Schuld. Sie macht sichtbar, dass der Terror der Gestapo nur durch das Zusammenspiel vieler Menschen möglich war.</p>
         `;
         typeInfoContent.value = customContent.trim();
         return;
@@ -1164,7 +1168,7 @@ const updateTypeInfoContent = () => {
                     <b>Außendienststelle</b>: Lokale
                     Zweigstellen einer
                     Staatspolizeistelle<br />
-                    <b>Gefängnis</b>: Haftanstalten, die während der NS-Zeit für politische Gefangene genutzt wurden
+                    <b>Gefängnis</b>: Haftstätte, die von der Gestapo (mit-) genutzt wurde.
                     <br />
                     <b>Erweitertes Polizeigefängnis</b>:
                     Von der Gestapo betriebenes Lager

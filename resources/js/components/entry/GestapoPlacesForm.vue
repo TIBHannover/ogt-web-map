@@ -404,7 +404,7 @@
                 <div class="container-section predecessor-org-section">
                     <div class="section-header">
                         <label class="section-label"
-                            >Vorgängerorganisation:</label
+                            >Vorgängerorganisation (zeitlich):</label
                         >
                         <button
                             type="button"
@@ -434,7 +434,7 @@
                 <div class="container-section successor-org-section">
                     <div class="section-header">
                         <label class="section-label"
-                            >Nachfolgeorganisation:</label
+                            >Nachfolgeorganisation (zeitlich):</label
                         >
                         <button
                             type="button"
@@ -796,7 +796,6 @@ const getSectionInfoContent = (sectionName) => {
                 <p>Bei ungenauen Zahlenangaben kannst du in der Select-Box einen Qualifikator wie "ungefähr" setzen.</p>`,
 
         gestapoPlaceType: `<p>Hier wählst du die Art der Gestapo-Stelle aus.</p>
-               <p>Die Gestapo (Geheime Staatspolizei) hatte verschiedene Arten von Dienststellen:</p>
                 <ul>
                 <li><b>Staatspolizeileitstelle</b>:
                     Regionale Dienstellen der Geheimen
@@ -809,14 +808,14 @@ const getSectionInfoContent = (sectionName) => {
                 <li><b>Außendienststelle</b>: Lokale
                     Zweigstellen einer
                     Staatspolizeistelle</li>
-                <li><b>Gefängnis</b>: Haftanstalten, die während der NS-Zeit für politische Gefangene genutzt wurden.</li>
+                <li><b>Gefängnis</b>: Haftstätte, die von der Gestapo (mit-) genutzt wurde.</li>
                 <li><b>Erweitertes Polizeigefängnis</b>:
                 Von der Gestapo betriebenes Lager zur kurzfristigen Inhaftierung</li>
                 <li><b>Arbeitserziehungslager</b>:
                 Von der Gestapo eingerichtetes Lager, um Zwangsarbeiter*innen und andere als „arbeitsscheu“ geltende Personen zu bestrafen.
 </li>
                 </ul>
-               <p>Unter der Auswahl gibt es für jeden Art der Gestapo-Stelle noch einen langen Beschreibungstext zur bessern Erläuterung. Klicke einfach auf den entsprechenden Typ.</p>`,
+               <p>Unter der Auswahl gibt es für jeden Typ noch einen langen Beschreibungstext zum besseren Verständnis. Klicke einfach auf den entsprechenden Typ.</p>`,
 
         location: `<p>Hier wird der genaue Standort der Gestapo-Stelle auf der Karte gewählt.</p>
                      <p><strong>Dieses Feld ist ein Pflichtfeld!</strong></p>
@@ -838,7 +837,7 @@ const getSectionInfoContent = (sectionName) => {
         keyEvent: `<p>Hier kannst du wichtige Ereignisse im Zusammenhang mit dieser Gestapo-Stelle dokumentieren.</p>
                 <p>Relevante Ereignisse könnten sein:</p>
                 <ul>
-                 <li>Verfolgungsmaßnahmen, Verhaftungen oder Ermordungen usw.</li>
+                 <li>Verfolgungsmaßnahmen, Verhaftungen, oder Ermordungen usw.</li>
                 </ul>
                 <p>Diese Ereignisse helfen, die Geschichte und Bedeutung der Einrichtung zu verstehen.</p>`,
 

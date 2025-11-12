@@ -542,9 +542,6 @@ const openingDateQualifierValue = ref(null);
 const addressValue = ref("");
 const websiteValue = ref("");
 
-// Log for debugging
-console.log("MemorialForm initialized with computed properties");
-
 // Form submission state
 const isSubmitting = ref(false);
 
@@ -646,13 +643,13 @@ const getSectionInfoContent = (section) => {
             `;
         case "commemorates":
             return `
-                <p>Geben Sie an, woran dieser Erinnerungsort erinnert. Dies kann ein Ereignis, eine Person, eine Gruppe, ein Ort oder ein anderer historischer Aspekt sein.</p>
+                <p>Gebe an, woran dieser Erinnerungsort erinnert. Dies kann ein Ereignis, eine Person, eine Gruppe, ein Ort oder ein anderer historischer Aspekt sein. Ein Gestapo Zusammenhang muss gegeben sein.</p>
                 <p>Beispiele:</p>
                 <ul>
-                    <li>Holocaust</li>
-                    <li>Novemberpogrome 1938</li>
+                    <li>Gestapo Stelle</li>
+                    <li>Verbrechen der Gestapo</li>
                     <li>Widerstandskämpfer</li>
-                    <li>Zwangsarbeiter</li>
+                    <li>Geschädigte Personen usw.</li>
                 </ul>
                 <p>Diese Information ist <strong>verpflichtend</strong>, da sie den historischen Kontext des Erinnerungsortes definiert.</p>
             `;
@@ -679,8 +676,8 @@ const getSectionInfoContent = (section) => {
             `;
         case "hasUse":
             return `
-                <p>Geben Sie die Leistungen und Angebote des Erinnerungsortes an.</p>
-                <p>Sie können mehrere Angebote auswählen.</p>
+                <p>Gebe die Leistungen und Angebote des Erinnerungsortes an.</p>
+                <p>Du kannst mehrere Angebote auswählen.</p>
                 <p>Beispiele:</p>
                 <ul>
                     <li>Führungen</li>
@@ -735,10 +732,6 @@ const getSectionInfoContent = (section) => {
             return `<p>Wähle eine Kategorie aus, um mehr Informationen zu erhalten.</p>`;
     }
 };
-
-// Note: We don't need to create a custom icon here anymore
-// The LocationSelector now accepts markerIconUrl prop directly
-// We're passing the memorials icon URL directly in the component props
 
 // Form validation rules
 const websiteRules = [
@@ -867,7 +860,6 @@ const onSelectExistingEntity = (entity) => {
 };
 
 const onSubmit = () => {
-    console.log("MemorialForm: onSubmit triggered");
     // Prevent multiple submissions
     if (isSubmitting.value) {
         console.log("MemorialForm: Already submitting, ignoring click");
