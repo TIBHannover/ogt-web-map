@@ -3347,6 +3347,7 @@ watch(currentStep, (newStep) => {
 
 // Lifecycle hooks
 onMounted(() => {
+    setFreeClientWidth();
     window.addEventListener("resize", setFreeClientWidth);
 
     checkScreenSize();

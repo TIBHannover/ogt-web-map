@@ -1,6 +1,6 @@
 <template>
     <v-container id="container" class="mb-110">
-        <v-row>
+        <v-row :style="{ 'padding-left': computedPadding }">
             <v-col>
                 <h1
                     class="font-family-special-elite font-weight-bold hyphens-auto py-4 text-h4 text-md-h3"
@@ -301,7 +301,38 @@
 </template>
 
 <script setup>
-// No additional script needed for this informational page
+import { ref, onMounted, onUnmounted, computed, inject } from "vue";
+const isMobileView = ref(false);
+const isMenuDisplayed = inject("isMenuDisplayed");
+
+const freeClientWidth = ref(document.documentElement.clientWidth);
+
+const setFreeClientWidth = () => {
+    const container = document.getElementById("container");
+    freeClientWidth.value =
+        (document.documentElement.clientWidth - container.clientWidth) / 2;
+};
+
+const checkScreenSize = () => {
+    isMobileView.value = window.innerWidth < 1200;
+};
+
+const computedPadding = computed(() => {
+    return freeClientWidth.value < 75 && !isMenuDisplayed.value
+        ? `${75 - freeClientWidth.value}px`
+        : "0";
+});
+
+onMounted(() => {
+    setFreeClientWidth();
+    window.addEventListener("resize", setFreeClientWidth);
+    window.addEventListener("resize", checkScreenSize);
+});
+
+onUnmounted(() => {
+    window.removeEventListener("resize", setFreeClientWidth);
+    window.removeEventListener("resize", checkScreenSize);
+});
 </script>
 
 <style>
