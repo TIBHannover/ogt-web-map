@@ -789,6 +789,9 @@ export default {
                         console.warn("Places Worker error:", message.error);
                     } else if (message.type === "success") {
                         // Clear existing markers before adding new ones
+                        /*
+                        ** Commented it out because it made the map reload when it should not**
+                        *
                         clearAllPlaceMarkers();
 
                         // Update groupedPlaces with new data
@@ -802,6 +805,7 @@ export default {
                             deriveLocationEmployees();
                         }
                         updateInfoSidebarData();
+                        */
                     }
 
                     worker.terminate();
