@@ -421,9 +421,7 @@
                                             Staatspolizeistelle<br />
                                             <b>Gefängnis</b>: Haftanstalten, die
                                             während der NS-Zeit für politische
-                                            Gefangene genutzt wurden das müsset
-                                            zu: Haftstätte, die von der Gestapo
-                                            (mit-) genutzt wurde.
+                                            Gefangene genutzt wurden
                                             <br />
                                             <b>Erweitertes Polizeigefängnis</b>:
                                             Von der Gestapo betriebenes Lager
@@ -444,10 +442,9 @@
                                         <li>
                                             <strong>Ereignis</strong> - Von der
                                             Gestapo begangene Verbrechen wie
-                                            bspw. die Überwachung, Verfolgung,
-                                            Inhaftierung und/oder Ermordung
-                                            einzelner Personen oder
-                                            Personengruppen.
+                                            bspw. der Inhaftierung einzelner
+                                            Personen oder Personengruppen, aber
+                                            auch um die Ermordung von Menschen.
                                         </li>
                                         <li>
                                             <strong>Person</strong> -
@@ -824,11 +821,7 @@ const defaultInfoText = `
             <b>Außendienststelle</b>: Lokale
             Zweigstellen einer
             Staatspolizeistelle<br />
-            <b>Gefängnis</b>: Haftanstalten, die
-            während der NS-Zeit für politische
-            Gefangene genutzt wurden das müsset
-            zu: Haftstätte, die von der Gestapo
-            (mit-) genutzt wurde.
+            <b>Gefängnis</b>: Haftanstalten, die während der NS-Zeit für politische Gefangene genutzt wurden
             <br />
             <b>Erweitertes Polizeigefängnis</b>:
             Von der Gestapo betriebenes Lager
@@ -847,12 +840,7 @@ const defaultInfoText = `
             Verbrechen der Gestapo erinnern
         </li>
         <li>
-            <strong>Ereignis</strong> - Von der
-            Gestapo begangene Verbrechen wie
-            bspw. die Überwachung, Verfolgung,
-            Inhaftierung und/oder Ermordung
-            einzelner Personen oder
-            Personengruppen.
+            <strong>Ereignis</strong> - Von der Gestapo begangene Verbrechen wie bspw. der Inhaftierung einzelner Personen oder Personengruppen, aber auch um die Ermordung von Menschen.
         </li>
         <li>
             <strong>Person</strong> -
@@ -1057,11 +1045,7 @@ const showTypeInfoPopup = (typeValue) => {
                     <b>Außendienststelle</b>: Lokale
                     Zweigstellen einer
                     Staatspolizeistelle<br />
-                    <b>Gefängnis</b>: Haftanstalten, die
-                    während der NS-Zeit für politische
-                    Gefangene genutzt wurden das müsset
-                    zu: Haftstätte, die von der Gestapo
-                    (mit-) genutzt wurde.
+                    <b>Gefängnis</b>: Haftanstalten, die während der NS-Zeit für politische Gefangene genutzt wurden
                     <br />
                     <b>Erweitertes Polizeigefängnis</b>:
                     Von der Gestapo betriebenes Lager
@@ -1180,11 +1164,7 @@ const updateTypeInfoContent = () => {
                     <b>Außendienststelle</b>: Lokale
                     Zweigstellen einer
                     Staatspolizeistelle<br />
-                    <b>Gefängnis</b>: Haftanstalten, die
-                    während der NS-Zeit für politische
-                    Gefangene genutzt wurden das müsset
-                    zu: Haftstätte, die von der Gestapo
-                    (mit-) genutzt wurde.
+                    <b>Gefängnis</b>: Haftanstalten, die während der NS-Zeit für politische Gefangene genutzt wurden
                     <br />
                     <b>Erweitertes Polizeigefängnis</b>:
                     Von der Gestapo betriebenes Lager

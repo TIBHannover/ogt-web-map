@@ -172,10 +172,7 @@
                                                     <b>Gefängnis</b>:
                                                     Haftanstalten, die während
                                                     der NS-Zeit für politische
-                                                    Gefangene genutzt wurden das
-                                                    müsset zu: Haftstätte, die
-                                                    von der Gestapo (mit-)
-                                                    genutzt wurde.
+                                                    Gefangene genutzt wurden.
                                                 </li>
                                                 <li>
                                                     <b

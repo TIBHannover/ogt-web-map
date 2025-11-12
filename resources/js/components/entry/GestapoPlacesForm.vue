@@ -809,12 +809,7 @@ const getSectionInfoContent = (sectionName) => {
                 <li><b>Außendienststelle</b>: Lokale
                     Zweigstellen einer
                     Staatspolizeistelle</li>
-                <li><b>Gefängnis</b>: Haftanstalten, die während
-                der NS-Zeit für politische
-                Gefangene genutzt wurden das
-                müsset zu: Haftstätte, die
-                von der Gestapo (mit-)
-                genutzt wurde.</li>
+                <li><b>Gefängnis</b>: Haftanstalten, die während der NS-Zeit für politische Gefangene genutzt wurden.</li>
                 <li><b>Erweitertes Polizeigefängnis</b>:
                 Von der Gestapo betriebenes Lager zur kurzfristigen Inhaftierung</li>
                 <li><b>Arbeitserziehungslager</b>:
