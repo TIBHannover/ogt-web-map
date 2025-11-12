@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { ref } from "vue";
 
 /**
  * Composable for fetching info content for form fields and sections
@@ -16,76 +16,98 @@ export function useFetchInfo() {
         // Field information mapping
         const fieldInfo = {
             gestapoPlaceType: {
-                title: 'Ort des Gestapoterrors',
-                content: 'Wählen Sie den Typ des Ortes des Gestapoterrors aus. Die Auswahl bestimmt, welche weiteren Felder angezeigt werden.'
+                title: "Ort des Gestapoterrors",
+                content:
+                    "Wählen Sie den Typ des Ortes des Gestapoterrors aus. Die Auswahl bestimmt, welche weiteren Felder angezeigt werden.",
             },
             title: {
-                title: 'Titel des Eintrags',
-                content: 'Geben Sie einen aussagekräftigen Titel für den Ort des Gestapoterrors ein. Dieser wird in Wikidata als Bezeichner verwendet.'
+                title: "Titel des Eintrags",
+                content:
+                    "Geben Sie einen aussagekräftigen Titel für den Ort des Gestapoterrors ein. Dieser wird in Wikidata als Bezeichner verwendet.",
             },
             description: {
-                title: 'Kurzbeschreibung',
-                content: 'Kurze Beschreibung des Gestapoterrors-Ortes. Diese wird in Wikidata als Kurzbeschreibung verwendet.'
+                title: "Kurzbeschreibung",
+                content:
+                    "Kurze Beschreibung des Gestapoterrors-Ortes. Diese wird in Wikidata als Kurzbeschreibung verwendet.",
             },
             foundingDate: {
-                title: 'Datum der Gründung/Erbauung',
-                content: 'Das Datum, an dem der Ort des Gestapoterrors gegründet oder erbaut wurde (P571 in Wikidata).'
+                title: "Datum der Gründung/Erbauung",
+                content:
+                    "Das Datum, an dem der Ort des Gestapoterrors gegründet oder erbaut wurde (P571 in Wikidata).",
             },
             dissolutionDate: {
-                title: 'Auflösungsdatum',
-                content: 'Das Datum, an dem der Ort des Gestapoterrors aufgelöst oder geschlossen wurde (P576 in Wikidata).'
+                title: "Auflösungsdatum",
+                content:
+                    "Das Datum, an dem der Ort des Gestapoterrors aufgelöst oder geschlossen wurde (P576 in Wikidata).",
             },
             location: {
-                title: 'Lage',
-                content: 'Die geografischen Koordinaten des Ortes des Gestapoterrors (P625 in Wikidata).'
+                title: "Lage",
+                content:
+                    "Die geografischen Koordinaten des Ortes des Gestapoterrors (P625 in Wikidata).",
             },
             address: {
-                title: 'Adresse',
-                content: 'Die Adresse des Ortes des Gestapoterrors (P6375 in Wikidata).'
+                title: "Adresse",
+                content:
+                    "Die Adresse des Ortes des Gestapoterrors (P6375 in Wikidata).",
             },
             keyEvent: {
-                title: 'Schlüsselereignis',
-                content: 'Bedeutende Ereignisse, die mit diesem Ort verbunden sind (P793 in Wikidata).'
+                title: "Schlüsselereignis",
+                content:
+                    "Bedeutende Ereignisse, die mit diesem Ort verbunden sind (P793 in Wikidata).",
             },
             director: {
-                title: 'Leiter',
-                content: 'Die Person, die den Ort des Gestapoterrors geleitet hat (P1037 in Wikidata).'
+                title: "Leitung",
+                content:
+                    "Die Person, die den Ort des Gestapoterrors geleitet hat (P1037 in Wikidata).",
             },
             employees: {
-                title: 'Beschäftigte',
-                content: 'Die Anzahl der Personen, die an diesem Ort beschäftigt waren (P1128 in Wikidata).'
+                title: "Mitarbeitende",
+                content:
+                    "Die Anzahl der Personen, die an diesem Ort beschäftigt waren (P1128 in Wikidata).",
             },
             prisonerCount: {
-                title: 'Häftlingszahl',
-                content: 'Die Anzahl der Häftlinge, die an diesem Ort inhaftiert waren (P5630 in Wikidata).'
+                title: "Häftlingszahl",
+                content:
+                    "Die Anzahl der Häftlinge, die an diesem Ort inhaftiert waren (P5630 in Wikidata).",
             },
             parentOrg: {
-                title: 'Übergeordnete Organisation',
-                content: 'Die Organisation, der dieser Ort des Gestapoterrors untergeordnet war (P749 in Wikidata).'
+                title: "Übergeordnete Organisation",
+                content:
+                    "Die Organisation, der dieser Ort des Gestapoterrors untergeordnet war (P749 in Wikidata).",
             },
             childOrg: {
-                title: 'Nachgeordnete Organisation',
-                content: 'Organisationen, die diesem Ort des Gestapoterrors untergeordnet waren (P355 in Wikidata).'
+                title: "Nachgeordnete Organisation",
+                content:
+                    "Organisationen, die diesem Ort des Gestapoterrors untergeordnet waren (P355 in Wikidata).",
             },
             predecessorOrg: {
-                title: 'Vorgängerorganisation',
-                content: 'Die Organisation, die diesem Ort des Gestapoterrors vorausging (P1365 in Wikidata).'
+                title: "Vorgängerorganisation",
+                content:
+                    "Die Organisation, die diesem Ort des Gestapoterrors vorausging (P1365 in Wikidata).",
             },
             successorOrg: {
-                title: 'Nachfolgeorganisation',
-                content: 'Die Organisation, die diesem Ort des Gestapoterrors nachfolgte (P1366 in Wikidata).'
+                title: "Nachfolgeorganisation",
+                content:
+                    "Die Organisation, die diesem Ort des Gestapoterrors nachfolgte (P1366 in Wikidata).",
             },
             image: {
-                title: 'Bild',
-                content: 'Ein Bild des Ortes des Gestapoterrors (P18 in Wikidata). Dieses Bild muss unter einer freien Lizenz stehen und kann von Wikimedia Commons hochgeladen werden.'
+                title: "Bild",
+                content:
+                    "Ein Bild des Ortes des Gestapoterrors (P18 in Wikidata). Dieses Bild muss unter einer freien Lizenz stehen und kann von Wikimedia Commons hochgeladen werden.",
             },
             sources: {
-                title: 'Quellen',
-                content: 'Quellen, die die Informationen zu diesem Ort des Gestapoterrors belegen.'
-            }
+                title: "Quellen",
+                content:
+                    "Quellen, die die Informationen zu diesem Ort des Gestapoterrors belegen.",
+            },
         };
 
-        return fieldInfo[fieldId] || { title: 'Information', content: 'Keine Information verfügbar.' };
+        return (
+            fieldInfo[fieldId] || {
+                title: "Information",
+                content: "Keine Information verfügbar.",
+            }
+        );
     };
 
     /**
@@ -98,7 +120,7 @@ export function useFetchInfo() {
         // Section information mapping
         const sectionInfo = {
             gestapoPlaceType: {
-                title: 'Ort des Gestapoterrors',
+                title: "Ort des Gestapoterrors",
                 content: `
                     <p>Wählen Sie den spezifischen Typ des Ortes des Gestapoterrors aus der Liste aus.</p>
                     <ul>
@@ -109,10 +131,10 @@ export function useFetchInfo() {
                         <li><strong>Staatspolizeistelle (Q108047567)</strong>: Eine regionale Dienststelle der Gestapo.</li>
                         <li><strong>Staatspolizeileitstelle (Q108047581)</strong>: Eine übergeordnete Leitstelle der Gestapo.</li>
                     </ul>
-                `
+                `,
             },
             baseInfo: {
-                title: 'Grundlegende Informationen',
+                title: "Grundlegende Informationen",
                 content: `
                     <p>Geben Sie hier die grundlegenden Informationen zum Ort des Gestapoterrors ein:</p>
                     <ul>
@@ -120,18 +142,18 @@ export function useFetchInfo() {
                         <li><strong>Kurzbeschreibung</strong>: Eine kurze Zusammenfassung (1-2 Sätze)</li>
                     </ul>
                     <p>Diese Informationen werden in Wikidata als Bezeichner und Kurzbeschreibung verwendet.</p>
-                `
+                `,
             },
             location: {
-                title: 'Lage',
+                title: "Lage",
                 content: `
                     <p>Wählen Sie die genaue geografische Lage des Ortes auf der Karte aus (P625 in Wikidata).</p>
                     <p>Sie können nach einem Ort suchen oder direkt auf der Karte klicken, um die Koordinaten festzulegen.</p>
                     <p><strong>Hinweis</strong>: Die Lageangabe ist ein Pflichtfeld, da Orte des Gestapoterrors stets geografisch verortet werden müssen.</p>
-                `
+                `,
             },
             timePeriod: {
-                title: 'Zeitraum',
+                title: "Zeitraum",
                 content: `
                     <p>Geben Sie Informationen zum zeitlichen Bestehen des Ortes an:</p>
                     <ul>
@@ -139,46 +161,46 @@ export function useFetchInfo() {
                         <li><strong>Auflösungsdatum (P576)</strong>: Wann wurde der Ort aufgelöst oder geschlossen?</li>
                     </ul>
                     <p>Für beide Datumsangaben können Sie verschiedene Genauigkeitsstufen angeben (Tag, Monat, Jahr).</p>
-                `
+                `,
             },
             address: {
-                title: 'Adresse',
+                title: "Adresse",
                 content: `
                     <p>Die Adresse des Ortes des Gestapoterrors (P6375 in Wikidata).</p>
                     <p>Geben Sie die historische Adresse ein, sofern bekannt. Die Adresse kann auch die heutige Adresse sein, wenn sich die Straßenbezeichnung geändert hat.</p>
-                `
+                `,
             },
             keyEvent: {
-                title: 'Schlüsselereignis',
+                title: "Schlüsselereignis",
                 content: `
                     <p>Bedeutende Ereignisse, die mit diesem Ort verbunden sind (P793 in Wikidata).</p>
                     <p>Suchen Sie nach bekannten Ereignissen, die mit diesem Ort in Verbindung stehen, z.B. wichtige Verhaftungen, Widerstandsaktionen, etc.</p>
-                `
+                `,
             },
             director: {
-                title: 'Leiter',
+                title: "Leitung",
                 content: `
                     <p>Die Person, die den Ort des Gestapoterrors geleitet hat (P1037 in Wikidata).</p>
                     <p>Suchen Sie nach dem Namen des Leiters/der Leiterin. Wenn mehrere Personen den Ort im Laufe der Zeit geleitet haben, können Sie mehrere Einträge hinzufügen.</p>
-                `
+                `,
             },
             employees: {
-                title: 'Beschäftigte',
+                title: "Mitarbeitende",
                 content: `
                     <p>Die Anzahl der Personen, die an diesem Ort beschäftigt waren (P1128 in Wikidata).</p>
                     <p>Geben Sie eine Schätzung oder genaue Anzahl ein, sofern bekannt.</p>
-                `
+                `,
             },
             prisonerCount: {
-                title: 'Häftlingszahl',
+                title: "Häftlingszahl",
                 content: `
                     <p>Die Anzahl der Häftlinge, die an diesem Ort inhaftiert waren (P5630 in Wikidata).</p>
                     <p>Geben Sie eine Schätzung oder genaue Anzahl ein, sofern bekannt.</p>
                     <p>Sie können auch zusätzliche Informationen zur Erhebung dieser Zahl angeben (Nachweisumstände, P1480).</p>
-                `
+                `,
             },
             organizations: {
-                title: 'Organisatorische Beziehungen',
+                title: "Organisatorische Beziehungen",
                 content: `
                     <p>Informationen zu den organisatorischen Beziehungen dieses Ortes:</p>
                     <ul>
@@ -187,18 +209,18 @@ export function useFetchInfo() {
                         <li><strong>Vorgängerorganisation (P1365)</strong>: Die Organisation, die diesem Ort vorausging</li>
                         <li><strong>Nachfolgeorganisation (P1366)</strong>: Die Organisation, die diesem Ort nachfolgte</li>
                     </ul>
-                `
+                `,
             },
             image: {
-                title: 'Bild',
+                title: "Bild",
                 content: `
                     <p>Ein Bild des Ortes des Gestapoterrors (P18 in Wikidata).</p>
                     <p>Das Bild sollte unter einer freien Lizenz stehen und kann von Wikimedia Commons hochgeladen werden.</p>
                     <p>Sie können nach bestehenden Bildern suchen oder ein neues Bild hochladen.</p>
-                `
+                `,
             },
             sources: {
-                title: 'Quellen',
+                title: "Quellen",
                 content: `
                     <p>Quellen, die die Informationen zu diesem Ort des Gestapoterrors belegen.</p>
                     <p>Alle Angaben müssen mit Quellen belegt werden. Geben Sie möglichst spezifische und verlässliche Quellen an.</p>
@@ -209,15 +231,20 @@ export function useFetchInfo() {
                         <li>Zeitzeugenberichte</li>
                         <li>Offizielle Dokumente und Berichte</li>
                     </ul>
-                `
-            }
+                `,
+            },
         };
 
-        return sectionInfo[sectionId] || { title: 'Information', content: 'Keine Information verfügbar.' };
+        return (
+            sectionInfo[sectionId] || {
+                title: "Information",
+                content: "Keine Information verfügbar.",
+            }
+        );
     };
 
     return {
         getInfoContent,
-        getSectionInfoContent
+        getSectionInfoContent,
     };
 }

@@ -114,6 +114,34 @@
                     />
                 </div>
 
+                <!-- Leistungen und Angebote (Has Use) -->
+                <div class="container-section has-use-section">
+                    <div class="section-header">
+                        <label class="section-label"
+                            >Leistungen und Angebote:</label
+                        >
+                        <button
+                            type="button"
+                            class="info-icon"
+                            @click="openSectionInfo('hasUse')"
+                        >
+                            <v-icon>mdi-information-variant</v-icon>
+                        </button>
+                    </div>
+                    <MultipleWikidataSelector
+                        v-model="hasUseValue"
+                        label="Leistungen und Angebote"
+                        dialog-title="Leistungen und Angebote auswählen"
+                        search-label="Nach Angeboten suchen..."
+                        :search-results="hasUseSearchResultsValue"
+                        :is-loading="isHasUseSearchLoading"
+                        :search-performed="hasUseSearchPerformed"
+                        endpoint="services"
+                        @search="onSearchHasUse"
+                        @fieldFocus="setActiveField('hasUse')"
+                    />
+                </div>
+
                 <!-- Eröffnungsdatum (Opening Date) -->
                 <TimeSelector
                     ref="timeSelectorRef"
@@ -225,6 +253,12 @@
                         }}
                     </button>
                 </div>
+                <div
+                    class="d-block text-subtitle-2 mt-3"
+                    v-if="!props.isAdminView"
+                >
+                    Mit einem "*" gekennzeichneten Felder sind Pflichtfelder.
+                </div>
             </form>
         </div>
 
@@ -292,6 +326,7 @@ import BaseInfos from "./fields/BaseInfos.vue";
 import ValidationError from "../helpers/ValidationError.vue";
 import LocationSelector from "./fields/LocationSelector.vue";
 import WikidataSelector from "./fields/common/WikidataSelector.vue";
+import MultipleWikidataSelector from "./fields/common/MultipleWikidataSelector.vue";
 import TextField from "./fields/common/TextField.vue";
 import TimeSelector from "./fields/TimeSelector.vue";
 import ImageSelector from "./fields/ImageSelector.vue";
@@ -381,6 +416,7 @@ const emit = defineEmits([
     "handleMapClick",
     "goToStep",
     "submit",
+    "infoButtonClick",
 ]);
 
 // Use computed properties for two-way binding
@@ -495,14 +531,16 @@ const operatorSearchResultsValue = ref([]);
 const isOperatorSearchLoading = ref(false);
 const operatorSearchPerformed = ref(false);
 
+const hasUseValue = ref([]);
+const hasUseSearchResultsValue = ref([]);
+const isHasUseSearchLoading = ref(false);
+const hasUseSearchPerformed = ref(false);
+
 const openingDateValue = ref("");
 const openingDateQualifierValue = ref(null);
 
 const addressValue = ref("");
 const websiteValue = ref("");
-
-// Log for debugging
-console.log("MemorialForm initialized with computed properties");
 
 // Form submission state
 const isSubmitting = ref(false);
@@ -577,6 +615,7 @@ const getInfoTitle = (section) => {
         commemorates: "Erinnert an",
         location: "Standort",
         operator: "Betreiber",
+        hasUse: "Leistungen und Angebote",
         openingDate: "Eröffnungsdatum",
         address: "Adresse",
         website: "Offizielle Website",
@@ -599,18 +638,18 @@ const getSectionInfoContent = (section) => {
                 <p>Die <strong>Kurzbeschreibung</strong> sollte die wichtigsten Informationen zum Erinnerungsort
                 in wenigen Sätzen zusammenfassen.</p>
                 <p>Beispiel:<br>
-                <strong>Titel:</strong> KZ-Gedenkstätte Neuengamme<br>
-                <strong>Beschreibung:</strong> Gedenkstätte auf dem Gelände des ehemaligen Konzentrationslagers Neuengamme in Hamburg.</p>
+                <strong>Titel:</strong> KZ-Gedenkstätte Bergen-Belsen<br>
+                <strong>Beschreibung:</strong> Gedenkstätte auf dem Gelände des ehemaligen Konzentrationslagers Bergen-Belsen in Niedersachsen.</p>
             `;
         case "commemorates":
             return `
-                <p>Geben Sie an, woran dieser Erinnerungsort erinnert. Dies kann ein Ereignis, eine Person, eine Gruppe oder ein anderer historischer Aspekt sein.</p>
+                <p>Gebe an, woran dieser Erinnerungsort erinnert. Dies kann ein Ereignis, eine Person, eine Gruppe, ein Ort oder ein anderer historischer Aspekt sein. Ein Gestapo Zusammenhang muss gegeben sein.</p>
                 <p>Beispiele:</p>
                 <ul>
-                    <li>Holocaust</li>
-                    <li>Novemberpogrome 1938</li>
+                    <li>Gestapo Stelle</li>
+                    <li>Verbrechen der Gestapo</li>
                     <li>Widerstandskämpfer</li>
-                    <li>Zwangsarbeiter</li>
+                    <li>Geschädigte Personen usw.</li>
                 </ul>
                 <p>Diese Information ist <strong>verpflichtend</strong>, da sie den historischen Kontext des Erinnerungsortes definiert.</p>
             `;
@@ -634,6 +673,20 @@ const getSectionInfoContent = (section) => {
                     <li>Stadt oder Gemeinde</li>
                 </ul>
                 <p>Diese Information ist optional, hilft aber bei der Vernetzung der Daten.</p>
+            `;
+        case "hasUse":
+            return `
+                <p>Gebe die Leistungen und Angebote des Erinnerungsortes an.</p>
+                <p>Du kannst mehrere Angebote auswählen.</p>
+                <p>Beispiele:</p>
+                <ul>
+                    <li>Führungen</li>
+                    <li>Ausstellungen</li>
+                    <li>Bildungsangebote</li>
+                    <li>Workshops</li>
+                    <li>Archiv</li>
+                </ul>
+                <p>Diese Information ist optional, hilft aber bei der Kategorisierung der Angebote des Erinnerungsortes.</p>
             `;
         case "openingDate":
             return `
@@ -680,10 +733,6 @@ const getSectionInfoContent = (section) => {
     }
 };
 
-// Note: We don't need to create a custom icon here anymore
-// The LocationSelector now accepts markerIconUrl prop directly
-// We're passing the memorials icon URL directly in the component props
-
 // Form validation rules
 const websiteRules = [
     (value) => {
@@ -717,6 +766,7 @@ const onSearchCommemorates = async (query) => {
             params: {
                 query: query,
                 type: "commemorates",
+                language: "de",
             },
         });
 
@@ -742,6 +792,7 @@ const onSearchOperator = async (query) => {
             params: {
                 query: query,
                 type: "organizations",
+                language: "de",
             },
         });
 
@@ -752,6 +803,36 @@ const onSearchOperator = async (query) => {
         console.error("Error searching for operators:", error);
     } finally {
         isOperatorSearchLoading.value = false;
+    }
+};
+
+const onSearchHasUse = async (query) => {
+    if (!query || query.trim() === "") return;
+
+    isHasUseSearchLoading.value = true;
+    hasUseSearchPerformed.value = true;
+    hasUseSearchResultsValue.value = [];
+
+    try {
+        const response = await axios.get("/api/wikidata/search", {
+            params: {
+                query: query,
+                type: "services",
+                endpoint: "services",
+                language: "de",
+            },
+        });
+        hasUseSearchResultsValue.value = response.data;
+    } catch (error) {
+        console.error("Error searching for services:", error);
+        hasUseSearchResultsValue.value = [
+            {
+                error: true,
+                message: "Fehler bei der Suche nach Angeboten.",
+            },
+        ];
+    } finally {
+        isHasUseSearchLoading.value = false;
     }
 };
 
@@ -779,7 +860,6 @@ const onSelectExistingEntity = (entity) => {
 };
 
 const onSubmit = () => {
-    console.log("MemorialForm: onSubmit triggered");
     // Prevent multiple submissions
     if (isSubmitting.value) {
         console.log("MemorialForm: Already submitting, ignoring click");
@@ -868,39 +948,21 @@ const validateForm = () => {
     // Only show validation errors when form is being submitted
     showValidationErrors.value = true;
 
-    console.log("MemorialForm: Checking component refs:", {
-        baseInfosRef: !!baseInfosRef.value,
-        sourcesFieldRef: !!sourcesFieldRef.value,
-        locationSelectorRef: !!locationSelectorRef.value,
-    });
-
     // Call validate methods on child components
     const baseInfoValid = baseInfosRef.value
         ? baseInfosRef.value.validate()
         : true;
-    console.log("MemorialForm: baseInfoValid:", baseInfoValid);
 
     const sourcesValid = sourcesFieldRef.value
         ? sourcesFieldRef.value.validate()
         : true;
-    console.log("MemorialForm: sourcesValid:", sourcesValid);
 
     const locationValid = locationSelectorRef.value
         ? locationSelectorRef.value.validate()
         : true;
-    console.log("MemorialForm: locationValid:", locationValid);
 
     // Direct validation for specific fields
     const commemoratesValid = !!commemoratesValue.value;
-    console.log(
-        "MemorialForm: commemoratesValid:",
-        commemoratesValid,
-        "value:",
-        commemoratesValue.value,
-    );
-
-    // Note: Opening date (isTimeValid) is optional for memorials
-    // so we don't include it in the validation check
 
     const isValid =
         baseInfoValid && sourcesValid && locationValid && commemoratesValid;
@@ -951,6 +1013,7 @@ const getData = () => {
         // Memorial-specific fields
         commemorates: commemoratesValue.value, // P547
         operator: operatorValue.value, // P137
+        has_use: hasUseValue.value, // P366
         opening_date: openingDateValue.value, // P1619
         opening_date_qualifier: openingDateQualifierValue.value,
         address: addressValue.value, // P6375

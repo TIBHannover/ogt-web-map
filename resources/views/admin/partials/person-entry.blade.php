@@ -13,7 +13,7 @@ $badgeClass = $type === 'perpetrator' ? 'danger' : 'info';
 $typeLabel = $type === 'perpetrator' ? 'Täter*In' : 'Geschädigter';
 
 // Wikidata-Felder, die als Q-Nummern dargestellt werden müssen
-$wikidataFields = ['gender', 'place_of_birth', 'place_of_death', 'place_of_detention', 'place_of_residence', 'nationality', 'occupation', 'employer', 'birthName'];
+$wikidataFields = ['gender', 'place_of_birth', 'place_of_death', 'place_of_detention', 'place_of_residence', 'nationality', 'occupation', 'employer', 'birthName', 'key_event_person'];
 
 // Debug-Hilfsfunktion
 $debug = false; // Auf true setzen, um Debug-Informationen anzuzeigen
@@ -306,3 +306,8 @@ $formatWikidataValue = function($value) use ($debug) {
         {{ $person }}
     @endif
 </div>
+
+<!-- Quellenangaben -->
+@if(isset($request->sources) && is_array($request->sources) && count($request->sources) > 0)
+    @include('admin.partials.sources-detail')
+@endif

@@ -88,7 +88,7 @@
             @input="handleDescriptionInput"
             name="description"
             maxlength="250"
-            placeholder="z.B. vom NS-Regime gelenkte Gewaltmaßnahmen gegen Juden in Osnabrück."
+            placeholder="z.B. Regionale Dienststelle der Gestapo in Hannover, verantwortlich für politische Verfolgung in mittleren und südlichen Teilen Niedersachsens."
             @focus="$emit('fieldFocus', 'title')"
         ></textarea>
 
@@ -240,7 +240,6 @@ const isDescriptionValid = computed(() => {
 
 // Validation function
 const validateBaseInfos = () => {
-    console.log("BaseInfos: validateBaseInfos called with title:", props.title);
     return isTitleValid.value && isDescriptionValid.value;
 };
 

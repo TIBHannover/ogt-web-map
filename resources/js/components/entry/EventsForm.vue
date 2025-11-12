@@ -206,8 +206,11 @@
                         Eintrag einreichen
                     </button>
                 </div>
-                <div v-if="!props.isAdminView" class="required-fields-note">
-                    * Pflichtfelder müssen ausgefüllt werden
+                <div
+                    class="d-block text-subtitle-2 mt-3"
+                    v-if="!props.isAdminView"
+                >
+                    Mit einem "*" gekennzeichneten Felder sind Pflichtfelder.
                 </div>
                 <div v-if="errorValue" class="bg-error">{{ errorValue }}</div>
             </form>

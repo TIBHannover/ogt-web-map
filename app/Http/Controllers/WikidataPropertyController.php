@@ -207,6 +207,7 @@ class WikidataPropertyController extends Controller
             "FirstName" => "Vorname",
             "LastName" => "Nachname",
             "birthName" => "Geburtsname",
+            "key_event_person" => "Schlüsselereignis",
             // Weitere Übersetzungen hier hinzufügen
         ];
 

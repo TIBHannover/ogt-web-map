@@ -24,6 +24,7 @@ class Person extends BaseEntity
     protected $role;
     protected $birthName;
     protected $employer;
+    protected $keyEventPerson;
 
     /**
      * Constructor
@@ -90,6 +91,10 @@ class Person extends BaseEntity
                 ? json_encode($data["employer"])
                 : "Not set",
             "has_employer" => isset($data["employer"]),
+            "key_event_person" => isset($data["key_event_person"])
+                ? json_encode($data["key_event_person"])
+                : "Not set",
+            "has_key_event_person" => isset($data["key_event_person"]),
             "data_keys" => array_keys($data),
             "all_data" => $data,
         ]);
@@ -504,6 +509,32 @@ class Person extends BaseEntity
                     "event_id" => $eventId,
                 ]);
             }
+        }
+
+        // Set key events for person
+        if (!empty($data["key_event_person"])) {
+            $keyEvents = $data["key_event_person"];
+
+            // Handle different formats (string, array of strings, array of objects)
+            if (is_string($keyEvents)) {
+                // Single string value
+                $keyEvents = [$keyEvents];
+            } elseif (is_array($keyEvents) && !empty($keyEvents)) {
+                // Convert array of objects to array of strings if needed
+                foreach ($keyEvents as $i => $event) {
+                    if (is_array($event) && isset($event["id"])) {
+                        $keyEvents[$i] = $event["id"];
+                    }
+                }
+            }
+
+            $person->setKeyEventPerson($keyEvents);
+            Log::info("Added key event to person", [
+                "person_name" => $person->getName(),
+                "key_event_person" => json_encode($keyEvents),
+                "key_event_format" => gettype($data["key_event_person"]),
+                "processed_format" => gettype($keyEvents),
+            ]);
         }
 
         return $person;
@@ -1177,5 +1208,79 @@ class Person extends BaseEntity
         }
 
         return false;
+    }
+
+    /**
+     * Set key events related to this person
+     *
+     * @param array|string $keyEventIds The key event IDs to set
+     * @return void
+     */
+    public function setKeyEventPerson($keyEventIds): void
+    {
+        $this->keyEventPerson = $keyEventIds;
+
+        // Handle both single ID and array of IDs
+        // Ensure we have an array of key events
+        $keyEventIdArray = [];
+
+        // Handle different input formats
+        if (is_array($keyEventIds)) {
+            foreach ($keyEventIds as $item) {
+                if (is_string($item) && !empty($item)) {
+                    $keyEventIdArray[] = $item;
+                } elseif (
+                    is_array($item) &&
+                    isset($item["id"]) &&
+                    !empty($item["id"])
+                ) {
+                    $keyEventIdArray[] = $item["id"];
+                }
+            }
+        } elseif (is_string($keyEventIds) && !empty($keyEventIds)) {
+            $keyEventIdArray = [$keyEventIds];
+        }
+
+        // Log the processing for debugging
+        Log::info("Processing key event person array", [
+            "input" => json_encode($keyEventIds),
+            "processed" => json_encode($keyEventIdArray),
+            "count" => count($keyEventIdArray),
+        ]);
+
+        // Get the property ID for key events
+        $keyEventProperty = $this->mappingProvider->getPropertyId(
+            "SIGNIFICANT_EVENT",
+        );
+
+        // Initialize the array if it doesn't exist
+        if (!isset($this->data["claims"][$keyEventProperty])) {
+            $this->data["claims"][$keyEventProperty] = [];
+        }
+
+        foreach ($keyEventIdArray as $keyEventId) {
+            // Skip if the ID is empty or not a valid Wikidata Q identifier
+            if (empty($keyEventId) || substr($keyEventId, 0, 1) !== "Q") {
+                continue;
+            }
+
+            // Add the key event claim
+            $this->data["claims"][$keyEventProperty][] = [
+                "mainsnak" => [
+                    "snaktype" => "value",
+                    "property" => $keyEventProperty,
+                    "datavalue" => [
+                        "value" => [
+                            "entity-type" => "item",
+                            "id" => $keyEventId,
+                            "numeric-id" => intval(substr($keyEventId, 1)),
+                        ],
+                        "type" => "wikibase-entityid",
+                    ],
+                ],
+                "type" => "statement",
+                "rank" => "normal",
+            ];
+        }
     }
 }
