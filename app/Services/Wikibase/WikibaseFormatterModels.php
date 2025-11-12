@@ -946,6 +946,8 @@ class WikibaseFormatterModels
             "place_of_detention" => $entity["place_of_detention"] ?? [],
             "place_of_residence" => $entity["place_of_residence"] ?? null,
             "birthName" => $entity["birthName"] ?? null,
+            "employer" => $entity["employer"] ?? null,
+            "key_event_person" => $entity["key_event_person"] ?? [],
             "role" => $role,
             "_add_role_claim" => true,
             "relationship" => $role,

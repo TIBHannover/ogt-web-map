@@ -27,6 +27,7 @@
                             clearable
                             :loading="isLoading"
                             class="person-overlay-search-field"
+                            autofocus
                         ></v-text-field>
                         <v-btn
                             color="primary"
@@ -102,12 +103,7 @@
                                 <button
                                     v-if="result.id.startsWith('Q')"
                                     class="open-wikidata-button"
-                                    @click.stop="
-                                        window.open(
-                                            `https://www.wikidata.org/wiki/${result.id}`,
-                                            '_blank',
-                                        )
-                                    "
+                                    @click.stop="openWikidata(result.id)"
                                 >
                                     <v-icon size="small"
                                         >mdi-open-in-new</v-icon
@@ -217,6 +213,16 @@ onMounted(() => {
         searchQuery.value = props.initialName;
         performSearch();
     }
+
+    // Focus the search input field when component is mounted
+    setTimeout(() => {
+        const input = document.querySelector(
+            ".person-overlay-search-field .v-field__input",
+        );
+        if (input) {
+            input.focus();
+        }
+    }, 300);
 });
 
 // Clean up event listener
@@ -307,6 +313,11 @@ const selectExistingPerson = (person) => {
     console.log("Selected person:", person);
     emit("select-person", person);
     handleClose();
+};
+
+// Open Wikidata page in new window
+const openWikidata = (id) => {
+    window.open(`https://www.wikidata.org/wiki/${id}`, "_blank");
 };
 
 // Create a new person

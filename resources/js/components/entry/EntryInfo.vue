@@ -16,26 +16,12 @@
                 <div class="entry-info-container">
                     <div class="intro-section">
                         <h2 class="section-title">
-                            Du möchtest einen neuen Eintrag anlegen?
-                        </h2>
-                        <p>
-                            Trage deinen Beitrag dazu bei die Karte zu
-                            erweitern.
-                        </p>
-                        <p>
-                            Auf dieser Seite erfährst du wie du bei der Karte
-                            beisteuern kannst und wie du direkt loslegst!
-                        </p>
-                    </div>
-
-                    <div class="intro-section">
-                        <h2 class="section-title">
                             Wie funktioniert der Prozess?
                         </h2>
                         <p>
-                            Gestapo.Terror.Orte dokumentiert historische
-                            Ereignisse, Orte und Institutionen im Zusammenhang
-                            mit der Geschichte der Gestapo in Niedersachsen.
+                            Gestapo.Terror.Orte dokumentiert Orte, Personen und
+                            Ereignisse zur Geschichte der Gestapo in
+                            Niedersachsen.
                             <br />
                             Um die Integrität und Qualität unserer Daten zu
                             gewährleisten, werden alle Einträge vor der
@@ -86,9 +72,10 @@
                                 >
                                 <strong>Quellenangaben:</strong>
                                 <p>
-                                    Vollständige bibliografische Informationen
-                                    zu Ihren Quellen (Autor, Titel, Jahr, Seite
-                                    etc.).
+                                    Informationen zu deinen Quellen (Im Falle
+                                    von Büchern: Autor, Titel, Jahr, Seite etc.
+                                    Im Falle von Archivmaterial: Inventarnummer
+                                    etc).
                                 </p>
                             </li>
                             <li>
@@ -128,6 +115,19 @@
                                 </p>
                             </li>
                         </ul>
+
+                        <div class="important-note">
+                            <v-icon color="warning" class="mr-2"
+                                >mdi-alert</v-icon
+                            >
+                            <span
+                                ><strong>Wichtig:</strong> Diese Angaben müssen
+                                nicht vollständig sein. Einzelne bekannte
+                                Informationen sind wertvoll und können im
+                                Nachgang noch geändert oder ergänzt
+                                werden.</span
+                            >
+                        </div>
                     </div>
 
                     <div class="process-section">
@@ -155,39 +155,74 @@
                                     </p>
                                     <ul class="entry-types-list">
                                         <li>
-                                            <strong>Ereignis:</strong>
-                                            Historische Vorkommnisse wie
-                                            Verhaftungen, Widerstandsaktionen
-                                            oder Deportationen
-                                        </li>
-                                        <li>
-                                            <strong>Erinnerungsort:</strong>
-                                            Gedenkstätten, Mahnmale oder andere
-                                            Orte des Gedenkens
-                                        </li>
-                                        <li>
                                             <strong
-                                                >Staatspolizeistelle:</strong
+                                                >Dienst- und Haftstätten der
+                                                Gestapo</strong
                                             >
-                                            Hauptsitze der Gestapo
+                                            - Zu den Dienst- und Haftstätten der
+                                            Gestapo zählen:<br />
+                                            <ul>
+                                                <li>
+                                                    <b
+                                                        >Staatspolizeileitstelle</b
+                                                    >: Regionale Dienstellen der
+                                                    Geheimen Staatspolizei
+                                                </li>
+
+                                                <li>
+                                                    <b>Staatspolizeistelle</b>:
+                                                    Regionale Dienstellen der
+                                                    Geheimen Staatspolizei,
+                                                    unterstehen einer
+                                                    Staatspolizeileitstelle
+                                                </li>
+                                                <li>
+                                                    <b>Außendienststelle</b>:
+                                                    Lokale Zweigstellen einer
+                                                    Staatspolizeistelle
+                                                </li>
+                                                <li>
+                                                    <b>Gefängnis</b>:
+                                                    Haftstätte, die von der
+                                                    Gestapo (mit-) genutzt
+                                                    wurde.
+                                                </li>
+                                                <li>
+                                                    <b
+                                                        >Erweitertes
+                                                        Polizeigefängnis</b
+                                                    >: Von der Gestapo
+                                                    betriebenes Lager zur
+                                                    kurzfristigen Inhaftierung.
+                                                </li>
+                                                <li>
+                                                    <b>Arbeitserziehungslager</b
+                                                    >: Von der Gestapo
+                                                    eingerichtetes Lager, um
+                                                    Zwangsarbeiter*innen und
+                                                    andere als „arbeitsscheu“
+                                                    geltende Personen zu
+                                                    bestrafen.
+                                                </li>
+                                            </ul>
                                         </li>
                                         <li>
-                                            <strong
-                                                >Staatspolizeiaußenstelle:</strong
-                                            >
-                                            Regionale Außenposten
+                                            <strong>Erinnerungsort</strong> -
+                                            Physisch erlebbare Orte, die an die
+                                            Verbrechen der Gestapo erinnern
                                         </li>
                                         <li>
-                                            <strong
-                                                >Arbeitserziehungslager:</strong
-                                            >
-                                            Orte der Zwangsarbeit und
-                                            "Umerziehung"
+                                            <strong>Ereignis</strong> - Von der
+                                            Gestapo begangene Verbrechen wie
+                                            bspw. der Inhaftierung einzelner
+                                            Personen oder Personengruppen, aber
+                                            auch die Ermordung von Menschen
                                         </li>
                                         <li>
-                                            <strong>Gefängnis:</strong>
-                                            Haftanstalten im Zusammenhang mit
-                                            Gestapo-Aktivitäten
+                                            <strong>Person</strong> - Personen,
+                                            die im Zusammenhang mit der Gestapo
+                                            standen, etwa als Täter*innen oder
+                                            als Geschädigte
                                         </li>
                                     </ul>
                                 </div>
@@ -201,22 +236,11 @@
                                         Informationen aus. Je detaillierter und
                                         präziser, desto besser.
                                     </p>
-                                </div>
-                            </div>
-                            <div class="timeline-step">
-                                <div class="step-number">4</div>
-                                <div class="step-content">
                                     <h3>Quellenangaben hinzufügen</h3>
                                     <p>
                                         Füge alle Quellen hinzu, aus denen du
-                                        Informationen bezogen hast. Vollständige
-                                        bibliografische Angaben sind notwendig.
+                                        Informationen bezogen hast.
                                     </p>
-                                </div>
-                            </div>
-                            <div class="timeline-step">
-                                <div class="step-number">5</div>
-                                <div class="step-content">
                                     <h3>Eintrag einreichen</h3>
                                     <p>
                                         Sende deinen Antrag zur Prüfung ein. Du
@@ -226,12 +250,12 @@
                                 </div>
                             </div>
                             <div class="timeline-step">
-                                <div class="step-number">6</div>
+                                <div class="step-number">4</div>
                                 <div class="step-content">
                                     <h3>Prüfung abwarten</h3>
                                     <p>
                                         Dein Eintrag wird von unserem Team
-                                        geprüft. Dies kann einige Tage in
+                                        geprüft. Dies kann einige Zeit in
                                         Anspruch nehmen. Du kannst den Status
                                         jederzeit über den Link in der
                                         Bestätigungsnachricht abrufen.
@@ -239,7 +263,7 @@
                                 </div>
                             </div>
                             <div class="timeline-step">
-                                <div class="step-number">7</div>
+                                <div class="step-number">5</div>
                                 <div class="step-content">
                                     <h3>Eintrag auf der Karte anschauen</h3>
                                     <p>
@@ -256,10 +280,6 @@
                         <h2 class="section-title">
                             Bereit, einen Eintrag zu erstellen?
                         </h2>
-                        <p>
-                            Wenn Sie alle notwendigen Informationen gesammelt
-                            haben, können Sie mit der Erstellung beginnen.
-                        </p>
                         <div class="button-container">
                             <router-link
                                 to="/neuer-eintrag"
@@ -338,6 +358,14 @@
 
 .entry-types-list li {
     margin-bottom: 8px;
+}
+
+.entry-types-list li ul {
+    margin-left: 15px;
+}
+
+.entry-types-list li ul li {
+    margin-bottom: 0;
 }
 
 .process-timeline {

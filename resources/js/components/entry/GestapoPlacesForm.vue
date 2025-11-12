@@ -5,14 +5,14 @@
     >
         <div class="step-container">
             <h2 class="step-title">
-                Schritt 2: Ort des Gestapoterrors eingeben
+                Schritt 2: Dienst- oder Haftstätten der Gestapo eingeben
             </h2>
             <form class="forms" @submit.prevent>
                 <!-- Typ des Gestapoterror-Orts (P31) - Radio Buttons als Boxen -->
                 <div class="container-section gestapo-place-type-section">
                     <div class="section-header">
                         <label class="section-label required"
-                            >Ort des Gestapoterrors: *</label
+                            >Dienst- und Haftstätten der Gestapo: *</label
                         >
                         <button
                             type="button"
@@ -245,10 +245,14 @@
                     />
                 </div>
 
-                <!-- Leiter (P1037) -->
+                <!-- Leitung (P1037) -->
                 <div class="container-section director-section">
                     <div class="section-header">
-                        <label class="section-label">Leiter:</label>
+                        <label class="section-header">Personal:</label>
+                    </div>
+
+                    <div class="section-header">
+                        <label class="section-label">Leitung:</label>
                         <button
                             type="button"
                             class="info-icon"
@@ -259,8 +263,8 @@
                     </div>
                     <MultipleWikidataSelector
                         v-model="directorValue"
-                        label="Leiter"
-                        dialog-title="Leiter auswählen"
+                        label="Leitung"
+                        dialog-title="Leitung auswählen"
                         search-label="Nach Personen suchen..."
                         :search-results="directorSearchResultsValue"
                         :is-loading="isDirectorSearchLoading"
@@ -271,12 +275,9 @@
                         field="director"
                         @fieldFocus="setActiveField('director')"
                     />
-                </div>
 
-                <!-- Beschäftigte (P1128) -->
-                <div class="container-section employees-section">
                     <div class="section-header">
-                        <label class="section-label">Beschäftigte:</label>
+                        <label class="section-label">Mitarbeitende:</label>
                         <button
                             type="button"
                             class="info-icon"
@@ -287,8 +288,8 @@
                     </div>
                     <MultipleWikidataSelector
                         v-model="employeesValue"
-                        label="Beschäftigte"
-                        dialog-title="Beschäftigte auswählen"
+                        label="Mitarbeitende"
+                        dialog-title="Mitarbeitende auswählen"
                         search-label="Nach Personen suchen..."
                         :search-results="employeesSearchResultsValue"
                         :is-loading="isEmployeesSearchLoading"
@@ -302,9 +303,14 @@
                 </div>
 
                 <!-- Häftlingszahl (P5630) mit Qualifier -->
-                <div class="container-section prisoner-count-section">
+                <div
+                    class="container-section prisoner-count-section"
+                    v-if="isPrisonSelected"
+                >
                     <div class="section-header">
-                        <label class="section-label">Häftlingszahl:</label>
+                        <label class="section-label"
+                            >Anzahl der Inhaftierte:</label
+                        >
                         <button
                             type="button"
                             class="info-icon"
@@ -316,7 +322,7 @@
                     <div class="count-with-qualifier">
                         <TextField
                             v-model="prisonerCountValue"
-                            label="Häftlingszahl"
+                            label="Anzahl der Inhaftierte"
                             type="number"
                             property-id="P5630"
                             @update:modelValue="prisonerCountValue = $event"
@@ -398,7 +404,7 @@
                 <div class="container-section predecessor-org-section">
                     <div class="section-header">
                         <label class="section-label"
-                            >Vorgängerorganisation:</label
+                            >Vorgängerorganisation (zeitlich):</label
                         >
                         <button
                             type="button"
@@ -410,7 +416,7 @@
                     </div>
                     <MultipleWikidataSelector
                         v-model="predecessorOrgValue"
-                        label="Vorgängerorganisation"
+                        label="Vorgängerorganisation (zeitlich)"
                         dialog-title="Vorgängerorganisation auswählen"
                         search-label="Nach Organisationen suchen..."
                         :search-results="predecessorOrgSearchResultsValue"
@@ -428,7 +434,7 @@
                 <div class="container-section successor-org-section">
                     <div class="section-header">
                         <label class="section-label"
-                            >Nachfolgeorganisation:</label
+                            >Nachfolgeorganisation (zeitlich):</label
                         >
                         <button
                             type="button"
@@ -440,7 +446,7 @@
                     </div>
                     <MultipleWikidataSelector
                         v-model="successorOrgValue"
-                        label="Nachfolgeorganisation"
+                        label="Nachfolgeorganisation (zeitlich)"
                         dialog-title="Nachfolgeorganisation auswählen"
                         search-label="Nach Organisationen suchen..."
                         :search-results="successorOrgSearchResultsValue"
@@ -495,6 +501,12 @@
                                 : "Eintrag einreichen"
                         }}
                     </button>
+                </div>
+                <div
+                    class="d-block text-subtitle-2 mt-3"
+                    v-if="!props.isAdminView"
+                >
+                    Mit einem "*" gekennzeichneten Felder sind Pflichtfelder.
                 </div>
             </form>
             <!-- Info-Box (Desktop) -->
@@ -656,26 +668,26 @@ const isMobileView = ref(false);
 const gestapoPlaceTypeValue = ref(null);
 const gestapoPlaceTypes = [
     {
-        label: "Arbeitserziehungslager",
-        value: "Q277565",
-        iconId: "laborEducationCamps",
+        label: "Staatspolizeileitstelle",
+        value: "Q108047581",
+        iconId: "statePoliceHeadquarters",
     },
+    {
+        label: "Staatspolizeistelle",
+        value: "Q108047567",
+        iconId: "statePoliceOffices",
+    },
+    { label: "Außendienststelle", value: "Q108047541", iconId: "fieldOffices" },
     { label: "Gefängnis", value: "Q40357", iconId: "prisons" },
     {
         label: "Erweitertes Polizeigefängnis",
         value: "Q108047650",
         iconId: "extPolicePrisons",
     },
-    { label: "Außendienststelle", value: "Q108047541", iconId: "fieldOffices" },
     {
-        label: "Staatspolizeistelle",
-        value: "Q108047567",
-        iconId: "statePoliceOffices",
-    },
-    {
-        label: "Staatspolizeileitstelle",
-        value: "Q108047581",
-        iconId: "statePoliceHeadquarters",
+        label: "Arbeitserziehungslager",
+        value: "Q277565",
+        iconId: "laborEducationCamps",
     },
 ];
 
@@ -716,7 +728,7 @@ const getInfoTitle = (fieldName) => {
         keyEvent: "Schlüsselereignisse",
         director: "Leitung",
         employees: "Mitarbeiter",
-        prisonerCount: "Anzahl der Gefangenen",
+        prisonerCount: "Anzahl der Inhaftierte",
         parentOrganization: "Übergeordnete Organisation",
         childOrganization: "Untergeordnete Organisation",
         predecessorOrg: "Vorgängerorganisation",
@@ -765,8 +777,8 @@ const getSectionInfoContent = (sectionName) => {
     const sectionContents = {
         title: `<p>In diesem Bereich werden die grundlegenden Informationen zur Gestapo-Stelle erfasst.</p>
                <p><strong>Titel:</strong> Gebe einen präzisen und aussagekräftigen Titel ein, der die Art der Gestapo-Stelle und ihren Ort enthält.</p>
-               <p><strong>Beschreibung:</strong> Beschreibe die Gestapo-Stelle kurz und informativ mit den wichtigsten Fakten, ihrer Funktion und historischem Kontext.</p>
-               <p>Beispiele für gute Titel: "Gestapo-Hauptquartier Berlin", "Gestapo-Außenstelle Münster"</p>`,
+               <p><strong>Kurzbeschreibung:</strong> Beschreibe die Gestapo-Stelle kurz und informativ mit den wichtigsten Fakten, ihrer Funktion und historischem Kontext.</p>
+               <p>Beispiele für gute Titel: "Polizeileitstelle Hannover", "Gestapo-Außenstelle Münster"</p>`,
 
         time: `<p>Hier werden zeitliche Informationen zur Gestapo-Stelle erfasst.</p>
                <p><strong>Diese Angabe ist hilfreich, aber nicht zwingend erforderlich.</strong></p>
@@ -774,9 +786,9 @@ const getSectionInfoContent = (sectionName) => {
                <p>Falls das genaue Datum nicht bekannt ist, kannst du auch nur einen Monat eines Jahres oder ein Jahr auswählen.<br />
                Bei ungenauen Datumsangaben kannst du in der Select-Box unter dem Datum einen Qualifikator wie "ungefähr" setzen.</p>`,
 
-        foundingDate: `<p>Hier wird die zeitliche Informationen zur Erstellung, Entstehung, Erbauung der Gestapo-Stelle erfasst.</p>`,
+        foundingDate: `<p>Hier wird die zeitliche Informationen zur Gründung der Gestapo-Stelle erfasst.</p>`,
 
-        dissolutionDate: `<p>Hier wird das Auflösungsdatum erfasst.</p>`,
+        dissolutionDate: `<p>Hier wird das Auflösungsdatum der Gestapo-Stelle erfasst.</p>`,
 
         prisonerCount: `<p>In diesem Bereich kannst du die Anzahl der Gefangenen dokumentieren, die in dieser Gestapo-Stelle inhaftiert waren.</p>
                 <p>Erfasse die geschätzte oder bekannte Gesamtzahl der Personen, die hier festgehalten wurden.</p>
@@ -784,19 +796,30 @@ const getSectionInfoContent = (sectionName) => {
                 <p>Bei ungenauen Zahlenangaben kannst du in der Select-Box einen Qualifikator wie "ungefähr" setzen.</p>`,
 
         gestapoPlaceType: `<p>Hier wählst du die Art der Gestapo-Stelle aus.</p>
-               <p>Die Gestapo (Geheime Staatspolizei) hatte verschiedene Arten von Dienststellen:</p>
                 <ul>
-                <li><b>Staatspolizeistelle</b>: Regionale Dienstellen der Geheimen Staatspolizei</li>
-                <li><b>Staatspolizeiaußenstelle</b>: Lokale Zweigstellen einer Staatspolizeistelle</li>
-                <li><b>Arbeitserziehungslager</b>: Haftsystem der Gestapo während des Nationalsozialismus</li>
-                <li><b>Gefängnis</b>: Haftanstalten, die während der NS-Zeit für politische Gefangene genutzt wurden</li>
-                 <li><b>Erweitertes Polizeigefängnis</b>: Haftanstalten, die während der NS-Zeit für politische Gefangene genutzt wurden</li>
+                <li><b>Staatspolizeileitstelle</b>:
+                    Regionale Dienstellen der Geheimen
+                    Staatspolizei
+                </li>
+                <li><b>Staatspolizeistelle</b>:
+                    Regionale Dienstellen der Geheimen
+                    Staatspolizei, unterstehen einer
+                    Staatspolizeileitstelle</li>
+                <li><b>Außendienststelle</b>: Lokale
+                    Zweigstellen einer
+                    Staatspolizeistelle</li>
+                <li><b>Gefängnis</b>: Haftstätte, die von der Gestapo (mit-) genutzt wurde.</li>
+                <li><b>Erweitertes Polizeigefängnis</b>:
+                Von der Gestapo betriebenes Lager zur kurzfristigen Inhaftierung</li>
+                <li><b>Arbeitserziehungslager</b>:
+                Von der Gestapo eingerichtetes Lager, um Zwangsarbeiter*innen und andere als „arbeitsscheu“ geltende Personen zu bestrafen.
+</li>
                 </ul>
-               <p>Unter der Auswahl gibt es für jeden Art der Gestapo-Stelle noch einen langen Beschreibungstext zur bessern Erläuterung. Klicke einfach auf den entsprechenden Typ.</p>`,
+               <p>Unter der Auswahl gibt es für jeden Typ noch einen langen Beschreibungstext zum besseren Verständnis. Klicke einfach auf den entsprechenden Typ.</p>`,
 
         location: `<p>Hier wird der genaue Standort der Gestapo-Stelle auf der Karte gewählt.</p>
                      <p><strong>Dieses Feld ist ein Pflichtfeld!</strong></p>
-                   <p>Sie können:</p>
+                   <p>Du kannst:</p>
                    <ul>
                     <li>Direkt auf die Karte klicken, um den Standort zu markieren</li>
                     <li>Nach einer Adresse oder einem Ort suchen, um ihn schneller zu finden</li>
@@ -814,8 +837,7 @@ const getSectionInfoContent = (sectionName) => {
         keyEvent: `<p>Hier kannst du wichtige Ereignisse im Zusammenhang mit dieser Gestapo-Stelle dokumentieren.</p>
                 <p>Relevante Ereignisse könnten sein:</p>
                 <ul>
-                 <li>Besondere Verfolgungsmaßnahmen oder Verhaftungen</li>
-                 <li>Widerstandsaktionen gegen die Gestapo</li>
+                 <li>Verfolgungsmaßnahmen, Verhaftungen, oder Ermordungen usw.</li>
                 </ul>
                 <p>Diese Ereignisse helfen, die Geschichte und Bedeutung der Einrichtung zu verstehen.</p>`,
 
@@ -843,22 +865,12 @@ const getSectionInfoContent = (sectionName) => {
                 <p>Diese Angabe hilft, die organisatorische Struktur und den Wirkungsbereich der Dienststelle zu dokumentieren.</p>`,
 
         predecessorOrg: `<p>Hier kannst du Vorgängerorganisationen der Gestapo-Stelle angeben.</p>
-                <p>Vor Einrichtung der Gestapo existierten oft andere Polizei- oder Sicherheitsdienststellen am gleichen Ort oder mit ähnlicher Funktion, wie z.B.:</p>
-                <ul>
-                 <li>Politische Polizei der Länder</li>
-                 <li>Frühere SS- oder SD-Einrichtungen</li>
-                 <li>Lokale Polizeidienststellen</li>
-                </ul>
+                <p>Als Vorgängerorganisationen gelten Gestapo-Dienststellen, aus denen eine andere Dienststelle organisatorisch hervorging. Zum Beispiel, wenn eine Staatspolizeistelle zur Leitstelle erweitert wurde.</p>
                 <p>Diese Information hilft, die historische Entwicklung der Verfolgungsinstanzen zu dokumentieren.</p>`,
 
         successorOrg: `<p>Hier kannst du Nachfolgeorganisationen der Gestapo-Stelle angeben.</p>
-                <p>Nach 1945 wurden die Gebäude oder Funktionen oft von anderen Institutionen übernommen:</p>
-                <ul>
-                 <li>Alliierte Militärbehörden</li>
-                 <li>Polizeidienststellen der Nachkriegszeit</li>
-                 <li>Andere staatliche Einrichtungen</li>
-                 <li>Gedenkstätten oder Dokumentationszentren</li>
-                </ul>
+                <p>Als Nachfolgeorganisationen gelten Gestapo-Dienststellen, die in direkter organisatorischer Nachfolge einer anderen Gestapostelle standen. Zum Beispiel, wenn eine Staatspolizeistelle zur Staatspolizeileitstelle aufstieg:</p>
+
                 <p>Diese Information hilft, die Nachgeschichte des Ortes und die historische Aufarbeitung zu dokumentieren.</p>`,
 
         image: `<p>Hier kannst du ein passendes Bild zur Gestapo-Stelle hinzufügen.</p>
@@ -996,13 +1008,13 @@ const keyEventSearchResultsValue = ref([]);
 const isKeyEventSearchLoading = ref(false);
 const keyEventSearchPerformed = ref(false);
 
-// Director (Leiter)
+// Director (Leitung)
 const directorValue = ref([]);
 const directorSearchResultsValue = ref([]);
 const isDirectorSearchLoading = ref(false);
 const directorSearchPerformed = ref(false);
 
-// Employees (Beschäftigte)
+// Employees (Mitarbeitende)
 const employeesValue = ref([]);
 const employeesSearchResultsValue = ref([]);
 const isEmployeesSearchLoading = ref(false);
@@ -1066,6 +1078,9 @@ useFetchInfo();
 const showMobileInfoOverlay = ref(false);
 const lastActiveField = ref(null);
 
+const isPrisonSelected = ref(false);
+const prisonList = ["Q40357", "Q108047650", "Q277565"];
+
 // Set the active field for help info
 const setActiveField = (field) => {
     activeField.value = field;
@@ -1099,11 +1114,15 @@ const closeMobileInfoOverlay = () => {
 const onGestapoPlaceTypeChange = () => {
     console.log("Gestapo Place Type changed to:", gestapoPlaceTypeValue.value);
 
-    // Force the marker icon to update based on the new place type
-    // This is critical to ensure the marker always reflects the correct type
-
     // If we have a location selector reference, force a refresh
+
     if (locationSelectorRef.value) {
+        if (prisonList.includes(gestapoPlaceTypeValue.value)) {
+            isPrisonSelected.value = true;
+        } else {
+            isPrisonSelected.value = false;
+        }
+
         // Create a small delay to ensure Vue has updated the props
         setTimeout(() => {
             if (locationSelectorRef.value.refreshMarkerIcon) {
@@ -1288,7 +1307,7 @@ const getData = () => {
         // Director (Leiter)
         director: directorValue.value,
 
-        // Employees (Beschäftigte)
+        // Employees (Mitarbeitende)
         employees: employeesValue.value,
 
         // Prisoner Count
@@ -1516,7 +1535,7 @@ const onSearchEmployees = async (query) => {
                       {
                           id: query,
                           label: query,
-                          description: "Anzahl der Beschäftigten",
+                          description: "Anzahl der Mitarbeitenden",
                       },
                   ];
     } catch (error) {

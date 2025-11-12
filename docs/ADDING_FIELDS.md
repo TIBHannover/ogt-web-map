@@ -10,6 +10,7 @@ This guide provides a comprehensive overview of all places where code needs to b
 4. [Admin Interface](#4-admin-interface)
 5. [Testing the Integration](#5-testing-the-integration)
 6. [Complete Data Workflow](#6-complete-data-workflow)
+7. [Updating the Parent Component](#7-updating-the-parent-component)
 
 ## 1. Database Layer
 
@@ -90,6 +91,8 @@ protected $casts = [
 
 Modify `resources/js/components/entry/fields/Persons.vue`:
 
+> ⚠️ **Important**: Remember to add the field to the `getData()` method of the form component AND update the data collection in the parent `Entry.vue` component.
+
 ```vue
 <!-- Template section: Add the new field input -->
 <wikidata-selector 
@@ -152,7 +155,7 @@ const wikidataSearchPerformed = ref({
     hobbies: false,
 });
 
-// 3. Update edit function to include the new field
+// Update edit function to include the new field
 const onEditPerson = (person) => {
     // ...
     newPersonLocal.value = {
@@ -161,6 +164,16 @@ const onEditPerson = (person) => {
         hobbies: person.hobbies || [],
     };
     // ...
+};
+
+// Make sure to include the new field in the getData method
+const getData = () => {
+    return {
+        // Existing fields...
+        hobby: newPersonLocal.value.hobby,
+        hobbies: newPersonLocal.value.hobbies,
+        // ...
+    };
 };
 
 // 4. Update search function field mapping
@@ -427,19 +440,29 @@ To verify that the new field is properly integrated:
 
 When adding a new field, the data flows through the system in this order:
 
-1. **User Input**: User enters data in the frontend form (`Persons.vue`)
+1. **User Input**: User enters data in the frontend form (`Persons.vue`, `MemorialForm.vue`, etc.)
 2. **Form Validation**: Data is validated before submission
-3. **API Submission**: Form data is sent to the API endpoint
-4. **Database Storage**: Data is saved in the `wikidata_entry_requests` table
-5. **Admin Review**: Admin reviews and potentially edits the data
-6. **Admin Approval**: Admin approves the entry for submission
-7. **Job Processing**: A background job processes the approved entry
-8. **WikibaseFormatter**: The formatter prepares the data for Wikidata
-9. **Person Model**: The model creates the proper Wikibase claims
-10. **Wikidata API**: Data is submitted to the Wikidata API
-11. **Status Update**: Entry status is updated to reflect the submission result
+3. **Data Collection**: The parent `Entry.vue` component collects form data
+4. **API Submission**: Form data is sent to the API endpoint
+5. **Database Storage**: Data is saved in the `wikidata_entry_requests` table
+6. **Admin Review**: Admin reviews and potentially edits the data
+7. **Admin Approval**: Admin approves the entry for submission
+8. **Job Processing**: A background job processes the approved entry
+9. **WikibaseFormatter**: The formatter prepares the data for Wikidata
+10. **Entity Model**: The model creates the proper Wikibase claims
+11. **Wikidata API**: Data is submitted to the Wikidata API
+12. **Status Update**: Entry status is updated to reflect the submission result
 
 ## Common Pitfalls and Solutions
+
+### Missing Data Flow Links
+- When adding new fields, you must update every part of the data flow chain:
+  1. **Frontend Form Component**: Add the field to the form component's `getData()` method
+  2. **Parent Component**: Update the parent `Entry.vue` component to include the new field when collecting form data
+  3. **Controller Validation**: Add a validation rule for the new field in the controller
+  4. **Controller Assignment**: Assign the field from the validated input to the model instance
+  5. **Admin View**: Update the admin view template to display the new field
+- Missing any of these steps will break the data flow and cause your field to disappear at some point in the process
 
 ### Duplicate Method Declarations
 - Be careful when adding new methods to existing classes
@@ -455,6 +478,101 @@ When adding a new field, the data flows through the system in this order:
 - Be consistent with field types (string vs array)
 - Update the model's `$casts` property for JSON/array fields
 - Make sure the UI components match the expected data type
+
+## 7. Complete Implementation Checklist
+
+When adding a new field, follow this complete checklist to ensure the data flows correctly through all parts of the system:
+
+### 7.1 Frontend Form Component
+
+```javascript
+// 1. Add the field to the form component's data
+const hasUseValue = ref([]); // For multiple values use array
+
+// 2. Add the field to the getData method
+const getData = () => {
+    return {
+        // Other fields...
+        has_use: hasUseValue.value, // Your new field
+    };
+};
+```
+
+### 7.2 Parent Component (Entry.vue)
+
+```javascript
+// In Entry.vue, find the section where form data is collected
+if (formsType.value === "Q5003624" && memorialFormRef.value) {
+    // If using the getData method
+    if (typeof memorialFormRef.value.getData === "function") {
+        const memorialData = memorialFormRef.value.getData();
+        
+        // IMPORTANT: Add your new field here
+        formData = {
+            ...formData,
+            commemorates: memorialData.commemorates,
+            operator: memorialData.operator,
+            has_use: memorialData.has_use, // Your new field
+            // Other fields...
+        };
+    } else {
+        // Direct access path - also update this
+        if (memorialFormRef.value.hasUseValue) { // Your new field
+            formData.has_use = memorialFormRef.value.hasUseValue;
+        }
+        // Other fields...
+    }
+}
+```
+
+### 7.3 Controller Validation (WikidataEntityController.php)
+
+```php
+// Add validation rule for your new field
+$validated = $request->validate([
+    // Other fields...
+    "has_use" => "nullable|array", // For a multi-select field
+    // "has_use" => "nullable|string", // For a single-select field
+]);
+```
+
+### 7.4 Controller Field Assignment
+
+```php
+// In the controller's create method
+$entryRequest = new WikibaseEntryRequest();
+// Other fields...
+
+// Add your new field
+$entryRequest->has_use = $validated["has_use"] ?? null;
+
+$entryRequest->save();
+```
+
+### 7.5 Admin View Template
+
+```php
+<!-- In the admin view template (e.g., memorial-entry.blade.php) -->
+@if(isset($request->has_use) && !empty($request->has_use))
+    <div class="mb-3">
+        <h6>Your Field Label:</h6>
+        <div class="mb-2">
+            @if(is_array($request->has_use))
+                @foreach($request->has_use as $index => $item)
+                    {!! safeFormatWikidata($item) !!}
+                    @if($index < count($request->has_use) - 1)
+                        <br>
+                    @endif
+                @endforeach
+            @else
+                {!! safeFormatWikidata($request->has_use) !!}
+            @endif
+        </div>
+    </div>
+@endif
+```
+
+> 🔴 **Common Error**: Missing any step in this chain will break the data flow. The data might appear in the form submission but not be saved to the database, or it might be saved but not displayed in the admin view.
 
 ## Conclusion
 

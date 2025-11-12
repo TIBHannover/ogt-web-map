@@ -259,12 +259,9 @@ export default {
             "statePoliceOffices",
         ]);
 
-        watch(
-            groupedPlacesShownOnMap,
-            (newValue) => {
-                handleLayerGroupsUpdate(newValue);
-            },
-        );
+        watch(groupedPlacesShownOnMap, (newValue) => {
+            handleLayerGroupsUpdate(newValue);
+        });
 
         var currentGroupedPlaces = ref([]);
         const layers = ref(null);
@@ -802,6 +799,9 @@ export default {
                         console.warn("Places Worker error:", message.error);
                     } else if (message.type === "success") {
                         // Clear existing markers before adding new ones
+                        /*
+                        ** Commented it out because it made the map reload when it should not**
+                        *
                         clearAllPlaceMarkers();
 
                         // Update groupedPlaces with new data
@@ -815,6 +815,7 @@ export default {
                             deriveLocationEmployees();
                         }
                         updateInfoSidebarData();
+                        */
                     }
 
                     worker.terminate();
@@ -1716,14 +1717,16 @@ export default {
                     }
                 }
 
-                selectedPlace.value.hasParts = Object.values(place.hasParts || {})
-                    .filter(item => locationMarkers.value[item.id])
-                    .map(item => ({ id: item.id, label: item.value }))
+                selectedPlace.value.hasParts = Object.values(
+                    place.hasParts || {},
+                )
+                    .filter((item) => locationMarkers.value[item.id])
+                    .map((item) => ({ id: item.id, label: item.value }))
                     .sort((a, b) => a.label.localeCompare(b.label, "de"));
 
                 selectedPlace.value.partOfs = Object.values(place.partOfs || {})
-                    .filter(item => locationMarkers.value[item.id])
-                    .map(item => ({ id: item.id, label: item.value }));
+                    .filter((item) => locationMarkers.value[item.id])
+                    .map((item) => ({ id: item.id, label: item.value }));
 
                 selectedPlace.value.parentOrganizations = [];
 

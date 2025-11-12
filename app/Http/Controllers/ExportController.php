@@ -29,7 +29,8 @@ class ExportController extends Controller
     /**
      * Preprocess data for better performance
      */
-    protected function preprocessData() {
+    protected function preprocessData()
+    {
         if ($this->placesCache === null) {
             $placesData = $this->wikidataClient->queryPlaces();
             if (!empty($placesData["results"]["bindings"])) {
@@ -40,7 +41,7 @@ class ExportController extends Controller
                 $this->placesCache = [];
             }
         }
-        
+
         if ($this->personsCache === null) {
             $personsData = $this->wikidataClient->queryPersons();
             if (!empty($personsData["results"]["bindings"])) {
@@ -55,46 +56,48 @@ class ExportController extends Controller
 
     /**
      * Utility method to write CSV data with proper UTF-8 encoding
-     * 
+     *
      * @param resource $handle File handle to write to
      * @param array $fields Array of fields to write
      * @param string $delimiter Delimiter character (default: semicolon)
      * @return void
      */
-    protected function writeUtf8CsvLine($handle, $fields, $delimiter = ';')
+    protected function writeUtf8CsvLine($handle, $fields, $delimiter = ";")
     {
-        $delimiter_esc = preg_quote($delimiter, '/');
+        $delimiter_esc = preg_quote($delimiter, "/");
         $enclosure = '"';
-        $enclosure_esc = preg_quote($enclosure, '/');
-        
-        $output = '';
+        $enclosure_esc = preg_quote($enclosure, "/");
+
+        $output = "";
         foreach ($fields as $field) {
             // Ensure field is string
-            $field = (string)$field;
-            
+            $field = (string) $field;
+
             // Escape enclosure characters within the field
             $field = str_replace($enclosure, $enclosure . $enclosure, $field);
-            
+
             // If the field contains the delimiter, enclosure, or newlines, enclose it
-            if (preg_match("/(?:${delimiter_esc}|${enclosure_esc}|\s)/", $field)) {
+            if (
+                preg_match("/(?:${delimiter_esc}|${enclosure_esc}|\s)/", $field)
+            ) {
                 $field = $enclosure . $field . $enclosure;
             }
-            
+
             $output .= $field . $delimiter;
         }
-        
+
         // Remove trailing delimiter and add a newline
         fputs($handle, substr($output, 0, -1) . "\n");
     }
-    
+
     /**
      * Add a blank line to the CSV file
-     * 
+     *
      * @param resource $handle File handle to write to
      * @param string $delimiter Delimiter character
      * @return void
      */
-    protected function writeBlankLine($handle, $delimiter = ';')
+    protected function writeBlankLine($handle, $delimiter = ";")
     {
         fputs($handle, "\n");
     }
@@ -105,8 +108,11 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    protected function exportPlacesMinimal($output, $separator = ",", $csvWriter = null)
-    {
+    protected function exportPlacesMinimal(
+        $output,
+        $separator = ",",
+        $csvWriter = null,
+    ) {
         // Write header row for places (same as regular places export)
         fputcsv(
             $output,
@@ -120,7 +126,7 @@ class ExportController extends Controller
                 "Gründungsdatum",
                 "Auflösungsdatum",
                 "Webseite",
-                "Leiter",
+                "Leitung",
                 "Personal",
                 "Geschädigte",
                 "Inhaftierte",
@@ -135,7 +141,6 @@ class ExportController extends Controller
         $places = $this->placesCache;
 
         if (!empty($places)) {
-
             // Define allowed place types
             $allowedTypes = [
                 "Arbeitserziehungslager",
@@ -176,10 +181,10 @@ class ExportController extends Controller
                         $place["streetAddresses"] ?? [],
                     ),
                     $this->extractDateFromMultipleProperties(
-                        $place["inceptionDates"] ?? [],  // P571 (inception)
-                        $place["startTime"] ?? [],      // P580 (start time)
-                        $place["pointInTime"] ?? [],    // P585 (point in time)
-                        $place["openingDate"] ?? []     // P1619 (time period)
+                        $place["inceptionDates"] ?? [], // P571 (inception)
+                        $place["startTime"] ?? [], // P580 (start time)
+                        $place["pointInTime"] ?? [], // P585 (point in time)
+                        $place["openingDate"] ?? [], // P1619 (time period)
                     ),
                     // $this->extractFirstDate($place["dissolvedDates"] ?? []),  // Excluded as requested
                     $this->extractFirstValue($place["officialWebsite"] ?? []),
@@ -188,9 +193,7 @@ class ExportController extends Controller
                     $this->getVictimsForPlace($placeId),
                     $this->getPrisonersForPlace($placeId),
                     $this->getMemorialsForPlace($placeId),
-                    $this->extractMultipleValues(
-                        $place["subsidiaries"] ?? [],
-                    ),
+                    $this->extractMultipleValues($place["subsidiaries"] ?? []),
                 ];
 
                 fputcsv($output, $row, $separator, $separator);
@@ -207,8 +210,11 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    protected function exportPlacesWithoutEvents($output, $separator = ",", $csvWriter = null)
-    {
+    protected function exportPlacesWithoutEvents(
+        $output,
+        $separator = ",",
+        $csvWriter = null,
+    ) {
         // Write header row for places (same as regular places export)
         $headerRow = [
             "ID",
@@ -220,14 +226,14 @@ class ExportController extends Controller
             "Gründungsdatum",
             // "Auflösungsdatum",   // Excluded as requested
             "Webseite",
-            "Leiter",
+            "Leitung",
             "Personal",
             "Geschädigte",
             "Inhaftierte",
             "Erinnerungsorte",
             "nachgeordnete Organisationen",
         ];
-        
+
         if ($csvWriter) {
             $csvWriter($output, $headerRow, $separator);
         } else {
@@ -239,7 +245,6 @@ class ExportController extends Controller
         $places = $this->placesCache;
 
         if (!empty($places)) {
-
             // Write data rows, filtering out Nazi crime events (Q6983405)
             foreach ($places as $place) {
                 // Skip if this is a Nazi crime event
@@ -270,10 +275,10 @@ class ExportController extends Controller
                         $place["streetAddresses"] ?? [],
                     ),
                     $this->extractDateFromMultipleProperties(
-                        $place["inceptionDates"] ?? [],  // P571 (inception)
-                        $place["startTime"] ?? [],      // P580 (start time)
-                        $place["pointInTime"] ?? [],    // P585 (point in time)
-                        $place["openingDate"] ?? []     // P1619 (time period)
+                        $place["inceptionDates"] ?? [], // P571 (inception)
+                        $place["startTime"] ?? [], // P580 (start time)
+                        $place["pointInTime"] ?? [], // P585 (point in time)
+                        $place["openingDate"] ?? [], // P1619 (time period)
                     ),
                     $this->extractFirstDate($place["dissolvedDates"] ?? []),
                     $this->extractFirstValue($place["officialWebsite"] ?? []),
@@ -282,9 +287,7 @@ class ExportController extends Controller
                     $this->getVictimsForPlace($placeId),
                     $this->getPrisonersForPlace($placeId),
                     $this->getMemorialsForPlace($placeId),
-                    $this->extractMultipleValues(
-                        $place["subsidiaries"] ?? [],
-                    ),
+                    $this->extractMultipleValues($place["subsidiaries"] ?? []),
                 ];
 
                 // Write the data row using the appropriate writer
@@ -311,8 +314,12 @@ class ExportController extends Controller
      * @param string $placeType The type of place to filter by
      * @return void
      */
-    protected function exportPlacesByType($output, $placeType, $separator = ",", $csvWriter = null)
-    {
+    protected function exportPlacesByType(
+        $output,
+        $placeType,
+        $separator = ",",
+        $csvWriter = null,
+    ) {
         // Write header row for places (same as regular places export)
         $headerRow = [
             "ID",
@@ -324,14 +331,14 @@ class ExportController extends Controller
             "Gründungsdatum",
             "Auflösungsdatum",
             "Webseite",
-            "Leiter",
+            "Leitung",
             "Personal",
             "Geschädigte",
             "Inhaftierte",
             "Erinnerungsorte",
             "nachgeordnete Organisationen",
         ];
-        
+
         if ($csvWriter) {
             $csvWriter($output, $headerRow, $separator);
         } else {
@@ -355,7 +362,7 @@ class ExportController extends Controller
                 "",
                 "",
             ];
-            
+
             if ($csvWriter) {
                 $csvWriter($output, $debugRow, $separator);
             } else {
@@ -427,12 +434,8 @@ class ExportController extends Controller
                     $this->getVictimsForPlace($placeId),
                     $this->getPrisonersForPlace($placeId),
                     $this->getMemorialsForPlace($placeId),
-                    $this->extractMultipleValues(
-                        $place["subsidiaries"] ?? [],
-                    ),
-                    $this->extractMultipleValues(
-                        $place["subsidiaries"] ?? [],
-                    ),
+                    $this->extractMultipleValues($place["subsidiaries"] ?? []),
+                    $this->extractMultipleValues($place["subsidiaries"] ?? []),
                 ];
 
                 // Write the data row using the appropriate writer
@@ -481,8 +484,11 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    protected function exportEvents($output, $separator = ",", $csvWriter = null)
-    {
+    protected function exportEvents(
+        $output,
+        $separator = ",",
+        $csvWriter = null,
+    ) {
         // Define header row with only the specified columns
         $headerRow = [
             "ID",
@@ -491,12 +497,12 @@ class ExportController extends Controller
             "Typ",
             "Koordinaten",
             "Adresse",
-            "Startdatum",   // P571 (inception)
-            "Enddatum",     // Renamed from Auflösungsdatum
-            "Geschädigte",  // P8032
-            "Täter*Innen",  // P8031
+            "Startdatum", // P571 (inception)
+            "Enddatum", // Renamed from Auflösungsdatum
+            "Geschädigte", // P8032
+            "Täter*Innen", // P8031
         ];
-        
+
         // Write header using appropriate writer
         if ($csvWriter) {
             $csvWriter($output, $headerRow, $separator);
@@ -530,16 +536,16 @@ class ExportController extends Controller
                 }
 
                 $placeId = $place["id"] ?? "";
-                
+
                 // Get direct victims and perpetrators from Wikidata properties
-                $victims = isset($place["victims"]) 
-                    ? $this->extractDirectVictims($place["victims"]) 
+                $victims = isset($place["victims"])
+                    ? $this->extractDirectVictims($place["victims"])
                     : "";
-                    
-                $perpetrators = isset($place["perpetrators"]) 
-                    ? $this->extractDirectPerpetrators($place["perpetrators"]) 
+
+                $perpetrators = isset($place["perpetrators"])
+                    ? $this->extractDirectPerpetrators($place["perpetrators"])
                     : "";
-                
+
                 $row = [
                     $placeId,
                     $place["label"] ?? "",
@@ -550,14 +556,14 @@ class ExportController extends Controller
                         $place["streetAddresses"] ?? [],
                     ),
                     $this->extractDateFromMultipleProperties(
-                        $place["inceptionDates"] ?? [],  // P571 (inception)
-                        $place["startTime"] ?? [],      // P580 (start time)
-                        $place["pointInTime"] ?? [],    // P585 (point in time)
-                        $place["openingDate"] ?? []     // P1619 (time period)
-                    ),  // Startdatum
-                    $this->extractFirstDate($place["endTime"] ?? []),  // Enddatum (P582)
-                    $victims,       // Direct victims from P8032
-                    $perpetrators,  // Direct perpetrators from P8031
+                        $place["inceptionDates"] ?? [], // P571 (inception)
+                        $place["startTime"] ?? [], // P580 (start time)
+                        $place["pointInTime"] ?? [], // P585 (point in time)
+                        $place["openingDate"] ?? [], // P1619 (time period)
+                    ), // Startdatum
+                    $this->extractFirstDate($place["endTime"] ?? []), // Enddatum (P582)
+                    $victims, // Direct victims from P8032
+                    $perpetrators, // Direct perpetrators from P8031
                 ];
 
                 // Write row using appropriate writer
@@ -583,13 +589,16 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    protected function exportStaatspolizeileitstellen($output, $separator = ",", $csvWriter = null)
-    {
+    protected function exportStaatspolizeileitstellen(
+        $output,
+        $separator = ",",
+        $csvWriter = null,
+    ) {
         $this->exportPlacesByType(
             $output,
             "Staatspolizeileitstelle",
             $separator,
-            $csvWriter
+            $csvWriter,
         );
     }
 
@@ -599,13 +608,16 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    protected function exportStaatspolizeistellen($output, $separator = ",", $csvWriter = null)
-    {
+    protected function exportStaatspolizeistellen(
+        $output,
+        $separator = ",",
+        $csvWriter = null,
+    ) {
         $this->exportPlacesByType(
             $output,
             "Staatspolizeistelle",
             $separator,
-            $csvWriter
+            $csvWriter,
         );
     }
 
@@ -615,13 +627,16 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    protected function exportAussendienststellen($output, $separator = ",", $csvWriter = null)
-    {
+    protected function exportAussendienststellen(
+        $output,
+        $separator = ",",
+        $csvWriter = null,
+    ) {
         $this->exportPlacesByType(
             $output,
             "Außendienststelle",
             $separator,
-            $csvWriter
+            $csvWriter,
         );
     }
 
@@ -631,8 +646,11 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    protected function exportGefaengnisse($output, $separator = ",", $csvWriter = null)
-    {
+    protected function exportGefaengnisse(
+        $output,
+        $separator = ",",
+        $csvWriter = null,
+    ) {
         $this->exportPlacesByType($output, "Gefängnis", $separator, $csvWriter);
     }
 
@@ -645,13 +663,13 @@ class ExportController extends Controller
     protected function exportErweitertesPolizeigefaengnis(
         $output,
         $separator = ",",
-        $csvWriter = null
+        $csvWriter = null,
     ) {
         $this->exportPlacesByType(
             $output,
             "Erweitertes Polizeigefängnis",
             $separator,
-            $csvWriter
+            $csvWriter,
         );
     }
 
@@ -661,13 +679,16 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    protected function exportArbeitserziehungslager($output, $separator = ",", $csvWriter = null)
-    {
+    protected function exportArbeitserziehungslager(
+        $output,
+        $separator = ",",
+        $csvWriter = null,
+    ) {
         $this->exportPlacesByType(
             $output,
             "Arbeitserziehungslager",
             $separator,
-            $csvWriter
+            $csvWriter,
         );
     }
 
@@ -677,8 +698,11 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    protected function exportErinnerungsorte($output, $separator = ",", $csvWriter = null)
-    {
+    protected function exportErinnerungsorte(
+        $output,
+        $separator = ",",
+        $csvWriter = null,
+    ) {
         // Write header row for places - exclude unwanted columns
         $headerRow = [
             "ID",
@@ -697,7 +721,7 @@ class ExportController extends Controller
             // "Erinnerungsorte",  // Excluded as requested
             // "nachgeordnete Organisationen", // Excluded as requested
         ];
-        
+
         if ($csvWriter) {
             $csvWriter($output, $headerRow, $separator);
         } else {
@@ -729,7 +753,7 @@ class ExportController extends Controller
                     }
                 }
 
-                // Check if this is a memorial (Gedenkstätte) 
+                // Check if this is a memorial (Gedenkstätte)
                 $isMemorial = false;
                 foreach ($place["instances"] as $instance) {
                     if (
@@ -758,10 +782,10 @@ class ExportController extends Controller
                         $place["streetAddresses"] ?? [],
                     ),
                     $this->extractDateFromMultipleProperties(
-                        $place["inceptionDates"] ?? [],  // P571 (inception)
-                        $place["startTime"] ?? [],      // P580 (start time)
-                        $place["pointInTime"] ?? [],    // P585 (point in time)
-                        $place["openingDate"] ?? []     // P1619 (time period)
+                        $place["inceptionDates"] ?? [], // P571 (inception)
+                        $place["startTime"] ?? [], // P580 (start time)
+                        $place["pointInTime"] ?? [], // P585 (point in time)
+                        $place["openingDate"] ?? [], // P1619 (time period)
                     ),
                     // $this->extractFirstDate($place["dissolvedDates"] ?? []), // Excluded as requested
                     $this->extractFirstValue($place["officialWebsite"] ?? []),
@@ -862,24 +886,37 @@ class ExportController extends Controller
                 fputs($output, "\xEF\xBB\xBF");
 
                 // Helper function to write UTF-8 CSV lines properly
-                $fputs_csv_utf8 = function($handle, $fields, $delimiter = ';') {
-                    $delimiter_esc = preg_quote($delimiter, '/');
+                $fputs_csv_utf8 = function (
+                    $handle,
+                    $fields,
+                    $delimiter = ";",
+                ) {
+                    $delimiter_esc = preg_quote($delimiter, "/");
                     $enclosure = '"';
-                    $enclosure_esc = preg_quote($enclosure, '/');
-                    
-                    $output = '';
+                    $enclosure_esc = preg_quote($enclosure, "/");
+
+                    $output = "";
                     foreach ($fields as $field) {
                         // Escape enclosure characters within the field
-                        $field = str_replace($enclosure, $enclosure . $enclosure, $field);
-                        
+                        $field = str_replace(
+                            $enclosure,
+                            $enclosure . $enclosure,
+                            $field,
+                        );
+
                         // If the field contains the delimiter, enclosure, or newlines, enclose it
-                        if (preg_match("/(?:${delimiter_esc}|${enclosure_esc}|\s)/", $field)) {
+                        if (
+                            preg_match(
+                                "/(?:${delimiter_esc}|${enclosure_esc}|\s)/",
+                                $field,
+                            )
+                        ) {
                             $field = $enclosure . $field . $enclosure;
                         }
-                        
+
                         $output .= $field . $delimiter;
                     }
-                    
+
                     // Remove trailing delimiter and add a newline
                     fputs($handle, substr($output, 0, -1) . "\n");
                 };
@@ -887,37 +924,77 @@ class ExportController extends Controller
                 if ($type == "places" || $type == "all") {
                     $this->exportPlaces($output, $separator, $fputs_csv_utf8);
                 } elseif ($type == "places_no_events") {
-                    $this->exportPlacesWithoutEvents($output, $separator, $fputs_csv_utf8);
+                    $this->exportPlacesWithoutEvents(
+                        $output,
+                        $separator,
+                        $fputs_csv_utf8,
+                    );
                 } elseif ($type == "places_minimal") {
-                    $this->exportPlacesMinimal($output, $separator, $fputs_csv_utf8);
+                    $this->exportPlacesMinimal(
+                        $output,
+                        $separator,
+                        $fputs_csv_utf8,
+                    );
                 } elseif ($type == "staatspolizeileitstellen") {
-                    $this->exportStaatspolizeileitstellen($output, $separator, $fputs_csv_utf8);
+                    $this->exportStaatspolizeileitstellen(
+                        $output,
+                        $separator,
+                        $fputs_csv_utf8,
+                    );
                 } elseif ($type == "staatspolizeistellen") {
-                    $this->exportStaatspolizeistellen($output, $separator, $fputs_csv_utf8);
+                    $this->exportStaatspolizeistellen(
+                        $output,
+                        $separator,
+                        $fputs_csv_utf8,
+                    );
                 } elseif ($type == "aussendienststellen") {
-                    $this->exportAussendienststellen($output, $separator, $fputs_csv_utf8);
+                    $this->exportAussendienststellen(
+                        $output,
+                        $separator,
+                        $fputs_csv_utf8,
+                    );
                 } elseif ($type == "gefaengnisse") {
-                    $this->exportGefaengnisse($output, $separator, $fputs_csv_utf8);
+                    $this->exportGefaengnisse(
+                        $output,
+                        $separator,
+                        $fputs_csv_utf8,
+                    );
                 } elseif ($type == "erweitertes_polizeigefaengnis") {
                     $this->exportErweitertesPolizeigefaengnis(
                         $output,
                         $separator,
-                        $fputs_csv_utf8
+                        $fputs_csv_utf8,
                     );
                 } elseif ($type == "arbeitserziehungslager") {
-                    $this->exportArbeitserziehungslager($output, $separator, $fputs_csv_utf8);
+                    $this->exportArbeitserziehungslager(
+                        $output,
+                        $separator,
+                        $fputs_csv_utf8,
+                    );
                 } elseif ($type == "ereignisse") {
                     $this->exportEvents($output, $separator, $fputs_csv_utf8);
                 } elseif ($type == "erinnerungsorte") {
-                    $this->exportErinnerungsorte($output, $separator, $fputs_csv_utf8);
+                    $this->exportErinnerungsorte(
+                        $output,
+                        $separator,
+                        $fputs_csv_utf8,
+                    );
                 }
 
                 if ($type == "persons" || $type == "all") {
                     $this->exportPersons($output, $separator, $fputs_csv_utf8);
                 } elseif ($type == "persons_perpetrators") {
-                    $this->exportPersonsPerpetrators($output, $separator, $fputs_csv_utf8);
+                    $this->exportPersonsPerpetrators(
+                        $output,
+                        $separator,
+                        $fputs_csv_utf8,
+                    );
                 } elseif ($type == "persons_victims") {
-                    $this->exportPersonsVictims($output, $separator, $fputs_csv_utf8);
+                    $this->exportPersonsVictims(
+                        $output,
+                        $separator,
+                        $fputs_csv_utf8,
+                    );
                 }
 
                 fclose($output);
@@ -933,8 +1010,11 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    protected function exportPlaces($output, $separator = ",", $csvWriter = null)
-    {
+    protected function exportPlaces(
+        $output,
+        $separator = ",",
+        $csvWriter = null,
+    ) {
         // Write header row for places
         $headerRow = [
             "ID",
@@ -946,14 +1026,14 @@ class ExportController extends Controller
             "Gründungsdatum",
             "Auflösungsdatum",
             "Webseite",
-            "Leiter",
+            "Leitung",
             "Personal",
             "Geschädigte",
             "Inhaftierte",
             "Erinnerungsorte",
             "nachgeordnete Organisationen",
         ];
-        
+
         if ($csvWriter) {
             $csvWriter($output, $headerRow, $separator);
         } else {
@@ -988,9 +1068,7 @@ class ExportController extends Controller
                     $this->getVictimsForPlace($placeId),
                     $this->getPrisonersForPlace($placeId),
                     $this->getMemorialsForPlace($placeId),
-                    $this->extractMultipleValues(
-                        $place["subsidiaries"] ?? [],
-                    ),
+                    $this->extractMultipleValues($place["subsidiaries"] ?? []),
                 ];
 
                 fputcsv($output, $row, $separator);
@@ -1037,8 +1115,11 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    protected function exportPersons($output, $separator = ",", $csvWriter = null)
-    {
+    protected function exportPersons(
+        $output,
+        $separator = ",",
+        $csvWriter = null,
+    ) {
         // Write header row for persons
         fputcsv(
             $output,
@@ -1066,7 +1147,6 @@ class ExportController extends Controller
         $persons = $this->personsCache;
 
         if (!empty($persons)) {
-
             // First, try to group persons by subject roles (P2868)
             $processedPersons = [];
 
@@ -1145,8 +1225,11 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    protected function exportPersonsPerpetrators($output, $separator = ",", $csvWriter = null)
-    {
+    protected function exportPersonsPerpetrators(
+        $output,
+        $separator = ",",
+        $csvWriter = null,
+    ) {
         // Write header row for persons (same as regular persons export)
         fputcsv(
             $output,
@@ -1174,7 +1257,6 @@ class ExportController extends Controller
         $persons = $this->personsCache;
 
         if (!empty($persons)) {
-
             // Process each person and check if they are a perpetrator
             foreach ($persons as $personId => $person) {
                 $isPerpetrator = false;
@@ -1241,8 +1323,11 @@ class ExportController extends Controller
      * @param resource $output The output stream
      * @return void
      */
-    protected function exportPersonsVictims($output, $separator = ",", $csvWriter = null)
-    {
+    protected function exportPersonsVictims(
+        $output,
+        $separator = ",",
+        $csvWriter = null,
+    ) {
         // Write header row for persons (same as regular persons export)
         fputcsv(
             $output,
@@ -1270,7 +1355,6 @@ class ExportController extends Controller
         $persons = $this->personsCache;
 
         if (!empty($persons)) {
-
             // Process each person and check if they are a victim
             foreach ($persons as $personId => $person) {
                 $isVictim = false;
@@ -1453,23 +1537,26 @@ class ExportController extends Controller
     protected function getStaffForPlace(string $placeId): string
     {
         $this->preprocessData();
-        
+
         $staff = [];
-        
+
         foreach ($this->personsCache as $perpetrator) {
             if (isset($perpetrator["employers"])) {
                 foreach ($perpetrator["employers"] as $employer) {
-                    if (isset($employer["id"]) && $employer["id"] === $placeId) {
+                    if (
+                        isset($employer["id"]) &&
+                        $employer["id"] === $placeId
+                    ) {
                         $staff[] = $perpetrator["label"];
                         break;
                     }
                 }
             }
         }
-        
+
         return implode("; ", $staff);
     }
-    
+
     /**
      * Get victims information for a place
      *
@@ -1479,9 +1566,9 @@ class ExportController extends Controller
     protected function getVictimsForPlace(string $placeId): string
     {
         $this->preprocessData();
-        
+
         $victims = [];
-        
+
         // Get victims directly linked to this place
         foreach ($this->personsCache as $person) {
             // Check for victim role
@@ -1491,51 +1578,60 @@ class ExportController extends Controller
                     // Check victim role IDs or descriptions
                     if (isset($role["id"])) {
                         $victimIds = [
-                            "Q2026714", "Q2744762", "Q5883980", 
-                            "Q12409870", "Q111510085", "Q111510497", 
-                            "Q113980000"
+                            "Q2026714",
+                            "Q2744762",
+                            "Q5883980",
+                            "Q12409870",
+                            "Q111510085",
+                            "Q111510497",
+                            "Q113980000",
                         ];
                         if (in_array($role["id"], $victimIds)) {
                             $isVictim = true;
                             break;
                         }
                     }
-                    
+
                     if (isset($role["value"])) {
                         $roleValue = strtolower($role["value"]);
-                        if (strpos($roleValue, "victim") !== false || 
-                            strpos($roleValue, "survivor") !== false || 
-                            strpos($roleValue, "opfer") !== false) {
+                        if (
+                            strpos($roleValue, "victim") !== false ||
+                            strpos($roleValue, "survivor") !== false ||
+                            strpos($roleValue, "opfer") !== false
+                        ) {
                             $isVictim = true;
                             break;
                         }
                     }
                 }
             }
-            
+
             // Check if they're connected to this place
             if ($isVictim) {
                 $isConnectedToPlace = false;
-                
+
                 // Check detention places
                 if (isset($person["detentionPlaces"])) {
                     foreach ($person["detentionPlaces"] as $detentionPlace) {
-                        if (isset($detentionPlace["id"]) && $detentionPlace["id"] === $placeId) {
+                        if (
+                            isset($detentionPlace["id"]) &&
+                            $detentionPlace["id"] === $placeId
+                        ) {
                             $isConnectedToPlace = true;
                             break;
                         }
                     }
                 }
-                
+
                 if ($isConnectedToPlace) {
                     $victims[] = $person["label"];
                 }
             }
         }
-        
+
         return implode("; ", $victims);
     }
-    
+
     /**
      * Get prisoners information for a place
      *
@@ -1545,23 +1641,26 @@ class ExportController extends Controller
     protected function getPrisonersForPlace(string $placeId): string
     {
         $this->preprocessData();
-        
+
         $prisoners = [];
-        
+
         foreach ($this->personsCache as $person) {
             if (isset($person["detentionPlaces"])) {
                 foreach ($person["detentionPlaces"] as $detentionPlace) {
-                    if (isset($detentionPlace["id"]) && $detentionPlace["id"] === $placeId) {
+                    if (
+                        isset($detentionPlace["id"]) &&
+                        $detentionPlace["id"] === $placeId
+                    ) {
                         $prisoners[] = $person["label"];
                         break;
                     }
                 }
             }
         }
-        
+
         return implode("; ", $prisoners);
     }
-    
+
     /**
      * Get memorials information for a place
      *
@@ -1571,33 +1670,47 @@ class ExportController extends Controller
     protected function getMemorialsForPlace(string $placeId): string
     {
         $this->preprocessData();
-        
+
         $memorials = [];
-        
+
         foreach ($this->placesCache as $place) {
             $isMemorial = false;
             if (isset($place["instances"])) {
                 foreach ($place["instances"] as $instance) {
-                    if (isset($instance["value"]) && 
-                        (strpos(strtolower($instance["value"]), "gedenkstätte") !== false || 
-                         strpos(strtolower($instance["value"]), "memorial") !== false || 
-                         strpos(strtolower($instance["value"]), "erinnerungsor") !== false)) {
+                    if (
+                        isset($instance["value"]) &&
+                        (strpos(
+                            strtolower($instance["value"]),
+                            "gedenkstätte",
+                        ) !== false ||
+                            strpos(
+                                strtolower($instance["value"]),
+                                "memorial",
+                            ) !== false ||
+                            strpos(
+                                strtolower($instance["value"]),
+                                "erinnerungsor",
+                            ) !== false)
+                    ) {
                         $isMemorial = true;
                         break;
                     }
                 }
             }
-            
+
             if ($isMemorial && isset($place["commemorates"])) {
                 foreach ($place["commemorates"] as $commemorated) {
-                    if (isset($commemorated["id"]) && $commemorated["id"] === $placeId) {
+                    if (
+                        isset($commemorated["id"]) &&
+                        $commemorated["id"] === $placeId
+                    ) {
                         $memorials[] = $place["label"];
                         break;
                     }
                 }
             }
         }
-        
+
         return implode("; ", $memorials);
     }
 
@@ -1607,17 +1720,18 @@ class ExportController extends Controller
      * @param array $perpetratorsData The P8031 property data
      * @return string Formatted list of perpetrators
      */
-    protected function extractDirectPerpetrators(array $perpetratorsData): string
-    {
+    protected function extractDirectPerpetrators(
+        array $perpetratorsData,
+    ): string {
         $perpetrators = [];
-        
+
         // Extract value from each statement
         foreach ($perpetratorsData as $statementId => $statement) {
-            if (isset($statement['value'])) {
-                $perpetrators[] = $statement['value'];
+            if (isset($statement["value"])) {
+                $perpetrators[] = $statement["value"];
             }
         }
-        
+
         return implode("; ", array_unique($perpetrators));
     }
 
@@ -1630,20 +1744,20 @@ class ExportController extends Controller
     protected function extractDirectVictims(array $victimsData): string
     {
         $victims = [];
-        
+
         // Extract value from each statement
         foreach ($victimsData as $statementId => $statement) {
-            if (isset($statement['value'])) {
-                $victims[] = $statement['value'];
+            if (isset($statement["value"])) {
+                $victims[] = $statement["value"];
             }
         }
-        
+
         return implode("; ", array_unique($victims));
     }
 
     /**
      * Extract date from multiple possible date properties
-     * 
+     *
      * @param array $inceptionDates P571 (inception) dates if available
      * @param array $startTimeDates P580 (start time) dates if available
      * @param array $pointInTimeDates P585 (point in time) dates if available
@@ -1651,41 +1765,40 @@ class ExportController extends Controller
      * @return string The earliest date from any of these properties
      */
     protected function extractDateFromMultipleProperties(
-        array $inceptionDates = [], 
-        array $startTimeDates = [], 
+        array $inceptionDates = [],
+        array $startTimeDates = [],
         array $pointInTimeDates = [],
-        array $openingDates = []
-    ): string
-    {
+        array $openingDates = [],
+    ): string {
         $allDates = [];
-        
+
         // Extract dates from each property array
         if (!empty($inceptionDates)) {
             $allDates[] = $this->extractFirstDate($inceptionDates);
         }
-        
+
         if (!empty($startTimeDates)) {
             $allDates[] = $this->extractFirstDate($startTimeDates);
         }
-        
+
         if (!empty($pointInTimeDates)) {
             $allDates[] = $this->extractFirstDate($pointInTimeDates);
         }
-        
+
         if (!empty($openingDates)) {
             $allDates[] = $this->extractFirstDate($openingDates);
         }
-        
+
         // Filter out empty strings
-        $allDates = array_filter($allDates, function($date) {
+        $allDates = array_filter($allDates, function ($date) {
             return !empty($date);
         });
-        
+
         // If no valid dates found, return empty string
         if (empty($allDates)) {
             return "";
         }
-        
+
         // Sort dates chronologically and return the earliest one
         sort($allDates);
         return $allDates[0];

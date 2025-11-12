@@ -316,15 +316,12 @@ const performSearch = async (event) => {
     noExistingEntry.value = false; // Reset checkbox when performing a new search
 
     try {
-        console.log("Starting search for:", localTitle.value);
         const response = await axios.get("/api/wikidata/entities", {
             params: {
                 title: localTitle.value,
                 limit: 5,
             },
         });
-        console.log("Search completed for:", localTitle.value);
-
         // Set search results after response received
         if (response.data.success && response.data.results) {
             searchResults.value = response.data.results;
@@ -359,7 +356,6 @@ const performSearch = async (event) => {
 
 // Use a debounced function to emit title updates
 const emitTitleUpdate = debounce((value) => {
-    console.log("Emitting debounced title update:", value);
     // Only emit if the value has changed
     if (lastEmittedTitle.value !== value) {
         lastEmittedTitle.value = value;

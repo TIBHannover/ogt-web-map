@@ -132,7 +132,7 @@
                                             ]?.textParts"
                                             :key="index"
                                         >
-                                            {{ textPart }}
+                                            <span v-html="textPart"> </span>
                                         </p>
                                     </template>
                                 </v-list-item-subtitle>
@@ -145,9 +145,11 @@
 
             <event
                 v-if="
-                    ['events', 'operationLauterbacher', 'persecutionOfSocialistFront'].includes(
-                        selectedPlace.groupName,
-                    )
+                    [
+                        'events',
+                        'operationLauterbacher',
+                        'persecutionOfSocialistFront',
+                    ].includes(selectedPlace.groupName)
                 "
                 v-model:groupedPlacesShownOnMap="proxyGroupedPlacesShownOnMap"
                 :selectedPlace="selectedPlace"
@@ -247,7 +249,11 @@ const proxyGroupedPlacesShownOnMap = computed({
 // Function to handle navigation to a person
 const navigateToPerson = (person) => {
     // Save current place ID to history before navigating
-    if (props.selectedPlace && props.selectedPlace.id && navigationHistory.value) {
+    if (
+        props.selectedPlace &&
+        props.selectedPlace.id &&
+        navigationHistory.value
+    ) {
         navigationHistory.value.push(props.selectedPlace.id);
     }
     emit("showPerson", person);

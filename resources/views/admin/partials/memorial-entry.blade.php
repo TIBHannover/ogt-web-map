@@ -26,6 +26,27 @@
             </div>
         @endif
 
+        <!-- Leistungen und Angebote -->
+        @if(isset($request->has_use) && !empty($request->has_use))
+            <div class="mb-3">
+                <h6>Leistungen und Angebote:</h6>
+                <div class="mb-2">
+                    @if(is_array($request->has_use) && !empty($request->has_use))
+                        @foreach($request->has_use as $index => $use)
+                            {!! safeFormatWikidata($use) !!}
+                            @if($index < count($request->has_use) - 1)
+                                <br>
+                            @endif
+                        @endforeach
+                    @elseif(!empty($request->has_use))
+                        {!! safeFormatWikidata($request->has_use) !!}
+                    @else
+                        <span class="text-muted">-</span>
+                    @endif
+                </div>
+            </div>
+        @endif
+
         <!-- Eröffnungsdatum -->
         @if(isset($request->opening_date) && !empty($request->opening_date))
             <div class="mb-3">
@@ -55,5 +76,11 @@
                 </div>
             </div>
         @endif
+
+        <!-- Quellenangaben -->
+        @if(isset($request->sources) && is_array($request->sources) && count($request->sources) > 0)
+            @include('admin.partials.sources-detail')
+        @endif
+
     </div>
 </div>

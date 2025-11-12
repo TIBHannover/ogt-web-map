@@ -234,7 +234,6 @@ const createCustomIcon = () => {
 
 // Icon für den Marker (verwende übergebene URL oder Standard)
 markerIcon = createCustomIcon();
-console.log("Initial marker icon created with URL:", props.markerIconUrl);
 
 // Computed property to get the current marker icon
 const currentMarkerIcon = computed(() => {
@@ -243,7 +242,6 @@ const currentMarkerIcon = computed(() => {
 
 // Function to refresh the marker icon when the URL changes
 const refreshMarkerIcon = () => {
-    console.log("Refreshing marker icon with URL:", props.markerIconUrl);
     // Create a new icon instance with the current URL
     markerIcon = createCustomIcon();
     // Update the key to force Vue to re-render the marker
@@ -255,7 +253,6 @@ const refreshMarkerIcon = () => {
 watch(
     () => props.markerIconUrl,
     (newUrl, oldUrl) => {
-        console.log("Marker icon URL changed from", oldUrl, "to:", newUrl);
         refreshMarkerIcon();
     },
     { immediate: true }, // Run immediately when component mounts

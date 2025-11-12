@@ -25,7 +25,15 @@
                 @click:close="removeItem(item)"
             >
                 {{ item.label }}
-                <span class="wikidata-id-chip">{{ item.id }}</span>
+                <span class="wikidata-id-chip"
+                    ><a
+                        :href="`https://www.wikidata.org/wiki/${item.id}`"
+                        target="_blank"
+                    >
+                        <v-icon size="x-small mr-1">mdi-open-in-new</v-icon>
+                        {{ item.id }}</a
+                    ></span
+                >
             </v-chip>
         </div>
 
@@ -197,6 +205,7 @@ const props = defineProps({
                 "organizations",
                 "commemorates",
                 "events",
+                "services",
             ].includes(value),
     },
     icon: {
