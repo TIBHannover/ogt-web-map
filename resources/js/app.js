@@ -15,6 +15,13 @@ import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 import { itemDescriptions } from "../lang/de/itemDescriptions";
 
+// Initialize global config object for app settings
+window.ogtConfig = window.ogtConfig || {};
+window.ogtConfig.exportTarget =
+    window.ogtConfig.exportTarget ||
+    process.env.MIX_EXPORT_TARGET ||
+    "wikidata";
+
 import App from "./components/App.vue";
 
 const router = createRouter({
@@ -61,6 +68,10 @@ app.provide("ogtGlobals", {
         itemDescriptions: itemDescriptions,
     },
     proxyPath: process.env.MIX_PROXY_PATH ?? "",
+    exportTarget:
+        window.ogtConfig.exportTarget ||
+        process.env.MIX_EXPORT_TARGET ||
+        "wikidata",
 });
 app.provide("configLeaflet", window.configLeaflet);
 

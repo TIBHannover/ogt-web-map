@@ -131,8 +131,8 @@ class FactgridClient
         "P1164" => "prisonerCounts", // Number of casualties (was P5630)
         "P153" => "streetAddresses", // Postal address (was P6375)
         "P47" => "significantPlaces", // Localisation (was P7153)
-        "P277" => "perpetrators", // Subject has role (was P8031)
-        "P277" => "victims", // Subject has role (was P8032)
+        "P1413" => "perpetrators", //  (was P8031)
+        "P751" => "victims", //  (was P8032)
     ];
 
     /**
@@ -188,7 +188,7 @@ class FactgridClient
                 UNION
                 {
                     ?item wdt:P2 wd:Q1014362;
-                          wdt:P277 ?location.
+                          wdt:P1413 ?location.
                     ?location wdt:P2 wd:Q1784677.
                 }
                 FILTER(EXISTS { ?item wdt:P48 ?coordinateLocation. })
@@ -199,7 +199,7 @@ class FactgridClient
                     FILTER(?property IN(
                         wd:P189, wd:P2, wd:P534, wd:P47, wd:P419, wd:P8, wd:P280, wd:P9, wd:P47, wd:P550, wd:P48,
                         wd:P319, wd:P137, wd:P156, wd:P14, wd:P1164, wd:P1164, wd:P146, wd:P146, wd:P7, wd:P7,
-                        wd:P95, wd:P47, wd:P1164, wd:P1164, wd:P1164, wd:P1164, wd:P153, wd:P47, wd:P277, wd:P277
+                        wd:P95, wd:P47, wd:P1164, wd:P1164, wd:P1164, wd:P1164, wd:P153, wd:P47, wd:P1413, wd:P751
                     ))
                     FILTER(?propertyType != wikibase:Time)
                     ?property wikibase:statementProperty ?ps.
@@ -276,9 +276,9 @@ class FactgridClient
                 {
                     ?event wdt:P2 wd:Q1014362;
                            wdt:P48 ?coordinateEvent;
-                           wdt:P277 ?location.
+                           wdt:P1413 ?location.
                     {
-                        ?event (wdt:P277|wdt:P277) ?item.
+                        ?event (wdt:P277|wdt:P751) ?item.
                     }
                     UNION
                     {
