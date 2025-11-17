@@ -150,7 +150,12 @@ export default {
                 iconName: "events.svg",
                 layerGroup: null,
                 layerName: "Aktion Lauterbacher",
-                linkedMainGroupItem: { events: "Q134587748" },
+                linkedMainGroupItem: {
+                    group: "events",
+                    id: "Q134587748",
+                    lines: [],
+                    marker: null,
+                },
                 places: {},
                 placesByCoordinates: [],
             },
@@ -160,7 +165,12 @@ export default {
                 iconName: "events.svg",
                 layerGroup: null,
                 layerName: "Verfolgung der Sozialistischen Front",
-                linkedMainGroupItem: { events: "Q133303308" },
+                linkedMainGroupItem: {
+                    group: "events",
+                    id: "Q133303308",
+                    lines: [],
+                    marker: null,
+                },
                 places: {},
                 placesByCoordinates: [],
             },
@@ -1100,6 +1110,45 @@ export default {
                 }
             });
             setCurrentValues(minDate, maxDate, groupNames);
+            drawLinesBetweenSubAndMainGroups();
+        };
+
+        const drawLinesBetweenSubAndMainGroups = () => {
+            const rawMap = toRaw(map.value);
+
+            Object.entries(groupedPlaces.value).forEach(([groupName, group]) => {
+                const linkedMainGroupItem = group.linkedMainGroupItem;
+                // skip if group is not subgroup
+                if (!linkedMainGroupItem) return;
+
+                // remove existing lines (if any)
+                linkedMainGroupItem.lines.forEach(line => rawMap.removeLayer(line));
+                linkedMainGroupItem.lines = [];
+
+                // skip if subgroup is not enabled on map
+                if (!groupedPlacesShownOnMap.value.includes(groupName)) return;
+
+                // ensure main marker is added to map
+                if (!rawMap.hasLayer(linkedMainGroupItem.marker)) {
+                    linkedMainGroupItem.marker.addTo(rawMap);
+                }
+
+                // draw lines from subgroup markers to main marker
+                group.placesByCoordinates.forEach(({ marker }) => {
+                    if (!rawMap.hasLayer(marker)) return;
+
+                    const line = L.polyline(
+                        [marker.getLatLng(), linkedMainGroupItem.marker.getLatLng()],
+                        {
+                            color: group.color,
+                            dashArray: "4,4",
+                            weight: 2,
+                        }
+                    ).addTo(rawMap);
+
+                    linkedMainGroupItem.lines.push(line);
+                });
+            });
         };
 
         const dateFilter = (data, minDate, maxDate) => {
@@ -1132,6 +1181,7 @@ export default {
                     createPlacesLayerGroups(group, placeMarkers);
                 }
 
+                setMainMarkerOfSubGroups();
                 handleLayerGroupsUpdate(groupedPlacesShownOnMap.value);
             } catch (error) {
                 console.error("Error in visualizePlaces:", error);
@@ -1237,14 +1287,7 @@ export default {
                                 getDateProp("startTime") ??
                                 new Date("1945-05-08").toDateString()
                             );
-                        } else if (
-                            placeGroupName === "events" ||
-                            Object.hasOwn(
-                                groupedPlaces.value[placeGroupName]
-                                    .linkedMainGroupItem ?? {},
-                                "events",
-                            )
-                        ) {
+                        } else if (placeGroupName === "events" || groupedPlaces.value[placeGroupName].linkedMainGroupItem?.group === "events") {
                             return (
                                 getDateProp("pointInTime") ??
                                 getDateProp("startTime") ??
@@ -1266,14 +1309,7 @@ export default {
                                 getDateProp("endTime") ??
                                 new Date().toDateString()
                             );
-                        } else if (
-                            placeGroupName === "events" ||
-                            Object.hasOwn(
-                                groupedPlaces.value[placeGroupName]
-                                    .linkedMainGroupItem ?? {},
-                                "events",
-                            )
-                        ) {
+                        } else if (placeGroupName === "events" || groupedPlaces.value[placeGroupName].linkedMainGroupItem?.group === "events") {
                             return (
                                 getDateProp("pointInTime") ??
                                 getDateProp("endTime") ??
@@ -1306,6 +1342,16 @@ export default {
 
             return placeMarkers;
         };
+
+        const setMainMarkerOfSubGroups = () => {
+            Object.values(groupedPlaces.value).forEach(group => {
+                if (!group.linkedMainGroupItem) return;
+
+                const mainLocationMarkers = locationMarkers.value[group.linkedMainGroupItem.id];
+                group.linkedMainGroupItem.marker = Object.values(mainLocationMarkers)[0];
+            });
+        }
+
         /**
          * Set selected place info.
          *
