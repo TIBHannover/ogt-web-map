@@ -24,69 +24,81 @@ class FactGridEntityMappingProvider implements EntityMappingProviderInterface
     ];
 
     /**
-     * Maps property names to FactGrid property IDs
+     * Maps property names to FactGrid P IDs
      *
      * @var array<string, string>
      */
     private $propertyMap = [
-        // Common properties
-        "INSTANCE_OF" => "F31", // Example ID - replace with actual FactGrid ID
-        "COORDINATE_LOCATION" => "F625", // Example ID - replace with actual FactGrid ID
-        "IMAGE" => "F18", // Example ID - replace with actual FactGrid ID
-
-        // Person properties
-        "GENDER" => "F21", // Example ID - replace with actual FactGrid ID
-        "BIRTH_DATE" => "F569", // Example ID - replace with actual FactGrid ID
-        "DEATH_DATE" => "F570", // Example ID - replace with actual FactGrid ID
-        "PLACE_OF_BIRTH" => "F19", // Example ID - replace with actual FactGrid ID
-        "PLACE_OF_DEATH" => "F20", // Example ID - replace with actual FactGrid ID
-        "PLACE_OF_RESIDENCE" => "F551", // Example ID - replace with actual FactGrid ID
-        "OCCUPATION" => "F106", // Example ID - replace with actual FactGrid ID
-        "SUBJECT_HAS_ROLE" => "F2868", // Example ID - replace with actual FactGrid ID
-        "SIGNIFICANT_EVENT" => "F793", // Example ID - replace with actual FactGrid ID
-        "BIRTH_NAME" => "F1477", // Example ID - replace with actual FactGrid ID
-        "EMPLOYER" => "F108", // Example ID - replace with actual FactGrid ID
-        "COUNTRY_OF_CITIZENSHIP" => "F27", // Example ID - replace with actual FactGrid ID
-
-        // Book properties
-        "TITLE" => "F1476", // Example ID - replace with actual FactGrid ID
-        "AUTHOR" => "F50", // Example ID - replace with actual FactGrid ID
-        "AUTHOR_STRING" => "F2093", // Example ID - replace with actual FactGrid ID
-        "PUBLICATION_DATE" => "F577", // Example ID - replace with actual FactGrid ID
-
-        // Organization properties
-        "INCEPTION" => "F571", // Example ID - replace with actual FactGrid ID
-        "DISSOLVED" => "F576", // Example ID - replace with actual FactGrid ID
-        "HEADQUARTERS_LOCATION" => "F159", // Example ID - replace with actual FactGrid ID
-        "OFFICIAL_NAME" => "F1448", // Example ID - replace with actual FactGrid ID
-
-        // Structure properties
-        "ARCHITECT" => "F84", // Example ID - replace with actual FactGrid ID
-        "HEIGHT" => "F2048", // Example ID - replace with actual FactGrid ID
-
-        // Event properties
-        "POINT_IN_TIME" => "F585", // Example ID - replace with actual FactGrid ID
-        "START_TIME" => "F580", // Example ID - replace with actual FactGrid ID
-        "END_TIME" => "F582", // Example ID - replace with actual FactGrid ID
-        "LOCATION" => "F276", // Example ID - replace with actual FactGrid ID
-        "HAS_CAUSE" => "F828", // Example ID - replace with actual FactGrid ID
-        "HAS_PARTICIPANT" => "F710", // Example ID - replace with actual FactGrid ID
-        "PERPETRATOR" => "F8031", // Example ID - replace with actual FactGrid ID
-        "VICTIM" => "F8032", // Example ID - replace with actual FactGrid ID
-        "VICTIM_COUNT" => "F1590", // Example ID - replace with actual FactGrid ID
-        "SURVIVOR_COUNT" => "F1561", // Example ID - replace with actual FactGrid ID
-        "DEATH_COUNT" => "F1120", // Example ID - replace with actual FactGrid ID
-        "ARREST_COUNT" => "F5582", // Example ID - replace with actual FactGrid ID
-        "SOURCING_CIRCUMSTANCES" => "F1480", // Example ID - replace with actual FactGrid ID
-
-        // Source properties
-        "DESCRIBED_BY_SOURCE" => "F1343", // Example ID - replace with actual FactGrid ID
-        "ARCHIVE" => "F485", // Example ID - replace with actual FactGrid ID
-        "INVENTORY_NUMBER" => "F217", // Example ID - replace with actual FactGrid ID
-        "PAGE" => "F304", // Example ID - replace with actual FactGrid ID
-        "STATED_IN_URL" => "F973", // Example ID - replace with actual FactGrid ID
-        "LANGUAGE" => "F407", // Example ID - replace with actual FactGrid ID
-        "RETRIEVAL_DATE" => "F813", // Example ID - replace with actual FactGrid ID
+        "INSTANCE_OF" => "P2",
+        "COORDINATE_LOCATION" => "P48",
+        "IMAGE" => "P189",
+        "GENDER" => "P154",
+        "BIRTH_DATE" => "P77",
+        "DEATH_DATE" => "P38",
+        "PLACE_OF_BIRTH" => "P82",
+        "PLACE_OF_DEATH" => "P168",
+        "PLACE_OF_DETENTION" => "P216",
+        "PLACE_OF_RESIDENCE" => "P83",
+        "OCCUPATION" => "P165",
+        "SUBJECT_HAS_ROLE" => "P277",
+        "SIGNIFICANT_EVENT" => "P137",
+        "COUNTRY_OF_CITIZENSHIP" => "P616",
+        "BIRTH_NAME" => "P34",
+        "EMPLOYER" => "P315",
+        "TITLE" => "P11",
+        "AUTHOR" => "P21",
+        "AUTHOR_STRING" => "P21",
+        "PUBLICATION_DATE" => "P222",
+        "INCEPTION" => "P49",
+        "DISSOLVED" => "P50",
+        "HEADQUARTERS_LOCATION" => "P83",
+        "OFFICIAL_NAME" => "P34",
+        "ARCHITECT" => "P552",
+        "HEIGHT" => "P401",
+        "POINT_IN_TIME" => "P106",
+        "START_TIME" => "P49",
+        "END_TIME" => "P50",
+        "LOCATION" => "P47",
+        "HAS_CAUSE" => "P464",
+        "HAS_PARTICIPANT" => "P133",
+        "PERPETRATOR" => "P277",
+        "VICTIM" => "P277",
+        "VICTIM_COUNT" => "P1164",
+        "SURVIVOR_COUNT" => "P1164",
+        "DEATH_COUNT" => "P1164",
+        "ARREST_COUNT" => "P1164",
+        "SOURCING_CIRCUMSTANCES" => "P155",
+        "DESCRIBED_BY_SOURCE" => "P146",
+        "ARCHIVE" => "P185",
+        "INVENTORY_NUMBER" => "P10",
+        "PAGE" => "P54",
+        "STATED_IN_URL" => "P146",
+        "LANGUAGE" => "P18",
+        "RETRIEVAL_DATE" => "P432",
+        "COMMEMORATES" => "P550",
+        "OPERATOR" => "P534",
+        "OPENING_DATE" => "P49",
+        "ADDRESS" => "P153",
+        "WEBSITE" => "P156",
+        "QUALIFIER_OF" => "P155",
+        "HAS_USE" => "P280",
+        "FOUNDING_DATE" => "P49",
+        "DISSOLUTION_DATE" => "P50",
+        "PRISONER_COUNT" => "P1164",
+        "PARENT_ORGANIZATION" => "P319",
+        "CHILD_ORGANIZATION" => "P419",
+        "PREDECESSOR" => "P7",
+        "SUCCESSOR" => "P7",
+        "EMPLOYEES_COUNT" => "P1164",
+        "EMPLOYEES" => "P315",
+        "DIRECTOR" => "P14",
+        "FAMILY_NAME" => "P247",
+        "GIVEN_NAME" => "P248",
+        "PART_OF" => "P8",
+        "HAS_PARTS" => "P9",
+        "START_POINT" => "P95",
+        "DESTINATION_POINT" => "P47",
+        "SIGNIFICANT_PLACE" => "P47",
     ];
 
     /**
