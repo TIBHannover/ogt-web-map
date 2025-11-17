@@ -612,12 +612,15 @@ class FactgridClient
             // Prüfe, ob es sich um eine direkte Q-Nummer handelt (z.B. "Q1234567")
             if (preg_match('/^Q\d+$/', $searchTerm)) {
                 // Direkte Anfrage des Entities mit der Q-ID
-                $response = Http::get("https://www.wikidata.org/w/api.php", [
-                    "action" => "wbgetentities",
-                    "ids" => $searchTerm,
-                    "languages" => "de|en", // Deutsch und Englisch anfordern
-                    "format" => "json",
-                ]);
+                $response = Http::get(
+                    "https://database.factgrid.de/w/api.php",
+                    [
+                        "action" => "wbgetentities",
+                        "ids" => $searchTerm,
+                        "languages" => "de|en", // Deutsch und Englisch anfordern
+                        "format" => "json",
+                    ],
+                );
 
                 if (
                     $response->successful() &&
@@ -657,7 +660,7 @@ class FactgridClient
             }
 
             // Standardsuche nach Titeln
-            $response = Http::get("https://www.wikidata.org/w/api.php", [
+            $response = Http::get("https://database.factgrid.de/w/api.php", [
                 "action" => "wbsearchentities",
                 "search" => $searchTerm,
                 "language" => "de",
@@ -676,7 +679,7 @@ class FactgridClient
                         if (empty($result["description"])) {
                             // Details für dieses Element abrufen
                             $entityResponse = Http::get(
-                                "https://www.wikidata.org/w/api.php",
+                                "https://database.factgrid.de/w/api.php",
                                 [
                                     "action" => "wbgetentities",
                                     "ids" => $result["id"],
