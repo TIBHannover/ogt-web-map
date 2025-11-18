@@ -21,7 +21,7 @@ class WikibaseController extends Controller
      */
     protected function getClient()
     {
-        if (Config::get('wikibase.export_target') === 'factgrid') {
+        if (Config::get("wikibase.export_target") === "factgrid") {
             return app(FactgridClient::class);
         }
 
@@ -35,7 +35,9 @@ class WikibaseController extends Controller
      */
     protected function getConfigPrefix()
     {
-        return Config::get('wikibase.export_target') === 'factgrid' ? 'factgrid' : 'wikidata';
+        return Config::get("wikibase.export_target") === "factgrid"
+            ? "factgrid"
+            : "wikidata";
     }
 
     /**
@@ -45,9 +47,13 @@ class WikibaseController extends Controller
      * @param string $factgridProperty The FactGrid property ID
      * @return string
      */
-    protected function getPropertyId(string $wikidataProperty, string $factgridProperty)
-    {
-        return Config::get('wikibase.export_target') === 'factgrid' ? $factgridProperty : $wikidataProperty;
+    protected function getPropertyId(
+        string $wikidataProperty,
+        string $factgridProperty,
+    ) {
+        return Config::get("wikibase.export_target") === "factgrid"
+            ? $factgridProperty
+            : $wikidataProperty;
     }
 
     /**
@@ -145,13 +151,12 @@ class WikibaseController extends Controller
 
         $propertyId = $this->getPropertyId("P2868", "P277");
 
-        $groupedPersons = array_fill_keys(
-            array_keys($personGroups),
-            [],
-        );
+        $groupedPersons = array_fill_keys(array_keys($personGroups), []);
 
         if (
-            Storage::disk("local")->exists(config("{$configPrefix}.cachedPersonsFile"))
+            Storage::disk("local")->exists(
+                config("{$configPrefix}.cachedPersonsFile"),
+            )
         ) {
             $groupedPersons =
                 json_decode(
@@ -327,13 +332,12 @@ class WikibaseController extends Controller
             ? FactgridClient::PLACE_GROUPS_IDS
             : WikidataClient::PLACE_GROUPS_IDS;
 
-        $groupedLocations = array_fill_keys(
-            array_keys($placeGroups),
-            [],
-        );
+        $groupedLocations = array_fill_keys(array_keys($placeGroups), []);
 
         if (
-            Storage::disk("local")->exists(config("{$configPrefix}.cachedPlacesFile"))
+            Storage::disk("local")->exists(
+                config("{$configPrefix}.cachedPlacesFile"),
+            )
         ) {
             $groupedLocations =
                 json_decode(

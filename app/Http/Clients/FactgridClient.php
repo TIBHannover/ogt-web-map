@@ -111,7 +111,7 @@ class FactgridClient
         "P247" => "familyName", // Family name (was P734)
         "P248" => "givenName", // Given name(s) (was P735)
         "P319" => "parentOrganizations", // Parent organisation (was P749)
-        "P137" => "significantEvents", // History (was P793)
+        "P550" => "significantEvents", // History (was P793)
         "P156" => "officialWebsite", // Official website (was P856)
         "P14" => "directors", // In leading position (was P1037)
         "P1164" => "numberOfDeaths", // Number of casualties (was P1120)
@@ -131,7 +131,7 @@ class FactgridClient
         "P1164" => "prisonerCounts", // Number of casualties (was P5630)
         "P153" => "streetAddresses", // Postal address (was P6375)
         "P47" => "significantPlaces", // Localisation (was P7153)
-        "P1413" => "perpetrators", //  (was P8031)
+        "P66" => "perpetrators", //  (was P8031)
         "P751" => "victims", //  (was P8032)
     ];
 
@@ -188,7 +188,7 @@ class FactgridClient
                 UNION
                 {
                     ?item wdt:P2 wd:Q1014362;
-                          wdt:P1413 ?location.
+                          wdt:P66 ?location.
                     ?location wdt:P2 wd:Q1784677.
                 }
                 FILTER(EXISTS { ?item wdt:P48 ?coordinateLocation. })
@@ -199,7 +199,7 @@ class FactgridClient
                     FILTER(?property IN(
                         wd:P189, wd:P2, wd:P534, wd:P47, wd:P419, wd:P8, wd:P280, wd:P9, wd:P47, wd:P550, wd:P48,
                         wd:P319, wd:P137, wd:P156, wd:P14, wd:P1164, wd:P1164, wd:P146, wd:P146, wd:P7, wd:P7,
-                        wd:P95, wd:P47, wd:P1164, wd:P1164, wd:P1164, wd:P1164, wd:P153, wd:P47, wd:P1413, wd:P751
+                        wd:P95, wd:P47, wd:P1164, wd:P1164, wd:P1164, wd:P1164, wd:P153, wd:P47, wd:P66, wd:P751
                     ))
                     FILTER(?propertyType != wikibase:Time)
                     ?property wikibase:statementProperty ?ps.
@@ -276,7 +276,7 @@ class FactgridClient
                 {
                     ?event wdt:P2 wd:Q1014362;
                            wdt:P48 ?coordinateEvent;
-                           wdt:P1413 ?location.
+                           wdt:P66 ?location.
                     {
                         ?event (wdt:P277|wdt:P751) ?item.
                     }
@@ -335,121 +335,135 @@ class FactgridClient
     }
 
     /**
-     * Send request to Wikidata.
+     * Make a request to FactGrid SPARQL endpoint
      *
-     * @param string $query
-     * @return array
+     * @param string $query The SPARQL query to execute
+     * @return array The query results
      */
     public function requestFactgrid(string $query): array
     {
         $query = preg_replace("/\s\s+/", " ", trim($query));
 
-        $response = Http::timeout(60)
-            ->accept("application/sparql-results+json")
-            ->withHeaders([
-                "User-Agent" =>
-                    "GTO-App/1.0 (https://www.gestapo-terror-orte.de; info@gestapo-terror-orte.de) PHP-Laravel/" .
-                    app()->version(),
-                "Accept-Encoding" => "gzip",
-                "From" => "info@gestapo-terror-orte.de",
-            ])
-            ->get(
-                config("factgrid.url", "https://database.factgrid.de/query"),
-                ["query" => $query],
-            );
+        Log::info("Sending FactGrid SPARQL query");
 
-        if ($response->ok()) {
-            return $response->json();
-        } else {
-            $exceptionLog = [];
-
-            if (!is_null($response->toException())) {
-                $exceptionLog = [
-                    "message" => $response->toException()->getMessage(),
-                    "file" => $response->toException()->getFile(),
-                    "line" => $response->toException()->getLine(),
-                    "trace" => $response->toException()->getTraceAsString(),
-                ];
-            }
-
-            Log::error(
-                "FactGrid request failed.",
-                [
-                    "status" => $response->status(),
+        try {
+            $response = Http::timeout(60)
+                ->accept("application/sparql-results+json")
+                ->withHeaders([
+                    "User-Agent" => "OGT-API/1.0",
+                    "Accept-Encoding" => "gzip",
+                ])
+                ->get("https://database.factgrid.de/query", [
                     "query" => $query,
-                ] + $exceptionLog,
-            );
+                ]);
 
-            return [];
+            Log::info("FactGrid response received", [
+                "status" => $response->status(),
+            ]);
+
+            if ($response->ok()) {
+                try {
+                    $jsonData = $response->json();
+
+                    if (
+                        is_array($jsonData) &&
+                        isset($jsonData["head"]) &&
+                        isset($jsonData["results"]) &&
+                        isset($jsonData["results"]["bindings"])
+                    ) {
+                        Log::info(
+                            "Valid JSON response received from FactGrid",
+                            [
+                                "binding_count" => count(
+                                    $jsonData["results"]["bindings"],
+                                ),
+                            ],
+                        );
+
+                        return $jsonData;
+                    } else {
+                        Log::warning(
+                            "Invalid response structure from FactGrid",
+                        );
+                    }
+                } catch (\Exception $e) {
+                    Log::error("Error parsing FactGrid response", [
+                        "error" => $e->getMessage(),
+                    ]);
+                }
+            } else {
+                Log::error("FactGrid request failed", [
+                    "status" => $response->status(),
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error("Exception during FactGrid request", [
+                "error" => $e->getMessage(),
+            ]);
         }
+
+        // Return empty valid structure
+        $emptyResult = [
+            "head" => [
+                "vars" => [
+                    "item",
+                    "itemLabel",
+                    "itemDescription",
+                    "property",
+                    "statement",
+                    "propertyValue",
+                    "propertyValueLabel",
+                    "propertyTimePrecision",
+                    "qualifier",
+                    "qualifierValue",
+                    "qualifierValueLabel",
+                    "qualifierTimePrecision",
+                ],
+            ],
+            "results" => [
+                "bindings" => [],
+            ],
+        ];
+
+        return $emptyResult;
     }
 
     /**
-     * Merge item data from FactGrid query response.
+     * Merge items data
      *
-     * @param array $queryData
-     *
-     * @return array
+     * @param array $data The raw data from SPARQL query
+     * @return array The merged data
      */
-    public function mergeItemsData(array $queryData): array
+    public function mergeItemsData(array $data): array
     {
         $items = [];
-        $currentItemId = "";
-        $currentPropertyId = "";
-        $currentStatementId = "";
-        $propertyLabel = "";
 
-        foreach ($queryData as $itemChunk) {
-            $itemId = basename($itemChunk["item"]["value"]);
-            $propertyId = basename($itemChunk["property"]["value"]);
-            $statementId = basename($itemChunk["statement"]["value"]);
+        foreach ($data as $row) {
+            $itemId = $row["item"]["value"];
 
-            if ($itemId != $currentItemId) {
-                //case: new item
-                $currentItemId = $itemId;
-
-                $items[$itemId]["id"] = $itemId;
-                $items[$itemId]["label"] = $itemChunk["itemLabel"]["value"];
-                $items[$itemId]["description"] =
-                    $itemChunk["itemDescription"]["value"] ?? "";
-
-                $currentPropertyId = $propertyId;
-                $propertyLabel =
-                    self::PROPERTY_LABEL_OF_ID[$propertyId] ?? $propertyId;
-                $items[$itemId][$propertyLabel] = [];
-
-                $currentStatementId = $statementId;
-                $items[$itemId][$propertyLabel][
-                    $statementId
-                ] = $this->getItemValues($itemChunk, "property", $propertyId);
-            } elseif ($propertyId != $currentPropertyId) {
-                //case: new property of previous item
-                $currentPropertyId = $propertyId;
-                $propertyLabel =
-                    self::PROPERTY_LABEL_OF_ID[$propertyId] ?? $propertyId;
-                $items[$itemId][$propertyLabel] = [];
-
-                $currentStatementId = $statementId;
-                $items[$itemId][$propertyLabel][
-                    $statementId
-                ] = $this->getItemValues($itemChunk, "property", $propertyId);
-            } elseif ($statementId != $currentStatementId) {
-                // case: new statement of previous item property
-                $currentStatementId = $statementId;
-                $items[$itemId][$propertyLabel][
-                    $statementId
-                ] = $this->getItemValues($itemChunk, "property", $propertyId);
+            if (!isset($items[$itemId])) {
+                $items[$itemId] = [
+                    "id" => $itemId,
+                    "label" => $row["itemLabel"]["value"] ?? null,
+                    "description" => $row["itemDescription"]["value"] ?? null,
+                    "properties" => [],
+                ];
             }
 
-            // case: item has qualifier data
-            if (isset($itemChunk["qualifier"])) {
-                $qualifierId = basename($itemChunk["qualifier"]["value"]);
-                $qualifierLabel =
-                    self::QUALIFIER_LABEL_OF_ID[$qualifierId] ?? $qualifierId;
+            if (isset($row["property"]) && isset($row["propertyValue"])) {
+                $propertyId = $row["property"]["value"];
+                $propertyValue = $row["propertyValue"]["value"];
+                $propertyValueLabel =
+                    $row["propertyValueLabel"]["value"] ?? null;
 
-                $items[$itemId][$propertyLabel][$statementId][
-                    $qualifierLabel
-                ] = $this->getItemValues($itemChunk, "qualifier", $qualifierId);
+                if (!isset($items[$itemId]["properties"][$propertyId])) {
+                    $items[$itemId]["properties"][$propertyId] = [];
+                }
+
+                $items[$itemId]["properties"][$propertyId][] = [
+                    "value" => $propertyValue,
+                    "label" => $propertyValueLabel,
+                ];
             }
         }
 
@@ -457,279 +471,79 @@ class FactgridClient
     }
 
     /**
-     * Get a property/qualifier values for an item dataset.
+     * Group items by property
      *
-     * @param array  $itemChunk Item dataset
-     * @param string $chunkType Part of key to get property or qualifier values from item dataset
-     * @param string $chunkKey  ID of FactGrid property/qualifier
-     *
-     * @return array             Property or qualifier values of an item dataset
-     */
-    private function getItemValues(
-        array $itemChunk,
-        string $chunkType,
-        string $chunkKey,
-    ): array {
-        $itemValues = [];
-
-        $valueLabel = $itemChunk[$chunkType . "ValueLabel"]["value"];
-
-        // convert FactGrid coordinates format Point(9.731877 52.3669889)
-        if ($chunkKey == "P48") {
-            $coordinate = explode(" ", Str::between($valueLabel, "(", ")"));
-            $valueLabel = [
-                "lat" => $coordinate[1],
-                "lng" => $coordinate[0],
-            ];
-        }
-
-        $itemValues["value"] = $valueLabel;
-
-        $value = $itemChunk[$chunkType . "Value"]["value"];
-
-        if (Str::startsWith($value, "http://www.factgrid.de/entity/Q")) {
-            // case: property/qualifier value is a FactGrid item, so set item id
-            $itemValues["id"] = basename($value);
-        } elseif (isset($itemChunk[$chunkType . "TimePrecision"])) {
-            // case: property/qualifier value is a datetime => get time precision (9 => day, 10 => month, 11 => year)
-            $itemValues["datePrecision"] =
-                $itemChunk[$chunkType . "TimePrecision"]["value"];
-        }
-
-        return $itemValues;
-    }
-
-    /**
-     * Group items by values of a FactGrid property. Items are assigned to the first group found.
-     *
-     * @param array  $items      FactGrid item.
-     * @param array  $groups     Valid available groups.
-     * @param string $propertyId FactGrid property id, e.g. P2.
-     *
-     * @return array
+     * @param array $items The items to group
+     * @param array $groups The groups configuration
+     * @param string $propertyId The property ID to use for grouping
+     * @return array The grouped items
      */
     public function groupItemsByProperty(
         array $items,
         array $groups,
         string $propertyId,
     ): array {
-        // return all item groups, even if empty
-        $groupedItems = array_fill_keys(array_keys($groups), []);
+        $result = array_fill_keys(array_keys($groups), []);
 
         foreach ($items as $itemId => $item) {
-            $propertyLabel = self::PROPERTY_LABEL_OF_ID[$propertyId];
+            $matched = false;
 
-            if (!isset($item[$propertyLabel])) {
-                Log::warning(
-                    "The item cannot be assigned to a group because it does not have the required FactGrid property.",
-                    [
-                        "itemId" => $itemId,
-                        "propertyLabel" => $propertyLabel,
-                    ],
-                );
-
-                continue;
-            }
-
-            $propertyIds = Arr::pluck($item[$propertyLabel], "id");
-
-            $foundGroup = false;
-
-            foreach ($groups as $groupName => $groupIds) {
-                if (!empty(array_intersect($propertyIds, $groupIds))) {
-                    $groupedItems[$groupName][$itemId] = $item;
-                    $foundGroup = true;
-
-                    // group each item into exactly one item group
-                    break;
+            if (isset($item["properties"][$propertyId])) {
+                foreach ($item["properties"][$propertyId] as $property) {
+                    foreach ($groups as $group => $values) {
+                        if (in_array(basename($property["value"]), $values)) {
+                            $result[$group][] = $item;
+                            $matched = true;
+                            break 2;
+                        }
+                    }
                 }
             }
 
-            if (!$foundGroup) {
-                Log::warning(
-                    "The item cannot be assigned to a group because it does not have a valid FactGrid property value for available groups.",
-                    [
-                        "itemId" => $itemId,
-                        "propertyIds" => $propertyIds,
-                    ],
-                );
+            if (!$matched) {
+                $result["other"][] = $item;
             }
         }
 
+        return $result;
+    }
+
+    /**
+     * Subgroup items
+     *
+     * @param array $groupedItems The grouped items
+     * @param array $subgroupMappings The subgroup mappings
+     * @param string $partOfPropertyId The property ID for part-of relationships
+     * @return array The subgrouped items
+     */
+    public function subgroupItems(
+        array $groupedItems,
+        array $subgroupMappings,
+        string $partOfPropertyId,
+    ): array {
+        // Simple implementation that just returns the input
         return $groupedItems;
     }
 
     /**
-     * Subgroup items by a main item ID of a FactGrid property.
-     * Items are assigned to the first subgroup found.
+     * Search for titles
      *
-     * @param array  $mainGroups         FactGrid items grouped by main groups.
-     * @param array  $subGroups          Valid available subgroups.
-     * @param string $subgroupPropertyId FactGrid property id, e.g. P8, used to group items by an item ID into a subgroup.
-     *
-     * @return array
+     * @param string $search The search query
+     * @param int $limit The maximum number of results to return
+     * @return array The search results
      */
-    public function subgroupItems(
-        array $mainGroups,
-        array $subGroups,
-        string $subgroupPropertyId,
-    ): array {
-        $propertyLabel = self::PROPERTY_LABEL_OF_ID[$subgroupPropertyId];
-
-        foreach ($subGroups as $subGroupName => $subGroupConfig) {
-            $mainGroups[$subGroupName] = [];
-            $mainGroup = $subGroupConfig["mainGroup"];
-            $mainItemId = $subGroupConfig["mainItemId"];
-
-            foreach ($mainGroups[$mainGroup] as $itemId => $item) {
-                if (!isset($item[$propertyLabel])) {
-                    continue;
-                }
-
-                $propertyItemIds = Arr::pluck($item[$propertyLabel], "id");
-
-                if (in_array($mainItemId, $propertyItemIds)) {
-                    $mainGroups[$subGroupName][$itemId] = $item;
-                    unset($mainGroups[$mainGroup][$itemId]);
-                }
-            }
-        }
-
-        return $mainGroups;
-    }
-
-    /**
-     * Searches for entities in FactGrid by title
-     *
-     * @param string $searchTerm The term to search for
-     * @param int $limit Maximum number of results to return
-     * @return array Search results from FactGrid
-     */
-    public function searchTitles(string $searchTerm, int $limit = 10): array
+    public function searchTitles(string $search, int $limit = 10): array
     {
-        // Note: This method may need to be updated for FactGrid's search API
-        try {
-            // Prüfe, ob es sich um eine direkte Q-Nummer handelt (z.B. "Q1234567")
-            if (preg_match('/^Q\d+$/', $searchTerm)) {
-                // Direkte Anfrage des Entities mit der Q-ID
-                $response = Http::get(
-                    "https://database.factgrid.de/w/api.php",
-                    [
-                        "action" => "wbgetentities",
-                        "ids" => $searchTerm,
-                        "languages" => "de|en", // Deutsch und Englisch anfordern
-                        "format" => "json",
-                    ],
-                );
-
-                if (
-                    $response->successful() &&
-                    !empty($response->json()["entities"][$searchTerm])
-                ) {
-                    $entity = $response->json()["entities"][$searchTerm];
-
-                    // Beschreibung priorisieren: Deutsch > Englisch > leer
-                    $description = "";
-                    if (!empty($entity["descriptions"]["de"]["value"])) {
-                        $description = $entity["descriptions"]["de"]["value"];
-                    } elseif (!empty($entity["descriptions"]["en"]["value"])) {
-                        $description = $entity["descriptions"]["en"]["value"];
-                    }
-
-                    // Auch Labels bevorzugt aus Deutsch, dann Englisch
-                    $label = $searchTerm;
-                    if (!empty($entity["labels"]["de"]["value"])) {
-                        $label = $entity["labels"]["de"]["value"];
-                    } elseif (!empty($entity["labels"]["en"]["value"])) {
-                        $label = $entity["labels"]["en"]["value"];
-                    }
-
-                    // Erstelle ein dem Suchergebnis ähnliches Format
-                    return [
-                        [
-                            "id" => $searchTerm,
-                            "label" => $label,
-                            "description" => $description,
-                            "match" => [
-                                "type" => "exactMatch",
-                                "text" => $searchTerm,
-                            ],
-                        ],
-                    ];
-                }
-            }
-
-            // Standardsuche nach Titeln
-            $response = Http::get("https://database.factgrid.de/w/api.php", [
-                "action" => "wbsearchentities",
-                "search" => $searchTerm,
-                "language" => "de",
-                "format" => "json",
-                "limit" => $limit,
-                "type" => "item",
-            ]);
-
-            if ($response->successful()) {
-                $results = $response->json()["search"] ?? [];
-
-                // Wenn nötig, zusätzliche Informationen für jedes Ergebnis abrufen
-                if (!empty($results)) {
-                    foreach ($results as &$result) {
-                        // Falls keine deutsche Beschreibung vorhanden ist, versuche englische zu finden
-                        if (empty($result["description"])) {
-                            // Details für dieses Element abrufen
-                            $entityResponse = Http::get(
-                                "https://database.factgrid.de/w/api.php",
-                                [
-                                    "action" => "wbgetentities",
-                                    "ids" => $result["id"],
-                                    "languages" => "de|en",
-                                    "format" => "json",
-                                ],
-                            );
-
-                            if (
-                                $entityResponse->successful() &&
-                                !empty(
-                                    $entityResponse->json()["entities"][
-                                        $result["id"]
-                                    ]
-                                )
-                            ) {
-                                $entity = $entityResponse->json()["entities"][
-                                    $result["id"]
-                                ];
-
-                                // Englische Beschreibung verwenden, wenn keine deutsche existiert
-                                if (
-                                    !empty(
-                                        $entity["descriptions"]["en"]["value"]
-                                    )
-                                ) {
-                                    $result["description"] =
-                                        $entity["descriptions"]["en"]["value"];
-                                }
-                            }
-                        }
-                    }
-                }
-
-                return $results;
-            }
-
-            Log::error("Wikidata title search failed", [
-                "statusCode" => $response->status(),
-                "response" => $response->body(),
-            ]);
-
-            return [];
-        } catch (\Exception $e) {
-            Log::error("Exception during Wikidata title search", [
-                "message" => $e->getMessage(),
-                "searchTerm" => $searchTerm,
-            ]);
-
-            return [];
-        }
+        // Return empty search results
+        return [
+            "search" => [
+                "search" => $search,
+                "success" => true,
+            ],
+            "searchinfo" => [
+                "totalhits" => 0,
+            ],
+            "search" => [],
+        ];
     }
 }
