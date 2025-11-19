@@ -108,9 +108,10 @@ class WikibaseController extends Controller
         );
 
         // Get the correct groups and property ID based on the data source
-        $personGroups = $configPrefix === 'factgrid'
-            ? FactgridClient::PERSON_GROUPS_IDS
-            : WikidataClient::PERSON_GROUPS_IDS;
+        $personGroups =
+            $configPrefix === "factgrid"
+                ? FactgridClient::PERSON_GROUPS_IDS
+                : WikidataClient::PERSON_GROUPS_IDS;
 
         $propertyId = $this->getPropertyId("P2868", "P277");
 
@@ -145,9 +146,10 @@ class WikibaseController extends Controller
         $configPrefix = $this->getConfigPrefix();
 
         // Get the correct groups based on the data source
-        $personGroups = $configPrefix === 'factgrid'
-            ? FactgridClient::PERSON_GROUPS_IDS
-            : WikidataClient::PERSON_GROUPS_IDS;
+        $personGroups =
+            $configPrefix === "factgrid"
+                ? FactgridClient::PERSON_GROUPS_IDS
+                : WikidataClient::PERSON_GROUPS_IDS;
 
         $propertyId = $this->getPropertyId("P2868", "P277");
 
@@ -241,6 +243,8 @@ class WikibaseController extends Controller
         $configPrefix = $this->getConfigPrefix();
 
         $placesResponse = $client->queryPlaces();
+        dd($placesResponse);
+
         $validator = Validator::make($placesResponse, [
             "head" => "required|array:vars|size:1",
             "head.vars" => [
@@ -280,17 +284,19 @@ class WikibaseController extends Controller
         );
 
         // Get the correct groups and property IDs based on the data source
-        $placeGroups = $configPrefix === 'factgrid'
-            ? FactgridClient::PLACE_GROUPS_IDS
-            : WikidataClient::PLACE_GROUPS_IDS;
+        $placeGroups =
+            $configPrefix === "factgrid"
+                ? FactgridClient::PLACE_GROUPS_IDS
+                : WikidataClient::PLACE_GROUPS_IDS;
 
         $instancePropertyId = $this->getPropertyId("P31", "P2");
         $partOfPropertyId = $this->getPropertyId("P361", "P8");
 
         // Get the appropriate subgroup mappings based on data source
-        $placeSubgroupMappings = $configPrefix === 'factgrid'
-            ? FactgridClient::PLACE_SUBGROUP_MAPPINGS
-            : WikidataClient::PLACE_SUBGROUP_MAPPINGS;
+        $placeSubgroupMappings =
+            $configPrefix === "factgrid"
+                ? FactgridClient::PLACE_SUBGROUP_MAPPINGS
+                : WikidataClient::PLACE_SUBGROUP_MAPPINGS;
 
         $groupedLocations = $client->groupItemsByProperty(
             $locations,
@@ -328,9 +334,10 @@ class WikibaseController extends Controller
         $configPrefix = $this->getConfigPrefix();
 
         // Get the correct groups based on the data source
-        $placeGroups = $configPrefix === 'factgrid'
-            ? FactgridClient::PLACE_GROUPS_IDS
-            : WikidataClient::PLACE_GROUPS_IDS;
+        $placeGroups =
+            $configPrefix === "factgrid"
+                ? FactgridClient::PLACE_GROUPS_IDS
+                : WikidataClient::PLACE_GROUPS_IDS;
 
         $groupedLocations = array_fill_keys(array_keys($placeGroups), []);
 
@@ -385,9 +392,10 @@ class WikibaseController extends Controller
                 $partOfPropertyId = $this->getPropertyId("P361", "P8");
 
                 // Get the appropriate subgroup mappings based on data source
-                $placeSubgroupMappings = $configPrefix === 'factgrid'
-                    ? FactgridClient::PLACE_SUBGROUP_MAPPINGS
-                    : WikidataClient::PLACE_SUBGROUP_MAPPINGS;
+                $placeSubgroupMappings =
+                    $configPrefix === "factgrid"
+                        ? FactgridClient::PLACE_SUBGROUP_MAPPINGS
+                        : WikidataClient::PLACE_SUBGROUP_MAPPINGS;
 
                 $groupedLocations = $client->groupItemsByProperty(
                     $locations,

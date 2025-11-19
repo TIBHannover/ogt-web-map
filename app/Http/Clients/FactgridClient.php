@@ -116,7 +116,7 @@ class FactgridClient
         "P14" => "directors", // In leading position (was P1037)
         "P1164" => "numberOfDeaths", // Number of casualties (was P1120)
         "P1164" => "employeeCounts", // Number of casualties (was P1128)
-        "P146" => "describedBySources", // Online information (was P1343)
+        "P129" => "describedBySources", // Online information (was P1343)
         "P146" => "describedByUrlSources", // Online information (was P973)
         "P7" => "replaces", // Continued by (was P1365)
         "P7" => "replacedBys", // Continued by (was P1366)
@@ -144,13 +144,13 @@ class FactgridClient
         "P50" => "endTime", // End date (was P582)
         "P106" => "pointInTime", // Date (was P585)
         "P48" => "coordinate", // Coordinate location (was P625)
-        "P106" => "earliestDate", // Date (approximate mapping for P1319)
-        "P106" => "latestDate", // Date (approximate mapping for P1326)
+        "P1124" => "earliestDate", // Date (approximate mapping for P1319)
+        "P1126" => "latestDate", // Date (approximate mapping for P1326)
         "P155" => "sourcingCircumstance", // How sure is this? (was P1480)
-        "P189" => "mediaLegend", // Wikimedia Commons Item image (approximate for P2096)
+        "P1243" => "mediaLegend", // Wikimedia Commons Item image (approximate for P2096)
         "P153" => "streetAddress", // Postal address (was P6375)
-        "P50" => "earliestEndDate", // End date (approximate for P8554)
-        "P49" => "latestStartDate", // Begin date (approximate for P8555)
+        "P1123" => "earliestEndDate", // End date (approximate for P8554)
+        "P1125" => "latestStartDate", // Begin date (approximate for P8555)
         "P10" => "inventoryNumber", // Inventory number (was P217)
     ];
 
@@ -198,7 +198,7 @@ class FactgridClient
                     ?property wikibase:propertyType ?propertyType.
                     FILTER(?property IN(
                         wd:P189, wd:P2, wd:P534, wd:P47, wd:P419, wd:P8, wd:P280, wd:P9, wd:P47, wd:P550, wd:P48,
-                        wd:P319, wd:P137, wd:P156, wd:P14, wd:P1164, wd:P1164, wd:P146, wd:P146, wd:P7, wd:P7,
+                        wd:P319, wd:P137, wd:P156, wd:P14, wd:P1164, wd:P1164, wd:P129, wd:P146, wd:P7, wd:P7,
                         wd:P95, wd:P47, wd:P1164, wd:P1164, wd:P1164, wd:P1164, wd:P153, wd:P47, wd:P66, wd:P751
                     ))
                     FILTER(?propertyType != wikibase:Time)
@@ -208,7 +208,7 @@ class FactgridClient
                 UNION
                 {
                     ?property wikibase:statementValue ?psv.
-                    FILTER(?property IN(wd:P49, wd:P50, wd:P49, wd:P50, wd:P106, wd:P49))
+                    FILTER(?property IN(wd:P49, wd:P1125, wd:P1123, wd:P50, wd:P106, wd:P49))
                     ?statement ?psv ?propertyValueNode.
                     ?propertyValueNode wikibase:timeValue ?propertyValue;
                         wikibase:timePrecision ?propertyTimePrecision.
@@ -217,7 +217,7 @@ class FactgridClient
                 OPTIONAL {
                     {
                         ?qualifier wikibase:propertyType ?qualifierType.
-                        FILTER(?qualifier IN(wd:P54, wd:P10, wd:P48, wd:P155, wd:P189, wd:P153))
+                        FILTER(?qualifier IN(wd:P54, wd:P10, wd:P48, wd:P155, wd:P1243, wd:P153))
                         FILTER(?qualifierType != wikibase:Time)
                         ?qualifier wikibase:qualifier ?pq.
                         ?statement ?pq ?qualifierValue.
@@ -225,7 +225,7 @@ class FactgridClient
                     UNION
                     {
                         ?qualifier wikibase:qualifierValue ?pqv.
-                        FILTER(?qualifier IN(wd:P49, wd:P50, wd:P106, wd:P106, wd:P106, wd:P50, wd:P49))
+                        FILTER(?qualifier IN(wd:P49, wd:P1125, wd:P106, wd:P1124, wd:P1126, wd:P1123, wd:P49))
                         ?statement ?pqv ?qualifierValueNode.
                         ?qualifierValueNode wikibase:timeValue ?qualifierValue;
                             wikibase:timePrecision ?qualifierTimePrecision.
@@ -292,7 +292,7 @@ class FactgridClient
                 {
                     ?property wikibase:propertyType ?propertyType.
                     FILTER(?property IN(
-                        wd:P189, wd:P82, wd:P168, wd:P154, wd:P616, wd:P315, wd:P247, wd:P248, wd:P137, wd:P146, wd:P146, wd:P216,
+                        wd:P189, wd:P82, wd:P168, wd:P154, wd:P616, wd:P315, wd:P247, wd:P248, wd:P137, wd:P129, wd:P146, wd:P216,
                         wd:P277
                     ))
                     FILTER(?propertyType != wikibase:Time)
@@ -320,7 +320,7 @@ class FactgridClient
                     UNION
                     {
                         ?qualifier wikibase:qualifierValue ?pqv.
-                        FILTER(?qualifier IN(wd:P49, wd:P50, wd:P106, wd:P106, wd:P106, wd:P50, wd:P49))
+                        FILTER(?qualifier IN(wd:P49, wd:P1125, wd:P106, wd:P1124, wd:P1126, wd:P1123, wd:P49))
                         ?statement ?pqv ?qualifierValueNode.
                         ?qualifierValueNode wikibase:timeValue ?qualifierValue;
                             wikibase:timePrecision ?qualifierTimePrecision.
