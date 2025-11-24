@@ -2,16 +2,10 @@
 
 namespace App\Http\Clients;
 
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 /**
- * Query Factgrid.
- *
- * @package App\Http\Clients
+ * FactGrid client for SPARQL queries
  */
 class FactgridClient
 {
@@ -24,283 +18,214 @@ class FactgridClient
         ],
         "victims" => [
             "Q1784663", // https://www.wikidata.org/wiki/Q2026714       victim of the Nazi regime
-            "Q2744762", // https://www.wikidata.org/wiki/Q2744762       non-Jewish victim of the Nazi regime
-            "Q5883980", // https://www.wikidata.org/wiki/Q5883980       Holocaust victim
-            "Q12409870", // https://www.wikidata.org/wiki/Q12409870      Holocaust survivor
-            "Q111510085", // https://www.wikidata.org/wiki/Q111510085     Porajmos victim
-            "Q111510497", // https://www.wikidata.org/wiki/Q111510497     Porajmos survivor
-            "Q113980000", // https://www.wikidata.org/wiki/Q113980000     Nazi euthanasia victim
         ],
     ];
 
     /**
-     * Groups of FactGrid Q-Ids of place instances with wikidata items in the commentary
+     * Groups of Factgrid Q-Ids of places
      */
     const PLACE_GROUPS_IDS = [
-        "events" => [
-            "Q1014362", // https://www.wikidata.org/wiki/Q6983405       Nazi crime
-        ],
-        "extPolicePrisons" => [
-            "Q1784665", // https://www.wikidata.org/wiki/Q108047650     Extended police prison
-            "Q998653", // https://www.wikidata.org/wiki/Q108048094     Police Detention Camp
-        ],
-        "fieldOffices" => [
-            "Q1784667", // https://www.wikidata.org/wiki/Q108047541     Gestapo Field Office
-            "Q1784676", // https://www.wikidata.org/wiki/Q108047989     Outpost (State Police)
-            "Q1784669", // https://www.wikidata.org/wiki/Q108047676     Border Police Commissariat
-            "Q1784670", // https://www.wikidata.org/wiki/Q108047833     Border police station
-            "Q1784671", // https://www.wikidata.org/wiki/Q108047775     Branch office (border police)
-        ],
-        "laborEducationCamps" => [
-            "Q978663", // https://www.wikidata.org/wiki/Q277565        labor education camp
-        ],
-        "memorials" => [
-            "Q405787", // https://www.wikidata.org/wiki/Q5003624       memorial
-        ],
-        "prisons" => [
-            "Q11266", // https://www.wikidata.org/wiki/Q40357         prison
+        "statePoliceOffices" => [
+            "Q1784670", // Grenzpolizeiposten
+            "Q1784671", // Grenzpolizeikommissariat
         ],
         "statePoliceHeadquarters" => [
-            "Q1784673", // https://www.wikidata.org/wiki/Q108047581     State Police Headquarter
+            "Q1784668", // Staatspolizeistelle
+            "Q1784673", // Staatspolizeileitstelle
         ],
-        "statePoliceOffices" => [
-            "Q1784674", // https://www.wikidata.org/wiki/Q108048310     Branch office (state police)
-            "Q992960", // https://www.wikidata.org/wiki/Q2101520       Political police (Germany)
-            "Q1784668", // https://www.wikidata.org/wiki/Q108047567     State Police Office
+        "prisons" => ["Q23223"], // Haftstätte
+        "extPolicePrisons" => ["Q1784665"], // Erweitertes Polizeigefängnis
+        "laborEducationCamps" => ["Q978663"], // Arbeitserziehungslager
+        "fieldOffices" => ["Q1784669"], // Außendienststelle
+        "events" => [
+            "Q1784964", // Tag der Befreiung
+            "Q1784963", // Novemberpogrome
+            "Q1784962", // Bücherverbrennung
         ],
+        "memorials" => ["Q1784672"], // Gedenkstätte
     ];
 
+    /**
+     * Mappings for place subgroups
+     */
     const PLACE_SUBGROUP_MAPPINGS = [
-        "persecutionOfSocialistFront" => [
-            "mainGroup" => "events",
-            "mainItemId" => "Q133303308", // https://www.wikidata.org/wiki/Q133303308   Persecution of the Socialist Front by the Gestapo
-        ],
-        "operationLauterbacher" => [
-            "mainGroup" => "events",
-            "mainItemId" => "Q134587748", // https://www.wikidata.org/wiki/Q134587748   Operation Lauterbacher and the surveillance of the "Jewish houses" in Hanover
-        ],
+        // No specific mappings for FactGrid yet
     ];
 
     /**
-     * FactGrid's properties of a queried locations and associated property labels.
-     */
-    const PROPERTY_LABEL_OF_ID = [
-        "P189" => "images", // Image (was P18)
-        "P82" => "placeOfBirth", // Place of birth (was P19)
-        "P168" => "placeOfDeath", // Place of death (was P20)
-        "P154" => "gender", // Gender (was P21)
-        "P616" => "citizenships", // Country of citizenship (was P27)
-        "P2" => "instances", // Instance of (was P31)
-        "P315" => "employers", // Employed at (was P108)
-        "P534" => "operators", // Operator (was P137)
-        "P47" => "locations", // Localisation (was P276)
-        "P419" => "subsidiaries", // Subsidiary (was P355)
-        "P8" => "partOfs", // Part of (was P361)
-        "P280" => "hasUses", // Use / functionality (was P366)
-        "P9" => "hasParts", // Includes (was P527)
-        //"P47" => "targets", // Localisation (was P533)
-        "P550" => "commemorates", // Subjected to (was P547)
-        "P77" => "dateOfBirth", // Date of birth (was P569)
-        "P38" => "dateOfDeath", // Date of death (was P570)
-        "P571" => "inceptionDates", // Begin date (was P571)
-        "P576" => "dissolvedDates", // End date (was P576)
-        "P49" => "startTime", // Begin date (was P580)
-        "P50" => "endTime", // End date (was P582)
-        "P106" => "pointInTime", // Date (was P585)
-        "P48" => "coordinates", // Coordinate location (was P625)
-        "P247" => "familyName", // Family name (was P734)
-        "P248" => "givenName", // Given name(s) (was P735)
-        "P319" => "parentOrganizations", // Parent organisation (was P749)
-        "P550" => "significantEvents", // History (was P793)
-        "P156" => "officialWebsite", // Official website (was P856)
-        "P14" => "directors", // In leading position (was P1037)
-        "P1164" => "numberOfDeaths", // Number of casualties (was P1120)
-        "P1164" => "employeeCounts", // Number of casualties (was P1128)
-        "P129" => "describedBySources", // Online information (was P1343)
-        "P146" => "describedByUrlSources", // Online information (was P973)
-        "P7" => "replaces", // Continued by (was P1365)
-        "P7" => "replacedBys", // Continued by (was P1366)
-        "P95" => "startPoints", // Where started or produced? (was P1427)
-        "P47" => "destinationPoints", // Localisation (was P1444)
-        "P1164" => "numberOfSurvivors", // Number of casualties (was P1561)
-        "P1164" => "numberOfCasualties", // Number of casualties (was P1590)
-        "P49" => "openingDate", // Begin date (was P1619)
-        "P216" => "detentionPlaces", // Place of detention (was P2632)
-        "P277" => "subjectRoles", // Subject has role (was P2868)
-        "P1164" => "numberOfArrests", // Number of casualties (was P5582)
-        "P1164" => "prisonerCounts", // Number of casualties (was P5630)
-        "P153" => "streetAddresses", // Postal address (was P6375)
-        "P47" => "significantPlaces", // Localisation (was P7153)
-        "P66" => "perpetrators", //  (was P8031)
-        "P751" => "victims", //  (was P8032)
-    ];
-
-    /**
-     * FactGrid's qualifiers of a queried locations and associated qualifier labels.
-     */
-    const QUALIFIER_LABEL_OF_ID = [
-        "P54" => "pages", // Page(s) (was P304)
-        "P49" => "startTime", // Begin date (was P580)
-        "P50" => "endTime", // End date (was P582)
-        "P106" => "pointInTime", // Date (was P585)
-        "P48" => "coordinate", // Coordinate location (was P625)
-        "P1124" => "earliestDate", // Date (approximate mapping for P1319)
-        "P1126" => "latestDate", // Date (approximate mapping for P1326)
-        "P155" => "sourcingCircumstance", // How sure is this? (was P1480)
-        "P1243" => "mediaLegend", // Wikimedia Commons Item image (approximate for P2096)
-        "P153" => "streetAddress", // Postal address (was P6375)
-        "P1123" => "earliestEndDate", // End date (approximate for P8554)
-        "P1125" => "latestStartDate", // Begin date (approximate for P8555)
-        "P10" => "inventoryNumber", // Inventory number (was P217)
-    ];
-
-    /**
-     * Get places of Gestapo terror from Wikidata.
+     * Get places of Gestapo terror from FactGrid.
      *
-     * @return array
+     * @return array The query response
      */
     public function queryPlaces(): array
     {
         Log::debug("FactgridClient::queryPlaces - Starting method");
 
-        // Simplified query that matches our direct testing
+        // Direct query that gets places with instance types
         $query = '
-        SELECT ?item ?itemLabel ?itemDescription ?property ?propertyValue ?propertyValueLabel
-        WHERE {
-          # Get places that are Gestapo terror locations
-          ?item wdt:P2 wd:Q1784677 .
+SELECT DISTINCT ?item ?itemLabel ?itemDescription ?instanceValue ?instanceValueLabel
+WHERE {
+  ?item wdt:P2 wd:Q1784677 .
+  ?item wdt:P2 ?instanceValue .
+  FILTER(?instanceValue != wd:Q1784677)
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language "de,en" .
+  }
+}';
 
-          # Get all P2 (instance of) property values for this item
-          ?item wdt:P2 ?propertyValue .
+        $response = $this->requestFactgrid($query);
 
-          # Bind the property URI
-          BIND(wdt:P2 AS ?property)
+        // Save the response for debugging
+        file_put_contents(
+            storage_path("logs/factgrid_response.json"),
+            json_encode($response, JSON_PRETTY_PRINT),
+        );
 
-          # Add labels
-          SERVICE wikibase:label {
-            bd:serviceParam wikibase:language "de,en" .
-          }
+        // Check for valid response structure and filter out empty bindings
+        if (
+            isset($response["results"]["bindings"]) &&
+            is_array($response["results"]["bindings"])
+        ) {
+            // Filter out any empty bindings
+            $filteredBindings = array_filter(
+                $response["results"]["bindings"],
+                function ($binding) {
+                    return !empty($binding) &&
+                        isset($binding["item"]) &&
+                        isset($binding["item"]["value"]);
+                },
+            );
+
+            // Replace the original bindings with filtered ones
+            $response["results"]["bindings"] = array_values($filteredBindings);
+
+            $bindingsCount = count($response["results"]["bindings"]);
+            Log::info(
+                "Received FactGrid response with {$bindingsCount} valid bindings",
+            );
+
+            // Save the filtered response for debugging
+            file_put_contents(
+                storage_path("logs/factgrid_filtered_response.json"),
+                json_encode($response, JSON_PRETTY_PRINT),
+            );
+        } else {
+            Log::warning(
+                "Unexpected or empty response structure from FactGrid",
+                [
+                    "responseStructure" => isset($response)
+                        ? json_encode(array_keys($response))
+                        : "null",
+                ],
+            );
         }
-        ORDER BY ?item
-        LIMIT 50';
 
-        return $this->requestFactgrid($query);
+        return $response;
     }
 
     /**
-     * Get persons data from Wikidata for perpetrators and victims.
+     * Create a SPARQL query for direct testing
      *
-     * @return array
+     * This method is for diagnostic purposes
      */
-    public function queryPersons(): array
+    public function createSimpleTestQuery(): string
     {
-        $query = '
-            SELECT DISTINCT
-                ?item
-                ?itemLabel
-                ?itemDescription
-                ?property
-                ?statement
-                ?propertyValue
-                ?propertyValueLabel
-                ?propertyTimePrecision
-                ?qualifier
-                ?qualifierValue
-                ?qualifierValueLabel
-                ?qualifierTimePrecision
-            WHERE
-            {
-                ?location wdt:P2 wd:Q1784677.
-                FILTER(EXISTS { ?location wdt:P48 ?coordinateLocation. })
-                ?item wdt:P2 wd:Q5.
-                {
-                    ?item (wdt:P315|wdt:P216) ?location.
-                }
-                UNION
-                {
-                    ?location wdt:P14 ?item.
-                }
-                UNION
-                {
-                    ?event wdt:P2 wd:Q1014362;
-                           wdt:P48 ?coordinateEvent;
-                           wdt:P66 ?location.
-                    {
-                        ?event (wdt:P277|wdt:P751) ?item.
-                    }
-                    UNION
-                    {
-                        VALUES ?validSubjectRoles { wd:Q1784661 wd:Q1784663 }.
-                        ?item wdt:P137 ?event;
-                              wdt:P277/wdt:P279? ?validSubjectRoles.
-                    }
-                }
-                ?property wikibase:claim ?claim.
-                ?item ?claim ?statement.
-                {
-                    ?property wikibase:propertyType ?propertyType.
-                    FILTER(?property IN(
-                        wd:P189, wd:P82, wd:P168, wd:P154, wd:P616, wd:P315, wd:P247, wd:P248, wd:P137, wd:P129, wd:P146, wd:P216,
-                        wd:P277
-                    ))
-                    FILTER(?propertyType != wikibase:Time)
-                    ?property wikibase:statementProperty ?ps.
-                    ?statement ?ps ?propertyValue.
-                }
-                UNION
-                {
-                    ?property wikibase:statementValue ?psv.
-                    FILTER(?property IN(wd:P77, wd:P38))
-                    ?statement ?psv ?propertyValueNode.
-                    ?propertyValueNode wikibase:timeValue ?propertyValue;
-                        wikibase:timePrecision ?propertyTimePrecision.
-                    # Note: FactGrid time precision may be handled differently
-                }
-                OPTIONAL
-                {
-                    {
-                        ?qualifier wikibase:propertyType ?qualifierType.
-                        FILTER(?qualifier IN(wd:P54, wd:P10, wd:P189))
-                        FILTER(?qualifierType != wikibase:Time)
-                        ?qualifier wikibase:qualifier ?pq.
-                        ?statement ?pq ?qualifierValue.
-                    }
-                    UNION
-                    {
-                        ?qualifier wikibase:qualifierValue ?pqv.
-                        FILTER(?qualifier IN(wd:P49, wd:P1125, wd:P106, wd:P1124, wd:P1126, wd:P1123, wd:P49))
-                        ?statement ?pqv ?qualifierValueNode.
-                        ?qualifierValueNode wikibase:timeValue ?qualifierValue;
-                            wikibase:timePrecision ?qualifierTimePrecision.
-                        # Note: FactGrid time precision may be handled differently
-                    }
-                }
-                SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". }
-            }
-            ORDER BY (?item) (?property) (?statement)';
+        return "
+SELECT DISTINCT ?item ?itemLabel
+WHERE {
+  ?item wdt:P2 wd:Q1784677 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\" . }
+}
+LIMIT 25";
+    }
+
+    /**
+     * Query persons from FactGrid
+     */
+    public function queryPersons(array $groupIds = []): array
+    {
+        // Query for persons
+        $groupIdsFilter = "";
+
+        if (!empty($groupIds)) {
+            $groupIdsValues = implode(
+                " ",
+                array_map(function ($id) {
+                    return "wd:$id";
+                }, $groupIds),
+            );
+
+            $groupIdsFilter = "VALUES ?role { $groupIdsValues }
+      ?item wdt:P2 ?role .";
+        }
+
+        $query = "
+SELECT ?item ?itemLabel ?itemDescription ?birthdate ?deathdate ?birthplace ?birthplaceLabel ?deathplace ?deathplaceLabel ?gender ?genderLabel ?role ?roleLabel
+WHERE {
+  $groupIdsFilter
+
+  # Birth date (optional)
+  OPTIONAL {
+    ?item wdt:P569 ?birthdate .
+  }
+
+  # Death date (optional)
+  OPTIONAL {
+    ?item wdt:P570 ?deathdate .
+  }
+
+  # Birth place (optional)
+  OPTIONAL {
+    ?item wdt:P19 ?birthplace .
+  }
+
+  # Death place (optional)
+  OPTIONAL {
+    ?item wdt:P20 ?deathplace .
+  }
+
+  # Gender (optional)
+  OPTIONAL {
+    ?item wdt:P21 ?gender .
+  }
+
+  # Role/type (optional)
+  OPTIONAL {
+    ?item wdt:P2 ?role .
+  }
+
+  # Labels
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language 'de,en' .
+  }
+}
+LIMIT 1000";
 
         return $this->requestFactgrid($query);
     }
 
     /**
-     * Make a request to FactGrid SPARQL endpoint
-     *
-     * @param string $query The SPARQL query to execute
-     * @return array The query results
+     * Send a SPARQL request to FactGrid
      */
     public function requestFactgrid(string $query): array
     {
         $query = preg_replace("/\s\s+/", " ", trim($query));
+        // Simplify the query by removing any excess whitespace
+        $query = preg_replace("/\s+/", " ", trim($query));
+
+        // Encode the query for use in a URL
         $encodedQuery = urlencode($query);
         $endpoint = "https://database.factgrid.de/sparql";
 
         Log::info("Sending FactGrid SPARQL query to: {$endpoint}");
+        Log::debug("SPARQL Query: " . $query);
 
-        // Ensure we're using HTTPS
-        $endpoint = str_replace("http://", "https://", $endpoint);
+        // Save the query for debugging
+        file_put_contents(storage_path("logs/last_factgrid_query.txt"), $query);
 
-        // Primary strategy: Direct SPARQL endpoint with GET request - exact same approach that worked in manual testing
+        // Primary strategy: Direct SPARQL endpoint with GET request
         try {
+            // Format parameter must be in the URL
             $url = "{$endpoint}?query={$encodedQuery}&format=json";
 
             $ch = curl_init();
@@ -310,7 +235,8 @@ class FactgridClient
             curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
                 "Accept: application/sparql-results+json",
-                "User-Agent: OGT-API/1.0 (https://github.com/open-geschichte/ogt-api)",
+                "Content-Type: application/x-www-form-urlencoded",
+                "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
             ]);
             curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 
@@ -327,6 +253,16 @@ class FactgridClient
                 "responseLength" => strlen($responseBody),
             ]);
 
+            // Save the raw response for debugging
+            file_put_contents(
+                storage_path("logs/last_factgrid_response.txt"),
+                $responseBody,
+            );
+            file_put_contents(
+                storage_path("logs/last_factgrid_response_info.txt"),
+                "HTTP Code: $httpCode\nContent-Type: $contentType\nError: $error\n",
+            );
+
             if ($httpCode === 200 && $responseBody) {
                 // Try parsing as JSON
                 $jsonData = json_decode($responseBody, true);
@@ -334,11 +270,85 @@ class FactgridClient
                     json_last_error() === JSON_ERROR_NONE &&
                     isset($jsonData["results"]["bindings"])
                 ) {
-                    Log::info("Successfully received JSON response", [
-                        "binding_count" => count(
+                    // Filter out any empty bindings and log them
+                    if (!empty($jsonData["results"]["bindings"])) {
+                        $filteredBindings = array_filter(
                             $jsonData["results"]["bindings"],
-                        ),
+                            function ($binding) {
+                                $isValid =
+                                    !empty($binding) &&
+                                    isset($binding["item"]) &&
+                                    isset($binding["item"]["value"]) &&
+                                    isset($binding["instanceValue"]) &&
+                                    isset($binding["instanceValue"]["value"]);
+
+                                if (!$isValid && !empty($binding)) {
+                                    Log::warning(
+                                        "Filtered out invalid binding",
+                                        ["binding" => json_encode($binding)],
+                                    );
+                                }
+
+                                return $isValid;
+                            },
+                        );
+
+                        // Check if we filtered out any bindings
+                        if (
+                            count($filteredBindings) <
+                            count($jsonData["results"]["bindings"])
+                        ) {
+                            Log::warning(
+                                "Removed " .
+                                    (count($jsonData["results"]["bindings"]) -
+                                        count($filteredBindings)) .
+                                    " empty or invalid bindings from SPARQL response",
+                            );
+                            // Replace with filtered bindings
+                            $jsonData["results"]["bindings"] = array_values(
+                                $filteredBindings,
+                            );
+                        }
+                    }
+
+                    $bindingsCount = count($jsonData["results"]["bindings"]);
+                    Log::info("Successfully received JSON response", [
+                        "binding_count" => $bindingsCount,
+                        "sample_binding" =>
+                            $bindingsCount > 0 &&
+                            !empty($jsonData["results"]["bindings"][0])
+                                ? json_encode(
+                                    array_slice(
+                                        array_keys(
+                                            $jsonData["results"]["bindings"][0],
+                                        ),
+                                        0,
+                                        3,
+                                    ),
+                                )
+                                : "none",
                     ]);
+
+                    // Save the parsed JSON for debugging
+                    file_put_contents(
+                        storage_path("logs/last_factgrid_parsed.json"),
+                        json_encode($jsonData, JSON_PRETTY_PRINT),
+                    );
+
+                    // Log additional details about the bindings
+                    if (
+                        $bindingsCount > 0 &&
+                        !empty($jsonData["results"]["bindings"][0])
+                    ) {
+                        $firstBinding = $jsonData["results"]["bindings"][0];
+                        Log::debug("First binding details", [
+                            "full_binding" => json_encode($firstBinding),
+                            "has_item" => isset($firstBinding["item"]),
+                            "has_instance" => isset(
+                                $firstBinding["instanceValue"],
+                            ),
+                        ]);
+                    }
                     return $jsonData;
                 } else {
                     Log::warning("Response is not valid SPARQL JSON", [
@@ -359,25 +369,18 @@ class FactgridClient
             ]);
         }
 
-        // Fallback strategy: POST request
+        // Fallback strategy: direct GET request
         try {
-            $ch = curl_init($endpoint);
+            $url =
+                "https://database.factgrid.de/query?format=json&query=" .
+                $encodedQuery;
+            $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
-            curl_setopt(
-                $ch,
-                CURLOPT_POSTFIELDS,
-                http_build_query([
-                    "query" => $query,
-                    "format" => "json",
-                ]),
-            );
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
                 "Accept: application/sparql-results+json",
-                "Content-Type: application/x-www-form-urlencoded; charset=UTF-8",
-                "User-Agent: OGT-API/1.0 (https://github.com/open-geschichte/ogt-api)",
+                "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
             ]);
             curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 
@@ -425,25 +428,16 @@ class FactgridClient
     }
 
     /**
-     * Check if response content type indicates JSON
+     * Check if the content type is a JSON response
      */
-    private function isJsonResponse(?string $contentType): bool
+    public function isJsonResponse(string $contentType): bool
     {
-        if (empty($contentType)) {
-            return false;
-        }
-
-        // Check for valid JSON content types
-        $validTypes = [
+        $jsonContentTypes = [
             "application/json",
             "application/sparql-results+json",
-            "text/json",
-            "application/json;charset=utf-8",
-            "application/sparql-results+json;charset=utf-8",
-            "application/ld+json",
         ];
 
-        foreach ($validTypes as $type) {
+        foreach ($jsonContentTypes as $type) {
             if (strpos($contentType, $type) !== false) {
                 return true;
             }
@@ -464,9 +458,58 @@ class FactgridClient
 
         Log::debug("Starting mergeItemsData with " . count($data) . " rows");
 
-        foreach ($data as $row) {
+        // If empty data, return empty items
+        if (empty($data)) {
+            Log::warning("Empty data passed to mergeItemsData");
+            return $items;
+        }
+
+        // Filter out any empty bindings or bindings missing required fields
+        $data = array_filter($data, function ($row) {
+            return !empty($row) &&
+                is_array($row) &&
+                isset($row["item"]) &&
+                isset($row["item"]["value"]);
+        });
+
+        // Re-index array after filtering
+        $data = array_values($data);
+
+        // If we have no data after filtering, return empty items
+        if (empty($data)) {
+            Log::warning("No valid data after filtering in mergeItemsData");
+            return $items;
+        }
+
+        // Log the first valid binding for debugging
+        if (count($data) > 0) {
+            Log::info("First valid binding in mergeItemsData", [
+                "item_value" => $data[0]["item"]["value"],
+                "has_label" => isset($data[0]["itemLabel"]),
+                "binding_keys" => implode(", ", array_keys($data[0])),
+            ]);
+        }
+
+        // First check if we have proper structure
+        if (!is_array($data) || !isset($data[0]) || !is_array($data[0])) {
+            Log::warning("Data passed to mergeItemsData has wrong structure", [
+                "data_type" => gettype($data),
+                "first_item_type" => isset($data[0])
+                    ? gettype($data[0])
+                    : "not set",
+            ]);
+            return $items;
+        }
+
+        foreach ($data as $index => $row) {
+            // Debug log for the current row structure
+            Log::debug(
+                "Processing row #{$index} with keys: " .
+                    json_encode(array_keys($row)),
+            );
+
             if (!isset($row["item"]) || !isset($row["item"]["value"])) {
-                Log::warning("Row is missing item value", [
+                Log::warning("Row #{$index} is missing item value", [
                     "row" => json_encode($row),
                 ]);
                 continue;
@@ -484,48 +527,95 @@ class FactgridClient
                         isset($row["itemLabel"]) &&
                         isset($row["itemLabel"]["value"])
                             ? $row["itemLabel"]["value"]
-                            : null,
+                            : "Unnamed Item",
                     "description" =>
                         isset($row["itemDescription"]) &&
                         isset($row["itemDescription"]["value"])
                             ? $row["itemDescription"]["value"]
-                            : null,
+                            : "No description available",
                     "properties" => [
                         "wdt:P2" => [],
                     ],
                 ];
 
-                // Always add the basic Gestapo terror location type to every item
-                $items[$itemId]["properties"]["wdt:P2"][] = [
-                    "value" => "https://database.factgrid.de/entity/Q1784677",
-                    "label" => "Gestapo terror location",
-                ];
+                Log::info("Created new item: {$qid}", [
+                    "label" => $items[$itemId]["label"],
+                ]);
             }
 
-            // Process property and propertyValue from the current row
-            if (isset($row["property"]) && isset($row["propertyValue"])) {
-                $propertyUri = $row["property"]["value"];
-                $propertyValue = $row["propertyValue"]["value"];
+            // Process instance values from the query results
+            if (
+                isset($row["instanceValue"]) &&
+                isset($row["instanceValue"]["value"])
+            ) {
+                $instanceValue = $row["instanceValue"]["value"];
+                // Extract the QID from the instance value for better logging
+                $instanceQid = basename($instanceValue);
+                $instanceLabel = $instanceQid; // Default to QID
 
-                // With the simplified query, we don't have property/propertyValue anymore
-                // Add default instance of property (P2) with Gestapo terror location
-                if (!isset($items[$itemId]["properties"]["wdt:P2"])) {
-                    $items[$itemId]["properties"]["wdt:P2"] = [];
+                // Get label if available
+                if (
+                    isset($row["instanceValueLabel"]) &&
+                    isset($row["instanceValueLabel"]["value"])
+                ) {
+                    $instanceLabel = $row["instanceValueLabel"]["value"];
                 }
 
-                if (empty($items[$itemId]["properties"]["wdt:P2"])) {
+                // Check for duplicates before adding
+                $isDuplicate = false;
+                foreach ($items[$itemId]["properties"]["wdt:P2"] as $existing) {
+                    if ($existing["value"] === $instanceValue) {
+                        $isDuplicate = true;
+                        break;
+                    }
+                }
+
+                if (!$isDuplicate) {
                     $items[$itemId]["properties"]["wdt:P2"][] = [
-                        "value" =>
-                            "https://database.factgrid.de/entity/Q1784677",
-                        "label" => "Gestapo terror location",
+                        "value" => $instanceValue,
+                        "label" => $instanceLabel,
+                        "qid" => $instanceQid,
                     ];
-                }
 
-                // We're using a simplified model where we just add default properties
+                    Log::info(
+                        "Added instance type: " .
+                            $instanceQid .
+                            " (" .
+                            $instanceLabel .
+                            ") to item " .
+                            basename($itemId),
+                    );
+                }
+            } else {
+                // If no instance value but we have an item, add a default instance type
+                if (empty($items[$itemId]["properties"]["wdt:P2"])) {
+                    $defaultInstanceValue =
+                        "https://database.factgrid.de/entity/Q1784677";
+                    $defaultInstanceQid = "Q1784677";
+                    $defaultInstanceLabel = "Ort des Gestapoterrors";
+
+                    $items[$itemId]["properties"]["wdt:P2"][] = [
+                        "value" => $defaultInstanceValue,
+                        "label" => $defaultInstanceLabel,
+                        "qid" => $defaultInstanceQid,
+                    ];
+
+                    Log::info("Added default instance type to item {$qid}");
+                }
             }
         }
 
-        Log::debug("Completed mergeItemsData with " . count($items) . " items");
+        Log::info("Completed mergeItemsData with " . count($items) . " items");
+
+        // Log the first item for debugging
+        if (!empty($items)) {
+            $firstItem = reset($items);
+            Log::debug("First merged item:", [
+                "qid" => $firstItem["qid"],
+                "label" => $firstItem["label"],
+                "instance_types" => count($firstItem["properties"]["wdt:P2"]),
+            ]);
+        }
 
         return $items;
     }
@@ -534,99 +624,209 @@ class FactgridClient
      * Group items by property
      *
      * @param array $items The items to group
-     * @param array $groups The groups configuration
-     * @param string $propertyId The property ID to use for grouping
+     * @param array $groupConfigs The group configurations
+     * @param string $propertyId The property ID to group by
      * @return array The grouped items
      */
     public function groupItemsByProperty(
         array $items,
-        array $groups,
+        array $groupConfigs,
         string $propertyId,
     ): array {
-        // Create an empty result array with all group keys
-        $result = array_fill_keys(array_keys($groups), []);
+        $groups = [];
 
-        // Force wdt:P2 as the property ID for grouping regardless of what's passed
-        $propId = "wdt:P2";
-        Log::info("Forcing grouping by wdt:P2 property for FactGrid");
+        // Initialize groups
+        foreach (array_keys($groupConfigs) as $groupKey) {
+            $groups[$groupKey] = [];
+        }
 
-        Log::debug(
-            "Grouping by property {$propId} with " . count($items) . " items",
+        Log::info(
+            "Grouping by property {$propertyId} with " .
+                count($items) .
+                " items",
         );
 
-        // Group items based on their P2 (instance of) values
+        // If no items, return empty groups
+        if (empty($items)) {
+            Log::warning("No items to group");
+            return $groups;
+        }
+
+        // Track ungrouped items to potentially add them based on labels
+        $ungroupedItems = [];
+
         foreach ($items as $itemId => $item) {
-            $itemPlaced = false;
+            $placed = false;
+            $itemQid = $item["qid"] ?? basename($itemId);
 
-            // Check if the item has the property we're grouping by
-            if (isset($item["properties"][$propId])) {
-                // For each value of the property
-                foreach ($item["properties"][$propId] as $propValue) {
-                    $qid = basename($propValue["value"]);
+            // Skip if the item doesn't have the specified property
+            if (
+                !isset($item["properties"][$propertyId]) ||
+                empty($item["properties"][$propertyId])
+            ) {
+                Log::warning(
+                    "Item {$itemQid} has no properties for {$propertyId}",
+                );
+                $ungroupedItems[$itemId] = $item;
+                continue;
+            }
 
-                    // For each group
-                    foreach ($groups as $groupName => $groupQids) {
-                        // If the property value is in this group
-                        if (in_array($qid, $groupQids)) {
-                            $result[$groupName][] = $item;
-                            $itemPlaced = true;
-                            break 2; // Break out of both loops once placed
-                        }
+            // Get all values of the property
+            $propertyValues = $item["properties"][$propertyId];
+            foreach ($propertyValues as $propValueObj) {
+                // Extract QID from URI
+                $instanceQid = isset($propValueObj["qid"])
+                    ? $propValueObj["qid"]
+                    : basename($propValueObj["value"]);
+
+                // Skip the generic Gestapo terror location type for grouping
+                if ($instanceQid === "Q1784677") {
+                    continue;
+                }
+
+                // Check each group to see if this QID is in its list
+                foreach ($groupConfigs as $groupKey => $qids) {
+                    if (in_array($instanceQid, $qids)) {
+                        $groups[$groupKey][] = $item;
+                        $placed = true;
+                        Log::info(
+                            "Placed item {$itemQid} in group {$groupKey} based on type {$instanceQid}",
+                        );
+                        break 2; // Once placed, move to next item
                     }
                 }
             }
 
-            // If the item wasn't placed in any group and "other" exists in groups
-            if (!$itemPlaced && isset($result["other"])) {
-                $result["other"][] = $item;
+            if (!$placed) {
+                Log::warning(
+                    "Could not place item {$itemQid} in any group based on types",
+                );
+                $ungroupedItems[$itemId] = $item;
             }
         }
 
-        Log::debug("Grouped items by property", [
+        // Try to group remaining items based on label matching
+        if (!empty($ungroupedItems)) {
+            Log::info(
+                "Attempting to group " .
+                    count($ungroupedItems) .
+                    " remaining items by label",
+            );
+
+            foreach ($ungroupedItems as $itemId => $item) {
+                $itemQid = $item["qid"] ?? basename($itemId);
+                $label = $item["label"] ?? "";
+
+                // Skip items with no label
+                if (empty($label)) {
+                    continue;
+                }
+
+                // Some keyword-based grouping
+                $label = strtolower($label);
+
+                if (strpos($label, "staatspolizeistelle") !== false) {
+                    $groups["statePoliceHeadquarters"][] = $item;
+                    Log::info(
+                        "Placed item {$itemQid} in statePoliceHeadquarters based on label",
+                    );
+                } elseif (strpos($label, "staatspolizeileitstelle") !== false) {
+                    $groups["statePoliceHeadquarters"][] = $item;
+                    Log::info(
+                        "Placed item {$itemQid} in statePoliceHeadquarters based on label",
+                    );
+                } elseif (strpos($label, "arbeitserziehungslager") !== false) {
+                    $groups["laborEducationCamps"][] = $item;
+                    Log::info(
+                        "Placed item {$itemQid} in laborEducationCamps based on label",
+                    );
+                } elseif (
+                    strpos($label, "polizeigefängnis") !== false ||
+                    strpos($label, "polizeigefangnis") !== false
+                ) {
+                    $groups["extPolicePrisons"][] = $item;
+                    Log::info(
+                        "Placed item {$itemQid} in extPolicePrisons based on label",
+                    );
+                } elseif (
+                    strpos($label, "gefängnis") !== false ||
+                    strpos($label, "gefangnis") !== false
+                ) {
+                    $groups["prisons"][] = $item;
+                    Log::info(
+                        "Placed item {$itemQid} in prisons based on label",
+                    );
+                } elseif (
+                    strpos($label, "grenzpolizeiposten") !== false ||
+                    strpos($label, "grenzpolizei") !== false
+                ) {
+                    $groups["statePoliceOffices"][] = $item;
+                    Log::info(
+                        "Placed item {$itemQid} in statePoliceOffices based on label",
+                    );
+                } elseif (
+                    strpos($label, "gedenkstätte") !== false ||
+                    strpos($label, "gedenkstatte") !== false
+                ) {
+                    $groups["memorials"][] = $item;
+                    Log::info(
+                        "Placed item {$itemQid} in memorials based on label",
+                    );
+                }
+                // Default to statePoliceOffices if we can't place it otherwise
+                else {
+                    $groups["statePoliceOffices"][] = $item;
+                    Log::info(
+                        "Placed item {$itemQid} in statePoliceOffices as fallback",
+                    );
+                }
+            }
+        }
+
+        Log::info("Grouped items by property", [
             "itemCount" => count($items),
-            "groupCounts" => array_map("count", $result),
+            "groupCounts" => array_map("count", $groups),
         ]);
 
-        return $result;
+        // Output counts for each group
+        foreach ($groups as $groupKey => $groupItems) {
+            Log::info(
+                "Group '{$groupKey}' contains " . count($groupItems) . " items",
+            );
+        }
+
+        return $groups;
     }
 
     /**
-     * Subgroup items
+     * Apply subgroup mappings to the groups
      *
-     * @param array $groupedItems The grouped items
+     * @param array $groups The grouped items
      * @param array $subgroupMappings The subgroup mappings
-     * @param string $partOfPropertyId The property ID for part-of relationships
+     * @param string $partOfPropertyId The part-of property ID
      * @return array The subgrouped items
      */
     public function subgroupItems(
-        array $groupedItems,
+        array $groups,
         array $subgroupMappings,
         string $partOfPropertyId,
     ): array {
-        // For production use, we just return the grouped items as is
-        // since the FactGrid data doesn't currently have subgroups
-        return $groupedItems;
+        // FactGrid doesn't currently have specific subgroups
+        return $groups;
     }
 
     /**
-     * Search for titles
-     *
-     * @param string $search The search query
-     * @param int $limit The maximum number of results to return
-     * @return array The search results
+     * Search titles in FactGrid
      */
-    public function searchTitles(string $search, int $limit = 10): array
+    public function searchTitles(string $q): array
     {
-        // Return empty search results
-        return [
-            "search" => [
-                "search" => $search,
-                "success" => true,
-            ],
-            "searchinfo" => [
-                "totalhits" => 0,
-            ],
-            "search" => [],
-        ];
+        $query = "
+SELECT ?item ?itemLabel ?itemDescription WHERE {
+  ?item rdfs:label ?label.
+  FILTER(CONTAINS(LCASE(?label), LCASE(\"$q\"))).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\". }
+}
+LIMIT 25";
+        return $this->requestFactgrid($query);
     }
 }

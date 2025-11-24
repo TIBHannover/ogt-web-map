@@ -239,179 +239,198 @@ class WikibaseController extends Controller
      */
     public function getPlaces(): Response
     {
-        $client = $this->getClient();
-        $configPrefix = $this->getConfigPrefix();
-
-        Log::debug("WikibaseController::getPlaces - Starting method");
-        Log::debug("Using client type: " . get_class($client));
-        Log::debug("Config prefix: " . $configPrefix);
-
-        $placesResponse = $client->queryPlaces();
-        Log::debug("Received response from queryPlaces", [
-            "hasHead" => isset($placesResponse["head"]),
-            "hasResults" => isset($placesResponse["results"]),
-            "bindingsCount" => isset($placesResponse["results"]["bindings"])
-                ? count($placesResponse["results"]["bindings"])
-                : 0,
-        ]);
-
-        // Validator for the SPARQL query response structure
-        $validator = Validator::make($placesResponse, [
-            "head" => "required|array",
-            "head.vars" => "required|array",
-            "results" => "required|array",
-            "results.bindings" => "required|array",
-        ]);
-
-        if ($validator->fails()) {
-            Log::warning(
-                "Validation of {$configPrefix} places response failed.",
-                $validator->errors()->all(),
-            );
-
-            Log::debug("Full response for debugging:", [
-                "head" => isset($placesResponse["head"])
-                    ? json_encode($placesResponse["head"])
-                    : "missing",
-                "results" => isset($placesResponse["results"])
-                    ? json_encode($placesResponse["results"])
-                    : "missing",
-                "vars" => isset($placesResponse["head"]["vars"])
-                    ? json_encode($placesResponse["head"]["vars"])
-                    : "missing",
-                "first_binding" => isset(
-                    $placesResponse["results"]["bindings"][0],
-                )
-                    ? json_encode($placesResponse["results"]["bindings"][0])
-                    : "missing",
-                "status" => isset($placesResponse["_status_code"])
-                    ? $placesResponse["_status_code"]
-                    : "unknown",
-            ]);
-
-            // Log more details about the response for debugging
-            Log::error("SPARQL validation failed. Response details:", [
-                "responseType" => gettype($placesResponse),
-                "isArray" => is_array($placesResponse),
-                "keys" => is_array($placesResponse)
-                    ? array_keys($placesResponse)
-                    : "N/A",
-                "error" => $validator->errors()->all(),
-                "raw" => substr(json_encode($placesResponse), 0, 1000),
-            ]);
-
-            // Return empty response if validation fails
-            return response([], Response::HTTP_NO_CONTENT);
-        }
-
-        Log::debug(
-            "Calling mergeItemsData with " .
-                (isset($placesResponse["results"]["bindings"])
-                    ? count($placesResponse["results"]["bindings"])
-                    : 0) .
-                " bindings",
-        );
-
         try {
+            $client = $this->getClient();
+            $configPrefix = $this->getConfigPrefix();
+
+            Log::debug("WikibaseController::getPlaces - Starting method");
+            Log::debug("Using client type: " . get_class($client));
+            Log::debug("Config prefix: " . $configPrefix);
+
+            $response = $client->queryPlaces();
+
+            if (empty($response) || !isset($response["results"]["bindings"])) {
+                Log::warning("Empty or invalid response from queryPlaces");
+                Log::debug(
+                    "Response structure: " .
+                        json_encode(array_keys($response ?? [])),
+                );
+                return response(
+                    [
+                        "events" => [],
+                        "extPolicePrisons" => [],
+                        "fieldOffices" => [],
+                        "laborEducationCamps" => [],
+                        "memorials" => [],
+                        "prisons" => [],
+                        "statePoliceHeadquarters" => [],
+                        "statePoliceOffices" => [],
+                    ],
+                    Response::HTTP_OK,
+                );
+            }
+
+            Log::debug("Received response from queryPlaces", [
+                "hasHead" => isset($response["head"]),
+                "hasResults" => isset($response["results"]),
+                "bindingsCount" => isset($response["results"]["bindings"])
+                    ? count($response["results"]["bindings"])
+                    : 0,
+            ]);
+
+            // Validator for the SPARQL query response structure
+            $validator = Validator::make($response, [
+                "head" => "required|array",
+                "head.vars" => "required|array",
+                "results" => "required|array",
+                "results.bindings" => "present|array",
+            ]);
+
+            if ($validator->fails()) {
+                Log::warning(
+                    "Validation of {$configPrefix} places response failed.",
+                    $validator->errors()->all(),
+                );
+
+                Log::debug("Full response for debugging:", [
+                    "head" => isset($response["head"])
+                        ? json_encode($response["head"])
+                        : "missing",
+                    "results" => isset($response["results"])
+                        ? json_encode($response["results"])
+                        : "missing",
+                    "vars" => isset($response["head"]["vars"])
+                        ? json_encode($response["head"]["vars"])
+                        : "missing",
+                    "first_binding" => isset(
+                        $response["results"]["bindings"][0],
+                    )
+                        ? json_encode($response["results"]["bindings"][0])
+                        : "missing",
+                    "status" => isset($response["_status_code"])
+                        ? $response["_status_code"]
+                        : "unknown",
+                ]);
+
+                return response([], Response::HTTP_NO_CONTENT);
+            }
+
             $locations = $client->mergeItemsData(
-                $placesResponse["results"]["bindings"],
+                $response["results"]["bindings"],
             );
-        } catch (\Exception $e) {
-            Log::error("Error in mergeItemsData", [
-                "error" => $e->getMessage(),
-                "trace" => $e->getTraceAsString(),
+
+            Log::debug(
+                "mergeItemsData returned " . count($locations) . " items",
+            );
+            if (count($locations) > 0) {
+                Log::debug(
+                    "Sample item keys: " .
+                        implode(", ", array_keys(reset($locations))),
+                );
+                Log::debug(
+                    "First item: " . json_encode(array_values($locations)[0]),
+                );
+            }
+
+            // If no locations were found, return empty groups
+            if (empty($locations)) {
+                Log::warning("No locations found after mergeItemsData");
+                return response(
+                    [
+                        "events" => [],
+                        "extPolicePrisons" => [],
+                        "fieldOffices" => [],
+                        "laborEducationCamps" => [],
+                        "memorials" => [],
+                        "prisons" => [],
+                        "statePoliceHeadquarters" => [],
+                        "statePoliceOffices" => [],
+                    ],
+                    Response::HTTP_OK,
+                );
+            }
+
+            // Get the correct groups and property IDs based on the data source
+            $placeGroups =
+                $configPrefix === "factgrid"
+                    ? FactgridClient::PLACE_GROUPS_IDS
+                    : WikidataClient::PLACE_GROUPS_IDS;
+
+            $instancePropertyId = $this->getPropertyId("P31", "wdt:P2");
+            $partOfPropertyId = $this->getPropertyId("P361", "wdt:P8");
+
+            // Get the appropriate subgroup mappings based on data source
+            $placeSubgroupMappings =
+                $configPrefix === "factgrid"
+                    ? FactgridClient::PLACE_SUBGROUP_MAPPINGS
+                    : WikidataClient::PLACE_SUBGROUP_MAPPINGS;
+
+            Log::debug("Calling groupItemsByProperty with parameters", [
+                "locationsCount" => count($locations),
+                "placeGroupsKeys" => array_keys($placeGroups),
+                "instancePropertyId" => $instancePropertyId,
             ]);
-            return response([], Response::HTTP_NO_CONTENT);
-        }
 
-        Log::debug("mergeItemsData returned " . count($locations) . " items");
-        if (count($locations) > 0) {
-            Log::debug(
-                "Sample item keys: " .
-                    implode(", ", array_keys(reset($locations))),
-            );
-            Log::debug(
-                "First item: " . json_encode(array_values($locations)[0]),
-            );
-        }
-
-        // Get the correct groups and property IDs based on the data source
-        $placeGroups =
-            $configPrefix === "factgrid"
-                ? FactgridClient::PLACE_GROUPS_IDS
-                : WikidataClient::PLACE_GROUPS_IDS;
-
-        $instancePropertyId = $this->getPropertyId("P31", "wdt:P2");
-        $partOfPropertyId = $this->getPropertyId("P361", "wdt:P8");
-
-        // Get the appropriate subgroup mappings based on data source
-        $placeSubgroupMappings =
-            $configPrefix === "factgrid"
-                ? FactgridClient::PLACE_SUBGROUP_MAPPINGS
-                : WikidataClient::PLACE_SUBGROUP_MAPPINGS;
-
-        Log::debug("Calling groupItemsByProperty with parameters", [
-            "locationsCount" => count($locations),
-            "placeGroupsKeys" => array_keys($placeGroups),
-            "instancePropertyId" => $instancePropertyId,
-        ]);
-
-        try {
             $groupedLocations = $client->groupItemsByProperty(
                 $locations,
                 $placeGroups,
                 $instancePropertyId,
             );
-        } catch (\Exception $e) {
-            Log::error("Error in groupItemsByProperty", [
-                "error" => $e->getMessage(),
-                "trace" => $e->getTraceAsString(),
-            ]);
-            // If grouping fails, return empty arrays for all groups
-            $groupedLocations = array_fill_keys(array_keys($placeGroups), []);
-        }
 
-        Log::debug(
-            "groupItemsByProperty returned groups with counts: " .
-                json_encode(array_map("count", $groupedLocations)),
-        );
+            Log::debug(
+                "groupItemsByProperty returned groups with counts: " .
+                    json_encode(array_map("count", $groupedLocations)),
+            );
 
-        try {
             $groupedLocations = $client->subgroupItems(
                 $groupedLocations,
                 $placeSubgroupMappings,
                 $partOfPropertyId,
             );
+
+            Log::debug(
+                "subgroupItems returned groups with counts: " .
+                    json_encode(array_map("count", $groupedLocations)),
+            );
+
+            // Ensure the directory exists
+            $filePath = config("{$configPrefix}.cachedPlacesFile");
+            $directory = dirname($filePath);
+
+            if (
+                $directory !== "." &&
+                !Storage::disk("local")->exists($directory)
+            ) {
+                Storage::disk("local")->makeDirectory($directory);
+            }
+
+            Storage::disk("local")->put(
+                $filePath,
+                json_encode($groupedLocations),
+            );
+
+            Log::debug(
+                "WikibaseController::getPlaces - Completed successfully with " .
+                    array_sum(array_map("count", $groupedLocations)) .
+                    " total places",
+            );
+
+            // Final check on what we're returning
+            foreach ($groupedLocations as $groupName => $items) {
+                Log::debug(
+                    "Group '{$groupName}' contains " . count($items) . " items",
+                );
+            }
+
+            return response($groupedLocations, Response::HTTP_OK);
         } catch (\Exception $e) {
-            Log::error("Error in subgroupItems", [
+            // Catch any unexpected exceptions in the whole method
+            Log::error("Exception in WikibaseController::getPlaces", [
                 "error" => $e->getMessage(),
                 "trace" => $e->getTraceAsString(),
             ]);
-            // If subgrouping fails, continue with the grouped locations as is
+            return response([], Response::HTTP_NO_CONTENT);
         }
-
-        Log::debug(
-            "subgroupItems returned groups with counts: " .
-                json_encode(array_map("count", $groupedLocations)),
-        );
-
-        // Ensure the directory exists
-        $filePath = config("{$configPrefix}.cachedPlacesFile");
-        $directory = dirname($filePath);
-
-        if ($directory !== "." && !Storage::disk("local")->exists($directory)) {
-            Storage::disk("local")->makeDirectory($directory);
-        }
-
-        Storage::disk("local")->put($filePath, json_encode($groupedLocations));
-
-        Log::debug(
-            "WikibaseController::getPlaces - Completed successfully with " .
-                array_sum(array_map("count", $groupedLocations)) .
-                " total places",
-        );
-
-        return response($groupedLocations, Response::HTTP_OK);
     }
 
     /**
@@ -1083,6 +1102,36 @@ class WikibaseController extends Controller
             "is_html" => $hasHtmlTags,
             "length" => strlen($body),
             "preview" => substr($body, 0, 100),
+        ];
+    }
+
+    /**
+     * Simple debug method for FactGrid integration
+     * Used only for debugging purposes
+     */
+    public function debugFactgrid()
+    {
+        // Clear any cache file that might exist
+        if (Storage::disk("local")->exists("factgrid/places.json")) {
+            Storage::disk("local")->delete("factgrid/places.json");
+        }
+
+        Log::info("debugFactgrid - Testing FactGrid directly");
+        $client = app(FactgridClient::class);
+        $response = $client->queryPlaces();
+
+        $bindingCount = isset($response["results"]["bindings"])
+            ? count($response["results"]["bindings"])
+            : 0;
+
+        Log::info("debugFactgrid - Got {$bindingCount} results");
+
+        // Just return the raw response for debugging
+        return [
+            "status" => "debug_only",
+            "binding_count" => $bindingCount,
+            "response" => $response,
+            "timestamp" => date("Y-m-d H:i:s"),
         ];
     }
 }
