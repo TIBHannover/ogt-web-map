@@ -46,6 +46,12 @@ Route::get("/factgrid/places/cache", [
     "getCachedPlaces",
 ]);
 
+// Diagnostic route to test FactGrid connection
+Route::get("/factgrid/test-connection", [
+    WikibaseController::class,
+    "testFactgridConnection",
+]);
+
 // Occupation search endpoint
 Route::get("/wikidata/occupations", [
     WikibaseSearchController::class,

@@ -9,7 +9,10 @@ return [
     | Configuration settings for connecting to the FactGrid API.
     |
     */
-    "api_url" => env("FACTGRID_API_URL", "https://database.factgrid.de/api.php"),
+    "api_url" => env(
+        "FACTGRID_API_URL",
+        "https://database.factgrid.de/api.php",
+    ),
 
     /*
     |--------------------------------------------------------------------------
@@ -19,7 +22,7 @@ return [
     | The URL of the FactGrid SPARQL endpoint.
     |
     */
-    "url" => env("FACTGRID_URL", "https://database.factgrid.de/query"),
+    "url" => env("FACTGRID_URL", "https://database.factgrid.de/sparql"),
 
     /*
     |--------------------------------------------------------------------------
