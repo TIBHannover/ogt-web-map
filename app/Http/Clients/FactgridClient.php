@@ -46,6 +46,102 @@ class FactgridClient
     ];
 
     /**
+     * FactGrid property ID to semantic name mapping
+     * These are used to transform property IDs like "P189" into meaningful names like "images"
+     * Mapping based on: https://docs.google.com/document/d/1rBLt0j2ndhoRQ38FdrtiVoLVwCub8Uv7ALdXBUZ_LCM/edit
+     */
+    const PROPERTY_LABEL_OF_ID = [
+        // Instance and Type Properties
+        "P2" => "instances", // Instance of (Wikidata P31)
+
+        // Image and Media Properties
+        "P189" => "images", // Images (Wikidata P18)
+
+        // Location Properties
+        "P48" => "coordinates", // Coordinate location (Wikidata P625)
+        "P47" => "locations", // Location (Wikidata P276)
+        "P82" => "placeOfBirth", // Place of birth (Wikidata P19)
+        "P168" => "placeOfDeath", // Place of death (Wikidata P20)
+        "P153" => "streetAddresses", // Street addresses (Wikidata P6375)
+
+        // Time Properties
+        "P49" => "startTime", // Start time (Wikidata P580)
+        "P50" => "endTime", // End time (Wikidata P582)
+        "P106" => "pointInTime", // Point in time (Wikidata P585)
+        "P77" => "dateOfBirth", // Date of birth (Wikidata P569)
+        "P38" => "dateOfDeath", // Date of death (Wikidata P570)
+        // "P?" => "inceptionDates", // Inception dates (Wikidata P571) - No mapping yet
+        // "P?" => "dissolvedDates", // Dissolved dates (Wikidata P576) - No mapping yet
+        // "P?" => "openingDate", // Opening date (Wikidata P1619) - No mapping yet
+
+        // Person Properties
+        "P154" => "gender", // Gender (Wikidata P21)
+        "P616" => "citizenships", // Citizenships (Wikidata P27)
+        "P247" => "familyName", // Family name (Wikidata P734)
+        "P248" => "givenName", // Given name (Wikidata P735)
+
+        // Organization Properties
+        "P319" => "parentOrganizations", // Parent organization (Wikidata P749)
+        "P419" => "subsidiaries", // Has subsidiaries (Wikidata P355)
+        "P7" => "replacedBys", // Replaced by (Wikidata P1366)
+        // "P?" => "replaces", // Replaces (Wikidata P1365) - No mapping yet
+
+        // Role and Relationship Properties
+        "P277" => "subjectRoles", // Subject has role (Wikidata P2868)
+        "P315" => "employers", // Employer (Wikidata P108)
+        "P14" => "directors", // Director (Wikidata P1037)
+        "P216" => "detentionPlaces", // Place of detention (Wikidata P2632)
+        "P550" => "significantEvents", // Significant event (Wikidata P793)
+
+        // Event Specific Properties
+        "P178" => "perpetrators", // Perpetrator (Wikidata P8031 - first mapping)
+        "P66" => "perpetrators", // Perpetrator (Wikidata P8031 - second mapping)
+        "P751" => "victims", // Victim (Wikidata P8032)
+        "P464" => "hasCause", // Has cause (Wikidata P828)
+        // "P?" => "numberOfCasualties", // Number of casualties (Wikidata P1590) - No mapping yet
+        // "P?" => "numberOfSurvivors", // Number of survivors (Wikidata P1561) - No mapping yet
+        // "P?" => "numberOfDeaths", // Number of deaths (Wikidata P1120) - No mapping yet
+        // "P?" => "numberOfArrests", // Number of arrests (Wikidata P5582) - No mapping yet
+        // "P?" => "employeeCounts", // Employee counts (Wikidata P1128) - No mapping yet
+        // "P?" => "prisonerCounts", // Prisoner counts (Wikidata P5630) - No mapping yet
+
+        // Memorial Site Properties
+        "P534" => "operators", // Operators (Wikidata P137)
+        "P280" => "hasUses", // Has use (Wikidata P366)
+        "P547" => "commemorates", // Commemorates (Wikidata P547)
+
+        // Source Properties
+        "P129" => "describedBySources", // Described by source (Wikidata P1343)
+        "P146" => "describedByUrlSources", // Described by URL (Wikidata P973)
+        "P156" => "officialWebsite", // Official website (Wikidata P856)
+    ];
+
+    /**
+     * FactGrid's qualifiers of queried locations and associated qualifier labels.
+     * Mapping based on: https://docs.google.com/document/d/1rBLt0j2ndhoRQ38FdrtiVoLVwCub8Uv7ALdXBUZ_LCM/edit
+     */
+    const QUALIFIER_LABEL_OF_ID = [
+        // Basic Qualifiers
+        "P54" => "pages", // Similar to Wikidata P304 (pages)
+        "P49" => "startTime", // Similar to Wikidata P580 (start time)
+        "P50" => "endTime", // Similar to Wikidata P582 (end time)
+        "P106" => "pointInTime", // Similar to Wikidata P585 (point in time)
+        "P48" => "coordinate", // Similar to Wikidata P625 (coordinate)
+        "P1243" => "mediaLegend", // Similar to Wikidata P2096 (media legend)
+
+        // Date Range Qualifiers
+        "P1124" => "earliestDate", // Similar to Wikidata P1319 (earliest date)
+        "P1126" => "latestDate", // Similar to Wikidata P1326 (latest date)
+        "P1123" => "earliestEndDate", // Similar to Wikidata P8554 (earliest end date)
+        "P1125" => "latestStartDate", // Similar to Wikidata P8555 (latest start date)
+
+        // Other Qualifiers
+        "P155" => "sourcingCircumstance", // Similar to Wikidata P1480 (sourcing circumstance)
+        "P153" => "streetAddress", // Similar to Wikidata P6375 (street address)
+        "P10" => "inventoryNumber", // Similar to Wikidata P217 (inventory number)
+    ];
+
+    /**
      * Mappings for place subgroups
      */
     const PLACE_SUBGROUP_MAPPINGS = [
@@ -61,17 +157,84 @@ class FactgridClient
     {
         Log::debug("FactgridClient::queryPlaces - Starting method");
 
-        // Direct query that gets places with instance types
+        // Simple combined query that reliably fetches items, instance types, and coordinates
+        // We confirmed this query pattern works correctly in tests
         $query = '
-SELECT DISTINCT ?item ?itemLabel ?itemDescription ?instanceValue ?instanceValueLabel
+SELECT
+  ?item
+  ?itemLabel
+  ?itemDescription
+  ?property
+  ?statement
+  ?propertyValue
+  ?propertyValueLabel
+  ?propertyTimePrecision
+  ?qualifier
+  ?qualifierValue
+  ?qualifierValueLabel
+  ?qualifierTimePrecision
+  ?coordinates
 WHERE {
-  ?item wdt:P2 wd:Q1784677 .
-  ?item wdt:P2 ?instanceValue .
-  FILTER(?instanceValue != wd:Q1784677)
-  SERVICE wikibase:label {
-    bd:serviceParam wikibase:language "de,en" .
+  {
+    ?item p:P2 ?itemStatement.
+    ?itemStatement ps:P2 wd:Q1784677.
   }
-}';
+  UNION
+  {
+    ?item wdt:P550 ?location.
+    ?location wdt:P2 wd:Q1784677.
+  }
+  UNION
+  {
+    ?item wdt:P2 wd:Q6983405;
+          wdt:P277 ?location.
+    ?location wdt:P2 wd:Q1784677.
+  }
+  FILTER(EXISTS { ?item wdt:P48 ?coordinates. })
+  ?item wdt:P48 ?coordinates.
+  ?property wikibase:claim ?claim.
+  ?item ?claim ?statement.
+  {
+    ?property wikibase:propertyType ?propertyType.
+    FILTER(?property IN(
+      wd:P189, wd:P2, wd:P534, wd:P47, wd:P419, wd:P8, wd:P280, wd:P9, wd:P550, wd:P48,
+      wd:P319, wd:P156, wd:P315, wd:P7, wd:P7, wd:P137, wd:P146, wd:P1164, wd:P550, wd:P534,
+      wd:P153, wd:P49, wd:P50, wd:P1164, wd:P153, wd:P156, wd:P155, wd:P280, wd:P49, wd:P50,
+      wd:P1164, wd:P319, wd:P419, wd:P7, wd:P7, wd:P1164, wd:P315, wd:P14, wd:P247, wd:P248,
+      wd:P8, wd:P9, wd:P95, wd:P47, wd:P47
+    ))
+    FILTER(?propertyType != wikibase:Time)
+    ?property wikibase:statementProperty ?ps.
+    ?statement ?ps ?propertyValue.
+  }
+  UNION
+  {
+    ?property wikibase:statementValue ?psv.
+    FILTER(?property IN(wd:P49, wd:P50, wd:P49, wd:P50, wd:P106, wd:P49))
+    ?statement ?psv ?propertyValueNode.
+    ?propertyValueNode wikibase:timeValue ?propertyValue;
+      wikibase:timePrecision ?propertyTimePrecision.
+  }
+  OPTIONAL {
+    {
+      ?qualifier wikibase:propertyType ?qualifierType.
+      FILTER(?qualifier IN(wd:P54, wd:P10, wd:P48, wd:P155, wd:P55, wd:P153))
+      FILTER(?qualifierType != wikibase:Time)
+      ?qualifier wikibase:qualifier ?pq.
+      ?statement ?pq ?qualifierValue.
+    }
+    UNION
+    {
+      ?qualifier wikibase:qualifierValue ?pqv.
+      FILTER(?qualifier IN(wd:P49, wd:P50, wd:P106, wd:P218, wd:P219, wd:P432, wd:P432))
+      ?statement ?pqv ?qualifierValueNode.
+      ?qualifierValueNode wikibase:timeValue ?qualifierValue;
+        wikibase:timePrecision ?qualifierTimePrecision.
+    }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". }
+}
+ORDER BY (?item) (?property) (?statement)';
 
         $response = $this->requestFactgrid($query);
 
@@ -86,7 +249,7 @@ WHERE {
             isset($response["results"]["bindings"]) &&
             is_array($response["results"]["bindings"])
         ) {
-            // Filter out any empty bindings
+            // Filter the bindings to remove any invalid ones
             $filteredBindings = array_filter(
                 $response["results"]["bindings"],
                 function ($binding) {
@@ -103,6 +266,9 @@ WHERE {
             Log::info(
                 "Received FactGrid response with {$bindingsCount} valid bindings",
             );
+
+            // All data is already included in the main query
+            // No need for additional property enrichment with this approach
 
             // Save the filtered response for debugging
             file_put_contents(
@@ -278,9 +444,7 @@ LIMIT 1000";
                                 $isValid =
                                     !empty($binding) &&
                                     isset($binding["item"]) &&
-                                    isset($binding["item"]["value"]) &&
-                                    isset($binding["instanceValue"]) &&
-                                    isset($binding["instanceValue"]["value"]);
+                                    isset($binding["item"]["value"]);
 
                                 if (!$isValid && !empty($binding)) {
                                     Log::warning(
@@ -344,8 +508,9 @@ LIMIT 1000";
                         Log::debug("First binding details", [
                             "full_binding" => json_encode($firstBinding),
                             "has_item" => isset($firstBinding["item"]),
-                            "has_instance" => isset(
-                                $firstBinding["instanceValue"],
+                            "has_property" => isset($firstBinding["property"]),
+                            "has_property_value" => isset(
+                                $firstBinding["propertyValue"],
                             ),
                         ]);
                     }
@@ -521,7 +686,7 @@ LIMIT 1000";
 
             if (!isset($items[$itemId])) {
                 $items[$itemId] = [
-                    "id" => $itemId,
+                    "id" => $qid,
                     "qid" => $qid,
                     "label" =>
                         isset($row["itemLabel"]) &&
@@ -533,9 +698,6 @@ LIMIT 1000";
                         isset($row["itemDescription"]["value"])
                             ? $row["itemDescription"]["value"]
                             : "No description available",
-                    "properties" => [
-                        "wdt:P2" => [],
-                    ],
                 ];
 
                 Log::info("Created new item: {$qid}", [
@@ -544,6 +706,440 @@ LIMIT 1000";
             }
 
             // Process instance values from the query results
+            // Make sure we have necessary data structures
+            if (!isset($items[$itemId]["coordinates"])) {
+                $items[$itemId]["coordinates"] = [];
+            }
+            if (!isset($items[$itemId]["instances"])) {
+                $items[$itemId]["instances"] = [];
+            }
+            if (!isset($items[$itemId]["properties"])) {
+                $items[$itemId]["properties"] = [];
+            }
+
+            // Process instance values from the query results
+            if (
+                isset($row["property"]) &&
+                isset($row["property"]["value"]) &&
+                strpos($row["property"]["value"], "P2") !== false &&
+                isset($row["propertyValue"]) &&
+                isset($row["propertyValue"]["value"])
+            ) {
+                $instanceValue = $row["propertyValue"]["value"];
+                // Extract the QID from the instance value for better logging
+                $instanceQid = basename($instanceValue);
+                $instanceLabel = $instanceQid; // Default to QID
+
+                // Get label if available
+                if (
+                    isset($row["propertyValueLabel"]) &&
+                    isset($row["propertyValueLabel"]["value"])
+                ) {
+                    $instanceLabel = $row["propertyValueLabel"]["value"];
+                }
+
+                // Skip if the instance is the main query entity (e.g., Q1784677)
+                if (strpos($instanceValue, "Q1784677") !== false) {
+                    continue;
+                }
+
+                // Make sure we have the instances field
+                if (!isset($items[$itemId]["instances"])) {
+                    $items[$itemId]["instances"] = [];
+                }
+
+                // Generate a unique ID for this instance statement
+                $instanceStatementId =
+                    $qid . "-" . substr(md5($instanceValue), 0, 16);
+
+                // Check for duplicates before adding
+                $isDuplicate = false;
+                foreach ($items[$itemId]["instances"] as $key => $existing) {
+                    if (
+                        isset($existing["value"]) &&
+                        $existing["value"] === $instanceLabel
+                    ) {
+                        $isDuplicate = true;
+                        break;
+                    }
+                }
+
+                if (!$isDuplicate) {
+                    $items[$itemId]["instances"][$instanceStatementId] = [
+                        "value" => $instanceLabel,
+                        "id" => $instanceQid,
+                    ];
+
+                    Log::info(
+                        "Added instance type: " .
+                            $instanceQid .
+                            " (" .
+                            $instanceLabel .
+                            ") to item " .
+                            $qid,
+                    );
+                }
+            }
+
+            // Make sure we have the coordinates field
+            if (!isset($items[$itemId]["coordinates"])) {
+                $items[$itemId]["coordinates"] = [];
+            }
+
+            // Process coordinates if available
+            if (
+                isset($row["coordinates"]) &&
+                isset($row["coordinates"]["value"])
+            ) {
+                $coordValue = $row["coordinates"]["value"];
+                $parsedCoordinates = $this->parseCoordinates($coordValue);
+
+                if ($parsedCoordinates) {
+                    // Generate a unique statement ID for the coordinate
+                    $statementId =
+                        $qid .
+                        "-" .
+                        strtoupper(substr(md5($coordValue), 0, 12));
+
+                    // Store coordinates in Wikidata-compatible format (if not already present)
+                    if (!isset($items[$itemId]["coordinates"][$statementId])) {
+                        $items[$itemId]["coordinates"][$statementId] = [
+                            "value" => [
+                                "lat" => (string) $parsedCoordinates["lat"],
+                                "lng" => (string) $parsedCoordinates["lng"],
+                            ],
+                        ];
+
+                        Log::info(
+                            "Added coordinates for {$qid}: lat={$parsedCoordinates["lat"]}, lng={$parsedCoordinates["lng"]}",
+                        );
+                    }
+
+                    // This is now handled by the coordinates field directly
+                } else {
+                    Log::warning(
+                        "Failed to parse coordinates for {$qid}: {$coordValue}",
+                    );
+                }
+            }
+
+            // Process other properties
+            if (
+                isset($row["property"]) &&
+                isset($row["property"]["value"]) &&
+                isset($row["propertyValue"]) &&
+                isset($row["propertyValue"]["value"])
+            ) {
+                // Extract the property P-ID from the URI
+                $propertyUri = $row["property"]["value"];
+                $propertyId = basename($propertyUri);
+
+                // Skip P2 (instance of) as we handle it separately
+                if ($propertyId === "P2") {
+                    continue;
+                }
+
+                // Skip P48 (coordinates) as we handle it separately
+                if ($propertyId === "P48") {
+                    continue;
+                }
+
+                // Get the property value
+                $propertyValue = $row["propertyValue"]["value"];
+                $propertyValueLabel = isset($row["propertyValueLabel"])
+                    ? $row["propertyValueLabel"]["value"]
+                    : basename($propertyValue);
+
+                // Qid has already been extracted above
+
+                // Get the property's semantic name
+                $semanticKey = isset(self::PROPERTY_LABEL_OF_ID[$propertyId])
+                    ? self::PROPERTY_LABEL_OF_ID[$propertyId]
+                    : "properties";
+
+                // Initialize property array if not set
+                if ($semanticKey === "properties") {
+                    // Keep using the old format for properties we don't have mappings for
+                    $propKey = "wdt:" . $propertyId;
+                    if (!isset($items[$itemId]["properties"][$propKey])) {
+                        $items[$itemId]["properties"][$propKey] = [];
+                    }
+
+                    // Add property value if not duplicate
+                    $isDuplicate = false;
+                    foreach (
+                        $items[$itemId]["properties"][$propKey]
+                        as $existingProp
+                    ) {
+                        if ($existingProp["value"] === $propertyValue) {
+                            $isDuplicate = true;
+                            break;
+                        }
+                    }
+
+                    if (!$isDuplicate) {
+                        // Extract the Qid from the property value if it's a URI
+                        $valueQid = $propertyValue;
+                        if (
+                            strpos(
+                                $propertyValue,
+                                "https://database.factgrid.de/entity/",
+                            ) === 0
+                        ) {
+                            $valueQid = str_replace(
+                                "https://database.factgrid.de/entity/",
+                                "",
+                                $propertyValue,
+                            );
+                        }
+
+                        $statementEntry = [
+                            "value" => $propertyValue,
+                            "label" => $propertyValueLabel,
+                            "qid" => $valueQid,
+                        ];
+
+                        // Process qualifier if available
+                        if (
+                            isset($row["qualifier"]) &&
+                            isset($row["qualifier"]["value"]) &&
+                            isset($row["qualifierValue"]) &&
+                            isset($row["qualifierValue"]["value"])
+                        ) {
+                            $qualifierId = basename($row["qualifier"]["value"]);
+                            $qualifierValue = $row["qualifierValue"]["value"];
+                            $qualifierLabel = isset(
+                                self::QUALIFIER_LABEL_OF_ID[$qualifierId],
+                            )
+                                ? self::QUALIFIER_LABEL_OF_ID[$qualifierId]
+                                : "qualifier_" . $qualifierId;
+
+                            $statementEntry[$qualifierLabel] = [
+                                "value" => $qualifierValue,
+                            ];
+                        }
+
+                        $items[$itemId]["properties"][
+                            $propKey
+                        ][] = $statementEntry;
+                    }
+                } else {
+                    // This is a property with semantic meaning that we want to map
+                    if (!isset($items[$itemId][$semanticKey])) {
+                        $items[$itemId][$semanticKey] = [];
+                    }
+
+                    // Generate a unique ID for this property statement
+                    $statementId =
+                        $qid . "-" . substr(md5($propertyValue), 0, 16);
+
+                    // Extract the Qid from the property value if it's a URI
+                    $valueQid = $propertyValue;
+                    if (
+                        strpos(
+                            $propertyValue,
+                            "https://database.factgrid.de/entity/",
+                        ) === 0
+                    ) {
+                        $valueQid = str_replace(
+                            "https://database.factgrid.de/entity/",
+                            "",
+                            $propertyValue,
+                        );
+                    }
+
+                    // Check for duplicates before adding
+                    $isDuplicate = false;
+                    foreach (
+                        $items[$itemId][$semanticKey]
+                        as $key => $existingProp
+                    ) {
+                        if (
+                            isset($existingProp["value"]) &&
+                            $existingProp["value"] === $propertyValueLabel
+                        ) {
+                            $isDuplicate = true;
+                            break;
+                        }
+                    }
+
+                    if (!$isDuplicate) {
+                        // Make sure we initialize this semantic property if it doesn't exist
+                        if (!isset($items[$itemId][$semanticKey])) {
+                            $items[$itemId][$semanticKey] = [];
+                        }
+
+                        $statementEntry = [
+                            "value" => $propertyValueLabel,
+                            "id" => $valueQid,
+                        ];
+
+                        // Process qualifier if available
+                        if (
+                            isset($row["qualifier"]) &&
+                            isset($row["qualifier"]["value"]) &&
+                            isset($row["qualifierValue"]) &&
+                            isset($row["qualifierValue"]["value"])
+                        ) {
+                            $qualifierId = basename($row["qualifier"]["value"]);
+                            $qualifierValue = $row["qualifierValue"]["value"];
+                            $qualifierLabel = isset(
+                                self::QUALIFIER_LABEL_OF_ID[$qualifierId],
+                            )
+                                ? self::QUALIFIER_LABEL_OF_ID[$qualifierId]
+                                : "qualifier_" . $qualifierId;
+
+                            $statementEntry[$qualifierLabel] = [
+                                "value" => $qualifierValue,
+                            ];
+
+                            // If this is a date qualifier, add precision info
+                            if (
+                                in_array($qualifierLabel, [
+                                    "startTime",
+                                    "endTime",
+                                    "pointInTime",
+                                    "earliestDate",
+                                    "latestDate",
+                                ])
+                            ) {
+                                if (
+                                    preg_match(
+                                        "/^\d{4}-\d{2}-\d{2}/",
+                                        $qualifierValue,
+                                    )
+                                ) {
+                                    $statementEntry[$qualifierLabel][
+                                        "datePrecision"
+                                    ] = "11"; // Day precision
+                                } elseif (
+                                    preg_match(
+                                        "/^\d{4}-\d{2}/",
+                                        $qualifierValue,
+                                    )
+                                ) {
+                                    $statementEntry[$qualifierLabel][
+                                        "datePrecision"
+                                    ] = "10"; // Month precision
+                                } elseif (
+                                    preg_match("/^\d{4}/", $qualifierValue)
+                                ) {
+                                    $statementEntry[$qualifierLabel][
+                                        "datePrecision"
+                                    ] = "9"; // Year precision
+                                }
+                            }
+                        }
+
+                        $items[$itemId][$semanticKey][
+                            $statementId
+                        ] = $statementEntry;
+                    }
+                }
+
+                Log::debug(
+                    "Added property {$propertyId} to item {$qid}: {$propertyValueLabel}",
+                );
+            }
+
+            // Special case handling is no longer needed as coordinates
+            // are directly included in the main query results
+
+            // Check if property is P2 (instance of) when processing property values
+            if (
+                isset($row["property"]) &&
+                isset($row["property"]["value"]) &&
+                strpos($row["property"]["value"], "P2") !== false &&
+                isset($row["propertyValue"]) &&
+                isset($row["propertyValue"]["value"])
+            ) {
+                // This is an instance value, process it here instead of instanceValue direct field
+                $instanceValue = $row["propertyValue"]["value"];
+                // Extract the QID from the instance value for better logging
+                $instanceQid = basename($instanceValue);
+                $instanceLabel = $instanceQid; // Default to QID
+
+                // Get label if available
+                if (
+                    isset($row["propertyValueLabel"]) &&
+                    isset($row["propertyValueLabel"]["value"])
+                ) {
+                    $instanceLabel = $row["propertyValueLabel"]["value"];
+                }
+
+                // Add only if not duplicate and not the main type (Q1784677)
+                if (strpos($instanceValue, "Q1784677") === false) {
+                    // Check for duplicates before adding
+                    $isDuplicate = false;
+                    foreach (
+                        $items[$itemId]["properties"]["wdt:P2"]
+                        as $existing
+                    ) {
+                        if ($existing["value"] === $instanceValue) {
+                            $isDuplicate = true;
+                            break;
+                        }
+                    }
+
+                    if (!$isDuplicate) {
+                        $items[$itemId]["properties"]["wdt:P2"][] = [
+                            "value" => $instanceValue,
+                            "label" => $instanceLabel,
+                            "qid" => $instanceQid,
+                        ];
+                    }
+                }
+            }
+
+            // Process other non-P2 and non-P48 properties
+            if (
+                isset($row["property"]) &&
+                isset($row["property"]["value"]) &&
+                strpos($row["property"]["value"], "P2") === false &&
+                strpos($row["property"]["value"], "P48") === false &&
+                isset($row["propertyValue"]) &&
+                isset($row["propertyValue"]["value"])
+            ) {
+                $propertyUri = $row["property"]["value"];
+                $propertyId = basename($propertyUri);
+                $propKey = "wdt:" . $propertyId;
+
+                // Initialize property array if not set
+                if (!isset($items[$itemId]["properties"][$propKey])) {
+                    $items[$itemId]["properties"][$propKey] = [];
+                }
+
+                $propertyValue = $row["propertyValue"]["value"];
+                $propertyValueLabel = isset($row["propertyValueLabel"])
+                    ? $row["propertyValueLabel"]["value"]
+                    : basename($propertyValue);
+
+                // Add property value if not duplicate
+                $isDuplicate = false;
+                foreach (
+                    $items[$itemId]["properties"][$propKey]
+                    as $existingProp
+                ) {
+                    if ($existingProp["value"] === $propertyValue) {
+                        $isDuplicate = true;
+                        break;
+                    }
+                }
+
+                if (!$isDuplicate) {
+                    $items[$itemId]["properties"][$propKey][] = [
+                        "value" => $propertyValue,
+                        "label" => $propertyValueLabel,
+                        "qid" => basename($propertyValue),
+                    ];
+
+                    Log::debug(
+                        "Added property {$propertyId} to item {$qid}: {$propertyValueLabel}",
+                    );
+                }
+            }
+
+            // Check for direct instanceValue (for backward compatibility)
             if (
                 isset($row["instanceValue"]) &&
                 isset($row["instanceValue"]["value"])
@@ -561,20 +1157,30 @@ LIMIT 1000";
                     $instanceLabel = $row["instanceValueLabel"]["value"];
                 }
 
+                // Make sure we have the instances field
+                if (!isset($items[$itemId]["instances"])) {
+                    $items[$itemId]["instances"] = [];
+                }
+
+                // Generate a unique statement ID
+                $statementId = $qid . "-" . substr(md5($instanceValue), 0, 16);
+
                 // Check for duplicates before adding
                 $isDuplicate = false;
-                foreach ($items[$itemId]["properties"]["wdt:P2"] as $existing) {
-                    if ($existing["value"] === $instanceValue) {
+                foreach ($items[$itemId]["instances"] as $key => $existing) {
+                    if (
+                        isset($existing["value"]) &&
+                        $existing["value"] === $instanceLabel
+                    ) {
                         $isDuplicate = true;
                         break;
                     }
                 }
 
                 if (!$isDuplicate) {
-                    $items[$itemId]["properties"]["wdt:P2"][] = [
-                        "value" => $instanceValue,
-                        "label" => $instanceLabel,
-                        "qid" => $instanceQid,
+                    $items[$itemId]["instances"][$statementId] = [
+                        "value" => $instanceLabel,
+                        "id" => $instanceQid,
                     ];
 
                     Log::info(
@@ -583,7 +1189,7 @@ LIMIT 1000";
                             " (" .
                             $instanceLabel .
                             ") to item " .
-                            basename($itemId),
+                            $qid,
                     );
                 }
             } else {
@@ -607,13 +1213,31 @@ LIMIT 1000";
 
         Log::info("Completed mergeItemsData with " . count($items) . " items");
 
+        // Check for items with coordinates
+        $itemsWithCoordinates = array_filter($items, function ($item) {
+            return !empty($item["coordinates"]);
+        });
+
+        Log::debug(
+            "Items with coordinates: " .
+                count($itemsWithCoordinates) .
+                "/" .
+                count($items),
+        );
+
         // Log the first item for debugging
         if (!empty($items)) {
             $firstItem = reset($items);
             Log::debug("First merged item:", [
                 "qid" => $firstItem["qid"],
                 "label" => $firstItem["label"],
-                "instance_types" => count($firstItem["properties"]["wdt:P2"]),
+                "instance_types" => count(
+                    $firstItem["properties"]["wdt:P2"] ?? [],
+                ),
+                "has_coordinates" => !empty($firstItem["coordinates"]),
+                "coordinates" => !empty($firstItem["coordinates"])
+                    ? json_encode($firstItem["coordinates"])
+                    : "none",
             ]);
         }
 
@@ -687,11 +1311,24 @@ LIMIT 1000";
                 // Check each group to see if this QID is in its list
                 foreach ($groupConfigs as $groupKey => $qids) {
                     if (in_array($instanceQid, $qids)) {
+                        // Create a copy of the item with its coordinates
                         $groups[$groupKey][] = $item;
                         $placed = true;
+
+                        // Log coordinate information for debugging
+                        $hasCoords = !empty($item["coordinates"]);
                         Log::info(
-                            "Placed item {$itemQid} in group {$groupKey} based on type {$instanceQid}",
+                            "Placed item {$itemQid} in group {$groupKey} based on type {$instanceQid}. Has coordinates: " .
+                                ($hasCoords ? "YES" : "NO") .
+                                ($hasCoords
+                                    ? " (" .
+                                        json_encode(
+                                            array_keys($item["coordinates"]),
+                                        ) .
+                                        ")"
+                                    : ""),
                         );
+
                         break 2; // Once placed, move to next item
                     }
                 }
@@ -799,6 +1436,22 @@ LIMIT 1000";
     }
 
     /**
+     * This method was previously used to enrich items with additional properties
+     * It's been replaced by the direct query approach that provides all required data
+     * Keeping the method signature for backward compatibility
+     *
+     * @param array $bindings The bindings to enrich
+     * @return void
+     */
+    private function enrichWithProperties(array &$bindings): void
+    {
+        Log::debug(
+            "Property enrichment method called but not needed with direct query approach",
+        );
+        // No implementation needed as all data is included in the main query
+    }
+
+    /**
      * Apply subgroup mappings to the groups
      *
      * @param array $groups The grouped items
@@ -815,9 +1468,115 @@ LIMIT 1000";
         return $groups;
     }
 
+    // Method removed - we now handle the bindings directly in queryPlaces() and mergeItemsData()
+
     /**
      * Search titles in FactGrid
      */
+
+    /**
+     * Parse coordinate string into lat/lng object
+     *
+     * FactGrid stores coordinates in various formats. This method attempts to parse them
+     * into a standardized { lat: x, lng: y } format for use in mapping.
+     *
+     * @param mixed $coordinateString The coordinate string from FactGrid
+     * @return array|null Array with lat/lng keys or null if parsing fails
+     */
+    /**
+     * Parse coordinate string into lat/lng object
+     *
+     * FactGrid stores coordinates in various formats. This method attempts to parse them
+     * into a standardized { lat: x, lng: y } format for use in mapping.
+     *
+     * @param mixed $coordinateString The coordinate string from FactGrid
+     * @return array|null Array with lat/lng keys or null if parsing fails
+     */
+    public function parseCoordinates($coordinateString): ?array
+    {
+        // If already an array, return as is
+        if (is_array($coordinateString)) {
+            return $coordinateString;
+        }
+
+        // If not a string, return null
+        if (!is_string($coordinateString)) {
+            Log::warning(
+                "Expected string for coordinates but got " .
+                    gettype($coordinateString),
+            );
+            return null;
+        }
+
+        // Log the coordinate string we're trying to parse for debugging
+        Log::debug("Parsing coordinate string: " . $coordinateString);
+
+        // Remove any surrounding whitespace
+        $coordinateString = trim($coordinateString);
+
+        // Try to parse as a Point format - common in FactGrid
+        if (
+            preg_match(
+                "/Point\((-?[0-9.]+) (-?[0-9.]+)\)/i",
+                $coordinateString,
+                $matches,
+            )
+        ) {
+            // Point format typically has longitude first, then latitude
+            return [
+                "lat" => (float) $matches[2],
+                "lng" => (float) $matches[1],
+            ];
+        }
+
+        // Try to parse as simple "lat,lng" or "lat lng" format
+        if (
+            preg_match(
+                '/^(-?[0-9.]+)[,\s]+(-?[0-9.]+)$/',
+                $coordinateString,
+                $matches,
+            )
+        ) {
+            return [
+                "lat" => (float) $matches[1],
+                "lng" => (float) $matches[2],
+            ];
+        }
+
+        // Try to parse as GeoJSON-like format
+        if (
+            preg_match(
+                "/\[\s*(-?[0-9.]+)\s*,\s*(-?[0-9.]+)\s*\]/",
+                $coordinateString,
+                $matches,
+            )
+        ) {
+            // GeoJSON uses [longitude, latitude] order
+            return [
+                "lat" => (float) $matches[2],
+                "lng" => (float) $matches[1],
+            ];
+        }
+
+        // Check if it's a GeoPoint WKT format (common in some systems)
+        if (
+            preg_match(
+                '/^POINT\s*\(\s*(-?[0-9.]+)\s+(-?[0-9.]+)\s*\)$/i',
+                $coordinateString,
+                $matches,
+            )
+        ) {
+            return [
+                "lat" => (float) $matches[2],
+                "lng" => (float) $matches[1],
+            ];
+        }
+
+        // If no pattern matches, log the issue and return null
+        Log::warning("Could not parse coordinate string: {$coordinateString}");
+        return null;
+    }
+
     public function searchTitles(string $q): array
     {
         $query = "
