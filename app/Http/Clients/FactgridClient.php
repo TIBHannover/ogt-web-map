@@ -31,24 +31,27 @@ class FactgridClient
      * Groups of Factgrid Q-Ids of places
      */
     const PLACE_GROUPS_IDS = [
+        "events" => [
+            "Q1014362", //
+        ],
         "statePoliceOffices" => [
-            "Q1784670", // Grenzpolizeiposten
             "Q1784671", // Grenzpolizeikommissariat
+            "Q1784668", // Staatspolizeistelle
         ],
         "statePoliceHeadquarters" => [
-            "Q1784668", // Staatspolizeistelle
             "Q1784673", // Staatspolizeileitstelle
         ],
         "prisons" => ["Q23223"], // Haftstätte
         "extPolicePrisons" => ["Q1784665"], // Erweitertes Polizeigefängnis
         "laborEducationCamps" => ["Q978663"], // Arbeitserziehungslager
-        "fieldOffices" => ["Q1784669"], // Außendienststelle
-        "events" => [
-            "Q1784964", // Tag der Befreiung
-            "Q1784963", // Novemberpogrome
-            "Q1784962", // Bücherverbrennung
-        ],
-        "memorials" => ["Q1784672"], // Gedenkstätte
+        "fieldOffices" => [
+            "Q1784667", // https://www.wikidata.org/wiki/Q108047541     Gestapo Field Office
+            "Q1784676", // https://www.wikidata.org/wiki/Q108047989     Outpost (State Police)
+            "Q1784669", // https://www.wikidata.org/wiki/Q108047676     Border Police Commissariat
+            "Q1784670", // https://www.wikidata.org/wiki/Q108047833     Border police station
+            "Q1784671", // https://www.wikidata.org/wiki/Q108047775     Branch office (border police)
+        ], // Außendienststelle
+        "memorials" => ["Q405787"], // Gedenkstätte
     ];
 
     /**
@@ -103,7 +106,7 @@ class FactgridClient
         "P550" => "significantEvents", // Significant event (Wikidata P793)
 
         // Event Specific Properties
-        "P178" => "perpetrators", // Perpetrator (Wikidata P8031 - first mapping)
+        //"P178" => "perpetrators", // Perpetrator (Wikidata P8031 - first mapping)
         "P66" => "perpetrators", // Perpetrator (Wikidata P8031 - second mapping)
         "P751" => "victims", // Victim (Wikidata P8032)
         "P464" => "hasCause", // Has cause (Wikidata P828)
@@ -145,81 +148,91 @@ class FactgridClient
         // Simple combined query that reliably fetches items, instance types, and coordinates
         // We confirmed this query pattern works correctly in tests
         $query = '
-SELECT
-  ?item
-  ?itemLabel
-  ?itemDescription
-  ?property
-  ?statement
-  ?propertyValue
-  ?propertyValueLabel
-  ?propertyTimePrecision
-  ?qualifier
-  ?qualifierValue
-  ?qualifierValueLabel
-  ?qualifierTimePrecision
-  ?coordinates
-WHERE {
-  {
-    ?item p:P2 ?itemStatement.
-    ?itemStatement ps:P2 wd:Q1784677.
-  }
-  UNION
-  {
-    ?item wdt:P550 ?location.
-    ?location wdt:P2 wd:Q1784677.
-  }
-  UNION
-  {
-    ?item wdt:P2 wd:Q6983405;
-          wdt:P277 ?location.
-    ?location wdt:P2 wd:Q1784677.
-  }
-  FILTER(EXISTS { ?item wdt:P48 ?coordinates. })
-  ?item wdt:P48 ?coordinates.
-  ?property wikibase:claim ?claim.
-  ?item ?claim ?statement.
-  {
-    ?property wikibase:propertyType ?propertyType.
-    FILTER(?property IN(
-      wd:P189, wd:P2, wd:P534, wd:P47, wd:P419, wd:P8, wd:P280, wd:P9, wd:P550, wd:P48,
-      wd:P319, wd:P156, wd:P315, wd:P7, wd:P7, wd:P137, wd:P146, wd:P1164, wd:P550, wd:P534,
-      wd:P153, wd:P49, wd:P50, wd:P1164, wd:P153, wd:P156, wd:P155, wd:P280, wd:P49, wd:P50,
-      wd:P1164, wd:P319, wd:P419, wd:P7, wd:P7, wd:P1164, wd:P315, wd:P14, wd:P247, wd:P248,
-      wd:P8, wd:P9, wd:P95, wd:P47, wd:P47
-    ))
-    FILTER(?propertyType != wikibase:Time)
-    ?property wikibase:statementProperty ?ps.
-    ?statement ?ps ?propertyValue.
-  }
-  UNION
-  {
-    ?property wikibase:statementValue ?psv.
-    FILTER(?property IN(wd:P49, wd:P50, wd:P49, wd:P50, wd:P106, wd:P49))
-    ?statement ?psv ?propertyValueNode.
-    ?propertyValueNode wikibase:timeValue ?propertyValue;
-      wikibase:timePrecision ?propertyTimePrecision.
-  }
-  OPTIONAL {
-    {
-      ?qualifier wikibase:propertyType ?qualifierType.
-      FILTER(?qualifier IN(wd:P54, wd:P10, wd:P48, wd:P155, wd:P55, wd:P153))
-      FILTER(?qualifierType != wikibase:Time)
-      ?qualifier wikibase:qualifier ?pq.
-      ?statement ?pq ?qualifierValue.
-    }
-    UNION
-    {
-      ?qualifier wikibase:qualifierValue ?pqv.
-      FILTER(?qualifier IN(wd:P49, wd:P50, wd:P106, wd:P218, wd:P219, wd:P432, wd:P432))
-      ?statement ?pqv ?qualifierValueNode.
-      ?qualifierValueNode wikibase:timeValue ?qualifierValue;
-        wikibase:timePrecision ?qualifierTimePrecision.
-    }
-  }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". }
-}
-ORDER BY (?item) (?property) (?statement)';
+        SELECT
+          ?item
+          ?itemLabel
+          ?itemDescription
+          ?property
+          ?statement
+          ?propertyValue
+          ?propertyValueLabel
+          ?propertyTimePrecision
+          ?qualifier
+          ?qualifierValue
+          ?qualifierValueLabel
+          ?qualifierTimePrecision
+          ?coordinates
+        WHERE {
+          {
+            ?item p:P2 ?itemStatement.
+            ?itemStatement ps:P2 wd:Q1784677.
+            ?item wdt:P48 ?coordinates.
+          }
+          UNION
+          {
+            ?item wdt:P550 ?location.
+            ?location wdt:P2 wd:Q1784677.
+            ?item wdt:P48 ?coordinates.
+          }
+          UNION
+          {
+            ?event wdt:P2 wd:Q1014362;
+                   wdt:P48 ?coordinates;
+                   wdt:P66 ?location.
+            {
+              ?event (wdt:P66|wdt:P751) ?item.
+            }
+            UNION
+            {
+              VALUES ?validSubjectRoles { wd:Q1784661 wd:Q1784663 }.
+              ?item wdt:P550 ?event;
+                    wdt:P277/wdt:P3? ?validSubjectRoles.
+            }
+          }
+          ?property wikibase:claim ?claim.
+          ?item ?claim ?statement.
+          {
+            ?property wikibase:propertyType ?propertyType.
+            FILTER(?property IN(
+              wd:P189, wd:P2, wd:P534, wd:P47, wd:P419, wd:P8, wd:P280, wd:P9, wd:P550, wd:P48,
+              wd:P319, wd:P156, wd:P315, wd:P7, wd:P7, wd:P137, wd:P146, wd:P1164, wd:P550, wd:P534,
+              wd:P153, wd:P49, wd:P50, wd:P1164, wd:P153, wd:P156, wd:P155, wd:P280, wd:P49, wd:P50,
+              wd:P1164, wd:P319, wd:P419, wd:P7, wd:P7, wd:P1164, wd:P315, wd:P14, wd:P247, wd:P248,
+              wd:P8, wd:P9, wd:P95, wd:P47, wd:P47, wd:P66, wd:P751
+            ))
+            FILTER(?propertyType != wikibase:Time)
+            ?property wikibase:statementProperty ?ps.
+            ?statement ?ps ?propertyValue.
+          }
+          UNION
+          {
+            ?property wikibase:statementValue ?psv.
+            FILTER(?property IN(wd:P49, wd:P50, wd:P49, wd:P50, wd:P106, wd:P49))
+            ?statement ?psv ?propertyValueNode.
+            ?propertyValueNode wikibase:timeValue ?propertyValue;
+              wikibase:timePrecision ?propertyTimePrecision.
+          }
+          OPTIONAL {
+            {
+              ?qualifier wikibase:propertyType ?qualifierType.
+              FILTER(?qualifier IN(wd:P54, wd:P10, wd:P48, wd:P155, wd:P55, wd:P153))
+              FILTER(?qualifierType != wikibase:Time)
+              ?qualifier wikibase:qualifier ?pq.
+              ?statement ?pq ?qualifierValue.
+            }
+            UNION
+            {
+              ?qualifier wikibase:qualifierValue ?pqv.
+              FILTER(?qualifier IN(wd:P49, wd:P50, wd:P106, wd:P218, wd:P219, wd:P432, wd:P432))
+              ?statement ?pqv ?qualifierValueNode.
+              ?qualifierValueNode wikibase:timeValue ?qualifierValue;
+                wikibase:timePrecision ?qualifierTimePrecision.
+            }
+          }
+          SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". }
+        }
+        ORDER BY (?item) (?property) (?statement)
+';
 
         $response = $this->requestFactgrid($query);
 

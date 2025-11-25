@@ -1,4 +1,4 @@
-export const itemDescriptions = {
+export const itemDescriptionsWikidata = {
     // Gestapo Osnabrück headquarters - https://www.wikidata.org/wiki/Q106625285
     Q106625285: {
         textParts: [

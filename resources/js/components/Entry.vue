@@ -1582,9 +1582,12 @@ const applyLeafletCSS = () => {
 };
 
 const selectExistingEntity = (entity) => {
-    const wikidataUrl = `https://www.wikidata.org/wiki/${entity.id}`;
-    window.open(wikidataUrl, "_blank");
-
+    const wikibaseUrl =
+        ogtGlobals.exportTarget === "factgrid"
+            ? `https://database.factgrid.de/entity/`
+            : `https://www.wikidata.org/wiki/`;
+    const entityUrl = `${wikibaseUrl}${entity.id}`;
+    window.open(entityUrl, "_blank");
     wikidataResults.value = [];
 };
 
