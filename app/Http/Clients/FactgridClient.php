@@ -58,7 +58,14 @@ class FactgridClient
      * Special subgroups for items that should be grouped differently
      */
     const PLACE_SUBGROUP_MAPPINGS = [
-        // Define any special subgroup mappings here
+        "persecutionOfSocialistFront" => [
+            "mainGroup" => "events",
+            "mainItemId" => "Q1784243", // https://www.wikidata.org/wiki/Q133303308   Persecution of the Socialist Front by the Gestapo
+        ],
+        "operationLauterbacher" => [
+            "mainGroup" => "events",
+            "mainItemId" => "Q1784204", // https://www.wikidata.org/wiki/Q134587748   Operation Lauterbacher and the surveillance of the "Jewish houses" in Hanover
+        ],
     ];
 
     /**
@@ -111,6 +118,10 @@ class FactgridClient
         "P66" => "perpetrators", // Perpetrator (Wikidata P8031 - second mapping)
         "P751" => "victims", // Victim (Wikidata P8032)
         "P464" => "hasCause", // Has cause (Wikidata P828)
+
+        "P9" => "hasParts", // https://www.wikidata.org/wiki/Property:P527
+        "P280" => "hasUses", // https://www.wikidata.org/wiki/Property:P366
+        "P8" => "partOfs", // https://www.wikidata.org/wiki/Property:P361
     ];
 
     /**
@@ -206,11 +217,11 @@ class FactgridClient
           {
             ?property wikibase:propertyType ?propertyType.
             FILTER(?property IN(
-              wd:P189, wd:P2, wd:P534, wd:P47, wd:P419, wd:P8, wd:P280, wd:P9, wd:P550, wd:P391, wd:P48,
+              wd:P189, wd:P2, wd:P534, wd:P47, wd:P419, wd:P280, wd:P9, wd:P550, wd:P391, wd:P48,
               wd:P319, wd:P156, wd:P315, wd:P7, wd:P7, wd:P137, wd:P146, wd:P1164, wd:P550, wd:P534,
-              wd:P153, wd:P49, wd:P50, wd:P1164, wd:P153, wd:P156, wd:P155, wd:P280, wd:P49, wd:P50,
+              wd:P153, wd:P49, wd:P50, wd:P1164, wd:P153, wd:P156, wd:P155, wd:P49, wd:P50,
               wd:P1164, wd:P319, wd:P419, wd:P7, wd:P7, wd:P1164, wd:P315, wd:P14, wd:P247, wd:P248,
-              wd:P8, wd:P9, wd:P95, wd:P47, wd:P47, wd:P66, wd:P751
+              wd:P8, wd:P95, wd:P47, wd:P47, wd:P66, wd:P751
             ))
             FILTER(?propertyType != wikibase:Time)
             ?property wikibase:statementProperty ?ps.
