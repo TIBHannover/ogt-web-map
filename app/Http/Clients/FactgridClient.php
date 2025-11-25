@@ -104,6 +104,7 @@ class FactgridClient
         "P14" => "directors", // Director (Wikidata P1037)
         "P216" => "detentionPlaces", // Place of detention (Wikidata P2632)
         "P550" => "significantEvents", // Significant event (Wikidata P793)
+        "P391" => "commemorates", // https://www.wikidata.org/wiki/Property:P547
 
         // Event Specific Properties
         //"P178" => "perpetrators", // Perpetrator (Wikidata P8031 - first mapping)
@@ -170,6 +171,11 @@ class FactgridClient
           }
           UNION
           {
+              ?item wdt:P391 ?location.
+              ?location wdt:P2 wd:Q1784677.
+          }
+          UNION
+          {
             ?item wdt:P550 ?location.
             ?location wdt:P2 wd:Q1784677.
             ?item wdt:P48 ?coordinates.
@@ -194,7 +200,7 @@ class FactgridClient
           {
             ?property wikibase:propertyType ?propertyType.
             FILTER(?property IN(
-              wd:P189, wd:P2, wd:P534, wd:P47, wd:P419, wd:P8, wd:P280, wd:P9, wd:P550, wd:P48,
+              wd:P189, wd:P2, wd:P534, wd:P47, wd:P419, wd:P8, wd:P280, wd:P9, wd:P550, wd:P391, wd:P48,
               wd:P319, wd:P156, wd:P315, wd:P7, wd:P7, wd:P137, wd:P146, wd:P1164, wd:P550, wd:P534,
               wd:P153, wd:P49, wd:P50, wd:P1164, wd:P153, wd:P156, wd:P155, wd:P280, wd:P49, wd:P50,
               wd:P1164, wd:P319, wd:P419, wd:P7, wd:P7, wd:P1164, wd:P315, wd:P14, wd:P247, wd:P248,
