@@ -182,17 +182,23 @@ class FactgridClient
           }
           UNION
           {
+            ?item wdt:P2 wd:Q1014362;
+                  wdt:P48 ?coordinates.
+          }
+          UNION
+          {
             ?event wdt:P2 wd:Q1014362;
-                   wdt:P48 ?coordinates;
-                   wdt:P66 ?location.
+                   wdt:P48 ?coordinates.
             {
               ?event (wdt:P66|wdt:P751) ?item.
+              ?item wdt:P48 ?coordinates.
             }
             UNION
             {
               VALUES ?validSubjectRoles { wd:Q1784661 wd:Q1784663 }.
               ?item wdt:P550 ?event;
                     wdt:P277/wdt:P3? ?validSubjectRoles.
+              ?item wdt:P48 ?coordinates.
             }
           }
           ?property wikibase:claim ?claim.
