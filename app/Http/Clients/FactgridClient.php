@@ -102,6 +102,7 @@ class FactgridClient
         "P616" => "citizenships", // Citizenships (Wikidata P27)
         "P247" => "familyName", // Family name (Wikidata P734)
         "P248" => "givenName", // Given name (Wikidata P735)
+        // "P153" already defined above for streetAddresses
 
         // Organization Properties
         "P319" => "parentOrganizations", // Parent organization (Wikidata P749)
@@ -115,6 +116,8 @@ class FactgridClient
         "P216" => "detentionPlaces", // Place of detention (Wikidata P2632)
         "P550" => "significantEvents", // Significant event (Wikidata P793)
         "P391" => "commemorates", // https://www.wikidata.org/wiki/Property:P547
+        "P129" => "describedBySources", // Described by source (Wikidata P1343)
+        "P146" => "describedByUrlSources", // Described by URL (Wikidata P973)
 
         // Event Specific Properties
         //"P178" => "perpetrators", // Perpetrator (Wikidata P8031 - first mapping)
@@ -308,6 +311,228 @@ class FactgridClient
                         : "null",
                 ],
             );
+        }
+
+        return $response;
+    }
+
+    public function queryPersons(): array
+    {
+        Log::debug("FactgridClient::queryPersons - Starting method");
+
+        $query = '
+            SELECT DISTINCT
+                ?item
+                ?itemLabel
+                ?itemDescription
+                ?property
+                ?statement
+                ?propertyValue
+                ?propertyValueLabel
+                ?propertyTimePrecision
+                ?qualifier
+                ?qualifierValue
+                ?qualifierValueLabel
+                ?qualifierTimePrecision
+            WHERE
+            {
+                {
+                    # Query all persons with specific roles
+                    ?item wdt:P2 wd:Q7.
+                    ?item wdt:P277/wdt:P3 ?role.
+                    FILTER(?role IN (wd:Q1784661, wd:Q1784663))
+                }
+                UNION
+                {
+                    # Find persons associated with Gestapo locations
+                    ?location wdt:P2 wd:Q1784677.
+                    ?item wdt:P2 wd:Q7.
+
+                    # Connections between persons and locations
+                    { ?item wdt:P315 ?location. } # Person works at location
+                    UNION
+                    { ?item wdt:P216 ?location. } # Person detained at location
+                    UNION
+                    { ?location wdt:P14 ?item. } # Person directs location
+                }
+                UNION
+                {
+                    # Find persons associated with Nazi crime events
+                    ?event wdt:P2 wd:Q1014362.
+                    ?item wdt:P2 wd:Q7.
+
+                    # Connections between persons and events
+                    { ?event wdt:P66 ?item. } # Person is perpetrator of event
+                    UNION
+                    { ?event wdt:P751 ?item. } # Person is victim of event
+                    UNION
+                    { ?item wdt:P550 ?event. } # Person has this event as significant event
+                }
+
+                # Get all properties for the person
+                ?property wikibase:claim ?claim.
+                ?item ?claim ?statement.
+
+                # Get non-time properties
+                {
+                    ?property wikibase:propertyType ?propertyType.
+                    FILTER(?property IN(
+                        wd:P189, # images
+                        wd:P82,  # placeOfBirth
+                        wd:P168, # placeOfDeath
+                        wd:P154, # gender
+                        wd:P616, # citizenships
+                        wd:P315, # employers
+                        wd:P247, # familyName
+                        wd:P248, # givenName
+                        wd:P550, # significantEvents
+                        wd:P129, # describedBySources
+                        wd:P146, # describedByUrlSources
+                        wd:P216, # detentionPlaces
+                        wd:P277, # subjectRoles
+                        wd:P153  # streetAddresses
+                    ))
+                    FILTER(?propertyType != wikibase:Time)
+                    ?property wikibase:statementProperty ?ps.
+                    ?statement ?ps ?propertyValue.
+                }
+                UNION
+                {
+                    # Get time properties
+                    ?property wikibase:statementValue ?psv.
+                    FILTER(?property IN(
+                        wd:P77, # dateOfBirth
+                        wd:P38  # dateOfDeath
+                    ))
+                    ?statement ?psv ?propertyValueNode.
+                    ?propertyValueNode wikibase:timeValue ?propertyValue;
+                        wikibase:timePrecision ?propertyTimePrecision.
+                }
+
+                # Get qualifiers for statements
+                OPTIONAL {
+                    {
+                        ?qualifier wikibase:propertyType ?qualifierType.
+                        FILTER(?qualifier IN(
+                            wd:P54,  # pages
+                            wd:P48,  # coordinate
+                            wd:P155, # sourcingCircumstance
+                            wd:P153  # streetAddress
+                        ))
+                        FILTER(?qualifierType != wikibase:Time)
+                        ?qualifier wikibase:qualifier ?pq.
+                        ?statement ?pq ?qualifierValue.
+                    }
+                    UNION
+                    {
+                        ?qualifier wikibase:qualifierValue ?pqv.
+                        FILTER(?qualifier IN(
+                            wd:P49,   # startTime
+                            wd:P50,   # endTime
+                            wd:P106,  # pointInTime
+                            wd:P1124, # earliestDate
+                            wd:P1126, # latestDate
+                            wd:P1123, # earliestEndDate
+                            wd:P1125  # latestStartDate
+                        ))
+                        ?statement ?pqv ?qualifierValueNode.
+                        ?qualifierValueNode wikibase:timeValue ?qualifierValue;
+                            wikibase:timePrecision ?qualifierTimePrecision.
+                    }
+                }
+
+                SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". }
+            }
+            ORDER BY ?item
+            LIMIT 1000'; # Increased limit to 1000 results
+        Log::debug("FactgridClient::queryPersons - Executing SPARQL query");
+
+        try {
+            $response = $this->requestFactgrid($query);
+
+            // Log full query for debugging
+            Log::debug("FactgridClient::queryPersons - Query executed:", [
+                "query" => $query,
+            ]);
+
+            // Save the raw response for debugging
+            file_put_contents(
+                storage_path("logs/factgrid_persons_response.json"),
+                json_encode($response, JSON_PRETTY_PRINT),
+            );
+
+            // Check for valid response structure and filter out empty bindings
+            if (
+                isset($response["results"]["bindings"]) &&
+                is_array($response["results"]["bindings"])
+            ) {
+                // Filter the bindings to remove any invalid ones
+                $filteredBindings = array_filter(
+                    $response["results"]["bindings"],
+                    function ($binding) {
+                        return !empty($binding) &&
+                            isset($binding["item"]) &&
+                            isset($binding["item"]["value"]);
+                    },
+                );
+
+                // Replace the original bindings with filtered ones
+                $response["results"]["bindings"] = array_values(
+                    $filteredBindings,
+                );
+
+                $bindingsCount = count($response["results"]["bindings"]);
+                Log::info(
+                    "Received FactGrid persons response with {$bindingsCount} valid bindings",
+                );
+
+                // Save the filtered response for debugging
+                file_put_contents(
+                    storage_path(
+                        "logs/factgrid_filtered_persons_response.json",
+                    ),
+                    json_encode($response, JSON_PRETTY_PRINT),
+                );
+            } else {
+                Log::warning(
+                    "Unexpected or empty response structure from FactGrid for persons query",
+                    [
+                        "responseStructure" => isset($response)
+                            ? json_encode(array_keys($response))
+                            : "null",
+                        "responseContent" => isset($response)
+                            ? json_encode($response)
+                            : "null",
+                    ],
+                );
+            }
+        } catch (\Exception $e) {
+            Log::error("Error in FactgridClient::queryPersons", [
+                "exception" => get_class($e),
+                "message" => $e->getMessage(),
+                "trace" => $e->getTraceAsString(),
+            ]);
+
+            // Return empty response in case of error
+            $response = [
+                "head" => [
+                    "vars" => [
+                        "item",
+                        "itemLabel",
+                        "itemDescription",
+                        "property",
+                        "statement",
+                        "propertyValue",
+                        "propertyValueLabel",
+                        "propertyTimePrecision",
+                        "qualifier",
+                        "qualifierValue",
+                        "qualifierValueLabel",
+                        "qualifierTimePrecision",
+                    ],
+                ],
+                "results" => ["bindings" => []],
+            ];
         }
 
         return $response;
@@ -580,7 +805,7 @@ class FactgridClient
      */
     public function groupItemsByProperty(
         array $items,
-        array $groupConfigs = null,
+        ?array $groupConfigs = null,
         string $instancePropertyId = "wdt:P2",
     ): array {
         // Use default group configs if none provided
@@ -590,7 +815,14 @@ class FactgridClient
 
         // Extract the semantic property name from the property ID
         $propertyLabel = "instances"; // Default to instances
-        if (!empty($instancePropertyId)) {
+
+        // For persons, check if we're using subject roles (P277)
+        $isPerson = false;
+        if ($instancePropertyId === "P277") {
+            $propertyLabel = "subjectRoles";
+            $isPerson = true;
+            Log::debug("Grouping persons by subject roles");
+        } elseif (!empty($instancePropertyId)) {
             $propId = str_replace("wdt:", "", $instancePropertyId);
             if (isset(self::PROPERTY_LABEL_OF_ID[$propId])) {
                 $propertyLabel = self::PROPERTY_LABEL_OF_ID[$propId];
@@ -642,12 +874,24 @@ class FactgridClient
 
             // Assign to the first matching group
             $foundGroup = false;
+
+            // Debug log the property values
+            Log::debug("Property values for grouping:", [
+                "itemId" => $itemId,
+                "propertyLabel" => $propertyLabel,
+                "values" => $propertyValues,
+                "isPerson" => isset($isPerson) && $isPerson ? "true" : "false",
+            ]);
+
             foreach ($groupConfigs as $groupKey => $groupQids) {
-                if (!empty(array_intersect($propertyValues, $groupQids))) {
+                $intersection = array_intersect($propertyValues, $groupQids);
+
+                if (!empty($intersection)) {
                     $groupedItems[$groupKey][$itemId] = $item;
                     $foundGroup = true;
                     Log::debug(
                         "Placed item " . $itemId . " in group " . $groupKey,
+                        ["matches" => $intersection],
                     );
                     break; // Place in only one group
                 }
@@ -655,49 +899,64 @@ class FactgridClient
 
             // If no group found through standard means, try fallback methods
             if (!$foundGroup) {
-                // Fallback method 1: Label-based heuristics
-                $label = strtolower($item["label"] ?? "");
-
-                if (
-                    strpos($label, "polizei") !== false ||
-                    strpos($label, "stapo") !== false ||
-                    strpos($label, "leitstelle") !== false
-                ) {
-                    $groupedItems["statePoliceHeadquarters"][$itemId] = $item;
+                if (isset($isPerson) && $isPerson) {
+                    // For persons, if they have no specific role,
+                    // default to victims group as fallback
+                    $groupedItems["victims"][$itemId] = $item;
                     Log::debug(
-                        "Placed item " .
+                        "Placed person " .
                             $itemId .
-                            " in statePoliceHeadquarters based on label",
+                            " in victims group as default fallback",
                     );
-                } elseif (
-                    strpos($label, "gefängnis") !== false ||
-                    strpos($label, "haftanstalt") !== false
-                ) {
-                    $groupedItems["prisons"][$itemId] = $item;
-                    Log::debug(
-                        "Placed item " . $itemId . " in prisons based on label",
-                    );
-                }
-                // Fallback method 2: Check if it's an "Ort des Gestapoterrors" instance
-                elseif (isset($item["instances"])) {
-                    foreach (
-                        $item["instances"]
-                        as $statementId => $instanceData
+                } else {
+                    // Place fallbacks - Label-based heuristics
+                    $label = strtolower($item["label"] ?? "");
+
+                    if (
+                        strpos($label, "polizei") !== false ||
+                        strpos($label, "stapo") !== false ||
+                        strpos($label, "leitstelle") !== false
                     ) {
-                        if (
-                            isset($instanceData["id"]) &&
-                            $instanceData["id"] === "Q1784677"
+                        $groupedItems["statePoliceHeadquarters"][
+                            $itemId
+                        ] = $item;
+                        Log::debug(
+                            "Placed item " .
+                                $itemId .
+                                " in statePoliceHeadquarters based on label",
+                        );
+                    } elseif (
+                        strpos($label, "gefängnis") !== false ||
+                        strpos($label, "haftanstalt") !== false
+                    ) {
+                        $groupedItems["prisons"][$itemId] = $item;
+                        Log::debug(
+                            "Placed item " .
+                                $itemId .
+                                " in prisons based on label",
+                        );
+                    }
+                    // Fallback method 2: Check if it's an "Ort des Gestapoterrors" instance
+                    elseif (isset($item["instances"])) {
+                        foreach (
+                            $item["instances"]
+                            as $statementId => $instanceData
                         ) {
-                            // Default placement for "Ort des Gestapoterrors"
-                            $groupedItems["statePoliceOffices"][
-                                $itemId
-                            ] = $item;
-                            Log::debug(
-                                "Placed item " .
-                                    $itemId .
-                                    " in statePoliceOffices as default",
-                            );
-                            break;
+                            if (
+                                isset($instanceData["id"]) &&
+                                $instanceData["id"] === "Q1784677"
+                            ) {
+                                // Default placement for "Ort des Gestapoterrors"
+                                $groupedItems["statePoliceOffices"][
+                                    $itemId
+                                ] = $item;
+                                Log::debug(
+                                    "Placed item " .
+                                        $itemId .
+                                        " in statePoliceOffices as default",
+                                );
+                                break;
+                            }
                         }
                     }
                 }
