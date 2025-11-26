@@ -88,11 +88,14 @@ class FactgridClient
         "P153" => "streetAddresses", // Street addresses (Wikidata P6375)
 
         // Time Properties
-        "P49" => "startTime", // Start time (Wikidata P580)
-        "P50" => "endTime", // End time (Wikidata P582)
+        "P45" => "startTime", // Start time (Wikidata P580)
+        "P46" => "endTime", // End time (Wikidata P582)
         "P106" => "pointInTime", // Point in time (Wikidata P585)
         "P77" => "dateOfBirth", // Date of birth (Wikidata P569)
         "P38" => "dateOfDeath", // Date of death (Wikidata P570)
+        "P49" => "inceptionDates", // https://www.wikidata.org/wiki/Property:P571
+        "P50" => "dissolvedDates", // https://www.wikidata.org/wiki/Property:P576
+        "P290" => "firstDocumented", // replaces startTime for memorials, Erste Aktivität P580
 
         // Person Properties
         "P154" => "gender", // Gender (Wikidata P21)
@@ -221,7 +224,7 @@ class FactgridClient
               wd:P319, wd:P156, wd:P315, wd:P7, wd:P7, wd:P137, wd:P146, wd:P1164, wd:P550, wd:P534,
               wd:P153, wd:P49, wd:P50, wd:P1164, wd:P153, wd:P156, wd:P155, wd:P49, wd:P50,
               wd:P1164, wd:P319, wd:P419, wd:P7, wd:P7, wd:P1164, wd:P315, wd:P14, wd:P247, wd:P248,
-              wd:P8, wd:P95, wd:P47, wd:P47, wd:P66, wd:P751
+              wd:P8, wd:P95, wd:P47, wd:P47, wd:P66, wd:P751, wd:P290
             ))
             FILTER(?propertyType != wikibase:Time)
             ?property wikibase:statementProperty ?ps.
@@ -230,7 +233,7 @@ class FactgridClient
           UNION
           {
             ?property wikibase:statementValue ?psv.
-            FILTER(?property IN(wd:P49, wd:P50, wd:P49, wd:P50, wd:P106, wd:P49))
+            FILTER(?property IN(wd:P49, wd:P50, wd:P45, wd:P46, wd:P106, wd:P49))
             ?statement ?psv ?propertyValueNode.
             ?propertyValueNode wikibase:timeValue ?propertyValue;
               wikibase:timePrecision ?propertyTimePrecision.
@@ -246,7 +249,7 @@ class FactgridClient
             UNION
             {
               ?qualifier wikibase:qualifierValue ?pqv.
-              FILTER(?qualifier IN(wd:P49, wd:P50, wd:P106, wd:P218, wd:P219, wd:P432, wd:P432))
+              FILTER(?qualifier IN(wd:P45, wd:P46, wd:P106, wd:P218, wd:P219, wd:P432, wd:P432))
               ?statement ?pqv ?qualifierValueNode.
               ?qualifierValueNode wikibase:timeValue ?qualifierValue;
                 wikibase:timePrecision ?qualifierTimePrecision.
