@@ -1,6 +1,7 @@
 const glossaryItems = {
     /* template
     '': {
+        aliases: [""],
         id: '',
         descriptions: [
             ``,
@@ -13,7 +14,35 @@ const glossaryItems = {
         ],
     },
     */
+    "Aktion Lauterbacher": {
+        aliases: [],
+        id: "operationLauterbacher",
+        descriptions: [
+            `Die „Aktion Lauterbacher“ bezeichnet die Zwangsghettoisierung der jüdischen Bevölkerung in Hannover in
+            sogenannten „Judenhäusern“.`,
+            `Namensgeber der Aktion war Hartmann Lauterbacher, NSDAP-Gauleiter des Gaus Süd-Hannover-Braunschweig und
+            Oberpräsident der preußischen Provinz Hannover. Auf seine Initiative hin erarbeitete die Stadtverwaltung
+            Hannover, ein Konzept zur Zwangseinweisung jüdischer Menschen in Häuser jüdischer Eigentümerinnen und
+            Eigentümer. Ziel war es, die jüdische Bevölkerung auf möglichst engem Raum zu konzentrieren, ihre
+            Lebensverhältnisse weiter zu verschlechtern und sie besser kontrollieren zu können.`,
+            `Am Morgen des 3. Septembers 1941 erhielten rund 1 200 Jüdinnen und Juden in Hannover eine Verfügung, die
+            ihnen befahl, ihre bisherigen Wohnungen bis spätestens 18 Uhr des Folgetages zu verlassen. Als neue
+            Unterkünfte wurden ihnen Plätze in 15 sogenannten „Judenhäusern” zugewiesen.`,
+            `Die Zwangsghettoisierung bedeutete eine drastische Verschlechterung der Lebensbedingungen. Die Betroffenen
+            konnten nur wenige Besitztümer aus ihren früheren Wohnungen mitnehmen und lebten unter sehr beengten sowie
+            katastrophalen hygienischen Verhältnissen. Zudem führte die Gestapo Hannover regelmäßig gewaltsame
+            Kontrollen in den Häusern durch.`,
+            `Mit der „Aktion Lauterbacher“ erfolgte der Übergang von Diskriminierung und Entrechtung zur systematischen
+            Vernichtung: Bereits am 15. Dezember 1941 begann mit dem ersten Deportationszug nach Riga die organisierte
+            Verschleppung der hannoverschen Jüdinnen und Juden in Ghettos und Vernichtungslager.`,
+        ],
+        sources: [
+            `Buchholz, Marlis: Die hannoverschen Judenhäuser. Zur Situation der Juden in der Zeit der Ghettoisierung
+            und Verfolgung 1941 bis 1945. Hildesheim 1987.`,
+        ],
+    },
     Arbeitserziehungslager: {
+        aliases: ["Arbeitserziehungslagern"],
         id: "laborEducationCamps",
         descriptions: [
             `Arbeitserziehungslager (AEL) waren neben Konzentrationslagern, Erweiterten Polizeigefängnissen und anderen
@@ -53,6 +82,7 @@ const glossaryItems = {
         ],
     },
     Außendienststelle: {
+        aliases: [],
         id: "fieldOffices",
         descriptions: [
             `(Staatspolizei-)außendienststellen waren Zweigstellen der Gestapo. Außendienststellen waren
@@ -68,6 +98,7 @@ const glossaryItems = {
         sources: [],
     },
     Denunziation: {
+        aliases: ["Denunziationen"],
         id: "denunciation",
         descriptions: [
             `Denunziation bedeutet das Erstatten einer Anzeige durch einen Denunzianten aus meist persönlichen,
@@ -97,6 +128,7 @@ const glossaryItems = {
         ],
     },
     Deportation: {
+        aliases: ["Deportationen"],
         id: "deportation",
         descriptions: [
             `Deportation bedeutet die zwangsweise Verschickung von Menschen von ihren Wohnsitzen zu vorbestimmten
@@ -130,17 +162,17 @@ const glossaryItems = {
         ],
     },
     Ereignis: {
+        aliases: ["Ereignisse", "Ereignissen"],
         id: "events",
         descriptions: [
             `Die konkreten Tätigkeiten der Gestapo werden als Ereignisse dargestellt. Es handelt sich hierbei um von der
             Gestapo begangene Verbrechen wie bspw. der Inhaftierung einzelner Personen oder Personengruppen, aber auch
-            um die Ermordung von Menschen. Der inhaltliche Fokus des Projekts “OGT - Orte des Gestapoterrors” liegt auf
-            den Dienstsitzen und Haftstätten der Gestapo, weshalb nur einige wenige Ereignisse beispielhaft aufgenommen
-            wurden.`,
+            die Ermordung von Menschen.`,
         ],
         sources: [],
     },
     Erinnerungsort: {
+        aliases: [],
         id: "memorials",
         descriptions: [
             `Der Begriff Erinnerungsort wurde von dem französischen Historiker Pierre Nora (*1931) geprägt. Er basiert
@@ -161,6 +193,10 @@ const glossaryItems = {
         ],
     },
     "Erweitertes Polizeigefängnis": {
+        aliases: [
+            "Erweiterte Polizeigefängnisse",
+            "Erweiterten Polizeigefängnissen",
+        ],
         id: "extPolicePrisons",
         descriptions: [
             `Seit 1941 lassen sich Gründungen eines neuen Lagertyps unter der Leitung der Gestapo sowohl in den
@@ -199,6 +235,7 @@ const glossaryItems = {
         ],
     },
     Gefängnis: {
+        aliases: [],
         id: "prisons",
         descriptions: [
             `Die Gefängnisse der Gestapo waren neben den Konzentrationslagern zentrale Orte des Terrors gegen
@@ -210,7 +247,7 @@ const glossaryItems = {
             Diese Zellen befanden sich in Polizeigefängnissen, aber auch in Justizgefängnissen und Zuchthäusern, die zu
             diesem Zweck von der Justiz zur Verfügung gestellt wurden.`,
             `Unter Gefängnisse werden alle Haftstätten verzeichnet, die von der Gestapo (mit-) genutzt wurden. Es kann
-            sich hierbei um Polizeigefängnisse handeln, aber bspw. auch um einzelne Zellen in Justizgefängnissen
+            sich hierbei um Polizeigefängnisse, aber bspw. auch um einzelne Zellen in Justizgefängnissen
             handeln. Erweiterte Polizeigefängnisse und Arbeitserziehungslager werden als Haftstätten, die der Gestapo
             unterstanden und zur Inhaftierung eine große Anzahl an Gefangenen dienten, gesondert aufgeführt.`,
             `Die Haftbedingungen in den von der Gestapo genutzten Zellen waren brutal. Folterungen mit zum Teil
@@ -221,7 +258,18 @@ const glossaryItems = {
             `https://www.bundesarchiv.de/zwangsarbeit/haftstaetten/index.php?tab=22`,
         ],
     },
+    Geschädigte: {
+        aliases: [],
+        id: "geschaedigte",
+        descriptions: [
+            `Als Geschädigte werden alle Personen bezeichnet, die durch das Handeln der Geheimen Staatspolizei (Gestapo) in ihren Rechten, ihrer Freiheit oder ihrer körperlichen und seelischen Unversehrtheit verletzt wurden.`,
+            `Dazu zählen Menschen, die gefoltert und ermordet wurden. Aber auch Maßnahmen wie Überwachung oder Einschüchterung werden als Formen der Schädigung verstanden.`,
+            `Der Begriff Geschädigte wird bewusst gewählt, um die betroffenen Menschen nicht auf eine passive Opferrolle zu reduzieren. Er betont, dass sie Akteur*innen mit eigenen Lebensgeschichten und Handlungsspielräumen, trotz Gewalt und Unterdrückung, waren.`,
+        ],
+        sources: [],
+    },
     Gestapa: {
+        aliases: [],
         id: "gestapa",
         descriptions: [
             `Das Geheime Staatspolizeiamt, kurz Gestapa, war eine Landesbehörde mit Sitz in der Prinz-Albrecht-Straße 8
@@ -245,6 +293,7 @@ const glossaryItems = {
         ],
     },
     Gestapo: {
+        aliases: [],
         id: "gestapo",
         descriptions: [
             `Die Gestapo (kurz für Geheime Staatspolizei) war die Politische Polizei des NS-Regimes. In fast allen
@@ -285,6 +334,7 @@ const glossaryItems = {
         ],
     },
     "Hauptamt Sicherheitspolizei": {
+        aliases: [],
         id: "mainOfficeSecurityPolice",
         descriptions: [
             `Am 26. Juni 1936 wurde das Hauptamt Sicherheitspolizei gegründet. Die Gründung des Hauptamts
@@ -315,6 +365,7 @@ const glossaryItems = {
         ],
     },
     "Heutiges Niedersachsen": {
+        aliases: ["heutigen Niedersachsens"],
         id: "todayLowerSaxony",
         descriptions: [
             `Das heutige Bundesland Niedersachsen in der Bundesrepublik Deutschland entstand am 1. November 1946 aus dem
@@ -342,6 +393,7 @@ const glossaryItems = {
         ],
     },
     Judenhaus: {
+        aliases: ["Judenhäuser", "Judenhäusern"],
         id: "jewHouse",
         descriptions: [
             `Als „Judenhäuser“ werden Häuser bezeichnet, in denen Jüdinnen und Juden im nationalsozialistischen Deutschland zwangsweise untergebracht wurden. Ab etwa 1939 ordneten kommunale Behörden und die Gestapo in vielen Städten die Zusammenlegung jüdischer Menschen in bestimmten Gebäuden an.`,
@@ -359,6 +411,7 @@ const glossaryItems = {
         ],
     },
     Polizeigefängnis: {
+        aliases: ["Polizeigefängnisse", "Polizeigefängnissen"],
         id: "policePrison",
         descriptions: [
             `Das Polizeigefängnis diente zur Zeit der Weimarer Republik zur kurzfristigen Inhaftierung. Es galt als
@@ -387,6 +440,7 @@ const glossaryItems = {
         ],
     },
     Reichspogromnacht: {
+        aliases: [],
         id: "novemberPogroms",
         descriptions: [
             `Ein Pogrom ist eine gewalttätige Aktion gegen Minderheiten, meist religiöse, ethnische oder politische. Die
@@ -423,6 +477,7 @@ const glossaryItems = {
         ],
     },
     RSHA: {
+        aliases: [],
         id: "rsha",
         descriptions: [
             `Das Reichssicherheitshauptamt, abgekürzt RSHA, war eine nationalsozialistische Institution, welche
@@ -466,6 +521,7 @@ const glossaryItems = {
         ],
     },
     Staatspolizeistelle: {
+        aliases: ["Staatspolizeistellen"],
         id: "statePoliceOffices",
         descriptions: [
             `Staatspolizeistellen waren regionale Dienststellen der Gestapo, die in der hierarchischen Struktur der
@@ -479,6 +535,7 @@ const glossaryItems = {
         sources: [],
     },
     Staatspolizeileitstelle: {
+        aliases: ["Staatspolizeileitstellen"],
         id: "statePoliceHeadquarters",
         descriptions: [
             `Staatspolizeileitstellen waren regionale Dienststellen der Gestapo, die als Leitstellen von regionalen
@@ -521,7 +578,18 @@ const glossaryItems = {
             herausgegeben von Hans-Dieter Schmid, Hans-Joachim Heuer, Hans-Dieter Klosa, und Burkhard Lange, 89–119, 2003.`,
         ],
     },
+    "Täter*In": {
+        aliases: [],
+        id: "taeter",
+        descriptions: [
+            `Als Täter*in werden alle Personen unabhängig von ihrer Position oder Funktion bezeichnet, die in der Geheimen Staatspolizei (Gestapo) tätig waren. Dazu zählen sowohl leitende Gestapobeamte als auch Mitarbeitende auf nachgeordneten Ebenen.`,
+            `Die Einordnung als Täter*in erfolgt aufgrund ihrer Zugehörigkeit zu einer Organisation, die maßgeblich an Verfolgung, Folter und Mord beteiligt war. Sie gilt auch dann, wenn Personen in den Entnazifizierungsverfahren nach 1945 nicht strafrechtlich belangt oder als „entlastet“ eingestuft wurden.`,
+            `Die Bezeichnung verweist auf die Mitverantwortung innerhalb der Gestapo, nicht auf eine strafrechtliche Schuld. Sie macht sichtbar, dass der Terror der Gestapo nur durch das Zusammenspiel vieler Menschen möglich war.`,
+        ],
+        sources: [],
+    },
     Tätersprache: {
+        aliases: [],
         id: "taeterSprache",
         descriptions: [
             `Als Tätersprache bezeichnet man die Sprache des nationalsozialistischen Regimes, insbesondere Begriffe und Formulierungen, mit denen Gewalt, Verfolgung und Vernichtung verschleiert, beschönigt oder bürokratisch entpersonalisiert wurden. Viele dieser Ausdrücke stammen aus dem Verwaltungs- und Polizeijargon der NS-Zeit.`,
@@ -538,6 +606,7 @@ const glossaryItems = {
         ],
     },
     Terror: {
+        aliases: ["Terrors"],
         id: "terror",
         descriptions: [
             `Terror bezeichnet die systematische Verbreitung von Angst und Schrecken durch ausgeübte oder angedrohte
@@ -556,6 +625,24 @@ const glossaryItems = {
             `https://www.bpb.de/kurz-knapp/lexika/politiklexikon/18334/terror-terrorismus/`,
             `https://www.bpb.de/themen/medien-journalismus/krieg-in-den-medien/500450/terror/`,
         ],
+    },
+    "Verfolgung der Sozialistischen Front": {
+        aliases: [],
+        id: "persecutionOfSocialistFront",
+        descriptions: [
+            `Die Sozialistische Front war eine der größten und bedeutendsten Widerstandsgruppen gegen den
+            Nationalsozialismus in der Vorkriegszeit. Zwischen 1934 und 1936 war sie im Raum Hannover aktiv und zählte
+            zwischen 560 und 780 Engagierte, überwiegend aus dem sozialdemokratischen Milieu.`,
+            `Alle vier bis sechs Wochen veröffentlichte die Gruppe die zehnseitige Flugschrift „Sozialistische Blätter“,
+            die zeitweise bis zu 1.000 Leserinnen und Leser erreichte. Insgesamt erschienen mindestens 40 Ausgaben. Die
+            Flugschrift diente der politischen Aufklärung, der moralischen Stärkung der Leserschaft und der Mobilisierung
+            zum Widerstand gegen das NS-Regime.`,
+            `Im Sommer 1936 gelang es der Gestapo, einen Spitzel in die Organisation einzuschleusen. In der Folge wurde
+            nahezu das gesamte Lese- und Verteilernetz enttarnt. Mindestens 420 Personen wurden verhaftet und verhört.
+            Insgesamt verhängten die NS-Justizbehörden 105 Zuchthaus- und 134 Gefängnisstrafen. Mehrere Mitglieder der
+            Sozialistischen Front verloren infolge ihres Engagements im Widerstand ihr Leben.`,
+        ],
+        sources: [],
     },
 };
 

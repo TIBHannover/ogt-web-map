@@ -16,7 +16,6 @@
                         {{ entity.description }}
                     </v-list-item-subtitle>
                     <v-list-item-subtitle class="result-id">
-                        {{ entity.id }}
                     </v-list-item-subtitle>
                 </div>
                 <div>
@@ -26,7 +25,8 @@
                         class="source-link"
                     >
                         <v-icon size="x-small mr-1">mdi-open-in-new</v-icon>
-                        Wikidata
+                        Wikidata:
+                        <span class="grey-darken-1">{{ entity.id }}</span>
                     </a>
                 </div>
             </v-list-item>
@@ -35,7 +35,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { computed } from "vue";
 
 const props = defineProps({
     qIds: {
@@ -70,6 +70,17 @@ const qIdData = {
         label: "Antisemitismus",
         description:
             "Judenfeindschaft im Kontext moderner Ideologien, insbesondere Nationalismus, Rassismus und Islamismus",
+    },
+    // Staatsangehörigkeit / Nationality
+    Q1206012: {
+        id: "Q1206012",
+        label: "Deutsches Reich",
+        description: "deutscher Nationalstaat (1871-1945)",
+    },
+    Q183: {
+        id: "Q183",
+        label: "Deutschland",
+        description: "Staat in Mitteleuropa",
     },
     // You can add more predefined entities as needed
 };

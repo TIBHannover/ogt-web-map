@@ -1,16 +1,22 @@
 <template>
-    <div class="time-section container-section">
+    <div class="container-section">
         <div class="section-header">
-            <label class="section-label">Zeitpunkt / Zeitraum</label>
+            <label
+                :class="
+                    props.required ? 'section-label required' : 'section-label'
+                "
+                :data-required="props.required ? '*' : ''"
+                >{{ sectionLabel }}</label
+            >
             <button
                 type="button"
                 class="info-icon"
-                @click="$emit('infoButtonClick', 'time')"
+                @click="$emit('infoButtonClick', infoIconId)"
             >
                 <v-icon>mdi-information-variant</v-icon>
             </button>
         </div>
-        <div class="time-type-selection">
+        <div class="time-type-selection" v-if="!props.hideToggle">
             <v-btn-toggle
                 v-model="localEventTimeType"
                 mandatory
@@ -18,13 +24,13 @@
                 color="primary"
                 class="time-toggle"
             >
-                <v-btn value="point">
+                <v-btn value="point" class="time-type-btn">
                     <v-icon start>mdi-clock</v-icon>
-                    Zeitpunkt
+                    {{ pointLabel }}
                 </v-btn>
-                <v-btn value="range">
+                <v-btn value="range" class="time-type-btn">
                     <v-icon start>mdi-calendar-range</v-icon>
-                    Zeitraum
+                    {{ rangeLabel }}
                 </v-btn>
             </v-btn-toggle>
         </div>
@@ -34,7 +40,7 @@
             v-if="localEventTimeType === 'point'"
             class="form-group date-field-container"
         >
-            <label for="">Datum des Ereignisses</label>
+            <label for="" v-if="!props.hideToggle">{{ pointDateLabel }}</label>
             <!-- Text field that opens the dialog -->
             <v-text-field
                 v-model="eventDateDisplay"
@@ -44,9 +50,15 @@
                 bg-color="white"
                 placeholder="Jahr, Monat oder Tag wählen"
                 readonly
-                @click="openDateDialog('point')"
+                @click="
+                    openDateDialog('point');
+                    hasInteracted = true;
+                "
                 aria-label="Datum des Ereignisses auswählen"
-                @focus="$emit('fieldFocus', 'time')"
+                @focus="
+                    $emit('fieldFocus', infoIconId);
+                    hasInteracted = true;
+                "
                 @blur="onFieldBlur"
                 ref="eventDatePicker"
             >
@@ -104,9 +116,15 @@
                     bg-color="white"
                     placeholder="Jahr, Monat oder Tag wählen"
                     readonly
-                    @click="openDateDialog('start')"
+                    @click="
+                        openDateDialog('start');
+                        hasInteracted = true;
+                    "
                     aria-label="Beginn des Ereignisses auswählen"
-                    @focus="$emit('fieldFocus', 'time')"
+                    @focus="
+                        $emit('fieldFocus', infoIconId);
+                        hasInteracted = true;
+                    "
                     @blur="onFieldBlur"
                     ref="eventStartDatePicker"
                 >
@@ -165,9 +183,15 @@
                     bg-color="white"
                     placeholder="Jahr, Monat oder Tag wählen"
                     readonly
-                    @click="openDateDialog('end')"
+                    @click="
+                        openDateDialog('end');
+                        hasInteracted = true;
+                    "
                     aria-label="Ende des Ereignisses auswählen"
-                    @focus="$emit('fieldFocus', 'time')"
+                    @focus="
+                        $emit('fieldFocus', infoIconId);
+                        hasInteracted = true;
+                    "
                     @blur="onFieldBlur"
                     ref="eventEndDatePicker"
                 >
@@ -218,16 +242,28 @@
         </div>
 
         <ValidationError
-            v-if="localEventTimeType === 'point'"
-            :show="showValidationErrors && !isPointValid"
-            message="Bitte gebe ein Datum für das Ereignis ein."
+            v-if="localEventTimeType === 'point' && props.required"
+            :show="
+                showValidationErrors &&
+                !isPointValid &&
+                (hasInteracted || props.initialShowErrors)
+            "
+            :message="validationMessageRequired"
             showIcon
         />
 
         <ValidationError
             v-if="localEventTimeType === 'range'"
-            :show="showValidationErrors && !isRangeValid"
-            message="Bitte gebe sowohl Beginn- als auch Enddatum für den Zeitraum ein."
+            :message="
+                localEventTimeType === 'range'
+                    ? 'Bitte gebe sowohl Beginn- als auch Enddatum für den Zeitraum ein.'
+                    : validationMessageRequired
+            "
+            :show="
+                showValidationErrors &&
+                !isRangeValid &&
+                (hasInteracted || props.initialShowErrors)
+            "
             showIcon
         />
     </div>
@@ -388,7 +424,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import ValidationError from "../../helpers/ValidationError.vue";
 import DateQualifier from "./common/DateQualifier.vue";
 import { useValidation } from "../../../composables/useValidation";
@@ -438,6 +474,54 @@ const props = defineProps({
         type: Boolean,
         default: true,
     },
+    singleDateMode: {
+        type: Boolean,
+        default: false,
+    },
+    label: {
+        type: String,
+        default: "",
+    },
+    propertyId: {
+        type: String,
+        default: "",
+    },
+    hideToggle: {
+        type: Boolean,
+        default: false,
+    },
+    sectionLabel: {
+        type: String,
+        default: "Zeitpunkt / Zeitraum:",
+    },
+    infoIconId: {
+        type: String,
+        default: "time",
+    },
+    pointLabel: {
+        type: String,
+        default: "Zeitpunkt",
+    },
+    rangeLabel: {
+        type: String,
+        default: "Zeitraum",
+    },
+    pointDateLabel: {
+        type: String,
+        default: "Datum des Ereignisses",
+    },
+    validationMessageRequired: {
+        type: String,
+        default: "Bitte gebe einen Zeitpunkt oder Zeitraum an.",
+    },
+    validationMessageInvalid: {
+        type: String,
+        default: "Das Datumsformat ist ungültig.",
+    },
+    initialShowErrors: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const emit = defineEmits([
@@ -448,6 +532,8 @@ const emit = defineEmits([
     "update:eventDateQualifier",
     "update:eventStartDateQualifier",
     "update:eventEndDateQualifier",
+    "fieldFocus",
+    "infoButtonClick",
     "update:eventDatePrecision",
     "update:eventStartDatePrecision",
     "update:eventEndDatePrecision",
@@ -458,6 +544,7 @@ const emit = defineEmits([
 
 // Local state for v-btn-toggle
 const localEventTimeType = ref(props.eventTimeType);
+const isMobileView = ref(window.innerWidth <= 600);
 
 // Local state for date fields
 const eventDate = ref(props.eventDate);
@@ -640,6 +727,7 @@ const formatDateForDisplay = (date, precision) => {
 const openDateDialog = (field) => {
     activeField.value = field;
     dialogStep.value = "year";
+    hasInteracted.value = true;
 
     // Initialize with existing values if present
     if (field === "point" && eventDate.value) {
@@ -736,7 +824,6 @@ const openDateDialog = (field) => {
     }
 
     dateDialog.value = true;
-    emit("fieldFocus", "time");
 
     // Scroll to the selected year if it exists
     if (selectedYear.value) {
@@ -943,15 +1030,66 @@ const handleDateInput = (value, field) => {
     }
 };
 
+// Set the time type based on hideToggle
+onMounted(() => {
+    // If hideToggle is true, force the time type to point
+    if (props.hideToggle && localEventTimeType.value !== "point") {
+        localEventTimeType.value = "point";
+        emit("update:eventTimeType", "point");
+    }
+});
+
+// Watch for changes to hideToggle property
+watch(
+    () => props.hideToggle,
+    (newValue) => {
+        if (newValue && localEventTimeType.value !== "point") {
+            localEventTimeType.value = "point";
+            emit("update:eventTimeType", "point");
+        }
+    },
+);
+
 // Computed helpers for validation
 const isPointValid = computed(() => !!eventDate.value);
 const isRangeValid = computed(
     () => !!eventStartDate.value && !!eventEndDate.value,
 );
 
+// Is the component valid overall
+const isValid = computed(() => {
+    // If not required, the field is always valid
+    if (!props.required) {
+        return true;
+    }
+
+    // When hideToggle is true, we only validate the point date
+    if (props.hideToggle) {
+        return isPointValid.value;
+    }
+    // Otherwise validate based on current time type
+    return localEventTimeType.value === "point"
+        ? isPointValid.value
+        : isRangeValid.value;
+});
+
+// Should validation errors be shown
+const showValidationErrors = ref(false);
+// Track if the user has interacted with the component
+const hasInteracted = ref(false);
+
 // Validation function
 const validateFields = () => {
-    if (localEventTimeType.value === "point") {
+    showValidationErrors.value = true;
+    hasInteracted.value = true;
+
+    // If not required, always return true
+    if (!props.required) {
+        return true;
+    }
+
+    // When hideToggle is true, always validate point date only
+    if (props.hideToggle || localEventTimeType.value === "point") {
         return isPointValid.value;
     } else {
         // range mode
@@ -960,24 +1098,43 @@ const validateFields = () => {
 };
 
 // Use the validation composable
-const { isValid, showValidationErrors, validate, showErrors } = useValidation(
-    validateFields,
-    {
-        emit,
-        watchCallback: () => [
-            eventDate.value,
-            eventStartDate.value,
-            eventEndDate.value,
-            localEventTimeType.value,
-        ],
-    },
-);
+const { validate, showErrors } = useValidation(validateFields, {
+    emit,
+    initialShowErrors: false,
+    watchCallback: () => [
+        props.hideToggle ? "point" : localEventTimeType.value,
+        eventDate.value,
+        eventStartDate.value,
+        eventEndDate.value,
+    ],
+});
 
 // Watch for changes to local state and emit events
 watch(localEventTimeType, (newValue) => {
+    // If hideToggle is true, always force to point
+    if (props.hideToggle && newValue !== "point") {
+        localEventTimeType.value = "point";
+        emit("update:eventTimeType", "point");
+        return;
+    }
+
     emit("update:eventTimeType", newValue);
     // Reset validation errors when switching between time types
     showValidationErrors.value = false;
+});
+
+const updateViewportState = () => {
+    isMobileView.value = window.innerWidth <= 600;
+};
+
+// Track window resize to update mobile view state
+onMounted(() => {
+    updateViewportState();
+    window.addEventListener("resize", updateViewportState);
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener("resize", updateViewportState);
 });
 
 watch(eventDate, (newValue) => {
@@ -1090,7 +1247,8 @@ watch(
 
 // Methods to handle field interaction
 const onFieldBlur = () => {
-    // Show validation errors if fields are left empty
+    // Mark as interacted and show validation errors if fields are left empty
+    hasInteracted.value = true;
     if (!isValid.value) {
         showValidationErrors.value = true;
     }
@@ -1100,7 +1258,7 @@ const onFieldBlur = () => {
 defineExpose({
     isValid,
     validate,
-    showValidationErrors: showErrors,
+    showValidationErrors,
     updateBindings: () => {
         // This method can be called by the parent to ensure form values are current
         console.log("TimeSelector: Updating bindings with current values");
@@ -1134,7 +1292,7 @@ defineExpose({
     margin-bottom: 0;
 }
 
-.section-label::after {
+.section-label.required::after {
     content: "*";
     color: red;
     margin-left: 3px;
@@ -1157,6 +1315,16 @@ defineExpose({
     justify-content: center;
     height: 44px;
     font-weight: 500;
+}
+
+.time-type-btn {
+    min-width: 120px;
+}
+
+@media (max-width: 600px) {
+    .time-type-btn {
+        justify-content: flex-start;
+    }
 }
 
 .info-icon {
@@ -1211,9 +1379,9 @@ defineExpose({
 
 /* Visual indicator for required fields */
 .form-group label::after {
-    content: "*";
+    content: attr(data-required);
     color: red;
-    margin-left: 3px;
+    margin-left: 2px;
 }
 
 /* Spezielle Stylings für den Zeitraum */
@@ -1276,8 +1444,25 @@ input.v-field__input {
         margin-right: 0;
     }
 
+    .v-btn-group--density-comfortable.v-btn-group {
+        height: auto;
+    }
+
     .time-toggle {
         width: 100%;
+        flex-direction: column;
+    }
+
+    .time-toggle .v-btn {
+        width: 100%;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        height: 50px !important;
+        min-height: 50px !important;
+        padding: 10px !important;
+    }
+
+    .time-toggle .v-btn:last-child {
+        border-bottom: none;
     }
 
     .date-field-container {

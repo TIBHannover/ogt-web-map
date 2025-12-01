@@ -1,8 +1,39 @@
 @extends('layouts.app')
 
 @php
-use App\Http\Controllers\WikidataPropertyController;
-use function App\Helpers\formatWikidataProperty;
+use App\Http\Controllers\WikidataPropertyController as WDPropertyController;
+@endphp
+
+@include('admin.partials.wikidata-helpers')
+
+@php
+// Define the formatDateBasedOnPrecision function if it doesn't exist yet
+if (!function_exists('formatDateBasedOnPrecision')) {
+    function formatDateBasedOnPrecision($dateString) {
+        if (!$dateString) return '';
+
+        // Check format to determine precision
+        if (preg_match('/^\d{4}$/', $dateString)) {
+            // Year only
+            return $dateString;
+        } else if (preg_match('/^\d{4}-\d{2}$/', $dateString)) {
+            // Year and month
+            $date = \Carbon\Carbon::parse($dateString);
+            $monthNames = [
+                '01' => 'Januar', '02' => 'Februar', '03' => 'März',
+                '04' => 'April', '05' => 'Mai', '06' => 'Juni',
+                '07' => 'Juli', '08' => 'August', '09' => 'September',
+                '10' => 'Oktober', '11' => 'November', '12' => 'Dezember'
+            ];
+            $month = $date->format('m');
+            $year = $date->format('Y');
+            return $monthNames[$month] . ' ' . $year;
+        } else {
+            // Full date
+            return \Carbon\Carbon::parse($dateString)->format('d.m.Y');
+        }
+    }
+}
 @endphp
 
 @section('content')
@@ -100,8 +131,10 @@ use function App\Helpers\formatWikidataProperty;
                                 Ereignis
                             @elseif($request->type == 'Q43229')
                                 Organisation
-                            @elseif($request->type == 'Q811979')
-                                Architektonisches Struktur
+                            @elseif($request->type == 'Q106996250')
+                                Ort des Gestapoterrors
+                            @elseif($request->type == 'Q5003624')
+                                Erinnerungsort
                             @else
                                 {{ $request->type }}
                             @endif
@@ -188,32 +221,6 @@ use function App\Helpers\formatWikidataProperty;
                 <div class="card-body">
                     <!-- Ereignis (Q6983405) -->
                     @if($request->type == 'Q6983405')
-                        @php
-                            function formatDateBasedOnPrecision($dateString) {
-                                if (!$dateString) return '';
-
-                                // Check format to determine precision
-                                if (preg_match('/^\d{4}$/', $dateString)) {
-                                    // Year only
-                                    return $dateString;
-                                } else if (preg_match('/^\d{4}-\d{2}$/', $dateString)) {
-                                    // Year and month
-                                    $date = \Carbon\Carbon::parse($dateString);
-                                    $monthNames = [
-                                        '01' => 'Januar', '02' => 'Februar', '03' => 'März',
-                                        '04' => 'April', '05' => 'Mai', '06' => 'Juni',
-                                        '07' => 'Juli', '08' => 'August', '09' => 'September',
-                                        '10' => 'Oktober', '11' => 'November', '12' => 'Dezember'
-                                    ];
-                                    $month = $date->format('m');
-                                    $year = $date->format('Y');
-                                    return $monthNames[$month] . ' ' . $year;
-                                } else {
-                                    // Full date
-                                    return \Carbon\Carbon::parse($dateString)->format('d.m.Y');
-                                }
-                            }
-                        @endphp
                         @if($request->time_point || $request->time_period_start)
                             <div class="mb-3">
                                 <strong>
@@ -284,16 +291,10 @@ use function App\Helpers\formatWikidataProperty;
                         @endif
 
                         <!-- Beteiligte Personen (Täter und Geschädigte) -->
-                        <!-- --
-                        <div class="mb-3">
-                            <strong>Debug Information:</strong>
-                            <pre class="mt-2 bg-light p-3" style="max-height: 200px; overflow: auto;">Perpetrators: {{ var_export($request->perpetrators, true) }}
-Victims: {{ var_export($request->victims, true) }}</pre>
-                        </div>
-                        -->
+
 
                         @php
-                            // Parse JSON strings to arrays
+                            // Parse JSON strings to arrays for this section
                             $parsedPerpetrators = [];
                             $parsedVictims = [];
 
@@ -307,6 +308,13 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                                 } elseif (is_array($request->perpetrators)) {
                                     $parsedPerpetrators = $request->perpetrators;
                                 }
+                                // Debug the perpetrators data
+                                foreach ($parsedPerpetrators as $index => $perpetrator) {
+                                    error_log("Perpetrator $index data: " . json_encode($perpetrator));
+                                    if (isset($perpetrator['id'])) {
+                                        error_log("Found perpetrator ID: " . $perpetrator['id']);
+                                    }
+                                }
                             }
 
                             if ($request->victims) {
@@ -319,10 +327,17 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                                 } elseif (is_array($request->victims)) {
                                     $parsedVictims = $request->victims;
                                 }
+                                // Debug the victims data
+                                foreach ($parsedVictims as $index => $victim) {
+                                    error_log("Victim $index data: " . json_encode($victim));
+                                    if (isset($victim['id'])) {
+                                        error_log("Found victim ID: " . $victim['id']);
+                                    }
+                                }
                             }
                         @endphp
 
-                        @if($parsedPerpetrators || $parsedVictims)
+                        @if(($parsedPerpetrators || $parsedVictims) && $request->type != 'Q5')
                             <div class="mb-5">
                                 @if(!empty($parsedPerpetrators))
                                     <div class="mb-3">
@@ -364,10 +379,7 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                                             <div class="list-group-item">
                                                 @if(is_array($cause))
                                                     <div class="fw-bold">
-                                                        <a href="https://www.wikidata.org/wiki/{{ $cause['id'] }}" target="_blank" class="text-decoration-none">
-                                                            {{ WikidataPropertyController::getQLabel($cause['id']) }}
-                                                            <i class="bi bi-box-arrow-up-right ms-1 small"></i>
-                                                        </a>
+                                                        {!! formatEntityLink($cause['id'], WDPropertyController::getQLabel($cause['id'])) !!}
                                                     </div>
                                                     @if(isset($cause['description']))
                                                         <div class="text-muted small mt-1">{{ $cause['description'] }}</div>
@@ -470,8 +482,86 @@ Victims: {{ var_export($request->victims, true) }}</pre>
                         @endif
                     @endif
 
+                    <!-- Erinnerungsort (Q5003624) -->
+                    @if($request->type == 'Q5003624')
+                        @include('admin.partials.memorial-entry', ['request' => $request])
+                    @endif
+
+                    @if($request->type == 'Q106996250')
+                        @include('admin.partials.gestapo-place-entry', ['request' => $request])
+                    @endif
+
                     <!-- Person (Q5) -->
                     @if($request->type == 'Q5')
+                        <!-- Display the person data from victims array for Q5 entity types -->
+                        <div class="mb-4">
+                            <h5 class="mb-3">Personeninformationen:</h5>
+
+                            @php
+                                // Parse JSON strings to arrays (for this section)
+                                $parsedPerpetrators = [];
+                                $parsedVictims = [];
+
+                                if ($request->perpetrators) {
+                                    if (is_string($request->perpetrators)) {
+                                        try {
+                                            $parsedPerpetrators = json_decode($request->perpetrators, true) ?: [];
+                                        } catch (\Exception $e) {
+                                            // Log error or handle it
+                                        }
+                                    } elseif (is_array($request->perpetrators)) {
+                                        $parsedPerpetrators = $request->perpetrators;
+                                    }
+                                    // Debug the perpetrators data in this section too
+                                    foreach ($parsedPerpetrators as $index => $perpetrator) {
+                                        error_log("Q5 Perpetrator $index data: " . json_encode($perpetrator));
+                                    }
+                                }
+
+                                if ($request->victims) {
+                                    if (is_string($request->victims)) {
+                                        try {
+                                            $parsedVictims = json_decode($request->victims, true) ?: [];
+                                        } catch (\Exception $e) {
+                                            // Log error or handle it
+                                        }
+                                    } elseif (is_array($request->victims)) {
+                                        $parsedVictims = $request->victims;
+                                    }
+                                    // Debug the victims data in this section too
+                                    foreach ($parsedVictims as $index => $victim) {
+                                        error_log("Q5 Victim $index data: " . json_encode($victim));
+                                    }
+                                }
+
+                                $victimCount = is_array($parsedVictims) ? count($parsedVictims) : 0;
+                                $perpetratorCount = is_array($parsedPerpetrators) ? count($parsedPerpetrators) : 0;
+                            @endphp
+
+                            @if(!empty($parsedVictims))
+                                <div class="list-group">
+                                    @foreach($parsedVictims as $victim)
+                                        @include('admin.partials.person-entry', ['person' => $victim, 'type' => 'victim'])
+                                    @endforeach
+                                </div>
+                            @elseif(!empty($parsedPerpetrators))
+                                <div class="list-group">
+                                    @foreach($parsedPerpetrators as $perpetrator)
+                                        @include('admin.partials.person-entry', ['person' => $perpetrator, 'type' => 'perpetrator'])
+                                    @endforeach
+                                </div>
+                            @else
+                                <div class="alert alert-warning">
+                                    Keine Personendaten verfügbar.
+                                    @if(is_array($parsedVictims))
+                                        Opfer-Array ist leer ({{ $victimCount }} Einträge).
+                                    @endif
+                                    @if(is_array($parsedPerpetrators))
+                                        Täter-Array ist leer ({{ $perpetratorCount }} Einträge).
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
 
                         @if($request->date_of_birth || $request->date_of_death)
                             <div class="mb-3">

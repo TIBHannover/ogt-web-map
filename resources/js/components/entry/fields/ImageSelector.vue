@@ -1,7 +1,7 @@
 <template>
     <div class="container-section image-section">
         <div class="section-header">
-            <label class="section-label">Bild:</label>
+            <label class="section-label">Bild aus Wikimedia-Commons:</label>
             <button
                 type="button"
                 class="info-icon"
@@ -13,17 +13,17 @@
         <div class="image-selection">
             <v-btn
                 type="button"
-                class="button bg-secondary"
+                class="btn btn-primary btn-block"
                 @click="openImageSelector"
                 @focus="$emit('fieldFocus', 'image')"
             >
-                <v-icon class="me-1">mdi-plus</v-icon>
+                <v-icon start class="me-1">mdi-camera</v-icon>
                 {{
                     imageUrl &&
                     typeof imageUrl === "string" &&
                     imageUrl.trim() !== ""
                         ? "Bild ändern"
-                        : "Bild aus Wikimedia Commons auswählen"
+                        : "Bild auswählen"
                 }}
             </v-btn>
 

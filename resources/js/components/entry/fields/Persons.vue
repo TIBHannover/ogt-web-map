@@ -17,7 +17,7 @@
             <!-- Add Person button -->
             <v-btn
                 color="primary"
-                class="mt-2 mb-4 button bg-secondary"
+                class="mt-2 mb-4 button bg-secondary person-button"
                 @click="
                     (e) => {
                         forceResetAndOpen(false, e);
@@ -27,8 +27,10 @@
                 :data-action="'add-person'"
                 id="add-person-button"
             >
-                {{ label.includes("*") ? label.replace("*", "") : label }}
-                Person hinzufügen
+                <span class="button-text">
+                    {{ label.includes("*") ? label.replace("*", "") : label }}
+                    <span class="ms-1">Person hinzufügen</span>
+                </span>
             </v-btn>
 
             <br />
@@ -36,7 +38,7 @@
             <!-- Add Organization button -->
             <v-btn
                 color="primary"
-                class="mt-2 button bg-secondary"
+                class="mt-2 button bg-secondary person-button"
                 @click="
                     (e) => {
                         forceResetAndOpen(true, e);
@@ -46,13 +48,21 @@
                 :data-action="'add-organization'"
                 id="add-organization-button"
             >
-                {{ label.includes("*") ? label.replace("*", "") : label }}
-                Organisation hinzufügen
+                <span class="button-text">
+                    {{ label.includes("*") ? label.replace("*", "") : label }}
+                    <span class="ms-1">Organisation hinzufügen</span>
+                </span>
             </v-btn>
         </div>
 
         <ValidationError
-            :show="showValidationErrors && !isValid"
+            :show="
+                showValidationErrors &&
+                !isValid &&
+                (label.includes('Täter') ||
+                    (label.includes('Geschädigte') &&
+                        selectedPersons.length === 0))
+            "
             :message="`Bitte füge mindestens einen Eintrag für ${label} hinzu.`"
             showIcon
         />
@@ -265,9 +275,26 @@
                                         >† {{ person.death }}</span
                                     >
                                 </v-list-item-subtitle>
-                                <v-list-item-subtitle class="result-id">{{
-                                    person.id
-                                }}</v-list-item-subtitle>
+                                <v-list-item-subtitle class="result-id">
+                                    <a
+                                        v-if="
+                                            person.id &&
+                                            person.id.startsWith('Q')
+                                        "
+                                        :href="`https://www.wikidata.org/wiki/${person.id}`"
+                                        target="_blank"
+                                        class="wikidata-link"
+                                        @click.stop
+                                    >
+                                        <span class="grey-darken-1"
+                                            >Wikidata: </span
+                                        >{{ person.id }}
+                                        <v-icon size="x-small"
+                                            >mdi-open-in-new</v-icon
+                                        >
+                                    </a>
+                                    <span v-else>{{ person.id }}</span>
+                                </v-list-item-subtitle>
                             </v-list-item>
                         </v-list>
 
@@ -359,8 +386,9 @@
                                         : 'Beispiel: deutscher Widerstandskämpfer... / Opfer des Nationalsozialismus'
                                 "
                                 rows="3"
-                                :rules="[rules.required]"
+                                :rules="[rules.required, rules.maxLength]"
                                 :required="true"
+                                counter="250"
                             ></text-area>
                         </div>
 
@@ -454,12 +482,56 @@
                                 :search-performed="
                                     wikidataSearchPerformed.nationality
                                 "
-                                endpoint="places"
+                                endpoint="nationalities"
+                                :suggestions="['Q1206012', 'Q183']"
                                 @search="
                                     searchWikidataItems('nationality', $event)
                                 "
                             ></wikidata-selector>
 
+                            <!-- Beruf / Occupation (P106) -->
+                            <wikidata-selector
+                                v-model="newPersonLocal.occupation"
+                                label="Beruf"
+                                dialog-title="Beruf auswählen"
+                                search-label="Beruf suchen..."
+                                :search-results="
+                                    wikidataSearchResults.occupation || []
+                                "
+                                :is-loading="isWikidataSearchLoading.occupation"
+                                :search-performed="
+                                    wikidataSearchPerformed.occupation
+                                "
+                                endpoint="occupations"
+                                @search="
+                                    searchWikidataItems('occupation', $event)
+                                "
+                            ></wikidata-selector>
+
+                            <!-- Wohnort / Place of Residence (P551) -->
+                            <wikidata-selector
+                                v-model="newPersonLocal.place_of_residence"
+                                label="Wohnort"
+                                dialog-title="Wohnort auswählen"
+                                search-label="Ort suchen..."
+                                :search-results="
+                                    wikidataSearchResults.place_of_residence ||
+                                    []
+                                "
+                                :is-loading="
+                                    isWikidataSearchLoading.place_of_residence
+                                "
+                                :search-performed="
+                                    wikidataSearchPerformed.place_of_residence
+                                "
+                                endpoint="places"
+                                @search="
+                                    searchWikidataItems(
+                                        'place_of_residence',
+                                        $event,
+                                    )
+                                "
+                            ></wikidata-selector>
                             <!-- Geburtsort / Place of birth (P19) -->
                             <wikidata-selector
                                 v-model="newPersonLocal.place_of_birth"
@@ -510,11 +582,11 @@
                             ></wikidata-selector>
 
                             <!-- Haftort / Place of detention (P2632) -->
-                            <wikidata-selector
+                            <multiple-wikidata-selector
                                 v-if="!hidePlaceOfDetention"
                                 v-model="newPersonLocal.place_of_detention"
-                                label="Haftort"
-                                dialog-title="Haftort auswählen"
+                                label="Haftort(e)"
+                                dialog-title="Haftorte auswählen"
                                 search-label="Ort suchen..."
                                 :search-results="
                                     wikidataSearchResults.place_of_detention ||
@@ -533,7 +605,7 @@
                                         $event,
                                     )
                                 "
-                            ></wikidata-selector>
+                            ></multiple-wikidata-selector>
 
                             <!-- Image field -->
                             <div class="form-group">
@@ -585,6 +657,7 @@
 <script setup>
 import { ref, computed, watch, toRefs, nextTick, onMounted } from "vue";
 import WikidataSelector from "./common/WikidataSelector.vue";
+import MultipleWikidataSelector from "./common/MultipleWikidataSelector.vue";
 import GenderSelector from "./GenderSelector.vue";
 import WikidataSuggestions from "./common/WikidataSuggestions.vue";
 import ValidationError from "../../helpers/ValidationError.vue";
@@ -631,7 +704,9 @@ const props = defineProps({
             nationality: null,
             place_of_birth: null,
             place_of_death: null,
-            place_of_detention: null,
+            place_of_detention: [],
+            place_of_residence: null,
+            occupation: null,
         }),
     },
     isSearchLoading: {
@@ -663,8 +738,6 @@ const props = defineProps({
         default: false,
     },
 });
-
-// Composables
 
 // Emits für Ereignisse
 const emit = defineEmits([
@@ -819,20 +892,28 @@ const openPersonDialog = (isOrg, event) => {
 
 // Computed property to check if selection is valid
 const isValid = computed(() => {
-    return props.selectedPersons && props.selectedPersons.length > 0;
+    // Nur bei Tätern zwingend erforderlich, bei Geschädigten optional
+    if (props.label.includes("Täter")) {
+        return props.selectedPersons && props.selectedPersons.length > 0;
+    }
+    return true; // Bei Geschädigten immer valide
 });
 
 // Validation function
 const validatePersons = () => {
-    return props.selectedPersons && props.selectedPersons.length > 0;
+    // Nur bei Tätern zwingend erforderlich, bei Geschädigten optional
+    if (props.label.includes("Täter")) {
+        return props.selectedPersons && props.selectedPersons.length > 0;
+    }
+    return true; // Bei Geschädigten immer valide
 };
 
 // Use the validation composable
 const {
-    isValid: isValidResult,
-    showValidationErrors,
+    isValid: validationResult,
     validate: validateForm,
     showErrors,
+    showValidationErrors,
 } = useValidation(validatePersons, {
     emit,
     watchCallback: () => [props.selectedPersons],
@@ -845,6 +926,8 @@ const wikidataSearchResults = ref({
     place_of_death: [],
     place_of_detention: [],
     employer: [], // Added for P108 Arbeitgeber
+    occupation: [], // P106 Beruf
+    place_of_residence: [], // P551 Wohnort
 });
 
 const isWikidataSearchLoading = ref({
@@ -853,6 +936,8 @@ const isWikidataSearchLoading = ref({
     place_of_death: false,
     place_of_detention: false,
     employer: false, // Added for P108 Arbeitgeber
+    occupation: false, // P106 Beruf
+    place_of_residence: false, // P551 Wohnort
 });
 
 const wikidataSearchPerformed = ref({
@@ -861,6 +946,8 @@ const wikidataSearchPerformed = ref({
     place_of_death: false,
     place_of_detention: false,
     employer: false, // Added for P108 Arbeitgeber
+    occupation: false, // P106 Beruf
+    place_of_residence: false, // P551 Wohnort
 });
 
 // Predefined gender options with Wikidata IDs
@@ -876,10 +963,19 @@ const genderOptions = [
 // Validierungsregeln
 const rules = {
     required: (v) => !!v || "Dieses Feld ist erforderlich",
+    maxLength: (v) => !v || v.length <= 250 || "Maximal 250 Zeichen erlaubt",
 };
 
 // Computed für die Prüfung, ob eine neue Person hinzugefügt werden kann
 const canAddNewPerson = computed(() => {
+    // Prüfen, ob die Beschreibung vorhanden ist und die maximale Länge nicht überschreitet
+    const isDescriptionValid =
+        !!newPersonLocal.value.description &&
+        newPersonLocal.value.description.length <= 250;
+
+    // Wenn die Beschreibung ungültig ist, sofort false zurückgeben
+    if (!isDescriptionValid) return false;
+
     // Bei Organisationen brauchen wir nur einen Nachnamen/Organisationsnamen
     if (newPersonLocal.value.isOrganization) {
         return !!newPersonLocal.value.lastName;
@@ -953,6 +1049,21 @@ const onCancelNewPersonForm = () => {
 };
 
 const onAddNewPerson = () => {
+    // Check validation before attempting to add
+    if (!canAddNewPerson.value) {
+        console.warn("Cannot add new person: validation failed");
+        // Check if the description is the issue
+        if (
+            newPersonLocal.value.description &&
+            newPersonLocal.value.description.length > 250
+        ) {
+            alert("Die Beschreibung darf maximal 250 Zeichen lang sein.");
+        } else if (!newPersonLocal.value.description) {
+            alert("Bitte geben Sie eine Beschreibung ein.");
+        }
+        return;
+    }
+
     // Store a local copy of the current data before any changes
     const dataToAdd = JSON.parse(JSON.stringify(newPersonLocal.value));
 
@@ -962,11 +1073,6 @@ const onAddNewPerson = () => {
     } else if (dataToAdd.relationship_type && !dataToAdd.role) {
         dataToAdd.role = dataToAdd.relationship_type;
     }
-
-    // For debugging - log the role assignment
-    console.log(
-        `Adding new person with role: ${dataToAdd.role}, relationship_type: ${dataToAdd.relationship_type}`,
-    );
 
     // Update parent with data to add (do this before resetting)
     emit("update:newPerson", dataToAdd);
@@ -979,6 +1085,9 @@ const onAddNewPerson = () => {
 };
 
 const onEditPerson = (person, event) => {
+    // Reset dialog state first to clear any previous data
+    resetDialogState();
+
     // Prevent event propagation if event exists
     if (event) {
         event.stopPropagation();
@@ -991,8 +1100,6 @@ const onEditPerson = (person, event) => {
     // First, reset form state completely
     const cleanStartingState = JSON.parse(JSON.stringify(props.newPerson));
     newPersonLocal.value = cleanStartingState;
-
-    // Now prepare the edit data before setting edit mode
     const personData = {
         firstName: person.firstName || "",
         lastName: person.lastName || "",
@@ -1005,19 +1112,21 @@ const onEditPerson = (person, event) => {
         nationality: person.nationality || null,
         place_of_birth: person.place_of_birth || null,
         place_of_death: person.place_of_death || null,
-        place_of_detention: person.place_of_detention || null,
-        imageUrl: person.imageUrl || null,
-        imageFilename: person.imageFilename || person.image || null,
+        place_of_detention: person.place_of_detention || [],
+        place_of_residence: person.place_of_residence || null,
+        occupation: person.occupation || null,
         employer: person.employer || null,
         role: person.role || null,
         // Preserve important properties
         id: person.id,
         tempId: person.tempId,
         label: person.label,
+        imageUrl: person.imageUrl || null,
+        imageFilename: person.imageFilename || person.image || null,
     };
 
     // Force dialog to open first
-    dialogOpen.value = true;
+    dialogOpen.value = true;    
 
     // Use nextTick to ensure the dialog is mounted before updating form data
     nextTick(() => {
@@ -1043,6 +1152,15 @@ const onEditPerson = (person, event) => {
 const onUpdatePerson = () => {
     if (!canAddNewPerson.value) {
         console.warn("Cannot update person: validation failed");
+        // Check if the description is the issue
+        if (
+            newPersonLocal.value.description &&
+            newPersonLocal.value.description.length > 250
+        ) {
+            alert("Die Beschreibung darf maximal 250 Zeichen lang sein.");
+        } else if (!newPersonLocal.value.description) {
+            alert("Bitte geben Sie eine Beschreibung ein.");
+        }
         return;
     }
 
@@ -1111,12 +1229,16 @@ const searchWikidataItems = async (field, query, endpoint = null) => {
             // Sonst bestimme den Endpunkt basierend auf dem Feldtyp
             switch (field) {
                 case "nationality":
-                    apiEndpoint = "places"; // Staatsangehörigkeit ist ein Land, daher places-Endpunkt
+                    apiEndpoint = "nationalities"; // Verwende den nationalities-Endpunkt für Staatsangehörigkeiten
                     break;
                 case "place_of_birth":
                 case "place_of_death":
                 case "place_of_detention":
-                    apiEndpoint = "places"; // Verwende den neuen places-Endpunkt für Orte
+                case "place_of_residence":
+                    apiEndpoint = "places"; // Verwende den places-Endpunkt für Orte
+                    break;
+                case "occupation":
+                    apiEndpoint = "occupations"; // Verwende den occupations-Endpunkt für Berufe
                     break;
                 default:
                     apiEndpoint = "people";
@@ -1144,13 +1266,44 @@ const searchWikidataItems = async (field, query, endpoint = null) => {
     } catch (error) {
         console.error(`Error searching Wikidata for ${field}:`, error);
         wikidataSearchResults.value[field] = [];
+
+        // Show error notification or feedback to the user
+        const fieldDisplayNames = {
+            nationality: "Staatsangehörigkeit",
+            place_of_birth: "Geburtsort",
+            place_of_death: "Sterbeort",
+            place_of_detention: "Haftort",
+            place_of_residence: "Wohnort",
+            occupation: "Beruf",
+            employer: "Arbeitgeber",
+        };
+
+        const fieldName = fieldDisplayNames[field] || field;
+        // Add an empty result with an error message that will be shown to the user
+        wikidataSearchResults.value[field] = [
+            {
+                id: null,
+                label: `Fehler bei der Suche nach "${fieldName}"`,
+                description: "Bitte versuchen Sie es erneut.",
+                isError: true,
+            },
+        ];
     } finally {
         isWikidataSearchLoading.value[field] = false;
     }
 };
 
 const handleWikidataResults = (field, results) => {
-    wikidataSearchResults.value[field] = results || [];
+    // Check if results contains the success property and results array
+    if (results && results.success === true && Array.isArray(results.results)) {
+        wikidataSearchResults.value[field] = results.results;
+    } else if (results && Array.isArray(results)) {
+        // Support for legacy response format
+        wikidataSearchResults.value[field] = results;
+    } else {
+        // Empty or invalid results
+        wikidataSearchResults.value[field] = [];
+    }
     isWikidataSearchLoading.value[field] = false;
 };
 
@@ -1158,8 +1311,43 @@ const handleWikidataResults = (field, results) => {
 defineExpose({
     isValid,
     validate: validateForm,
-    showValidationErrors: showErrors,
+    showErrors,
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+.search-button {
+    height: 56px;
+}
+
+.person-button {
+    white-space: normal !important;
+    height: auto !important;
+    min-height: 48px !important;
+    padding: 8px 16px !important;
+    line-height: 1.2 !important;
+    text-align: left !important;
+    word-break: break-word !important;
+}
+
+.button-text {
+    display: inline-block !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    hyphens: auto !important;
+}
+
+@media (max-width: 600px) {
+    .search-button {
+        display: none;
+    }
+
+    .person-button {
+        width: 100% !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        justify-content: center !important;
+        padding: 12px 16px !important;
+    }
+}
+</style>

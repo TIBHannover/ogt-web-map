@@ -178,7 +178,9 @@ onMounted(async () => {
         }
 
         console.log("Fetching entry status with token:", tokenId.value);
-        const response = await axios.get(`/api/entry-status/${tokenId.value}`);
+        const response = await axios.get(
+            `/api/eintrag-status/${tokenId.value}`,
+        );
 
         if (response.data.success) {
             entryData.value = response.data.data;
@@ -262,7 +264,7 @@ const goToHome = () => {
 };
 
 const addAnother = () => {
-    router.push("/entry");
+    router.push("/neuer-eintrag");
 };
 </script>
 

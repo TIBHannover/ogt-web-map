@@ -16,6 +16,7 @@ const Materials = () => import("./components/Materials.vue");
 const Forschungsdaten = () => import("./components/ResearchData.vue");
 const ThankYou = () => import("./components/entry/ThankYou.vue");
 const EntryStatus = () => import("./components/entry/EntryStatus.vue");
+const EntryInfo = () => import("./components/entry/EntryInfo.vue");
 
 export const routes = [
     {
@@ -73,16 +74,24 @@ export const routes = [
         },
     },
     {
-        name: "entry",
-        path: "/entry",
+        name: "Eintrag Info",
+        path: "/eintrag-informationen",
+        component: EntryInfo,
+        meta: {
+            title: "Informationen zum Anlegen eines Eintrags: Gestapo. Terror. Orte",
+        },
+    },
+    {
+        name: "Neuer Eintrag",
+        path: "/neuer-eintrag",
         component: Entry,
         meta: {
             title: "Neuen Eintrag anlegen für: Gestapo. Terror. Orte",
         },
     },
     {
-        name: "entry-status",
-        path: "/entry-status",
+        name: "Eintrag Status",
+        path: "/eintrag-status",
         component: EntryStatus,
         props: (route) => ({ tokenId: route.query.id }),
         meta: {

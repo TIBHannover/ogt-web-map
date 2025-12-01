@@ -1,6 +1,6 @@
 <template>
     <div
-        class="event-form-wrapper"
+        class="event-form-wrapper form-wrapper"
         :class="{ 'admin-view': props.isAdminView }"
     >
         <div class="step-container">
@@ -48,6 +48,7 @@
                     @fieldFocus="setActiveField"
                     @infoButtonClick="openSectionInfo"
                     @validation="onTimeValidation"
+                    :infoIconId="'time'"
                     :required="true"
                 />
 
@@ -163,8 +164,8 @@
                         @update:location-qualifier="
                             locationQualifierValue = $event
                         "
-                        @search-location="onSearchLocation"
-                        @handle-map-click="onHandleMapClick"
+                        @searchLocation="onSearchLocation"
+                        @handleMapClick="onHandleMapClick"
                         @fieldFocus="setActiveField"
                         @infoButtonClick="openSectionInfo"
                         @validation="onLocationValidation"
@@ -202,11 +203,14 @@
                         Zurück
                     </button>
                     <button class="button" type="button" @click="onSubmit">
-                        Eintrag anlegen
+                        Eintrag einreichen
                     </button>
                 </div>
-                <div v-if="!props.isAdminView" class="required-fields-note">
-                    * Pflichtfelder müssen ausgefüllt werden
+                <div
+                    class="d-block text-subtitle-2 mt-3"
+                    v-if="!props.isAdminView"
+                >
+                    Mit einem "*" gekennzeichneten Felder sind Pflichtfelder.
                 </div>
                 <div v-if="errorValue" class="bg-error">{{ errorValue }}</div>
             </form>
@@ -393,19 +397,19 @@ const props = defineProps({
     },
     victimCount: {
         type: Number,
-        default: 0,
+        default: null,
     },
     survivorCount: {
         type: Number,
-        default: 0,
+        default: null,
     },
     deathCount: {
         type: Number,
-        default: 0,
+        default: null,
     },
     arrestCount: {
         type: Number,
-        default: 0,
+        default: null,
     },
     victimCountQualifier: {
         type: String,
@@ -548,7 +552,13 @@ const title = computed({
 
 const description = computed({
     get: () => props.formsDescription,
-    set: (value) => emit("update:formsDescription", value),
+    set: (value) => {
+        // Ensure description doesn't exceed 250 characters
+        if (value && value.length > 250) {
+            value = value.substring(0, 250);
+        }
+        emit("update:formsDescription", value);
+    },
 });
 
 // Zugriff auf übergebene Werte durch Computed Properties (nur lesen)
@@ -1085,7 +1095,15 @@ const onSearchCause = (query) => emit("searchCause", query);
 const onSelectCause = (cause) => emit("selectCause", cause);
 const onRemoveCause = (causeId) => emit("removeCause", causeId);
 
-const onSearchLocation = () => emit("searchLocation");
+const onSearchLocation = () => {
+    // Get the search value safely, handling both ref and string cases
+    const searchValue =
+        typeof locationSearchValue === "object" && locationSearchValue !== null
+            ? locationSearchValue.value
+            : locationSearchValue;
+
+    emit("searchLocation", searchValue);
+};
 const onHandleMapClick = (e) => {
     // Lokaler Map-Click-Handler, der die Emit-Funktion aufruft
     emit("handleMapClick", e);
@@ -1232,11 +1250,23 @@ const getData = () => {
                 ? eventEndDateQualifierValue.value
                 : "",
 
-        // Counts - convert to numbers (safe conversion handling)
-        victim_count: Number(victimCountValue.value) || 0,
-        survivor_count: Number(survivorCountValue.value) || 0,
-        death_count: Number(deathCountValue.value) || 0,
-        arrest_count: Number(arrestCountValue.value) || 0,
+        // Counts - handle null values (only include if not null)
+        victim_count:
+            victimCountValue.value !== null
+                ? Number(victimCountValue.value)
+                : null,
+        survivor_count:
+            survivorCountValue.value !== null
+                ? Number(survivorCountValue.value)
+                : null,
+        death_count:
+            deathCountValue.value !== null
+                ? Number(deathCountValue.value)
+                : null,
+        arrest_count:
+            arrestCountValue.value !== null
+                ? Number(arrestCountValue.value)
+                : null,
 
         // Qualifiers
         victim_count_qualifier: victimCountQualifierValue.value || "",

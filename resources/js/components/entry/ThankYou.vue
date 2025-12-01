@@ -39,6 +39,7 @@
                 </div>
 
                 <!-- Email notification form -->
+                <!--
                 <div v-if="statusToken" class="email-notification-form">
                     <h3>Per E-Mail über den Status informiert werden</h3>
                     <p>
@@ -96,8 +97,8 @@
                     Hinweis: Der Status Ihres Eintrags kann derzeit nicht
                     verfolgt werden. Bitte kontaktiere uns bei Fragen.
                 </p>
+                -->
             </div>
-
             <div class="actions">
                 <v-btn color="primary" @click="goToHome"
                     >Zurück zur Startseite</v-btn
@@ -146,7 +147,7 @@ const isValidEmail = computed(() => {
 const statusUrl = computed(() => {
     if (!statusToken.value) return "";
     // Ensure consistent URL format with the EntryStatus component's expectation
-    const url = `${window.location.origin}/entry-status?id=${statusToken.value}`;
+    const url = `${window.location.origin}/eintrag-status?id=${statusToken.value}`;
     console.log("Generated status URL:", url);
     return url;
 });
@@ -199,7 +200,7 @@ const goToHome = () => {
 };
 
 const addAnother = () => {
-    router.push("/entry");
+    router.push("/neuer-eintrag");
 };
 
 const goToStatusPage = () => {
@@ -211,7 +212,7 @@ const goToStatusPage = () => {
     console.log("Navigating to status page with token:", statusToken.value);
     // Use the same query parameter format that EntryStatus expects
     router.push({
-        path: "/entry-status",
+        path: "/eintrag-status",
         query: { id: statusToken.value },
     });
 };
@@ -248,7 +249,7 @@ const sendStatusEmail = async () => {
     emailSent.value = false;
 
     try {
-        const response = await fetch("/api/entry-status/send-email", {
+        const response = await fetch("/api/eintrag-status/send-email", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

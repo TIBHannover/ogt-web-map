@@ -3,7 +3,7 @@
         <div class="overlay-content">
             <div class="overlay-header">
                 <h3>{{ title }}</h3>
-                <button class="close-overlay" @click="$emit('close')">
+                <button class="close-overlay" @click="handleClose">
                     &times;
                 </button>
             </div>
@@ -15,11 +15,10 @@
                     <div class="input-group">
                         <label for="entry-title">Titel des Eintrags</label>
                         <div class="search-input-container">
-                            <input
+                            <v-text-field
                                 id="entry-title"
-                                type="text"
                                 v-model="localTitle"
-                                @input="onInput"
+                                @update:model-value="onInput"
                                 @keydown.enter="
                                     (e) => {
                                         e.preventDefault();
@@ -29,18 +28,31 @@
                                 placeholder="Titel eingeben..."
                                 maxlength="250"
                                 autocomplete="off"
-                                autofocus
-                            />
-                            <button
-                                class="button search-button"
-                                @click="performSearch"
-                                :disabled="!localTitle || localTitle.length < 3"
-                            >
-                                <v-icon size="small" class="me-1"
-                                    >mdi-magnify</v-icon
-                                >
-                                Suchen
-                            </button>
+                                append-inner-icon="mdi-magnify"
+                                @click:append-inner="
+                                    () => {
+                                        if (
+                                            localTitle &&
+                                            localTitle.length >= 3
+                                        ) {
+                                            performSearch();
+                                        }
+                                    }
+                                "
+                                :class="{
+                                    'disabled-icon':
+                                        !localTitle || localTitle.length < 3,
+                                }"
+                                ref="titleInput"
+                                variant="outlined"
+                                density="comfortable"
+                                hide-details
+                                single-line
+                                color="primary"
+                                bg-color="white"
+                                class="title-overlay-search-field"
+                                clearable
+                            ></v-text-field>
                         </div>
                     </div>
                     <div class="search-info-box">
@@ -75,7 +87,7 @@
                                 <div class="result-id">{{ result.id }}</div>
                                 <button
                                     class="open-wikidata-button"
-                                    @click="openWikidata(result.id)"
+                                    @click.stop="openWikidata(result.id)"
                                 >
                                     <v-icon size="small"
                                         >mdi-open-in-new</v-icon
@@ -193,9 +205,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from "vue";
-import { debounce } from "lodash";
+import { ref, onMounted, onUnmounted, watch, computed } from "vue";
 import axios from "axios";
+import { debounce } from "lodash";
 
 const props = defineProps({
     initialTitle: {
@@ -225,6 +237,20 @@ const isLoading = ref(false);
 const searchPerformed = ref(false);
 const noExistingEntry = ref(false);
 const isMobileView = ref(false);
+const lastEmittedTitle = ref(props.initialTitle || "");
+
+// Watch for changes to initialTitle
+watch(
+    () => props.initialTitle,
+    (newValue) => {
+        localTitle.value = newValue || "";
+        // Reset search state when initial title changes
+        searchResults.value = [];
+        searchPerformed.value = false;
+        noExistingEntry.value = false;
+    },
+    { immediate: true },
+);
 
 // Check screen size for responsive design
 const checkScreenSize = () => {
@@ -235,6 +261,22 @@ const checkScreenSize = () => {
 onMounted(() => {
     checkScreenSize();
     window.addEventListener("resize", checkScreenSize);
+
+    // Reset search state on mount
+    searchResults.value = [];
+    searchPerformed.value = false;
+    noExistingEntry.value = false;
+
+    // Focus and select the text field
+    setTimeout(() => {
+        const input = document.querySelector(
+            ".title-overlay-search-field .v-field__input",
+        );
+        if (input) {
+            input.focus();
+            input.select();
+        }
+    }, 300);
 });
 
 onUnmounted(() => {
@@ -253,7 +295,23 @@ const performSearch = async (event) => {
         return;
     }
 
-    searchResults.value = [];
+    // Force any pending debounced title updates to execute immediately
+    // This ensures the title is updated before the search completes
+    if (emitTitleUpdate && emitTitleUpdate.flush) {
+        emitTitleUpdate.flush();
+    }
+
+    // Focus back on the input after search
+    setTimeout(() => {
+        const input = document.querySelector(
+            ".title-overlay-search-field .v-field__input",
+        );
+        if (input) {
+            input.focus();
+        }
+    }, 50);
+
+    // Don't clear results yet, just set loading state
     isLoading.value = true;
     noExistingEntry.value = false; // Reset checkbox when performing a new search
 
@@ -264,12 +322,14 @@ const performSearch = async (event) => {
                 limit: 5,
             },
         });
-
+        // Set search results after response received
         if (response.data.success && response.data.results) {
             searchResults.value = response.data.results;
         } else {
             searchResults.value = [];
         }
+
+        // Always make sure search performed is set to true AFTER results are updated
         searchPerformed.value = true;
     } catch (err) {
         console.error("Fehler bei der Wikidata-Suche:", err);
@@ -281,15 +341,45 @@ const performSearch = async (event) => {
         searchPerformed.value = true;
     } finally {
         isLoading.value = false;
+
+        // Ensure the results are displayed after a small delay
+        setTimeout(() => {
+            if (!searchPerformed.value) {
+                console.log("Ensuring search results are displayed");
+                searchPerformed.value = true;
+            }
+        }, 50);
     }
 };
 
 // Update title when input changes
-const onInput = () => {
-    if (props.context === "update") {
-        emit("update:title", localTitle.value);
+
+// Use a debounced function to emit title updates
+const emitTitleUpdate = debounce((value) => {
+    // Only emit if the value has changed
+    if (lastEmittedTitle.value !== value) {
+        lastEmittedTitle.value = value;
+        // Only emit title updates in create mode (not update mode)
+        // This prevents the overlay from closing in update mode
+        if (props.context !== "update") {
+            emit("update:title", value);
+        }
     }
-    // Search no longer triggered automatically on input
+}, 500); // 500ms debounce
+
+const onInput = (value) => {
+    // Store locally without emitting
+    localTitle.value = value;
+
+    // Debounce the update event
+    emitTitleUpdate(value);
+
+    // Don't immediately clear search results when typing
+    // Just reset the searchPerformed flag to indicate user is typing
+    if (value !== props.initialTitle) {
+        searchPerformed.value = false;
+        // Keep existing results until new ones arrive
+    }
 };
 
 // Open wikidata entry in new tab
@@ -297,9 +387,58 @@ const openWikidata = (id) => {
     window.open(`https://www.wikidata.org/wiki/${id}`, "_blank");
 };
 
+// Save and close function for update mode
+const saveAndClose = () => {
+    // Cancel any pending debounced updates
+    if (emitTitleUpdate && emitTitleUpdate.cancel) {
+        emitTitleUpdate.cancel();
+    }
+
+    // Only if value has changed
+    if (localTitle.value !== lastEmittedTitle.value) {
+        console.log("Saving final title value:", localTitle.value);
+        lastEmittedTitle.value = localTitle.value;
+        emit("update:title", localTitle.value);
+    }
+
+    // Close the dialog with a small delay to allow update to propagate
+    setTimeout(() => {
+        handleClose();
+    }, 100);
+};
+
+// Clean up state when dialog is closed
+
+// Clean up state when dialog is closed
+const handleClose = (emitClose = true) => {
+    // Cancel any pending debounced updates
+    if (emitTitleUpdate && emitTitleUpdate.cancel) {
+        emitTitleUpdate.cancel();
+    }
+
+    // For 'update' mode, we only emit on explicit save
+    // For 'create' mode, we emit on close to ensure we have the latest value
+    if (
+        props.context !== "update" &&
+        localTitle.value !== lastEmittedTitle.value
+    ) {
+        lastEmittedTitle.value = localTitle.value;
+        emit("update:title", localTitle.value);
+    }
+
+    searchResults.value = [];
+    searchPerformed.value = false;
+    noExistingEntry.value = false;
+
+    if (emitClose) {
+        emit("close");
+    }
+};
+
 // Get the type info title based on entry type
 const getTypeInfoTitle = () => {
     const typeTitles = {
+        Q5: "Person",
         Q6983405: "Ereignis",
         Q5003624: "Erinnerungsort",
         Q108047567: "Staatspolizeistelle",
@@ -308,18 +447,22 @@ const getTypeInfoTitle = () => {
         Q40357: "Gefängnis",
     };
 
-    return typeTitles[props.entryType] || "Eintragstyp";
+    const result = typeTitles[props.entryType] || "Eintragstyp";
+    return result;
 };
 
 // Get the create button text based on entry type and context
+// Get the button text based on context
 const getCreateButtonText = () => {
     if (props.context === "update") {
         return "Titel anpassen";
     }
-    return `${getTypeInfoTitle()} erstellen`;
+    const buttonText = `${getTypeInfoTitle()} erstellen`;
+    return buttonText;
 };
 
 // Create the entry and proceed to the next step
+// Create or update entry
 const createEntry = () => {
     if (!localTitle.value || localTitle.value.length < 3) {
         return;
@@ -327,14 +470,20 @@ const createEntry = () => {
 
     // In update context, don't require the noExistingEntry checkbox
     if (props.context !== "update" && !noExistingEntry.value) {
+        console.log("Not in update context and checkbox not checked");
         return;
     }
 
-    // Make sure the title gets emitted properly
-    emit("update:title", localTitle.value);
+    // First close the overlay to prevent any interference with state
+    handleClose(false);
 
-    // Also emit the create event which is what BaseInfos.vue listens for
-    emit("create", localTitle.value);
+    // Make sure the title gets emitted properly after overlay is closed
+    setTimeout(() => {
+        emit("update:title", localTitle.value);
+
+        // Also emit the create event which is what BaseInfos.vue listens for
+        emit("create", localTitle.value);
+    }, 0);
 };
 
 // Update local title when prop changes
@@ -358,6 +507,43 @@ watch(
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.search-input-container {
+    width: 100%;
+    position: relative;
+}
+
+.title-overlay-search-field {
+    width: 100%;
+}
+
+:deep(.title-overlay-search-field .v-field__append-inner) {
+    cursor: pointer;
+}
+
+:deep(.disabled-icon .v-field__append-inner) {
+    opacity: 0.5;
+    cursor: default;
+}
+
+:deep(.title-overlay-search-field .v-field__input) {
+    padding: 8px 16px;
+    min-height: 48px;
+}
+
+:deep(.title-overlay-search-field .v-icon) {
+    color: #1976d2;
+}
+
+:deep(.title-overlay-search-field .v-field--focused) {
+    border-color: #1976d2 !important;
+}
+
+:deep(.title-overlay-search-field .v-field) {
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: white;
 }
 
 .overlay-content {
@@ -533,7 +719,7 @@ watch(
 }
 
 .search-result-item:hover {
-    background-color: #f9f9f9;
+    background-color: #f8f8f8;
 }
 
 .result-title {
@@ -552,6 +738,7 @@ watch(
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: 6px;
 }
 
 .result-id {
@@ -648,8 +835,17 @@ watch(
 }
 
 .create-button:disabled {
-    background-color: #bbdefb;
+    background-color: #bdbdbd;
     cursor: not-allowed;
+}
+
+.save-button {
+    background-color: #4caf50;
+    color: white;
+}
+
+.save-button:hover {
+    background-color: #388e3c;
 }
 
 .close-overlay {

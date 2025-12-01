@@ -98,7 +98,7 @@
                         class="flex-direction-row ml-0 my-0 ga-2"
                     >
                         <v-btn
-                            @click.stop="$emit('zoomIntoPlace')"
+                            @click.stop="emit('zoomIntoPlace')"
                             variant="outlined"
                             size="x-small"
                             icon
@@ -106,7 +106,7 @@
                             <v-icon>mdi-magnify-plus</v-icon>
                         </v-btn>
                         <v-btn
-                            @click.stop="$emit('undoZoomIntoPlace')"
+                            @click.stop="emit('undoZoomIntoPlace')"
                             variant="outlined"
                             size="x-small"
                             icon
@@ -178,7 +178,7 @@
                                 <a
                                     v-if="perpetrator.hasPersonData"
                                     @click.stop="
-                                        $emit('showPerson', {
+                                        emit('showPerson', {
                                             id: perpetrator.id,
                                             group: 'perpetrators',
                                         })
@@ -193,7 +193,7 @@
                                 <a
                                     v-if="perpetrator.hasLocationMarker"
                                     @click.stop="
-                                        $emit('switchLocation', {
+                                        emit('switchLocation', {
                                             locationId: perpetrator.id,
                                         })
                                     "
@@ -205,6 +205,40 @@
                             <template v-else>
                                 {{ perpetrator.label }}
                             </template>
+                        </li>
+                    </ul>
+                </v-list-item-subtitle>
+            </v-list-item>
+            <v-divider></v-divider>
+        </template>
+
+        <!-- has part(s) - https://www.wikidata.org/wiki/Property:P527 -->
+        <template v-if="selectedPlace.hasParts.length > 0">
+            <v-list-item density="compact">
+                <v-list-item-title>Zugeordnete Ereignisse</v-list-item-title>
+                <v-switch
+                    v-if="
+                        selectedPlace.id in MAIN_EVENT_IDS_TO_SUB_EVENTS_GROUP
+                    "
+                    v-model="showSubEventSwitch"
+                    density="compact"
+                    color="#8c1f21"
+                    :label="`Ereignisse auf Karte anzeigen: ${showSubEventSwitch ? 'an' : 'aus'}`"
+                    hide-details
+                ></v-switch>
+                <v-list-item-subtitle>
+                    <ul class="hyphens-auto white-space-normal" lang="de">
+                        <li v-for="event in selectedPlace.hasParts">
+                            <a
+                                @click.stop="
+                                    emit('switchLocation', {
+                                        locationId: event.id,
+                                    })
+                                "
+                                href="#"
+                            >
+                                {{ event.label }}
+                            </a>
                         </li>
                     </ul>
                 </v-list-item-subtitle>
@@ -257,7 +291,7 @@
                                 <a
                                     v-if="victim.hasPersonData"
                                     @click.stop="
-                                        $emit('showPerson', {
+                                        emit('showPerson', {
                                             id: victim.id,
                                             group: 'victims',
                                         })
@@ -370,9 +404,33 @@
         </template>
 
         <prisoners
-            :selectedPlace="props.selectedPlace"
-            @showPerson="$emit('showPerson', $event)"
+            :selectedPlace="selectedPlace"
+            @showPerson="emit('showPerson', $event)"
         ></prisoners>
+
+        <!-- part of - https://www.wikidata.org/wiki/Property:P361 -->
+        <template v-if="selectedPlace.partOfs.length > 0">
+            <v-list-item density="compact">
+                <v-list-item-title>Übergeordnetes Ereignis</v-list-item-title>
+                <v-list-item-subtitle>
+                    <ul class="hyphens-auto white-space-normal" lang="de">
+                        <li v-for="event in selectedPlace.partOfs">
+                            <a
+                                @click.stop="
+                                    emit('switchLocation', {
+                                        locationId: event.id,
+                                    })
+                                "
+                                href="#"
+                            >
+                                {{ event.label }}
+                            </a>
+                        </li>
+                    </ul>
+                </v-list-item-subtitle>
+            </v-list-item>
+            <v-divider></v-divider>
+        </template>
 
         <sources
             v-if="
@@ -385,14 +443,30 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, onMounted, onBeforeUnmount } from "vue";
+import {
+    defineProps,
+    defineEmits,
+    onMounted,
+    onBeforeUnmount,
+    computed,
+} from "vue";
 import Prisoners from "./Prisoners";
 import Sources from "./Sources";
 
+const MAIN_EVENT_IDS_TO_SUB_EVENTS_GROUP = {
+    Q133303308: "persecutionOfSocialistFront", // https://www.wikidata.org/wiki/Q133303308
+    Q134587748: "operationLauterbacher", // https://www.wikidata.org/wiki/Q134587748
+};
+
 const props = defineProps({
+    groupedPlacesShownOnMap: {
+        type: Array,
+        default: () => [],
+    },
     selectedPlace: {
         type: Object,
         required: true,
+        default: () => ({}),
     },
 });
 
@@ -414,6 +488,37 @@ const showInformationInstitutionsHighlightHandler = () =>
     showTutorialHighlight("information-institutions-highlight");
 const hideInformationInstitutionsHighlightHandler = () =>
     hideTutorialHighlight("information-institutions-highlight");
+
+const emit = defineEmits([
+    "zoomIntoPlace",
+    "undoZoomIntoPlace",
+    "showPerson",
+    "switchLocation",
+    "update:groupedPlacesShownOnMap",
+]);
+
+const showSubEventSwitch = computed({
+    get() {
+        const subEventGroup =
+            MAIN_EVENT_IDS_TO_SUB_EVENTS_GROUP[props.selectedPlace.id];
+        return props.groupedPlacesShownOnMap.includes(subEventGroup);
+    },
+    set(value) {
+        const subEventGroup =
+            MAIN_EVENT_IDS_TO_SUB_EVENTS_GROUP[props.selectedPlace.id];
+        let groupedPlacesShownOnMapCopy = [...props.groupedPlacesShownOnMap];
+
+        if (value && !groupedPlacesShownOnMapCopy.includes(subEventGroup)) {
+            groupedPlacesShownOnMapCopy.push(subEventGroup);
+        } else if (!value) {
+            groupedPlacesShownOnMapCopy = groupedPlacesShownOnMapCopy.filter(
+                (item) => item !== subEventGroup,
+            );
+        }
+
+        emit("update:groupedPlacesShownOnMap", groupedPlacesShownOnMapCopy);
+    },
+});
 
 onMounted(() => {
     // Highlight events
@@ -437,13 +542,6 @@ onBeforeUnmount(() => {
         hideInformationInstitutionsHighlightHandler,
     );
 });
-
-defineEmits([
-    "showPerson",
-    "switchLocation",
-    "zoomIntoPlace",
-    "undoZoomIntoPlace",
-]);
 </script>
 
 <style scoped>

@@ -629,7 +629,7 @@
 import { ref, computed } from "vue";
 import axios from "axios";
 
-const emit = defineEmits(["select", "close"]);
+const emit = defineEmits(["select", "close", "select-source"]);
 
 // Standard ist Buch als Quellentyp
 const sourceType = ref("book");
@@ -1088,6 +1088,7 @@ const confirmSelection = () => {
 
     if (source) {
         emit("select", { source });
+        emit("select-source", { source });
     }
 };
 
@@ -1097,10 +1098,6 @@ const closeDialog = () => {
 </script>
 
 <style scoped>
-.sources-selector {
-    min-width: 500px;
-}
-
 .overlay-content {
     max-height: 80vh;
     overflow-y: auto;

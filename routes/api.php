@@ -31,10 +31,32 @@ Route::get("/wikidata/places/cache", [
     "getCachedPlaces",
 ]);
 
+// Occupation search endpoint
+Route::get("/wikidata/occupations", [
+    WikidataSearchController::class,
+    "searchOccupations",
+]);
+
+Route::get("/wikidata/nationalities", [
+    WikidataSearchController::class,
+    "searchNationalities",
+]);
+
+// Route for searching entities by title
 Route::get("/wikidata/entities", [
     WikidataSearchController::class,
     "searchByTitle",
-]);
+])
+    ->withoutMiddleware(["throttle:api"])
+    ->middleware(["throttle:600,1"]);
+
+// Route for getting a single entity by ID
+Route::get("/wikidata/entity/{id}", [
+    WikidataSearchController::class,
+    "getEntityById",
+])
+    ->withoutMiddleware(["throttle:api"])
+    ->middleware(["throttle:600,1"]);
 Route::post("/wikidata/entities", [WikidataEntityController::class, "create"]);
 Route::get("/wikidata/requests", [
     WikidataEntityController::class,
@@ -100,7 +122,7 @@ Route::get("/wikidata/search/cause", [
 ]);
 
 // Route for checking entry status
-Route::get("/entry-status/{token}", [
+Route::get("/eintrag-status/{token}", [
     App\Http\Controllers\EntryStatusController::class,
     "getStatus",
 ]);
@@ -123,6 +145,41 @@ Route::get("/wikidata/search/places", [
     "searchPlaces",
 ]);
 
+Route::get("/wikidata/search/nationalities", [
+    WikidataSearchController::class,
+    "searchNationalities",
+]);
+
+// Endpoint for occupations search
+Route::get("/wikidata/search/occupations", [
+    WikidataSearchController::class,
+    "searchOccupations",
+]);
+
+// Route for commemorates search
+Route::get("/wikidata/search/commemorates", [
+    WikidataSearchController::class,
+    "searchCommemorates",
+]);
+
+// Route for organizations search
+Route::get("/wikidata/search/organizations", [
+    WikidataSearchController::class,
+    "searchOrganizations",
+]);
+
+// Route for services search
+Route::get("/wikidata/services", [
+    WikidataSearchController::class,
+    "searchServices",
+]);
+
+// Route for services search (alternate endpoint)
+Route::get("/wikidata/search/services", [
+    WikidataSearchController::class,
+    "searchServices",
+]);
+
 // General Wikidata search route
 Route::get("/wikidata/search", [WikidataSearchController::class, "search"]);
 
@@ -133,19 +190,19 @@ Route::post("/wikidata/entity", [
 ]);
 
 // Route for sending status link to user via email
-Route::post("/entry-status/send-email", [
+Route::post("/eintrag-status/send-email", [
     App\Http\Controllers\EntryStatusController::class,
     "sendStatusLinkToUser",
 ]);
 
 // Route for manually triggering notifications (for testing)
-Route::post("/entry-status/send-manual-notification", [
+Route::post("/eintrag-status/send-manual-notification", [
     App\Http\Controllers\EntryStatusController::class,
     "sendManualNotification",
 ]);
 
 // Route for checking if email notifications are enabled for an entry
-Route::get("/entry-status/check-notifications/{token}", [
+Route::get("/eintrag-status/check-notifications/{token}", [
     App\Http\Controllers\EntryStatusController::class,
     "checkNotificationStatus",
 ]);

@@ -7,94 +7,80 @@
                 class="filter-row-highlight tutorial-rectangle-highlight"
                 style="display: none"
             ></div>
-            <v-row class="position-relative">
-                <div
-                    id="filter-checkbox-all-highlight"
-                    class="filter-checkbox-all-highlight tutorial-rectangle-highlight"
-                    style="display: none"
-                ></div>
+            <v-row>
                 <v-col class="py-0" style="max-width: 60px"></v-col>
                 <v-col class="pa-0">
                     <v-checkbox
-                        :model-value="allSelected"
+                        v-model="areAllGroupedPlacesShownOnMap"
                         color="grey-darken-2"
                         density="compact"
                         hide-details
-                        label="Alle"
-                        @click="selectAll()"
+                        label="Alle auswählen"
                     ></v-checkbox>
                 </v-col>
             </v-row>
-            <div class="placetype-filter">
-                <div
-                    id="glossary-column-highlight"
-                    class="glossary-column-highlight tutorial-rectangle-highlight"
-                    style="display: none"
-                ></div>
-                <div
-                    id="filter-checkbox-staatspolizeileitstellen-highlight"
-                    class="filter-checkbox-staatspolizeileitstellen-highlight tutorial-rectangle-highlight"
-                    style="display: none"
-                ></div>
-                <v-row
-                    v-for="groupName in groupedPlacesOrder"
-                    class="pt-1"
-                    :key="groupName + '-row'"
+            <v-row
+                v-for="groupName in orderedGroupPlaceNames"
+                class="pt-1"
+                :key="groupName + '-row'"
+            >
+                <v-col
+                    v-if="groupedPlaces[groupName].linkedMainGroupItem"
+                    class="py-0"
+                    style="max-width: 55px"
+                ></v-col>
+                <v-col v-else class="py-0" style="max-width: 60px">
+                    <v-img
+                        :max-width="34"
+                        :src="`${ogtGlobals?.proxyPath}${mapMarkerIconsPath}${groupedPlaces[groupName].iconName}`"
+                    ></v-img>
+                </v-col>
+
+                <v-col
+                    v-if="groupedPlaces[groupName].linkedMainGroupItem"
+                    class="py-0"
+                    style="max-width: 35px; font-size: 30px"
                 >
-                    <v-col class="py-0" style="max-width: 60px">
-                        <v-img
-                            :max-width="34"
-                            :src="`${ogtGlobals?.proxyPath}${mapMarkerIconsPath}${groupedPlaces[groupName].iconName}`"
-                        ></v-img>
-                    </v-col>
+                    +
+                </v-col>
 
-                    <v-col class="pa-0">
-                        <v-checkbox
-                            v-model="checkedPlaceLayerGroups"
-                            :color="groupedPlaces[groupName].color"
-                            density="compact"
-                            hide-details
-                            :label="groupedPlaces[groupName].layerName"
-                            :value="groupName"
-                        ></v-checkbox>
-                    </v-col>
+                <v-col class="pa-0">
+                    <v-checkbox
+                        v-model="proxyGroupedPlacesShownOnMap"
+                        :color="groupedPlaces[groupName].color"
+                        density="compact"
+                        hide-details
+                        :label="groupedPlaces[groupName].layerName"
+                        :value="groupName"
+                    ></v-checkbox>
+                </v-col>
 
-                    <v-col
-                        class="py-0 glossary-buttons-area glossary-buttons-column"
-                        style="max-width: 55px; position: relative; z-index: 10"
+                <v-col class="py-0" style="max-width: 55px">
+                    <v-tooltip
+                        :color="groupedPlaces[groupName].color"
+                        location="left"
                     >
-                        <v-tooltip
-                            :color="groupedPlaces[groupName].color"
-                            location="left"
-                        >
-                            <template v-slot:activator="{ props }">
-                                <v-btn
-                                    icon
-                                    rounded="circle"
-                                    size="26px"
-                                    class="mt-1 glossary-button"
-                                    :to="{
-                                        name: 'glossary',
-                                        hash: '#' + groupName,
-                                    }"
-                                    v-bind="props"
-                                >
-                                    <v-icon
-                                        :color="groupedPlaces[groupName].color"
-                                        style="
-                                            position: relative;
-                                            z-index: 10001;
-                                        "
-                                    >
-                                        mdi-information-outline
-                                    </v-icon>
-                                </v-btn>
-                            </template>
-                            <span>Im Glossar anzeigen</span>
-                        </v-tooltip>
-                    </v-col>
-                </v-row>
-            </div>
+                        <template v-slot:activator="{ props }">
+                            <v-btn
+                                icon
+                                rounded="circle"
+                                size="26px"
+                                class="mt-1"
+                                :to="{
+                                    name: 'glossary',
+                                    hash: '#' + groupName,
+                                }"
+                                v-bind="props"
+                            >
+                                <v-icon :color="groupedPlaces[groupName].color">
+                                    mdi-information-outline
+                                </v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Im Glossar anzeigen</span>
+                    </v-tooltip>
+                </v-col>
+            </v-row>
         </div>
 
         <v-divider class="mt-4"></v-divider>
@@ -106,9 +92,9 @@
             ></div>
             <v-list-subheader>Erfasste Gestapo Terror Orte</v-list-subheader>
             <v-autocomplete
-                v-for="groupName in groupedPlacesOrder"
+                v-for="groupName in orderedGroupPlaceNames"
                 v-model="selectedPlaces[groupName]"
-                v-show="checkedPlaceLayerGroups.includes(groupName)"
+                v-show="proxyGroupedPlacesShownOnMap.includes(groupName)"
                 class="mx-4 my-2"
                 color="grey-darken-4"
                 density="compact"
@@ -149,6 +135,10 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    groupedPlacesShownOnMap: {
+        type: Array,
+        default: () => [],
+    },
     map: {
         type: Object,
         required: true,
@@ -161,8 +151,12 @@ const props = defineProps({
 
 const ogtGlobals = inject("ogtGlobals");
 
-const checkedPlaceLayerGroups = ref(Object.keys(props.groupedPlaces));
-const emit = defineEmits(["update-layer-groups"]);
+const emit = defineEmits(["update:groupedPlacesShownOnMap"]);
+
+const proxyGroupedPlacesShownOnMap = computed({
+    get: () => props.groupedPlacesShownOnMap,
+    set: (value) => emit("update:groupedPlacesShownOnMap", value),
+});
 
 const showTutorialHighlight = (highlightId) => {
     const highlight = document.getElementById(highlightId);
@@ -274,20 +268,31 @@ const allSelected = computed(() => {
     );
 });
 
-const groupedPlacesOrder = [
-    "statePoliceHeadquarters",
-    "statePoliceOffices",
-    "fieldOffices",
-    "prisons",
-    "extPolicePrisons",
-    "laborEducationCamps",
-    "events",
-    "memorials",
-];
+const areAllGroupedPlacesShownOnMap = computed({
+    get() {
+        return (
+            proxyGroupedPlacesShownOnMap.value.length ===
+            Object.keys(props.groupedPlaces).length
+        );
+    },
+    set(value) {
+        proxyGroupedPlacesShownOnMap.value = value
+            ? Object.keys(props.groupedPlaces)
+            : [];
+    },
+});
+
+const orderedGroupPlaceNames = computed(() => {
+    return Object.keys(props.groupedPlaces).sort(
+        (a, b) =>
+            props.groupedPlaces[a].displayOrder -
+            props.groupedPlaces[b].displayOrder,
+    );
+});
 
 const selectedPlaces = ref({});
 const autoCompleteRefs = ref({});
-groupedPlacesOrder.forEach((groupName) => {
+orderedGroupPlaceNames.value.forEach((groupName) => {
     selectedPlaces.value[groupName] = null;
 });
 
@@ -340,7 +345,8 @@ const activateStaatspolizeileitstellen = () => {
 };
 
 // Watchers
-groupedPlacesOrder.forEach((groupName) => {
+//
+orderedGroupPlaceNames.value.forEach((groupName) => {
     watch(
         () => selectedPlaces.value[groupName],
         (newPlace) => {
@@ -351,11 +357,6 @@ groupedPlacesOrder.forEach((groupName) => {
             }
         },
     );
-});
-
-watch(checkedPlaceLayerGroups, (newGroups) => {
-    // Emit event to parent instead of directly accessing it
-    emit("update-layer-groups", newGroups);
 });
 </script>
 

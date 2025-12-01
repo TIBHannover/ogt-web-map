@@ -17,10 +17,14 @@ class Person extends BaseEntity
     protected $deathDate;
     protected $placeOfBirth;
     protected $placeOfDeath;
+    protected $placeOfDetention;
+    protected $placeOfResidence;
     protected $occupation;
+    protected $nationality;
     protected $role;
     protected $birthName;
     protected $employer;
+    protected $keyEventPerson;
 
     /**
      * Constructor
@@ -68,6 +72,10 @@ class Person extends BaseEntity
                 ? json_encode($data["place_of_death"])
                 : "Not set",
             "has_place_of_death" => isset($data["place_of_death"]),
+            "place_of_residence" => isset($data["place_of_residence"])
+                ? json_encode($data["place_of_residence"])
+                : "Not set",
+            "has_place_of_residence" => isset($data["place_of_residence"]),
             "occupation" => isset($data["occupation"])
                 ? json_encode($data["occupation"])
                 : "Not set",
@@ -83,6 +91,10 @@ class Person extends BaseEntity
                 ? json_encode($data["employer"])
                 : "Not set",
             "has_employer" => isset($data["employer"]),
+            "key_event_person" => isset($data["key_event_person"])
+                ? json_encode($data["key_event_person"])
+                : "Not set",
+            "has_key_event_person" => isset($data["key_event_person"]),
             "data_keys" => array_keys($data),
             "all_data" => $data,
         ]);
@@ -196,6 +208,69 @@ class Person extends BaseEntity
                 $person->setPlaceOfDeath($data["place_of_death"]["id"]);
                 Log::info("Set place of death from object value", [
                     "place_id" => $data["place_of_death"]["id"],
+                ]);
+            }
+        }
+
+        // Set place of detention - can be single value or array
+        if (isset($data["place_of_detention"])) {
+            if (
+                is_string($data["place_of_detention"]) &&
+                substr($data["place_of_detention"], 0, 1) === "Q"
+            ) {
+                // Direct Q-ID string
+                $person->setPlaceOfDetention($data["place_of_detention"]);
+                Log::info("Set place of detention from string value", [
+                    "place_id" => $data["place_of_detention"],
+                ]);
+            } elseif (is_array($data["place_of_detention"])) {
+                if (isset($data["place_of_detention"]["id"])) {
+                    // Single object with id field
+                    $person->setPlaceOfDetention(
+                        $data["place_of_detention"]["id"],
+                    );
+                    Log::info("Set place of detention from object value", [
+                        "place_id" => $data["place_of_detention"]["id"],
+                    ]);
+                } else {
+                    // Array of IDs or objects
+                    $placeIds = [];
+                    foreach ($data["place_of_detention"] as $place) {
+                        if (is_string($place) && substr($place, 0, 1) === "Q") {
+                            $placeIds[] = $place;
+                        } elseif (is_array($place) && isset($place["id"])) {
+                            $placeIds[] = $place["id"];
+                        }
+                    }
+                    if (!empty($placeIds)) {
+                        $person->setPlaceOfDetention($placeIds);
+                        Log::info("Set place of detention from array", [
+                            "place_ids" => $placeIds,
+                        ]);
+                    }
+                }
+            }
+        }
+
+        // Set place of residence - handle both string and object formats
+        if (!empty($data["place_of_residence"])) {
+            if (
+                is_string($data["place_of_residence"]) &&
+                substr($data["place_of_residence"], 0, 1) === "Q"
+            ) {
+                // Direct Q-ID string
+                $person->setPlaceOfResidence($data["place_of_residence"]);
+                Log::info("Set place of residence from string value", [
+                    "place_id" => $data["place_of_residence"],
+                ]);
+            } elseif (
+                is_array($data["place_of_residence"]) &&
+                !empty($data["place_of_residence"]["id"])
+            ) {
+                // Object with id field
+                $person->setPlaceOfResidence($data["place_of_residence"]["id"]);
+                Log::info("Set place of residence from object value", [
+                    "place_id" => $data["place_of_residence"]["id"],
                 ]);
             }
         }
@@ -436,6 +511,32 @@ class Person extends BaseEntity
             }
         }
 
+        // Set key events for person
+        if (!empty($data["key_event_person"])) {
+            $keyEvents = $data["key_event_person"];
+
+            // Handle different formats (string, array of strings, array of objects)
+            if (is_string($keyEvents)) {
+                // Single string value
+                $keyEvents = [$keyEvents];
+            } elseif (is_array($keyEvents) && !empty($keyEvents)) {
+                // Convert array of objects to array of strings if needed
+                foreach ($keyEvents as $i => $event) {
+                    if (is_array($event) && isset($event["id"])) {
+                        $keyEvents[$i] = $event["id"];
+                    }
+                }
+            }
+
+            $person->setKeyEventPerson($keyEvents);
+            Log::info("Added key event to person", [
+                "person_name" => $person->getName(),
+                "key_event_person" => json_encode($keyEvents),
+                "key_event_format" => gettype($data["key_event_person"]),
+                "processed_format" => gettype($keyEvents),
+            ]);
+        }
+
         return $person;
     }
 
@@ -616,6 +717,99 @@ class Person extends BaseEntity
                 "rank" => "normal",
             ],
         ];
+    }
+
+    /**
+     * Set the place of residence
+     *
+     * @param string $placeId The Wikidata Q-number for the residence place
+     * @return void
+     */
+    public function setPlaceOfResidence(string $placeId): void
+    {
+        $this->place_of_residence = $placeId;
+
+        if (empty($placeId) || substr($placeId, 0, 1) !== "Q") {
+            return;
+        }
+
+        $residenceProperty = $this->mappingProvider->getPropertyId(
+            "PLACE_OF_RESIDENCE",
+        ); // Should map to P551
+
+        $this->data["claims"][$residenceProperty] = [
+            [
+                "mainsnak" => [
+                    "snaktype" => "value",
+                    "property" => $residenceProperty,
+                    "datavalue" => [
+                        "value" => [
+                            "entity-type" => "item",
+                            "id" => $placeId,
+                            "numeric-id" => intval(substr($placeId, 1)),
+                        ],
+                        "type" => "wikibase-entityid",
+                    ],
+                ],
+                "type" => "statement",
+                "rank" => "normal",
+            ],
+        ];
+    }
+
+    // Duplicate setPlaceOfResidence method removed - already defined at line 697
+
+    /**
+     * Set the place of detention
+     *
+     * @param string|array $placeIds The Wikidata Q-number(s) for the detention place(s)
+     * @return void
+     */
+    public function setPlaceOfDetention($placeIds): void
+    {
+        $detentionProperty = $this->mappingProvider->getPropertyId(
+            "PLACE_OF_DETENTION",
+        ); // Should map to P2632
+
+        // Initialize the array if it doesn't exist
+        if (!isset($this->data["claims"][$detentionProperty])) {
+            $this->data["claims"][$detentionProperty] = [];
+        }
+
+        // Handle both single ID and array of IDs
+        $placeIdArray = is_array($placeIds) ? $placeIds : [$placeIds];
+
+        foreach ($placeIdArray as $placeId) {
+            if (empty($placeId) || substr($placeId, 0, 1) !== "Q") {
+                Log::warning("Invalid place of detention ID provided", [
+                    "id" => $placeId,
+                ]);
+                continue;
+            }
+
+            // Add the place of detention claim
+            $this->data["claims"][$detentionProperty][] = [
+                "mainsnak" => [
+                    "snaktype" => "value",
+                    "property" => $detentionProperty,
+                    "datavalue" => [
+                        "value" => [
+                            "entity-type" => "item",
+                            "id" => $placeId,
+                            "numeric-id" => intval(substr($placeId, 1)),
+                        ],
+                        "type" => "wikibase-entityid",
+                    ],
+                ],
+                "type" => "statement",
+                "rank" => "normal",
+            ];
+
+            Log::info("Added place of detention to person", [
+                "property" => $detentionProperty,
+                "place_id" => $placeId,
+            ]);
+        }
     }
 
     /**
@@ -1014,5 +1208,79 @@ class Person extends BaseEntity
         }
 
         return false;
+    }
+
+    /**
+     * Set key events related to this person
+     *
+     * @param array|string $keyEventIds The key event IDs to set
+     * @return void
+     */
+    public function setKeyEventPerson($keyEventIds): void
+    {
+        $this->keyEventPerson = $keyEventIds;
+
+        // Handle both single ID and array of IDs
+        // Ensure we have an array of key events
+        $keyEventIdArray = [];
+
+        // Handle different input formats
+        if (is_array($keyEventIds)) {
+            foreach ($keyEventIds as $item) {
+                if (is_string($item) && !empty($item)) {
+                    $keyEventIdArray[] = $item;
+                } elseif (
+                    is_array($item) &&
+                    isset($item["id"]) &&
+                    !empty($item["id"])
+                ) {
+                    $keyEventIdArray[] = $item["id"];
+                }
+            }
+        } elseif (is_string($keyEventIds) && !empty($keyEventIds)) {
+            $keyEventIdArray = [$keyEventIds];
+        }
+
+        // Log the processing for debugging
+        Log::info("Processing key event person array", [
+            "input" => json_encode($keyEventIds),
+            "processed" => json_encode($keyEventIdArray),
+            "count" => count($keyEventIdArray),
+        ]);
+
+        // Get the property ID for key events
+        $keyEventProperty = $this->mappingProvider->getPropertyId(
+            "SIGNIFICANT_EVENT",
+        );
+
+        // Initialize the array if it doesn't exist
+        if (!isset($this->data["claims"][$keyEventProperty])) {
+            $this->data["claims"][$keyEventProperty] = [];
+        }
+
+        foreach ($keyEventIdArray as $keyEventId) {
+            // Skip if the ID is empty or not a valid Wikidata Q identifier
+            if (empty($keyEventId) || substr($keyEventId, 0, 1) !== "Q") {
+                continue;
+            }
+
+            // Add the key event claim
+            $this->data["claims"][$keyEventProperty][] = [
+                "mainsnak" => [
+                    "snaktype" => "value",
+                    "property" => $keyEventProperty,
+                    "datavalue" => [
+                        "value" => [
+                            "entity-type" => "item",
+                            "id" => $keyEventId,
+                            "numeric-id" => intval(substr($keyEventId, 1)),
+                        ],
+                        "type" => "wikibase-entityid",
+                    ],
+                ],
+                "type" => "statement",
+                "rank" => "normal",
+            ];
+        }
     }
 }

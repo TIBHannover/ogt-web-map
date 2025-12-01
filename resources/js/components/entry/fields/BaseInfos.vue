@@ -13,24 +13,31 @@
 
         <label for="title" class="">Titel *</label>
         <div class="title-input-container">
-            <input
-                :value="title"
-                @input="$emit('update:title', $event.target.value)"
+            <v-text-field
+                :model-value="title"
+                @update:model-value="
+                    (value) => {
+                        console.log('Direct title input:', value);
+                        $emit('update:title', value);
+                        // Validate after direct input
+                        setTimeout(() => validate(), 10);
+                    }
+                "
                 name="title"
-                type="text"
                 maxlength="250"
                 placeholder="z.B. Novemberpogrom 1938 in Osnabrück"
                 @focus="openTitleOverlay"
                 @focus.once="$emit('fieldFocus', 'title')"
-            />
-            <button
-                type="button"
-                class="search-button"
-                @click="openTitleOverlay"
-                title="Titel überprüfen"
-            >
-                <v-icon>mdi-magnify</v-icon>
-            </button>
+                append-inner-icon="mdi-magnify"
+                @click:append-inner="openTitleOverlay"
+                variant="outlined"
+                density="comfortable"
+                hide-details
+                single-line
+                color="primary"
+                bg-color="white"
+                class="title-search-field"
+            ></v-text-field>
         </div>
 
         <ValidationError
@@ -50,6 +57,8 @@
             @close="closeTitleOverlay"
             @create="createFromOverlay"
         />
+        <!-- Add a hidden validator to ensure we capture changes -->
+        <input type="hidden" :value="title" @change="validate" />
 
         <!-- Anzeige der Suchergebnisse -->
         <div v-if="wikidataResults.length > 0" class="search-results">
@@ -76,10 +85,10 @@
         <label for="description" class="mt-3 d-block">Kurzbeschreibung *</label>
         <textarea
             :value="description"
-            @input="$emit('update:description', $event.target.value)"
+            @input="handleDescriptionInput"
             name="description"
-            maxlength="750"
-            placeholder="z.B. vom NS-Regime gelenkte Gewaltmaßnahmen gegen Juden in Osnabrück."
+            maxlength="250"
+            placeholder="z.B. Regionale Dienststelle der Gestapo in Hannover, verantwortlich für politische Verfolgung in mittleren und südlichen Teilen Niedersachsens."
             @focus="$emit('fieldFocus', 'title')"
         ></textarea>
 
@@ -88,11 +97,22 @@
             message="Bitte gebe eine Kurzbeschreibung ein."
             showIcon
         />
+        <ValidationError
+            :show="descriptionTooLong"
+            message="Die Beschreibung darf maximal 250 Zeichen enthalten."
+            showIcon
+        />
+        <div
+            class="character-counter"
+            :class="{ 'text-danger': descriptionTooLong }"
+        >
+            {{ props.description ? props.description.length : 0 }}/250
+        </div>
     </div>
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import ValidationError from "../../helpers/ValidationError.vue";
 import { useValidation } from "../../../composables/useValidation";
 import TitleSearchOverlay from "./TitleSearchOverlay.vue";
@@ -141,6 +161,11 @@ const openTitleOverlay = () => {
 
 const closeTitleOverlay = () => {
     showTitleOverlay.value = false;
+    // Ensure validation is triggered after overlay closes
+    setTimeout(() => {
+        validate();
+        emit("validation", isTitleValid.value && isDescriptionValid.value);
+    }, 50);
 };
 
 // Handle title update from overlay
@@ -148,39 +173,57 @@ const updateTitleFromOverlay = (newTitle) => {
     console.log("BaseInfos: Title updated from overlay:", newTitle);
     // Do not mutate props directly
     emit("update:title", newTitle);
+    // We don't close the overlay here - it will be closed by the Save button
+    // or by the create action in the TitleSearchOverlay
 
-    // Force immediate update on the input field
+    // Delay needed to ensure updates are processed before any validation
     setTimeout(() => {
-        const titleInput = document.querySelector(
-            ".title-input-container input",
-        );
-        if (titleInput) {
-            titleInput.value = newTitle;
-            // Trigger an input event to ensure Vue's reactivity catches this
-            titleInput.dispatchEvent(new Event("input", { bubbles: true }));
-        }
-    }, 0);
+        validate();
+    }, 50);
 };
 
 // Handle create from overlay
 const createFromOverlay = (title) => {
     console.log("BaseInfos: Title created from overlay:", title);
     emit("update:title", title);
-
-    // Force immediate update on the input field
-    setTimeout(() => {
-        const titleInput = document.querySelector(
-            ".title-input-container input",
-        );
-        if (titleInput) {
-            titleInput.value = title;
-            // Trigger an input event to ensure Vue's reactivity catches this
-            titleInput.dispatchEvent(new Event("input", { bubbles: true }));
-        }
-    }, 0);
-
+    // Close the overlay after creation
     closeTitleOverlay();
+
+    // Force validation after creation to update parent component
+    setTimeout(() => {
+        validate();
+        emit("validation", isTitleValid.value && isDescriptionValid.value);
+    }, 50);
 };
+
+// Description length check
+const descriptionTooLong = ref(false);
+
+const handleDescriptionInput = (event) => {
+    const value = event.target.value;
+    descriptionTooLong.value = value.length > 250;
+
+    if (descriptionTooLong.value) {
+        // Truncate if too long
+        event.target.value = value.substring(0, 250);
+    }
+
+    emit("update:description", event.target.value);
+};
+
+// Watch for external description changes
+watch(
+    () => props.description,
+    (newValue) => {
+        if (newValue && newValue.length > 250) {
+            descriptionTooLong.value = true;
+            // Notify parent to truncate
+            emit("update:description", newValue.substring(0, 250));
+        } else {
+            descriptionTooLong.value = false;
+        }
+    },
+);
 
 // Computed properties for validation
 const isTitleValid = computed(() => {
@@ -188,7 +231,11 @@ const isTitleValid = computed(() => {
 });
 
 const isDescriptionValid = computed(() => {
-    return props.description && props.description.trim().length > 0;
+    return (
+        props.description &&
+        props.description.trim().length > 0 &&
+        !descriptionTooLong.value
+    );
 });
 
 // Validation function
@@ -219,8 +266,40 @@ defineExpose({
 </script>
 
 <!-- Global form styles -->
-<style>
+<style scoped>
 @import "../styles/form-styles.css";
+
+.title-input-container {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.title-search-field {
+    width: 100%;
+}
+
+:deep(.title-search-field .v-field__append-inner) {
+    cursor: pointer;
+}
+
+:deep(.title-search-field .v-field__input) {
+    padding: 8px 16px;
+    min-height: 48px;
+}
+
+:deep(.title-search-field .v-icon) {
+    color: #1976d2;
+}
+
+:deep(.title-search-field .v-field--focused) {
+    border-color: #1976d2 !important;
+}
+
+:deep(.title-search-field .v-field) {
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: white;
+}
 </style>
 
 <style scoped>
@@ -250,6 +329,19 @@ defineExpose({
 
 .search-button:hover {
     background-color: #1565c0;
+}
+
+.character-counter {
+    text-align: right;
+    font-size: 0.85rem;
+    color: #757575;
+    margin-top: -0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.character-counter.text-danger {
+    color: #f44336;
+    font-weight: bold;
 }
 
 /* Search Info Box */

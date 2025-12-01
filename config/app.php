@@ -176,6 +176,7 @@ return [
         App\Providers\UrlServiceProvider::class,
         App\Providers\WikibaseServiceProvider::class,
         App\Providers\EntityMappingServiceProvider::class,
+        App\Providers\BladeServiceProvider::class,
     ],
 
     /*

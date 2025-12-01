@@ -16,10 +16,10 @@
 
         <map-options-sidebar
             v-if="map"
+            v-model:groupedPlacesShownOnMap="groupedPlacesShownOnMap"
             :groupedPlaces="groupedPlaces"
             :map="map"
             :mapMarkerIconsPath="mapMarkerIconsPath"
-            @update-layer-groups="handleLayerGroupsUpdate"
             ref="optionsSidebar"
         ></map-options-sidebar>
 
@@ -32,6 +32,7 @@
         ></map-timeline>
 
         <place-info-sidebar
+            v-model:groupedPlacesShownOnMap="groupedPlacesShownOnMap"
             ref="placeInfoSidebar"
             :selectedPlace="selectedPlace"
             :showPlaceInfoSidebar="showPlaceInfoSidebar"
@@ -161,69 +162,133 @@ export default {
         const groupedPlaces = ref({
             events: {
                 color: "#8c1f21",
+                displayOrder: 6,
                 iconName: "events.svg",
                 layerGroup: null,
                 layerName: "Ereignisse",
+                linkedMainGroupItem: null,
+                places: {},
+                placesByCoordinates: [],
+            },
+            operationLauterbacher: {
+                color: "#8c1f21",
+                displayOrder: 7,
+                iconName: "events.svg",
+                layerGroup: null,
+                layerName: "Aktion Lauterbacher",
+                linkedMainGroupItem: {
+                    group: "events",
+                    id: "Q134587748",
+                    lines: [],
+                    marker: null,
+                },
+                places: {},
+                placesByCoordinates: [],
+            },
+            persecutionOfSocialistFront: {
+                color: "#8c1f21",
+                displayOrder: 8,
+                iconName: "events.svg",
+                layerGroup: null,
+                layerName: "Verfolgung der Sozialistischen Front",
+                linkedMainGroupItem: {
+                    group: "events",
+                    id: "Q133303308",
+                    lines: [],
+                    marker: null,
+                },
                 places: {},
                 placesByCoordinates: [],
             },
             extPolicePrisons: {
                 color: "#3d3b3d",
+                displayOrder: 4,
                 iconName: "extPolicePrisons.svg",
                 layerGroup: null,
                 layerName: "Erweiterte Polizeigefängnisse",
+                linkedMainGroupItem: null,
                 places: {},
                 placesByCoordinates: [],
             },
             fieldOffices: {
                 color: "#456879",
+                displayOrder: 2,
                 iconName: "fieldOffices.svg",
                 layerGroup: null,
                 layerName: "Außendienststellen",
+                linkedMainGroupItem: null,
                 places: {},
                 placesByCoordinates: [],
             },
             laborEducationCamps: {
                 color: "#3d3b3d",
+                displayOrder: 5,
                 iconName: "laborEducationCamps.svg",
                 layerGroup: null,
                 layerName: "Arbeitserziehungslager",
+                linkedMainGroupItem: null,
                 places: {},
                 placesByCoordinates: [],
             },
             memorials: {
                 color: "#f3a923",
+                displayOrder: 9,
                 iconName: "memorials.svg",
                 layerGroup: null,
                 layerName: "Erinnerungsorte",
+                linkedMainGroupItem: null,
                 places: {},
                 placesByCoordinates: [],
             },
             prisons: {
                 color: "#3d3b3d",
+                displayOrder: 3,
                 iconName: "prisons.svg",
                 layerGroup: null,
                 layerName: "Gefängnisse",
+                linkedMainGroupItem: null,
                 places: {},
                 placesByCoordinates: [],
             },
             statePoliceHeadquarters: {
                 color: "#456879",
+                displayOrder: 0,
                 iconName: "statePoliceHeadquarters.svg",
                 layerGroup: null,
                 layerName: "Staatspolizeileitstellen",
+                linkedMainGroupItem: null,
                 places: {},
                 placesByCoordinates: [],
             },
             statePoliceOffices: {
                 color: "#456879",
+                displayOrder: 1,
                 iconName: "statePoliceOffices.svg",
                 layerGroup: null,
                 layerName: "Staatspolizeistellen",
+                linkedMainGroupItem: null,
                 places: {},
                 placesByCoordinates: [],
             },
         });
+
+        const groupedPlacesShownOnMap = ref([
+            "events",
+            //"persecutionOfSocialistFront", // initially hidden on map
+            //"operationLauterbacher", // initially hidden on map
+            "extPolicePrisons",
+            "fieldOffices",
+            "laborEducationCamps",
+            "memorials",
+            "prisons",
+            "statePoliceHeadquarters",
+            "statePoliceOffices",
+        ]);
+
+        watch(groupedPlacesShownOnMap, (newValue) => {
+            handleLayerGroupsUpdate(newValue);
+        });
+
         var currentGroupedPlaces = ref([]);
         const layers = ref(null);
         const locationMarkers = ref([]);
@@ -417,6 +482,12 @@ export default {
             gender: "",
             givenName: "",
             groupName: "",
+            hasParts: [
+                {
+                    id: "",
+                    label: "",
+                },
+            ],
             hasUses: [],
             id: "",
             inceptionDate: {
@@ -456,6 +527,12 @@ export default {
                         locale: "",
                         value: null,
                     },
+                },
+            ],
+            partOfs: [
+                {
+                    id: "",
+                    label: "",
                 },
             ],
             perpetrators: [
@@ -878,6 +955,9 @@ export default {
                         console.warn("Places Worker error:", message.error);
                     } else if (message.type === "success") {
                         // Clear existing markers before adding new ones
+                        /*
+                        ** Commented it out because it made the map reload when it should not**
+                        *
                         clearAllPlaceMarkers();
 
                         // Update groupedPlaces with new data
@@ -891,6 +971,7 @@ export default {
                             deriveLocationEmployees();
                         }
                         updateInfoSidebarData();
+                        */
                     }
 
                     worker.terminate();
@@ -1185,6 +1266,45 @@ export default {
                 }
             });
             setCurrentValues(minDate, maxDate, groupNames);
+            drawLinesBetweenSubAndMainGroups();
+        };
+
+        const drawLinesBetweenSubAndMainGroups = () => {
+            const rawMap = toRaw(map.value);
+
+            Object.entries(groupedPlaces.value).forEach(([groupName, group]) => {
+                const linkedMainGroupItem = group.linkedMainGroupItem;
+                // skip if group is not subgroup
+                if (!linkedMainGroupItem) return;
+
+                // remove existing lines (if any)
+                linkedMainGroupItem.lines.forEach(line => rawMap.removeLayer(line));
+                linkedMainGroupItem.lines = [];
+
+                // skip if subgroup is not enabled on map
+                if (!groupedPlacesShownOnMap.value.includes(groupName)) return;
+
+                // ensure main marker is added to map
+                if (!rawMap.hasLayer(linkedMainGroupItem.marker)) {
+                    linkedMainGroupItem.marker.addTo(rawMap);
+                }
+
+                // draw lines from subgroup markers to main marker
+                group.placesByCoordinates.forEach(({ marker }) => {
+                    if (!rawMap.hasLayer(marker)) return;
+
+                    const line = L.polyline(
+                        [marker.getLatLng(), linkedMainGroupItem.marker.getLatLng()],
+                        {
+                            color: group.color,
+                            dashArray: "4,4",
+                            weight: 2,
+                        }
+                    ).addTo(rawMap);
+
+                    linkedMainGroupItem.lines.push(line);
+                });
+            });
         };
 
         const dateFilter = (data, minDate, maxDate) => {
@@ -1216,6 +1336,9 @@ export default {
                     let placeMarkers = createPlaceMarkers(group, places);
                     createPlacesLayerGroups(group, placeMarkers);
                 }
+
+                setMainMarkerOfSubGroups();
+                handleLayerGroupsUpdate(groupedPlacesShownOnMap.value);
             } catch (error) {
                 console.error("Error in visualizePlaces:", error);
             }
@@ -1320,7 +1443,7 @@ export default {
                                 getDateProp("startTime") ??
                                 new Date("1945-05-08").toDateString()
                             );
-                        } else if (placeGroupName === "events") {
+                        } else if (placeGroupName === "events" || groupedPlaces.value[placeGroupName].linkedMainGroupItem?.group === "events") {
                             return (
                                 getDateProp("pointInTime") ??
                                 getDateProp("startTime") ??
@@ -1342,7 +1465,7 @@ export default {
                                 getDateProp("endTime") ??
                                 new Date().toDateString()
                             );
-                        } else if (placeGroupName === "events") {
+                        } else if (placeGroupName === "events" || groupedPlaces.value[placeGroupName].linkedMainGroupItem?.group === "events") {
                             return (
                                 getDateProp("pointInTime") ??
                                 getDateProp("endTime") ??
@@ -1375,6 +1498,16 @@ export default {
 
             return placeMarkers;
         };
+
+        const setMainMarkerOfSubGroups = () => {
+            Object.values(groupedPlaces.value).forEach(group => {
+                if (!group.linkedMainGroupItem) return;
+
+                const mainLocationMarkers = locationMarkers.value[group.linkedMainGroupItem.id];
+                group.linkedMainGroupItem.marker = Object.values(mainLocationMarkers)[0];
+            });
+        }
+
         /**
          * Set selected place info.
          *
@@ -1739,6 +1872,17 @@ export default {
                         });
                     }
                 }
+
+                selectedPlace.value.hasParts = Object.values(
+                    place.hasParts || {},
+                )
+                    .filter((item) => locationMarkers.value[item.id])
+                    .map((item) => ({ id: item.id, label: item.value }))
+                    .sort((a, b) => a.label.localeCompare(b.label, "de"));
+
+                selectedPlace.value.partOfs = Object.values(place.partOfs || {})
+                    .filter((item) => locationMarkers.value[item.id])
+                    .map((item) => ({ id: item.id, label: item.value }));
 
                 selectedPlace.value.parentOrganizations = [];
 
@@ -3481,6 +3625,7 @@ export default {
         return {
             map,
             groupedPlaces,
+            groupedPlacesShownOnMap,
             mapMarkerIconsPath,
             showPlaceInfoSidebar,
             selectedPlace,

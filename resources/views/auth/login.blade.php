@@ -48,14 +48,6 @@
                             <button type="submit" class="btn btn-primary">Anmelden</button>
                         </div>
                     </form>
-
-                    <hr>
-
-                    <div class="d-grid gap-2">
-                        <a href="{{ route('auth.wikidata') }}" class="btn btn-secondary">
-                            Mit Wikidata anmelden
-                        </a>
-                    </div>
                 </div>
             </div>
         </div>
