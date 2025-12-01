@@ -447,6 +447,7 @@ const chapters = [
                 highlightSelector: null,
                 onStepPrepare: "initDetailOptionsHighlights",
                 onStepShow: "showInformationAddressHighlight",
+                scrollTo: "#information-address-highlight",
                 position: {
                     top: "250px",
                     left: "400px",
@@ -459,6 +460,7 @@ const chapters = [
                 highlightSelector: null,
                 onStepPrepare: "initDetailOptionsHighlights",
                 onStepShow: "showInformationPersonalHighlight",
+                scrollTo: "#information-personal-highlight",
                 position: {
                     top: "300px",
                     left: "400px",
@@ -485,6 +487,7 @@ const chapters = [
                 position: { top: "150px", left: "400px" },
                 onStepPrepare: "initDetailOptionsHighlights",
                 onStepShow: "showInformationBackHighlight",
+                scrollTo: "#information-back-highlight",
                 onStepNext: null,
             },
             {
@@ -494,6 +497,7 @@ const chapters = [
                 highlightSelector: null, // Selector for events section
                 onStepPrepare: "selectLocation",
                 onStepShow: "showInformationEventsHighlight",
+                scrollTo: "#information-events-highlight",
                 position: {
                     top: "400px",
                     left: "400px",
@@ -529,6 +533,7 @@ const chapters = [
                     "Auch nachgeordnete Organisationen, Vorgängerorganisation (zeitlich) und Erinnerungsorte sind anklickbar.",
                 onStepPrepare: "selectLocation",
                 onStepShow: "showInformationOrganisationsHighlight",
+                scrollTo: "#information-organisations-highlight",
                 position: {
                     top: "500px",
                     left: "400px",
@@ -537,10 +542,11 @@ const chapters = [
             {
                 title: "Wikidata",
                 description:
-                    "Hier kannst Du die Detailansicht des Standorts wieder schließen.",
+                    "Hier kannst Du den zugehörigen Wikidata Eintrag öffnen.",
                 position: { top: "0px", left: "400px" },
                 onStepPrepare: "initDetailOptionsHighlights",
                 onStepShow: "showWikidataButtonHighlight",
+                scrollTo: "#information-wikidata-highlight",
                 onStepNext: null,
             },
             {
@@ -550,6 +556,7 @@ const chapters = [
                 position: { top: "0px", left: "400px" },
                 onStepPrepare: "initDetailOptionsHighlights",
                 onStepShow: "showInformationCloseButtonHighlight",
+                scrollTo: "#information-button-back-highlight",
                 onStepNext: null,
             },
         ],
@@ -821,6 +828,13 @@ const nextStep = () => {
                     executeAction(currentStep.value.onStepShow);
                 }
 
+                if (currentStep.value?.scrollTo) {
+                    // Small delay to make sure highlight is visible before scrolling
+                    setTimeout(() => {
+                        executeAction("scrollTo", currentStep.value.scrollTo);
+                    }, 300);
+                }
+
                 // Handle onStepNext action with delay
                 if (currentStep.value?.onStepNext) {
                     setTimeout(() => {
@@ -984,13 +998,13 @@ const toggleChapterMenu = () => {
     chapterMenuOpen.value = !chapterMenuOpen.value;
 };
 
-const executeAction = (actionName) => {
+const executeAction = (actionName, options = null) => {
     if (!actionName) {
         console.log("No action name provided");
         return;
     }
 
-    console.log("Executing action:", actionName);
+    console.log("Executing action:", actionName, options);
     setTimeout(() => {
         updateHighlightElement();
         applyHighlightClass();
@@ -1048,7 +1062,6 @@ const executeAction = (actionName) => {
                 break;
             // Place Detail Highlights
             case "showInformationAddressHighlight":
-                // First switch to the specific address (Schlägerstr.)
                 window.dispatchEvent(
                     new Event("show-information-address-highlight"),
                 );
@@ -1106,6 +1119,16 @@ const executeAction = (actionName) => {
             case "hideInformationInstitutionsHighlight":
                 window.dispatchEvent(
                     new Event("hide-information-institutions-highlight"),
+                );
+                break;
+            case "showInformationOrganisationsHighlight":
+                window.dispatchEvent(
+                    new Event("show-information-organisations-highlight"),
+                );
+                break;
+            case "hideInformationOrganisationsHighlight":
+                window.dispatchEvent(
+                    new Event("hide-information-organisations-highlight"),
                 );
                 break;
             case "showInformationCloseButtonHighlight":
@@ -1319,6 +1342,55 @@ const executeAction = (actionName) => {
                     props.setMapView([52.8398667, 9.0759744], 8);
                 }
                 break;
+            case "scrollTo":
+                if (options && typeof options === "string") {
+                    setTimeout(() => {
+                        const element = document.querySelector(options);
+                        if (element) {
+                            // Make sure element is visible first
+                            element.style.display = "block";
+
+                            // Use both methods for better compatibility
+                            // 1. Traditional scrollIntoView
+                            element.scrollIntoView({
+                                behavior: "smooth",
+                                block: "center",
+                                inline: "nearest",
+                            });
+
+                            // 2. Also scroll container if element is inside a scrollable container
+                            const scrollContainer = element.closest(
+                                ".v-navigation-drawer__content, .placeselection-div, .place-info-sidebar",
+                            );
+                            if (scrollContainer) {
+                                const elementRect =
+                                    element.getBoundingClientRect();
+                                const containerRect =
+                                    scrollContainer.getBoundingClientRect();
+
+                                // Calculate the scroll offset to center the element in the container
+                                const offset =
+                                    elementRect.top -
+                                    containerRect.top -
+                                    (containerRect.height -
+                                        elementRect.height) /
+                                        2;
+
+                                scrollContainer.scrollBy({
+                                    top: offset,
+                                    behavior: "smooth",
+                                });
+                            }
+                        } else {
+                            console.warn(
+                                `Element not found for scrollTo: ${options}`,
+                            );
+                        }
+                    }, 300); // Additional delay to ensure element is rendered
+                } else {
+                    console.warn("scrollTo action requires a selector string");
+                }
+                break;
             default:
                 console.warn(`Unbekannte Aktion: ${actionName}`);
         }
@@ -1344,6 +1416,7 @@ const initDetailOptionsHighlights = () => {
     window.dispatchEvent(new Event("hide-information-institutions-highlight"));
     window.dispatchEvent(new Event("hide-information-back-button-highlight"));
     window.dispatchEvent(new Event("hide-information-wikidata-highlight"));
+    window.dispatchEvent(new Event("hide-information-organisations-highlight"));
 };
 
 const closeAllHighlights = () => {

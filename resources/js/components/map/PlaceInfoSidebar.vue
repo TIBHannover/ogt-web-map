@@ -522,6 +522,15 @@ onUnmounted(() => {
     left: -10px;
 }
 
+.information-button-back-highlight {
+    height: 82%;
+}
+.information-wikidata-highlight {
+    height: 50px;
+    top: auto;
+    bottom: -10px;
+}
+
 @media (max-width: 600px) {
     .placeInfoSidebar {
         max-height: 50vh !important;
