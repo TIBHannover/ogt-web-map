@@ -1272,39 +1272,47 @@ export default {
         const drawLinesBetweenSubAndMainGroups = () => {
             const rawMap = toRaw(map.value);
 
-            Object.entries(groupedPlaces.value).forEach(([groupName, group]) => {
-                const linkedMainGroupItem = group.linkedMainGroupItem;
-                // skip if group is not subgroup
-                if (!linkedMainGroupItem) return;
+            Object.entries(groupedPlaces.value).forEach(
+                ([groupName, group]) => {
+                    const linkedMainGroupItem = group.linkedMainGroupItem;
+                    // skip if group is not subgroup
+                    if (!linkedMainGroupItem) return;
 
-                // remove existing lines (if any)
-                linkedMainGroupItem.lines.forEach(line => rawMap.removeLayer(line));
-                linkedMainGroupItem.lines = [];
+                    // remove existing lines (if any)
+                    linkedMainGroupItem.lines.forEach((line) =>
+                        rawMap.removeLayer(line),
+                    );
+                    linkedMainGroupItem.lines = [];
 
-                // skip if subgroup is not enabled on map
-                if (!groupedPlacesShownOnMap.value.includes(groupName)) return;
+                    // skip if subgroup is not enabled on map
+                    if (!groupedPlacesShownOnMap.value.includes(groupName))
+                        return;
 
-                // ensure main marker is added to map
-                if (!rawMap.hasLayer(linkedMainGroupItem.marker)) {
-                    linkedMainGroupItem.marker.addTo(rawMap);
-                }
+                    // ensure main marker is added to map
+                    if (!rawMap.hasLayer(linkedMainGroupItem.marker)) {
+                        linkedMainGroupItem.marker.addTo(rawMap);
+                    }
 
-                // draw lines from subgroup markers to main marker
-                group.placesByCoordinates.forEach(({ marker }) => {
-                    if (!rawMap.hasLayer(marker)) return;
+                    // draw lines from subgroup markers to main marker
+                    group.placesByCoordinates.forEach(({ marker }) => {
+                        if (!rawMap.hasLayer(marker)) return;
 
-                    const line = L.polyline(
-                        [marker.getLatLng(), linkedMainGroupItem.marker.getLatLng()],
-                        {
-                            color: group.color,
-                            dashArray: "4,4",
-                            weight: 2,
-                        }
-                    ).addTo(rawMap);
+                        const line = L.polyline(
+                            [
+                                marker.getLatLng(),
+                                linkedMainGroupItem.marker.getLatLng(),
+                            ],
+                            {
+                                color: group.color,
+                                dashArray: "4,4",
+                                weight: 2,
+                            },
+                        ).addTo(rawMap);
 
-                    linkedMainGroupItem.lines.push(line);
-                });
-            });
+                        linkedMainGroupItem.lines.push(line);
+                    });
+                },
+            );
         };
 
         const dateFilter = (data, minDate, maxDate) => {
@@ -1443,7 +1451,11 @@ export default {
                                 getDateProp("startTime") ??
                                 new Date("1945-05-08").toDateString()
                             );
-                        } else if (placeGroupName === "events" || groupedPlaces.value[placeGroupName].linkedMainGroupItem?.group === "events") {
+                        } else if (
+                            placeGroupName === "events" ||
+                            groupedPlaces.value[placeGroupName]
+                                .linkedMainGroupItem?.group === "events"
+                        ) {
                             return (
                                 getDateProp("pointInTime") ??
                                 getDateProp("startTime") ??
@@ -1465,7 +1477,11 @@ export default {
                                 getDateProp("endTime") ??
                                 new Date().toDateString()
                             );
-                        } else if (placeGroupName === "events" || groupedPlaces.value[placeGroupName].linkedMainGroupItem?.group === "events") {
+                        } else if (
+                            placeGroupName === "events" ||
+                            groupedPlaces.value[placeGroupName]
+                                .linkedMainGroupItem?.group === "events"
+                        ) {
                             return (
                                 getDateProp("pointInTime") ??
                                 getDateProp("endTime") ??
@@ -1500,13 +1516,15 @@ export default {
         };
 
         const setMainMarkerOfSubGroups = () => {
-            Object.values(groupedPlaces.value).forEach(group => {
+            Object.values(groupedPlaces.value).forEach((group) => {
                 if (!group.linkedMainGroupItem) return;
 
-                const mainLocationMarkers = locationMarkers.value[group.linkedMainGroupItem.id];
-                group.linkedMainGroupItem.marker = Object.values(mainLocationMarkers)[0];
+                const mainLocationMarkers =
+                    locationMarkers.value[group.linkedMainGroupItem.id];
+                group.linkedMainGroupItem.marker =
+                    Object.values(mainLocationMarkers)[0];
             });
-        }
+        };
 
         /**
          * Set selected place info.
@@ -3759,6 +3777,15 @@ export default {
     pointer-events: auto !important;
     /* Ensure button stays clickable */
     cursor: pointer;
+}
+
+.placetype-filter .highlight-tutorial {
+    tranform: scale(1);
+    border: 3px solid #ff5252;
+    z-index: 10000; /* Higher than backdrop but lower than sidebar */
+    pointer-events: none;
+    animation: pulse 2s infinite;
+    border-radius: 4px;
 }
 </style>
 

@@ -359,7 +359,7 @@ const chapters = [
                 title: "Filteroptionen",
                 description:
                     "Hier kannst Du auswählen, welche Kategorien auf der Karte angezeigt werden sollen.",
-                highlightSelector: ".filter-options", // Selector for the Filter options
+                highlightSelector: null,
                 position: { top: "100px", right: "400px" },
                 highlightClass: "highlight-tutorial",
                 onStepPrepare: "openMapOptions",
@@ -370,7 +370,7 @@ const chapters = [
                 title: "Alle Filter",
                 description:
                     "In der Grundeinstellung werden alle Kategorien angezeigt. Hier kannst Du festlegen, ob alle oder keine Kategorien dargestellt werden sollen. <br> Wir deaktivieren einmal alle Kategorien.",
-                highlightSelector: ".filter-checkbox-all", // Selector for "All Filters" checkbox
+                highlightSelector: null,
                 position: { top: "150px", right: "400px" },
                 onStepShow: "showFiltersCheckboxAllHighlight",
                 highlightClass: "highlight-tutorial",
@@ -381,7 +381,7 @@ const chapters = [
                 title: "Kategorie auswählen",
                 description:
                     "Jetzt kannst Du gezielt eine Kategorie auswählen. In diesem Beispiel aktivieren wir nur die Kategorie 'Staatspolizeileitstellen'.",
-                highlightSelector: ".filter-staatspolizeileitstellen", // Selector for the specific filter
+                highlightSelector: ".filter-statePoliceHeadquarters", // Selector for the specific filter
                 position: { top: "180px", right: "400px" },
                 onStepShow:
                     "showFilterCheckboxStaatspolizeileitstelleHighlight",
@@ -550,15 +550,6 @@ const chapters = [
                 position: { top: "0px", left: "400px" },
                 onStepPrepare: "initDetailOptionsHighlights",
                 onStepShow: "showInformationCloseButtonHighlight",
-                onStepNext: null,
-            },
-            {
-                title: "Hauptmenü",
-                description:
-                    "Über diesen Button kannst Du das Hauptmenü öffnen.",
-                highlightSelector: ".main-menu-button", // Selector for main menu button
-                position: { top: "50px", left: "400px" },
-                onStepPrepare: "closeAllNavigation",
                 onStepNext: null,
             },
         ],
@@ -1844,18 +1835,6 @@ onUnmounted(() => {
     padding: 12px;
     max-height: 300px;
     overflow-y: auto;
-}
-
-.highlight-tutorial {
-    z-index: 2200 !important;
-    transform: scale(1.05);
-    transition: all 0.3s ease;
-    box-shadow: 0 0 15px 5px rgba(255, 82, 82, 0.7);
-    border-radius: 4px;
-    animation: tutorial-pulse 2s infinite;
-    pointer-events: auto !important;
-    cursor: pointer;
-    position: relative !important;
 }
 
 .tutorial-overlay.active .glossary-button {
