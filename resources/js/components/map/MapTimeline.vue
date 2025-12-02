@@ -246,6 +246,18 @@ const handleTimelineOpen = () => {
     }
 };
 
+// Handle additional timeline close actions
+const handleTimelineClose = () => {
+    // Deactivate the timeline filter when closing
+    deactivateTimelineFilter();
+
+    // Update timeline to remove filtered results
+    updateTimeLine(
+        { year: -Infinity, month: -Infinity },
+        { year: Infinity, month: Infinity },
+    );
+};
+
 const activateTimelineFilter = () => {
     isTimelineFilterEnabled.value = true;
 };
@@ -578,7 +590,15 @@ onMounted(() => {
         "hide-timeline-filterzone-highlight",
         hideTimelineFilterZoneHighlightHandler,
     );
-    window.addEventListener("close-timeline-filter", closeTimeline);
+    window.addEventListener("close-timeline-filter", () => {
+        closeTimeline();
+        handleTimelineClose();
+    });
+    window.addEventListener("open-timeline-filter", () => {
+        openTimeline();
+        activateTimelineFilter();
+        updateTimeLine(STATE.left, STATE.right);
+    });
     window.addEventListener("set-filter-timezone", setFilterTimeZone);
     window.addEventListener("set-timepoint-mode", setTimePointMode);
     window.addEventListener("set-timezone-mode", setTimeZoneMode);

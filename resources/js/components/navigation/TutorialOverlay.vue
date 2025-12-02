@@ -1218,6 +1218,9 @@ const executeAction = (actionName, options = null) => {
                     );
                     props.openTimeline();
 
+                    // Also dispatch event to activate the filter
+                    window.dispatchEvent(new Event("open-timeline-filter"));
+
                     // Clear any previous highlights
                     closeAllHighlights();
 
@@ -1236,6 +1239,7 @@ const executeAction = (actionName, options = null) => {
                         "Closing timeline using NavigationHelper function",
                     );
                     props.closeTimeline();
+                    // Send event to both close timeline and deactivate the filter
                     window.dispatchEvent(new Event("close-timeline-filter"));
                     closeAllHighlights();
                     setTimeout(updateHighlightElement, 500);
@@ -1331,6 +1335,12 @@ const executeAction = (actionName, options = null) => {
                 break;
             case "setFilterTimePoint":
                 window.dispatchEvent(new Event("set-filter-timepoint"));
+                break;
+            case "closeTimelineFilter":
+                window.dispatchEvent(new Event("close-timeline-filter"));
+                break;
+            case "openTimelineFilter":
+                window.dispatchEvent(new Event("open-timeline-filter"));
                 break;
             case "handleGlossaryEntry":
                 if (props.openGlossaryEntry) {
