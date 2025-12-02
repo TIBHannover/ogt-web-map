@@ -579,9 +579,122 @@ onMounted(() => {
         hideTimelineFilterZoneHighlightHandler,
     );
     window.addEventListener("close-timeline-filter", closeTimeline);
+    window.addEventListener("set-filter-timezone", setFilterTimeZone);
+    window.addEventListener("set-timepoint-mode", setTimePointMode);
+    window.addEventListener("set-timezone-mode", setTimeZoneMode);
+    window.addEventListener("set-filter-timepoint", setFilterTimePoint);
 
     initTimeline();
 });
+
+function setFilterTimeZone() {
+    // First, make sure the timeline is visible
+    if (!isTimelineOpen.value) {
+        handleTimelineOpen();
+    }
+
+    // Make sure the timeline is in range mode (not point mode)
+    timelineModeToggle.value = "range";
+
+    // Make sure the timeline filter is enabled
+    isTimelineFilterEnabled.value = true;
+
+    // Get handles for direct positioning
+    const leftHandle = document.querySelector(".map-timeline-handle.left");
+    const rightHandle = document.querySelector(".map-timeline-handle.right");
+
+    if (!leftHandle || !rightHandle) return;
+
+    // According to requirements:
+    // August 1933 is at position ~7.2% of the timeline
+    // March 1945 is at position ~64.4% of the timeline
+
+    // Wait for the timeline to be fully visible before setting positions
+    setTimeout(() => {
+        // Set the handles using setHandle to properly update text and internal state
+        const leftData = setHandle(leftHandle, 0.072);
+        const rightData = setHandle(rightHandle, 0.644);
+
+        // Update the STATE object
+        STATE.left = leftData;
+        STATE.right = rightData;
+
+        // Trigger the timeline update to apply the filter
+        updateTimeLine(leftData, rightData);
+    }, 300);
+}
+
+function setTimePointMode() {
+    // First, make sure the timeline is visible
+    if (!isTimelineOpen.value) {
+        handleTimelineOpen();
+    }
+
+    // Set to single point mode (timePoint mode)
+    timelineModeToggle.value = "single";
+    timelineModeSingleHandle.value = true;
+
+    // Make sure the timeline filter is enabled
+    isTimelineFilterEnabled.value = true;
+
+    // Call the mode change handler to update the UI
+    handleModeChange();
+}
+
+function setTimeZoneMode() {
+    // First, make sure the timeline is visible
+    if (!isTimelineOpen.value) {
+        handleTimelineOpen();
+    }
+
+    // Set to range mode (timeZone mode)
+    timelineModeToggle.value = "range";
+    timelineModeSingleHandle.value = false;
+
+    // Make sure the timeline filter is enabled
+    isTimelineFilterEnabled.value = true;
+
+    // Call the mode change handler to update the UI
+    handleModeChange();
+}
+
+function setFilterTimePoint() {
+    // First, make sure the timeline is visible
+    if (!isTimelineOpen.value) {
+        handleTimelineOpen();
+    }
+
+    // Set to single point mode if not already
+    if (!timelineModeSingleHandle.value) {
+        setTimePointMode();
+
+        // Give time for mode change to take effect
+        setTimeout(setPoint, 300);
+    } else {
+        setPoint();
+    }
+
+    function setPoint() {
+        // Get the single handle (which is the right handle in the DOM)
+        const pointHandle = document.querySelector(
+            ".map-timeline-handle.right",
+        );
+
+        if (!pointHandle) return;
+
+        // According to requirements:
+        // Oktober 1936 is at position ~20.4% of the timeline
+
+        // Set the handle using setHandle to properly update text and internal state
+        const pointData = setHandle(pointHandle, 0.204);
+
+        // Update the STATE object - in single mode, we use right for the single point
+        STATE.right = pointData;
+
+        // Trigger the timeline update to apply the filter
+        updateTimeLine(pointData, pointData);
+    }
+}
 
 function initTimeline() {
     const monthSteps = (MONTH_STEP_END_YEAR - YEAR_RANGE[0]) * 12;

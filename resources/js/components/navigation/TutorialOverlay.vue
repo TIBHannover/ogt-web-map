@@ -605,6 +605,7 @@ const chapters = [
                 description:
                     "Die Karte zeigt nun alle Ereignisse und Orte, die im gewählten Zeitraum relevant sind.",
                 onStepPrepare: "initTimelineOptionsHighlights",
+                onStepShow: "setFilterTimeZone",
                 position: { bottom: "200px", right: "100px" },
             },
             {
@@ -612,8 +613,8 @@ const chapters = [
                 description: "Wechseln wir nun in den Modus 'Zeitpunkt'.",
                 onStepPrepare: "initTimelineOptionsHighlights",
                 onStepShow: "showTimelineModeHighlight",
+                onStepNext: "setTimePointMode",
                 position: { bottom: "200px", right: "100px" },
-                onStepNext: null,
             },
             {
                 title: "Zeitpunkt wählen",
@@ -621,13 +622,15 @@ const chapters = [
                     "In diesem Modus kannst Du gezielt zu einem bestimmten Zeitpunkt springen.",
                 onStepPrepare: "initTimelineOptionsHighlights",
                 onStepShow: "showTimelineFilterZoneHighlight",
+                onStepNext: "setFilterTimePoint",
                 position: { bottom: "200px", right: "100px" },
             },
             {
                 title: "Ereignisse im Zeitpunkt",
                 description:
                     "Jetzt werden nur noch die Ereignisse angezeigt, die im Oktober 1936 stattgefunden haben – zum Beispiel zur Verfolgung der Sozialistischen Front.",
-                onStepPrepare: "initTimelineOptionsHighlights",
+                onStepPrepare: "openTimeline",
+                onStepShow: "initTimelineOptionsHighlights",
                 position: { bottom: "200px", right: "100px" },
             },
             {
@@ -1316,6 +1319,18 @@ const executeAction = (actionName, options = null) => {
                 } else {
                     console.error("Map options function not available!");
                 }
+                break;
+            case "setFilterTimeZone":
+                window.dispatchEvent(new Event("set-filter-timezone"));
+                break;
+            case "setTimePointMode":
+                window.dispatchEvent(new Event("set-timepoint-mode"));
+                break;
+            case "setTimeZoneMode":
+                window.dispatchEvent(new Event("set-timezone-mode"));
+                break;
+            case "setFilterTimePoint":
+                window.dispatchEvent(new Event("set-filter-timepoint"));
                 break;
             case "handleGlossaryEntry":
                 if (props.openGlossaryEntry) {
