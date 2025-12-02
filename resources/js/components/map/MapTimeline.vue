@@ -246,6 +246,13 @@ const handleTimelineOpen = () => {
     }
 };
 
+const activateTimelineFilter = () => {
+    isTimelineFilterEnabled.value = true;
+};
+const deactivateTimelineFilter = () => {
+    isTimelineFilterEnabled.value = false;
+};
+
 const handleModeChange = () => {
     closeMapPopups();
     setTimeout(() => {
@@ -531,8 +538,10 @@ const hideTutorialHighlight = (highlightId) => {
     }
 };
 
-const showTimelineButtonHighlightHandler = () =>
+const showTimelineButtonHighlightHandler = () => {
     showTutorialHighlight("timeline-button-highlight");
+    activateTimelineFilter();
+};
 const hideTimelineButtonHighlightHandler = () =>
     hideTutorialHighlight("timeline-button-highlight");
 const showTimelineModeHighlightHandler = () =>
@@ -569,6 +578,7 @@ onMounted(() => {
         "hide-timeline-filterzone-highlight",
         hideTimelineFilterZoneHighlightHandler,
     );
+    window.addEventListener("close-timeline-filter", closeTimeline);
 
     initTimeline();
 });

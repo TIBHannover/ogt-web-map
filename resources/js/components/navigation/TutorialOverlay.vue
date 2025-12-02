@@ -630,6 +630,14 @@ const chapters = [
                 onStepPrepare: "initTimelineOptionsHighlights",
                 position: { bottom: "200px", right: "100px" },
             },
+            {
+                title: "Zeitfilter schließen",
+                description:
+                    "Wenn wir die Zeitfilter Optionen schließen, wird der Filter automatisch deaktiviert.",
+                onStepPrepare: "closeTimeline",
+                onStepShow: "closeTimelineFilter",
+                position: { bottom: "200px", right: "100px" },
+            },
         ],
     },
     {
@@ -1225,6 +1233,7 @@ const executeAction = (actionName, options = null) => {
                         "Closing timeline using NavigationHelper function",
                     );
                     props.closeTimeline();
+                    window.dispatchEvent(new Event("close-timeline-filter"));
                     closeAllHighlights();
                     setTimeout(updateHighlightElement, 500);
                 } else {
