@@ -573,59 +573,61 @@ const chapters = [
                 highlightClass: "highlight-tutorial",
                 onStepShow: "closeTimeline",
                 onStepPrepare: "closeAllNavigation",
-                onStepNext: null,
+                onStepNext: "setMapToCenter",
             },
             {
                 title: "Zeitfilter deaktivieren",
                 description:
                     "Hier kannst Du den Zeitfilter wieder deaktivieren und alle Ereignisse ohne zeitliche Einschränkung anzeigen lassen.",
-                highlightSelector: ".timeline-disable-button", // Selector for timeline disable button
                 onStepPrepare: "openTimeline",
+                onStepShow: "showTimelineButtonHighlight",
                 position: { bottom: "200px", right: "100px" },
             },
             {
                 title: "Filtermodus",
                 description:
                     "Hier kannst Du den Filtermodus wechseln. Aktuell ist der Modus 'Zeitraum' aktiv.",
-                highlightSelector: ".timeline-mode-switch", // Selector for timeline mode switch
+                onStepPrepare: "initTimelineOptionsHighlights",
+                onStepShow: "showTimelineModeHighlight",
                 position: { bottom: "200px", right: "100px" },
             },
             {
                 title: "Zeitraum festlegen",
                 description:
                     "In diesem Modus kannst Du einen Zeitraum festlegen – mit den beiden roten Reglern links und rechts.",
-                highlightSelector: ".timeline-range-sliders", // Selector for timeline range sliders
+                onStepPrepare: "initTimelineOptionsHighlights",
+                onStepShow: "showTimelineFilterZoneHighlight",
                 position: { bottom: "200px", right: "100px" },
-                onStepShow: "setTimeFilter",
                 onStepNext: null,
             },
             {
                 title: "Zeitraumfilterung",
                 description:
                     "Die Karte zeigt nun alle Ereignisse und Orte, die im gewählten Zeitraum relevant sind.",
-                highlightSelector: ".timeline-display", // Selector for timeline display
+                onStepPrepare: "initTimelineOptionsHighlights",
                 position: { bottom: "200px", right: "100px" },
             },
             {
                 title: "Zeitpunkt-Modus",
                 description: "Wechseln wir nun in den Modus 'Zeitpunkt'.",
-                highlightSelector: ".timeline-point-mode", // Selector for timeline point mode
+                onStepPrepare: "initTimelineOptionsHighlights",
+                onStepShow: "showTimelineModeHighlight",
                 position: { bottom: "200px", right: "100px" },
-                onStepShow: "switchTimeFilterMode",
                 onStepNext: null,
             },
             {
                 title: "Zeitpunkt wählen",
                 description:
                     "In diesem Modus kannst Du gezielt zu einem bestimmten Zeitpunkt springen.",
-                highlightSelector: ".timeline-point-slider", // Selector for timeline point slider
+                onStepPrepare: "initTimelineOptionsHighlights",
+                onStepShow: "showTimelineFilterZoneHighlight",
                 position: { bottom: "200px", right: "100px" },
             },
             {
                 title: "Ereignisse im Zeitpunkt",
                 description:
                     "Jetzt werden nur noch die Ereignisse angezeigt, die im Oktober 1936 stattgefunden haben – zum Beispiel zur Verfolgung der Sozialistischen Front.",
-                highlightSelector: ".timeline-events", // Selector for timeline events
+                onStepPrepare: "initTimelineOptionsHighlights",
                 position: { bottom: "200px", right: "100px" },
             },
         ],
@@ -1151,6 +1153,33 @@ const executeAction = (actionName, options = null) => {
                     new Event("hide-information-wikidata-highlight"),
                 );
                 break;
+            case "showTimelineButtonHighlight":
+                window.dispatchEvent(
+                    new Event("show-timeline-button-highlight"),
+                );
+                break;
+            case "hideTimelineButtonHighlight":
+                window.dispatchEvent(
+                    new Event("hide-timeline-button-highlight"),
+                );
+                break;
+            case "showTimelineModeHighlight":
+                window.dispatchEvent(new Event("show-timeline-mode-highlight"));
+                break;
+            case "hideTimelineModeHighlight":
+                window.dispatchEvent(new Event("hide-timeline-mode-highlight"));
+                break;
+            case "showTimelineFilterZoneHighlight":
+                window.dispatchEvent(
+                    new Event("show-timeline-filterzone-highlight"),
+                );
+                break;
+            case "hideTimelineFilterZoneHighlight":
+                window.dispatchEvent(
+                    new Event("hide-timeline-filterzone-highlight"),
+                );
+                break;
+
             // Filter actions
             case "deactivateAllFilters":
                 window.dispatchEvent(
@@ -1321,6 +1350,9 @@ const executeAction = (actionName, options = null) => {
             case "initDetailOptionsHighlights":
                 initDetailOptionsHighlights();
                 break;
+            case "initTimelineOptionsHighlights":
+                initTimelineOptionsHighlights();
+                break;
             // Navigation Actions
             case "closeDetails":
                 if (props.closeDetails) props.closeDetails();
@@ -1419,9 +1451,16 @@ const initDetailOptionsHighlights = () => {
     window.dispatchEvent(new Event("hide-information-organisations-highlight"));
 };
 
+const initTimelineOptionsHighlights = () => {
+    window.dispatchEvent(new Event("hide-timeline-button-highlight"));
+    window.dispatchEvent(new Event("hide-timeline-mode-highlight"));
+    window.dispatchEvent(new Event("hide-timeline-filterzone-highlight"));
+};
+
 const closeAllHighlights = () => {
     // Execute these functions only once to avoid multiple DOM operations
     initDetailOptionsHighlights();
+    initTimelineOptionsHighlights();
     resetMapOptionsHighlights();
     // Reset highlight element
     highlightElement.value = null;

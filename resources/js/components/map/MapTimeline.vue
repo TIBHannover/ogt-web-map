@@ -32,7 +32,12 @@
                 <div
                     class="timeline-header d-flex w-100 justify-start justify-sm-space-between flex-row align-start align-sm-center px-6 pt-5 pt-sm-6 ga-6 ga-sm-0"
                 >
-                    <div class="d-flex align-center">
+                    <div class="d-flex align-center position-relative">
+                        <div
+                            id="timeline-button-highlight"
+                            class="timeline-button-highlight tutorial-rectangle-highlight"
+                            style="display: none"
+                        ></div>
                         <v-btn
                             :color="
                                 isTimelineFilterEnabled ? 'primary' : 'default'
@@ -66,7 +71,12 @@
                             </span>
                         </v-btn>
                     </div>
-                    <div class="d-flex align-center">
+                    <div class="d-flex align-center position-relative">
+                        <div
+                            id="timeline-mode-highlight"
+                            class="timeline-mode-highlight tutorial-rectangle-highlight"
+                            style="display: none"
+                        ></div>
                         <span v-if="$vuetify.display.mdAndUp" class="mr-2"
                             >Filtermodus:</span
                         >
@@ -102,6 +112,11 @@
                         </v-btn-toggle>
                     </div>
                 </div>
+                <div
+                    id="timeline-filter-highlight"
+                    class="timeline-filter-highlight tutorial-rectangle-highlight"
+                    style="display: none"
+                ></div>
                 <div
                     class="map-timeline"
                     id="timeline"
@@ -502,7 +517,63 @@ function getClientX(e) {
     return e.touches ? e.touches[0].clientX : e.clientX;
 }
 
+const showTutorialHighlight = (highlightId) => {
+    const highlight = document.getElementById(highlightId);
+    if (highlight) {
+        highlight.style.display = "block";
+    }
+};
+
+const hideTutorialHighlight = (highlightId) => {
+    const highlight = document.getElementById(highlightId);
+    if (highlight) {
+        highlight.style.display = "none";
+    }
+};
+
+const showTimelineButtonHighlightHandler = () =>
+    showTutorialHighlight("timeline-button-highlight");
+const hideTimelineButtonHighlightHandler = () =>
+    hideTutorialHighlight("timeline-button-highlight");
+const showTimelineModeHighlightHandler = () =>
+    showTutorialHighlight("timeline-mode-highlight");
+const hideTimelineModeHighlightHandler = () =>
+    hideTutorialHighlight("timeline-mode-highlight");
+const showTimelineFilterZoneHighlightHandler = () =>
+    showTutorialHighlight("timeline-filter-highlight");
+const hideTimelineFilterZoneHighlightHandler = () =>
+    hideTutorialHighlight("timeline-filter-highlight");
+
 onMounted(() => {
+    window.addEventListener(
+        "show-timeline-button-highlight",
+        showTimelineButtonHighlightHandler,
+    );
+    window.addEventListener(
+        "hide-timeline-button-highlight",
+        hideTimelineButtonHighlightHandler,
+    );
+    window.addEventListener(
+        "show-timeline-mode-highlight",
+        showTimelineModeHighlightHandler,
+    );
+    window.addEventListener(
+        "hide-timeline-mode-highlight",
+        hideTimelineModeHighlightHandler,
+    );
+    window.addEventListener(
+        "show-timeline-filterzone-highlight",
+        showTimelineFilterZoneHighlightHandler,
+    );
+    window.addEventListener(
+        "hide-timeline-filterzone-highlight",
+        hideTimelineFilterZoneHighlightHandler,
+    );
+
+    initTimeline();
+});
+
+function initTimeline() {
     const monthSteps = (MONTH_STEP_END_YEAR - YEAR_RANGE[0]) * 12;
     const yearSteps = YEAR_RANGE[1] - MONTH_STEP_END_YEAR;
     const monthFraction =
@@ -558,7 +629,7 @@ onMounted(() => {
             passive: false,
         });
     }, 0);
-});
+}
 
 function closeMapPopups() {
     if (!props.map) return;
@@ -753,6 +824,25 @@ function closeMapPopups() {
 }
 </style>
 <style>
+.tutorial-rectangle-highlight {
+    position: absolute;
+    top: 0;
+    height: calc(100% + 20px);
+    width: calc(100% + 20px);
+    border: 6px solid #ff0000;
+    box-shadow: 0 0 30px 10px rgba(255, 0, 0, 0.7);
+    background-color: transparent;
+    pointer-events: none;
+    z-index: 9999;
+    border-radius: 8px;
+    animation: rectangle-highlight-pulse 2s infinite;
+    transform: translate(-10px, -10px);
+}
+.timeline-filter-highlight {
+    height: 50%;
+    top: auto;
+    bottom: 0;
+}
 .map-timeline-months {
     position: absolute;
     display: block;
