@@ -15,7 +15,11 @@
                 'timeline-active': adjustPlaceInfoPosition,
                 'v-navigation-drawer--closed': !drawerModel && isMobile,
             }"
-            :style="sidebarStyles"
+            :style="
+                props.tutorialMode
+                    ? { 'pointer-events': 'none', sidebarStyles }
+                    : { sidebarStyles }
+            "
             :scrim="false"
             mobile-breakpoint="sm"
         >
@@ -518,8 +522,6 @@ onUnmounted(() => {
 .information-wikidata-highlight {
     width: calc(100% + 20px);
     height: calc(100% + 20px);
-    top: -10px;
-    left: -10px;
 }
 
 .information-button-back-highlight {

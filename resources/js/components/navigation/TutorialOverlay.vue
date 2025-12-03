@@ -68,11 +68,7 @@
             class="tutorial-overlay"
             :class="{ active: active || isFirstVisit }"
         >
-            <div
-                class="tutorial-backdrop"
-                @click="skipTutorial"
-                :style="backdropStyle"
-            ></div>
+            <div class="tutorial-backdrop" :style="backdropStyle"></div>
 
             <div class="tutorial-content" :style="positionStyle">
                 <div class="tutorial-step">
@@ -87,6 +83,9 @@
                             currentChapter.title
                         }}</span>
                     </div>
+                    <v-btn class="close-tutorial" @click="skipTutorial" icon>
+                        <v-icon>mdi-close</v-icon>
+                    </v-btn>
 
                     <h3>{{ currentStep.title }}</h3>
                     <p v-html="currentStep.description"></p>
@@ -278,6 +277,17 @@ const chapters = [
                 onStepNext: null,
             },
             {
+                title: "Menüs während des Tutorial",
+                description:
+                    "Alle Menüs sind deaktiviert solange das Tutorial aktiviert ist. Wenn du das Tutorial verlässt werden die Menüs wieder aktiviert.",
+                highlightSelector: ".tutorial-button",
+                position: { bottom: "100px", left: "80px" },
+                highlightClass: "highlight-tutorial",
+                onStepPrepare: null,
+                onStepShow: null,
+                onStepNext: null,
+            },
+            {
                 title: "Los gehts",
                 description: "Dann fangen wir an mit dem zweiten Kapitel",
                 highlightSelector: null,
@@ -317,8 +327,6 @@ const chapters = [
                 onStepPrepare: "openMapOptions",
                 onStepShow: "hideGlossaryHighlight",
                 onStepNext: null,
-                backdropOpacity: 30,
-                backdropBlur: 0,
             },
             {
                 title: "Glossareinträge",
@@ -331,30 +339,6 @@ const chapters = [
                 onStepShow: "showGlossaryHighlight", // Use our custom action to show highlight
                 onStepNext: null,
             },
-            /*
-            {
-                title: "Glossareinträge öffnen",
-                description:
-                    "Klicke auf eines der Glossar-Icons (🔍) in der rot markierten Spalte, um einen Eintrag zu öffnen. Als Beispiel öffnen wir den Eintrag zum Begriff 'Gestapo'.",
-                highlightSelector: null, // Not using highlight selector anymore
-                position: { top: "120px", right: "400px" },
-                highlightClass: null, // Not using highlight class anymore
-                onStepPrepare: "openMapOptions",
-                onStepShow: "showGlossaryHighlight", // Use our custom action to show highlight
-                onStepNext: "openGlossaryEntry",
-            },
-            {
-                title: "Weitere Schlüsselbegriffe",
-                description:
-                    "Hier findest Du auch weitere Schlüsselbegriffe zur Geschichte der Gestapo.",
-                highlightSelector: ".glossary-content", // Selector for the Glossary content
-                position: { top: "100px", right: "80px" },
-                highlightClass: "highlight-tutorial",
-                onStepPrepare: "closeMapOptions",
-                onStepShow: "setMapToCenter",
-                onStepNext: null,
-            },
-            */
             {
                 title: "Filteroptionen",
                 description:
@@ -381,7 +365,6 @@ const chapters = [
                 title: "Kategorie auswählen",
                 description:
                     "Jetzt kannst Du gezielt eine Kategorie auswählen. In diesem Beispiel aktivieren wir nur die Kategorie 'Staatspolizeileitstellen'.",
-                highlightSelector: ".filter-statePoliceHeadquarters", // Selector for the specific filter
                 position: { top: "180px", right: "400px" },
                 onStepShow:
                     "showFilterCheckboxStaatspolizeileitstelleHighlight",
@@ -397,6 +380,8 @@ const chapters = [
                 onStepPrepare: "openMapOptions",
                 onStepShow: null,
                 onStepNext: null,
+                backdropOpacity: 30,
+                backdropBlur: 0,
             },
             {
                 title: "Standorte auswählen",
@@ -427,6 +412,8 @@ const chapters = [
                 highlightClass: "highlight-tutorial",
                 onStepPrepare: "selectLocation",
                 onStepNext: null,
+                backdropOpacity: 30,
+                backdropBlur: 0,
             },
             {
                 title: "Informationsübersicht",
@@ -606,6 +593,8 @@ const chapters = [
                     "Die Karte zeigt nun alle Ereignisse und Orte, die im gewählten Zeitraum relevant sind.",
                 onStepPrepare: "initTimelineOptionsHighlights",
                 onStepShow: "setFilterTimeZone",
+                backdropOpacity: 30,
+                backdropBlur: 0,
                 position: { bottom: "200px", right: "100px" },
             },
             {
@@ -629,16 +618,18 @@ const chapters = [
                 title: "Ereignisse im Zeitpunkt",
                 description:
                     "Jetzt werden nur noch die Ereignisse angezeigt, die im Oktober 1936 stattgefunden haben – zum Beispiel zur Verfolgung der Sozialistischen Front.",
-                onStepPrepare: "openTimeline",
+                onStepPrepare: "zoomHannover",
                 onStepShow: "initTimelineOptionsHighlights",
+                backdropOpacity: 30,
+                backdropBlur: 0,
                 position: { bottom: "200px", right: "100px" },
             },
             {
                 title: "Zeitfilter schließen",
                 description:
-                    "Wenn wir die Zeitfilter Optionen schließen, wird der Filter automatisch deaktiviert.",
-                onStepPrepare: "closeTimeline",
-                onStepShow: "closeTimelineFilter",
+                    "Über diesen Button kannst du den Zeitfilter schließen.",
+                onStepPrepare: "openTimeline",
+                onStepShow: "showTimelineCloseButtonHighlight",
                 position: { bottom: "200px", right: "100px" },
             },
         ],
@@ -647,25 +638,14 @@ const chapters = [
         title: "Abschluss",
         steps: [
             {
-                title: "Tutorial neu starten",
-                description:
-                    "Hier kannst Du das Tutorial jederzeit neu starten.",
-                highlightSelector: ".tutorial-button", // Selector for tutorial button
-                position: { bottom: "100px", left: "80px" },
-                highlightClass: "highlight-tutorial",
-                onStepPrepare: null,
-                onStepShow: null,
-                onStepNext: null,
-            },
-            {
                 title: "Vielen Dank",
                 description:
-                    "Danke, dass Du Dich mit der Geschichte des Gestapo-Terrors in Niedersachsen auseinandersetzt. Wenn Du Fragen oder Anmerkungen hast, kontaktiere uns gerne per E-Mail: ogt.project@tib.eu.",
-                position: {
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                },
+                    "Danke, dass Du Dich mit der Geschichte des Gestapo-Terrors in Niedersachsen auseinandersetzt. <br />Hiermit sind wir am Ende des Tutorials angekommen. <br /> Du kannst das Tutorial jederzeit neustarten indem du den 'Tutorial' Button drückst. Wenn Du Fragen oder Anmerkungen hast, kontaktiere uns gerne per E-Mail: ogt.project@tib.eu.",
+                position: { bottom: "100px", left: "80px" },
+                highlightClass: "highlight-tutorial",
+                onStepPrepare: "closeTimeline",
+                onStepShow: null,
+                onStepNext: null,
             },
         ],
     },
@@ -1190,6 +1170,11 @@ const executeAction = (actionName, options = null) => {
                     new Event("hide-timeline-filterzone-highlight"),
                 );
                 break;
+            case "showTimelineCloseButtonHighlight":
+                window.dispatchEvent(
+                    new Event("hide-timeline-close-button-highlight"),
+                );
+                break;
 
             // Filter actions
             case "deactivateAllFilters":
@@ -1342,22 +1327,6 @@ const executeAction = (actionName, options = null) => {
             case "openTimelineFilter":
                 window.dispatchEvent(new Event("open-timeline-filter"));
                 break;
-            case "handleGlossaryEntry":
-                if (props.openGlossaryEntry) {
-                    props.openGlossaryEntry("Gestapo");
-                    // Update highlight after opening glossary entry
-                    setTimeout(() => {
-                        updateHighlightElement();
-                        applyHighlightClass();
-                    }, 500);
-
-                    // Update again after a longer delay to ensure the UI has settled
-                    setTimeout(() => {
-                        updateHighlightElement();
-                        applyHighlightClass();
-                    }, 1000);
-                }
-                break;
             // Filter Actions
             case "activateFilter":
                 if (props.activateFilter)
@@ -1406,6 +1375,14 @@ const executeAction = (actionName, options = null) => {
             case "setMapToCenter":
                 if (props.setMapView) {
                     props.setMapView([52.8398667, 9.0759744], 8);
+                }
+                break;
+            case "zoomHannover":
+                if (props.setMapView) {
+                    props.setMapView(
+                        [52.37711869644347, 9.749078750610353],
+                        13,
+                    );
                 }
                 break;
             case "scrollTo":
@@ -1489,6 +1466,7 @@ const initTimelineOptionsHighlights = () => {
     window.dispatchEvent(new Event("hide-timeline-button-highlight"));
     window.dispatchEvent(new Event("hide-timeline-mode-highlight"));
     window.dispatchEvent(new Event("hide-timeline-filterzone-highlight"));
+    window.dispatchEvent(new Event("hide-timeline-close-button-highlight"));
 };
 
 const closeAllHighlights = () => {
@@ -1891,6 +1869,12 @@ onUnmounted(() => {
 .tutorial-backdrop {
     z-index: 900; /* Lower z-index to allow sidebar to appear above it */
     pointer-events: auto;
+}
+
+.close-tutorial {
+    position: absolute;
+    top: 10px;
+    right: 10px;
 }
 
 @keyframes pulse {

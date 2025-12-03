@@ -19,6 +19,7 @@
             v-model:groupedPlacesShownOnMap="groupedPlacesShownOnMap"
             :groupedPlaces="groupedPlaces"
             :map="map"
+            :tutorialMode="showTutorial"
             :mapMarkerIconsPath="mapMarkerIconsPath"
             ref="optionsSidebar"
         ></map-options-sidebar>
@@ -26,6 +27,7 @@
         <map-timeline
             :groupedPlaces="groupedPlaces"
             :map="map"
+            :tutorialMode="showTutorial"
             @update-time-line="handleTimelineUpdate"
             @timeline-filter-enabled-change="handleTimelineFilterChange"
             @closeMapOptions="closeMapOptions"

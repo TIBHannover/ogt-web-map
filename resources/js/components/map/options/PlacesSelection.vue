@@ -13,6 +13,11 @@
                     class="filter-checkbox-all-highlight tutorial-rectangle-highlight"
                     style="display: none"
                 ></div>
+                <div
+                    id="filter-checkbox-staatspolizeileitstellen-highlight"
+                    class="filter-checkbox-staatspolizeileitstellen-highlight filter-checkbox-all-highlight tutorial-rectangle-highlight"
+                    style="display: none"
+                ></div>
                 <v-row>
                     <v-col class="py-0" style="max-width: 60px"></v-col>
                     <v-col class="pa-0">
@@ -346,8 +351,6 @@ const activateStaatspolizeileitstellen = () => {
     // First clear all filters
     proxyGroupedPlacesShownOnMap.value = [];
 
-    // Then add only the Staatspolizeileitstellen filter
-    // Using a slight delay to ensure UI updates properly
     setTimeout(() => {
         proxyGroupedPlacesShownOnMap.value = ["statePoliceHeadquarters"];
     }, 100);
@@ -457,29 +460,29 @@ orderedGroupPlaceNames.value.forEach((groupName) => {
 .filter-dropdowns-highlight {
     width: calc(100% + 20px);
     height: calc(100% + 20px);
-    top: -10px;
-    left: -10px;
-}
-
-.filter-checkbox-staatspolizeileitstellen-highlight {
-    height: 55px;
-    top: -5px;
-    left: -15px;
-    width: calc(100% - 20px);
-}
-
-.filter-row-highlight {
-    left: -15px;
-    width: calc(100% - 20px);
+    top: 0;
+    left: 0;
 }
 
 .filter-checkbox-all-highlight {
     left: 0px;
+    top: 5px;
+    height: 45px;
     width: calc(100% - 40px);
 }
 
+.filter-checkbox-staatspolizeileitstellen-highlight {
+    height: 55px;
+    top: 35px;
+    width: calc(100% - 20px);
+}
+
+.filter-row-highlight {
+    width: calc(100% - 20px);
+}
+
 .glossary-column-highlight {
-    right: -15px;
+    right: -25px;
     width: 70px;
 }
 

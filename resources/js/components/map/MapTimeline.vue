@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div :style="props.tutorialMode ? { 'pointer-events': 'none' } : {}">
         <v-btn
             position="fixed"
             location="bottom right"
@@ -163,6 +163,10 @@ const emit = defineEmits([
 const props = defineProps({
     groupedPlaces: Object,
     map: Object,
+    tutorialMode: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const YEAR_RANGE = [1933, new Date().getFullYear()];
@@ -564,6 +568,10 @@ const showTimelineFilterZoneHighlightHandler = () =>
     showTutorialHighlight("timeline-filter-highlight");
 const hideTimelineFilterZoneHighlightHandler = () =>
     hideTutorialHighlight("timeline-filter-highlight");
+const showTimelineCloseButtonHighlightHandler = () =>
+    showTutorialHighlight("timeline-close-button-highlight");
+const hideTimelineCloseButtonHighlightHandler = () =>
+    hideTutorialHighlight("timeline-close-button-highlight");
 
 onMounted(() => {
     window.addEventListener(
@@ -589,6 +597,14 @@ onMounted(() => {
     window.addEventListener(
         "hide-timeline-filterzone-highlight",
         hideTimelineFilterZoneHighlightHandler,
+    );
+    window.addEventListener(
+        "show-timeline-close-button-highlight",
+        showTimelineCloseButtonHighlightHandler,
+    );
+    window.addEventListener(
+        "hide-timeline-close-button-highlight",
+        hideTimelineCloseButtonHighlightHandler,
     );
     window.addEventListener("close-timeline-filter", () => {
         closeTimeline();

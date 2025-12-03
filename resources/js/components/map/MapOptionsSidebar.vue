@@ -22,6 +22,7 @@
             v-model="isMapOptionsOpen"
             class="z-index-4 menuOptionsidebar"
             :scrim="false"
+            :style="props.tutorialMode ? { 'pointer-events': 'none' } : {}"
             :location="isMobile ? 'bottom' : 'right'"
             :height="isMobile ? 'auto' : ''"
             :width="isMobile ? '100%' : '375'"
@@ -106,6 +107,10 @@ const props = defineProps({
     mapMarkerIconsPath: {
         type: String,
         required: true,
+    },
+    tutorialMode: {
+        type: Boolean,
+        default: false,
     },
 });
 

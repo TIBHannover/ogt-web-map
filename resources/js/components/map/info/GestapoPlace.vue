@@ -539,8 +539,6 @@ defineEmits([
 .information-organisations-highlight {
     width: calc(100% + 20px);
     height: calc(100% + 20px);
-    top: -10px;
-    left: -10px;
 }
 
 @keyframes rectangle-highlight-pulse {
