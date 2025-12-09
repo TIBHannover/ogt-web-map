@@ -788,6 +788,16 @@ export default {
             // Tutorial-Schritte festlegen (hier z.B. für Timeline)
             tutorialSteps.value = timelineTutorialSteps;
 
+            // Add custom event listeners for map marker management
+            window.addEventListener(
+                "update-map-markers",
+                handleUpdateMapMarkers,
+            );
+            window.addEventListener(
+                "force-redraw-markers",
+                handleForceRedrawMarkers,
+            );
+
             // Optional: Tutorial automatisch starten, wenn es noch nicht abgeschlossen wurde
             if (!tutorialCompleted.value) {
                 // Verzögerung, damit die Karte vollständig geladen ist
@@ -824,6 +834,16 @@ export default {
             if (map.value) {
                 map.value.remove();
             }
+
+            // Remove custom event listeners for map marker management
+            window.removeEventListener(
+                "update-map-markers",
+                handleUpdateMapMarkers,
+            );
+            window.removeEventListener(
+                "force-redraw-markers",
+                handleForceRedrawMarkers,
+            );
         });
 
         const setupLeafletMap = async () => {
@@ -1288,6 +1308,11 @@ export default {
 
                     // skip if subgroup is not enabled on map
                     if (!groupedPlacesShownOnMap.value.includes(groupName))
+                        return;
+
+                    // Also check if the main group is enabled
+                    const mainGroupName = linkedMainGroupItem.group;
+                    if (!groupedPlacesShownOnMap.value.includes(mainGroupName))
                         return;
 
                     // ensure main marker is added to map
@@ -3627,6 +3652,18 @@ export default {
 
         const handleLayerGroupsUpdate = (newGroups) => {
             debouncedApplyFilters(null, null, newGroups);
+        };
+
+        // Handler for update-map-markers event
+        const handleUpdateMapMarkers = () => {
+            console.log("Handling update-map-markers event");
+            debouncedApplyFilters(null, null, groupedPlacesShownOnMap.value);
+        };
+
+        // Handler for force-redraw-markers event
+        const handleForceRedrawMarkers = () => {
+            console.log("Handling force-redraw-markers event");
+            drawLinesBetweenSubAndMainGroups();
         };
 
         /**

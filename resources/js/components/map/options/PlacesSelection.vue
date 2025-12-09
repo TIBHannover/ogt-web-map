@@ -176,7 +176,14 @@ const emit = defineEmits(["update:groupedPlacesShownOnMap"]);
 
 const proxyGroupedPlacesShownOnMap = computed({
     get: () => props.groupedPlacesShownOnMap,
-    set: (value) => emit("update:groupedPlacesShownOnMap", value),
+    set: (value) => {
+        emit("update:groupedPlacesShownOnMap", value);
+        // Ensure markers are updated when the selection changes
+        setTimeout(() => {
+            window.dispatchEvent(new Event("update-map-markers"));
+            window.dispatchEvent(new Event("force-redraw-markers"));
+        }, 50);
+    },
 });
 
 const showTutorialHighlight = (highlightId) => {
@@ -243,6 +250,16 @@ onMounted(() => {
         "hide-filter-dropdown-highlight",
         hideFilterDropdownHandler,
     );
+    window.addEventListener("select-all-filters", selectAll);
+    // Add event listeners for map marker updates that will be dispatched when selectAll is called
+    window.addEventListener("update-map-markers", () => {
+        // This event will trigger applyFilters in Map.vue to handle all markers
+        console.log("update-map-markers event received");
+    });
+    window.addEventListener("force-redraw-markers", () => {
+        // This event will trigger drawLinesBetweenSubAndMainGroups in Map.vue
+        console.log("force-redraw-markers event received");
+    });
 
     // Filter action events
     window.addEventListener("deactivate-all-filters", deactivateAllFilters);
@@ -273,6 +290,9 @@ onBeforeUnmount(() => {
         "hide-filters-checkbox-all-highlight",
         hideFilterCheckboxAllHandler,
     );
+    window.removeEventListener("select-all-filters", selectAll);
+    window.removeEventListener("update-map-markers", () => {});
+    window.removeEventListener("force-redraw-markers", () => {});
 
     // Remove filter action event listeners
     window.removeEventListener("deactivate-all-filters", deactivateAllFilters);
@@ -333,12 +353,34 @@ const clearFocus = () => {
 };
 
 const selectAll = () => {
-    proxyGroupedPlacesShownOnMap.value =
-        proxyGroupedPlacesShownOnMap.value.length !==
-        Object.keys(props.groupedPlaces).length
-            ? Object.keys(props.groupedPlaces)
-            : [];
+    // Set all filters to be selected (this will check the "Alle auswählen" checkbox)
+    areAllGroupedPlacesShownOnMap.value = true;
+
+    // Find any subgroups in the groupedPlaces object
+    const allGroupNames = Object.keys(props.groupedPlaces);
+
+    // Make sure all group names are in the proxyGroupedPlacesShownOnMap array
+    proxyGroupedPlacesShownOnMap.value = [...allGroupNames];
+
+    // Dispatch events to ensure all markers including subgroups are properly displayed
+    // This will trigger applyFilters in Map.vue to redraw markers
+    window.dispatchEvent(new Event("update-map-markers"));
+    // This will redraw connections between main groups and subgroups
+    window.dispatchEvent(new Event("force-redraw-markers"));
 };
+
+// Watch for changes to the "Alle auswählen" checkbox
+watch(areAllGroupedPlacesShownOnMap, (newValue) => {
+    if (newValue === true) {
+        // When checked, make sure all groups are selected and markers are updated
+        const allGroupNames = Object.keys(props.groupedPlaces);
+        proxyGroupedPlacesShownOnMap.value = [...allGroupNames];
+
+        // Update the map markers
+        window.dispatchEvent(new Event("update-map-markers"));
+        window.dispatchEvent(new Event("force-redraw-markers"));
+    }
+});
 
 // Function to deactivate all filters - called from tutorial
 const deactivateAllFilters = () => {

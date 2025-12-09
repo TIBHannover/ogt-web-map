@@ -218,7 +218,7 @@ defineEmits(["switchLocation", "goBack"]);
 .information-back-highlight {
     width: calc(100% + 20px);
     height: calc(100% + 20px);
-    top: -10px;
+    top: 0;
     left: -10px;
 }
 

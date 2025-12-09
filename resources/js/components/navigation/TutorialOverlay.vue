@@ -591,7 +591,7 @@ const chapters = [
                 title: "Zeitraumfilterung",
                 description:
                     "Die Karte zeigt nun alle Ereignisse und Orte, die im gewählten Zeitraum relevant sind.",
-                onStepPrepare: "initTimelineOptionsHighlights",
+                onStepPrepare: "showTimelineFilterZoneHighlight",
                 onStepShow: "setFilterTimeZone",
                 backdropOpacity: 30,
                 backdropBlur: 0,
@@ -1172,7 +1172,7 @@ const executeAction = (actionName, options = null) => {
                 break;
             case "showTimelineCloseButtonHighlight":
                 window.dispatchEvent(
-                    new Event("hide-timeline-close-button-highlight"),
+                    new Event("show-timeline-close-button-highlight"),
                 );
                 break;
 
@@ -1205,6 +1205,7 @@ const executeAction = (actionName, options = null) => {
 
                     // Also dispatch event to activate the filter
                     window.dispatchEvent(new Event("open-timeline-filter"));
+                    window.dispatchEvent(new Event("select-all-filters"));
 
                     // Clear any previous highlights
                     closeAllHighlights();

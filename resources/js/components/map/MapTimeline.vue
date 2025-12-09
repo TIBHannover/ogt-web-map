@@ -21,6 +21,11 @@
             v-show="isTimelineOpen"
             :class="{ isOpen: isTimelineOpen }"
         >
+            <div
+                id="timeline-close-button-highlight"
+                class="timeline-close-button-highlight tutorial-rectangle-highlight"
+                style="display: none"
+            ></div>
             <v-btn
                 @click.stop="handleToggleTimeline"
                 icon
@@ -996,6 +1001,11 @@ function closeMapPopups() {
     border-radius: 8px;
     animation: rectangle-highlight-pulse 2s infinite;
     transform: translate(-10px, -10px);
+}
+.timeline-back-button-highlight {
+    height: 50px;
+    width: 50px;
+    right: 0;
 }
 .timeline-filter-highlight {
     height: 50%;

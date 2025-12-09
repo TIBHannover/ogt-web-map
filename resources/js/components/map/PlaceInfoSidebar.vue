@@ -522,6 +522,7 @@ onUnmounted(() => {
 .information-wikidata-highlight {
     width: calc(100% + 20px);
     height: calc(100% + 20px);
+    left: 0;
 }
 
 .information-button-back-highlight {
@@ -530,7 +531,8 @@ onUnmounted(() => {
 .information-wikidata-highlight {
     height: 50px;
     top: auto;
-    bottom: -10px;
+    top: auto;
+    bottom: -20px;
 }
 
 @media (max-width: 600px) {
