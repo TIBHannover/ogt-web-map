@@ -107,7 +107,10 @@ class FactgridClient
         // Organization Properties
         "P319" => "parentOrganizations", // Parent organization (Wikidata P749)
         "P419" => "subsidiaries", // Has subsidiaries (Wikidata P355)
+        "P6" => "replaces", // https://www.wikidata.org/wiki/Property:P1365
         "P7" => "replacedBys", // Replaced by (Wikidata P1366)
+        "P1421" => "employeeCounts", // https://www.wikidata.org/wiki/Property:P1128
+        "P1422" => "prisonerCounts", // https://www.wikidata.org/wiki/Property:P5630
 
         // Role and Relationship Properties
         "P277" => "subjectRoles", // Subject has role (Wikidata P2868)
@@ -124,6 +127,10 @@ class FactgridClient
         "P66" => "perpetrators", // Perpetrator (Wikidata P8031 - second mapping)
         "P751" => "victims", // Victim (Wikidata P8032)
         "P464" => "hasCause", // Has cause (Wikidata P828)
+        "P5582" => "numberOfArrests", // https://www.wikidata.org/wiki/Property:P5582
+        "P1418" => "numberOfSurvivors", // https://www.wikidata.org/wiki/Property:P1561
+        "P1164" => "numberOfCasualties", // https://www.wikidata.org/wiki/Property:P1590
+        "P1419" => "numberOfDeaths", // https://www.wikidata.org/wiki/Property:P1120
 
         "P9" => "hasParts", // https://www.wikidata.org/wiki/Property:P527
         "P280" => "hasUses", // https://www.wikidata.org/wiki/Property:P366
@@ -224,9 +231,9 @@ class FactgridClient
             ?property wikibase:propertyType ?propertyType.
             FILTER(?property IN(
               wd:P189, wd:P2, wd:P534, wd:P47, wd:P419, wd:P280, wd:P9, wd:P550, wd:P391, wd:P48,
-              wd:P319, wd:P156, wd:P315, wd:P7, wd:P7, wd:P137, wd:P146, wd:P1164, wd:P550, wd:P534,
-              wd:P153, wd:P49, wd:P50, wd:P1164, wd:P153, wd:P156, wd:P155, wd:P49, wd:P50,
-              wd:P1164, wd:P319, wd:P419, wd:P7, wd:P7, wd:P1164, wd:P315, wd:P14, wd:P247, wd:P248,
+              wd:P319, wd:P156, wd:P315, wd:P7, wd:P7, wd:P137, wd:P1164, wd:P550, wd:P534,
+              wd:P153, wd:P49, wd:P50,wd:P153, wd:P156, wd:P155, wd:P49, wd:P50,
+              wd:P319, wd:P129, wd:P146, wd:P7, wd:P7, wd:P1422, wd:P1421, wd:P14, wd:P247, wd:P248, wd:P5582, wd:P1418, wd:P1419,
               wd:P8, wd:P95, wd:P47, wd:P47, wd:P66, wd:P751, wd:P290
             ))
             FILTER(?propertyType != wikibase:Time)
@@ -337,7 +344,6 @@ class FactgridClient
             WHERE
             {
                 {
-                    # Query all persons with specific roles
                     ?item wdt:P2 wd:Q7.
                     ?item wdt:P277/wdt:P3 ?role.
                     FILTER(?role IN (wd:Q1784661, wd:Q1784663))
