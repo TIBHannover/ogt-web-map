@@ -279,7 +279,7 @@ const chapters = [
             {
                 title: "Menüs während des Tutorial",
                 description:
-                    "Alle Menüs sind deaktiviert solange das Tutorial aktiviert ist. Wenn du das Tutorial verlässt werden die Menüs wieder aktiviert.",
+                    "Alle Menüs sind deaktiviert, solange das Tutorial aktiviert ist. Wenn du das Tutorial verlässt, werden die Menüs wieder aktiviert.",
                 highlightSelector: ".tutorial-button",
                 position: { bottom: "100px", left: "80px" },
                 highlightClass: "highlight-tutorial",
@@ -289,7 +289,8 @@ const chapters = [
             },
             {
                 title: "Los gehts",
-                description: "Dann fangen wir an mit dem zweiten Kapitel",
+                description:
+                    "Im nächsten Schritt starten wir mit Kapitel zwei.",
                 highlightSelector: null,
                 position: {
                     top: "50%",
