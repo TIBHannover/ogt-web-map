@@ -3036,6 +3036,58 @@ export default {
             return propertyDataArray;
         };
         /**
+         * Format a date based on its precision level
+         * @param {Date} date - JavaScript Date object
+         * @param {string} precision - The precision level (9 = year, 10 = month, 11 = day)
+         * @returns {string} Formatted date string
+         */
+        const formatDateByPrecision = (date, precision) => {
+            if (!date || isNaN(date.getTime())) {
+                return "";
+            }
+
+            // Convert precision to number if it's a string
+            const precisionNum =
+                typeof precision === "string"
+                    ? parseInt(precision, 10)
+                    : precision;
+
+            // Get date parts
+            const year = date.getFullYear();
+            const month = date.getMonth();
+            const day = date.getDate();
+
+            // German locale style formatting
+            const monthNames = [
+                "Januar",
+                "Februar",
+                "März",
+                "April",
+                "Mai",
+                "Juni",
+                "Juli",
+                "August",
+                "September",
+                "Oktober",
+                "November",
+                "Dezember",
+            ];
+
+            // Check precision level
+            // 0-8 = billion years to decade, 9 = year, 10 = month, 11 = day, 12+ = hour to second
+            if (!precisionNum || precisionNum <= 9) {
+                // Year precision or less (year, decade, century, etc.)
+                return `${year}`;
+            } else if (precisionNum === 10) {
+                // Month precision
+                return `${monthNames[month]} ${year}`;
+            } else {
+                // Day precision or higher (day, hour, minute, second)
+                return `${day}. ${monthNames[month]} ${year}`;
+            }
+        };
+
+        /**
          * Get time periods for item property data.
          *
          * @param {object} propertyData
@@ -3046,9 +3098,9 @@ export default {
          *              startDate: (null|{locale: string, value: Date}|{locale: string, value: null}),
          *          }}
          */
+
         const getPropertyDataTimePeriods = (propertyData) => {
             let startDate = null;
-
             if (propertyData.startTime) {
                 startDate = getDate(
                     propertyData.startTime.value,

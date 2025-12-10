@@ -118,7 +118,7 @@ class FactgridClient
         "P14" => "directors", // Director (Wikidata P1037)
         "P216" => "detentionPlaces", // Place of detention (Wikidata P2632)
         "P550" => "significantEvents", // Significant event (Wikidata P793)
-        "P391" => "commemorates", // https://www.wikidata.org/wiki/Property:P547
+        "P1423" => "commemorates", // https://www.wikidata.org/wiki/Property:P547
         "P129" => "describedBySources", // Described by source (Wikidata P1343)
         "P146" => "describedByUrlSources", // Described by URL (Wikidata P973)
 
@@ -195,7 +195,7 @@ class FactgridClient
           }
           UNION
           {
-              ?item wdt:P391 ?location.
+              ?item wdt:P1423 ?location.
               ?location wdt:P2 wd:Q1784677.
           }
           UNION
@@ -230,7 +230,7 @@ class FactgridClient
           {
             ?property wikibase:propertyType ?propertyType.
             FILTER(?property IN(
-              wd:P189, wd:P2, wd:P534, wd:P47, wd:P419, wd:P280, wd:P9, wd:P550, wd:P391, wd:P48,
+              wd:P189, wd:P2, wd:P534, wd:P47, wd:P419, wd:P280, wd:P9, wd:P550, wd:P1423, wd:P48,
               wd:P319, wd:P156, wd:P315, wd:P7, wd:P7, wd:P137, wd:P1164, wd:P550, wd:P534,
               wd:P153, wd:P49, wd:P50,wd:P153, wd:P156, wd:P155, wd:P49, wd:P50,
               wd:P319, wd:P129, wd:P146, wd:P7, wd:P7, wd:P1422, wd:P1421, wd:P14, wd:P247, wd:P248, wd:P5582, wd:P1418, wd:P1419,
@@ -243,10 +243,10 @@ class FactgridClient
           UNION
           {
             ?property wikibase:statementValue ?psv.
-            FILTER(?property IN(wd:P49, wd:P50, wd:P45, wd:P46, wd:P106, wd:P49))
+            FILTER(?property IN(wd:P49, wd:P50, wd:P45, wd:P46, wd:P106, wd:P77, wd:P38, wd:P290))
             ?statement ?psv ?propertyValueNode.
-            ?propertyValueNode wikibase:timeValue ?propertyValue;
-              wikibase:timePrecision ?propertyTimePrecision.
+            ?propertyValueNode wikibase:timeValue ?propertyValue.
+            OPTIONAL { ?propertyValueNode wikibase:timePrecision ?propertyTimePrecision. }
           }
           OPTIONAL {
             {
@@ -259,10 +259,10 @@ class FactgridClient
             UNION
             {
               ?qualifier wikibase:qualifierValue ?pqv.
-              FILTER(?qualifier IN(wd:P45, wd:P46, wd:P106, wd:P218, wd:P219, wd:P432, wd:P432))
+              FILTER(?qualifier IN(wd:P45, wd:P46, wd:P49, wd:P50, wd:P106, wd:P218, wd:P219, wd:P432, wd:P432))
               ?statement ?pqv ?qualifierValueNode.
-              ?qualifierValueNode wikibase:timeValue ?qualifierValue;
-                wikibase:timePrecision ?qualifierTimePrecision.
+              ?qualifierValueNode wikibase:timeValue ?qualifierValue.
+              OPTIONAL { ?qualifierValueNode wikibase:timePrecision ?qualifierTimePrecision. }
             }
           }
           SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". }
@@ -277,6 +277,47 @@ class FactgridClient
             storage_path("logs/factgrid_response.json"),
             json_encode($response, JSON_PRETTY_PRINT),
         );
+
+        // Save the query for debugging
+        file_put_contents(storage_path("logs/factgrid_query.txt"), $query);
+
+        // Log information about the response
+        Log::debug("FactGrid query executed", [
+            "bindings_count" => count($response["results"]["bindings"] ?? []),
+            "vars" => $response["head"]["vars"] ?? [],
+        ]);
+
+        // Check for timePrecision values in the response
+        $timePrecisionCount = 0;
+        $inceptionTimeCount = 0;
+        $dissolvedTimeCount = 0;
+
+        foreach ($response["results"]["bindings"] as $binding) {
+            if (isset($binding["propertyTimePrecision"])) {
+                $timePrecisionCount++;
+
+                // Look for specific properties
+                if (
+                    isset($binding["property"]) &&
+                    isset($binding["property"]["value"])
+                ) {
+                    $propValue = $binding["property"]["value"];
+                    if (strpos($propValue, "P49") !== false) {
+                        $inceptionTimeCount++;
+                        Log::debug("Found inception date precision", $binding);
+                    } elseif (strpos($propValue, "P50") !== false) {
+                        $dissolvedTimeCount++;
+                        Log::debug("Found dissolved date precision", $binding);
+                    }
+                }
+            }
+        }
+
+        Log::debug("Time precision statistics", [
+            "total_precision_values" => $timePrecisionCount,
+            "inception_dates_with_precision" => $inceptionTimeCount,
+            "dissolved_dates_with_precision" => $dissolvedTimeCount,
+        ]);
 
         // Check for valid response structure and filter out empty bindings
         if (
@@ -729,11 +770,69 @@ class FactgridClient
                 ])
             ) {
                 // Date properties
-                $datePrecision = "11"; // Default day precision
-                if (preg_match("/^\d{4}-\d{2}$/", $value)) {
-                    $datePrecision = "10"; // Month precision
-                } elseif (preg_match("/^\d{4}$/", $value)) {
-                    $datePrecision = "9"; // Year precision
+                // Check if the propertyTimePrecision is available from the query
+                $datePrecision =
+                    isset($itemChunk["propertyTimePrecision"]) &&
+                    isset($itemChunk["propertyTimePrecision"]["value"])
+                        ? $itemChunk["propertyTimePrecision"]["value"]
+                        : "11"; // Default day precision
+
+                // Log date precision information for debugging
+                if (
+                    $semanticKey == "inceptionDates" ||
+                    $semanticKey == "dissolvedDates" ||
+                    $semanticKey == "pointInTime"
+                ) {
+                    Log::debug("Date precision for {$semanticKey}", [
+                        "value" => $value,
+                        "has_precision" => isset(
+                            $itemChunk["propertyTimePrecision"],
+                        ),
+                        "precision_value" => isset(
+                            $itemChunk["propertyTimePrecision"]["value"],
+                        )
+                            ? $itemChunk["propertyTimePrecision"]["value"]
+                            : "not set",
+                        "inferred_precision" => $datePrecision,
+                        "property" => $id,
+                        "itemChunk_keys" => array_keys($itemChunk),
+                        "raw" => $itemChunk,
+                    ]);
+                }
+
+                // Fallback to inferring precision from the date format if not available from query
+                if (
+                    !isset($itemChunk["propertyTimePrecision"]) ||
+                    !isset($itemChunk["propertyTimePrecision"]["value"])
+                ) {
+                    // For date properties, inspect the format to determine precision
+                    if ($value && is_string($value)) {
+                        if (preg_match("/^\d{4}-\d{2}$/", $value)) {
+                            $datePrecision = "10"; // Month precision
+                            Log::debug("Inferred month precision from format", [
+                                "value" => $value,
+                            ]);
+                        } elseif (preg_match("/^\d{4}$/", $value)) {
+                            $datePrecision = "9"; // Year precision
+                            Log::debug("Inferred year precision from format", [
+                                "value" => $value,
+                            ]);
+                        } elseif (preg_match("/^\d{4}-\d{2}-\d{2}/", $value)) {
+                            // Look at the day part - if it's "01" for non-January months, likely only month precision
+                            if (
+                                preg_match(
+                                    "/^\d{4}-(?!01-)(0[2-9]|1[0-2])-01/",
+                                    $value,
+                                )
+                            ) {
+                                $datePrecision = "10"; // Month precision for non-January dates with day=01
+                                Log::debug(
+                                    "Inferred month precision from day=01 pattern",
+                                    ["value" => $value],
+                                );
+                            }
+                        }
+                    }
                 }
 
                 $result = [
@@ -786,12 +885,23 @@ class FactgridClient
                     "latestDate",
                 ])
             ) {
-                if (preg_match("/^\d{4}-\d{2}-\d{2}/", $value)) {
-                    $result["datePrecision"] = "11"; // Day precision
-                } elseif (preg_match("/^\d{4}-\d{2}/", $value)) {
-                    $result["datePrecision"] = "10"; // Month precision
-                } elseif (preg_match("/^\d{4}/", $value)) {
-                    $result["datePrecision"] = "9"; // Year precision
+                // Check if the qualifierTimePrecision is available from the query
+                if (
+                    isset($itemChunk["qualifierTimePrecision"]) &&
+                    isset($itemChunk["qualifierTimePrecision"]["value"])
+                ) {
+                    $result["datePrecision"] =
+                        $itemChunk["qualifierTimePrecision"]["value"];
+                }
+                // Fallback to inferring precision from date format
+                else {
+                    if (preg_match("/^\d{4}-\d{2}-\d{2}/", $value)) {
+                        $result["datePrecision"] = "11"; // Day precision
+                    } elseif (preg_match("/^\d{4}-\d{2}/", $value)) {
+                        $result["datePrecision"] = "10"; // Month precision
+                    } elseif (preg_match("/^\d{4}/", $value)) {
+                        $result["datePrecision"] = "9"; // Year precision
+                    }
                 }
             }
         }
