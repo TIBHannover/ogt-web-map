@@ -117,7 +117,7 @@ class FactgridClient
         "P315" => "employers", // Employer (Wikidata P108)
         "P14" => "directors", // Director (Wikidata P1037)
         "P216" => "detentionPlaces", // Place of detention (Wikidata P2632)
-        "P550" => "significantEvents", // Significant event (Wikidata P793)
+        "P137" => "significantEvents", // Significant event (Wikidata P793)
         "P1423" => "commemorates", // https://www.wikidata.org/wiki/Property:P547
         "P129" => "describedBySources", // Described by source (Wikidata P1343)
         "P146" => "describedByUrlSources", // Described by URL (Wikidata P973)
@@ -200,7 +200,7 @@ class FactgridClient
           }
           UNION
           {
-            ?item wdt:P550 ?location.
+            ?item wdt:P137 ?location.
             ?location wdt:P2 wd:Q1784677.
             ?item wdt:P48 ?coordinates.
           }
@@ -220,7 +220,7 @@ class FactgridClient
             UNION
             {
               VALUES ?validSubjectRoles { wd:Q1784661 wd:Q1784663 }.
-              ?item wdt:P550 ?event;
+              ?item wdt:P137 ?event;
                     wdt:P277/wdt:P3? ?validSubjectRoles.
               ?item wdt:P48 ?coordinates.
             }
@@ -230,8 +230,8 @@ class FactgridClient
           {
             ?property wikibase:propertyType ?propertyType.
             FILTER(?property IN(
-              wd:P189, wd:P2, wd:P534, wd:P47, wd:P419, wd:P280, wd:P9, wd:P550, wd:P1423, wd:P48,
-              wd:P319, wd:P156, wd:P315, wd:P7, wd:P7, wd:P137, wd:P1164, wd:P550, wd:P534,
+              wd:P189, wd:P2, wd:P534, wd:P47, wd:P419, wd:P280, wd:P9, wd:P137, wd:P1423, wd:P48,
+              wd:P319, wd:P156, wd:P315, wd:P7, wd:P7, wd:P137, wd:P1164, wd:P137, wd:P534,
               wd:P153, wd:P49, wd:P50,wd:P153, wd:P156, wd:P155, wd:P49, wd:P50,
               wd:P319, wd:P129, wd:P146, wd:P7, wd:P7, wd:P1422, wd:P1421, wd:P14, wd:P247, wd:P248, wd:P5582, wd:P1418, wd:P1419,
               wd:P8, wd:P95, wd:P47, wd:P47, wd:P66, wd:P751, wd:P290
@@ -413,7 +413,7 @@ class FactgridClient
                     UNION
                     { ?event wdt:P751 ?item. } # Person is victim of event
                     UNION
-                    { ?item wdt:P550 ?event. } # Person has this event as significant event
+                    { ?item wdt:P137 ?event. } # Person has this event as significant event
                 }
 
                 # Get all properties for the person
@@ -432,7 +432,7 @@ class FactgridClient
                         wd:P315, # employers
                         wd:P247, # familyName
                         wd:P248, # givenName
-                        wd:P550, # significantEvents
+                        wd:P137, # significantEvents
                         wd:P129, # describedBySources
                         wd:P146, # describedByUrlSources
                         wd:P216, # detentionPlaces
