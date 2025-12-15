@@ -35,15 +35,19 @@ class FactgridClient
             "Q1014362", //
         ],
         "statePoliceOffices" => [
-            "Q1784671", // Grenzpolizeikommissariat
-            "Q1784668", // Staatspolizeistelle
+            "Q1784674", // https://www.wikidata.org/wiki/Q108048310     Branch office (state police)
+            "Q992960", // https://www.wikidata.org/wiki/Q2101520       Political police (Germany)
+            "Q1784668", // https://www.wikidata.org/wiki/Q108047567     State Police Office
         ],
         "statePoliceHeadquarters" => [
-            "Q1784673", // Staatspolizeileitstelle
+            "Q1784673", // https://www.wikidata.org/wiki/Q108047581     State Police Headquarter
         ],
-        "prisons" => ["Q23223"], // Haftstätte
-        "extPolicePrisons" => ["Q1784665"], // Erweitertes Polizeigefängnis
-        "laborEducationCamps" => ["Q978663"], // Arbeitserziehungslager
+        "prisons" => ["Q23223"], // https://www.wikidata.org/wiki/Q40357         prison
+        "extPolicePrisons" => [
+            "Q1784665", // https://www.wikidata.org/wiki/Q108047650     Extended police prison
+            "Q1790894", // https://www.wikidata.org/wiki/Q108048094     Police Detention Camp
+        ], // Erweitertes Polizeigefängnis
+        "laborEducationCamps" => ["Q978663"], // https://www.wikidata.org/wiki/Q277565        labor education camp
         "fieldOffices" => [
             "Q1784667", // https://www.wikidata.org/wiki/Q108047541     Gestapo Field Office
             "Q1784676", // https://www.wikidata.org/wiki/Q108047989     Outpost (State Police)
