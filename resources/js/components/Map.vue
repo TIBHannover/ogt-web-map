@@ -209,7 +209,7 @@ export default {
                 layerName: "Aktion Lauterbacher",
                 linkedMainGroupItem: {
                     group: "events",
-                    id: "Q134587748",
+                    id: "Q1784204",
                     lines: [],
                     marker: null,
                 },
@@ -224,7 +224,7 @@ export default {
                 layerName: "Verfolgung der Sozialistischen Front",
                 linkedMainGroupItem: {
                     group: "events",
-                    id: "Q133303308",
+                    id: "Q1784243",
                     lines: [],
                     marker: null,
                 },
@@ -1781,7 +1781,7 @@ export default {
                     let isUncertain = false;
                     if (
                         coordinate.sourcingCircumstance &&
-                        coordinate.sourcingCircumstance.id == "Q13649246"
+                        coordinate.sourcingCircumstance.id == "Q1790786"
                     ) {
                         isUncertain = true;
                     }
