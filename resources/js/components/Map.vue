@@ -116,8 +116,52 @@ export default {
         const route = useRoute();
         const configLeaflet = leafletConfig;
         const ogtGlobals = inject("ogtGlobals");
+        const dataSource = ref(
+            localStorage.getItem("dataSource") || "factgrid",
+        );
         const map = ref(null);
         const rawMap = ref(null);
+
+        // Method to switch data source and save to localStorage
+        // Function to fetch all data from the API
+        const fetchAllData = async () => {
+            isLoading.value = true;
+            console.log("Fetching all data from the selected data source...");
+
+            try {
+                // Reset any cached data flags
+                window.initialPlacesLoaded = false;
+                window.initialPersonsLoaded = false;
+
+                // Clear existing markers
+                clearAllPlaceMarkers();
+
+                // Fetch places data
+                await fetchGroupedPlaces();
+
+                // Fetch persons data
+                await fetchPersons();
+
+                console.log("All data reloaded successfully");
+            } catch (error) {
+                console.error("Error reloading data:", error);
+            } finally {
+                isLoading.value = false;
+            }
+        };
+
+        const switchDataSource = (source) => {
+            if (source === dataSource.value) {
+                console.log(`Data source unchanged: ${source}`);
+                return;
+            }
+
+            dataSource.value = source;
+            localStorage.setItem("dataSource", source);
+            console.log(`Data source switched to: ${source}`);
+            // Reload the data with the new source
+            fetchAllData();
+        };
         const rawGroupedPlaces = ref({});
         const markers = ref([]);
         const placeInfoSidebar = ref(null); // Used for tutorial navigation history
@@ -757,8 +801,8 @@ export default {
                         await nextTick();
                         const [placesPromise, personsPromise] =
                             await Promise.all([
-                                getGroupedPlaces(),
-                                getPersons(),
+                                fetchGroupedPlaces(),
+                                fetchPersons(),
                             ]);
 
                         await ensureDataProcessed();
@@ -897,9 +941,9 @@ export default {
             }
         };
         /**
-         * Request grouped places of Gestapo terror.
+         * Fetch grouped places from the backend
          */
-        const getGroupedPlaces = async () => {
+        const fetchGroupedPlaces = async () => {
             try {
                 let groupedPlaces = {};
 
@@ -907,11 +951,11 @@ export default {
                 const isRefresh = window.initialPlacesLoaded;
 
                 try {
-                    // Use the backend-configured data source
+                    // Use the configured data source
                     console.log(
                         `Loading places from ${dataSource.value} data source`,
                     );
-                    // Versuche zuerst die Anfrage an den Cache
+                    // Try to get data from the cache first
                     const response = await axios.get(
                         `/api/${dataSource.value}/places/cache`, // Use the appropriate endpoint based on the data source
                     );
@@ -974,7 +1018,10 @@ export default {
             setTimeout(() => {
                 const worker = createPlacesWorker();
 
-                worker.postMessage("start");
+                worker.postMessage({
+                    action: "start",
+                    dataSource: dataSource.value,
+                });
                 worker.onmessage = (e) => {
                     const message = e.data;
 
@@ -1004,7 +1051,10 @@ export default {
                     worker.terminate();
                 };
 
-                worker.postMessage("start");
+                worker.postMessage({
+                    action: "start",
+                    dataSource: dataSource.value,
+                });
             }, 10000);
         };
 
@@ -1040,13 +1090,8 @@ export default {
 
                 self.onmessage = async function(e) {
                     try {
-                        // Get the data source from localStorage or use wikidata as default
-                        let dataSource;
-                        try {
-                            dataSource = localStorage.getItem('dataSource') || 'wikidata';
-                        } catch (e) {
-                            dataSource = 'wikidata';
-                        }
+                        // Get the data source from the message passed by the parent or use factgrid as default
+                        let dataSource = e.data && typeof e.data === 'object' ? e.data.dataSource || 'factgrid' : 'factgrid';
                         console.log("Web worker using data source: " + dataSource);
                         // Lade die Daten
                         const url = self.location.origin + "/api/" + dataSource + "/places";
@@ -1090,19 +1135,19 @@ export default {
             return new Worker(URL.createObjectURL(blob));
         };
         /**
-         * Request persons data from cached file and Wikidata for perpetrators and victims.
+         * Fetch persons data from the configured data source
          */
-        const getPersons = async () => {
+        const fetchPersons = async () => {
             try {
                 // Check if we need to handle refreshed data
                 const isRefresh = window.initialPersonsLoaded;
 
                 try {
-                    // Use the backend-configured data source
+                    // Use the configured data source
                     console.log(
                         `Loading persons from ${dataSource.value} data source`,
                     );
-                    // Versuche zuerst die API-Anfrage
+                    // Try to get data from the cache first
                     const response = await axios.get(
                         `/api/${dataSource.value}/persons/cache`, // Use the appropriate endpoint based on the data source
                     );
@@ -1149,7 +1194,10 @@ export default {
             setTimeout(() => {
                 const worker = createAdvancedWorker();
 
-                worker.postMessage("start");
+                worker.postMessage({
+                    action: "start",
+                    dataSource: dataSource.value,
+                });
                 worker.onmessage = (e) => {
                     const message = e.data;
 
@@ -1167,7 +1215,10 @@ export default {
                     worker.terminate();
                 };
 
-                worker.postMessage("start");
+                worker.postMessage({
+                    action: "start",
+                    dataSource: dataSource.value,
+                });
             }, 10000);
         };
 
@@ -1181,13 +1232,8 @@ export default {
 
                 self.onmessage = async function(e) {
                     try {
-                        // Get the data source from localStorage or use wikidata as default
-                        let dataSource;
-                        try {
-                            dataSource = localStorage.getItem('dataSource') || 'wikidata';
-                        } catch (e) {
-                            dataSource = 'wikidata';
-                        }
+                        // Get the data source from the message passed by the parent or use factgrid as default
+                        let dataSource = e.data && typeof e.data === 'object' ? e.data.dataSource || 'factgrid' : 'factgrid';
                         console.log("Web worker using data source: " + dataSource);
                         // Lade die Daten
                         const url = self.location.origin + "/api/" + dataSource + "/persons";
@@ -3851,6 +3897,8 @@ export default {
             timelineComponentRef,
             isLoading,
             dataSource,
+            switchDataSource,
+            fetchAllData,
         };
     },
 };

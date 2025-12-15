@@ -24,7 +24,7 @@
             :scrim="false"
             :style="props.tutorialMode ? { 'pointer-events': 'none' } : {}"
             :location="isMobile ? 'bottom' : 'right'"
-            :height="isMobile ? 'auto' : ''"
+            :min-height="isMobile ? 'auto' : ''"
             :width="isMobile ? '100%' : '375'"
             :max-width="isMobile ? '100%' : '375'"
             :class="{
@@ -86,8 +86,6 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from "vue";
-import DateRange from "./options/DateRange";
-import LayerOptions from "./options/LayerOptions";
 import PlacesSelection from "./options/PlacesSelection";
 import NavigationHelpers from "../helpers/NavigationHelpers";
 
