@@ -907,9 +907,13 @@ export default {
                 const isRefresh = window.initialPlacesLoaded;
 
                 try {
+                    // Use the backend-configured data source
+                    console.log(
+                        `Loading places from ${dataSource.value} data source`,
+                    );
                     // Versuche zuerst die Anfrage an den Cache
                     const response = await axios.get(
-                        "/api/wikidata/places/cache",
+                        `/api/${dataSource.value}/places/cache`, // Use the appropriate endpoint based on the data source
                     );
                     groupedPlaces = response.data;
                 } catch (error) {
@@ -970,6 +974,7 @@ export default {
             setTimeout(() => {
                 const worker = createPlacesWorker();
 
+                worker.postMessage("start");
                 worker.onmessage = (e) => {
                     const message = e.data;
 
@@ -1035,8 +1040,16 @@ export default {
 
                 self.onmessage = async function(e) {
                     try {
+                        // Get the data source from localStorage or use wikidata as default
+                        let dataSource;
+                        try {
+                            dataSource = localStorage.getItem('dataSource') || 'wikidata';
+                        } catch (e) {
+                            dataSource = 'wikidata';
+                        }
+                        console.log("Web worker using data source: " + dataSource);
                         // Lade die Daten
-                        const url = self.location.origin + '/api/wikidata/places';
+                        const url = self.location.origin + "/api/" + dataSource + "/places";
 
                         try {
                             const response = await fetch(url);
@@ -1085,9 +1098,13 @@ export default {
                 const isRefresh = window.initialPersonsLoaded;
 
                 try {
+                    // Use the backend-configured data source
+                    console.log(
+                        `Loading persons from ${dataSource.value} data source`,
+                    );
                     // Versuche zuerst die API-Anfrage
                     const response = await axios.get(
-                        "/api/wikidata/persons/cache",
+                        `/api/${dataSource.value}/persons/cache`, // Use the appropriate endpoint based on the data source
                     );
                     persons.value = response.data;
                 } catch (error) {
@@ -1132,6 +1149,7 @@ export default {
             setTimeout(() => {
                 const worker = createAdvancedWorker();
 
+                worker.postMessage("start");
                 worker.onmessage = (e) => {
                     const message = e.data;
 
@@ -1163,8 +1181,16 @@ export default {
 
                 self.onmessage = async function(e) {
                     try {
+                        // Get the data source from localStorage or use wikidata as default
+                        let dataSource;
+                        try {
+                            dataSource = localStorage.getItem('dataSource') || 'wikidata';
+                        } catch (e) {
+                            dataSource = 'wikidata';
+                        }
+                        console.log("Web worker using data source: " + dataSource);
                         // Lade die Daten
-                        const url = self.location.origin + '/api/wikidata/persons';
+                        const url = self.location.origin + "/api/" + dataSource + "/persons";
 
                         try {
                             const response = await fetch(url);
@@ -1343,12 +1369,12 @@ export default {
         };
 
         const dateFilter = (data, minDate, maxDate) => {
-            if (!data.startDate || !data.endDate) {
+            if (!data.startDate?.value || !data.endDate?.value) {
                 return false;
             }
 
-            const startDate = new Date(data.startDate);
-            const endDate = new Date(data.endDate);
+            const startDate = data.startDate.value;
+            const endDate = data.endDate.value;
 
             if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
                 return false;
@@ -1548,8 +1574,14 @@ export default {
 
                 const mainLocationMarkers =
                     locationMarkers.value[group.linkedMainGroupItem.id];
-                group.linkedMainGroupItem.marker =
-                    Object.values(mainLocationMarkers)[0];
+                // Check if mainLocationMarkers exists before trying to get values
+                if (
+                    mainLocationMarkers &&
+                    Object.keys(mainLocationMarkers).length > 0
+                ) {
+                    group.linkedMainGroupItem.marker =
+                        Object.values(mainLocationMarkers)[0];
+                }
             });
         };
 
@@ -1640,12 +1672,21 @@ export default {
                 };
 
                 if (place.inceptionDates) {
+                    console.log("InceptionDates data:", place.inceptionDates);
                     for (const [statementId, inceptionDate] of Object.entries(
                         place.inceptionDates,
                     )) {
+                        console.log("Processing inceptionDate:", inceptionDate);
+                        // Default to precision 9 (year) if no precision is provided
+                        const datePrecision =
+                            inceptionDate.datePrecision || "9";
                         selectedPlace.value.inceptionDate = getDate(
                             inceptionDate.value,
-                            inceptionDate.datePrecision,
+                            datePrecision,
+                        );
+                        console.log(
+                            "Processed inceptionDate result:",
+                            selectedPlace.value.inceptionDate,
                         );
                         break;
                     }
@@ -1657,12 +1698,21 @@ export default {
                 };
 
                 if (place.dissolvedDates) {
+                    console.log("DissolvedDates data:", place.dissolvedDates);
                     for (const [statementId, dissolvedDate] of Object.entries(
                         place.dissolvedDates,
                     )) {
+                        console.log("Processing dissolvedDate:", dissolvedDate);
+                        // Default to precision 9 (year) if no precision is provided
+                        const datePrecision =
+                            dissolvedDate.datePrecision || "9";
                         selectedPlace.value.dissolvedDate = getDate(
                             dissolvedDate.value,
-                            dissolvedDate.datePrecision,
+                            datePrecision,
+                        );
+                        console.log(
+                            "Processed dissolvedDate result:",
+                            selectedPlace.value.dissolvedDate,
                         );
                         break;
                     }
@@ -2471,7 +2521,7 @@ export default {
                         selectedPlace.value.victims.push(victim);
                     }
                 }
-                //console.log("selectedPlace", selectedPlace);
+                console.log("selectedPlace", selectedPlace);
             } catch (error) {
                 console.error("Error in setSelectedPlace:", error);
             }
@@ -2512,43 +2562,70 @@ export default {
          * @returns {{locale: string, value: Date}|{locale: string, value: null}}
          */
         const getDate = (dateTimeString, datePrecision, locale = "de-de") => {
+            console.log("getDate called with:", {
+                dateTimeString,
+                datePrecision,
+                locale,
+            });
+
+            if (!dateTimeString) {
+                console.log("No dateTimeString provided");
+                return {
+                    locale: "",
+                    value: null,
+                };
+            }
+
+            // Convert precision to number if it's a string
+            const precisionNum = parseInt(datePrecision, 10);
+            console.log("Date precision parsed:", {
+                raw: datePrecision,
+                parsed: precisionNum,
+            });
             let dateFormatOptions = {};
 
-            switch (datePrecision) {
-                case "9":
-                    dateFormatOptions = {
-                        year: "numeric",
-                    };
-                    break;
-
-                case "10":
-                    dateFormatOptions = {
-                        year: "numeric",
-                        month: "short",
-                    };
-                    break;
-
-                case "11":
-                    dateFormatOptions = {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                    };
-                    break;
-
-                default:
-                    return {
-                        locale: "",
-                        value: null,
-                    };
+            // Default to year precision for undefined or very low precision values
+            if (!precisionNum || isNaN(precisionNum) || precisionNum < 9) {
+                dateFormatOptions = {
+                    year: "numeric",
+                };
+            } else if (precisionNum === 9) {
+                // Year precision
+                dateFormatOptions = {
+                    year: "numeric",
+                };
+            } else if (precisionNum === 10) {
+                // Month precision
+                dateFormatOptions = {
+                    year: "numeric",
+                    month: "short",
+                };
+            } else if (precisionNum >= 11) {
+                // Day precision or higher (day, hour, minute, second)
+                dateFormatOptions = {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                };
             }
 
             let date = new Date(dateTimeString);
 
-            return {
+            // Check if date is valid
+            if (isNaN(date.getTime())) {
+                console.warn("Invalid date encountered:", dateTimeString);
+                return {
+                    locale: "",
+                    value: null,
+                };
+            }
+
+            const result = {
                 locale: date.toLocaleDateString(locale, dateFormatOptions),
                 value: date,
             };
+            console.log("getDate returning:", result);
+            return result;
         };
         /**
          * Compare items by date, used by sort array items, for e.g. addresses.
@@ -2561,31 +2638,31 @@ export default {
          *                       === 0 keep original order of A and B
          */
         const sortByDate = (itemA, itemB) => {
-            if (itemA.startDate && itemB.startDate) {
+            if (itemA.startDate?.value && itemB.startDate?.value) {
                 return (
                     itemA.startDate.value.getTime() -
                     itemB.startDate.value.getTime()
                 );
-            } else if (itemA.endDate && itemB.endDate) {
+            } else if (itemA.endDate?.value && itemB.endDate?.value) {
                 return (
                     itemA.endDate.value.getTime() -
                     itemB.endDate.value.getTime()
                 );
-            } else if (itemA.startDate && itemB.endDate) {
+            } else if (itemA.startDate?.value && itemB.endDate?.value) {
                 return (
                     itemA.startDate.value.getTime() -
                     itemB.endDate.value.getTime()
                 );
-            } else if (itemA.endDate && itemB.startDate) {
+            } else if (itemA.endDate?.value && itemB.startDate?.value) {
                 return (
                     itemA.endDate.value.getTime() -
                     itemB.startDate.value.getTime()
                 );
-            } else if (itemA.startDate || itemA.endDate) {
-                // case: only item A has a date
+            } else if (itemA.startDate?.value || itemA.endDate?.value) {
+                // case: only item A has a valid date value
                 return -1;
-            } else if (itemB.startDate || itemB.endDate) {
-                // case: only item B has a date
+            } else if (itemB.startDate?.value || itemB.endDate?.value) {
+                // case: only item B has a valid date value
                 return 1;
             } else {
                 return 0;
@@ -2602,16 +2679,16 @@ export default {
          *                       === 0 keep original order of A and B
          */
         const sortByPointInTime = (itemA, itemB) => {
-            if (itemA.pointInTime && itemB.pointInTime) {
+            if (itemA.pointInTime?.value && itemB.pointInTime?.value) {
                 return (
                     itemA.pointInTime.value.getTime() -
                     itemB.pointInTime.value.getTime()
                 );
-            } else if (itemA.pointInTime) {
-                // case: only item A has a point in time
+            } else if (itemA.pointInTime?.value) {
+                // case: only item A has a valid point in time value
                 return -1;
-            } else if (itemB.pointInTime) {
-                // case: only item B has a point in time
+            } else if (itemB.pointInTime?.value) {
+                // case: only item B has a valid point in time value
                 return 1;
             } else {
                 return 0;
@@ -3227,6 +3304,64 @@ export default {
             return propertyDataArray;
         };
         /**
+         * Format a date based on its precision level
+         * @param {Date} date - JavaScript Date object
+         * @param {string} precision - The precision level (9 = year, 10 = month, 11 = day)
+         * @returns {string} Formatted date string
+         */
+        const formatDateByPrecision = (date, precision) => {
+            if (!date || isNaN(date.getTime())) {
+                return "";
+            }
+
+            // Convert precision to number if it's a string
+            const precisionNum =
+                typeof precision === "string"
+                    ? parseInt(precision, 10)
+                    : precision;
+
+            // Get date parts
+            const year = date.getFullYear();
+            const month = date.getMonth();
+            const day = date.getDate();
+
+            // German locale style formatting
+            const monthNames = [
+                "Januar",
+                "Februar",
+                "März",
+                "April",
+                "Mai",
+                "Juni",
+                "Juli",
+                "August",
+                "September",
+                "Oktober",
+                "November",
+                "Dezember",
+            ];
+
+            // Check precision level
+            // 0-8 = billion years to decade, 9 = year, 10 = month, 11 = day, 12+ = hour to second
+            if (!precisionNum || isNaN(precisionNum) || precisionNum < 9) {
+                // Default to year for undefined or very low precision
+                return `${year}`;
+            } else if (precisionNum === 9) {
+                // Year precision
+                return `${year}`;
+            } else if (precisionNum === 10) {
+                // Month precision
+                return `${monthNames[month]} ${year}`;
+            } else if (precisionNum >= 11) {
+                // Day precision or higher (day, hour, minute, second)
+                return `${day}. ${monthNames[month]} ${year}`;
+            } else {
+                // Fallback just in case
+                return `${year}`;
+            }
+        };
+
+        /**
          * Get time periods for item property data.
          *
          * @param {object} propertyData
@@ -3237,9 +3372,9 @@ export default {
          *              startDate: (null|{locale: string, value: Date}|{locale: string, value: null}),
          *          }}
          */
+
         const getPropertyDataTimePeriods = (propertyData) => {
             let startDate = null;
-
             if (propertyData.startTime) {
                 startDate = getDate(
                     propertyData.startTime.value,
@@ -3715,6 +3850,7 @@ export default {
             skipTutorial,
             timelineComponentRef,
             isLoading,
+            dataSource,
         };
     },
 };

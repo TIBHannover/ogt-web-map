@@ -8,7 +8,9 @@ use App\Http\Controllers\WikidataController;
 use App\Http\Controllers\WikidataPropertyController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\PasswordController;
+use App\Http\Clients\FactgridClient;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Log;
 
 /*
 |--------------------------------------------------------------------------

@@ -10,6 +10,13 @@
     <!-- Styles -->
     <link href="{{ mix('css/app.css') }}" rel="stylesheet">
 
+    <!-- Config Variables -->
+    <script>
+        window.ogtConfig = {
+            exportTarget: "{{ config('wikibase.export_target', 'wikidata') }}",
+        };
+    </script>
+
     <!-- Scripts -->
     <script src="{{ mix('js/app.js') }}" defer></script>
 </head>

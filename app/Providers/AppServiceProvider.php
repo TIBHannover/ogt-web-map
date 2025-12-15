@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Http\Clients\FactgridClient;
+use App\Http\Clients\WikidataClient;
+use App\Services\EntityMapping\FactgridEntityMappingProvider;
+use App\Services\EntityMapping\WikidataEntityMappingProvider;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use App\Models\User;
@@ -22,7 +26,27 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Register helper classes if needed
+        // Register Wikidata and FactGrid clients
+        $this->app->singleton(WikidataClient::class, function ($app) {
+            return new WikidataClient();
+        });
+
+        $this->app->singleton(FactgridClient::class, function ($app) {
+            return new FactgridClient();
+        });
+
+        // Register entity mapping providers
+        $this->app->singleton(WikidataEntityMappingProvider::class, function (
+            $app,
+        ) {
+            return new WikidataEntityMappingProvider();
+        });
+
+        $this->app->singleton(FactgridEntityMappingProvider::class, function (
+            $app,
+        ) {
+            return new FactgridEntityMappingProvider();
+        });
     }
 
     /**

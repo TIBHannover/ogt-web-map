@@ -13,7 +13,15 @@ import "vuetify/styles";
 import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
-import { itemDescriptions } from "../lang/de/itemDescriptions";
+import { itemDescriptionsWikidata } from "../lang/de/itemDescriptionsWikidata";
+import { itemDescriptionsFactgrid } from "../lang/de/itemDescriptionsFactgrid";
+
+// Initialize global config object for app settings
+window.ogtConfig = window.ogtConfig || {};
+window.ogtConfig.exportTarget =
+    window.ogtConfig.exportTarget ||
+    process.env.MIX_EXPORT_TARGET ||
+    "wikidata";
 
 import App from "./components/App.vue";
 
@@ -58,9 +66,16 @@ const app = createApp(App);
 app.provide("ogtGlobals", {
     isTestingEnv: process.env.MIX_APP_ENV == "testing" ? true : false,
     texts: {
-        itemDescriptions: itemDescriptions,
+        itemDescriptions:
+            window.ogtConfig.exportTarget == "factgrid"
+                ? itemDescriptionsFactgrid
+                : itemDescriptionsWikidata,
     },
     proxyPath: process.env.MIX_PROXY_PATH ?? "",
+    exportTarget:
+        window.ogtConfig.exportTarget ||
+        process.env.MIX_EXPORT_TARGET ||
+        "wikidata",
 });
 app.provide("configLeaflet", window.configLeaflet);
 

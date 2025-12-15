@@ -64,11 +64,11 @@
                         <v-icon>mdi-close</v-icon>
                     </v-btn>
                     <a
-                        :href="`https://www.wikidata.org/wiki/${selectedPlace.id}`"
+                        :href="`${wikibaseUrl}${selectedPlace.id}`"
                         target="_blank"
                     >
                         <v-img
-                            :src="`${ogtGlobals?.proxyPath}/images/wikidata-logo.svg`"
+                            :src="`${ogtGlobals?.proxyPath}/images/${wikibaseImage}`"
                             max-width="45"
                             width="45px"
                         ></v-img>
@@ -343,6 +343,16 @@ const drawerModel = computed({
         }
     },
 });
+
+const wikibaseUrl =
+    ogtGlobals.exportTarget === "factgrid"
+        ? `https://database.factgrid.de/entity/`
+        : `https://www.wikidata.org/wiki/`;
+
+const wikibaseImage =
+    ogtGlobals.exportTarget === "factgrid"
+        ? `logo_factgrid.png`
+        : `wikidata-logo.svg`;
 
 const getComponent = computed(() => {
     const groupName = props.selectedPlace?.groupName;
