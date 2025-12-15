@@ -12,11 +12,12 @@
                 <v-list-item-title>Ort(e)</v-list-item-title>
                 <v-list-item-subtitle>
                     <ul>
-                        <li v-for="location in selectedPlace.locations">
+                        <li v-for="location in props.selectedPlace.locations">
                             {{ location }}
                         </li>
                         <li
-                            v-for="significantPlace in selectedPlace.significantPlaces"
+                            v-for="significantPlace in props.selectedPlace
+                                .significantPlaces"
                         >
                             {{ significantPlace }}
                         </li>
@@ -30,32 +31,36 @@
              destination point - https://www.wikidata.org/wiki/Property:P1444   -->
         <template
             v-if="
-                selectedPlace.startPoints.length > 0 ||
-                selectedPlace.destinationPoints.length > 0
+                props.selectedPlace.startPoints.length > 0 ||
+                props.selectedPlace.destinationPoints.length > 0
             "
         >
             <v-list-item density="compact">
                 <v-list-item-title>Start-/Zielort</v-list-item-title>
                 <v-list-item-subtitle>
                     <div
-                        v-if="selectedPlace.startPoints.length > 0"
+                        v-if="props.selectedPlace.startPoints.length > 0"
                         class="my-2"
                     >
                         von
                         <ul>
-                            <li v-for="startPoint in selectedPlace.startPoints">
+                            <li
+                                v-for="startPoint in props.selectedPlace
+                                    .startPoints"
+                            >
                                 {{ startPoint }}
                             </li>
                         </ul>
                     </div>
                     <div
-                        v-if="selectedPlace.destinationPoints.length > 0"
+                        v-if="props.selectedPlace.destinationPoints.length > 0"
                         class="my-2"
                     >
                         nach
                         <ul>
                             <li
-                                v-for="destinationPoint in selectedPlace.destinationPoints"
+                                v-for="destinationPoint in props.selectedPlace
+                                    .destinationPoints"
                             >
                                 {{ destinationPoint }}
                             </li>
@@ -77,10 +82,12 @@
                         <ul>
                             <li>
                                 {{
-                                    selectedPlace.addresses.selected.latLng.lat
+                                    props.selectedPlace.addresses.selected
+                                        .latLng.lat
                                 }},
                                 {{
-                                    selectedPlace.addresses.selected.latLng.lng
+                                    props.selectedPlace.addresses.selected
+                                        .latLng.lng
                                 }}
                             </li>
                         </ul>
@@ -115,39 +122,50 @@
         <!-- start time - https://www.wikidata.org/wiki/Property:P580
              end time - https://www.wikidata.org/wiki/Property:P582     -->
         <template
-            v-if="selectedPlace.startDate.value || selectedPlace.endDate.value"
+            v-if="
+                props.selectedPlace.startDate.value ||
+                props.selectedPlace.endDate.value
+            "
         >
             <v-list-item density="compact">
                 <v-list-item-title>Laufzeit</v-list-item-title>
                 <v-list-item-subtitle>
-                    <template v-if="selectedPlace.startDate.value">
-                        von {{ selectedPlace.startDate.locale }}
+                    <template v-if="props.selectedPlace.startDate.value">
+                        von {{ props.selectedPlace.startDate.locale }}
                     </template>
-                    <template v-if="selectedPlace.endDate.value">
-                        bis {{ selectedPlace.endDate.locale }}
+                    <template v-if="props.selectedPlace.endDate.value">
+                        bis {{ props.selectedPlace.endDate.locale }}
                     </template>
                 </v-list-item-subtitle>
             </v-list-item>
             <v-divider></v-divider>
         </template>
         <!-- point in time - https://www.wikidata.org/wiki/Property:P585 -->
-        <template v-else-if="selectedPlace.pointInTime.value">
+        <template v-else-if="props.selectedPlace.pointInTime.value">
             <v-list-item density="compact">
                 <v-list-item-title>Zeitpunkt</v-list-item-title>
                 <v-list-item-subtitle>
-                    {{ selectedPlace.pointInTime.locale }}
+                    {{ props.selectedPlace.pointInTime.locale }}
                 </v-list-item-subtitle>
             </v-list-item>
             <v-divider></v-divider>
         </template>
 
         <!-- perpetrators - https://www.wikidata.org/wiki/Property:P8031 -->
-        <template v-if="selectedPlace.perpetrators.length > 0">
-            <v-list-item density="compact">
+        <template v-if="props.selectedPlace.perpetrators.length > 0">
+            <v-list-item density="compact" class="position-relative">
+                <div
+                    id="information-institutions-highlight"
+                    class="information-institutions-highlight tutorial-rectangle-highlight"
+                    style="display: none"
+                ></div>
                 <v-list-item-title>Täter*innen</v-list-item-title>
                 <v-list-item-subtitle>
                     <ul class="hyphens-auto white-space-normal" lang="de">
-                        <li v-for="perpetrator in selectedPlace.perpetrators">
+                        <li
+                            v-for="perpetrator in props.selectedPlace
+                                .perpetrators"
+                        >
                             <div
                                 v-if="
                                     perpetrator.hasPersonData ||
@@ -199,7 +217,9 @@
             <v-list-item density="compact">
                 <v-list-item-title>Zugeordnete Ereignisse</v-list-item-title>
                 <v-switch
-                    v-if="selectedPlace.id in MAIN_EVENT_IDS_TO_SUB_EVENTS_GROUP"
+                    v-if="
+                        selectedPlace.id in MAIN_EVENT_IDS_TO_SUB_EVENTS_GROUP
+                    "
                     v-model="showSubEventSwitch"
                     density="compact"
                     color="#8c1f21"
@@ -209,8 +229,13 @@
                 <v-list-item-subtitle>
                     <ul class="hyphens-auto white-space-normal" lang="de">
                         <li v-for="event in selectedPlace.hasParts">
-                            <a @click.stop="emit('switchLocation', { locationId: event.id })"
-                               href="#"
+                            <a
+                                @click.stop="
+                                    emit('switchLocation', {
+                                        locationId: event.id,
+                                    })
+                                "
+                                href="#"
                             >
                                 {{ event.label }}
                             </a>
@@ -226,33 +251,43 @@
         -->
         <template
             v-if="
-                selectedPlace.victims.length > 0 ||
-                selectedPlace.numberOfCasualties.length > 0
+                props.selectedPlace.victims.length > 0 ||
+                props.selectedPlace.numberOfCasualties.length > 0
             "
         >
             <v-list-item density="compact">
                 <v-list-item-title>Geschädigte</v-list-item-title>
                 <v-list-item-subtitle>
                     <div
-                        v-if="selectedPlace.numberOfCasualties.length > 0"
+                        v-if="props.selectedPlace.numberOfCasualties.length > 0"
                         class="my-2"
                     >
                         Anzahl
                         <ul>
                             <li
-                                v-for="casualty in selectedPlace.numberOfCasualties"
+                                v-for="casualty in props.selectedPlace
+                                    .numberOfCasualties"
                             >
-                                {{ casualty.sourcingCircumstance }} {{ casualty.value }}
-                                <template v-if="casualty.pointInTime && casualty.pointInTime.locale">
+                                {{ casualty.sourcingCircumstance }}
+                                {{ casualty.value }}
+                                <template
+                                    v-if="
+                                        casualty.pointInTime &&
+                                        casualty.pointInTime.locale
+                                    "
+                                >
                                     ({{ casualty.pointInTime.locale }})
                                 </template>
                             </li>
                         </ul>
                     </div>
-                    <div v-if="selectedPlace.victims.length > 0" class="my-2">
+                    <div
+                        v-if="props.selectedPlace.victims.length > 0"
+                        class="my-2"
+                    >
                         Namen
                         <ul>
-                            <li v-for="victim in selectedPlace.victims">
+                            <li v-for="victim in props.selectedPlace.victims">
                                 <a
                                     v-if="victim.hasPersonData"
                                     @click.stop="
@@ -278,12 +313,12 @@
 
         <!-- targets - https://www.wikidata.org/wiki/Property:P533 (previous) -->
         <!-- targets - https://www.wikidata.org/wiki/Property:P828 -->
-        <template v-if="selectedPlace.targets.length > 0">
+        <template v-if="props.selectedPlace.targets.length > 0">
             <v-list-item density="compact">
                 <v-list-item-title>Ziel des Angriffs</v-list-item-title>
                 <v-list-item-subtitle>
                     <ul>
-                        <li v-for="target in selectedPlace.targets">
+                        <li v-for="target in props.selectedPlace.targets">
                             {{ target }}
                         </li>
                     </ul>
@@ -293,16 +328,23 @@
         </template>
 
         <!-- number of survivors - https://www.wikidata.org/wiki/Property:P1561 -->
-        <template v-if="selectedPlace.numberOfSurvivors.length > 0">
+        <template v-if="props.selectedPlace.numberOfSurvivors.length > 0">
             <v-list-item density="compact">
                 <v-list-item-title>Überlebende</v-list-item-title>
                 <v-list-item-subtitle>
                     <ul>
                         <li
-                            v-for="survivor in selectedPlace.numberOfSurvivors"
+                            v-for="survivor in props.selectedPlace
+                                .numberOfSurvivors"
                         >
-                            {{ survivor.sourcingCircumstance }} {{ survivor.value }}
-                            <template v-if="survivor.pointInTime && survivor.pointInTime.locale">
+                            {{ survivor.sourcingCircumstance }}
+                            {{ survivor.value }}
+                            <template
+                                v-if="
+                                    survivor.pointInTime &&
+                                    survivor.pointInTime.locale
+                                "
+                            >
                                 ({{ survivor.pointInTime.locale }})
                             </template>
                         </li>
@@ -313,16 +355,19 @@
         </template>
 
         <!-- number of deaths - https://www.wikidata.org/wiki/Property:P1120 -->
-        <template v-if="selectedPlace.numberOfDeaths.length > 0">
+        <template v-if="props.selectedPlace.numberOfDeaths.length > 0">
             <v-list-item density="compact">
                 <v-list-item-title>Ermordete</v-list-item-title>
                 <v-list-item-subtitle>
                     <ul>
-                        <li
-                            v-for="death in selectedPlace.numberOfDeaths"
-                        >
+                        <li v-for="death in props.selectedPlace.numberOfDeaths">
                             {{ death.sourcingCircumstance }} {{ death.value }}
-                            <template v-if="death.pointInTime && death.pointInTime.locale">
+                            <template
+                                v-if="
+                                    death.pointInTime &&
+                                    death.pointInTime.locale
+                                "
+                            >
                                 ({{ death.pointInTime.locale }})
                             </template>
                         </li>
@@ -333,16 +378,22 @@
         </template>
 
         <!-- number of arrests - https://www.wikidata.org/wiki/Property:P5582 -->
-        <template v-if="selectedPlace.numberOfArrests.length > 0">
+        <template v-if="props.selectedPlace.numberOfArrests.length > 0">
             <v-list-item density="compact">
                 <v-list-item-title>Festnahmen</v-list-item-title>
                 <v-list-item-subtitle>
                     <ul>
                         <li
-                            v-for="arrest in selectedPlace.numberOfArrests"
+                            v-for="arrest in props.selectedPlace
+                                .numberOfArrests"
                         >
                             {{ arrest.sourcingCircumstance }} {{ arrest.value }}
-                            <template v-if="arrest.pointInTime && arrest.pointInTime.locale">
+                            <template
+                                v-if="
+                                    arrest.pointInTime &&
+                                    arrest.pointInTime.locale
+                                "
+                            >
                                 ({{ arrest.pointInTime.locale }})
                             </template>
                         </li>
@@ -364,8 +415,13 @@
                 <v-list-item-subtitle>
                     <ul class="hyphens-auto white-space-normal" lang="de">
                         <li v-for="event in selectedPlace.partOfs">
-                            <a @click.stop="emit('switchLocation', { locationId: event.id })"
-                               href="#"
+                            <a
+                                @click.stop="
+                                    emit('switchLocation', {
+                                        locationId: event.id,
+                                    })
+                                "
+                                href="#"
                             >
                                 {{ event.label }}
                             </a>
@@ -378,16 +434,22 @@
 
         <sources
             v-if="
-                selectedPlace.sources.length > 0 ||
-                selectedPlace.urlSources.length > 0
+                props.selectedPlace.sources.length > 0 ||
+                props.selectedPlace.urlSources.length > 0
             "
-            :selectedPlace="selectedPlace"
+            :selectedPlace="props.selectedPlace"
         ></sources>
     </div>
 </template>
 
 <script setup>
-import { computed } from "vue";
+import {
+    defineProps,
+    defineEmits,
+    onMounted,
+    onBeforeUnmount,
+    computed,
+} from "vue";
 import Prisoners from "./Prisoners";
 import Sources from "./Sources";
 
@@ -408,25 +470,77 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(["zoomIntoPlace", "undoZoomIntoPlace", "showPerson", "switchLocation", "update:groupedPlacesShownOnMap"]);
+const showTutorialHighlight = (highlightId) => {
+    const highlight = document.getElementById(highlightId);
+    if (highlight) {
+        highlight.style.display = "block";
+    }
+};
+
+const hideTutorialHighlight = (highlightId) => {
+    const highlight = document.getElementById(highlightId);
+    if (highlight) {
+        highlight.style.display = "none";
+    }
+};
+
+const showInformationInstitutionsHighlightHandler = () =>
+    showTutorialHighlight("information-institutions-highlight");
+const hideInformationInstitutionsHighlightHandler = () =>
+    hideTutorialHighlight("information-institutions-highlight");
+
+const emit = defineEmits([
+    "zoomIntoPlace",
+    "undoZoomIntoPlace",
+    "showPerson",
+    "switchLocation",
+    "update:groupedPlacesShownOnMap",
+]);
 
 const showSubEventSwitch = computed({
     get() {
-        const subEventGroup = MAIN_EVENT_IDS_TO_SUB_EVENTS_GROUP[props.selectedPlace.id];
+        const subEventGroup =
+            MAIN_EVENT_IDS_TO_SUB_EVENTS_GROUP[props.selectedPlace.id];
         return props.groupedPlacesShownOnMap.includes(subEventGroup);
     },
     set(value) {
-        const subEventGroup = MAIN_EVENT_IDS_TO_SUB_EVENTS_GROUP[props.selectedPlace.id];
+        const subEventGroup =
+            MAIN_EVENT_IDS_TO_SUB_EVENTS_GROUP[props.selectedPlace.id];
         let groupedPlacesShownOnMapCopy = [...props.groupedPlacesShownOnMap];
 
         if (value && !groupedPlacesShownOnMapCopy.includes(subEventGroup)) {
             groupedPlacesShownOnMapCopy.push(subEventGroup);
         } else if (!value) {
-            groupedPlacesShownOnMapCopy = groupedPlacesShownOnMapCopy.filter((item) => item !== subEventGroup);
+            groupedPlacesShownOnMapCopy = groupedPlacesShownOnMapCopy.filter(
+                (item) => item !== subEventGroup,
+            );
         }
 
         emit("update:groupedPlacesShownOnMap", groupedPlacesShownOnMapCopy);
     },
+});
+
+onMounted(() => {
+    // Highlight events
+    window.addEventListener(
+        "show-information-institutions-highlight",
+        showInformationInstitutionsHighlightHandler,
+    );
+    window.addEventListener(
+        "hide-information-institutions-highlight",
+        hideInformationInstitutionsHighlightHandler,
+    );
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener(
+        "show-information-institutions-highlight",
+        showInformationInstitutionsHighlightHandler,
+    );
+    window.removeEventListener(
+        "hide-information-institutions-highlight",
+        hideInformationInstitutionsHighlightHandler,
+    );
 });
 </script>
 
@@ -445,5 +559,40 @@ const showSubEventSwitch = computed({
 /* to enable linebreaks for long labels */
 .white-space-normal {
     white-space: normal;
+}
+
+.tutorial-rectangle-highlight {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    border: 6px solid #ff0000;
+    box-shadow: 0 0 30px 10px rgba(255, 0, 0, 0.7);
+    background-color: transparent;
+    pointer-events: none;
+    z-index: 9999;
+    border-radius: 8px;
+    animation: rectangle-highlight-pulse 2s infinite;
+}
+
+.information-institutions-highlight {
+    width: calc(100% + 20px);
+    height: calc(100% + 20px);
+    top: 0;
+    left: -10px;
+}
+
+@keyframes rectangle-highlight-pulse {
+    0% {
+        box-shadow: 0 0 20px 10px rgba(255, 0, 0, 0.7);
+        border-color: #ff0000;
+    }
+    50% {
+        box-shadow: 0 0 25px 15px rgba(255, 0, 0, 0.7);
+        border-color: #ff5555;
+    }
+    100% {
+        box-shadow: 0 0 20px 10px rgba(255, 0, 0, 0.7);
+        border-color: #ff0000;
+    }
 }
 </style>

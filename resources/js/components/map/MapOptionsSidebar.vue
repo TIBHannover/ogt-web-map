@@ -6,7 +6,7 @@
             location="top right"
             :rounded="$vuetify.display.smAndUp ? 'pill' : 'circle'"
             :size="$vuetify.display.smAndUp ? 'default' : '56px'"
-            class="mt-5 mr-5 z-index-4"
+            class="map-options-button mt-5 mr-5 z-index-4"
             color="white"
             v-show="!isMapOptionsOpen"
             @click.stop="toggleMapOptions"
@@ -22,11 +22,15 @@
             v-model="isMapOptionsOpen"
             class="z-index-4 menuOptionsidebar"
             :scrim="false"
+            :style="props.tutorialMode ? { 'pointer-events': 'none' } : {}"
             :location="isMobile ? 'bottom' : 'right'"
             :height="isMobile ? 'auto' : ''"
             :width="isMobile ? '100%' : '375'"
             :max-width="isMobile ? '100%' : '375'"
-            :class="{ 'mobile-drawer': isMobile, 'v-navigation-drawer--closed': !isMapOptionsOpen && isMobile }"
+            :class="{
+                'mobile-drawer': isMobile,
+                'v-navigation-drawer--closed': !isMapOptionsOpen && isMobile,
+            }"
         >
             <!-- map options header -->
             <v-list-item class="position-relative py-3">
@@ -103,6 +107,10 @@ const props = defineProps({
     mapMarkerIconsPath: {
         type: String,
         required: true,
+    },
+    tutorialMode: {
+        type: Boolean,
+        default: false,
     },
 });
 

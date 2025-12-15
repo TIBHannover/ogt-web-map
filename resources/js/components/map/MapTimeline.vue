@@ -1,14 +1,14 @@
 <template>
-    <div>
+    <div :style="props.tutorialMode ? { 'pointer-events': 'none' } : {}">
         <v-btn
             position="fixed"
             location="bottom right"
             :rounded="$vuetify.display.smAndUp ? 'pill' : 'circle'"
             :size="$vuetify.display.smAndUp ? 'default' : '56px'"
-            class="mb-5 mr-5 z-index-4"
+            class="mb-5 mr-5 z-index-4 button-timeline"
             color="white"
             v-show="!isTimelineOpen"
-            @click.stop="toggleTimeline"
+            @click.stop="handleToggleTimeline"
         >
             <v-icon>mdi-timeline</v-icon>
             <span v-if="$vuetify.display.smAndUp" class="ml-2 text-none"
@@ -21,8 +21,13 @@
             v-show="isTimelineOpen"
             :class="{ isOpen: isTimelineOpen }"
         >
+            <div
+                id="timeline-close-button-highlight"
+                class="timeline-close-button-highlight tutorial-rectangle-highlight"
+                style="display: none"
+            ></div>
             <v-btn
-                @click.stop="toggleTimeline"
+                @click.stop="handleToggleTimeline"
                 icon
                 class="close-button position-absolute right-0 top-0 mr-5 mt-5"
             >
@@ -32,7 +37,12 @@
                 <div
                     class="timeline-header d-flex w-100 justify-start justify-sm-space-between flex-row align-start align-sm-center px-6 pt-5 pt-sm-6 ga-6 ga-sm-0"
                 >
-                    <div class="d-flex align-center">
+                    <div class="d-flex align-center position-relative">
+                        <div
+                            id="timeline-button-highlight"
+                            class="timeline-button-highlight tutorial-rectangle-highlight"
+                            style="display: none"
+                        ></div>
                         <v-btn
                             :color="
                                 isTimelineFilterEnabled ? 'primary' : 'default'
@@ -66,7 +76,12 @@
                             </span>
                         </v-btn>
                     </div>
-                    <div class="d-flex align-center">
+                    <div class="d-flex align-center position-relative">
+                        <div
+                            id="timeline-mode-highlight"
+                            class="timeline-mode-highlight tutorial-rectangle-highlight"
+                            style="display: none"
+                        ></div>
                         <span v-if="$vuetify.display.mdAndUp" class="mr-2"
                             >Filtermodus:</span
                         >
@@ -103,6 +118,11 @@
                     </div>
                 </div>
                 <div
+                    id="timeline-filter-highlight"
+                    class="timeline-filter-highlight tutorial-rectangle-highlight"
+                    style="display: none"
+                ></div>
+                <div
                     class="map-timeline"
                     id="timeline"
                     :class="{
@@ -137,13 +157,21 @@
 
 <script setup>
 import { ref, onMounted, watch, toRaw } from "vue";
-
-const emit = defineEmits(["updateTimeLine", "timelineFilterEnabledChange"]);
 import NavigationHelpers from "../helpers/NavigationHelpers";
+
+const emit = defineEmits([
+    "updateTimeLine",
+    "timelineFilterEnabledChange",
+    "closeMapOptions",
+]);
 
 const props = defineProps({
     groupedPlaces: Object,
     map: Object,
+    tutorialMode: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const YEAR_RANGE = [1933, new Date().getFullYear()];
@@ -155,12 +183,40 @@ const STATE = {
 // old handle gap - 0.155,
 const MIN_HANDLE_GAP = 0.155;
 
-const { isTimelineOpen } = NavigationHelpers();
+const {
+    isTimelineOpen,
+    openTimeline,
+    closeTimeline,
+    toggleTimeline: navToggleTimeline,
+} = NavigationHelpers();
 const timelineModeSingleHandle = ref(false);
 const isTimelineFilterEnabled = ref(false);
 
+// Expose NavigationHelpers functions for external use
+defineExpose({
+    toggleTimeline: navToggleTimeline,
+    openTimeline,
+    closeTimeline,
+});
+
 const timelineModeToggle = ref("range");
 let timelineOpenedInt = 0;
+
+// Custom handler that calls the NavigationHelpers toggleTimeline and emits events
+const handleToggleTimeline = () => {
+    // Before toggle
+    const wasOpen = isTimelineOpen.value;
+
+    // Call the navigation helper toggle function
+    navToggleTimeline();
+
+    // After toggle - if it's now open and wasn't before
+    if (isTimelineOpen.value && !wasOpen) {
+        // Timeline was just opened
+        handleTimelineOpen();
+        emit("closeMapOptions");
+    }
+};
 
 watch(timelineModeSingleHandle, (newValue) => {
     timelineModeToggle.value = newValue ? "single" : "range";
@@ -185,21 +241,37 @@ watch(isTimelineFilterEnabled, (newValue) => {
     }
 });
 
-const toggleTimeline = () => {
-    if (!isTimelineOpen.value) {
-        if (timelineOpenedInt === 0) {
-            isTimelineFilterEnabled.value = true;
-            timelineOpenedInt++;
-        }
-
-        if (STATE.left && STATE.right) {
-            setTimeout(() => {
-                updateTimeLine(STATE.left, STATE.right);
-            }, 50);
-        }
+// This function manages additional timeline state when opening
+const handleTimelineOpen = () => {
+    if (timelineOpenedInt === 0) {
+        isTimelineFilterEnabled.value = true;
+        timelineOpenedInt++;
     }
 
-    isTimelineOpen.value = !isTimelineOpen.value;
+    if (STATE.left && STATE.right) {
+        setTimeout(() => {
+            updateTimeLine(STATE.left, STATE.right);
+        }, 50);
+    }
+};
+
+// Handle additional timeline close actions
+const handleTimelineClose = () => {
+    // Deactivate the timeline filter when closing
+    deactivateTimelineFilter();
+
+    // Update timeline to remove filtered results
+    updateTimeLine(
+        { year: -Infinity, month: -Infinity },
+        { year: Infinity, month: Infinity },
+    );
+};
+
+const activateTimelineFilter = () => {
+    isTimelineFilterEnabled.value = true;
+};
+const deactivateTimelineFilter = () => {
+    isTimelineFilterEnabled.value = false;
 };
 
 const handleModeChange = () => {
@@ -473,7 +545,199 @@ function getClientX(e) {
     return e.touches ? e.touches[0].clientX : e.clientX;
 }
 
+const showTutorialHighlight = (highlightId) => {
+    const highlight = document.getElementById(highlightId);
+    if (highlight) {
+        highlight.style.display = "block";
+    }
+};
+
+const hideTutorialHighlight = (highlightId) => {
+    const highlight = document.getElementById(highlightId);
+    if (highlight) {
+        highlight.style.display = "none";
+    }
+};
+
+const showTimelineButtonHighlightHandler = () => {
+    showTutorialHighlight("timeline-button-highlight");
+    activateTimelineFilter();
+};
+const hideTimelineButtonHighlightHandler = () =>
+    hideTutorialHighlight("timeline-button-highlight");
+const showTimelineModeHighlightHandler = () =>
+    showTutorialHighlight("timeline-mode-highlight");
+const hideTimelineModeHighlightHandler = () =>
+    hideTutorialHighlight("timeline-mode-highlight");
+const showTimelineFilterZoneHighlightHandler = () =>
+    showTutorialHighlight("timeline-filter-highlight");
+const hideTimelineFilterZoneHighlightHandler = () =>
+    hideTutorialHighlight("timeline-filter-highlight");
+const showTimelineCloseButtonHighlightHandler = () =>
+    showTutorialHighlight("timeline-close-button-highlight");
+const hideTimelineCloseButtonHighlightHandler = () =>
+    hideTutorialHighlight("timeline-close-button-highlight");
+
 onMounted(() => {
+    window.addEventListener(
+        "show-timeline-button-highlight",
+        showTimelineButtonHighlightHandler,
+    );
+    window.addEventListener(
+        "hide-timeline-button-highlight",
+        hideTimelineButtonHighlightHandler,
+    );
+    window.addEventListener(
+        "show-timeline-mode-highlight",
+        showTimelineModeHighlightHandler,
+    );
+    window.addEventListener(
+        "hide-timeline-mode-highlight",
+        hideTimelineModeHighlightHandler,
+    );
+    window.addEventListener(
+        "show-timeline-filterzone-highlight",
+        showTimelineFilterZoneHighlightHandler,
+    );
+    window.addEventListener(
+        "hide-timeline-filterzone-highlight",
+        hideTimelineFilterZoneHighlightHandler,
+    );
+    window.addEventListener(
+        "show-timeline-close-button-highlight",
+        showTimelineCloseButtonHighlightHandler,
+    );
+    window.addEventListener(
+        "hide-timeline-close-button-highlight",
+        hideTimelineCloseButtonHighlightHandler,
+    );
+    window.addEventListener("close-timeline-filter", () => {
+        closeTimeline();
+        handleTimelineClose();
+    });
+    window.addEventListener("open-timeline-filter", () => {
+        openTimeline();
+        activateTimelineFilter();
+        updateTimeLine(STATE.left, STATE.right);
+    });
+    window.addEventListener("set-filter-timezone", setFilterTimeZone);
+    window.addEventListener("set-timepoint-mode", setTimePointMode);
+    window.addEventListener("set-timezone-mode", setTimeZoneMode);
+    window.addEventListener("set-filter-timepoint", setFilterTimePoint);
+
+    initTimeline();
+});
+
+function setFilterTimeZone() {
+    // First, make sure the timeline is visible
+    if (!isTimelineOpen.value) {
+        handleTimelineOpen();
+    }
+
+    // Make sure the timeline is in range mode (not point mode)
+    timelineModeToggle.value = "range";
+
+    // Make sure the timeline filter is enabled
+    isTimelineFilterEnabled.value = true;
+
+    // Get handles for direct positioning
+    const leftHandle = document.querySelector(".map-timeline-handle.left");
+    const rightHandle = document.querySelector(".map-timeline-handle.right");
+
+    if (!leftHandle || !rightHandle) return;
+
+    // According to requirements:
+    // August 1933 is at position ~7.2% of the timeline
+    // March 1945 is at position ~64.4% of the timeline
+
+    // Wait for the timeline to be fully visible before setting positions
+    setTimeout(() => {
+        // Set the handles using setHandle to properly update text and internal state
+        const leftData = setHandle(leftHandle, 0.072);
+        const rightData = setHandle(rightHandle, 0.644);
+
+        // Update the STATE object
+        STATE.left = leftData;
+        STATE.right = rightData;
+
+        // Trigger the timeline update to apply the filter
+        updateTimeLine(leftData, rightData);
+    }, 300);
+}
+
+function setTimePointMode() {
+    // First, make sure the timeline is visible
+    if (!isTimelineOpen.value) {
+        handleTimelineOpen();
+    }
+
+    // Set to single point mode (timePoint mode)
+    timelineModeToggle.value = "single";
+    timelineModeSingleHandle.value = true;
+
+    // Make sure the timeline filter is enabled
+    isTimelineFilterEnabled.value = true;
+
+    // Call the mode change handler to update the UI
+    handleModeChange();
+}
+
+function setTimeZoneMode() {
+    // First, make sure the timeline is visible
+    if (!isTimelineOpen.value) {
+        handleTimelineOpen();
+    }
+
+    // Set to range mode (timeZone mode)
+    timelineModeToggle.value = "range";
+    timelineModeSingleHandle.value = false;
+
+    // Make sure the timeline filter is enabled
+    isTimelineFilterEnabled.value = true;
+
+    // Call the mode change handler to update the UI
+    handleModeChange();
+}
+
+function setFilterTimePoint() {
+    // First, make sure the timeline is visible
+    if (!isTimelineOpen.value) {
+        handleTimelineOpen();
+    }
+
+    // Set to single point mode if not already
+    if (!timelineModeSingleHandle.value) {
+        setTimePointMode();
+
+        // Give time for mode change to take effect
+        setTimeout(setPoint, 300);
+    } else {
+        setPoint();
+    }
+
+    function setPoint() {
+        // Get the single handle (which is the right handle in the DOM)
+        const pointHandle = document.querySelector(
+            ".map-timeline-handle.right",
+        );
+
+        if (!pointHandle) return;
+
+        // According to requirements:
+        // Oktober 1936 is at position ~20.4% of the timeline
+
+        // Set the handle using setHandle to properly update text and internal state
+        const pointData = setHandle(pointHandle, 0.204);
+
+        // Update the STATE object - in single mode, we use right for the single point
+        STATE.right = pointData;
+
+        // Trigger the timeline update to apply the filter
+        updateTimeLine(pointData, pointData);
+    }
+}
+
+function initTimeline() {
     const monthSteps = (MONTH_STEP_END_YEAR - YEAR_RANGE[0]) * 12;
     const yearSteps = YEAR_RANGE[1] - MONTH_STEP_END_YEAR;
     const monthFraction =
@@ -529,7 +793,7 @@ onMounted(() => {
             passive: false,
         });
     }, 0);
-});
+}
 
 function closeMapPopups() {
     if (!props.map) return;
@@ -724,6 +988,30 @@ function closeMapPopups() {
 }
 </style>
 <style>
+.tutorial-rectangle-highlight {
+    position: absolute;
+    top: 0;
+    height: calc(100% + 20px);
+    width: calc(100% + 20px);
+    border: 6px solid #ff0000;
+    box-shadow: 0 0 30px 10px rgba(255, 0, 0, 0.7);
+    background-color: transparent;
+    pointer-events: none;
+    z-index: 9999;
+    border-radius: 8px;
+    animation: rectangle-highlight-pulse 2s infinite;
+    transform: translate(-10px, -10px);
+}
+.timeline-back-button-highlight {
+    height: 50px;
+    width: 50px;
+    right: 0;
+}
+.timeline-filter-highlight {
+    height: 50%;
+    top: auto;
+    bottom: 0;
+}
 .map-timeline-months {
     position: absolute;
     display: block;

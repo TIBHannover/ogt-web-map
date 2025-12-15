@@ -19,6 +19,7 @@
             v-model:groupedPlacesShownOnMap="groupedPlacesShownOnMap"
             :groupedPlaces="groupedPlaces"
             :map="map"
+            :tutorialMode="showTutorial"
             :mapMarkerIconsPath="mapMarkerIconsPath"
             ref="optionsSidebar"
         ></map-options-sidebar>
@@ -26,6 +27,7 @@
         <map-timeline
             :groupedPlaces="groupedPlaces"
             :map="map"
+            :tutorialMode="showTutorial"
             @update-time-line="handleTimelineUpdate"
             @timeline-filter-enabled-change="handleTimelineFilterChange"
             @closeMapOptions="closeMapOptions"
@@ -33,16 +35,34 @@
 
         <place-info-sidebar
             v-model:groupedPlacesShownOnMap="groupedPlacesShownOnMap"
+            ref="placeInfoSidebar"
             :selectedPlace="selectedPlace"
             :showPlaceInfoSidebar="showPlaceInfoSidebar"
+            :tutorialMode="showTutorial"
             @hidePlaceInfoSidebar="toggleShowPlaceInfoSidebar(false)"
             @showPerson="showPerson"
             @switchLocation="switchLocation"
             @undoZoomIntoPlace="restoreCachedMapView"
             @zoomIntoPlace="setMapView(selectedPlace.latLng, 18, true)"
         ></place-info-sidebar>
-
         <div id="leafletMapId"></div>
+        <tutorial-overlay
+            :active="showTutorial"
+            :steps="tutorialSteps"
+            :tutorial-completed="tutorialCompleted"
+            :toggle-timeline="toggleTimeline"
+            :open-timeline="openTimeline"
+            :close-timeline="closeTimeline"
+            :open-map-options="openMapOptions"
+            :close-map-options="closeMapOptions"
+            :toggle-map-options="toggleMapOptions"
+            :set-map-view="setMapView"
+            :select-location="selectLocation"
+            :openPersonDetails="showPerson"
+            @complete="completeTutorial"
+            @skip="skipTutorial"
+            @start="startTutorial"
+        />
     </div>
 </template>
 
@@ -66,6 +86,7 @@ import PlaceInfoSidebar from "./map/PlaceInfoSidebar";
 import MapTimeline from "./map/MapTimeline";
 import NavigationHelpers from "./helpers/NavigationHelpers";
 import leafletConfig from "../config/leafletConfig";
+import TutorialOverlay from "./navigation/TutorialOverlay";
 import { VSelectionControlGroup } from "vuetify/lib/components/index.mjs";
 const showPlaceInfoSidebar = ref(false);
 const sourceCircumstances = ref({
@@ -87,6 +108,7 @@ export default {
         MapOptionsSidebar,
         PlaceInfoSidebar,
         MapTimeline,
+        TutorialOverlay,
     },
     setup() {
         const isLoading = ref(true);
@@ -98,13 +120,19 @@ export default {
         const rawMap = ref(null);
         const rawGroupedPlaces = ref({});
         const markers = ref([]);
+        const placeInfoSidebar = ref(null); // Used for tutorial navigation history
         const {
             isTimelineOpen,
             isMapOptionsOpen,
             isPlaceInfoOpen,
+            openMapOptions,
             closeMapOptions,
             openPlaceInfo,
             closePlaceInfo,
+            toggleMapOptions,
+            openTimeline,
+            closeTimeline,
+            toggleTimeline,
         } = NavigationHelpers();
         const minDate = ref({
             year: -Infinity,
@@ -594,7 +622,97 @@ export default {
             website: "",
         });
 
-        const optionsSidebar = ref(null);
+        const showTutorial = ref(false);
+        const tutorialCompleted = ref(false);
+        const tutorialSteps = ref([]);
+
+        const mapTutorialSteps = [
+            /* Schritte für das Map-Tutorial */
+        ];
+        const sidebarTutorialSteps = [
+            /* Schritte für die Sidebar */
+        ];
+
+        const timelineTutorialSteps = [
+            {
+                title: "Zeitstrahl Filter",
+                description:
+                    "Mit dem Zeitstrahl-Filter kannst du Orte basierend auf ihrem Zeitraum filtern. Klicke auf diesen Button, um den Zeitstrahl zu öffnen.",
+                highlightSelector: ".z-index-4", // Selektor für den Zeitstrahl-Button
+                highlightBorderRadius: "50%",
+                position: {
+                    bottom: "100px",
+                    right: "100px",
+                },
+            },
+            {
+                title: "Zeitstrahl öffnen",
+                description:
+                    "Der Zeitstrahl öffnet sich am unteren Bildschirmrand und ermöglicht dir, Orte nach Zeiträumen zu filtern.",
+                highlightSelector: ".timeline-toolbar",
+                position: {
+                    bottom: "200px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                },
+                // Open the timeline automatically
+                onStepShow: "openTimeline",
+                onStepPrepare: "closeAllNavigation",
+                onStepNext: null,
+            },
+            {
+                title: "Zeitstrahl aktivieren/deaktivieren",
+                description:
+                    "Mit diesem Schalter kannst du den Zeitstrahl-Filter ein- oder ausschalten. Im aktivierten Zustand werden nur Orte angezeigt, die im ausgewählten Zeitraum liegen.",
+                highlightSelector: ".timeline-toggle-btn",
+                position: {
+                    bottom: "250px",
+                    left: "130px",
+                },
+            },
+            {
+                title: "Filtermodus auswählen",
+                description:
+                    "Wähle zwischen zwei Modi: <br><b>Zeitraum</b>: Filtere Orte innerhalb eines Zeitraums mit zwei Grenzmarkierungen.<br><b>Zeitpunkt</b>: Filtere Orte zu einem bestimmten Zeitpunkt mit einer einzelnen Markierung.",
+                highlightSelector: ".v-btn-toggle",
+                position: {
+                    bottom: "250px",
+                    right: "130px",
+                },
+            },
+            {
+                title: "Zeitraum einstellen",
+                description:
+                    "Ziehe diese Marker, um den Zeitraum einzugrenzen. Die linke Markierung bestimmt den Anfang, die rechte das Ende des Zeitraums.",
+                highlightSelector: ".map-timeline",
+                position: {
+                    bottom: "200px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                },
+            },
+            {
+                title: "Ergänzende Informationen",
+                description:
+                    "Der grau hinterlegte Bereich zeigt die Monate zwischen 1933 und 1945 an, während der weiße Bereich die Jahre bis heute darstellt.",
+                highlightSelector: ".map-timeline",
+                position: {
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                },
+            },
+            {
+                title: "Fertig!",
+                description:
+                    "Du kannst den Zeitstrahl jederzeit über den Button unten rechts öffnen und schließen. Viel Spaß beim Erkunden der historischen Daten!",
+                position: {
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                },
+            },
+        ];
 
         const handleTimelineFilterChange = (enabled) => {
             isTimelineFilterEnabled.value = enabled;
@@ -662,10 +780,70 @@ export default {
             }
         });
 
+        onMounted(() => {
+            // Prüfen, ob der Benutzer das Tutorial bereits gesehen hat
+            tutorialCompleted.value =
+                localStorage.getItem("tutorialCompleted") === "true";
+
+            // Tutorial-Schritte festlegen (hier z.B. für Timeline)
+            tutorialSteps.value = timelineTutorialSteps;
+
+            // Add custom event listeners for map marker management
+            window.addEventListener(
+                "update-map-markers",
+                handleUpdateMapMarkers,
+            );
+            window.addEventListener(
+                "force-redraw-markers",
+                handleForceRedrawMarkers,
+            );
+
+            // Optional: Tutorial automatisch starten, wenn es noch nicht abgeschlossen wurde
+            if (!tutorialCompleted.value) {
+                // Verzögerung, damit die Karte vollständig geladen ist
+                setTimeout(() => {
+                    showTutorial.value = true;
+                }, 2000);
+            }
+        });
+
+        const startTutorial = () => {
+            showTutorial.value = true;
+        };
+
+        const completeTutorial = () => {
+            showTutorial.value = false;
+            tutorialCompleted.value = true;
+        };
+
+        const skipTutorial = () => {
+            showTutorial.value = false;
+            tutorialCompleted.value = true;
+        };
+
+        // Funktion, um den aktuellen Tutorial-Schritt zu verarbeiten (für spezielle Aktionen)
+        const handleTutorialStep = (step) => {
+            if (step.onShow && typeof step.onShow === "function") {
+                step.onShow();
+            }
+        };
+
+        const timelineComponentRef = ref(null);
+
         onUnmounted(() => {
             if (map.value) {
                 map.value.remove();
             }
+
+            // Remove custom event listeners for map marker management
+            window.removeEventListener(
+                "update-map-markers",
+                handleUpdateMapMarkers,
+            );
+            window.removeEventListener(
+                "force-redraw-markers",
+                handleForceRedrawMarkers,
+            );
         });
 
         const setupLeafletMap = async () => {
@@ -1116,39 +1294,52 @@ export default {
         const drawLinesBetweenSubAndMainGroups = () => {
             const rawMap = toRaw(map.value);
 
-            Object.entries(groupedPlaces.value).forEach(([groupName, group]) => {
-                const linkedMainGroupItem = group.linkedMainGroupItem;
-                // skip if group is not subgroup
-                if (!linkedMainGroupItem) return;
+            Object.entries(groupedPlaces.value).forEach(
+                ([groupName, group]) => {
+                    const linkedMainGroupItem = group.linkedMainGroupItem;
+                    // skip if group is not subgroup
+                    if (!linkedMainGroupItem) return;
 
-                // remove existing lines (if any)
-                linkedMainGroupItem.lines.forEach(line => rawMap.removeLayer(line));
-                linkedMainGroupItem.lines = [];
+                    // remove existing lines (if any)
+                    linkedMainGroupItem.lines.forEach((line) =>
+                        rawMap.removeLayer(line),
+                    );
+                    linkedMainGroupItem.lines = [];
 
-                // skip if subgroup is not enabled on map
-                if (!groupedPlacesShownOnMap.value.includes(groupName)) return;
+                    // skip if subgroup is not enabled on map
+                    if (!groupedPlacesShownOnMap.value.includes(groupName))
+                        return;
 
-                // ensure main marker is added to map
-                if (!rawMap.hasLayer(linkedMainGroupItem.marker)) {
-                    linkedMainGroupItem.marker.addTo(rawMap);
-                }
+                    // Also check if the main group is enabled
+                    const mainGroupName = linkedMainGroupItem.group;
+                    if (!groupedPlacesShownOnMap.value.includes(mainGroupName))
+                        return;
 
-                // draw lines from subgroup markers to main marker
-                group.placesByCoordinates.forEach(({ marker }) => {
-                    if (!rawMap.hasLayer(marker)) return;
+                    // ensure main marker is added to map
+                    if (!rawMap.hasLayer(linkedMainGroupItem.marker)) {
+                        linkedMainGroupItem.marker.addTo(rawMap);
+                    }
 
-                    const line = L.polyline(
-                        [marker.getLatLng(), linkedMainGroupItem.marker.getLatLng()],
-                        {
-                            color: group.color,
-                            dashArray: "4,4",
-                            weight: 2,
-                        }
-                    ).addTo(rawMap);
+                    // draw lines from subgroup markers to main marker
+                    group.placesByCoordinates.forEach(({ marker }) => {
+                        if (!rawMap.hasLayer(marker)) return;
 
-                    linkedMainGroupItem.lines.push(line);
-                });
-            });
+                        const line = L.polyline(
+                            [
+                                marker.getLatLng(),
+                                linkedMainGroupItem.marker.getLatLng(),
+                            ],
+                            {
+                                color: group.color,
+                                dashArray: "4,4",
+                                weight: 2,
+                            },
+                        ).addTo(rawMap);
+
+                        linkedMainGroupItem.lines.push(line);
+                    });
+                },
+            );
         };
 
         const dateFilter = (data, minDate, maxDate) => {
@@ -1287,7 +1478,11 @@ export default {
                                 getDateProp("startTime") ??
                                 new Date("1945-05-08").toDateString()
                             );
-                        } else if (placeGroupName === "events" || groupedPlaces.value[placeGroupName].linkedMainGroupItem?.group === "events") {
+                        } else if (
+                            placeGroupName === "events" ||
+                            groupedPlaces.value[placeGroupName]
+                                .linkedMainGroupItem?.group === "events"
+                        ) {
                             return (
                                 getDateProp("pointInTime") ??
                                 getDateProp("startTime") ??
@@ -1309,7 +1504,11 @@ export default {
                                 getDateProp("endTime") ??
                                 new Date().toDateString()
                             );
-                        } else if (placeGroupName === "events" || groupedPlaces.value[placeGroupName].linkedMainGroupItem?.group === "events") {
+                        } else if (
+                            placeGroupName === "events" ||
+                            groupedPlaces.value[placeGroupName]
+                                .linkedMainGroupItem?.group === "events"
+                        ) {
                             return (
                                 getDateProp("pointInTime") ??
                                 getDateProp("endTime") ??
@@ -1344,13 +1543,15 @@ export default {
         };
 
         const setMainMarkerOfSubGroups = () => {
-            Object.values(groupedPlaces.value).forEach(group => {
+            Object.values(groupedPlaces.value).forEach((group) => {
                 if (!group.linkedMainGroupItem) return;
 
-                const mainLocationMarkers = locationMarkers.value[group.linkedMainGroupItem.id];
-                group.linkedMainGroupItem.marker = Object.values(mainLocationMarkers)[0];
+                const mainLocationMarkers =
+                    locationMarkers.value[group.linkedMainGroupItem.id];
+                group.linkedMainGroupItem.marker =
+                    Object.values(mainLocationMarkers)[0];
             });
-        }
+        };
 
         /**
          * Set selected place info.
@@ -2837,6 +3038,46 @@ export default {
                 console.error("Error in switchLocation:", error);
             }
         };
+
+        /**
+         * Selects a location by its Wikidata ID
+         * Used by the tutorial to select specific locations
+         * @param {string|object} locationInfo - Wikidata ID of the location to select or object with location details
+         */
+        const selectLocation = (locationInfo) => {
+            try {
+                if (typeof locationInfo === "string") {
+                    // If just a location ID is provided
+                    console.log("Selecting location by ID:", locationInfo);
+                    switchLocation({
+                        locationId: locationInfo,
+                        zoom: 14,
+                    });
+                } else {
+                    // If a location object with coordinates is provided
+                    console.log(
+                        "Selecting location with coordinates:",
+                        locationInfo,
+                    );
+                    const latLng =
+                        locationInfo.latLng ||
+                        (locationInfo.lat && locationInfo.lng
+                            ? {
+                                  lat: parseFloat(locationInfo.lat),
+                                  lng: parseFloat(locationInfo.lng),
+                              }
+                            : null);
+
+                    switchLocation({
+                        locationId: locationInfo.locationId,
+                        latLng: latLng,
+                        zoom: locationInfo.zoom || 14,
+                    });
+                }
+            } catch (error) {
+                console.error("Error in selectLocation:", error);
+            }
+        };
         /**
          * Show person data in map info sidebar.
          *
@@ -2895,6 +3136,19 @@ export default {
                 console.error("Error in showPerson:", error);
                 toggleShowPlaceInfoSidebar(false);
             }
+        };
+
+        /**
+         * Sets up navigation history for the tutorial to enable back button in person view
+         * This is kept for compatibility but no longer needed since we use tutorialMode flag
+         * @param {string} locationId - The ID of the location to add to navigation history
+         */
+        const setupPersonNavigationHistory = (locationId) => {
+            // No longer needed as we use tutorialMode flag to show back button
+            console.log(
+                "setupPersonNavigationHistory is called but not needed anymore",
+            );
+            return;
         };
         /**
          * Set the perpetrator data of the selected person to be displayed in the map info sidebar.
@@ -3400,6 +3654,18 @@ export default {
             debouncedApplyFilters(null, null, newGroups);
         };
 
+        // Handler for update-map-markers event
+        const handleUpdateMapMarkers = () => {
+            console.log("Handling update-map-markers event");
+            debouncedApplyFilters(null, null, groupedPlacesShownOnMap.value);
+        };
+
+        // Handler for force-redraw-markers event
+        const handleForceRedrawMarkers = () => {
+            console.log("Handling force-redraw-markers event");
+            drawLinesBetweenSubAndMainGroups();
+        };
+
         /**
          * Cache current map view (latitude, longitude, zoom-level).
          */
@@ -3421,11 +3687,18 @@ export default {
             showPlaceInfoSidebar,
             selectedPlace,
             showPerson,
+            openMapOptions,
             closeMapOptions,
+            toggleMapOptions,
+            openTimeline,
+            closeTimeline,
+            toggleTimeline,
             switchLocation,
+            selectLocation,
             toggleShowPlaceInfoSidebar,
             restoreCachedMapView,
             setMapView,
+            setupPersonNavigationHistory,
             handleLayerGroupsUpdate,
             handleTimelineUpdate,
             MapTimeline,
@@ -3434,6 +3707,13 @@ export default {
             getDerivedPlacesData,
             isTimelineFilterEnabled,
             handleTimelineFilterChange,
+            showTutorial,
+            tutorialCompleted,
+            tutorialSteps,
+            startTutorial,
+            completeTutorial,
+            skipTutorial,
+            timelineComponentRef,
             isLoading,
         };
     },
@@ -3486,6 +3766,12 @@ export default {
     top: 0;
     z-index: 0;
 }
+.tutorial-button {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
+}
 </style>
 <style>
 /* top-right Leaflet control */
@@ -3517,6 +3803,28 @@ export default {
 /* greyscale map tiles */
 .leaflet-tile-pane {
     filter: grayscale(1);
+}
+
+.highlight-tutorial {
+    /* Preserve original positioning properties */
+    z-index: 10000 !important;
+    transform: scale(1.05);
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px 5px rgba(255, 82, 82, 0.7);
+    border-radius: 4px;
+    animation: tutorial-pulse 2s infinite;
+    pointer-events: auto !important;
+    /* Ensure button stays clickable */
+    cursor: pointer;
+}
+
+.placetype-filter .highlight-tutorial {
+    tranform: scale(1);
+    border: 3px solid #ff5252;
+    z-index: 10000; /* Higher than backdrop but lower than sidebar */
+    pointer-events: none;
+    animation: pulse 2s infinite;
+    border-radius: 4px;
 }
 </style>
 
