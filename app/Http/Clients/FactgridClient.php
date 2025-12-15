@@ -47,7 +47,10 @@ class FactgridClient
             "Q1784665", // https://www.wikidata.org/wiki/Q108047650     Extended police prison
             "Q1790894", // https://www.wikidata.org/wiki/Q108048094     Police Detention Camp
         ], // Erweitertes Polizeigefängnis
-        "laborEducationCamps" => ["Q978663"], // https://www.wikidata.org/wiki/Q277565        labor education camp
+        "laborEducationCamps" => [
+            "Q978663", // https://www.wikidata.org/wiki/Q277565        labor education camp
+            "Q978678", // Arbeitslager
+        ],
         "fieldOffices" => [
             "Q1784667", // https://www.wikidata.org/wiki/Q108047541     Gestapo Field Office
             "Q1784676", // https://www.wikidata.org/wiki/Q108047989     Outpost (State Police)
