@@ -116,9 +116,7 @@ export default {
         const route = useRoute();
         const configLeaflet = leafletConfig;
         const ogtGlobals = inject("ogtGlobals");
-        const dataSource = ref(
-            localStorage.getItem("dataSource") || "factgrid",
-        );
+        const dataSource = ref("factgrid");
         const map = ref(null);
         const rawMap = ref(null);
 
@@ -148,19 +146,6 @@ export default {
             } finally {
                 isLoading.value = false;
             }
-        };
-
-        const switchDataSource = (source) => {
-            if (source === dataSource.value) {
-                console.log(`Data source unchanged: ${source}`);
-                return;
-            }
-
-            dataSource.value = source;
-            localStorage.setItem("dataSource", source);
-            console.log(`Data source switched to: ${source}`);
-            // Reload the data with the new source
-            fetchAllData();
         };
         const rawGroupedPlaces = ref({});
         const markers = ref([]);
@@ -3897,7 +3882,6 @@ export default {
             timelineComponentRef,
             isLoading,
             dataSource,
-            switchDataSource,
             fetchAllData,
         };
     },
