@@ -239,7 +239,7 @@ class FactgridClient
             FILTER(?property IN(
               wd:P189, wd:P2, wd:P534, wd:P47, wd:P419, wd:P280, wd:P9, wd:P137, wd:P1423, wd:P48,
               wd:P319, wd:P156, wd:P315, wd:P7, wd:P7, wd:P137, wd:P1164, wd:P137, wd:P534,
-              wd:P153, wd:P49, wd:P50,wd:P153, wd:P156, wd:P155, wd:P49, wd:P50,
+              wd:P153, wd:P49, wd:P50,wd:P153, wd:P156, wd:P155, wd:P45, wd:P46,
               wd:P319, wd:P129, wd:P146, wd:P7, wd:P7, wd:P1422, wd:P1421, wd:P14, wd:P247, wd:P248, wd:P5582, wd:P1418, wd:P1419,
               wd:P8, wd:P95, wd:P47, wd:P47, wd:P66, wd:P751, wd:P290
             ))
@@ -252,8 +252,8 @@ class FactgridClient
             ?property wikibase:statementValue ?psv.
             FILTER(?property IN(wd:P49, wd:P50, wd:P45, wd:P46, wd:P106, wd:P77, wd:P38, wd:P290))
             ?statement ?psv ?propertyValueNode.
-            ?propertyValueNode wikibase:timeValue ?propertyValue.
-            OPTIONAL { ?propertyValueNode wikibase:timePrecision ?propertyTimePrecision. }
+            ?propertyValueNode wikibase:timeValue ?propertyValue;
+              wikibase:timePrecision ?propertyTimePrecision.
           }
           OPTIONAL {
             {
@@ -269,7 +269,7 @@ class FactgridClient
               FILTER(?qualifier IN(wd:P45, wd:P46, wd:P49, wd:P50, wd:P106, wd:P218, wd:P219, wd:P432, wd:P432))
               ?statement ?pqv ?qualifierValueNode.
               ?qualifierValueNode wikibase:timeValue ?qualifierValue.
-              OPTIONAL { ?qualifierValueNode wikibase:timePrecision ?qualifierTimePrecision. }
+                wikibase:timePrecision ?qualifierTimePrecision.
             }
           }
           SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". }
