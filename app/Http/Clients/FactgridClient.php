@@ -93,6 +93,7 @@ class FactgridClient
         "P82" => "placeOfBirth", // Place of birth (Wikidata P19)
         "P168" => "placeOfDeath", // Place of death (Wikidata P20)
         "P153" => "streetAddresses", // Street addresses (Wikidata P6375)
+        //"P49" => "openingDate", // https://www.wikidata.org/wiki/Property:P1619
 
         // Time Properties
         "P45" => "startTime", // Start time (Wikidata P580)

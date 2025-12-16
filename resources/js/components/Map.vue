@@ -3822,13 +3822,11 @@ export default {
 
         // Handler for update-map-markers event
         const handleUpdateMapMarkers = () => {
-            console.log("Handling update-map-markers event");
             debouncedApplyFilters(null, null, groupedPlacesShownOnMap.value);
         };
 
         // Handler for force-redraw-markers event
         const handleForceRedrawMarkers = () => {
-            console.log("Handling force-redraw-markers event");
             drawLinesBetweenSubAndMainGroups();
         };
 
