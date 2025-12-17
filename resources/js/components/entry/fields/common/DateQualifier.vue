@@ -7,11 +7,11 @@
             class="qualifier-select"
         >
             <option value="">Genau</option>
-            <option value="Q40719727">Anfang</option>
-            <option value="Q79030196">Früher als (Vor)</option>
-            <option value="Q5727902">Circa</option>
-            <option value="Q12913816">Später als (Nach)</option>
-            <option value="Q40719766">Ende</option>
+            <option value="Q1347242">Anfang</option>
+            <option value="Q77189">Früher als (Vor)</option>
+            <option value="Q10">Circa</option>
+            <option value="Q77190">Später als (Nach)</option>
+            <option value="Q778400">Ende</option>
         </select>
         <div class="select-arrow"></div>
     </div>

@@ -7,9 +7,9 @@
             class="qualifier-select"
         >
             <option value="">Genau</option>
-            <option value="Q5727902">Circa</option>
-            <option value="Q52834024">Weniger als</option>
-            <option value="Q47035128">Mehr als</option>
+            <option value="Q10">Circa</option>
+            <option value="Q1790780">Weniger als</option>
+            <option value="Q1790843">Mehr als</option>
         </select>
         <div class="select-arrow"></div>
     </div>
@@ -45,7 +45,9 @@ defineEmits(["update:modelValue"]);
     border-radius: 4px;
     font-size: 0.9rem;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;

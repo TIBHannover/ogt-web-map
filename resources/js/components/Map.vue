@@ -90,16 +90,16 @@ import TutorialOverlay from "./navigation/TutorialOverlay";
 import { VSelectionControlGroup } from "vuetify/lib/components/index.mjs";
 const showPlaceInfoSidebar = ref(false);
 const sourceCircumstances = ref({
-    Q5727902: "ca.",
-    Q47035128: ">",
-    Q52834024: "<",
+    Q10: "ca.",
+    Q1790843: ">",
+    Q1790780: "<",
 });
 import mockPlacesData from "../data/mock-places.json";
 import mockPersonsData from "../data/mock-persons.json";
 
 // Constants
 const WIKIDATA_ID_CLASSES = {
-    deportation: ["Q379693", "Q5883983", "Q61927259"],
+    deportation: ["Q901359", "Q1788851"],
 };
 
 export default {
