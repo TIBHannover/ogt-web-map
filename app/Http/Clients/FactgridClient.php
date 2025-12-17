@@ -93,6 +93,7 @@ class FactgridClient
         "P82" => "placeOfBirth", // Place of birth (Wikidata P19)
         "P168" => "placeOfDeath", // Place of death (Wikidata P20)
         "P153" => "streetAddresses", // Street addresses (Wikidata P6375)
+        "P156" => "officialWebsite", // https://www.wikidata.org/wiki/Property:P856
         //"P49" => "openingDate", // https://www.wikidata.org/wiki/Property:P1619
 
         // Time Properties
@@ -119,6 +120,11 @@ class FactgridClient
         "P7" => "replacedBys", // Replaced by (Wikidata P1366)
         "P1421" => "employeeCounts", // https://www.wikidata.org/wiki/Property:P1128
         "P1422" => "prisonerCounts", // https://www.wikidata.org/wiki/Property:P5630
+        "P534" => "operators", // https://www.wikidata.org/wiki/Property:P137
+        "P95" => "startPoints", // https://www.wikidata.org/wiki/Property:P1427
+
+        //"P1444" => "destinationPoints", // https://www.wikidata.org/wiki/Property:P1444
+        //"P7153" => "significantPlaces", // https://www.wikidata.org/wiki/Property:P7153
 
         // Role and Relationship Properties
         "P277" => "subjectRoles", // Subject has role (Wikidata P2868)
@@ -131,8 +137,7 @@ class FactgridClient
         "P146" => "describedByUrlSources", // Described by URL (Wikidata P973)
 
         // Event Specific Properties
-        //"P178" => "perpetrators", // Perpetrator (Wikidata P8031 - first mapping)
-        "P66" => "perpetrators", // Perpetrator (Wikidata P8031 - second mapping)
+        "P66" => "perpetrators", // Perpetrator (Wikidata P8031)
         "P751" => "victims", // Victim (Wikidata P8032)
         "P464" => "hasCause", // Has cause (Wikidata P828)
         "P5582" => "numberOfArrests", // https://www.wikidata.org/wiki/Property:P5582
@@ -242,8 +247,8 @@ class FactgridClient
             ?property wikibase:propertyType ?propertyType.
             FILTER(?property IN(
               wd:P189, wd:P2, wd:P534, wd:P47, wd:P419, wd:P280, wd:P9, wd:P137, wd:P1423, wd:P48,
-              wd:P319, wd:P156, wd:P315, wd:P7, wd:P7, wd:P137, wd:P1164, wd:P137, wd:P534,
-              wd:P153, wd:P49, wd:P50,wd:P153, wd:P156, wd:P155, wd:P49, wd:P50,
+              wd:P319, wd:P156, wd:P315, wd:P7, wd:P7, wd:P137, wd:P1164, wd:P137,
+              wd:P153, wd:P49, wd:P50,wd:P153, wd:P155, wd:P49, wd:P50,
               wd:P319, wd:P129, wd:P146, wd:P7, wd:P7, wd:P1422, wd:P1421, wd:P14, wd:P247, wd:P248, wd:P5582, wd:P1418, wd:P1419,
               wd:P8, wd:P95, wd:P47, wd:P47, wd:P66, wd:P751, wd:P290
             ))
