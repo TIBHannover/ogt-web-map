@@ -243,18 +243,10 @@ class WikibaseController extends Controller
             $client = $this->getClient();
             $configPrefix = $this->getConfigPrefix();
 
-            Log::debug("WikibaseController::getPlaces - Starting method");
-            Log::debug("Using client type: " . get_class($client));
-            Log::debug("Config prefix: " . $configPrefix);
-
             $response = $client->queryPlaces();
 
             if (empty($response) || !isset($response["results"]["bindings"])) {
                 Log::warning("Empty or invalid response from queryPlaces");
-                Log::debug(
-                    "Response structure: " .
-                        json_encode(array_keys($response ?? [])),
-                );
                 return response(
                     [
                         "events" => [],
@@ -270,14 +262,6 @@ class WikibaseController extends Controller
                 );
             }
 
-            Log::debug("Received response from queryPlaces", [
-                "hasHead" => isset($response["head"]),
-                "hasResults" => isset($response["results"]),
-                "bindingsCount" => isset($response["results"]["bindings"])
-                    ? count($response["results"]["bindings"])
-                    : 0,
-            ]);
-
             // Validator for the SPARQL query response structure
             $validator = Validator::make($response, [
                 "head" => "required|array",
@@ -291,46 +275,12 @@ class WikibaseController extends Controller
                     "Validation of {$configPrefix} places response failed.",
                     $validator->errors()->all(),
                 );
-
-                Log::debug("Full response for debugging:", [
-                    "head" => isset($response["head"])
-                        ? json_encode($response["head"])
-                        : "missing",
-                    "results" => isset($response["results"])
-                        ? json_encode($response["results"])
-                        : "missing",
-                    "vars" => isset($response["head"]["vars"])
-                        ? json_encode($response["head"]["vars"])
-                        : "missing",
-                    "first_binding" => isset(
-                        $response["results"]["bindings"][0],
-                    )
-                        ? json_encode($response["results"]["bindings"][0])
-                        : "missing",
-                    "status" => isset($response["_status_code"])
-                        ? $response["_status_code"]
-                        : "unknown",
-                ]);
-
                 return response([], Response::HTTP_NO_CONTENT);
             }
 
             $locations = $client->mergeItemsData(
                 $response["results"]["bindings"],
             );
-
-            Log::debug(
-                "mergeItemsData returned " . count($locations) . " items",
-            );
-            if (count($locations) > 0) {
-                Log::debug(
-                    "Sample item keys: " .
-                        implode(", ", array_keys(reset($locations))),
-                );
-                Log::debug(
-                    "First item: " . json_encode(array_values($locations)[0]),
-                );
-            }
 
             // If no locations were found, return empty groups
             if (empty($locations)) {
@@ -365,32 +315,16 @@ class WikibaseController extends Controller
                     ? FactgridClient::PLACE_SUBGROUP_MAPPINGS
                     : WikidataClient::PLACE_SUBGROUP_MAPPINGS;
 
-            Log::debug("Calling groupItemsByProperty with parameters", [
-                "locationsCount" => count($locations),
-                "placeGroupsKeys" => array_keys($placeGroups),
-                "instancePropertyId" => $instancePropertyId,
-            ]);
-
             $groupedLocations = $client->groupItemsByProperty(
                 $locations,
                 $placeGroups,
                 $instancePropertyId,
             );
 
-            Log::debug(
-                "groupItemsByProperty returned groups with counts: " .
-                    json_encode(array_map("count", $groupedLocations)),
-            );
-
             $groupedLocations = $client->subgroupItems(
                 $groupedLocations,
                 $placeSubgroupMappings,
                 $partOfPropertyId,
-            );
-
-            Log::debug(
-                "subgroupItems returned groups with counts: " .
-                    json_encode(array_map("count", $groupedLocations)),
             );
 
             // Ensure the directory exists
@@ -408,19 +342,6 @@ class WikibaseController extends Controller
                 $filePath,
                 json_encode($groupedLocations),
             );
-
-            Log::debug(
-                "WikibaseController::getPlaces - Completed successfully with " .
-                    array_sum(array_map("count", $groupedLocations)) .
-                    " total places",
-            );
-
-            // Final check on what we're returning
-            foreach ($groupedLocations as $groupName => $items) {
-                Log::debug(
-                    "Group '{$groupName}' contains " . count($items) . " items",
-                );
-            }
 
             return response($groupedLocations, Response::HTTP_OK);
         } catch (\Exception $e) {

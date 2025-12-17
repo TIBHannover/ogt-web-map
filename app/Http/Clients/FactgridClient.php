@@ -101,8 +101,8 @@ class FactgridClient
         "P106" => "pointInTime", // Point in time (Wikidata P585)
         "P77" => "dateOfBirth", // Date of birth (Wikidata P569)
         "P38" => "dateOfDeath", // Date of death (Wikidata P570)
-        "P49" => "inceptionDates", // https://www.wikidata.org/wiki/Property:P571
-        "P50" => "dissolvedDates", // https://www.wikidata.org/wiki/Property:P576
+        "P49" => "inceptionDates", // Inception date https://www.wikidata.org/wiki/Property:P571
+        "P50" => "dissolvedDates", // Dissolved date https://www.wikidata.org/wiki/Property:P576
         "P290" => "firstDocumented", // replaces startTime for memorials, Erste Aktivität P580
 
         // Person Properties
@@ -167,6 +167,7 @@ class FactgridClient
         "P155" => "sourcingCircumstance", // Similar to Wikidata P1480 (sourcing circumstance)
         "P153" => "streetAddress", // Similar to Wikidata P6375 (street address)
         "P10" => "inventoryNumber", // Similar to Wikidata P217 (inventory number)
+        "P700" => "dateType", // Type of date (e.g., opening date, first documented, etc.)
     ];
 
     /**
@@ -176,12 +177,9 @@ class FactgridClient
      */
     public function queryPlaces(): array
     {
-        Log::debug("FactgridClient::queryPlaces - Starting method");
-
-        // Simple combined query that reliably fetches items, instance types, and coordinates
-        // We confirmed this query pattern works correctly in tests
+        // Enhanced query to capture P700 qualifiers for P49 date properties
         $query = '
-        SELECT
+        SELECT DISTINCT
           ?item
           ?itemLabel
           ?itemDescription
@@ -194,7 +192,12 @@ class FactgridClient
           ?qualifierValue
           ?qualifierValueLabel
           ?qualifierTimePrecision
+          ?dateTypeQualifier
+          ?dateTypeValue
+          ?dateTypeValueLabel
+          ?dateTypeId
           ?coordinates
+          ?dateType
         WHERE {
           {
             ?item p:P2 ?itemStatement.
@@ -255,11 +258,31 @@ class FactgridClient
             ?statement ?psv ?propertyValueNode.
             ?propertyValueNode wikibase:timeValue ?propertyValue.
             OPTIONAL { ?propertyValueNode wikibase:timePrecision ?propertyTimePrecision. }
+
+            # Special handling for P49 (inception date) with P700 qualifiers
+            OPTIONAL {
+              # This section specifically handles P49 statements with P700 qualifier
+              FILTER(?property = wd:P49)
+              OPTIONAL {
+                ?statement pq:P700 ?dateTypeValue.
+                BIND(wd:P700 AS ?dateTypeQualifier)
+                # Extract the ID part from the dateTypeValue URI
+                BIND(STRAFTER(STR(?dateTypeValue), "http://database.factgrid.de/entity/") AS ?dateTypeId)
+                BIND(?dateTypeValue AS ?dateType)
+                # Get the label for the date type
+                OPTIONAL {
+                  ?dateTypeValue rdfs:label ?dateTypeValueLabel.
+                  FILTER(LANG(?dateTypeValueLabel) = "de" || LANG(?dateTypeValueLabel) = "en")
+                }
+              }
+              # Values of interest: Q483988 (opening date), Q1790956 (first activity), Q1057808 (first documented date)
+              # These qualifiers determine whether a date is an opening date or a first activity date
+            }
           }
           OPTIONAL {
             {
               ?qualifier wikibase:propertyType ?qualifierType.
-              FILTER(?qualifier IN(wd:P54, wd:P10, wd:P48, wd:P155, wd:P55, wd:P153))
+              FILTER(?qualifier IN(wd:P54, wd:P10, wd:P48, wd:P155, wd:P55, wd:P153, wd:P700))
               FILTER(?qualifierType != wikibase:Time)
               ?qualifier wikibase:qualifier ?pq.
               ?statement ?pq ?qualifierValue.
@@ -289,12 +312,55 @@ class FactgridClient
         // Save the query for debugging
         file_put_contents(storage_path("logs/factgrid_query.txt"), $query);
 
-        // Log information about the response
-        Log::debug("FactGrid query executed", [
-            "bindings_count" => count($response["results"]["bindings"] ?? []),
-            "vars" => $response["head"]["vars"] ?? [],
-        ]);
+        // Check for date type qualifiers in the response
+        $dateTypeQualifierCount = 0;
+        $openingDateCount = 0;
+        $firstActivityDateCount = 0;
 
+        // Process dateType values directly in the query response
+        foreach ($response["results"]["bindings"] as &$binding) {
+            if (
+                isset($binding["dateTypeQualifier"]) &&
+                isset($binding["dateTypeValue"])
+            ) {
+                $dateTypeQualifierCount++;
+
+                // Clean up the dateType value immediately by extracting the Q-ID
+                if (isset($binding["dateTypeValue"]["value"])) {
+                    $rawValue = $binding["dateTypeValue"]["value"];
+                    if (preg_match("/Q\d+/", $rawValue, $matches)) {
+                        // Replace the full URL with just the Q-ID
+                        $binding["dateTypeValue"]["value"] = $matches[0];
+                    } elseif (strpos($rawValue, "http") === 0) {
+                        // If it's a URL but no Q-ID matched, use basename
+                        $binding["dateTypeValue"]["value"] = basename(
+                            $rawValue,
+                        );
+                    }
+                }
+
+                // Also clean the dateTypeId field if present
+                if (isset($binding["dateTypeId"]["value"])) {
+                    $rawValue = $binding["dateTypeId"]["value"];
+                    if (preg_match("/Q\d+/", $rawValue, $matches)) {
+                        $binding["dateTypeId"]["value"] = $matches[0];
+                    }
+                }
+
+                // Check for specific date types
+                if (
+                    isset($binding["dateTypeId"]) &&
+                    isset($binding["dateTypeId"]["value"])
+                ) {
+                    $typeId = $binding["dateTypeId"]["value"];
+                    if ($typeId == "Q483988") {
+                        $openingDateCount++;
+                    } elseif ($typeId == "Q1057808" || $typeId == "Q1790956") {
+                        $firstActivityDateCount++;
+                    }
+                }
+            }
+        }
         // Check for timePrecision values in the response
         $timePrecisionCount = 0;
         $inceptionTimeCount = 0;
@@ -312,20 +378,12 @@ class FactgridClient
                     $propValue = $binding["property"]["value"];
                     if (strpos($propValue, "P49") !== false) {
                         $inceptionTimeCount++;
-                        Log::debug("Found inception date precision", $binding);
                     } elseif (strpos($propValue, "P50") !== false) {
                         $dissolvedTimeCount++;
-                        Log::debug("Found dissolved date precision", $binding);
                     }
                 }
             }
         }
-
-        Log::debug("Time precision statistics", [
-            "total_precision_values" => $timePrecisionCount,
-            "inception_dates_with_precision" => $inceptionTimeCount,
-            "dissolved_dates_with_precision" => $dissolvedTimeCount,
-        ]);
 
         // Check for valid response structure and filter out empty bindings
         if (
@@ -346,9 +404,6 @@ class FactgridClient
             $response["results"]["bindings"] = array_values($filteredBindings);
 
             $bindingsCount = count($response["results"]["bindings"]);
-            Log::info(
-                "Received FactGrid response with {$bindingsCount} valid bindings",
-            );
 
             // All data is already included in the main query
             // No need for additional property enrichment with this approach
@@ -374,8 +429,6 @@ class FactgridClient
 
     public function queryPersons(): array
     {
-        Log::debug("FactgridClient::queryPersons - Starting method");
-
         $query = '
         SELECT DISTINCT
             ?item
@@ -659,12 +712,41 @@ class FactgridClient
      */
     public function mergeItemsData(array $queryData): array
     {
+        // First pass: clean up all dateType values in the raw query data
+        foreach ($queryData as &$chunk) {
+            if (isset($chunk["dateTypeValue"]["value"])) {
+                $rawValue = $chunk["dateTypeValue"]["value"];
+                if (preg_match("/Q\d+/", $rawValue, $matches)) {
+                    $chunk["dateTypeValue"]["value"] = $matches[0];
+                } elseif (strpos($rawValue, "http") === 0) {
+                    // If it's a URL but no Q-ID matched, use basename
+                    $chunk["dateTypeValue"]["value"] = basename($rawValue);
+                }
+            }
+
+            // Also clean the dateTypeId field if present
+            if (isset($chunk["dateTypeId"]["value"])) {
+                $rawValue = $chunk["dateTypeId"]["value"];
+                if (preg_match("/Q\d+/", $rawValue, $matches)) {
+                    $chunk["dateTypeId"]["value"] = $matches[0];
+                } elseif (strpos($rawValue, "http") === 0) {
+                    $chunk["dateTypeId"]["value"] = basename($rawValue);
+                }
+            }
+        }
+        unset($chunk); // Break the reference
+
         $items = [];
         $currentItemId = "";
         $currentPropertyId = "";
         $currentStatementId = "";
         $propertyLabel = "";
         $missingPropertyCount = 0;
+
+        // Count statistics for date types
+        $openingDateCount = 0;
+        $firstActivityDateCount = 0;
+        $regularInceptionDateCount = 0;
 
         foreach ($queryData as $index => $itemChunk) {
             // Check for required fields and provide defaults if missing
@@ -816,13 +898,267 @@ class FactgridClient
                     ] = $qualifierValues;
                 }
             }
+
+            // Create base inceptionDates structure if this is a P49 property
+            if ($propertyId == "49" && $propertyLabel == "inceptionDates") {
+                // Initialize top-level structures for different date types
+                if (!isset($items[$itemId]["openingDate"])) {
+                    $items[$itemId]["openingDate"] = [];
+                }
+                if (!isset($items[$itemId]["firstActivity"])) {
+                    $items[$itemId]["firstActivity"] = [];
+                }
+                // Ensure inceptionDates structure exists
+                if (!isset($items[$itemId]["inceptionDates"])) {
+                    $items[$itemId]["inceptionDates"] = [];
+                }
+            }
+
+            /**
+             * Extract the clean Q-ID from a FactGrid entity URL or string
+             *
+             * @param string $value The raw value that might contain a Q-ID
+             * @return string The clean Q-ID (like Q483988) or the original value if no Q-ID is found
+             */
+            $extractQId = function ($value) {
+                if (!is_string($value)) {
+                    return $value;
+                }
+
+                // Extract Q-ID using regex if possible
+                if (preg_match("/Q\d+/", $value, $matches)) {
+                    return $matches[0];
+                }
+
+                // Clean up URL parts
+                if (strpos($value, "http") === 0) {
+                    $value = basename($value);
+                }
+
+                // Remove hash or query parameters
+                if (strpos($value, "#") !== false) {
+                    $value = strtok($value, "#");
+                }
+                if (strpos($value, "?") !== false) {
+                    $value = strtok($value, "?");
+                }
+
+                return $value;
+            };
+
+            // Process P700 date type qualifier specially for P49 (inception dates)
+            if (
+                $propertyId == "49" &&
+                isset($itemChunk["dateTypeQualifier"]) &&
+                isset($itemChunk["dateTypeQualifier"]["value"]) &&
+                basename($itemChunk["dateTypeQualifier"]["value"]) == "P700" &&
+                isset($itemChunk["dateTypeValue"]) &&
+                isset($itemChunk["dateTypeValue"]["value"])
+            ) {
+                // Extract the Q-ID directly from the value using regex
+                $rawValue = $itemChunk["dateTypeValue"]["value"];
+                if (preg_match("/Q\d+/", $rawValue, $matches)) {
+                    $dateTypeId = $matches[0];
+                } else {
+                    $dateTypeId = basename($rawValue);
+                }
+
+                Log::debug("Processing date type qualifier", [
+                    "itemId" => $itemId,
+                    "dateTypeId" => $dateTypeId,
+                    "dateTypeRawValue" => $rawValue,
+                    "statementId" => $statementId,
+                ]);
+
+                $dateTypeLabel =
+                    isset($itemChunk["dateTypeValueLabel"]) &&
+                    isset($itemChunk["dateTypeValueLabel"]["value"])
+                        ? $itemChunk["dateTypeValueLabel"]["value"]
+                        : $dateTypeId;
+
+                // Log for debugging
+                Log::debug("Found P700 qualifier for inception date", [
+                    "itemId" => $itemId,
+                    "dateTypeId" => $dateTypeId,
+                    "dateTypeLabel" => $dateTypeLabel,
+                ]);
+
+                // Store the clean Q-ID in the dateType value
+                $items[$itemId][$propertyLabel][$statementId]["dateType"] = [
+                    "value" => $dateTypeId, // Just the Q ID
+                    "id" => $dateTypeId,
+                    "label" => $dateTypeLabel,
+                ];
+
+                // For opening date (Q483988)
+                if ($dateTypeId == "Q483988") {
+                    // Add to top-level openingDate property
+                    $items[$itemId]["openingDate"][$statementId] = array_merge(
+                        [],
+                        $items[$itemId][$propertyLabel][$statementId],
+                    );
+
+                    // Make sure the statement is marked as opening date in its dateType
+                    $items[$itemId][$propertyLabel][$statementId][
+                        "dateTypeMarker"
+                    ] = "openingDate";
+
+                    // Ensure the dateType is consistently set with the clean Q-ID
+                    $items[$itemId]["openingDate"][$statementId]["dateType"] = [
+                        "value" => $dateTypeId,
+                        "id" => $dateTypeId,
+                        "label" => $dateTypeLabel,
+                    ];
+                }
+                // For first documented date (Q1057808/Q1790956)
+                elseif (
+                    $dateTypeId == "Q1057808" ||
+                    $dateTypeId == "Q1790956"
+                ) {
+                    // Add to top-level firstActivity property
+                    $items[$itemId]["firstActivity"][
+                        $statementId
+                    ] = array_merge(
+                        [],
+                        $items[$itemId][$propertyLabel][$statementId],
+                    );
+
+                    // Make sure the statement is marked as first activity date in its dateType
+                    $items[$itemId][$propertyLabel][$statementId][
+                        "dateTypeMarker"
+                    ] = "firstActivity";
+
+                    // Ensure the dateType is consistently set with the clean Q-ID
+                    $items[$itemId]["firstActivity"][$statementId][
+                        "dateType"
+                    ] = [
+                        "value" => $dateTypeId,
+                        "id" => $dateTypeId,
+                        "label" => $dateTypeLabel,
+                    ];
+
+                    $firstActivityDateCount++;
+                }
+            }
         }
 
-        // Log information about missing properties
+        // Log information about missing properties and date types
         if ($missingPropertyCount > 0) {
             Log::info(
                 "Fixed {$missingPropertyCount} missing properties during mergeItemsData",
             );
+        }
+
+        // Final structure adjustment: make sure specialized date types appear in proper structure
+        foreach ($items as $itemId => &$item) {
+            // For items that have inceptionDates
+            if (
+                isset($item["inceptionDates"]) &&
+                !empty($item["inceptionDates"])
+            ) {
+                // Clean up all dateType values to ensure they're just Q IDs
+                foreach ($item["inceptionDates"] as &$dateEntry) {
+                    if (
+                        isset($dateEntry["dateType"]) &&
+                        isset($dateEntry["dateType"]["value"])
+                    ) {
+                        $rawValue = $dateEntry["dateType"]["value"];
+                        if (preg_match("/Q\d+/", $rawValue, $matches)) {
+                            $dateEntry["dateType"]["value"] = $matches[0];
+                        }
+                        if (isset($dateEntry["dateType"]["id"])) {
+                            if (
+                                preg_match(
+                                    "/Q\d+/",
+                                    $dateEntry["dateType"]["id"],
+                                    $matches,
+                                )
+                            ) {
+                                $dateEntry["dateType"]["id"] = $matches[0];
+                            }
+                        }
+                    }
+                }
+                unset($dateEntry); // Break the reference
+
+                // Ensure openingDate structure exists at the nested level
+                if (
+                    isset($item["openingDate"]) &&
+                    !empty($item["openingDate"])
+                ) {
+                    if (!isset($item["inceptionDates"]["openingDate"])) {
+                        $item["inceptionDates"]["openingDate"] =
+                            $item["openingDate"];
+                    }
+                }
+
+                // Ensure firstActivity structure exists at the nested level
+                if (
+                    isset($item["firstActivity"]) &&
+                    !empty($item["firstActivity"])
+                ) {
+                    if (!isset($item["inceptionDates"]["firstActivity"])) {
+                        $item["inceptionDates"]["firstActivity"] =
+                            $item["firstActivity"];
+                    }
+                }
+            }
+
+            // Also clean top-level date entries
+            if (isset($item["openingDate"]) && !empty($item["openingDate"])) {
+                foreach ($item["openingDate"] as &$dateEntry) {
+                    if (
+                        isset($dateEntry["dateType"]) &&
+                        isset($dateEntry["dateType"]["value"])
+                    ) {
+                        $rawValue = $dateEntry["dateType"]["value"];
+                        if (preg_match("/Q\d+/", $rawValue, $matches)) {
+                            $dateEntry["dateType"]["value"] = $matches[0];
+                        }
+                        if (isset($dateEntry["dateType"]["id"])) {
+                            if (
+                                preg_match(
+                                    "/Q\d+/",
+                                    $dateEntry["dateType"]["id"],
+                                    $matches,
+                                )
+                            ) {
+                                $dateEntry["dateType"]["id"] = $matches[0];
+                            }
+                        }
+                    }
+                }
+                unset($dateEntry);
+            }
+
+            if (
+                isset($item["firstActivity"]) &&
+                !empty($item["firstActivity"])
+            ) {
+                foreach ($item["firstActivity"] as &$dateEntry) {
+                    if (
+                        isset($dateEntry["dateType"]) &&
+                        isset($dateEntry["dateType"]["value"])
+                    ) {
+                        $rawValue = $dateEntry["dateType"]["value"];
+                        if (preg_match("/Q\d+/", $rawValue, $matches)) {
+                            $dateEntry["dateType"]["value"] = $matches[0];
+                        }
+                        if (isset($dateEntry["dateType"]["id"])) {
+                            if (
+                                preg_match(
+                                    "/Q\d+/",
+                                    $dateEntry["dateType"]["id"],
+                                    $matches,
+                                )
+                            ) {
+                                $dateEntry["dateType"]["id"] = $matches[0];
+                            }
+                        }
+                    }
+                }
+                unset($dateEntry);
+            }
         }
 
         // Process coordinates to ensure they're in the right format
@@ -842,6 +1178,84 @@ class FactgridClient
                                 "lat" => (string) $parsedCoords["lat"],
                                 "lng" => (string) $parsedCoords["lng"],
                             ];
+                        }
+                    }
+                }
+            }
+        }
+
+        // Final pass: clean all dateType values that might have URLs
+        foreach ($items as &$item) {
+            // Clean inceptionDates dateType values
+            if (
+                isset($item["inceptionDates"]) &&
+                is_array($item["inceptionDates"])
+            ) {
+                foreach ($item["inceptionDates"] as &$dateObj) {
+                    if (
+                        isset($dateObj["dateType"]) &&
+                        isset($dateObj["dateType"]["value"])
+                    ) {
+                        $value = $dateObj["dateType"]["value"];
+                        if (strpos($value, "http") === 0) {
+                            if (preg_match("/Q\d+/", $value, $matches)) {
+                                $dateObj["dateType"]["value"] = $matches[0];
+                                $dateObj["dateType"]["id"] = $matches[0];
+                            } else {
+                                $dateObj["dateType"]["value"] = basename(
+                                    $value,
+                                );
+                                $dateObj["dateType"]["id"] = basename($value);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Clean openingDate dateType values
+            if (isset($item["openingDate"]) && is_array($item["openingDate"])) {
+                foreach ($item["openingDate"] as &$dateObj) {
+                    if (
+                        isset($dateObj["dateType"]) &&
+                        isset($dateObj["dateType"]["value"])
+                    ) {
+                        $value = $dateObj["dateType"]["value"];
+                        if (strpos($value, "http") === 0) {
+                            if (preg_match("/Q\d+/", $value, $matches)) {
+                                $dateObj["dateType"]["value"] = $matches[0];
+                                $dateObj["dateType"]["id"] = $matches[0];
+                            } else {
+                                $dateObj["dateType"]["value"] = basename(
+                                    $value,
+                                );
+                                $dateObj["dateType"]["id"] = basename($value);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Clean firstActivity dateType values
+            if (
+                isset($item["firstActivity"]) &&
+                is_array($item["firstActivity"])
+            ) {
+                foreach ($item["firstActivity"] as &$dateObj) {
+                    if (
+                        isset($dateObj["dateType"]) &&
+                        isset($dateObj["dateType"]["value"])
+                    ) {
+                        $value = $dateObj["dateType"]["value"];
+                        if (strpos($value, "http") === 0) {
+                            if (preg_match("/Q\d+/", $value, $matches)) {
+                                $dateObj["dateType"]["value"] = $matches[0];
+                                $dateObj["dateType"]["id"] = $matches[0];
+                            } else {
+                                $dateObj["dateType"]["value"] = basename(
+                                    $value,
+                                );
+                                $dateObj["dateType"]["id"] = basename($value);
+                            }
                         }
                     }
                 }
@@ -936,6 +1350,9 @@ class FactgridClient
                     "pointInTime",
                     "dateOfBirth",
                     "dateOfDeath",
+                    "inceptionDates",
+                    "openingDate",
+                    "firstActivity",
                 ])
             ) {
                 // Date properties
@@ -946,29 +1363,6 @@ class FactgridClient
                         ? $itemChunk["propertyTimePrecision"]["value"]
                         : "11"; // Default day precision
 
-                // Log date precision information for debugging
-                if (
-                    $semanticKey == "inceptionDates" ||
-                    $semanticKey == "dissolvedDates" ||
-                    $semanticKey == "pointInTime"
-                ) {
-                    Log::debug("Date precision for {$semanticKey}", [
-                        "value" => $value,
-                        "has_precision" => isset(
-                            $itemChunk["propertyTimePrecision"],
-                        ),
-                        "precision_value" => isset(
-                            $itemChunk["propertyTimePrecision"]["value"],
-                        )
-                            ? $itemChunk["propertyTimePrecision"]["value"]
-                            : "not set",
-                        "inferred_precision" => $datePrecision,
-                        "property" => $id,
-                        "itemChunk_keys" => array_keys($itemChunk),
-                        "raw" => $itemChunk,
-                    ]);
-                }
-
                 // Fallback to inferring precision from the date format if not available from query
                 if (
                     !isset($itemChunk["propertyTimePrecision"]) ||
@@ -978,14 +1372,8 @@ class FactgridClient
                     if ($value && is_string($value)) {
                         if (preg_match("/^\d{4}-\d{2}$/", $value)) {
                             $datePrecision = "10"; // Month precision
-                            Log::debug("Inferred month precision from format", [
-                                "value" => $value,
-                            ]);
                         } elseif (preg_match("/^\d{4}$/", $value)) {
                             $datePrecision = "9"; // Year precision
-                            Log::debug("Inferred year precision from format", [
-                                "value" => $value,
-                            ]);
                         } elseif (preg_match("/^\d{4}-\d{2}-\d{2}/", $value)) {
                             // Look at the day part - if it's "01" for non-January months, likely only month precision
                             if (
@@ -995,10 +1383,6 @@ class FactgridClient
                                 )
                             ) {
                                 $datePrecision = "10"; // Month precision for non-January dates with day=01
-                                Log::debug(
-                                    "Inferred month precision from day=01 pattern",
-                                    ["value" => $value],
-                                );
                             }
                         }
                     }
@@ -1015,7 +1399,99 @@ class FactgridClient
                     "id" => $qid,
                 ];
             }
-        } elseif ($type === "qualifier") {
+        }
+
+        // Check if this is an inception date property with a date type qualifier
+        if (
+            $type === "property" &&
+            $id === "49" &&
+            isset($itemChunk["dateTypeValue"])
+        ) {
+            // Extract a clean Q-ID
+            $extractQId = function ($value) {
+                if (!is_string($value)) {
+                    return $value;
+                }
+
+                // Extract Q-ID using regex if possible
+                if (preg_match("/Q\d+/", $value, $matches)) {
+                    return $matches[0];
+                }
+
+                // Clean up URL parts
+                if (strpos($value, "http") === 0) {
+                    $value = basename($value);
+                }
+
+                // Remove hash or query parameters
+                if (strpos($value, "#") !== false) {
+                    $value = strtok($value, "#");
+                }
+                if (strpos($value, "?") !== false) {
+                    $value = strtok($value, "?");
+                }
+
+                return $value;
+            };
+
+            // Get date type ID either from the explicit dateTypeId field or by parsing the value
+            if (
+                isset($itemChunk["dateTypeId"]) &&
+                isset($itemChunk["dateTypeId"]["value"])
+            ) {
+                $dateTypeId = $itemChunk["dateTypeId"]["value"];
+            } elseif (
+                isset($itemChunk["dateTypeValue"]) &&
+                isset($itemChunk["dateTypeValue"]["value"])
+            ) {
+                // The dateType value should already be cleaned in the processing stage
+                $dateTypeId = $itemChunk["dateTypeValue"]["value"];
+                // Double-check - if it's still a URL, extract the Q-ID
+                if (strpos($dateTypeId, "http") === 0) {
+                    if (preg_match("/Q\d+/", $dateTypeId, $matches)) {
+                        $dateTypeId = $matches[0];
+                    } else {
+                        $dateTypeId = basename($dateTypeId);
+                    }
+                }
+            } else {
+                // Fallback
+                $dateTypeId = "";
+            }
+
+            Log::debug("Processing date type in getItemValues", [
+                "dateTypeId" => $dateTypeId,
+                "rawValue" => $itemChunk["dateTypeValue"]["value"] ?? "unknown",
+                "propertyId" => $id,
+            ]);
+
+            if ($dateTypeId) {
+                $dateTypeLabel =
+                    isset($itemChunk["dateTypeValueLabel"]) &&
+                    isset($itemChunk["dateTypeValueLabel"]["value"])
+                        ? $itemChunk["dateTypeValueLabel"]["value"]
+                        : $dateTypeId;
+
+                // Extract Q ID - already done above
+                $result["dateType"] = [
+                    "value" => $dateTypeId, // Just the Q ID
+                    "id" => $dateTypeId,
+                    "label" => $dateTypeLabel, // Preserve the human-readable label
+                ];
+
+                // Add a clear marker for the date type
+                if ($dateTypeId == "Q483988") {
+                    $result["dateTypeMarker"] = "openingDate";
+                } elseif (
+                    $dateTypeId == "Q1057808" ||
+                    $dateTypeId == "Q1790956"
+                ) {
+                    $result["dateTypeMarker"] = "firstActivity";
+                }
+            }
+        }
+
+        if ($type === "qualifier") {
             $result = ["value" => $value];
 
             // Process coordinate qualifier
@@ -1106,7 +1582,6 @@ class FactgridClient
         if ($instancePropertyId === "P277") {
             $propertyLabel = "subjectRoles";
             $isPerson = true;
-            Log::debug("Grouping persons by subject roles");
         } elseif (!empty($instancePropertyId)) {
             $propId = str_replace("wdt:", "", $instancePropertyId);
             if (isset(self::PROPERTY_LABEL_OF_ID[$propId])) {
@@ -1119,13 +1594,6 @@ class FactgridClient
         if ($firstKey && in_array($firstKey, array_keys($groupConfigs))) {
             return $items;
         }
-
-        Log::debug("Using property label for grouping: " . $propertyLabel);
-
-        // Log number of items for debugging
-        Log::debug(
-            "Processing " . count($items) . " items in groupItemsByProperty",
-        );
 
         // Process each item
         foreach ($items as $itemId => $item) {
@@ -1150,23 +1618,8 @@ class FactgridClient
                 }
             }
 
-            Log::debug(
-                "Item " .
-                    $itemId .
-                    " has property values: " .
-                    json_encode($propertyValues),
-            );
-
             // Assign to the first matching group
             $foundGroup = false;
-
-            // Debug log the property values
-            Log::debug("Property values for grouping:", [
-                "itemId" => $itemId,
-                "propertyLabel" => $propertyLabel,
-                "values" => $propertyValues,
-                "isPerson" => isset($isPerson) && $isPerson ? "true" : "false",
-            ]);
 
             foreach ($groupConfigs as $groupKey => $groupQids) {
                 $intersection = array_intersect($propertyValues, $groupQids);
@@ -1174,10 +1627,6 @@ class FactgridClient
                 if (!empty($intersection)) {
                     $groupedItems[$groupKey][$itemId] = $item;
                     $foundGroup = true;
-                    Log::debug(
-                        "Placed item " . $itemId . " in group " . $groupKey,
-                        ["matches" => $intersection],
-                    );
                     break; // Place in only one group
                 }
             }
@@ -1188,11 +1637,6 @@ class FactgridClient
                     // For persons, if they have no specific role,
                     // default to victims group as fallback
                     $groupedItems["victims"][$itemId] = $item;
-                    Log::debug(
-                        "Placed person " .
-                            $itemId .
-                            " in victims group as default fallback",
-                    );
                 } else {
                     // Place fallbacks - Label-based heuristics
                     $label = strtolower($item["label"] ?? "");
@@ -1205,21 +1649,11 @@ class FactgridClient
                         $groupedItems["statePoliceHeadquarters"][
                             $itemId
                         ] = $item;
-                        Log::debug(
-                            "Placed item " .
-                                $itemId .
-                                " in statePoliceHeadquarters based on label",
-                        );
                     } elseif (
                         strpos($label, "gefängnis") !== false ||
                         strpos($label, "haftanstalt") !== false
                     ) {
                         $groupedItems["prisons"][$itemId] = $item;
-                        Log::debug(
-                            "Placed item " .
-                                $itemId .
-                                " in prisons based on label",
-                        );
                     }
                     // Fallback method 2: Check if it's an "Ort des Gestapoterrors" instance
                     elseif (isset($item["instances"])) {
@@ -1235,28 +1669,12 @@ class FactgridClient
                                 $groupedItems["statePoliceOffices"][
                                     $itemId
                                 ] = $item;
-                                Log::debug(
-                                    "Placed item " .
-                                        $itemId .
-                                        " in statePoliceOffices as default",
-                                );
                                 break;
                             }
                         }
                     }
                 }
             }
-        }
-
-        // Log results for debugging
-        foreach ($groupedItems as $groupName => $groupItems) {
-            Log::debug(
-                "Group " .
-                    $groupName .
-                    " has " .
-                    count($groupItems) .
-                    " items after processing",
-            );
         }
 
         return $groupedItems;

@@ -1697,17 +1697,108 @@ export default {
                         );
                 }
 
+                // Process regular inception date, first activity, and opening date
                 selectedPlace.value.inceptionDate = {
+                    locale: "",
+                    value: null,
+                };
+
+                selectedPlace.value.firstActivity = {
                     locale: "",
                     value: null,
                 };
 
                 if (place.inceptionDates) {
                     console.log("InceptionDates data:", place.inceptionDates);
+
+                    // First check if there's a top-level firstActivity property
+                    if (place.firstActivity) {
+                        for (const [
+                            statementId,
+                            firstActivityDate,
+                        ] of Object.entries(place.firstActivity)) {
+                            console.log(
+                                "Processing firstActivity date from top-level:",
+                                firstActivityDate,
+                            );
+                            // Default to precision 9 (year) if no precision is provided
+                            const datePrecision =
+                                firstActivityDate.datePrecision || "9";
+                            selectedPlace.value.firstActivity = getDate(
+                                firstActivityDate.value,
+                                datePrecision,
+                            );
+                            console.log(
+                                "Found firstActivity date from top-level:",
+                                selectedPlace.value.firstActivity,
+                            );
+                            break; // Use the first one we find
+                        }
+                    }
+
+                    // Also check if there's a nested firstActivity section
+                    if (place.inceptionDates.firstActivity) {
+                        for (const [
+                            statementId,
+                            firstActivityDate,
+                        ] of Object.entries(
+                            place.inceptionDates.firstActivity,
+                        )) {
+                            console.log(
+                                "Processing firstActivity date from nested structure:",
+                                firstActivityDate,
+                            );
+                            // Default to precision 9 (year) if no precision is provided
+                            const datePrecision =
+                                firstActivityDate.datePrecision || "9";
+                            selectedPlace.value.firstActivity = getDate(
+                                firstActivityDate.value,
+                                datePrecision,
+                            );
+                            console.log(
+                                "Found firstActivity date from nested structure:",
+                                selectedPlace.value.firstActivity,
+                            );
+                            break; // Use the first one we find
+                        }
+                    }
+
+                    // Extract regular inception dates
                     for (const [statementId, inceptionDate] of Object.entries(
                         place.inceptionDates,
                     )) {
+                        // Skip entries that are nested objects
+                        if (
+                            statementId === "openingDate" ||
+                            statementId === "firstActivity" ||
+                            typeof inceptionDate !== "object" ||
+                            !inceptionDate.value
+                        ) {
+                            continue;
+                        }
+
                         console.log("Processing inceptionDate:", inceptionDate);
+
+                        // Check if this is a first activity date
+                        if (
+                            inceptionDate.dateType &&
+                            (inceptionDate.dateType.value === "Q1790956" ||
+                                inceptionDate.dateType.id === "Q1790956")
+                        ) {
+                            // Process as first activity date
+                            const datePrecision =
+                                inceptionDate.datePrecision || "9";
+                            selectedPlace.value.firstActivity = getDate(
+                                inceptionDate.value,
+                                datePrecision,
+                            );
+                            console.log(
+                                "Found firstActivity date:",
+                                selectedPlace.value.firstActivity,
+                            );
+                            continue;
+                        }
+
                         // Default to precision 9 (year) if no precision is provided
                         const datePrecision =
                             inceptionDate.datePrecision || "9";
@@ -1719,7 +1810,7 @@ export default {
                             "Processed inceptionDate result:",
                             selectedPlace.value.inceptionDate,
                         );
-                        break;
+                        // Don't break, need to process all entries to find special types
                     }
                 }
 
@@ -2238,6 +2329,88 @@ export default {
                             openingDate.datePrecision,
                         );
                         break;
+                    }
+                }
+
+                // Check for opening dates in inceptionDates with Q483988 qualifier
+                if (place.inceptionDates) {
+                    // First check if there's a nested openingDate section
+                    if (place.inceptionDates.openingDate) {
+                        for (const [statementId, openingDate] of Object.entries(
+                            place.inceptionDates.openingDate,
+                        )) {
+                            console.log(
+                                "Processing openingDate from nested structure:",
+                                openingDate,
+                            );
+                            const datePrecision =
+                                openingDate.datePrecision || "9";
+                            selectedPlace.value.openingDate = getDate(
+                                openingDate.value,
+                                datePrecision,
+                            );
+                            console.log(
+                                "Found openingDate from nested structure:",
+                                selectedPlace.value.openingDate,
+                            );
+                            break; // Use the first one we find
+                        }
+                    }
+
+                    // Also check for openingDates with Q483988 qualifier in individual entries
+                    for (const [statementId, inceptionDate] of Object.entries(
+                        place.inceptionDates,
+                    )) {
+                        // Skip entries that are nested objects or non-object values
+                        if (
+                            statementId === "openingDate" ||
+                            statementId === "firstActivity" ||
+                            typeof inceptionDate !== "object" ||
+                            !inceptionDate.value
+                        ) {
+                            continue;
+                        }
+
+                        // Check if this is an opening date
+                        if (
+                            inceptionDate.dateType &&
+                            (inceptionDate.dateType.value === "Q483988" ||
+                                inceptionDate.dateType.id === "Q483988")
+                        ) {
+                            // Process as opening date
+                            const datePrecision =
+                                inceptionDate.datePrecision || "9";
+                            selectedPlace.value.openingDate = getDate(
+                                inceptionDate.value,
+                                datePrecision,
+                            );
+                            console.log(
+                                "Found openingDate with Q483988 qualifier:",
+                                selectedPlace.value.openingDate,
+                            );
+                        }
+                    }
+                }
+
+                // Also check for a top-level openingDate property
+                if (place.openingDate) {
+                    for (const [statementId, openingDate] of Object.entries(
+                        place.openingDate,
+                    )) {
+                        console.log(
+                            "Processing openingDate from top-level:",
+                            openingDate,
+                        );
+                        const datePrecision = openingDate.datePrecision || "9";
+                        selectedPlace.value.openingDate = getDate(
+                            openingDate.value,
+                            datePrecision,
+                        );
+                        console.log(
+                            "Found openingDate from top-level:",
+                            selectedPlace.value.openingDate,
+                        );
+                        break; // Use the first one we find
                     }
                 }
 
