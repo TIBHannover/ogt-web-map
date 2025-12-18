@@ -482,12 +482,12 @@ class FactgridClient
 
             OPTIONAL {
                 ?item rdfs:label ?itemLabel.
-                FILTER(LANG(?itemLabel) IN ("de", "en"))
+                FILTER(LANG(?itemLabel) = "de" || LANG(?itemLabel) = "en")
             }
 
             OPTIONAL {
                 ?item schema:description ?itemDescription.
-                FILTER(LANG(?itemDescription) IN ("de", "en"))
+                FILTER(LANG(?itemDescription) = "de" || LANG(?itemDescription) = "en")
             }
 
             # First ensure we have the subject role for grouping
@@ -499,7 +499,7 @@ class FactgridClient
 
                 OPTIONAL {
                     ?propertyValue rdfs:label ?propertyValueLabel.
-                    FILTER(LANG(?propertyValueLabel) IN ("de", "en"))
+                    FILTER(LANG(?propertyValueLabel) = "de" || LANG(?propertyValueLabel) = "en")
                 }
             }
             UNION
@@ -532,7 +532,7 @@ class FactgridClient
                     # Get labels for property values when applicable
                     OPTIONAL {
                         ?propertyValue rdfs:label ?propertyValueLabel.
-                        FILTER(LANG(?propertyValueLabel) IN ("de", "en"))
+                        FILTER(LANG(?propertyValueLabel) = "de" || LANG(?propertyValueLabel) = "en")
                     }
                 }
 
@@ -583,7 +583,7 @@ class FactgridClient
 
                     OPTIONAL {
                         ?qualifierValue rdfs:label ?qualifierValueLabel.
-                        FILTER(LANG(?qualifierValueLabel) IN ("de", "en"))
+                        FILTER(LANG(?qualifierValueLabel) = "de" || LANG(?qualifierValueLabel) = "en")
                     }
 
                     # Include only meaningful qualifiers
