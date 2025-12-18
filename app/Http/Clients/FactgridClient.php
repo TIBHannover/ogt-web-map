@@ -431,22 +431,19 @@ class FactgridClient
         return $response;
     }
 
+    /**
+     * Query persons data from FactGrid using a two-stage approach to avoid timeouts.
+     *
+     * @return array Response from FactGrid
+     */
     public function queryPersons(): array
     {
-        $query = '
+        // First stage: Get just the distinct person IDs
+        $firstStageQuery = '
         SELECT DISTINCT
             ?item
             ?itemLabel
             ?itemDescription
-            ?property
-            ?statement
-            ?propertyValue
-            ?propertyValueLabel
-            ?propertyTimePrecision
-            ?qualifier
-            ?qualifierValue
-            ?qualifierValueLabel
-            ?qualifierTimePrecision
         WHERE {
             {
                 SELECT DISTINCT ?item WHERE {
@@ -613,17 +610,328 @@ class FactgridClient
                 }
             }
         }
-        ORDER BY ?item ?property ?statement
-'; # Increased limit to 1000 results
-        Log::debug("FactgridClient::queryPersons - Executing SPARQL query");
+        ORDER BY ?item
+';
+        Log::debug(
+            "FactgridClient::queryPersons - Executing first stage query for person IDs",
+        );
 
         try {
-            $response = $this->requestFactgrid($query);
+            // First stage: Get just the list of person IDs
+            $response = $this->requestFactgrid($firstStageQuery);
 
-            // Log full query for debugging
-            Log::debug("FactgridClient::queryPersons - Query executed:", [
-                "query" => $query,
-            ]);
+            // Log query for debugging
+            Log::debug(
+                "FactgridClient::queryPersons - First stage query executed",
+            );
+
+            // Extract person IDs from the response
+            $personIds = [];
+            if (
+                isset($response["results"]["bindings"]) &&
+                is_array($response["results"]["bindings"])
+            ) {
+                foreach ($response["results"]["bindings"] as $binding) {
+                    if (isset($binding["item"]["value"])) {
+                        $personId = basename($binding["item"]["value"]);
+                        if (!in_array($personId, $personIds)) {
+                            $personIds[] = $personId;
+                        }
+                    }
+                }
+            }
+
+            Log::info(
+                "Found " . count($personIds) . " unique person IDs in FactGrid",
+            );
+
+            // If we have no person IDs, return an empty response
+            if (empty($personIds)) {
+                Log::warning("No person IDs found in FactGrid");
+                return [
+                    "head" => [
+                        "vars" => [
+                            "item",
+                            "itemLabel",
+                            "itemDescription",
+                            "property",
+                            "statement",
+                            "propertyValue",
+                            "propertyValueLabel",
+                            "propertyTimePrecision",
+                            "qualifier",
+                            "qualifierValue",
+                            "qualifierValueLabel",
+                            "qualifierTimePrecision",
+                        ],
+                    ],
+                    "results" => ["bindings" => []],
+                ];
+            }
+
+            // Second stage: Get all properties for these person IDs
+            // Process in batches to avoid timeouts
+            $batchSize = 50;
+            $batches = array_chunk($personIds, $batchSize);
+            Log::info(
+                "Processing " . count($batches) . " batches of person data",
+            );
+
+            $allBindings = [];
+
+            foreach ($batches as $index => $batch) {
+                $personValues = implode(
+                    " ",
+                    array_map(function ($id) {
+                        return "wd:$id";
+                    }, $batch),
+                );
+
+                $secondStageQuery =
+                    '
+                SELECT DISTINCT
+                    ?item
+                    ?itemLabel
+                    ?itemDescription
+                    ?property
+                    ?statement
+                    ?propertyValue
+                    ?propertyValueLabel
+                    ?propertyTimePrecision
+                    ?qualifier
+                    ?qualifierValue
+                    ?qualifierValueLabel
+                    ?qualifierTimePrecision
+                WHERE {
+                    VALUES ?item { ' .
+                    $personValues .
+                    ' }
+
+                    OPTIONAL {
+                        ?item rdfs:label ?itemLabel.
+                        FILTER(LANG(?itemLabel) = "de" || LANG(?itemLabel) = "en")
+                    }
+
+                    OPTIONAL {
+                        ?item schema:description ?itemDescription.
+                        FILTER(LANG(?itemDescription) = "de" || LANG(?itemDescription) = "en")
+                    }
+
+                    # First ensure we have the subject role for grouping
+                    {
+                        ?item wdt:P277 ?roleValue.
+                        BIND(wd:P277 AS ?property)
+                        BIND(?item AS ?statement)
+                        BIND(?roleValue AS ?propertyValue)
+
+                        OPTIONAL {
+                            ?propertyValue rdfs:label ?propertyValueLabel.
+                            FILTER(LANG(?propertyValueLabel) = "de" || LANG(?propertyValueLabel) = "en")
+                        }
+                    }
+                    UNION
+                    {
+                        ?item wdt:P2 wd:Q7.
+                        FILTER NOT EXISTS { ?item wdt:P277 ?anyRole. }
+
+                        BIND(wd:P277 AS ?property)
+                        BIND(?item AS ?statement)
+                        BIND(wd:Q1784661 AS ?propertyValue)
+                        BIND("Victim (default role)" AS ?propertyValueLabel)
+                    }
+
+                    # Now get ALL properties for each person to ensure comprehensive data
+                    UNION
+                    {
+                        # Get all statements for this person
+                        ?item ?directProp ?directObj.
+
+                        # Extract the property and statement info
+                        ?property wikibase:directClaim ?directProp.
+                        ?property wikibase:claim ?claim.
+                        ?item ?claim ?statement.
+
+                        # Get property values
+                        OPTIONAL {
+                            ?property wikibase:statementProperty ?ps.
+                            ?statement ?ps ?propertyValue.
+
+                            # Get labels for property values when applicable
+                            OPTIONAL {
+                                ?propertyValue rdfs:label ?propertyValueLabel.
+                                FILTER(LANG(?propertyValueLabel) = "de" || LANG(?propertyValueLabel) = "en")
+                            }
+                        }
+
+                        # Get time-based property values
+                        OPTIONAL {
+                            ?property wikibase:statementValue ?psv.
+                            ?statement ?psv ?propertyValueNode.
+                            ?propertyValueNode wikibase:timeValue ?propertyValue;
+                                wikibase:timePrecision ?propertyTimePrecision.
+                        }
+
+                        # Include only meaningful properties, but with an expanded list
+                        VALUES ?property {
+                            # Identity properties
+                            wd:P2      # instance of
+                            wd:P277    # subject role
+                            wd:P82     # given name
+                            wd:P168    # family name
+                            wd:P154    # occupation
+
+                            # Biographical properties
+                            wd:P38     # date of birth
+                            wd:P77     # date of death
+                            wd:P129    # place of birth
+                            wd:P146    # place of death
+                            wd:P315    # place of residence
+                            wd:P216    # place of education
+                            wd:P137    # employer/organization
+
+                            # Event-related properties
+                            wd:P66     # participated in
+                            wd:P751    # affected by
+                            wd:P189    # location of detention
+                            wd:P616    # significant event
+
+                            # Metadata properties
+                            wd:P248    # described by source
+                            wd:P247    # image
+                            wd:P534    # external identifier
+                            wd:P153    # address
+                        }
+
+                        # Get qualifiers for each statement
+                        OPTIONAL {
+                            # Non-time qualifiers
+                            ?qualifier wikibase:qualifier ?pq.
+                            ?statement ?pq ?qualifierValue.
+
+                            OPTIONAL {
+                                ?qualifierValue rdfs:label ?qualifierValueLabel.
+                                FILTER(LANG(?qualifierValueLabel) = "de" || LANG(?qualifierValueLabel) = "en")
+                            }
+
+                            # Include only meaningful qualifiers
+                            VALUES ?qualifier {
+                                wd:P48  # coordinate
+                                wd:P54  # pages
+                                wd:P55  # curator
+                                wd:P153 # address
+                                wd:P155 # circumstance
+                            }
+                        }
+
+                        # Time-based qualifiers
+                        OPTIONAL {
+                            ?qualifier wikibase:qualifierValue ?pqv.
+                            ?statement ?pqv ?qualifierValueNode.
+                            ?qualifierValueNode wikibase:timeValue ?qualifierValue;
+                                wikibase:timePrecision ?qualifierTimePrecision.
+
+                            # Include only time-based qualifiers
+                            VALUES ?qualifier {
+                                wd:P49  # start time
+                                wd:P50  # end time
+                                wd:P106 # point in time
+                                wd:P432 # published
+                            }
+                        }
+                    }
+                }
+                ORDER BY ?item ?property ?statement
+                ';
+
+                Log::info(
+                    "Processing batch " .
+                        ($index + 1) .
+                        " of " .
+                        count($batches) .
+                        " with " .
+                        count($batch) .
+                        " persons",
+                );
+                $batchResponse = $this->requestFactgrid($secondStageQuery, 240); // Increased timeout
+
+                if (
+                    isset($batchResponse["results"]["bindings"]) &&
+                    is_array($batchResponse["results"]["bindings"])
+                ) {
+                    // Merge the bindings from this batch
+                    $allBindings = array_merge(
+                        $allBindings,
+                        $batchResponse["results"]["bindings"],
+                    );
+                    Log::info(
+                        "Added " .
+                            count($batchResponse["results"]["bindings"]) .
+                            " bindings from batch " .
+                            ($index + 1),
+                    );
+                }
+            }
+
+            // Construct the final response with the exact 12 variables expected by the validator
+            // Combined all batches into final response with all bindings
+            $response = [
+                "head" => [
+                    "vars" => [
+                        "item",
+                        "itemLabel",
+                        "itemDescription",
+                        "property",
+                        "statement",
+                        "propertyValue",
+                        "propertyValueLabel",
+                        "propertyTimePrecision",
+                        "qualifier",
+                        "qualifierValue",
+                        "qualifierValueLabel",
+                        "qualifierTimePrecision",
+                    ],
+                ],
+                "results" => [
+                    "bindings" => $allBindings,
+                ],
+            ];
+
+            // Extract unique person IDs for debugging
+            $uniquePersonIds = [];
+            foreach ($allBindings as $binding) {
+                if (isset($binding["item"]["value"])) {
+                    $personId = basename($binding["item"]["value"]);
+                    if (!in_array($personId, $uniquePersonIds)) {
+                        $uniquePersonIds[] = $personId;
+                    }
+                }
+            }
+            Log::info(
+                "Found " .
+                    count($uniquePersonIds) .
+                    " unique person IDs in final bindings",
+            );
+
+            // Save the unique person IDs for reference
+            file_put_contents(
+                storage_path("logs/factgrid_unique_person_ids.json"),
+                json_encode($uniquePersonIds, JSON_PRETTY_PRINT),
+            );
+
+            // Save the full bindings separately for debugging
+            Log::info("Saving full bindings data to disk for analysis");
+            file_put_contents(
+                storage_path("logs/factgrid_full_bindings.json"),
+                json_encode($allBindings, JSON_PRETTY_PRINT),
+            );
+
+            Log::info(
+                "Combined all batches into final response with " .
+                    count($allBindings) .
+                    " total bindings for " .
+                    count($personIds) .
+                    " unique persons",
+            );
 
             // Save the raw response for debugging
             file_put_contents(
@@ -1266,7 +1574,105 @@ class FactgridClient
             }
         }
 
-        // Return the merged items without grouping
+        $personCount = 0;
+        $victimCount = 0;
+        $perpetratorCount = 0;
+
+        foreach ($items as $item) {
+            $personCount++;
+
+            // Check if this is a victim or perpetrator based on subject role
+            $isVictim = false;
+            $isPerpetrator = false;
+
+            if (isset($item["subjectRoles"])) {
+                foreach ($item["subjectRoles"] as $role) {
+                    if (
+                        isset($role["id"]) &&
+                        ($role["id"] === "Q1788534" ||
+                            stripos($role["value"], "victim") !== false ||
+                            stripos($role["value"], "opfer") !== false)
+                    ) {
+                        $isVictim = true;
+                    }
+                    if (
+                        isset($role["id"]) &&
+                        ($role["id"] === "Q1784661" ||
+                            stripos($role["value"], "perpetrator") !== false ||
+                            stripos($role["value"], "täter") !== false)
+                    ) {
+                        $isPerpetrator = true;
+                    }
+                }
+            }
+
+            if ($isVictim) {
+                $victimCount++;
+            }
+            if ($isPerpetrator) {
+                $perpetratorCount++;
+            }
+        }
+
+        // Save detailed information about the persons we found
+        $victimIds = [];
+        $perpetratorIds = [];
+        foreach ($items as $itemId => $item) {
+            // Check if this is a victim or perpetrator
+            $isVictim = false;
+            $isPerpetrator = false;
+
+            if (isset($item["subjectRoles"])) {
+                foreach ($item["subjectRoles"] as $role) {
+                    if (
+                        isset($role["id"]) &&
+                        ($role["id"] === "Q1788534" ||
+                            stripos($role["value"], "victim") !== false ||
+                            stripos($role["value"], "opfer") !== false)
+                    ) {
+                        $isVictim = true;
+                    }
+                    if (
+                        isset($role["id"]) &&
+                        ($role["id"] === "Q1784661" ||
+                            stripos($role["value"], "perpetrator") !== false ||
+                            stripos($role["value"], "täter") !== false)
+                    ) {
+                        $isPerpetrator = true;
+                    }
+                }
+            }
+
+            if ($isVictim) {
+                $victimIds[] = $itemId;
+            }
+            if ($isPerpetrator) {
+                $perpetratorIds[] = $itemId;
+            }
+        }
+
+        // Save the IDs for debugging
+        file_put_contents(
+            storage_path("logs/factgrid_victim_ids.json"),
+            json_encode($victimIds, JSON_PRETTY_PRINT),
+        );
+
+        file_put_contents(
+            storage_path("logs/factgrid_perpetrator_ids.json"),
+            json_encode($perpetratorIds, JSON_PRETTY_PRINT),
+        );
+
+        file_put_contents(
+            storage_path("logs/factgrid_merged_items.json"),
+            json_encode(array_keys($items), JSON_PRETTY_PRINT),
+        );
+
+        Log::info(
+            "Finished merging data into " .
+                count($items) .
+                " unique items with $personCount persons ($victimCount victims, $perpetratorCount perpetrators)",
+        );
+
         return $items;
     }
 
@@ -1573,6 +1979,14 @@ class FactgridClient
         ?array $groupConfigs = null,
         string $instancePropertyId = "wdt:P2",
     ): array {
+        // Save input for debugging
+        Log::info(
+            "Starting groupItemsByProperty with " . count($items) . " items",
+        );
+        file_put_contents(
+            storage_path("logs/factgrid_items_before_grouping.json"),
+            json_encode(array_keys($items), JSON_PRETTY_PRINT),
+        );
         // Use default group configs if none provided
         $groupConfigs = $groupConfigs ?? self::PLACE_GROUPS_IDS;
         // Initialize the output with all groups, even empty ones
@@ -1637,10 +2051,21 @@ class FactgridClient
 
             // If no group found through standard means, try fallback methods
             if (!$foundGroup) {
+                // Log item that couldn't be grouped
+                Log::debug("Item not assigned to any group initially", [
+                    "itemId" => $itemId,
+                    "label" => $item["label"] ?? "unknown",
+                    "propertyValues" => $propertyValues,
+                ]);
+
                 if (isset($isPerson) && $isPerson) {
                     // For persons, if they have no specific role,
                     // default to victims group as fallback
                     $groupedItems["victims"][$itemId] = $item;
+                    Log::debug("Person assigned to victims group by default", [
+                        "itemId" => $itemId,
+                        "label" => $item["label"] ?? "unknown",
+                    ]);
                 } else {
                     // Place fallbacks - Label-based heuristics
                     $label = strtolower($item["label"] ?? "");
@@ -1680,6 +2105,28 @@ class FactgridClient
                 }
             }
         }
+
+        // Log the results
+        $counts = [];
+        foreach ($groupedItems as $groupName => $group) {
+            $counts[$groupName] = count($group);
+        }
+        Log::info("Grouped items count", $counts);
+
+        // Save detailed grouped data
+        file_put_contents(
+            storage_path("logs/factgrid_grouped_items_details.json"),
+            json_encode(
+                [
+                    "counts" => $counts,
+                    "victimKeys" => array_keys($groupedItems["victims"] ?? []),
+                    "perpetratorKeys" => array_keys(
+                        $groupedItems["perpetrators"] ?? [],
+                    ),
+                ],
+                JSON_PRETTY_PRINT,
+            ),
+        );
 
         return $groupedItems;
     }
@@ -1746,7 +2193,14 @@ class FactgridClient
      * @param string $query SPARQL query
      * @return array Response from FactGrid
      */
-    private function requestFactgrid(string $query): array
+    /**
+     * Send a SPARQL query to the FactGrid endpoint
+     *
+     * @param string $query SPARQL query to execute
+     * @param int $timeout Timeout in seconds (default: 180)
+     * @return array Response from FactGrid
+     */
+    private function requestFactgrid(string $query, int $timeout = 180): array
     {
         Log::debug("FactgridClient::requestFactgrid - Starting method");
 
@@ -1760,7 +2214,7 @@ class FactgridClient
         // Try to execute the query
         try {
             // Set up the HTTP request parameters
-            $response = Http::timeout(60)
+            $response = Http::timeout($timeout)
                 ->asForm()
                 ->post($endpoint, [
                     "query" => $query,

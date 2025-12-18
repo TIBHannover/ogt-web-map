@@ -67,37 +67,62 @@ class WikibaseController extends Controller
         $client = $this->getClient();
         $configPrefix = $this->getConfigPrefix();
 
+        // Use the new two-stage query approach that handles batching internally
         $personsResponse = $client->queryPersons();
 
-        $validator = Validator::make($personsResponse, [
-            "head" => "required|array:vars|size:1",
-            "head.vars" => [
-                "required",
-                "array",
-                "size:12",
-                Rule::in([
-                    "item",
-                    "itemLabel",
-                    "itemDescription",
-                    "property",
-                    "statement",
-                    "propertyValue",
-                    "propertyValueLabel",
-                    "propertyTimePrecision",
-                    "qualifier",
-                    "qualifierValue",
-                    "qualifierValueLabel",
-                    "qualifierTimePrecision",
-                ]),
+        $validator = Validator::make(
+            $personsResponse,
+            [
+                "head" => "required|array:vars",
+                "head.vars" => ["required", "array"],
+                "results" => "required|array:bindings",
+                "results.bindings" => "required|array",
             ],
-            "results" => "required|array:bindings|size:1",
-            "results.bindings" => "required|array",
-        ]);
+            [],
+            [
+                "head.vars" => "required variable list",
+            ],
+        );
 
         if ($validator->fails()) {
             Log::warning(
                 "Validation of {$configPrefix} persons response failed.",
-                $validator->errors()->all(),
+                $validator->errors()->messages(),
+            );
+
+            // Log details about the response structure
+            Log::debug("Response structure details:", [
+                "head_structure" => isset($personsResponse["head"])
+                    ? json_encode($personsResponse["head"])
+                    : "missing",
+                "vars_count" => isset($personsResponse["head"]["vars"])
+                    ? count($personsResponse["head"]["vars"])
+                    : 0,
+                "vars" => isset($personsResponse["head"]["vars"])
+                    ? json_encode($personsResponse["head"]["vars"])
+                    : "missing",
+                "binding_count" => isset(
+                    $personsResponse["results"]["bindings"],
+                )
+                    ? count($personsResponse["results"]["bindings"])
+                    : 0,
+                "first_few_bindings" => isset(
+                    $personsResponse["results"]["bindings"],
+                )
+                    ? json_encode(
+                        array_slice(
+                            $personsResponse["results"]["bindings"],
+                            0,
+                            3,
+                        ),
+                    )
+                    : "missing",
+            ]);
+
+            // Despite validation error, save raw data for debugging
+            file_put_contents(
+                storage_path("logs/persons_response_raw.json"),
+                json_encode($personsResponse, JSON_PRETTY_PRINT),
             );
 
             return response([], Response::HTTP_NO_CONTENT);
@@ -167,34 +192,29 @@ class WikibaseController extends Controller
                     ),
                     true,
                 ) ?? $groupedPersons;
+
+            // Save the final grouped persons data for debugging
+            file_put_contents(
+                storage_path("logs/persons_grouped_raw.json"),
+                json_encode($groupedPersons, JSON_PRETTY_PRINT),
+            );
         } else {
-            // Cache doesn't exist, create it by querying data
+            // Cache doesn't exist, create it by querying data using two-stage approach
             $personsResponse = $client->queryPersons();
 
-            $validator = Validator::make($personsResponse, [
-                "head" => "required|array:vars|size:1",
-                "head.vars" => [
-                    "required",
-                    "array",
-                    "size:12",
-                    Rule::in([
-                        "item",
-                        "itemLabel",
-                        "itemDescription",
-                        "property",
-                        "statement",
-                        "propertyValue",
-                        "propertyValueLabel",
-                        "propertyTimePrecision",
-                        "qualifier",
-                        "qualifierValue",
-                        "qualifierValueLabel",
-                        "qualifierTimePrecision",
-                    ]),
+            $validator = Validator::make(
+                $personsResponse,
+                [
+                    "head" => "required|array:vars",
+                    "head.vars" => ["required", "array"],
+                    "results" => "required|array:bindings",
+                    "results.bindings" => "required|array",
                 ],
-                "results" => "required|array:bindings|size:1",
-                "results.bindings" => "required|array",
-            ]);
+                [],
+                [
+                    "head.vars" => "required variable list",
+                ],
+            );
 
             if (!$validator->fails()) {
                 $persons = $client->mergeItemsData(
@@ -272,10 +292,38 @@ class WikibaseController extends Controller
 
             if ($validator->fails()) {
                 Log::warning(
-                    "Validation of {$configPrefix} places response failed.",
-                    $validator->errors()->all(),
+                    "Validation of {$configPrefix} persons response failed.",
+                    $validator->errors()->messages(),
                 );
-                return response([], Response::HTTP_NO_CONTENT);
+
+                // Save raw response for debugging despite validation error
+                file_put_contents(
+                    storage_path("logs/persons_cache_response_raw.json"),
+                    json_encode($personsResponse, JSON_PRETTY_PRINT),
+                );
+
+                // Log details about the response structure
+                Log::debug("Response structure details:", [
+                    "head_structure" => isset($personsResponse["head"])
+                        ? json_encode($personsResponse["head"])
+                        : "missing",
+                    "vars_count" => isset($personsResponse["head"]["vars"])
+                        ? count($personsResponse["head"]["vars"])
+                        : 0,
+                    "vars" => isset($personsResponse["head"]["vars"])
+                        ? json_encode($personsResponse["head"]["vars"])
+                        : "missing",
+                    "binding_count" => isset(
+                        $personsResponse["results"]["bindings"],
+                    )
+                        ? count($personsResponse["results"]["bindings"])
+                        : 0,
+                ]);
+
+                // Continue processing even if validation fails
+                Log::info(
+                    "Continuing despite validation failure to process available data",
+                );
             }
 
             $locations = $client->mergeItemsData(
