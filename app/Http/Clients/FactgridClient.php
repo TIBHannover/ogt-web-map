@@ -122,8 +122,7 @@ class FactgridClient
         "P1422" => "prisonerCounts", // https://www.wikidata.org/wiki/Property:P5630
         "P534" => "operators", // https://www.wikidata.org/wiki/Property:P137
         "P95" => "startPoints", // https://www.wikidata.org/wiki/Property:P1427
-
-        //"P1444" => "destinationPoints", // https://www.wikidata.org/wiki/Property:P1444
+        "P29" => "destinationPoints", // https://www.wikidata.org/wiki/Property:P1444
         //"P7153" => "significantPlaces", // https://www.wikidata.org/wiki/Property:P7153
 
         // Role and Relationship Properties
