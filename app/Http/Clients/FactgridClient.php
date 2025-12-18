@@ -245,11 +245,11 @@ class FactgridClient
           {
             ?property wikibase:propertyType ?propertyType.
             FILTER(?property IN(
-              wd:P189, wd:P2, wd:P534, wd:P47, wd:P419, wd:P280, wd:P9, wd:P137, wd:P1423, wd:P48,
-              wd:P319, wd:P156, wd:P315, wd:P7, wd:P7, wd:P137, wd:P1164, wd:P137,
-              wd:P153, wd:P49, wd:P50,wd:P153, wd:P155, wd:P49, wd:P50,
+              wd:P189, wd:P2, wd:P534, wd:P47, wd:P419, wd:P280, wd:P9, wd:P1423, wd:P48,
+              wd:P319, wd:P156, wd:P315, wd:P7, wd:P7, wd:P137, wd:P1164, wd:P29,
+              wd:P153, wd:P49, wd:P50,wd:P153, wd:P155,
               wd:P319, wd:P129, wd:P146, wd:P7, wd:P7, wd:P1422, wd:P1421, wd:P14, wd:P247, wd:P248, wd:P5582, wd:P1418, wd:P1419,
-              wd:P8, wd:P95, wd:P47, wd:P47, wd:P66, wd:P751, wd:P290
+              wd:P8, wd:P95, wd:P66, wd:P751, wd:P290
             ))
             FILTER(?propertyType != wikibase:Time)
             ?property wikibase:statementProperty ?ps.
