@@ -528,9 +528,9 @@ const chapters = [
                 },
             },
             {
-                title: "Wikidata",
+                title: "Factgrid",
                 description:
-                    "Hier kannst Du den zugehörigen Wikidata Eintrag öffnen.",
+                    "Hier kannst Du den zugehörigen Factgrid Eintrag öffnen.",
                 position: { top: "0px", left: "400px" },
                 onStepPrepare: "initDetailOptionsHighlights",
                 onStepShow: "showWikidataButtonHighlight",
@@ -1062,7 +1062,7 @@ const executeAction = (actionName, options = null) => {
                 setTimeout(() => {
                     if (props.selectLocation) {
                         props.selectLocation({
-                            locationId: "Q106625639",
+                            locationId: "Q1060031",
                             lat: 52.364983111,
                             lng: 9.748284833,
                             zoom: 16,
@@ -1336,11 +1336,11 @@ const executeAction = (actionName, options = null) => {
                 break;
             // Location Actions
             case "selectLocation":
-                if (props.selectLocation) props.selectLocation("Q106625639");
+                if (props.selectLocation) props.selectLocation("Q1060031");
                 break;
             // Opens Event Q134597104: "Überwachung des 'Judenhauses' in der Brabeckstraße 86"
             case "openEvent":
-                if (props.selectLocation) props.selectLocation("Q134597104");
+                if (props.selectLocation) props.selectLocation("Q1784207");
                 initDetailOptionsHighlights();
                 break;
             // Person Details Actions
