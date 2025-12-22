@@ -254,12 +254,8 @@ onMounted(() => {
     // Add event listeners for map marker updates that will be dispatched when selectAll is called
     window.addEventListener("update-map-markers", () => {
         // This event will trigger applyFilters in Map.vue to handle all markers
-        console.log("update-map-markers event received");
     });
-    window.addEventListener("force-redraw-markers", () => {
-        // This event will trigger drawLinesBetweenSubAndMainGroups in Map.vue
-        console.log("force-redraw-markers event received");
-    });
+    window.addEventListener("force-redraw-markers", () => {});
 
     // Filter action events
     window.addEventListener("deactivate-all-filters", deactivateAllFilters);

@@ -2407,10 +2407,6 @@ export default {
                                 inceptionDate.value,
                                 datePrecision,
                             );
-                            console.log(
-                                "Found openingDate with Q483988 qualifier:",
-                                selectedPlace.value.openingDate,
-                            );
                         }
                     }
                 }
@@ -2428,10 +2424,6 @@ export default {
                         selectedPlace.value.openingDate = getDate(
                             openingDate.value,
                             datePrecision,
-                        );
-                        console.log(
-                            "Found openingDate from top-level:",
-                            selectedPlace.value.openingDate,
                         );
                         break; // Use the first one we find
                     }

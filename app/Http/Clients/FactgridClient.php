@@ -261,7 +261,7 @@ class FactgridClient
             FILTER(?property IN(wd:P49, wd:P50, wd:P45, wd:P46, wd:P106, wd:P77, wd:P38, wd:P290))
             ?statement ?psv ?propertyValueNode.
             ?propertyValueNode wikibase:timeValue ?propertyValue.
-            OPTIONAL { ?propertyValueNode wikibase:timePrecision ?propertyTimePrecision. }
+            ?propertyValueNode wikibase:timePrecision ?propertyTimePrecision.
 
             # Special handling for P49 (inception date) with P700 qualifiers
             OPTIONAL {
@@ -297,7 +297,7 @@ class FactgridClient
               FILTER(?qualifier IN(wd:P45, wd:P46, wd:P49, wd:P50, wd:P106, wd:P218, wd:P219, wd:P432, wd:P432))
               ?statement ?pqv ?qualifierValueNode.
               ?qualifierValueNode wikibase:timeValue ?qualifierValue.
-              OPTIONAL { ?qualifierValueNode wikibase:timePrecision ?qualifierTimePrecision. }
+              ?qualifierValueNode wikibase:timePrecision ?qualifierTimePrecision.
             }
           }
           SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". }
@@ -306,15 +306,6 @@ class FactgridClient
 ';
 
         $response = $this->requestFactgrid($query);
-
-        // Save the response for debugging
-        file_put_contents(
-            storage_path("logs/factgrid_response.json"),
-            json_encode($response, JSON_PRETTY_PRINT),
-        );
-
-        // Save the query for debugging
-        file_put_contents(storage_path("logs/factgrid_query.txt"), $query);
 
         // Check for date type qualifiers in the response
         $dateTypeQualifierCount = 0;
@@ -2168,14 +2159,11 @@ class FactgridClient
      */
     private function requestFactgrid(string $query, int $timeout = 180): array
     {
-        Log::debug("FactgridClient::requestFactgrid - Starting method");
-
         // Get the endpoint and log
         $endpoint = config(
             "factgrid.sparql_endpoint",
             "https://database.factgrid.de/sparql",
         );
-        Log::debug("Using FactGrid endpoint: {$endpoint}");
 
         // Try to execute the query
         try {

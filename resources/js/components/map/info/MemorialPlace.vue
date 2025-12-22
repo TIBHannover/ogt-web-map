@@ -137,14 +137,7 @@ export default {
             debug: true, // Set to false in production
         };
     },
-    mounted() {
-        console.log("MemorialPlace mounted", {
-            place: this.selectedPlace,
-            firstActivity: this.selectedPlace.firstActivity,
-            openingDate: this.selectedPlace.openingDate,
-            inceptionDate: this.selectedPlace.inceptionDate,
-        });
-    },
+    mounted() {},
 };
 </script>
 
