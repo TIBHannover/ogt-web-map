@@ -673,9 +673,6 @@ class FactgridClient
             // Process in batches to avoid timeouts
             $batchSize = 50;
             $batches = array_chunk($personIds, $batchSize);
-            Log::info(
-                "Processing " . count($batches) . " batches of person data",
-            );
 
             $allBindings = [];
 
@@ -843,15 +840,6 @@ class FactgridClient
                 ORDER BY ?item ?property ?statement
                 ';
 
-                Log::info(
-                    "Processing batch " .
-                        ($index + 1) .
-                        " of " .
-                        count($batches) .
-                        " with " .
-                        count($batch) .
-                        " persons",
-                );
                 $batchResponse = $this->requestFactgrid($secondStageQuery, 240); // Increased timeout
 
                 if (
@@ -862,12 +850,6 @@ class FactgridClient
                     $allBindings = array_merge(
                         $allBindings,
                         $batchResponse["results"]["bindings"],
-                    );
-                    Log::info(
-                        "Added " .
-                            count($batchResponse["results"]["bindings"]) .
-                            " bindings from batch " .
-                            ($index + 1),
                     );
                 }
             }
@@ -1979,10 +1961,6 @@ class FactgridClient
         ?array $groupConfigs = null,
         string $instancePropertyId = "wdt:P2",
     ): array {
-        // Save input for debugging
-        Log::info(
-            "Starting groupItemsByProperty with " . count($items) . " items",
-        );
         file_put_contents(
             storage_path("logs/factgrid_items_before_grouping.json"),
             json_encode(array_keys($items), JSON_PRETTY_PRINT),

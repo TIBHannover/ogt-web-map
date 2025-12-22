@@ -767,7 +767,29 @@ export default {
             }
         });
 
+        // Clear any old worker run timestamps when the component is mounted for the first time
+        const initializeWorkerTimestamps = () => {
+            // Only reset timestamps if they're very old (older than 1 hour)
+            const oneHourInMs = 60 * 60 * 1000;
+
+            ["places", "persons"].forEach((workerType) => {
+                const lastRunKey = `lastWorkerRun_${workerType}`;
+                const lastRun = localStorage.getItem(lastRunKey);
+
+                if (lastRun) {
+                    const lastRunTime = parseInt(lastRun);
+                    const currentTime = new Date().getTime();
+                    if (currentTime - lastRunTime > oneHourInMs) {
+                        // Clear very old timestamps
+                        localStorage.removeItem(lastRunKey);
+                    }
+                }
+            });
+        };
+
         onMounted(async () => {
+            // Initialize or clean up worker timestamps
+            initializeWorkerTimestamps();
             try {
                 isLoading.value = true;
                 forceConsistentUIState();
@@ -990,6 +1012,37 @@ export default {
         };
 
         /**
+         * Checks if a worker was started within the last 10 minutes
+         * @param {string} workerType - Type of worker ('places' or 'persons')
+         * @returns {boolean} - true if a worker was recently started (within 10 minutes)
+         */
+        const checkLastWorkerStarted = (workerType) => {
+            const lastRunKey = `lastWorkerRun_${workerType}`;
+            const lastRun = localStorage.getItem(lastRunKey);
+
+            if (!lastRun) {
+                return false; // No previous run recorded
+            }
+
+            const lastRunTime = parseInt(lastRun);
+            const currentTime = new Date().getTime();
+            const timeDifference = currentTime - lastRunTime; // in milliseconds
+            const tenMinutesInMs = 10 * 60 * 1000;
+
+            return timeDifference < tenMinutesInMs;
+        };
+
+        /**
+         * Records the current time as the last run time for a specific worker type
+         * @param {string} workerType - Type of worker ('places' or 'persons')
+         */
+        const recordWorkerStartTime = (workerType) => {
+            const lastRunKey = `lastWorkerRun_${workerType}`;
+            const currentTime = new Date().getTime();
+            localStorage.setItem(lastRunKey, currentTime.toString());
+        };
+
+        /**
          * Update the places cache by fetching fresh data from the API
          */
         const updatePlacesCache = () => {
@@ -999,6 +1052,17 @@ export default {
                 );
                 return;
             }
+
+            // Check if the worker was started within the last 10 minutes
+            if (checkLastWorkerStarted("places")) {
+                console.log(
+                    "Places worker already ran within the last 10 minutes, skipping execution",
+                );
+                return;
+            }
+
+            // Record the worker start time
+            recordWorkerStartTime("places");
 
             setTimeout(() => {
                 const worker = createPlacesWorker();
@@ -1171,6 +1235,18 @@ export default {
                 );
                 return;
             }
+
+            // Check if the worker was started within the last 10 minutes
+            if (checkLastWorkerStarted("persons")) {
+                console.log(
+                    "Persons worker already ran within the last 10 minutes, skipping execution",
+                );
+                return;
+            }
+
+            // Record the worker start time
+            recordWorkerStartTime("persons");
+
             setTimeout(() => {
                 const worker = createAdvancedWorker();
 
@@ -1699,28 +1775,18 @@ export default {
                 };
 
                 if (place.inceptionDates) {
-                    console.log("InceptionDates data:", place.inceptionDates);
-
                     // First check if there's a top-level firstActivity property
                     if (place.firstActivity) {
                         for (const [
                             statementId,
                             firstActivityDate,
                         ] of Object.entries(place.firstActivity)) {
-                            console.log(
-                                "Processing firstActivity date from top-level:",
-                                firstActivityDate,
-                            );
                             // Default to precision 9 (year) if no precision is provided
                             const datePrecision =
                                 firstActivityDate.datePrecision || "9";
                             selectedPlace.value.firstActivity = getDate(
                                 firstActivityDate.value,
                                 datePrecision,
-                            );
-                            console.log(
-                                "Found firstActivity date from top-level:",
-                                selectedPlace.value.firstActivity,
                             );
                             break; // Use the first one we find
                         }
@@ -1734,20 +1800,12 @@ export default {
                         ] of Object.entries(
                             place.inceptionDates.firstActivity,
                         )) {
-                            console.log(
-                                "Processing firstActivity date from nested structure:",
-                                firstActivityDate,
-                            );
                             // Default to precision 9 (year) if no precision is provided
                             const datePrecision =
                                 firstActivityDate.datePrecision || "9";
                             selectedPlace.value.firstActivity = getDate(
                                 firstActivityDate.value,
                                 datePrecision,
-                            );
-                            console.log(
-                                "Found firstActivity date from nested structure:",
-                                selectedPlace.value.firstActivity,
                             );
                             break; // Use the first one we find
                         }
@@ -1767,8 +1825,6 @@ export default {
                             continue;
                         }
 
-                        console.log("Processing inceptionDate:", inceptionDate);
-
                         // Check if this is a first activity date
                         if (
                             inceptionDate.dateType &&
@@ -1782,10 +1838,6 @@ export default {
                                 inceptionDate.value,
                                 datePrecision,
                             );
-                            console.log(
-                                "Found firstActivity date:",
-                                selectedPlace.value.firstActivity,
-                            );
                             continue;
                         }
 
@@ -1796,11 +1848,6 @@ export default {
                             inceptionDate.value,
                             datePrecision,
                         );
-                        console.log(
-                            "Processed inceptionDate result:",
-                            selectedPlace.value.inceptionDate,
-                        );
-                        // Don't break, need to process all entries to find special types
                     }
                 }
 
@@ -1810,21 +1857,15 @@ export default {
                 };
 
                 if (place.dissolvedDates) {
-                    console.log("DissolvedDates data:", place.dissolvedDates);
                     for (const [statementId, dissolvedDate] of Object.entries(
                         place.dissolvedDates,
                     )) {
-                        console.log("Processing dissolvedDate:", dissolvedDate);
                         // Default to precision 9 (year) if no precision is provided
                         const datePrecision =
                             dissolvedDate.datePrecision || "9";
                         selectedPlace.value.dissolvedDate = getDate(
                             dissolvedDate.value,
                             datePrecision,
-                        );
-                        console.log(
-                            "Processed dissolvedDate result:",
-                            selectedPlace.value.dissolvedDate,
                         );
                         break;
                     }
@@ -2329,19 +2370,11 @@ export default {
                         for (const [statementId, openingDate] of Object.entries(
                             place.inceptionDates.openingDate,
                         )) {
-                            console.log(
-                                "Processing openingDate from nested structure:",
-                                openingDate,
-                            );
                             const datePrecision =
                                 openingDate.datePrecision || "9";
                             selectedPlace.value.openingDate = getDate(
                                 openingDate.value,
                                 datePrecision,
-                            );
-                            console.log(
-                                "Found openingDate from nested structure:",
-                                selectedPlace.value.openingDate,
                             );
                             break; // Use the first one we find
                         }

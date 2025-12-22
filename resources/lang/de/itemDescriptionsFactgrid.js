@@ -1,6 +1,6 @@
 export const itemDescriptionsFactgrid = {
-    // Gestapo Osnabrück headquarters - https://www.wikidata.org/wiki/Q106625285
-    Q106625285: {
+    // Gestapo Osnabrück headquarters - https://database.factgrid.de/wiki/Item:Q1060026
+    Q1060026: {
         textParts: [
             "Die Gestapo Osnabrück ging aus der politischen Polizei hervor, bestand von 1933 bis Anfang April 1945 und war für den damaligen Regierungsbezirk Osnabrück zuständig. Von April 1933 bis Februar 1942 handelte es sich um eine eigene Staatspolizeistelle. Der Gestapo Osnabrück wurden die Grenzpolizeikommissariate in Bentheim und Meppen unterstellt, außerdem hatte sie Außenstellen in Nordhorn und Neuenhaus.",
             "Zum 1. April 1942 wurde die Staatspolizeistelle Osnabrück zur Außendienststelle herabgestuft.",
@@ -10,7 +10,7 @@ export const itemDescriptionsFactgrid = {
         ],
     },
     // State Police Field Office Osnabrück - https://www.wikidata.org/wiki/Q106625716
-    Q106625716: {
+    Q1060027: {
         textParts: [
             "Zum 1. April 1942 wurde die Staatspolizeistelle Osnabrück zur Außendienststelle herabgestuft und der Staatspolizeileitstelle Münster unterstellt, ebenso das Grenzpolizeikommissariat Bentheim und das Grenzpolizeikommissariat Meppen, das zugleich in eine Außendienstelle umgewandelt wurde.",
             "1944 wurde die Außendienststelle Osnabrück der Staatspolizeileitstelle Bremen zugeordnet. Im Januar 1944 gründete die Gestapo Osnabrück das Arbeitserziehungslager Ohrbeck.",
@@ -19,7 +19,7 @@ export const itemDescriptionsFactgrid = {
         ],
     },
     //  Fritz Rascher - https://www.wikidata.org/wiki/Q110994601
-    Q110994601: {
+    Q1060755: {
         textParts: [
             "Fritz Rascher wurde 1914 in Gera geboren. Mit 18 Jahren wurde er Mitglied der SS und der NSDAP.  Er studierte Pädagogik, Philosophie und Psychologie in Jena und arbeitete im Anschluss als Volksschullehrer und als Schulungsleiter der 47. SS-Standarte. Ab 1941 war Fritz Rascher in der Sicherheitspolizei und Sicherheitsdienst (SD) tätig, Regierungsassessor und SS-Hauptsturmführer.",
             "Ende 1943 übernahm Rascher die Leitung der Gestapo-Außendienststelle Osnabrück. Er wurde Anfang 1944 damit beauftragt, die Errichtung des Arbeitserziehungslagers (AEL) Ohrbeck zu organisieren und umzusetzen. Gleichzeitig fand eine Umstrukturierung der Staatspolizei  im Bereich Weser/Ems statt. Die Außendienstelle Osnabrück war nun nicht mehr der Staatspolizeileitstelle Münster unterstellt, sondern der Staatspolizeileitstelle Bremen.",
@@ -28,7 +28,7 @@ export const itemDescriptionsFactgrid = {
         ],
     },
     // NS-Persecution of Hilde Reinköster and Josef Grzeskowiak - https://www.wikidata.org/wiki/Q111009615
-    Q111009615: {
+    Q1059973: {
         textParts: [
             "Joseph Grzeskowiak wurde am 8. Februar 1915 in Działyń in Polen geboren und während des Zweiten Weltkriegs als Zwangsarbeiter eingezogen und nach Deutschland verschleppt.",
             "Eingesetzt wurde er in einem Landwirtschaftlichem Betrieb in Döhren/Melle.",
@@ -41,25 +41,25 @@ export const itemDescriptionsFactgrid = {
         ],
     },
     // Ernst Bach - https://www.wikidata.org/wiki/Q111041532
-    Q111041532: {
+    Q1060757: {
         textParts: [
             "Ernst Bach wurde 1902 in Düsseldorf geboren und trat 1937 in die NSDAP ein. SS-Hauptsturmbannführer Kriminalrat Ernst Bach leitete die Staatspolizeistelle Osnabrück mit Sitz im Osnabrücker Schloss, als diese am 1.April 1942 von einer Staatspolizeistelle auf eine Staatspolizeiaußenstelle herabgestuft und der Staatspolizeileitstelle Münster unterstellt wurde. Die so entstandene Außendienststelle Osnabrück leitete Bach bis September 1943 und wurde anschließend nach Italien versetzt. Nach dem Krieg arbeitete Bach bei der Kriminalpolizei.",
         ],
     },
     // Heinrich Faber - https://www.wikidata.org/wiki/Q111041984
-    Q111041984: {
+    Q1060758: {
         textParts: [
             "SS-Obersturmführer Dr. Heinrich Faber wurde 1900 geboren und studierte Geschichte und Philologie in Bonn. Ab 1927 arbeitet Faber bei der Polizei. Während der NS-Zeit war Faber unter anderem in der Staatspolizeileitstelle Bremen tätig. Von dort wechselte er Ende 1944 zur Außendienststelle Osnabrück und übte dort die Funktion des Dienststellenleiters aus. Gemeinsam mit weiteren Gestapo-Beamten verließ Faber aufgrund der näher rückenden Alliierten am 1. April 1945 Osnabrück und setzten sich nach Bremen ab.",
         ],
     },
     // Friedrich Kicker - https://www.wikidata.org/wiki/Q111050692
-    Q111050692: {
+    Q1060760: {
         textParts: [
             "Friedrich Kicker wurde 1903 in Oesede geboren. Kicker machte eine Ausbildung zum Kaufmann, bevor er 1923 in der Schutzpolizei tätig wurde. Ab 1938 arbeitete er für die Gestapo Osnabrück und wurde im Januar 1944 Lagerkommandant des Arbeitserziehungslagers (AEL) Ohrbeck." +
                 "Wegen der Tötung mindestens eines sowjetischen Häftlings im AEL wurde Kicker 1948 zu acht Jahren Gefängnis verurteilt. 1951 wurde Kicker wieder entlassen. Später war er für einen Verlag tätig und starb am 30.01.1966 in Schledehausen bei Osnabrück.",
         ],
     },
-    Q108733201: {
+    Q1059972: {
         textParts: [
             "Am 6. April 1945, wenige Tage vor der Kapitulation der Wehrmacht in Hannover, erschossen Mitarbeiter der Gestapo auf dem Seelhorster Friedhof mehr als 150 Menschen. Angesichts des schnellen Vorrückens der alliierten Truppen versuchte die Gestapo, ihre Spuren zu verwischen, mögliche Zeug*innen zu ermorden und einen letzten Akt der Gewalt gegen diejenigen zu verüben, die sie als Feinde betrachtete. In dieser Situation löste die Gestapo Lager und Gefängnisse auf und trieb die dort Inhaftierten zusammen, um sie zu töten." +
                 "Die Opfer der Erschießungen auf dem Seelhorster Friedhof waren Inhaftierte aus dem Arbeitserziehungslager Lahde und dem Polizeiersatzgefängnis Hannover-Ahlem, die von der Gestapo gezielt zur Ermordung zusammengetrieben wurden. Nachdem die Gestapo das Arbeitserziehungslager Lahde aufgelöst hatte, verschleppte sie etwa 500 Menschen nach Hannover. 98 von ihnen gehörten später zu den Ermordeten auf dem Seelhorster Friedhof. Aus den Inhaftierten in Ahlem wählte die Gestapo 160 Menschen aus, die ebenfalls ermordet werden sollten.",
@@ -70,28 +70,28 @@ export const itemDescriptionsFactgrid = {
             "Bis heute erinnern mehrere Gedenkorte an dieses Verbrechen: Auf dem Seelhorster Friedhof markieren ein Gedenkstein und eine Informationstafel den Ort der Erschießungen. Auf dem Ehrenfriedhof am Maschsee erinnert ein weiteres Mahnmal an die Opfer.",
         ],
     },
-    Q133567335: {
+    Q1788797: {
         textParts: [
             "Adam Jaschke, geboren am 27. Oktober 1890 in Bogumilow (Polen), lebte in Tellmer, Kreis Lüneburg. Er arbeitete als Straßenarbeiter und war mit Wilhelmine Jaschke, geb. Bockelmann, verheiratet. Gemeinsam hatten sie sieben Kinder. Am 6. März 1945 wurde er von der Gestapo Lüneburg verhaftet, die Hintergründe seiner Inhaftierung bleiben bis heute ungeklärt." +
                 " Am 21. März 1945 überstellte die Gestapo ihn in das KZ Neuengamme, wo er die Häftlingsnummer 77.867 erhielt.",
             "Später wurde er in das KZ Bergen-Belsen verschleppt. Weder die genauen Umstände dieser Verschleppung noch die seines Todes dort sind bekannt. Erst im Jahr 1954 wurde Adam Jaschke offiziell für tot erklärt.",
         ],
     },
-    Q133567355: {
+    Q1784256: {
         textParts: [
             "Adam Jaschke, geboren am 27. Oktober 1890 in Bogumilow (Polen), lebte in Tellmer, Kreis Lüneburg. Er arbeitete als Straßenarbeiter und war mit Wilhelmine Jaschke, geb. Bockelmann, verheiratet. Gemeinsam hatten sie sieben Kinder. Am 6. März 1945 wurde er von der Gestapo Lüneburg verhaftet, die Hintergründe seiner Inhaftierung bleiben bis heute ungeklärt." +
                 " Am 21. März 1945 überstellte die Gestapo ihn in das KZ Neuengamme, wo er die Häftlingsnummer 77.867 erhielt.",
             "Später wurde er in das KZ Bergen-Belsen verschleppt. Weder die genauen Umstände dieser Verschleppung noch die seines Todes dort sind bekannt. Erst im Jahr 1954 wurde Adam Jaschke offiziell für tot erklärt.",
         ],
     },
-    Q133303308: {
+    Q1784243: {
         textParts: [
             "Die Sozialistische Front war eine der größten und bedeutendsten Widerstandsgruppen gegen den Nationalsozialismus in der Vorkriegszeit. Zwischen 1934 und 1936 war sie im Raum Hannover aktiv und zählte zwischen 560 und 780 Engagierte, überwiegend aus dem sozialdemokratischen Milieu.",
             "Alle vier bis sechs Wochen veröffentlichte die Gruppe die zehnseitige Flugschrift „Sozialistische Blätter“, die zeitweise bis zu 1.000 Leserinnen und Leser erreichte. Insgesamt erschienen mindestens 40 Ausgaben. Die Flugschrift diente der politischen Aufklärung, der moralischen Stärkung der Leserschaft und der Mobilisierung zum Widerstand gegen das NS-Regime.",
             "Im Sommer 1936 gelang es der Gestapo, einen Spitzel in die Organisation einzuschleusen. In der Folge wurde nahezu das gesamte Lese- und Verteilernetz enttarnt. Mindestens 420 Personen wurden verhaftet und verhört. Insgesamt verhängten die NS-Justizbehörden 105 Zuchthaus- und 134 Gefängnisstrafen. Mehrere Engagierte verloren im Zusammenhang mit ihrem Widerstand ihr Leben.",
         ],
     },
-    Q134587748: {
+    Q1784204: {
         textParts: [
             "Die „Aktion Lauterbacher“ bezeichnet die Zwangsghettoisierung der jüdischen Bevölkerung in Hannover in sogenannten „Judenhäusern“.",
             "Namensgeber der Aktion war Hartmann Lauterbacher, NSDAP-Gauleiter des Gaus Süd-Hannover-Braunschweig und Oberpräsident der preußischen Provinz Hannover. Auf seine Initiative hin erarbeitete die Stadtverwaltung Hannover, ein Konzept zur Zwangseinweisung jüdischer Menschen in Häuser jüdischer Eigentümerinnen und Eigentümer. Ziel war es, die jüdische Bevölkerung auf möglichst engem Raum zu konzentrieren, ihre Lebensverhältnisse weiter zu verschlechtern und sie besser kontrollieren zu können.",
@@ -100,12 +100,12 @@ export const itemDescriptionsFactgrid = {
             "Mit der „Aktion Lauterbacher“ erfolgte der Übergang von Diskriminierung und Entrechtung zur systematischen Vernichtung: Bereits am 15. Dezember 1941 begann mit dem ersten Deportationszug nach Riga die organisierte Verschleppung der hannoverschen Jüdinnen und Juden in Ghettos und Vernichtungslager.",
         ],
     },
-    Q108127303: {
+    Q1059940: {
         textParts: [
             "Die Staatspolizeistelle Hildesheim wurde am 31. Juli 1935 gegründet. Zuvor war die Staatspolizeistelle Hannover für die beiden Regierungsbezirke Hannover und Hildesheim zuständig. 1941 wurde die Staatspolizeistelle Hildesheim zur Außendienststelle der Staatspolizeistelle Hannover herabgestuft. Die Staatspolizeistelle Hildesheim war zunächst im Regierungsgebäude am Domhof 1 untergebracht. 1938 bezog sie ein eigenes Gebäude in der Gartenstraße 20, das bei einem Luftangriff am 22. März 1945 zerstört und nicht wiederaufgebaut wurde. ",
         ],
     },
-    Q106477284: {
+    Q996480: {
         textParts: [
             "Im Land Braunschweig dominierte die SS früh den Polizeiapparat. Wie im gesamten Reich wurde ein Jahr später auch in Braunschweig die Politische Polizei als eigenständige Zentralinstanz eingerichtet, organisatorisch von der übrigen Verwaltung getrennt und dem direkten Zugriff des Reichsführers-SS Heinrich Himmler unterstellt. Mit der reichsweiten formellen Unterstellung der Polizei unter Himmler im Jahr 1936 erhielt die Behörde den Namen „Geheime Staatspolizeistelle Braunschweig“.",
             "Zwischen 1937 und 1939 löste die Staatspolizeistelle Braunschweig, die mit Ausnahme der Enklaven für das gesamte Staatsgebiet des Landes Braunschweig mit rund 560.000 Einwohnern zuständig war, ihre fünf bisherigen Außenstellen bei den Kreisdirektionen Blankenburg, Gandersheim, Helmstedt, Holzminden und Wolfenbüttel auf. Damit sollte die Politische Polizei endgültig organisatorisch und räumlich aus der allgemeinen Verwaltung herausgelöst werden.",
@@ -122,7 +122,7 @@ export const itemDescriptionsFactgrid = {
             "Parallel zur Verlagerung einzelner Dienststellen nutzte die Gestapo ab Herbst 1943 auch das Gelände der ehemaligen Israelitischen Gartenbauschule in Ahlem (Wunstorfer Landstraße 1, heute: Heisterbergallee 10, Gedenkstätte Ahlem). Dort entstanden eine Nebenstelle der Leitstelle, ein Polizeiersatzgefängnis sowie eine Hinrichtungsstätte.",
         ],
     },
-    Q136665050: {
+    Q1788499: {
         textParts: [
             "<strong>Die Hoffmanns aus der Kaakstr. 7 <br /> (von Verena Maretzki)</strong>",
             'Moritz Hoffmann wurde 1893 in Jever geboren. Seine Eltern waren Sara und Louis Hoffmann, seine jüngeren Geschwister hießen Fritz und Helene. Moritz heiratete Johanna Levy (auch: Lewy). Johanna war Jahrgang 1899 und die Tochter von Julius und Nanny (Nanni) Levy, die ebenfalls in Jever lebten (Schlosserstr. 25). Johannas Bruder Friedrich „Fritz“ Levy überlebte den Holocaust und hat sich nach seiner Rückkehr aus dem Exil in Jever sehr für Aufarbeitung und Gedenken eingesetzt. Vergl. dazu die <a href="https://www.groeschlerhaus.eu/2025/01/friedrich-fritz-levy/" target="_blank">Biografie</a> ',
