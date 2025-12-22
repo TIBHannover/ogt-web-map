@@ -263,10 +263,10 @@ class FactgridClient
             ?propertyValueNode wikibase:timeValue ?propertyValue.
             ?propertyValueNode wikibase:timePrecision ?propertyTimePrecision.
 
-            # Special handling for P49 (inception date) with P700 qualifiers
+            # Special handling for time properties with P700 qualifiers
             OPTIONAL {
-              # This section specifically handles P49 statements with P700 qualifier
-              FILTER(?property = wd:P49)
+              # This section handles all time property statements with P700 qualifier
+              # No filter for specific property - applies to all properties in the FILTER above
               OPTIONAL {
                 ?statement pq:P700 ?dateTypeValue.
                 BIND(wd:P700 AS ?dateTypeQualifier)
@@ -279,8 +279,6 @@ class FactgridClient
                   FILTER(LANG(?dateTypeValueLabel) = "de" || LANG(?dateTypeValueLabel) = "en")
                 }
               }
-              # Values of interest: Q483988 (opening date), Q1790956 (first activity), Q1057808 (first documented date)
-              # These qualifiers determine whether a date is an opening date or a first activity date
             }
           }
           OPTIONAL {
@@ -1231,9 +1229,9 @@ class FactgridClient
                 return $value;
             };
 
-            // Process P700 date type qualifier specially for P49 (inception dates)
+            // Process P700 date type qualifier for date properties (P49 inception dates and P50 dissolved dates)
             if (
-                $propertyId == "49" &&
+                ($propertyId == "49" || $propertyId == "50") &&
                 isset($itemChunk["dateTypeQualifier"]) &&
                 isset($itemChunk["dateTypeQualifier"]["value"]) &&
                 basename($itemChunk["dateTypeQualifier"]["value"]) == "P700" &&
@@ -1262,8 +1260,9 @@ class FactgridClient
                         : $dateTypeId;
 
                 // Log for debugging
-                Log::debug("Found P700 qualifier for inception date", [
+                Log::debug("Found P700 qualifier for date property", [
                     "itemId" => $itemId,
+                    "propertyId" => $propertyId,
                     "dateTypeId" => $dateTypeId,
                     "dateTypeLabel" => $dateTypeLabel,
                 ]);
@@ -1277,19 +1276,27 @@ class FactgridClient
 
                 // For opening date (Q483988)
                 if ($dateTypeId == "Q483988") {
-                    // Add to top-level openingDate property
-                    $items[$itemId]["openingDate"][$statementId] = array_merge(
+                    // Different handling based on property type
+                    $targetProperty =
+                        $propertyId == "49" ? "openingDate" : "closureDate";
+
+                    // Add to the appropriate top-level property
+                    $items[$itemId][$targetProperty][
+                        $statementId
+                    ] = array_merge(
                         [],
                         $items[$itemId][$propertyLabel][$statementId],
                     );
 
-                    // Make sure the statement is marked as opening date in its dateType
+                    // Make sure the statement is marked with the right date type marker
                     $items[$itemId][$propertyLabel][$statementId][
                         "dateTypeMarker"
-                    ] = "openingDate";
+                    ] = $targetProperty;
 
                     // Ensure the dateType is consistently set with the clean Q-ID
-                    $items[$itemId]["openingDate"][$statementId]["dateType"] = [
+                    $items[$itemId][$targetProperty][$statementId][
+                        "dateType"
+                    ] = [
                         "value" => $dateTypeId,
                         "id" => $dateTypeId,
                         "label" => $dateTypeLabel,
@@ -1300,21 +1307,25 @@ class FactgridClient
                     $dateTypeId == "Q1057808" ||
                     $dateTypeId == "Q1790956"
                 ) {
-                    // Add to top-level firstActivity property
-                    $items[$itemId]["firstActivity"][
+                    // Choose the appropriate property based on whether this is an inception or dissolution date
+                    $targetProperty =
+                        $propertyId == "49" ? "firstActivity" : "lastActivity";
+
+                    // Add to the appropriate top-level property
+                    $items[$itemId][$targetProperty][
                         $statementId
                     ] = array_merge(
                         [],
                         $items[$itemId][$propertyLabel][$statementId],
                     );
 
-                    // Make sure the statement is marked as first activity date in its dateType
+                    // Make sure the statement is marked with the right type
                     $items[$itemId][$propertyLabel][$statementId][
                         "dateTypeMarker"
-                    ] = "firstActivity";
+                    ] = $targetProperty;
 
                     // Ensure the dateType is consistently set with the clean Q-ID
-                    $items[$itemId]["firstActivity"][$statementId][
+                    $items[$itemId][$targetProperty][$statementId][
                         "dateType"
                     ] = [
                         "value" => $dateTypeId,
@@ -1336,7 +1347,7 @@ class FactgridClient
 
         // Final structure adjustment: make sure specialized date types appear in proper structure
         foreach ($items as $itemId => &$item) {
-            // For items that have inceptionDates
+            // Process inceptionDates if present
             if (
                 isset($item["inceptionDates"]) &&
                 !empty($item["inceptionDates"])
@@ -1365,26 +1376,82 @@ class FactgridClient
                     }
                 }
                 unset($dateEntry); // Break the reference
+            }
 
-                // Ensure openingDate structure exists at the nested level
+            // Process dissolvedDates if present (independent of inceptionDates)
+            if (
+                isset($item["dissolvedDates"]) &&
+                !empty($item["dissolvedDates"])
+            ) {
+                // Clean up all dateType values to ensure they're just Q IDs
+                foreach ($item["dissolvedDates"] as &$dateEntry) {
+                    if (
+                        isset($dateEntry["dateType"]) &&
+                        isset($dateEntry["dateType"]["value"])
+                    ) {
+                        $rawValue = $dateEntry["dateType"]["value"];
+                        if (preg_match("/Q\d+/", $rawValue, $matches)) {
+                            $dateEntry["dateType"]["value"] = $matches[0];
+                        }
+                        if (isset($dateEntry["dateType"]["id"])) {
+                            if (
+                                preg_match(
+                                    "/Q\d+/",
+                                    $dateEntry["dateType"]["id"],
+                                    $matches,
+                                )
+                            ) {
+                                $dateEntry["dateType"]["id"] = $matches[0];
+                            }
+                        }
+                    }
+                }
+                unset($dateEntry); // Break the reference
+            }
+
+            // Ensure openingDate structure exists at the nested level
+            if (isset($item["openingDate"]) && !empty($item["openingDate"])) {
+                if (!isset($item["inceptionDates"]["openingDate"])) {
+                    $item["inceptionDates"]["openingDate"] =
+                        $item["openingDate"];
+                }
+            }
+
+            // Ensure firstActivity structure exists at the nested level
+            if (
+                isset($item["firstActivity"]) &&
+                !empty($item["firstActivity"])
+            ) {
+                if (!isset($item["inceptionDates"]["firstActivity"])) {
+                    $item["inceptionDates"]["firstActivity"] =
+                        $item["firstActivity"];
+                }
+            }
+
+            // Add closureDate and lastActivity to dissolvedDates if they exist
+            if (
+                isset($item["dissolvedDates"]) &&
+                !empty($item["dissolvedDates"])
+            ) {
+                // Ensure closureDate structure exists
                 if (
-                    isset($item["openingDate"]) &&
-                    !empty($item["openingDate"])
+                    isset($item["closureDate"]) &&
+                    !empty($item["closureDate"])
                 ) {
-                    if (!isset($item["inceptionDates"]["openingDate"])) {
-                        $item["inceptionDates"]["openingDate"] =
-                            $item["openingDate"];
+                    if (!isset($item["dissolvedDates"]["closureDate"])) {
+                        $item["dissolvedDates"]["closureDate"] =
+                            $item["closureDate"];
                     }
                 }
 
-                // Ensure firstActivity structure exists at the nested level
+                // Ensure lastActivity structure exists
                 if (
-                    isset($item["firstActivity"]) &&
-                    !empty($item["firstActivity"])
+                    isset($item["lastActivity"]) &&
+                    !empty($item["lastActivity"])
                 ) {
-                    if (!isset($item["inceptionDates"]["firstActivity"])) {
-                        $item["inceptionDates"]["firstActivity"] =
-                            $item["firstActivity"];
+                    if (!isset($item["dissolvedDates"]["lastActivity"])) {
+                        $item["dissolvedDates"]["lastActivity"] =
+                            $item["lastActivity"];
                     }
                 }
             }
@@ -1734,8 +1801,11 @@ class FactgridClient
                     "dateOfBirth",
                     "dateOfDeath",
                     "inceptionDates",
+                    "dissolvedDates",
                     "openingDate",
                     "firstActivity",
+                    "closureDate",
+                    "lastActivity",
                 ])
             ) {
                 // Date properties
