@@ -1035,11 +1035,6 @@ export default {
 
                     worker.terminate();
                 };
-
-                worker.postMessage({
-                    action: "start",
-                    dataSource: dataSource.value,
-                });
             }, 10000);
         };
 
@@ -1199,11 +1194,6 @@ export default {
 
                     worker.terminate();
                 };
-
-                worker.postMessage({
-                    action: "start",
-                    dataSource: dataSource.value,
-                });
             }, 10000);
         };
 
@@ -2725,7 +2715,7 @@ export default {
                         selectedPlace.value.victims.push(victim);
                     }
                 }
-                console.log("selectedPlace", selectedPlace);
+                //console.log("selectedPlace", selectedPlace);
             } catch (error) {
                 console.error("Error in setSelectedPlace:", error);
             }
@@ -2766,14 +2756,7 @@ export default {
          * @returns {{locale: string, value: Date}|{locale: string, value: null}}
          */
         const getDate = (dateTimeString, datePrecision, locale = "de-de") => {
-            console.log("getDate called with:", {
-                dateTimeString,
-                datePrecision,
-                locale,
-            });
-
             if (!dateTimeString) {
-                console.log("No dateTimeString provided");
                 return {
                     locale: "",
                     value: null,
@@ -2782,10 +2765,6 @@ export default {
 
             // Convert precision to number if it's a string
             const precisionNum = parseInt(datePrecision, 10);
-            console.log("Date precision parsed:", {
-                raw: datePrecision,
-                parsed: precisionNum,
-            });
             let dateFormatOptions = {};
 
             // Default to year precision for undefined or very low precision values
@@ -2828,7 +2807,6 @@ export default {
                 locale: date.toLocaleDateString(locale, dateFormatOptions),
                 value: date,
             };
-            console.log("getDate returning:", result);
             return result;
         };
         /**

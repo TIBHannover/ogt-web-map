@@ -2051,21 +2051,10 @@ class FactgridClient
 
             // If no group found through standard means, try fallback methods
             if (!$foundGroup) {
-                // Log item that couldn't be grouped
-                Log::debug("Item not assigned to any group initially", [
-                    "itemId" => $itemId,
-                    "label" => $item["label"] ?? "unknown",
-                    "propertyValues" => $propertyValues,
-                ]);
-
                 if (isset($isPerson) && $isPerson) {
                     // For persons, if they have no specific role,
                     // default to victims group as fallback
                     $groupedItems["victims"][$itemId] = $item;
-                    Log::debug("Person assigned to victims group by default", [
-                        "itemId" => $itemId,
-                        "label" => $item["label"] ?? "unknown",
-                    ]);
                 } else {
                     // Place fallbacks - Label-based heuristics
                     $label = strtolower($item["label"] ?? "");
@@ -2111,7 +2100,6 @@ class FactgridClient
         foreach ($groupedItems as $groupName => $group) {
             $counts[$groupName] = count($group);
         }
-        Log::info("Grouped items count", $counts);
 
         // Save detailed grouped data
         file_put_contents(
