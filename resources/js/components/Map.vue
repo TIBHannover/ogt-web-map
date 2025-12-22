@@ -1466,12 +1466,29 @@ export default {
         };
 
         const dateFilter = (data, minDate, maxDate) => {
-            if (!data.startDate?.value || !data.endDate?.value) {
+            if (!data.startDate || !data.endDate) {
                 return false;
             }
 
-            const startDate = data.startDate.value;
-            const endDate = data.endDate.value;
+            // Convert to Date objects if they aren't already
+            let startDate = data.startDate;
+            let endDate = data.endDate;
+
+            if (!(startDate instanceof Date)) {
+                try {
+                    startDate = new Date(startDate);
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            if (!(endDate instanceof Date)) {
+                try {
+                    endDate = new Date(endDate);
+                } catch (e) {
+                    return false;
+                }
+            }
 
             if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
                 return false;
@@ -1599,7 +1616,7 @@ export default {
                                 getDateProp("openingDate") ??
                                 getDateProp("inceptionDates") ??
                                 getDateProp("startTime") ??
-                                new Date("1945-05-08").toDateString()
+                                new Date("1945-05-08")
                             );
                         } else if (
                             placeGroupName === "events" ||
@@ -1609,7 +1626,7 @@ export default {
                             return (
                                 getDateProp("pointInTime") ??
                                 getDateProp("startTime") ??
-                                new Date("1933-01-30").toDateString()
+                                new Date("1933-01-30")
                             );
                         } else {
                             return (
@@ -1623,10 +1640,7 @@ export default {
 
                     const getEndDate = () => {
                         if (placeGroupName === "memorials") {
-                            return (
-                                getDateProp("endTime") ??
-                                new Date().toDateString()
-                            );
+                            return getDateProp("endTime") ?? new Date();
                         } else if (
                             placeGroupName === "events" ||
                             groupedPlaces.value[placeGroupName]
@@ -1635,13 +1649,13 @@ export default {
                             return (
                                 getDateProp("pointInTime") ??
                                 getDateProp("endTime") ??
-                                new Date("1945-05-08").toDateString()
+                                new Date("1945-05-08")
                             );
                         } else {
                             return (
                                 getDateProp("dissolvedDates") ??
                                 getDateProp("endTime") ??
-                                new Date("1945-05-08").toDateString()
+                                new Date("1945-05-08")
                             );
                         }
                     };
