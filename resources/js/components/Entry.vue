@@ -946,18 +946,16 @@ const createCustomIcon = (type) => {
 };
 
 const markerIcon = computed(() => {
-    if (formsType.value === "Q6983405") return createCustomIcon("events");
-    if (formsType.value === "Q5") return createCustomIcon("persons");
-    if (formsType.value === "Q5003624") return createCustomIcon("memorials");
-    if (formsType.value === "Q106996250")
-        return createCustomIcon("fieldOffices");
-    if (formsType.value === "Q108047567")
+    if (formsType.value === "Q1014362") return createCustomIcon("events");
+    if (formsType.value === "Q7") return createCustomIcon("persons");
+    if (formsType.value === "Q405787") return createCustomIcon("memorials");
+    if (formsType.value === "Q1784677") return createCustomIcon("fieldOffices");
+    if (formsType.value === "Q1784668")
         return createCustomIcon("statePoliceOffices");
-    if (formsType.value === "Q108047541")
-        return createCustomIcon("fieldOffices");
-    if (formsType.value === "Q277565")
+    if (formsType.value === "Q1784667") return createCustomIcon("fieldOffices");
+    if (formsType.value === "Q978663")
         return createCustomIcon("laborEducationCamps");
-    if (formsType.value === "Q40357") return createCustomIcon("prisons");
+    if (formsType.value === "Q23223") return createCustomIcon("prisons");
 
     return createCustomIcon("default");
 });
@@ -1009,7 +1007,7 @@ const showTypeInfoPopup = (typeValue) => {
     displayedInfoType.value = typeValue;
 
     // Check for custom text for Person or GestapoPlaces
-    if (typeValue === "Q5") {
+    if (typeValue === "Q7") {
         // Person
         let customContent = `
             <p>Personen im Kontext der Gestapo können Täter*innen, Opfer oder Zeitzeugen sein.</p>
@@ -1025,10 +1023,10 @@ const showTypeInfoPopup = (typeValue) => {
         }
         return;
     } else if (
-        typeValue === "Q106996250" || // Ort des Gestapoterrors
-        typeValue === "Q108047567" || // Staatspolizeistelle
-        typeValue === "Q108047541" || // Außendienststelle
-        typeValue === "Q277565" // Arbeitserziehungslager
+        typeValue === "Q1784677" || // Ort des Gestapoterrors
+        typeValue === "Q1784668" || // Staatspolizeistelle
+        typeValue === "Q1784667" || // Außendienststelle
+        typeValue === "Q978663" // Arbeitserziehungslager
     ) {
         // Custom text for Gestapo places
         let customContent = `
@@ -1067,13 +1065,13 @@ const showTypeInfoPopup = (typeValue) => {
 
     // Get content for the clicked type without changing selection
     const typeToGlossaryMapping = {
-        Q5: "Person",
-        Q6983405: "Ereignis",
-        Q5003624: "Erinnerungsort",
-        Q106996250: "Dienst- und Haftstätten der Gestapo",
-        Q108047567: "Staatspolizeistelle",
-        Q108047541: "Außendienststelle", // Im Glossar als "Außendienststelle"
-        Q277565: "Arbeitserziehungslager",
+        Q7: "Person",
+        Q1014362: "Ereignis",
+        Q405787: "Erinnerungsort",
+        Q1784677: "Dienst- und Haftstätten der Gestapo",
+        Q1784668: "Staatspolizeistelle",
+        Q1784667: "Außendienststelle", // Im Glossar als "Außendienststelle"
+        Q978663: "Arbeitserziehungslager",
     };
 
     // Get the corresponding glossary item key for the clicked type
@@ -1118,17 +1116,17 @@ const updateTypeInfoContent = () => {
     // This function is now only used when updating the type selection
     // The showTypeInfoPopup function handles the popup content directly
     const typeToGlossaryMapping = {
-        Q5: "Person",
-        Q6983405: "Ereignis",
-        Q5003624: "Erinnerungsort",
-        Q106996250: "Ort des Gestapoterrors",
-        Q108047567: "Staatspolizeistelle",
-        Q108047541: "Außendienststelle", // Im Glossar als "Außendienststelle"
-        Q277565: "Arbeitserziehungslager",
+        Q7: "Person",
+        Q1014362: "Ereignis",
+        Q405787: "Erinnerungsort",
+        Q1784677: "Dienst- und Haftstätten der Gestapo",
+        Q1784668: "Staatspolizeistelle",
+        Q1784667: "Außendienststelle", // Im Glossar als "Außendienststelle"
+        Q978663: "Arbeitserziehungslager",
     };
 
     // Check if we should use custom text for specific entity types
-    if (formsType.value === "Q5") {
+    if (formsType.value === "Q7") {
         // Person
         // Custom text for Person type
         let customContent = `
@@ -1145,10 +1143,10 @@ const updateTypeInfoContent = () => {
         typeInfoContent.value = customContent.trim();
         return;
     } else if (
-        formsType.value === "Q106996250" || // Ort des Gestapoterrors
-        formsType.value === "Q108047567" || // Staatspolizeistelle
-        formsType.value === "Q108047541" || // Außendienststelle
-        formsType.value === "Q277565" // Arbeitserziehungslager
+        formsType.value === "Q1784677" || // Ort des Gestapoterrors
+        formsType.value === "Q1784668" || // Staatspolizeistelle
+        formsType.value === "Q1784667" || // Außendienststelle
+        formsType.value === "Q978663" // Arbeitserziehungslager
     ) {
         // Custom text for Gestapo places
         let customContent = `
@@ -1245,13 +1243,13 @@ const displayedInfoType = ref("");
 
 const getTypeInfoTitle = (typeParam) => {
     const typeTitles = {
-        Q5: "Person",
-        Q6983405: "Ereignis",
-        Q5003624: "Erinnerungsort",
-        Q106996250: "Dienst- und Haftstätten der Gestapo",
-        Q108047567: "Staatspolizeistelle",
-        Q108047541: "Staatspolizeiaußenstelle",
-        Q277565: "Arbeitserziehungslager",
+        Q7: "Person",
+        Q1014362: "Ereignis",
+        Q405787: "Erinnerungsort",
+        Q1784677: "Dienst- und Haftstätten der Gestapo",
+        Q1784668: "Staatspolizeistelle",
+        Q1784667: "Außendienststelle", // Im Glossar als "Außendienststelle"
+        Q978663: "Arbeitserziehungslager",
     };
 
     // If displayedInfoType is "default", return "Eintragstypen"
@@ -1713,7 +1711,7 @@ const selectVictim = (person) => {
             birth: person.birth,
             death: person.death,
             nationality: person.nationality || null,
-            type: "Q5", // Ensure type is set for existing entities
+            type: "Q7", // Ensure type is set for existing entities
             role: "victim", // Ensure role is set for existing entities
             // Include additional fields that might be needed
             firstName: person.firstName || "",
@@ -1828,7 +1826,7 @@ const addNewPerpetrator = () => {
         place_of_residence: newPerpetrator.value.place_of_residence || null,
         occupation: newPerpetrator.value.occupation || null,
         key_event_person: newPerpetrator.value.key_event_person || [],
-        type: "Q5", // Add type field to identify this as a person
+        type: "Q7", // Add type field to identify this as a person
         role: "perpetrator", // Explicitly set the role
     });
 
@@ -1862,7 +1860,7 @@ const selectPerpetrator = (person) => {
             birth: person.birth,
             death: person.death,
             nationality: person.nationality || null,
-            type: "Q5", // Ensure type is set for existing entities
+            type: "Q7", // Ensure type is set for existing entities
             role: "perpetrator", // Ensure role is set for existing entities
             // Include additional fields that might be needed
             firstName: person.firstName || "",
@@ -2013,7 +2011,7 @@ const submitPersonForm = async (formData) => {
     try {
         // Validate that the data structure is correct
         // Make sure person data is only in victims or perpetrators arrays
-        if (formData.type === "Q5") {
+        if (formData.type === "Q7") {
             console.log(
                 "FORM DATA BEFORE CLEANING:",
                 JSON.stringify(formData, null, 2),
@@ -2309,7 +2307,7 @@ const submitPersonForm = async (formData) => {
         // Final debugging for the complete payload
         console.log("FINAL GestapoPlace SUBMISSION CHECKS:");
 
-        if (formsType.value === "Q106996250") {
+        if (formsType.value === "Q1784677") {
             console.log("GestapoPlace specific fields in final payload:", {
                 entity_subtype: formData.entity_subtype,
                 founding_date: formData.founding_date,
@@ -2517,7 +2515,7 @@ const resetForm = async () => {
     isSubmitting.value = true;
 
     // Trigger validation based on form type
-    if (formsType.value === "Q6983405") {
+    if (formsType.value === "Q1014362") {
         // Validate Events form
         if (
             eventsFormRef.value &&
@@ -2526,7 +2524,7 @@ const resetForm = async () => {
             console.log("Validating Events form");
             eventsFormRef.value.validateForm();
         }
-    } else if (formsType.value === "Q5") {
+    } else if (formsType.value === "Q7") {
         // Validate Person form
         if (
             personFormRef.value &&
@@ -2534,7 +2532,7 @@ const resetForm = async () => {
         ) {
             personFormRef.value.validateForm();
         }
-    } else if (formsType.value === "Q106996250") {
+    } else if (formsType.value === "Q1784677") {
         // Validate GestapoPlaces form
         if (
             gestapoPlacesFormRef.value &&
@@ -2584,7 +2582,7 @@ const resetForm = async () => {
 
         // Form-specific validations below
 
-        if (formsType.value === "Q6983405") {
+        if (formsType.value === "Q1014362") {
             // Event-specific validations
             if (!selectedLocation.value) {
                 missingFields.push("Standort");
@@ -2606,13 +2604,13 @@ const resetForm = async () => {
             ) {
                 missingFields.push("Täter*In");
             }
-        } else if (formsType.value === "Q106996250") {
+        } else if (formsType.value === "Q1784677") {
             // GestapoPlace-specific validations - only requires location
             if (!selectedLocation.value) {
                 missingFields.push("Standort");
             }
             // No time fields or perpetrators required for GestapoPlacesForm
-        } else if (formsType.value === "Q5") {
+        } else if (formsType.value === "Q7") {
             // Person-specific validations
             // These are mostly handled in the PersonForm component
             // We'll rely on the validation there
@@ -2620,10 +2618,10 @@ const resetForm = async () => {
 
         // Prüfe, ob mindestens eine Quelle vorhanden ist
         if (
-            (formsType.value === "Q6983405" ||
-                formsType.value === "Q5" ||
-                formsType.value === "Q5003624" ||
-                formsType.value === "Q106996250") &&
+            (formsType.value === "Q1014362" ||
+                formsType.value === "Q7" ||
+                formsType.value === "Q405787" ||
+                formsType.value === "Q1784677") &&
             (!selectedSources.value || selectedSources.value.length === 0)
         ) {
             missingFields.push("Quellenangaben");
@@ -2717,7 +2715,7 @@ const resetForm = async () => {
                 statusToken: secureToken,
             };
 
-            if (formsType.value === "Q5") {
+            if (formsType.value === "Q7") {
                 // Determine role from props
                 const role = props.role || "standalone";
                 console.log(`Person submission - role: ${role}`);
@@ -2738,7 +2736,7 @@ const resetForm = async () => {
                     lastName: personDetails.lastName || "",
                     title: baseData.title,
                     description: baseData.description,
-                    type: "Q5",
+                    type: "Q7",
                     role: role,
                     gender: personDetails.gender || null,
                     nationality: personDetails.nationality || null,
@@ -2869,7 +2867,7 @@ const resetForm = async () => {
                 }
 
                 // Add memorial-specific fields if it's a memorial place
-                if (formsType.value === "Q5003624" && memorialFormRef.value) {
+                if (formsType.value === "Q405787" && memorialFormRef.value) {
                     console.log("Adding memorial-specific fields to form data");
 
                     try {
@@ -2940,7 +2938,7 @@ const resetForm = async () => {
 
                 // Add GestapoPlaces-specific fields if it's a Gestapo place
                 if (
-                    formsType.value === "Q106996250" &&
+                    formsType.value === "Q1784677" &&
                     gestapoPlacesFormRef.value
                 ) {
                     console.log(
@@ -3094,7 +3092,7 @@ const resetForm = async () => {
         console.log("Form type:", formsType.value);
 
         // Only log location qualifier for event forms
-        if (formsType.value === "Q6983405") {
+        if (formsType.value === "Q1014362") {
             console.log("Submitting location qualifier:", {
                 locationQualifierValue: locationQualifier.value,
                 rawValue:
@@ -3109,7 +3107,7 @@ const resetForm = async () => {
         console.log("Final formData to be submitted:", formData);
 
         // Final check for GestapoPlace fields - make sure they're included
-        if (formsType.value === "Q106996250" && gestapoPlacesFormRef.value) {
+        if (formsType.value === "Q1784677" && gestapoPlacesFormRef.value) {
             console.log("Running final GestapoPlace fields check...");
             try {
                 // Get data directly from the form
@@ -3205,7 +3203,7 @@ const resetForm = async () => {
                 );
                 console.log("Form type that was submitted:", formsType.value);
 
-                if (formsType.value === "Q6983405") {
+                if (formsType.value === "Q1014362") {
                     console.log("Submitted qualifier values for event:", {
                         victimCountQualifier: victimCountQualifier.value,
                         survivorCountQualifier: survivorCountQualifier.value,
@@ -3335,7 +3333,7 @@ watch(currentStep, (newStep) => {
     if (newStep === 2) {
         // If switching to step 2 (person form) ensure we have a title to prevent infinite loops
         if (
-            formsType.value === "Q5" &&
+            formsType.value === "Q7" &&
             (!formsTitle.value || !formsTitle.value.trim())
         ) {
             console.log("Setting default title for person form");
