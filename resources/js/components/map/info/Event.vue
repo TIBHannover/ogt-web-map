@@ -119,29 +119,26 @@
         </v-list-item>
         <v-divider></v-divider>
 
-        <!-- start time - https://www.wikidata.org/wiki/Property:P580
-             end time - https://www.wikidata.org/wiki/Property:P582     -->
+        <!-- Date information section - Start time, End time, Point in time -->
+        <!-- Case 1: Show Laufzeit when both start and end dates exist -->
         <template
             v-if="
-                props.selectedPlace.startDate.value ||
-                props.selectedPlace.endDate.value
+                props.selectedPlace.startDate?.value &&
+                props.selectedPlace.endDate?.value
             "
         >
             <v-list-item density="compact">
                 <v-list-item-title>Laufzeit</v-list-item-title>
                 <v-list-item-subtitle>
-                    <template v-if="props.selectedPlace.startDate.value">
-                        von {{ props.selectedPlace.startDate.locale }}
-                    </template>
-                    <template v-if="props.selectedPlace.endDate.value">
-                        bis {{ props.selectedPlace.endDate.locale }}
-                    </template>
+                    von {{ props.selectedPlace.startDate.locale }} bis
+                    {{ props.selectedPlace.endDate.locale }}
                 </v-list-item-subtitle>
             </v-list-item>
             <v-divider></v-divider>
         </template>
-        <!-- point in time - https://www.wikidata.org/wiki/Property:P585 -->
-        <template v-else-if="props.selectedPlace.pointInTime.value">
+
+        <!-- Case 2: Show pointInTime if available (when no complete time range) -->
+        <template v-else-if="props.selectedPlace.pointInTime?.value">
             <v-list-item density="compact">
                 <v-list-item-title>Zeitpunkt</v-list-item-title>
                 <v-list-item-subtitle>
@@ -151,6 +148,16 @@
             <v-divider></v-divider>
         </template>
 
+        <!-- Case 3: If no time range and no pointInTime, but startDate exists, show that as Zeitpunkt -->
+        <template v-else-if="props.selectedPlace.inceptionDate?.value">
+            <v-list-item density="compact">
+                <v-list-item-title>Zeitpunkt</v-list-item-title>
+                <v-list-item-subtitle>
+                    {{ props.selectedPlace.inceptionDate.locale }}
+                </v-list-item-subtitle>
+            </v-list-item>
+            <v-divider></v-divider>
+        </template>
         <!-- perpetrators - https://www.wikidata.org/wiki/Property:P8031 -->
         <template v-if="props.selectedPlace.perpetrators.length > 0">
             <v-list-item density="compact" class="position-relative">

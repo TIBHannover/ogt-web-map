@@ -1478,6 +1478,7 @@ export default {
                 try {
                     startDate = new Date(startDate);
                 } catch (e) {
+                    console.warn("Invalid startDate:", startDate);
                     return false;
                 }
             }
@@ -1486,8 +1487,14 @@ export default {
                 try {
                     endDate = new Date(endDate);
                 } catch (e) {
+                    console.warn("Invalid endDate:", endDate);
                     return false;
                 }
+            }
+
+            // For debugging
+            if (data.groupName === "events") {
+                console.debug(`Event filter: ${startDate} - ${endDate}`);
             }
 
             if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
@@ -1604,10 +1611,23 @@ export default {
                     ] = marker;
 
                     const getDateProp = (key) => {
-                        return (
-                            place[key]?.value ||
-                            Object.values(place[key] ?? {})[0]?.value
-                        );
+                        // For direct value properties
+                        if (place[key]?.value) {
+                            return place[key].value;
+                        }
+
+                        // For nested objects like inceptionDates or dissolvedDates
+                        if (
+                            typeof place[key] === "object" &&
+                            place[key] !== null
+                        ) {
+                            const values = Object.values(place[key]);
+                            if (values.length > 0 && values[0]?.value) {
+                                return values[0].value;
+                            }
+                        }
+
+                        return null;
                     };
 
                     const getStartDate = () => {
@@ -1623,9 +1643,16 @@ export default {
                             groupedPlaces.value[placeGroupName]
                                 .linkedMainGroupItem?.group === "events"
                         ) {
+                            // For events with pointInTime, use that for start date
+                            const pointInTimeValue = getDateProp("pointInTime");
+                            if (pointInTimeValue) {
+                                return pointInTimeValue;
+                            }
+
+                            // Otherwise use inception date or start time
                             return (
-                                getDateProp("pointInTime") ??
                                 getDateProp("startTime") ??
+                                getDateProp("inceptionDates") ??
                                 new Date("1933-01-30")
                             );
                         } else {
@@ -1646,9 +1673,24 @@ export default {
                             groupedPlaces.value[placeGroupName]
                                 .linkedMainGroupItem?.group === "events"
                         ) {
+                            // For events with pointInTime, use that for both start and end date
+                            // This makes them appear as single points in the timeline
+                            const pointInTimeValue = getDateProp("pointInTime");
+                            if (pointInTimeValue) {
+                                return pointInTimeValue;
+                            }
+
+                            // Check for inceptionDate without endTime - treat as point in time
+                            const inceptionDate = getDateProp("inceptionDates");
+                            const endTime = getDateProp("endTime");
+                            if (inceptionDate && !endTime) {
+                                return inceptionDate; // Use inception date as end date too
+                            }
+
+                            // Otherwise use regular end date
                             return (
-                                getDateProp("pointInTime") ??
-                                getDateProp("endTime") ??
+                                endTime ??
+                                getDateProp("dissolvedDates") ??
                                 new Date("1945-05-08")
                             );
                         } else {
@@ -1660,9 +1702,20 @@ export default {
                         }
                     };
 
+                    // Get dates for this marker
+                    const startDate = getStartDate();
+                    const endDate = getEndDate();
+
+                    // Log events for debugging
+                    if (placeGroupName === "events") {
+                        console.debug(
+                            `Event ${place.label}: ${startDate} - ${endDate}`,
+                        );
+                    }
+
                     markersDate.value.set(marker, {
-                        startDate: getStartDate(),
-                        endDate: getEndDate(),
+                        startDate: startDate,
+                        endDate: endDate,
                         groupName: placeGroupName,
                     });
 
@@ -2540,7 +2593,6 @@ export default {
                         });
                     }
                 }
-
                 selectedPlace.value.targets = [];
                 if (place.targets) {
                     for (const [statementId, target] of Object.entries(
@@ -2754,7 +2806,6 @@ export default {
                         selectedPlace.value.victims.push(victim);
                     }
                 }
-                //console.log("selectedPlace", selectedPlace);
             } catch (error) {
                 console.error("Error in setSelectedPlace:", error);
             }
