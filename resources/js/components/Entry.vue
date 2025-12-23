@@ -52,10 +52,10 @@
                                             class="type-box"
                                             :class="{
                                                 selected:
-                                                    formsType === 'Q106996250',
+                                                    formsType === 'Q1784677',
                                             }"
                                             @click="
-                                                formsType = 'Q106996250';
+                                                formsType = 'Q1784677';
                                                 updateTypeInfo();
                                             "
                                         >
@@ -120,7 +120,7 @@
                                                         class="info-icon-container d-lg-none"
                                                         @click.stop="
                                                             showTypeInfoPopup(
-                                                                'Q106996250',
+                                                                'Q1784677',
                                                             )
                                                         "
                                                         title="Mehr Informationen"
@@ -135,8 +135,8 @@
                                                         v-model="formsType"
                                                         name="type"
                                                         type="radio"
-                                                        value="Q106996250"
-                                                        id="type-Q106996250"
+                                                        value="Q1784677"
+                                                        id="type-Q1784677"
                                                         class="type-radio"
                                                     />
                                                 </div>
@@ -146,7 +146,7 @@
                                                     <button
                                                         v-if="
                                                             formsType ===
-                                                            'Q106996250'
+                                                            'Q1784677'
                                                         "
                                                         type="button"
                                                         class="type-action-button"
@@ -165,10 +165,10 @@
                                             class="type-box"
                                             :class="{
                                                 selected:
-                                                    formsType === 'Q6983405',
+                                                    formsType === 'Q1014362',
                                             }"
                                             @click="
-                                                formsType = 'Q6983405';
+                                                formsType = 'Q1014362';
                                                 updateTypeInfo();
                                             "
                                         >
@@ -176,7 +176,7 @@
                                                 class="info-icon-container d-lg-none"
                                                 @click.stop="
                                                     showTypeInfoPopup(
-                                                        'Q6983405',
+                                                        'Q1014362',
                                                     )
                                                 "
                                                 title="Mehr Informationen"
@@ -191,8 +191,8 @@
                                                 v-model="formsType"
                                                 name="type"
                                                 type="radio"
-                                                value="Q6983405"
-                                                id="type-Q6983405"
+                                                value="Q1014362"
+                                                id="type-Q1014362"
                                                 class="type-radio"
                                             />
                                             <div class="type-icon">
@@ -220,7 +220,7 @@
                                                         <button
                                                             v-if="
                                                                 formsType ===
-                                                                'Q6983405'
+                                                                'Q1014362'
                                                             "
                                                             class="type-action-button"
                                                             type="button"
@@ -240,19 +240,17 @@
                                             class="type-box"
                                             :class="{
                                                 selected:
-                                                    formsType === 'Q5003624',
+                                                    formsType === 'Q405787',
                                             }"
                                             @click="
-                                                formsType = 'Q5003624';
+                                                formsType = 'Q405787';
                                                 updateTypeInfo();
                                             "
                                         >
                                             <div
                                                 class="info-icon-container d-lg-none"
                                                 @click.stop="
-                                                    showTypeInfoPopup(
-                                                        'Q5003624',
-                                                    )
+                                                    showTypeInfoPopup('Q405787')
                                                 "
                                                 title="Mehr Informationen"
                                             >
@@ -266,8 +264,8 @@
                                                 v-model="formsType"
                                                 name="type"
                                                 type="radio"
-                                                value="Q5003624"
-                                                id="type-Q5003624"
+                                                value="Q405787"
+                                                id="type-Q405787"
                                                 class="type-radio"
                                             />
                                             <div class="type-icon">
@@ -292,7 +290,7 @@
                                                         <button
                                                             v-if="
                                                                 formsType ===
-                                                                'Q5003624'
+                                                                'Q405787'
                                                             "
                                                             class="type-action-button"
                                                             type="button"
@@ -313,17 +311,17 @@
                                         <div
                                             class="type-box"
                                             :class="{
-                                                selected: formsType === 'Q5',
+                                                selected: formsType === 'Q7',
                                             }"
                                             @click="
-                                                formsType = 'Q5';
+                                                formsType = 'Q7';
                                                 updateTypeInfo();
                                             "
                                         >
                                             <div
                                                 class="info-icon-container d-lg-none"
                                                 @click.stop="
-                                                    showTypeInfoPopup('Q5')
+                                                    showTypeInfoPopup('Q7')
                                                 "
                                                 title="Mehr Informationen"
                                             >
@@ -337,8 +335,8 @@
                                                 v-model="formsType"
                                                 name="type"
                                                 type="radio"
-                                                value="Q5"
-                                                id="type-Q5"
+                                                value="Q7"
+                                                id="type-Q7"
                                                 class="type-radio"
                                             />
                                             <div class="type-icon">
@@ -365,7 +363,7 @@
                                                         <button
                                                             v-if="
                                                                 formsType ===
-                                                                'Q5'
+                                                                'Q7'
                                                             "
                                                             class="type-action-button"
                                                             type="button"
@@ -459,7 +457,7 @@
                     <ErrorBoundary>
                         <EventsForm
                             ref="eventsFormRef"
-                            v-if="currentStep === 2 && formsType === 'Q6983405'"
+                            v-if="currentStep === 2 && formsType === 'Q1014362'"
                             key="events-form"
                             v-model:formsTitle="formsTitle"
                             v-model:formsDescription="formsDescription"
@@ -558,7 +556,7 @@
                     <ErrorBoundary>
                         <PersonForm
                             ref="personFormRef"
-                            v-if="currentStep === 2 && formsType === 'Q5'"
+                            v-if="currentStep === 2 && formsType === 'Q7'"
                             :entry-type="formsType"
                             :title="formsTitle"
                             :description="formsDescription"
@@ -582,7 +580,7 @@
                     <ErrorBoundary>
                         <MemorialForm
                             ref="memorialFormRef"
-                            v-if="currentStep === 2 && formsType === 'Q5003624'"
+                            v-if="currentStep === 2 && formsType === 'Q405787'"
                             key="memorial-form"
                             v-model:formsTitle="formsTitle"
                             v-model:formsDescription="formsDescription"
@@ -623,9 +621,7 @@
                     <ErrorBoundary>
                         <GestapoPlacesForm
                             ref="gestapoPlacesFormRef"
-                            v-if="
-                                currentStep === 2 && formsType === 'Q106996250'
-                            "
+                            v-if="currentStep === 2 && formsType === 'Q1784677'"
                             key="gestapo-places-form"
                             v-model:formsTitle="formsTitle"
                             v-model:formsDescription="formsDescription"
@@ -1706,7 +1702,7 @@ const addNewVictim = () => {
         place_of_residence: newVictim.value.place_of_residence || null,
         occupation: newVictim.value.occupation || null,
         key_event_person: newVictim.value.key_event_person || [],
-        type: "Q5", // Add type field to identify this as a person
+        type: "Q7", // Add type field to identify this as a person
         role: "victim", // Explicitly set the role
     });
 
@@ -3245,7 +3241,7 @@ const resetForm = async () => {
         // Complete log of submission data
         console.log("Full submission data:", formData);
         console.log("Form type:", formsType.value);
-        console.log("Is person form:", formsType.value === "Q5");
+        console.log("Is person form:", formsType.value === "Q7");
 
         try {
             // Log the full request payload to verify perpetrator data
