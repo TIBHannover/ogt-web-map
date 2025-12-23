@@ -316,7 +316,12 @@ const performSearch = async (event) => {
     noExistingEntry.value = false; // Reset checkbox when performing a new search
 
     try {
-        const response = await axios.get("/api/wikidata/entities", {
+        // Force FactGrid endpoint
+        const baseEndpoint = "/api/factgrid/entities";
+
+        console.log("Using API endpoint in TitleSearchOverlay:", baseEndpoint);
+
+        const response = await axios.get(baseEndpoint, {
             params: {
                 title: localTitle.value,
                 limit: 5,
@@ -332,7 +337,7 @@ const performSearch = async (event) => {
         // Always make sure search performed is set to true AFTER results are updated
         searchPerformed.value = true;
     } catch (err) {
-        console.error("Fehler bei der Wikidata-Suche:", err);
+        console.error("Fehler bei der FactGrid-Suche:", err);
         console.log(
             "Error details:",
             err.response ? err.response.data : "No response data",
@@ -382,9 +387,11 @@ const onInput = (value) => {
     }
 };
 
-// Open wikidata entry in new tab
-const openWikidata = (id) => {
-    window.open(`https://www.wikidata.org/wiki/${id}`, "_blank");
+// Open entity entry in new tab
+const openWikidata = (entityId) => {
+    // Force FactGrid URL
+    const baseUrl = "https://database.factgrid.de/entity/";
+    window.open(`${baseUrl}${entityId}`, "_blank");
 };
 
 // Save and close function for update mode

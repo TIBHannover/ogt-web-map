@@ -563,14 +563,34 @@ const description = computed({
 
 // Zugriff auf übergebene Werte durch Computed Properties (nur lesen)
 const wikidataResultsValue = computed(() => props.wikidataResults);
-const peopleSearchResultsValue = computed(() => props.peopleSearchResults);
+const peopleSearchResultsValue = computed(() => {
+    // Handle both array and object with results property
+    if (Array.isArray(props.peopleSearchResults)) {
+        return props.peopleSearchResults;
+    } else if (
+        props.peopleSearchResults &&
+        Array.isArray(props.peopleSearchResults.results)
+    ) {
+        return props.peopleSearchResults.results;
+    }
+    return [];
+});
 const selectedVictimsValue = computed(() => props.selectedVictims);
 const showNewVictimFormValue = computed(() => props.showNewVictimForm);
 
 // Täter computed properties
-const perpetratorsSearchResultsValue = computed(
-    () => props.perpetratorsSearchResults,
-);
+const perpetratorsSearchResultsValue = computed(() => {
+    // Handle both array and object with results property
+    if (Array.isArray(props.perpetratorsSearchResults)) {
+        return props.perpetratorsSearchResults;
+    } else if (
+        props.perpetratorsSearchResults &&
+        Array.isArray(props.perpetratorsSearchResults.results)
+    ) {
+        return props.perpetratorsSearchResults.results;
+    }
+    return [];
+});
 const selectedPerpetratorsValue = computed(() => props.selectedPerpetrators);
 const showNewPerpetratorFormValue = computed(
     () => props.showNewPerpetratorForm,
@@ -666,7 +686,18 @@ const causeValue = computed({
     set: (value) => emit("update:cause", value),
 });
 
-const causeSearchResultsValue = computed(() => props.causeSearchResults);
+const causeSearchResultsValue = computed(() => {
+    // Handle both array and object with results property
+    if (Array.isArray(props.causeSearchResults)) {
+        return props.causeSearchResults;
+    } else if (
+        props.causeSearchResults &&
+        Array.isArray(props.causeSearchResults.results)
+    ) {
+        return props.causeSearchResults.results;
+    }
+    return [];
+});
 
 const selectedCausesValue = computed({
     get: () => props.selectedCauses,

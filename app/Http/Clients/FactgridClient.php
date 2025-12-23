@@ -2316,4 +2316,173 @@ class FactgridClient
         // Parsing failed
         return null;
     }
+    /**
+     * Search for entities by title in FactGrid
+     *
+     * @param string $searchTerm The term to search for
+     * @param int $limit Maximum number of results to return
+     * @return array Search results from FactGrid
+     */
+    public function searchTitles(string $searchTerm, int $limit = 10): array
+    {
+        // Add detailed logging
+        Log::info("FactgridClient searchTitles called", [
+            "searchTerm" => $searchTerm,
+            "limit" => $limit,
+        ]);
+
+        try {
+            // Check if it's a direct Q-number (e.g. "Q1234567")
+            if (preg_match('/^Q\d+$/', $searchTerm)) {
+                // Direct request for the entity with the Q-ID
+                $response = Http::get(
+                    "https://database.factgrid.de/w/api.php",
+                    [
+                        "action" => "wbgetentities",
+                        "ids" => $searchTerm,
+                        "languages" => "de|en", // Request German and English
+                        "format" => "json",
+                    ],
+                );
+
+                Log::info("FactgridClient Q-ID request response", [
+                    "status" => $response->status(),
+                    "body" => substr($response->body(), 0, 500), // Log first 500 chars
+                ]);
+
+                if (
+                    $response->successful() &&
+                    !empty($response->json()["entities"][$searchTerm])
+                ) {
+                    $entity = $response->json()["entities"][$searchTerm];
+
+                    // Prioritize description: German > English > empty
+                    $description = "";
+                    if (!empty($entity["descriptions"]["de"]["value"])) {
+                        $description = $entity["descriptions"]["de"]["value"];
+                    } elseif (!empty($entity["descriptions"]["en"]["value"])) {
+                        $description = $entity["descriptions"]["en"]["value"];
+                    }
+
+                    // Prefer labels from German, then English
+                    $label = $searchTerm;
+                    if (!empty($entity["labels"]["de"]["value"])) {
+                        $label = $entity["labels"]["de"]["value"];
+                    } elseif (!empty($entity["labels"]["en"]["value"])) {
+                        $label = $entity["labels"]["en"]["value"];
+                    }
+
+                    // Create a format similar to the search result
+                    return [
+                        [
+                            "id" => $searchTerm,
+                            "label" => $label,
+                            "description" => $description,
+                            "match" => [
+                                "type" => "exactMatch",
+                                "text" => $searchTerm,
+                            ],
+                        ],
+                    ];
+                }
+            }
+
+            // Standard search for titles - using the proper MediaWiki API URL
+            $params = [
+                "action" => "wbsearchentities",
+                "search" => $searchTerm,
+                "language" => "de",
+                "format" => "json",
+                "limit" => $limit,
+                "type" => "item",
+            ];
+
+            Log::info("FactgridClient search request", [
+                "url" => "https://database.factgrid.de/w/api.php",
+                "params" => $params,
+            ]);
+
+            $response = Http::get(
+                "https://database.factgrid.de/w/api.php",
+                $params,
+            );
+
+            Log::info("FactgridClient search response", [
+                "status" => $response->status(),
+                "body" => substr($response->body(), 0, 500), // Log first 500 chars
+            ]);
+
+            if ($response->successful()) {
+                $jsonResponse = $response->json();
+                Log::info("FactgridClient JSON response", [
+                    "structure" => array_keys($jsonResponse),
+                    "hasSearch" => isset($jsonResponse["search"]),
+                    "searchCount" => isset($jsonResponse["search"])
+                        ? count($jsonResponse["search"])
+                        : 0,
+                ]);
+
+                $results = $jsonResponse["search"] ?? [];
+
+                // If necessary, retrieve additional information for each result
+                if (!empty($results)) {
+                    foreach ($results as &$result) {
+                        // If no German description is available, try to find English
+                        if (empty($result["description"])) {
+                            // Retrieve details for this element
+                            $entityResponse = Http::get(
+                                "https://database.factgrid.de/w/api.php",
+                                [
+                                    "action" => "wbgetentities",
+                                    "ids" => $result["id"],
+                                    "languages" => "de|en",
+                                    "format" => "json",
+                                ],
+                            );
+
+                            if (
+                                $entityResponse->successful() &&
+                                !empty(
+                                    $entityResponse->json()["entities"][
+                                        $result["id"]
+                                    ]
+                                )
+                            ) {
+                                $entity = $entityResponse->json()["entities"][
+                                    $result["id"]
+                                ];
+
+                                // Use English description when no German exists
+                                if (
+                                    !empty(
+                                        $entity["descriptions"]["en"]["value"]
+                                    )
+                                ) {
+                                    $result["description"] =
+                                        $entity["descriptions"]["en"]["value"];
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return $results;
+            }
+
+            Log::error("FactGrid title search failed", [
+                "statusCode" => $response->status(),
+                "response" => $response->body(),
+            ]);
+
+            return [];
+        } catch (\Exception $e) {
+            Log::error("Exception during FactGrid title search", [
+                "message" => $e->getMessage(),
+                "searchTerm" => $searchTerm,
+                "trace" => $e->getTraceAsString(),
+            ]);
+
+            return [];
+        }
+    }
 }

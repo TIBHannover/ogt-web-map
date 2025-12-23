@@ -1499,7 +1499,12 @@ const searchWikidataEntities = debounce(async () => {
     }
 
     try {
-        const response = await axios.get("/api/wikidata/entities", {
+        // Use the correct API endpoint based on export target
+        console.log("Current export target:", window.ogtConfig?.exportTarget);
+        const baseEndpoint = "/api/factgrid/entities";
+
+        console.log("Using API endpoint:", baseEndpoint);
+        const response = await axios.get(baseEndpoint, {
             params: {
                 title: formsTitle.value,
                 limit: 5,
@@ -1512,7 +1517,8 @@ const searchWikidataEntities = debounce(async () => {
             wikidataResults.value = [];
         }
     } catch (err) {
-        console.error("Fehler bei der Wikidata-Suche:", err);
+        console.error("Fehler bei der Suche:", err);
+        console.error("Error details:", err.response?.data);
         wikidataResults.value = [];
     }
 }, 300);
@@ -1580,10 +1586,12 @@ const applyLeafletCSS = () => {
 };
 
 const selectExistingEntity = (entity) => {
-    const wikibaseUrl =
-        ogtGlobals.exportTarget === "factgrid"
-            ? `https://database.factgrid.de/entity/`
-            : `https://www.wikidata.org/wiki/`;
+    createWithTitle(entity.label);
+    console.log(
+        "Export target for entity URL:",
+        window.ogtConfig?.exportTarget,
+    );
+    const wikibaseUrl = `https://database.factgrid.de/entity/`;
     const entityUrl = `${wikibaseUrl}${entity.id}`;
     window.open(entityUrl, "_blank");
     wikidataResults.value = [];
@@ -1598,10 +1606,29 @@ const searchPeople = debounce(async (query) => {
     lastSearchQuery.value = query;
 
     try {
-        const response = await axios.get("/api/wikidata/search/people", {
+        console.log(
+            "Export target for people search:",
+            window.ogtConfig?.exportTarget,
+        );
+        const baseEndpoint = "/api/factgrid/search/people";
+
+        console.log("Using people search endpoint:", baseEndpoint);
+        const response = await axios.get(baseEndpoint, {
             params: { query },
         });
-        peopleSearchResults.value = response.data;
+        // Extract the results array if the API returns an object with a 'results' property
+        if (
+            response.data &&
+            response.data.results &&
+            Array.isArray(response.data.results)
+        ) {
+            peopleSearchResults.value = response.data.results;
+        } else if (Array.isArray(response.data)) {
+            peopleSearchResults.value = response.data;
+        } else {
+            console.error("Unexpected response format:", response.data);
+            peopleSearchResults.value = [];
+        }
     } catch (error) {
         console.error("Fehler bei der Personensuche:", error);
         peopleSearchResults.value = [];
@@ -1748,10 +1775,29 @@ const searchPerpetrators = debounce(async (query) => {
     lastPerpetratorSearchQuery.value = query;
 
     try {
-        const response = await axios.get("/api/wikidata/search/people", {
+        console.log(
+            "Export target for perpetrators search:",
+            window.ogtConfig?.exportTarget,
+        );
+        const baseEndpoint = "/api/factgrid/search/people";
+
+        console.log("Using perpetrators search endpoint:", baseEndpoint);
+        const response = await axios.get(baseEndpoint, {
             params: { query, type: "perpetrators" },
         });
-        perpetratorsSearchResults.value = response.data;
+        // Extract the results array if the API returns an object with a 'results' property
+        if (
+            response.data &&
+            response.data.results &&
+            Array.isArray(response.data.results)
+        ) {
+            perpetratorsSearchResults.value = response.data.results;
+        } else if (Array.isArray(response.data)) {
+            perpetratorsSearchResults.value = response.data;
+        } else {
+            console.error("Unexpected response format:", response.data);
+            perpetratorsSearchResults.value = [];
+        }
     } catch (error) {
         console.error("Fehler bei der Tätersuche:", error);
         perpetratorsSearchResults.value = [];
@@ -1943,12 +1989,32 @@ const searchCause = debounce(async (query) => {
     lastCauseSearchQuery.value = query;
 
     try {
-        const response = await axios.get("/api/wikidata/search/cause", {
+        console.log(
+            "Export target for cause search:",
+            window.ogtConfig?.exportTarget,
+        );
+        const baseEndpoint = "/api/factgrid/search";
+
+        console.log("Using cause search endpoint:", baseEndpoint);
+        const response = await axios.get(baseEndpoint, {
             params: {
                 query,
+                type: "cause",
             },
         });
-        causeSearchResults.value = response.data;
+        // Extract the results array if the API returns an object with a 'results' property
+        if (
+            response.data &&
+            response.data.results &&
+            Array.isArray(response.data.results)
+        ) {
+            causeSearchResults.value = response.data.results;
+        } else if (Array.isArray(response.data)) {
+            causeSearchResults.value = response.data;
+        } else {
+            console.error("Unexpected response format:", response.data);
+            causeSearchResults.value = [];
+        }
     } catch (error) {
         console.error("Fehler bei der Ursachensuche:", error);
         causeSearchResults.value = [];
@@ -2320,15 +2386,18 @@ const submitPersonForm = async (formData) => {
         }
 
         try {
-            const response = await axios.post(
-                "/api/wikidata/entities",
-                formData,
-                {
-                    headers: {
-                        "X-CSRF-TOKEN": csrfToken,
-                    },
-                },
+            console.log(
+                "Export target for entity submission:",
+                window.ogtConfig?.exportTarget,
             );
+            const baseEndpoint = "/api/factgrid/entities";
+
+            console.log("Using entity submission endpoint:", baseEndpoint);
+            const response = await axios.post(baseEndpoint, formData, {
+                headers: {
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+            });
 
             if (response.data.success) {
                 const requestId =
@@ -3185,15 +3254,18 @@ const resetForm = async () => {
                 JSON.stringify(formData, null, 2),
             );
 
-            const response = await axios.post(
-                "/api/wikidata/entities",
-                formData,
-                {
-                    headers: {
-                        "X-CSRF-TOKEN": csrfToken,
-                    },
-                },
+            console.log(
+                "Export target for reset form:",
+                window.ogtConfig?.exportTarget,
             );
+            const baseEndpoint = "/api/factgrid/entities";
+
+            console.log("Using reset form endpoint:", baseEndpoint);
+            const response = await axios.post(baseEndpoint, formData, {
+                headers: {
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+            });
 
             if (response.data.success) {
                 // Debug logging

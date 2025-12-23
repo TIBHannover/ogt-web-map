@@ -78,7 +78,7 @@
                     <span class="person-name">
                         <a
                             v-if="person.id && person.id.startsWith('Q')"
-                            :href="`https://www.wikidata.org/wiki/${person.id}`"
+                            :href="`https://database.factgrid.de/entity/${person.id}`"
                             target="_blank"
                         >
                             {{
@@ -103,12 +103,12 @@
                 <div class="person-actions">
                     <a
                         v-if="person.id && person.id.startsWith('Q')"
-                        :href="`https://www.wikidata.org/wiki/${person.id}`"
+                        :href="`https://database.factgrid.de/entity/${person.id}`"
                         target="_blank"
                         class="source-link"
                     >
                         <v-icon size="x-small mr-1">mdi-open-in-new</v-icon>
-                        Wikidata
+                        Factgrid
                     </a>
                     <button
                         v-if="
@@ -281,13 +281,13 @@
                                             person.id &&
                                             person.id.startsWith('Q')
                                         "
-                                        :href="`https://www.wikidata.org/wiki/${person.id}`"
+                                        :href="`https://database.factgrid.de/entity/${person.id}`"
                                         target="_blank"
                                         class="wikidata-link"
                                         @click.stop
                                     >
                                         <span class="grey-darken-1"
-                                            >Wikidata: </span
+                                            >Factgrid: </span
                                         >{{ person.id }}
                                         <v-icon size="x-small"
                                             >mdi-open-in-new</v-icon
@@ -1126,7 +1126,7 @@ const onEditPerson = (person, event) => {
     };
 
     // Force dialog to open first
-    dialogOpen.value = true;    
+    dialogOpen.value = true;
 
     // Use nextTick to ensure the dialog is mounted before updating form data
     nextTick(() => {

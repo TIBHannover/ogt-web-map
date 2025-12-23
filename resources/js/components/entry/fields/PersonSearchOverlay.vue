@@ -252,8 +252,12 @@ const performSearch = async () => {
     searchResults.value = [];
 
     try {
-        // Try the search endpoint
-        const response = await axios.get("/api/wikidata/search/people", {
+        // Force FactGrid API endpoint
+        const baseEndpoint = "/api/factgrid/search/people";
+
+        console.log("Using search endpoint:", baseEndpoint);
+
+        const response = await axios.get(baseEndpoint, {
             params: { query: searchQuery.value },
         });
 
@@ -316,8 +320,8 @@ const selectExistingPerson = (person) => {
 };
 
 // Open Wikidata page in new window
-const openWikidata = (id) => {
-    window.open(`https://www.wikidata.org/wiki/${id}`, "_blank");
+const openWikidataEntry = (id) => {
+    window.open(`https://database.factgrid.de/entity/${id}`, "_blank");
 };
 
 // Create a new person

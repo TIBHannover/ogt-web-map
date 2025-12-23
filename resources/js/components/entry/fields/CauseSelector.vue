@@ -212,7 +212,7 @@ const closeDialog = () => {
 
 <!-- Global form styles -->
 <style>
-@import '../styles/form-styles.css';
+@import "../styles/form-styles.css";
 </style>
 
 <style scoped>

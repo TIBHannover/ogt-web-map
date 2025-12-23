@@ -229,21 +229,6 @@ defineExpose({
     margin-bottom: 0.5rem;
 }
 
-.info-icon {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background-color: #1976d2;
-    color: white;
-    border: none;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
 .info-icon:hover {
     background-color: #1565c0;
 }
