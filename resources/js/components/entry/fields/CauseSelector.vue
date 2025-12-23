@@ -112,9 +112,9 @@
                         </div>
 
                         <!-- Vorschläge anzeigen -->
-                        <wikidata-suggestions
+                        <factgrid-suggestions
                             v-if="!isSearchLoading && !searchQuery.trim()"
-                            :q-ids="['Q1899269', 'Q22649']"
+                            :q-ids="['Q1787386', 'Q484817']"
                             endpoint="causes"
                             @select="onSelectCause"
                         />
@@ -155,7 +155,7 @@
 
 <script setup>
 import { ref } from "vue";
-import WikidataSuggestions from "./common/WikidataSuggestions.vue";
+import FactgridSuggestions from "./common/FactgridSuggestions.vue";
 
 const props = defineProps({
     cause: {

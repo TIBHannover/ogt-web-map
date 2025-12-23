@@ -214,25 +214,14 @@
                                 Keine Ergebnisse gefunden
                             </div>
 
-                            <wikidata-suggestions
+                            <factgrid-suggestions
                                 v-if="
                                     !isSearchLoading &&
                                     !searchQuery.trim() &&
                                     label === 'Täter*In *' &&
                                     !organizationMode
                                 "
-                                :q-ids="['Q106625639']"
-                                endpoint="people"
-                                @select="onSelectPerson"
-                            />
-                            <wikidata-suggestions
-                                v-if="
-                                    !isSearchLoading &&
-                                    !searchQuery.trim() &&
-                                    label === 'Täter*In *' &&
-                                    organizationMode
-                                "
-                                :q-ids="['Q380622']"
+                                :q-ids="['Q1060031']"
                                 endpoint="people"
                                 @select="onSelectPerson"
                             />
@@ -283,7 +272,7 @@
                                         "
                                         :href="`https://database.factgrid.de/entity/${person.id}`"
                                         target="_blank"
-                                        class="wikidata-link"
+                                        class="factgrid-link"
                                         @click.stop
                                     >
                                         <span class="grey-darken-1"
@@ -414,23 +403,23 @@
                                     props.label.toLowerCase().includes('täter'))
                             "
                         >
-                            <wikidata-selector
+                            <factgrid-selector
                                 v-model="newPersonLocal.employer"
                                 label="Arbeitgeber"
                                 dialog-title="Arbeitgeber auswählen"
                                 search-label="Organisation suchen..."
                                 :search-results="
-                                    wikidataSearchResults.employer || []
+                                    factgridSearchResults.employer || []
                                 "
-                                :is-loading="isWikidataSearchLoading.employer"
+                                :is-loading="isFactgridSearchLoading.employer"
                                 :search-performed="
-                                    wikidataSearchPerformed.employer
+                                    factgridSearchPerformed.employer
                                 "
                                 endpoint="people"
                                 @search="
-                                    searchWikidataItems('employer', $event)
+                                    searchFactgridItems('employer', $event)
                                 "
-                            ></wikidata-selector>
+                            ></factgrid-selector>
                         </div>
 
                         <!-- Geschlecht / Gender (P21) -->
@@ -468,144 +457,144 @@
                             v-if="!newPersonLocal.isOrganization"
                         >
                             <!-- Nationalität / Citizenship (P27) -->
-                            <wikidata-selector
+                            <factgrid-selector
                                 v-model="newPersonLocal.nationality"
                                 label="Staatsangehörigkeit"
                                 dialog-title="Staatsangehörigkeit auswählen"
                                 search-label="Land suchen..."
                                 :search-results="
-                                    wikidataSearchResults.nationality || []
+                                    factgridSearchResults.nationality || []
                                 "
                                 :is-loading="
-                                    isWikidataSearchLoading.nationality
+                                    isFactgridSearchLoading.nationality
                                 "
                                 :search-performed="
-                                    wikidataSearchPerformed.nationality
+                                    factgridSearchPerformed.nationality
                                 "
                                 endpoint="nationalities"
-                                :suggestions="['Q1206012', 'Q183']"
+                                :suggestions="['Q42406']"
                                 @search="
-                                    searchWikidataItems('nationality', $event)
+                                    searchFactgridItems('nationality', $event)
                                 "
-                            ></wikidata-selector>
+                            ></factgrid-selector>
 
                             <!-- Beruf / Occupation (P106) -->
-                            <wikidata-selector
+                            <factgrid-selector
                                 v-model="newPersonLocal.occupation"
                                 label="Beruf"
                                 dialog-title="Beruf auswählen"
                                 search-label="Beruf suchen..."
                                 :search-results="
-                                    wikidataSearchResults.occupation || []
+                                    factgridSearchResults.occupation || []
                                 "
-                                :is-loading="isWikidataSearchLoading.occupation"
+                                :is-loading="isFactgridSearchLoading.occupation"
                                 :search-performed="
-                                    wikidataSearchPerformed.occupation
+                                    factgridSearchPerformed.occupation
                                 "
                                 endpoint="occupations"
                                 @search="
-                                    searchWikidataItems('occupation', $event)
+                                    searchFactgridItems('occupation', $event)
                                 "
-                            ></wikidata-selector>
+                            ></factgrid-selector>
 
                             <!-- Wohnort / Place of Residence (P551) -->
-                            <wikidata-selector
+                            <factgrid-selector
                                 v-model="newPersonLocal.place_of_residence"
                                 label="Wohnort"
                                 dialog-title="Wohnort auswählen"
                                 search-label="Ort suchen..."
                                 :search-results="
-                                    wikidataSearchResults.place_of_residence ||
+                                    factgridSearchResults.place_of_residence ||
                                     []
                                 "
                                 :is-loading="
-                                    isWikidataSearchLoading.place_of_residence
+                                    isFactgridSearchLoading.place_of_residence
                                 "
                                 :search-performed="
-                                    wikidataSearchPerformed.place_of_residence
+                                    factgridSearchPerformed.place_of_residence
                                 "
                                 endpoint="places"
                                 @search="
-                                    searchWikidataItems(
+                                    searchFactgridItems(
                                         'place_of_residence',
                                         $event,
                                     )
                                 "
-                            ></wikidata-selector>
+                            ></factgrid-selector>
                             <!-- Geburtsort / Place of birth (P19) -->
-                            <wikidata-selector
+                            <factgrid-selector
                                 v-model="newPersonLocal.place_of_birth"
                                 label="Geburtsort"
                                 dialog-title="Geburtsort auswählen"
                                 search-label="Ort suchen..."
                                 :search-results="
-                                    wikidataSearchResults.place_of_birth || []
+                                    factgridSearchResults.place_of_birth || []
                                 "
                                 :is-loading="
-                                    isWikidataSearchLoading.place_of_birth
+                                    isFactgridSearchLoading.place_of_birth
                                 "
                                 :search-performed="
-                                    wikidataSearchPerformed.place_of_birth
+                                    factgridSearchPerformed.place_of_birth
                                 "
                                 endpoint="places"
                                 @search="
-                                    searchWikidataItems(
+                                    searchFactgridItems(
                                         'place_of_birth',
                                         $event,
                                     )
                                 "
-                            ></wikidata-selector>
+                            ></factgrid-selector>
 
                             <!-- Sterbeort / Place of death (P20) -->
-                            <wikidata-selector
+                            <factgrid-selector
                                 v-if="!hidePlaceOfDeath"
                                 v-model="newPersonLocal.place_of_death"
                                 label="Sterbeort"
                                 dialog-title="Sterbeort auswählen"
                                 search-label="Ort suchen..."
                                 :search-results="
-                                    wikidataSearchResults.place_of_death || []
+                                    factgridSearchResults.place_of_death || []
                                 "
                                 :is-loading="
-                                    isWikidataSearchLoading.place_of_death
+                                    isFactgridSearchLoading.place_of_death
                                 "
                                 :search-performed="
-                                    wikidataSearchPerformed.place_of_death
+                                    factgridSearchPerformed.place_of_death
                                 "
                                 endpoint="places"
                                 @search="
-                                    searchWikidataItems(
+                                    searchFactgridItems(
                                         'place_of_death',
                                         $event,
                                     )
                                 "
-                            ></wikidata-selector>
+                            ></factgrid-selector>
 
                             <!-- Haftort / Place of detention (P2632) -->
-                            <multiple-wikidata-selector
+                            <multiple-factgrid-selector
                                 v-if="!hidePlaceOfDetention"
                                 v-model="newPersonLocal.place_of_detention"
                                 label="Haftort(e)"
                                 dialog-title="Haftorte auswählen"
                                 search-label="Ort suchen..."
                                 :search-results="
-                                    wikidataSearchResults.place_of_detention ||
+                                    factgridSearchResults.place_of_detention ||
                                     []
                                 "
                                 :is-loading="
-                                    isWikidataSearchLoading.place_of_detention
+                                    isFactgridSearchLoading.place_of_detention
                                 "
                                 :search-performed="
-                                    wikidataSearchPerformed.place_of_detention
+                                    factgridSearchPerformed.place_of_detention
                                 "
                                 endpoint="places"
                                 @search="
-                                    searchWikidataItems(
+                                    searchFactgridItems(
                                         'place_of_detention',
                                         $event,
                                     )
                                 "
-                            ></multiple-wikidata-selector>
+                            ></multiple-factgrid-selector>
 
                             <!-- Image field -->
                             <div class="form-group">
@@ -656,10 +645,10 @@
 
 <script setup>
 import { ref, computed, watch, toRefs, nextTick, onMounted } from "vue";
-import WikidataSelector from "./common/WikidataSelector.vue";
-import MultipleWikidataSelector from "./common/MultipleWikidataSelector.vue";
+import FactgridSelector from "./common/FactgridSelector.vue";
+import MultipleFactgridSelector from "./common/MultipleFactgridSelector.vue";
 import GenderSelector from "./GenderSelector.vue";
-import WikidataSuggestions from "./common/WikidataSuggestions.vue";
+import FactgridSuggestions from "./common/FactgridSuggestions.vue";
 import ValidationError from "../../helpers/ValidationError.vue";
 import TextField from "./common/TextField.vue";
 import TextArea from "./common/TextArea.vue";
@@ -919,8 +908,8 @@ const {
     watchCallback: () => [props.selectedPersons],
 });
 
-// Wikidata search state
-const wikidataSearchResults = ref({
+// Factgrid search state
+const factgridSearchResults = ref({
     nationality: [],
     place_of_birth: [],
     place_of_death: [],
@@ -930,7 +919,7 @@ const wikidataSearchResults = ref({
     place_of_residence: [], // P551 Wohnort
 });
 
-const isWikidataSearchLoading = ref({
+const isFactgridSearchLoading = ref({
     nationality: false,
     place_of_birth: false,
     place_of_death: false,
@@ -940,7 +929,7 @@ const isWikidataSearchLoading = ref({
     place_of_residence: false, // P551 Wohnort
 });
 
-const wikidataSearchPerformed = ref({
+const factgridSearchPerformed = ref({
     nationality: false,
     place_of_birth: false,
     place_of_death: false,
@@ -1211,12 +1200,12 @@ const closeDialog = () => {
     }
 };
 
-// Wikidata search functions
-const searchWikidataItems = async (field, query, endpoint = null) => {
+// Factgrid search functions
+const searchFactgridItems = async (field, query, endpoint = null) => {
     if (!query || query.trim() === "") return;
 
-    isWikidataSearchLoading.value[field] = true;
-    wikidataSearchPerformed.value[field] = true;
+    isFactgridSearchLoading.value[field] = true;
+    factgridSearchPerformed.value[field] = true;
 
     try {
         // Bestimme den API-Endpunkt basierend auf dem Feldtyp
@@ -1247,7 +1236,7 @@ const searchWikidataItems = async (field, query, endpoint = null) => {
 
         // Verwende den entsprechenden API-Endpunkt
         const response = await fetch(
-            `/api/wikidata/search/${apiEndpoint}?query=${encodeURIComponent(query)}`,
+            `/api/factgrid/search/${apiEndpoint}?query=${encodeURIComponent(query)}`,
         );
 
         if (!response.ok) {
@@ -1262,10 +1251,10 @@ const searchWikidataItems = async (field, query, endpoint = null) => {
         }
 
         const data = await response.json();
-        handleWikidataResults(field, data);
+        handleFactgridResults(field, data);
     } catch (error) {
-        console.error(`Error searching Wikidata for ${field}:`, error);
-        wikidataSearchResults.value[field] = [];
+        console.error(`Error searching Factgrid for ${field}:`, error);
+        factgridSearchResults.value[field] = [];
 
         // Show error notification or feedback to the user
         const fieldDisplayNames = {
@@ -1280,7 +1269,7 @@ const searchWikidataItems = async (field, query, endpoint = null) => {
 
         const fieldName = fieldDisplayNames[field] || field;
         // Add an empty result with an error message that will be shown to the user
-        wikidataSearchResults.value[field] = [
+        factgridSearchResults.value[field] = [
             {
                 id: null,
                 label: `Fehler bei der Suche nach "${fieldName}"`,
@@ -1289,22 +1278,21 @@ const searchWikidataItems = async (field, query, endpoint = null) => {
             },
         ];
     } finally {
-        isWikidataSearchLoading.value[field] = false;
+        isFactgridSearchLoading.value[field] = false;
     }
 };
 
-const handleWikidataResults = (field, results) => {
+const handleFactgridResults = (field, results) => {
     // Check if results contains the success property and results array
     if (results && results.success === true && Array.isArray(results.results)) {
-        wikidataSearchResults.value[field] = results.results;
+        factgridSearchResults.value[field] = results.results;
     } else if (results && Array.isArray(results)) {
         // Support for legacy response format
-        wikidataSearchResults.value[field] = results;
+        factgridSearchResults.value[field] = results;
     } else {
         // Empty or invalid results
-        wikidataSearchResults.value[field] = [];
+        factgridSearchResults.value[field] = [];
     }
-    isWikidataSearchLoading.value[field] = false;
 };
 
 // Export the validation status for parent components
