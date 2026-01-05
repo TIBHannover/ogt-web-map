@@ -96,7 +96,9 @@
 
                     <!-- No results message -->
                     <div
-                        v-else-if="searchPerformed && searchResults.length === 0"
+                        v-else-if="
+                            searchPerformed && searchResults.length === 0
+                        "
                         class="pa-4 text-center"
                     >
                         Keine Ergebnisse gefunden
@@ -532,3 +534,4 @@ onMounted(() => {
     padding-top: 0;
     padding-bottom: 0;
 }
+</style>

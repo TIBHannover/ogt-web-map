@@ -101,7 +101,7 @@
                     :title="title"
                     :description="description"
                     :entry-type="props.entryType"
-                    :wikidata-results="wikidataResultsValue"
+                    :factgrid-results="factgridResultsValue"
                     @update:title="(val) => (title = val)"
                     @update:description="(val) => (description = val)"
                     @fieldFocus="setActiveField"
@@ -229,7 +229,7 @@
                             <v-icon>mdi-information-variant</v-icon>
                         </button>
                     </div>
-                    <MultipleWikidataSelector
+                    <MultipleFactgridSelector
                         v-model="keyEventValue"
                         label="Schlüsselereignis"
                         dialog-title="Schlüsselereignisse auswählen"
@@ -261,7 +261,7 @@
                             <v-icon>mdi-information-variant</v-icon>
                         </button>
                     </div>
-                    <MultipleWikidataSelector
+                    <MultipleFactgridSelector
                         v-model="directorValue"
                         label="Leitung"
                         dialog-title="Leitung auswählen"
@@ -286,7 +286,7 @@
                             <v-icon>mdi-information-variant</v-icon>
                         </button>
                     </div>
-                    <MultipleWikidataSelector
+                    <MultipleFactgridSelector
                         v-model="employeesValue"
                         label="Mitarbeitende"
                         dialog-title="Mitarbeitende auswählen"
@@ -354,7 +354,7 @@
                             <v-icon>mdi-information-variant</v-icon>
                         </button>
                     </div>
-                    <MultipleWikidataSelector
+                    <MultipleFactgridSelector
                         v-model="parentOrgValue"
                         label="Übergeordnete Organisation"
                         dialog-title="Übergeordnete Organisation auswählen"
@@ -384,7 +384,7 @@
                             <v-icon>mdi-information-variant</v-icon>
                         </button>
                     </div>
-                    <MultipleWikidataSelector
+                    <MultipleFactgridSelector
                         v-model="childOrgValue"
                         label="Nachgeordnete Organisation"
                         dialog-title="Nachgeordnete Organisation auswählen"
@@ -414,7 +414,7 @@
                             <v-icon>mdi-information-variant</v-icon>
                         </button>
                     </div>
-                    <MultipleWikidataSelector
+                    <MultipleFactgridSelector
                         v-model="predecessorOrgValue"
                         label="Vorgängerorganisation (zeitlich)"
                         dialog-title="Vorgängerorganisation auswählen"
@@ -444,7 +444,7 @@
                             <v-icon>mdi-information-variant</v-icon>
                         </button>
                     </div>
-                    <MultipleWikidataSelector
+                    <MultipleFactgridSelector
                         v-model="successorOrgValue"
                         label="Nachfolgeorganisation (zeitlich)"
                         dialog-title="Nachfolgeorganisation auswählen"
@@ -569,8 +569,8 @@ import BaseInfos from "./fields/BaseInfos.vue";
 import LocationSelector from "./fields/LocationSelector.vue";
 import TextField from "./fields/common/TextField.vue";
 import TimeSelector from "./fields/TimeSelector.vue";
-import WikidataSelector from "./fields/common/WikidataSelector.vue";
-import MultipleWikidataSelector from "./fields/common/MultipleWikidataSelector.vue";
+import FactgridSelector from "./fields/common/FactgridSelector.vue";
+import MultipleFactgridSelector from "./fields/common/MultipleFactgridSelector.vue";
 import IntegerQualifier from "./fields/common/IntegerQualifier.vue";
 import SourcesField from "./fields/SourcesField.vue";
 import WikimediaImageSelector from "./fields/WikimediaImageSelector.vue";
@@ -591,7 +591,7 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
-    wikidataResults: {
+    factgridResults: {
         type: Array,
         default: () => [],
     },
@@ -642,7 +642,7 @@ const props = defineProps({
 
 // Emits
 const emit = defineEmits([
-    "update:wikidataResults",
+    "update:factgridResults",
     "update:formsTitle",
     "update:formsDescription",
     "update:mapZoom",
@@ -959,10 +959,10 @@ const toggleGlossaryTextExpansion = () => {
     showFullGlossaryText.value = !showFullGlossaryText.value;
 };
 
-// Wikidata search results
-const wikidataResultsValue = computed({
-    get: () => props.wikidataResults,
-    set: (val) => emit("update:wikidataResults", val),
+// FactGrid search results
+const factgridResultsValue = computed({
+    get: () => props.factgridResults,
+    set: (val) => emit("update:factgridResults", val),
 });
 
 // Founding date
@@ -1196,9 +1196,66 @@ const onLocationValidation = (isValid) => {
     isLocationValid.value = isValid;
 };
 
-const handleSearchError = (error) => {
-    console.log("Location search error:", error);
-    // Optional: You can show a toast message or other UI notification here
+const handleSearchError = (fieldType, error) => {
+    console.log(`Search error for ${fieldType}:`, error);
+    // Create an error item to show in the results
+    return {
+        id: "error",
+        label: `Fehler bei der Suche nach "${fieldType}"`,
+        description:
+            "Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.",
+        isError: true,
+    };
+};
+
+// Helper function to extract API response from FactGrid
+const extractFactGridResults = (data) => {
+    console.log("Extracting results from:", data);
+
+    // Handle empty responses
+    if (!data) {
+        console.warn("Empty data received");
+        return [];
+    }
+
+    // Handle response format with results array (from our backend)
+    if (data.results && Array.isArray(data.results)) {
+        console.log("Found results array with", data.results.length, "items");
+        return data.results.map((item) => ({
+            id: item.id,
+            label:
+                item.label ||
+                item.title ||
+                item.display?.label?.value ||
+                "Unbenannt",
+            description:
+                item.description || item.display?.description?.value || "",
+        }));
+    }
+
+    // Handle different response formats
+    if (data.search && Array.isArray(data.search)) {
+        console.log("Found search array with", data.search.length, "items");
+        return data.search.map((item) => ({
+            id: item.id,
+            label:
+                item.label ||
+                item.title ||
+                item.display?.label?.value ||
+                "Unbenannt",
+            description:
+                item.description || item.display?.description?.value || "",
+        }));
+    }
+
+    if (Array.isArray(data)) {
+        console.log("Data is already an array with", data.length, "items");
+        return data;
+    }
+
+    // Unknown format
+    console.warn("Unknown data format:", typeof data);
+    return [];
 };
 
 const onSourcesValidation = (isValid) => {
@@ -1478,145 +1535,245 @@ const onSubmit = () => {
     }
 };
 
-// Search Wikidata functions
+// Search FactGrid functions
 const onSearchKeyEvent = async (query) => {
-    if (!query) return;
-
     isKeyEventSearchLoading.value = true;
     keyEventSearchPerformed.value = true;
 
     try {
         const response = await axios.get(
-            `/api/wikidata/search/commemorates?query=${encodeURIComponent(query)}`,
+            `/api/factgrid/search/organizations?query=${encodeURIComponent(query)}`,
         );
-        keyEventSearchResultsValue.value = response.data;
+
+        // Debug: Log the actual response structure
+        console.log(
+            "FactGrid response (events):",
+            JSON.stringify(response.data),
+        );
+
+        // Use the extraction function to process the response
+        keyEventSearchResultsValue.value = extractFactGridResults(
+            response.data,
+        );
+        console.log(
+            "Processed key event results:",
+            keyEventSearchResultsValue.value,
+        );
     } catch (error) {
-        console.error("Error searching key events:", error);
-        keyEventSearchResultsValue.value = [];
+        console.error("Error searching events:", error);
+        keyEventSearchResultsValue.value = [
+            handleSearchError("Schlüsselereignis", error),
+        ];
     } finally {
         isKeyEventSearchLoading.value = false;
     }
 };
 
 const onSearchDirector = async (query) => {
-    if (!query) return;
-
     isDirectorSearchLoading.value = true;
     directorSearchPerformed.value = true;
 
     try {
         const response = await axios.get(
-            `/api/wikidata/search/people?query=${encodeURIComponent(query)}`,
+            `/api/factgrid/search/people?query=${encodeURIComponent(query)}`,
         );
-        directorSearchResultsValue.value = response.data;
+
+        // Debug: Log the actual response structure
+        console.log(
+            "FactGrid response (director):",
+            JSON.stringify(response.data),
+        );
+
+        // Use the extraction function to process the response
+        directorSearchResultsValue.value = extractFactGridResults(
+            response.data,
+        );
+        console.log(
+            "Processed director results:",
+            directorSearchResultsValue.value,
+        );
     } catch (error) {
-        console.error("Error searching director:", error);
-        directorSearchResultsValue.value = [];
+        console.error("Error searching people:", error);
+        directorSearchResultsValue.value = [
+            handleSearchError("Leitung", error),
+        ];
     } finally {
         isDirectorSearchLoading.value = false;
     }
 };
 
 const onSearchEmployees = async (query) => {
-    if (!query) return;
-
     isEmployeesSearchLoading.value = true;
     employeesSearchPerformed.value = true;
 
     try {
-        // For quantity fields, we use the people search endpoint like victim/perpetrator fields
         const response = await axios.get(
-            `/api/wikidata/search/people?query=${encodeURIComponent(query)}`,
+            `/api/factgrid/search/people?query=${encodeURIComponent(query)}`,
         );
-        employeesSearchResultsValue.value =
-            response.data.length > 0
-                ? response.data
-                : [
-                      {
-                          id: query,
-                          label: query,
-                          description: "Anzahl der Mitarbeitenden",
-                      },
-                  ];
+
+        // Debug: Log the actual response structure
+        console.log(
+            "FactGrid response (employees):",
+            JSON.stringify(response.data),
+        );
+
+        // Use the extraction function to process the response
+        employeesSearchResultsValue.value = extractFactGridResults(
+            response.data,
+        );
+        console.log(
+            "Processed employees results:",
+            employeesSearchResultsValue.value,
+        );
+
+        // If no results, add a default entry
+        if (employeesSearchResultsValue.value.length === 0 && query) {
+            employeesSearchResultsValue.value = [
+                {
+                    id: query,
+                    label: query,
+                    description: "Anzahl der Mitarbeitenden",
+                },
+            ];
+            console.log("Added default entry for employees");
+        }
     } catch (error) {
         console.error("Error searching employees:", error);
-        employeesSearchResultsValue.value = [];
+        employeesSearchResultsValue.value = [
+            handleSearchError("Mitarbeitende", error),
+        ];
     } finally {
         isEmployeesSearchLoading.value = false;
     }
 };
 
 const onSearchParentOrg = async (query) => {
-    if (!query) return;
-
     isParentOrgSearchLoading.value = true;
     parentOrgSearchPerformed.value = true;
 
     try {
         const response = await axios.get(
-            `/api/wikidata/search/organizations?query=${encodeURIComponent(query)}`,
+            `/api/factgrid/search/organizations?query=${encodeURIComponent(query)}`,
         );
-        parentOrgSearchResultsValue.value = response.data;
+
+        // Debug: Log the actual response structure
+        console.log(
+            "FactGrid response (parent org):",
+            JSON.stringify(response.data),
+        );
+
+        // Use the extraction function to process the response
+        parentOrgSearchResultsValue.value = extractFactGridResults(
+            response.data,
+        );
+        console.log(
+            "Processed parent org results:",
+            parentOrgSearchResultsValue.value,
+        );
     } catch (error) {
-        console.error("Error searching parent organization:", error);
-        parentOrgSearchResultsValue.value = [];
+        console.error("Error searching parent organizations:", error);
+        parentOrgSearchResultsValue.value = [
+            handleSearchError("Übergeordnete Organisation", error),
+        ];
     } finally {
         isParentOrgSearchLoading.value = false;
     }
 };
 
 const onSearchChildOrg = async (query) => {
-    if (!query) return;
-
     isChildOrgSearchLoading.value = true;
     childOrgSearchPerformed.value = true;
 
     try {
         const response = await axios.get(
-            `/api/wikidata/search/organizations?query=${encodeURIComponent(query)}`,
+            `/api/factgrid/search/organizations?query=${encodeURIComponent(query)}`,
         );
-        childOrgSearchResultsValue.value = response.data;
+
+        // Debug: Log the actual response structure
+        console.log(
+            "FactGrid response (child org):",
+            JSON.stringify(response.data),
+        );
+
+        // Use the extraction function to process the response
+        childOrgSearchResultsValue.value = extractFactGridResults(
+            response.data,
+        );
+        console.log(
+            "Processed child org results:",
+            childOrgSearchResultsValue.value,
+        );
     } catch (error) {
-        console.error("Error searching child organization:", error);
-        childOrgSearchResultsValue.value = [];
+        console.error("Error searching child organizations:", error);
+        childOrgSearchResultsValue.value = [
+            handleSearchError("Nachgeordnete Organisation", error),
+        ];
     } finally {
         isChildOrgSearchLoading.value = false;
     }
 };
 
 const onSearchPredecessorOrg = async (query) => {
-    if (!query) return;
-
     isPredecessorOrgSearchLoading.value = true;
     predecessorOrgSearchPerformed.value = true;
 
     try {
         const response = await axios.get(
-            `/api/wikidata/search/organizations?query=${encodeURIComponent(query)}`,
+            `/api/factgrid/search/organizations?query=${encodeURIComponent(query)}`,
         );
-        predecessorOrgSearchResultsValue.value = response.data;
+
+        // Debug: Log the actual response structure
+        console.log(
+            "FactGrid response (predecessor):",
+            JSON.stringify(response.data),
+        );
+
+        // Use the extraction function to process the response
+        predecessorOrgSearchResultsValue.value = extractFactGridResults(
+            response.data,
+        );
+        console.log(
+            "Processed predecessor results:",
+            predecessorOrgSearchResultsValue.value,
+        );
     } catch (error) {
-        console.error("Error searching predecessor organization:", error);
-        predecessorOrgSearchResultsValue.value = [];
+        console.error("Error searching predecessor organizations:", error);
+        predecessorOrgSearchResultsValue.value = [
+            handleSearchError("Vorgängerorganisation", error),
+        ];
     } finally {
         isPredecessorOrgSearchLoading.value = false;
     }
 };
 
 const onSearchSuccessorOrg = async (query) => {
-    if (!query) return;
-
     isSuccessorOrgSearchLoading.value = true;
     successorOrgSearchPerformed.value = true;
 
     try {
         const response = await axios.get(
-            `/api/wikidata/search/organizations?query=${encodeURIComponent(query)}`,
+            `/api/factgrid/search/organizations?query=${encodeURIComponent(query)}`,
         );
-        successorOrgSearchResultsValue.value = response.data;
+
+        // Debug: Log the actual response structure
+        console.log(
+            "FactGrid response (successor):",
+            JSON.stringify(response.data),
+        );
+
+        // Use the extraction function to process the response
+        successorOrgSearchResultsValue.value = extractFactGridResults(
+            response.data,
+        );
+        console.log(
+            "Processed successor results:",
+            successorOrgSearchResultsValue.value,
+        );
     } catch (error) {
-        console.error("Error searching successor organization:", error);
-        successorOrgSearchResultsValue.value = [];
+        console.error("Error searching successor organizations:", error);
+        successorOrgSearchResultsValue.value = [
+            handleSearchError("Nachfolgeorganisation", error),
+        ];
     } finally {
         isSuccessorOrgSearchLoading.value = false;
     }
